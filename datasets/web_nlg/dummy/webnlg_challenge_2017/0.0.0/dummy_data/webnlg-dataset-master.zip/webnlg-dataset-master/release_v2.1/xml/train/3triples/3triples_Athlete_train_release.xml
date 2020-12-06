@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | birthYear | "1986"^^xsd:gYear</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Regina,_Saskatchewan</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthYear | 1986</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Regina,_Saskatchewan</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard, who played for Wichita Thunder club, was born in 1986 in Regina, Saskatchewan.</lex>
+      <lex comment="good" lid="Id2">Wichita Thunder player, Aaron Boogaard, was born in Regina, Saskatchewan, in 1986.</lex>
+      <lex comment="good" lid="Id3">Wichita Thunder member, Aaron Boogaard, was born in 1986, in Regina, Saskatchewan.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | birthYear | "1986"^^xsd:gYear</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Canada</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthYear | 1986</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Canada</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Canada in 1986, Aaron Boogaard played for the club Wichita Thunder.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard, whose club is Wichita Thunder, was born in 1986 in Canada.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard, who played for the club Wichita Thunder, was born in Canada in 1986.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | birthYear | "1986"^^xsd:gYear</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Saskatchewan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthYear | 1986</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Saskatchewan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard, who played for the club Wichita Thunder, was born in Saskatchewan in 1986.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard was born in 1986 in Saskatchewan and he plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard was born in 1986 in Saskatchewan. His club is Wichita Thunder.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | height | "1.905"^^xsd:double</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Canada</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | height | 1.905</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Canada</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Canada, Aaron Boogaard is 1.905 metres tall and plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard, height 1.905 metres, was born in Canada and plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard was born in Canada and is 1.905m in height and is a member of the Wichita Thunders.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | height | "1.905"^^xsd:double</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Saskatchewan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | height | 1.905</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Saskatchewan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Saskatchewan born, Aaron Boogaard, is 1.905m high and plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard was born in Saskatchewan and is 1.905 tall. He plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard, who is 1.905m tall, was born in Saskatchewan and his club is Wichita Thunder.</lex>
+    </entry>
+    </entries>
+</benchmark>

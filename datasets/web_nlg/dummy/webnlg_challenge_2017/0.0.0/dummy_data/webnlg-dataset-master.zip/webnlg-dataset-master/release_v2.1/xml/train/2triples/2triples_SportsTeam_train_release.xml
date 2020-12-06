@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | Austria_national_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | Austria_national_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stoger is manager of 1. FC Koln and plays for the Austria national football team.</lex>
+      <lex comment="good" lid="Id2">Peter Stoger is the manager of FC Koln and plays for the Austria national football team.</lex>
+      <lex comment="good" lid="Id3">Peter Stöger is manager of 1. FC Köln and plays for the Austria National Football team.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | FK_Austria_Wien</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | FK_Austria_Wien</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stöger is at the FK Austria Wien club and manages 1 FC Koln.</lex>
+      <lex comment="good" lid="Id2">The manager of 1. FC Koln is Peter Stoger who plays for FK Austria Wien.</lex>
+      <lex comment="good" lid="Id3">Peter Stoger is the manager of FC Koln as well as being a member of the FK Austria Wien soccer club.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | LASK_Linz</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | LASK_Linz</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stöger is manager of 1. FC Köln and plays for LASK Linz.</lex>
+      <lex comment="good" lid="Id2">The manager of 1. FC Koln is Peter Stoger, who plays for LASK Linz.</lex>
+      <lex comment="good" lid="Id3">Peter Stoger is the manager of FC Koln and played for the club LASK Linz.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | capacity | "50000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+        <mtriple>1._FC_Köln | season | 2014–15_Bundesliga</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">FC Köln played the 2014-15 season in the Bundesliga, the team has 50000 members.</lex>
+      <lex comment="good" lid="Id2">1. FC Köln has 50000 members and played the 2014-15 season in the Bundesliga.</lex>
+      <lex comment="good" lid="Id3">1. FC Köln has 50000 members and were in the 2014–15 Bundesliga season.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+        <otriple>1._FC_Köln | capacity | "50000"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | season | 2014</mtriple>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1. FC Köln has 50000 members and played in the 2014 season.</lex>
+      <lex comment="good" lid="Id2">2014 saw 1. FC Koln participating, and they have 50000 members.</lex>
+      <lex comment="good" lid="Id3">2014 saw 1. FC Koln, with 50000 members, participating.</lex>
+    </entry>
+    </entries>
+</benchmark>

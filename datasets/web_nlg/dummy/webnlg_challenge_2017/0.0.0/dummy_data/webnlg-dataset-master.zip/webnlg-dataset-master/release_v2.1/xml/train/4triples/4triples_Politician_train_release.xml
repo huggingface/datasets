@@ -1,0 +1,88 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | Massachusetts</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | Massachusetts</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett was born in Greene, Maine and he died in Massachusetts. He fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett was born in Greene Maine and died in Massachusetts. He fought in the Battle of Gettysburg and awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett was born in Greene, Maine and died in Massachusetts. He took part in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | Massachusetts</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | Massachusetts</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett was born in Maine and he died in Massachusetts. He fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett was born in Maine and died in Massachusetts. He fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett was born in Maine, fought at the Battle of Gettysburg and was awarded the Purple Heart. He died in Massachusetts.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | West_Roxbury</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | West_Roxbury</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett was born in Greene Maine and he died in West Roxbury. He fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett was born in Greene, Maine and he died in West Roxbury. He fought at the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett was born in Greene, Maine and died in West Roxbury. Mr. Daggett was given the Purple Heart award and fought in the Battle of Gettysburg.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | West_Roxbury</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | West_Roxbury</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett was born in Maine and died in West Roxbury. He fought in the Battle of Gettysburg and given the Purple Heart award.</lex>
+      <lex comment="good" lid="Id2">Aaron S Daggett (of Maine) fought at the Battle of Gettysburg and was awarded the Purple Heart. He died in West Roxbury.</lex>
+      <lex comment="good" lid="Id3">Maine born Aaron S Daggett, who died in West Roxbury, fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_the_Wilderness</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | Massachusetts</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_the_Wilderness</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | Massachusetts</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett was born in Maine and he died in Massachusetts. He fought in the Battle of the Wilderness and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett, who was born in Maine and died in Massachusetts, has fought in the Battle of the Wilderness and was awarded the Purple Heart.</lex>
+    </entry>
+    </entries>
+</benchmark>

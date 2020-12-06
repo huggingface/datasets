@@ -1,0 +1,68 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id5" size="2">
+			<originaltripleset>
+				<otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+				<otriple>Aarhus_Airport | runwayLength | "2701.75"^^xsd:double</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+				<mtriple>Aarhus_Airport | runwayLength | 2702.0</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</striple>
+						<striple>Aarhus_Airport | runwayLength | 2702.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="&quot;Aarhus Lufthavn A/S&quot;" number="1" tag="PATIENT-1" type="name">Aarhus Lufthavn A/S</reference>
+					<reference entity="Aarhus_Airport" number="2" tag="AGENT-1" type="name">Aarhus Airport</reference>
+					<reference entity="2702.0" number="3" tag="PATIENT-2" type="name">2702.0</reference>
+				</references>
+				<text>Aarhus Lufthavn A/S is the operation organisation of Aarhus Airport which has a runway length of 2702.0.</text>
+				<template>PATIENT-1 is the operation organisation of AGENT-1 which has a runway length of PATIENT-2 .</template>
+				<lexicalization>PATIENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be DT[form=defined] the operation organisation of AGENT-1 which VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway length of PATIENT-2 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</striple>
+						<striple>Aarhus_Airport | runwayLength | 2702.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Aarhus_Airport" number="1" tag="AGENT-1" type="name">Aarhus Airport</reference>
+					<reference entity="&quot;Aarhus Lufthavn A/S&quot;" number="2" tag="PATIENT-1" type="name">Aarhus Lufthavn A/S</reference>
+					<reference entity="Aarhus_Airport" number="3" tag="AGENT-1" type="pronoun">its</reference>
+					<reference entity="2702.0" number="4" tag="PATIENT-2" type="name">2702.0</reference>
+				</references>
+				<text>Aarhus Airport is operated by Aarhus Lufthavn A/S, and its runway length is 2702.0.</text>
+				<template>AGENT-1 is operated by PATIENT-1 , and AGENT-1 runway length is PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] operate by PATIENT-1 , and AGENT-1 runway length VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-2 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</striple>
+						<striple>Aarhus_Airport | runwayLength | 2702.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Aarhus_Airport" number="1" tag="AGENT-1" type="name">Aarhus Airport</reference>
+					<reference entity="&quot;Aarhus Lufthavn A/S&quot;" number="2" tag="PATIENT-1" type="name">Aarhus Lufthavn A/S</reference>
+					<reference entity="2702.0" number="3" tag="PATIENT-2" type="name">2702.0</reference>
+				</references>
+				<text>Aarhus Airport is operated by Aarhus Lufthavn A/S and has a runway length of 2702.0.</text>
+				<template>AGENT-1 is operated by PATIENT-1 and has a runway length of PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] operate by PATIENT-1 and VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway length of PATIENT-2 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus_Airport</entity>
+				<entity>PATIENT-1 | "Aarhus Lufthavn A/S"</entity>
+				<entity>PATIENT-2 | 2702.0</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

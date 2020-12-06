@@ -1,0 +1,122 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1101_Clematis | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>1101_Clematis | formerName | "1928 SJ"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1101_Clematis | formerName | "1928 SJ"@en</otriple>
+        <otriple>1101_Clematis | epoch | "2006-12-31"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1101_Clematis | formerName | "1928 SJ"</mtriple>
+        <mtriple>1101_Clematis | epoch | 2006-12-31</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The epoch of 1101 Clematis is on the 31st of July 2016 and its former name was "1928 SJ".</lex>
+      <lex lang="ru" lid="Id1">Эпоха 1101 Клематиса - 31 июля 2016 года и его прежнее название - "1928 SJ".</lex>
+      <lex lang="en" lid="Id2">The epoch of 1101 Clematis-formerly known as "1928 SJ" is 31 December 2006.</lex>
+      <lex lang="ru" lid="Id2">Эпоха 1101 Клематиса, ранее известного как "1928 SJ", - 31 декабря 2006 года.</lex>
+      <lex lang="en" lid="Id3">1928 SJ was the former name of 1101 Clematis, which has an epoch date of December 31st 2006.</lex>
+      <lex lang="ru" lid="Id3">1928 SJ было прежним названием 1101 Клематиса, который имеет эпоху 31 декабря 2006 года.</lex>
+      <links>
+        <link direction="en2ru">1928 SJ | sameAs | 1929 SJ</link>
+        <link direction="en2ru">1101 Clematis | sameAs | 1101 Клематис</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1101_Clematis | mass | "5.7"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>1101_Clematis | Planet/apoapsis | "5.20906E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1101_Clematis | Planet/mass | "5.7"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>1101_Clematis | Planet/apoapsis | "5.20906E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1101_Clematis | mass | "5700.0"^^xsd:double</otriple>
+        <otriple>1101_Clematis | Planet/apoapsis | "5.20906E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1101_Clematis | mass | 5.7 (kilograms)</mtriple>
+        <mtriple>1101_Clematis | apoapsis | 520906000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1101 Clematis has a mass of 5.7 kilograms and an apoapsis of 520906000.0 km.</lex>
+      <lex lang="ru" lid="Id1">1101 Клематис имеет массу 5,7 килограмма и апоапсиду 520906000,0 километров.</lex>
+      <lex lang="en" lid="Id2">At a mass of 5.7 kgs, 1101 Clematis, has an apoapsis of 520906000.0 kilometres.</lex>
+      <lex lang="ru" lid="Id2">При массе 5,7 килограмма, 1101 Клематис имеет апоапсиду 520906000,0 километров.</lex>
+      <links>
+        <link direction="en2ru">1101 Clematis | sameAs | 1101 Клематис</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1101_Clematis | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>1101_Clematis | orbitalPeriod | 1.83309e+08</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1101_Clematis | orbitalPeriod | 1.83309e+08</otriple>
+        <otriple>1101_Clematis | epoch | "2006-12-31"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1101_Clematis | orbitalPeriod | 183309000.0</mtriple>
+        <mtriple>1101_Clematis | epoch | 2006-12-31</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1101 Clematis, has an orbital period of 183309000.0, and an epoch date of December 31st 2006.</lex>
+      <lex lang="ru" lid="Id1">1101 Клематис имеет орбитальный период 183309000,0 и эпоху 31 декабря 2006 года.</lex>
+      <lex lang="en" lid="Id2">The epoch of 1101 Clematis is 31 December 2006 and it has an orbital period of 183309000.0.</lex>
+      <lex lang="ru" lid="Id2">Эпоха 1101 Клематиса - 31 декабря 2006 года, и он имеет орбитальный период 183309000,0.</lex>
+      <links>
+        <link direction="en2ru">1101 Clematis | sameAs | 1101 Клематис</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>110_Lydia | Planet/averageSpeed | "17.99"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>110_Lydia | Planet/apoapsis | "4.40756E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>110_Lydia | avgSpeed | "17.99"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>110_Lydia | Planet/apoapsis | "4.40756E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>110_Lydia | Planet/apoapsis | "4.40756E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>110_Lydia | averageSpeed | "64764.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>110_Lydia | apoapsis | 440756000.0 (kilometres)</mtriple>
+        <mtriple>110_Lydia | averageSpeed | 17.99 (kilometrePerSeconds)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">110 Lydia has an apoapsis of 440756000.0 kilometres and travels at an average speed of 17.99 kmps.</lex>
+      <lex lang="ru" lid="Id1">(110) Лидия имеет апоапсиду 440756000,0 километров и путешествует со средней орбитальной скоростью 17,99 километра в секунду.</lex>
+      <lex lang="en" lid="Id2">110 Lydia travels at an average speed of 17.99 kmps and has an apoapsis of 440756000.0 (kilometres).</lex>
+      <lex lang="ru" lid="Id2">(110) Лидия путешествует со средней скоростью 17,99 км/c и имеет апоцентр 440756000,0 (километров).</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">110_Lydia | sameAs | (110)_Лидия</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>110_Lydia | temperature | "168.0"^^xsd:double</otriple>
+        <otriple>110_Lydia | Planet/apoapsis | "4.40756E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>110_Lydia | Planet/apoapsis | "4.40756E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>110_Lydia | Planet/temperature | "168.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>110_Lydia | apoapsis | 440756000.0 (kilometres)</mtriple>
+        <mtriple>110_Lydia | temperature | 168.0 (kelvins)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">110 Lydia, with a temperature of 168.0 kelvins, has an apoapsis of 440756000.0 (kilometres).</lex>
+      <lex lang="ru" lid="Id1">(110) Лидия с температурой 168,0 Кельвинов имеет апоцентр 440756000,0 (километров).</lex>
+      <lex lang="en" lid="Id2">The asteroid 110 Lydia, has a temperature of 168.0 kelvins, and an apoapsis of 440756000.0 kilometres.</lex>
+      <lex lang="ru" lid="Id2">Астероид (110) Лидия имеет температуру 168,0 кельвина и апоцентр 440756000,0 километра.</lex>
+      <lex lang="en" lid="Id3">110 Lydia has a temperature of 168 kelvins and its apoapsis is 440756000.0 kilometres.</lex>
+      <lex lang="ru" lid="Id3">(110) Лидия имеет температуру 168 кельвинов, а её апоапсида - 440756000,0 километров.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">110_Lydia | sameAs | (110)_Лидия</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,58 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Eric Flint is the author of 1634: The Bavarian Crisis.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis was written by Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | The_Grantville_Gazettes</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian crisis is the sequel to The Grantville Gazettes.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis is preceded by The Grantville Gazettes.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | subsequentWork | 1635:_The_Cannon_Law</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | followedBy | 1635:_The_Cannon_Law</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion was followed by 1635: The Cannon Law.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion is followed by 1635: The Cannon Law.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIP_Advances | eissn | 2158</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIP_Advances | EISSN_number | 2158</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIP Advances had the EISSNnumber 2158.</lex>
+      <lex comment="good" lid="Id2">The EISSN number of AIP Advances is 2158.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | mediaType | Hardcover</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Fortress_of_Grey_Ice | mediaType | Hardcover</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Fortress of Grey Ice is a hardcover book.</lex>
+      <lex comment="good" lid="Id2">A Fortress of Grey Ice was made in hardcover.</lex>
+      <lex comment="good" lid="Id3">A Fortress of Grey Ice was produced in Hardcover.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,110 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | epoch | 2006-12-31</mtriple>
+        <mtriple>(19255)_1994_VK8 | orbitalPeriod | 8788850000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | periapsis | 6155910000000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | apoapsis | 6603633000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The epoch of (19255) 1994 VK8 is on 31 December 2006. It has an orbital period of 8788850000.0, a periapsis of 6155910000000.0 and an apoapsis of 6603633000.0 km.</lex>
+      </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1000_Piazzia | escapeVelocity | "90.72"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | orbitalPeriod | "488160.0"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | periapsis | 3.52497e+11</otriple>
+        <otriple>1000_Piazzia | epoch | "2015-06-27"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1000_Piazzia | epoch | "27 June 2015 (JD2457200.5)"</otriple>
+        <otriple>1000_Piazzia | escapeVelocity | "90.72"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | orbitalPeriod | "488160.0"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | periapsis | 3.52497e+11</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1000_Piazzia | orbitalPeriod | "488160.0"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | periapsis | 3.52497e+11</otriple>
+        <otriple>1000_Piazzia | epoch | "2015-06-27"^^xsd:date</otriple>
+        <otriple>1000_Piazzia | escapeVelocity | "0.0252"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1000_Piazzia | epoch | "27 June 2015 (JD2457200.5)"</otriple>
+        <otriple>1000_Piazzia | orbitalPeriod | "488160.0"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | periapsis | 3.52497e+11</otriple>
+        <otriple>1000_Piazzia | escapeVelocity | "0.0252"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1000_Piazzia | epoch | 2015-06-27</mtriple>
+        <mtriple>1000_Piazzia | orbitalPeriod | 488160.0</mtriple>
+        <mtriple>1000_Piazzia | periapsis | 352497000000.0</mtriple>
+        <mtriple>1000_Piazzia | escapeVelocity | 0.0252 (kilometrePerSeconds)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The dark asteroid called 1000 Piazzia has an orbital period of 488160.0 and its epoch is 2015-06-27. Additionally, it has periapsis of 352497000000.0 and an escape velocity of 0.0252 kilometres per second.</lex>
+      <lex comment="good" lid="Id2">The epoch of 1000 Piazzia is 2015-06-27. It has an escape velocity of 0.0252 km/sec, a periapsis of 352497000000.0 and an orbital period of 488160.0.</lex>
+      <lex comment="good" lid="Id3">The dark asteroid 1000 Piazzia has a periapsis is 352497000000.0 and an escape velocity of 0.0252 km/sec. It has an orbital period of 488160 and an epoch of 27th June 2015.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1036_Ganymed | discoverer | Walter_Baade</otriple>
+        <otriple>Walter_Baade | birthPlace | German_Empire</otriple>
+        <otriple>Walter_Baade | almaMater | University_of_Göttingen</otriple>
+        <otriple>Walter_Baade | doctoralStudent | Allan_Sandage</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1036_Ganymed | discoverer | Walter_Baade</mtriple>
+        <mtriple>Walter_Baade | birthPlace | German_Empire</mtriple>
+        <mtriple>Walter_Baade | almaMater | University_of_Göttingen</mtriple>
+        <mtriple>Walter_Baade | doctoralStudent | Allan_Sandage</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">German Empire born Walter Baade, who studied at the University of Gottingen, was the discoverer of 1036 Ganymed. One of his doctoral students was Allan Sandage.</lex>
+      <lex comment="good" lid="Id2">1036 Ganymed was discovered by Walter Baade whose alma mater was the University of Gottingen. He had a doctoral student named Allan Sandage. Mr. Baade was born in Germany.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1036_Ganymed | discoverer | Walter_Baade</otriple>
+        <otriple>Walter_Baade | doctoralStudent | Halton_Arp</otriple>
+        <otriple>Walter_Baade | deathPlace | West_Germany</otriple>
+        <otriple>Walter_Baade | almaMater | University_of_Göttingen</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1036_Ganymed | discoverer | Walter_Baade</mtriple>
+        <mtriple>Walter_Baade | doctoralStudent | Halton_Arp</mtriple>
+        <mtriple>Walter_Baade | deathPlace | West_Germany</mtriple>
+        <mtriple>Walter_Baade | almaMater | University_of_Göttingen</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Walter Baade, who had the doctoral student Halton Arp, was the discoverer of 1036 Ganymed. He studied at the University of Gottingen and died in West Germany.</lex>
+      <lex comment="good" lid="Id2">Walter Baade, who had a doctoral student named Halton Arp, discovered 1036 Ganymed. He had graduated from the University of Gottingen and later died in West Germany.</lex>
+      <lex comment="good" lid="Id3">Halton Arp was a doctoral student of Walter Baade, the discoverer of 1036 Ganymed, who studied at the university of Gottingen, and who died in West Germany.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>103_Hera | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | education | University_of_Michigan</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+        <otriple>James_Craig_Watson | deathCause | Peritonitis</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Hera | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | almaMater | University_of_Michigan</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+        <mtriple>James_Craig_Watson | deathCause | Peritonitis</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The discoverer of 103 Hera, James Craig Watson, alma mater was the University of Michigan. He died in Madison, Wisconsin of peritonitis.</lex>
+      <lex comment="good" lid="Id2">James Craig Watson was the discoverer of 103 Hera. His Alma mater is the University of Michigan and he died in Madison, Wisconsin of peritonitis.</lex>
+      <lex comment="good" lid="Id3">The discoverer of 103 Hera, James Craig Watson's, Alma mater is the University of Michigan. James died in Madison, Wisconsin of peritonitis.</lex>
+    </entry>
+    </entries>
+</benchmark>

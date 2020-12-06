@@ -1,0 +1,141 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedBand | Old_Man_Gloom</otriple>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Lotus_Eaters_(band)</otriple>
+        <otriple>Aaron_Turner | genre | Black_metal</otriple>
+        <otriple>Aaron_Turner | hometown | United_States</otriple>
+        <otriple>Aaron_Turner | activeYearsStartYear | "1995"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Old_Man_Gloom</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Lotus_Eaters_(band)</mtriple>
+        <mtriple>Aaron_Turner | genre | Black_metal</mtriple>
+        <mtriple>Aaron_Turner | origin | United_States</mtriple>
+        <mtriple>Aaron_Turner | activeYearsStartYear | 1995</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner, whose origin is the United States, started performing in 1995. Aaron Turner; performs black metal music, played for Old Man Gloom and is a musician in the Lotus Eaters band.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner came from the U.S. He is a Black metal musician who started performing in 1995. He plays in the Lotus Eaters band having previously performed with Old Man Gloom.</lex>
+      <lex comment="good" lid="Id3">Black Metal musician and United States born Aaron Turner started his career in 1995. He is associated with the bands Old Man Gloom and the Lotus Eaters.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abradab | associatedBand | Magik_(rapper)</otriple>
+        <otriple>Abradab | associatedMusicalArtist | Kaliber_44</otriple>
+        <otriple>Abradab | birthPlace | Katowice</otriple>
+        <otriple>Abradab | placeOfBirth | Poland</otriple>
+        <otriple>Abradab | dateOfBirth | "1978-11-12"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abradab | associatedBand | Magik_(rapper)</otriple>
+        <otriple>Abradab | associatedMusicalArtist | Kaliber_44</otriple>
+        <otriple>Abradab | birthPlace | Poland</otriple>
+        <otriple>Abradab | dateOfBirth | "1978-11-12"^^xsd:date</otriple>
+        <otriple>Abradab | placeOfBirth | Katowice</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | associatedBand/associatedMusicalArtist | Magik_(rapper)</mtriple>
+        <mtriple>Abradab | associatedBand/associatedMusicalArtist | Kaliber_44</mtriple>
+        <mtriple>Abradab | birthPlace | Katowice</mtriple>
+        <mtriple>Abradab | birthPlace | Poland</mtriple>
+        <mtriple>Abradab | birthDate | 1978-11-12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abradab was born in Katowice, Poland on Novembe 12, 1978. He played with Kaliber 44 and is associated with the rapper Magik.</lex>
+      <lex comment="good" lid="Id2">Abradab was born in Katowice, Poland on 12 November 1978. He is associated with the rapper Magik and played with the Kaliber 44 band.</lex>
+      <lex comment="good" lid="Id3">Abradab was born on November 12th 1978, in Katowice, Poland. He is an artist for the band Kaliber 44 and is associated with the rapper Magik.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | occupation | Songwriter</otriple>
+        <otriple>Ace_Wilder | birthPlace | Stockholm</otriple>
+        <otriple>Ace_Wilder | birthDate | "1982-07-23"^^xsd:date</otriple>
+        <otriple>Ace_Wilder | background | "solo_singer"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | background | "solo_singer"</otriple>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | occupation | Songwriter</otriple>
+        <otriple>Ace_Wilder | birthPlace | Stockholm</otriple>
+        <otriple>Ace_Wilder | birthDate | "1982-07-23"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ace_Wilder | background | "solo_singer"</mtriple>
+        <mtriple>Ace_Wilder | birthYear | 1982</mtriple>
+        <mtriple>Ace_Wilder | occupation | Songwriter</mtriple>
+        <mtriple>Ace_Wilder | birthPlace | Stockholm</mtriple>
+        <mtriple>Ace_Wilder | birthDate | 1982-07-23</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ace Wilder, a solo singer and songwriter, was born on July 23, 1982 in Stockholm.</lex>
+      <lex comment="good" lid="Id2">Ace Wilder was born in Stockholm on July 23, 1982. He is a songwriter with a background as a solo singer.</lex>
+      <lex comment="good" lid="Id3">Ace Wilder was born 23rd July 1972 in Stockholm. He is a solo singer and songwriter.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ace_Wilder | genre | Hip_hop_music</otriple>
+        <otriple>Hip_hop_music | musicSubgenre | Gangsta_rap</otriple>
+        <otriple>Hip_hop_music | stylisticOrigins | Funk</otriple>
+        <otriple>Hip_hop_music | derivatives | Drum_and_bass</otriple>
+        <otriple>Hip_hop_music | stylisticOrigin | Disco</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | genre | Hip_hop_music</otriple>
+        <otriple>Hip_hop_music | stylisticOrigin | Funk</otriple>
+        <otriple>Hip_hop_music | stylisticOrigins | Disco</otriple>
+        <otriple>Hip_hop_music | musicSubgenre | Gangsta_rap</otriple>
+        <otriple>Hip_hop_music | derivative | Drum_and_bass</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | genre | Hip_hop_music</otriple>
+        <otriple>Hip_hop_music | stylisticOrigin | Funk</otriple>
+        <otriple>Hip_hop_music | stylisticOrigins | Disco</otriple>
+        <otriple>Hip_hop_music | musicSubgenre | Gangsta_rap</otriple>
+        <otriple>Hip_hop_music | derivatives | Drum_and_bass</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | genre | Hip_hop_music</otriple>
+        <otriple>Hip_hop_music | musicSubgenre | Gangsta_rap</otriple>
+        <otriple>Hip_hop_music | stylisticOrigins | Funk</otriple>
+        <otriple>Hip_hop_music | derivative | Drum_and_bass</otriple>
+        <otriple>Hip_hop_music | stylisticOrigin | Disco</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ace_Wilder | genre | Hip_hop_music</mtriple>
+        <mtriple>Hip_hop_music | musicSubgenre | Gangsta_rap</mtriple>
+        <mtriple>Hip_hop_music | stylisticOrigin | Funk</mtriple>
+        <mtriple>Hip_hop_music | derivative | Drum_and_bass</mtriple>
+        <mtriple>Hip_hop_music | stylisticOrigin | Disco</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ace Wilder's musical genre is Hip hop. Hip Hop music has its origins in Funk and Disco, and Drum and bass derives its sounds from hip hop music, which has a subgénre Gangsta rap.</lex>
+      <lex comment="good" lid="Id2">Ace Wilder is a hip hop musician. Hip hop originates from funk and disco. Gangsta rap is a sub genre of hip hop and drum and bass is a derivative of it.</lex>
+      <lex comment="good" lid="Id3">Hip hop originates from disco and funk while influencing drum &amp; bass, with a subgenre of Gangsta rap. Ace Wilder is a hip hop musician.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ace_Wilder | genre | Hip_hop_music</otriple>
+        <otriple>Hip_hop_music | stylisticOrigin | Funk</otriple>
+        <otriple>Hip_hop_music | stylisticOrigins | Disco</otriple>
+        <otriple>Ace_Wilder | birthPlace | Sweden</otriple>
+        <otriple>Hip_hop_music | derivative | Drum_and_bass</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | genre | Hip_hop_music</otriple>
+        <otriple>Hip_hop_music | stylisticOrigins | Funk</otriple>
+        <otriple>Ace_Wilder | birthPlace | Sweden</otriple>
+        <otriple>Hip_hop_music | derivative | Drum_and_bass</otriple>
+        <otriple>Hip_hop_music | stylisticOrigin | Disco</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ace_Wilder | genre | Hip_hop_music</mtriple>
+        <mtriple>Hip_hop_music | stylisticOrigin | Funk</mtriple>
+        <mtriple>Ace_Wilder | birthPlace | Sweden</mtriple>
+        <mtriple>Hip_hop_music | derivative | Drum_and_bass</mtriple>
+        <mtriple>Hip_hop_music | stylisticOrigin | Disco</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Drum and bass derives its sounds from hip hop music which originated from Funk and Disco. Ace Wilder, who was born in Sweden, plays the musical genre of hip hop.</lex>
+      <lex comment="good" lid="Id2">Hip hop musician Ace Wilder was born in Sweden. Hip hop has its origins in Funk and disco while being an influence on Drum and Bass.</lex>
+      <lex comment="good" lid="Id3">Sweden is the birthplace of Hip hop musician Ace Wilder. Drum and bass genre music come from hip hop, which has origins in funk and disco.</lex>
+    </entry>
+    </entries>
+</benchmark>

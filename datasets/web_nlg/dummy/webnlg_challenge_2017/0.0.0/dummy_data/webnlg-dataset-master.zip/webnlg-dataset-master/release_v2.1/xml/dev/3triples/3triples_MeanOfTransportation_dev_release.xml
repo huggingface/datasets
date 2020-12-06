@@ -1,0 +1,93 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__3</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Coronet"</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge, also called the Dodge Coronet, has a hardtop and a V8 engine.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge, or Dodge Coronet, is a hardtop with a V8 engine.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, also known as the Dodge Coronet, has a hardtop and a V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__2</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__4</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Coronet"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge, with an alternative name of Dodge coronet, has a V8 engine and 3-speed automatic transmission.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge, also named the Dodge Coronet, has a 3-speed automatic transmission and a V8 engine.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, which has the alternative name of Dodge Coronet, has a V8 engine and uses a 3-speed automatic transmission.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipClass | Cruise_ship</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>A-Rosa_Luna | orderDate | "2004-01-22"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipClass | Cruise_ship</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+        <mtriple>A-Rosa_Luna | shipOrdered | 2004-01-22</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ordered on January 22nd, 2004, the A-Rosa Luna, is classed as a Cruise ship and has a length of 125.8 metres.</lex>
+      <lex comment="good" lid="Id2">A-Rosa Luna, a cruise ship 125800.0 millimetres in length, was ordered on January 22, 2004.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Germany</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | owner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Germany</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDA_Cruises | location | Germany</mtriple>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+        <mtriple>AIDAstella | owner | Costa_Crociere</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The operator of AIDAstella is German-based AIDA Cruises. The AIDAstella is owned by Costa Crociere.</lex>
+      <lex comment="good" lid="Id2">The AIDAstella is owned by Costa Crociere and its operator is German-based AIDA Cruises.</lex>
+      <lex comment="good" lid="Id3">AIDA Cruises are based in Germany and owned by Costa Crociere. They operate the AIDAstella.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | cylindercount | 12</otriple>
+        <otriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | cylinderCount | 12</mtriple>
+        <mtriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALCO RS-3 was built by the Montreal Locomotive Works, has 12 cylinders and is 17068.8 mms long.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 was built by the Montreal Locomotive Works, has a cylinder count of 12 and is 17068.8 mms in length.</lex>
+      <lex comment="good" lid="Id3">Built by the Montreal Locomotive Works, the ALCO RS-3 has 12 cylinders and is 17068.8 (millimetres) in length.</lex>
+    </entry>
+    </entries>
+</benchmark>

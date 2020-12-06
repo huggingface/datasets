@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street is located in South Africa.</lex>
+      <lex comment="good" lid="Id2">The address, 11 Diagonal Street is located in South Africa.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">250 Delaware Avenue has the Postmodern style of architecture.</lex>
+      <lex comment="good" lid="Id2">The architectural style of 250 Delaware Avenue is Postmodern.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Chicago</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Chicago</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">300 North LaSalle is located in Chicago.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>320_South_Boston_Building | architect | George_Winkler</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>320_South_Boston_Building | architect | George_Winkler</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">George Winkler was the architect of 320 South Boston Building.</lex>
+      <lex comment="good" lid="Id2">George Winkler is the architect of the 320 South Boston Building.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>320_South_Boston_Building | startDate | 1910</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>320_South_Boston_Building | buildingStartDate | "1910"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>320_South_Boston_Building | buildingStartDate | 1910</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The building of 320 South Boston Building started in 1910.</lex>
+      <lex comment="good" lid="Id2">Construction of the 320 South Boston Building began in 1910.</lex>
+    </entry>
+    </entries>
+</benchmark>

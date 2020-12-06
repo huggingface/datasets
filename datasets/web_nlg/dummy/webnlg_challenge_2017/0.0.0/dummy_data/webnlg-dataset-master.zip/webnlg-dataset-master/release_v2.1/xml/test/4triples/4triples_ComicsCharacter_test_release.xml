@@ -1,0 +1,83 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>BBC | keyPeople | Rona_Fairhead</otriple>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>BBC | product | BBC_Radio</otriple>
+        <otriple>BBC | locationCity | Broadcasting_House</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>BBC | keyPerson | Rona_Fairhead</mtriple>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>BBC | product | BBC_Radio</mtriple>
+        <mtriple>BBC | locationCity | Broadcasting_House</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Rona Fairhead is the key person for the BBC whose headquarters are at Broadcasting House. The BBC broadcast Bananaman and also produces BBC radio.</lex>
+      <lex comment="good" lid="Id2">Rona Fairhead is a key person for the BBC which headquarters are called the Broadcasting House. Along others, both BBC radio and Bananaman are broadcasted.</lex>
+      <lex comment="good" lid="Id3">Rona Fairhead is a key person for the BBC, who are based in Broadcasting House in London. BBC radio is produced by the BBC, who also broadcast the TV series Bananaman.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Bananaman | starring | Jill_Shilling</otriple>
+        <otriple>Bananaman | creator | Steve_Bright</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | network | "STV"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | starring | Jill_Shilling</mtriple>
+        <mtriple>Bananaman | creator | Steve_Bright</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | broadcastedBy | "STV"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman first aired on 3 October 1983 and starred Jill Shilling. It was created by Steve Bright and broadcast by STV.</lex>
+      <lex comment="good" lid="Id2">Jill shilling was the star of the STV hit Bananaman, created by Steve Bright and first aired on the 3rd of October 1983.</lex>
+      <lex comment="good" lid="Id3">Bananaman was created by Steve Bright and starred Jill Shilling. It was first broadcast by STV on 3 October 1983.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Big_Hero_6_(film) | starring | Ryan_Potter</otriple>
+        <otriple>Duncan_Rouleau | nationality | Americans</otriple>
+        <otriple>Baymax | creators | Duncan_Rouleau</otriple>
+        <otriple>Baymax | series | Big_Hero_6_(film)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Big_Hero_6_(film) | starring | Ryan_Potter</otriple>
+        <otriple>Baymax | creator | Duncan_Rouleau</otriple>
+        <otriple>Duncan_Rouleau | nationality | Americans</otriple>
+        <otriple>Baymax | series | Big_Hero_6_(film)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Big_Hero_6_(film) | starring | Ryan_Potter</mtriple>
+        <mtriple>Duncan_Rouleau | nationality | Americans</mtriple>
+        <mtriple>Baymax | creator | Duncan_Rouleau</mtriple>
+        <mtriple>Baymax | series | Big_Hero_6_(film)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Baymax is a character which was created by American Duncan Rouleau and featured in the film Big Hero 6 (starring Ryan Potter).</lex>
+      <lex comment="good" lid="Id2">American, Duncan Rouleau created Baymax, a character in the film Big Hero 6, which starred Ryan Potter.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Bolt_(DC_Comics) | creators | Ernie_Colón</otriple>
+        <otriple>Ernie_Colón | nationality | Puerto_Ricans</otriple>
+        <otriple>Bolt_(DC_Comics) | alterEgo | "Larry Bolatinsky"@en</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Gary_Cohn_(comics)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Bolt_(DC_Comics) | creators | Gary_Cohn_(comics)</otriple>
+        <otriple>Ernie_Colón | nationality | Puerto_Ricans</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Ernie_Colón</otriple>
+        <otriple>Bolt_(DC_Comics) | alterEgo | "Larry Bolatinsky"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bolt_(comicsCharacter) | creator | Gary_Cohn_(comics)</mtriple>
+        <mtriple>Ernie_Colón | nationality | Puerto_Ricans</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | creator | Ernie_Colón</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | alternativeName | "Larry Bolatinsky"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic character Bolt, who has the alternative name of Larry Bolatinsky, was created by Gary Cohn and the Puerto Rican national, Ernie Colon.</lex>
+      <lex comment="good" lid="Id2">The comic character Bolt, with the alternative name Larry Bolatinsky, was created by Gary Cohn and Ernie Colon, who is a Puerto Rican national.</lex>
+      <lex comment="good" lid="Id3">Larry Bolatinsky is the alternative name for the comic character, Bolt. It was created by the Puerto Rican national Ernie Colon and the comic book writer, Gary Cohn.</lex>
+    </entry>
+  </entries>
+</benchmark>

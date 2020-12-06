@@ -1,0 +1,165 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X (X) (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Harrietstown,_New_York | country | United_States</otriple>
+        <otriple>Saranac_Lake,_New_York | subdivisionName | Harrietstown,_New_York</otriple>
+        <otriple>Harrietstown,_New_York | isPartOf | New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Harrietstown,_New_York | country | United_States</otriple>
+        <otriple>Saranac_Lake,_New_York | subdivisionName | Harrietstown,_New_York</otriple>
+        <otriple>Harrietstown,_New_York | isPartOf | New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Harrietstown,_New_York | country | United_States</mtriple>
+        <mtriple>Saranac_Lake,_New_York | isPartOf | Harrietstown,_New_York</mtriple>
+        <mtriple>Harrietstown,_New_York | isPartOf | New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Adirondack Regional Airport serves the city of Saranac Lake, which is part of Harrietstown in New York, in the United States.</lex>
+      <lex lang="ru" lid="Id1">Региональный аэропорт Адирондак обслуживает село Саранак-Лейк, которое является частью города Хэрритстаун в штате Нью-Йорк, в США.</lex>
+      <lex lang="en" lid="Id2">Adirondack Regional Airport serves the city of Saranac Lake, Harrietstown, New York, United States.</lex>
+      <lex lang="ru" lid="Id2">Региональный аэропорт Адирондак обслуживает село Саранак-Лейк, город Хэрритстаун, штат Нью-Йорк, США.</lex>
+      <lex lang="en" lid="Id3">Adirondack Regional Airport serves Saranac Lakewhich is in Harrietstown, New York.</lex>
+      <lex lang="ru" lid="Id3">Региональный аэропорт Адирондак обслуживает село Саранак-Лейк в городе Хэрритстаун, штат Нью-Йорк.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adirondack Regional Airport | sameAs | Региональный аэропорт Адирондак</link>
+        <link direction="en2ru">Harrietstown, New York | includes | Хэрритстаун</link>
+        <link direction="en2ru">Saranac Lake, New York | includes | Саранак-Лейк</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X (X) (X (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Harrietstown,_New_York | country | United_States</otriple>
+        <otriple>Saranac_Lake,_New_York | subdivisionName | Harrietstown,_New_York</otriple>
+        <otriple>Saranac_Lake,_New_York | isPartOf | Essex_County,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Harrietstown,_New_York | country | United_States</otriple>
+        <otriple>Saranac_Lake,_New_York | subdivisionName | Harrietstown,_New_York</otriple>
+        <otriple>Saranac_Lake,_New_York | isPartOf | Essex_County,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Harrietstown,_New_York | country | United_States</mtriple>
+        <mtriple>Saranac_Lake,_New_York | isPartOf | Harrietstown,_New_York</mtriple>
+        <mtriple>Saranac_Lake,_New_York | isPartOf | Essex_County,_New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Adirondack Regional Airport serves the city of Saranac Lake, New York part of Harrietstown and Essex County, New York, U.S.</lex>
+      <lex lang="ru" lid="Id1">Региональный аэропорт Адирондак обслуживает город Саранак-Лейк, Нью-Йорк, часть города Хэрритстаун и округа Эссекс, штат Нью-Йорк, США.</lex>
+      <lex lang="en" lid="Id2">Adirondack Regional Airport serves the city of Saranac Lake which is part of Harrietstown and Essex County, New York.</lex>
+      <lex lang="ru" lid="Id2">Региональный аэропорт Адирондак обслуживает город Саранак-Лейк, входящий в состав Хэрритстауна и округа Эссекс, Нью-Йорк.</lex>
+      <lex lang="en" lid="Id3">Adirondack Regional Airport serves Harrietstown, Essex County and Saranac Lake, New York (United States).</lex>
+      <lex lang="ru" lid="Id3">Региональный аэропорт Адирондак обслуживает город Хэрритстаун, округ Эссекс и Саранак-Лейк, штат Нью-Йорк (США).</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Essex_County,_New_York | sameAs | Эссекс_(округ,_Нью-Йорк)</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adirondack Regional Airport | sameAs | Региональный аэропорт Адирондак</link>
+        <link direction="en2ru">Harrietstown, New York | includes | Хэрритстаун</link>
+        <link direction="en2ru">Saranac Lake, New York | includes | Саранак-Лейк</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Indian_Air_Force | aircraftHelicopter | HAL_Light_Combat_Helicopter</otriple>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Indian_Air_Force | aircraftHelicopter | HAL_Light_Combat_Helicopter</mtriple>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Agra_Airport | operatingOrganisation | Indian_Air_Force</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">As well as having an aircraft-capable helicopter known as the HAL Light Combat Helicopter, the Indian Air Force, operate Agra Airpori. This airport is in Uttar Pradesh which is part of Bundelkhand.</lex>
+      <lex lang="ru" lid="Id1">Помимо владения вертолетом, известным как HAL LCH, военно-воздушные силы Индии управляют аэропортом Агра. Этот аэропорт находится в штате Уттар-Прадеш, Бунделкханд.</lex>
+      <lex lang="en" lid="Id2">Agra Airport is located in Uttar Pradesh, Bundelkhand which is oprated by Indian Air Force who uses Hal Light Combat Helicopers.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Агра расположен в штате Уттар-Прадеш, Бунделкханд и управляется ВВС Индии, которые используют HAL LCH.</lex>
+      <lex lang="en" lid="Id3">Agra Airport is located in Uttar Pradesh part of Bundelkhand. The airport is operated by the Indian Air Force. The HAL Light Combat Helicopter is an aircraft helicopter there.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Агра расположен в штате Уттар-Прадеш, область Бунделкханд. Аэропорт эксплуатируется военно-воздушными силами Индии. HAL LCH - это авиационный вертолет.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">HAL_Light_Combat_Helicopter | sameAs | HAL_LCH</dbpedialink>
+        <dbpedialink direction="en2ru">Bundelkhand | sameAs | Бунделкханд</dbpedialink>
+        <dbpedialink direction="en2ru">Uttar_Pradesh | sameAs | Уттар-Прадеш</dbpedialink>
+        <dbpedialink direction="en2ru">Indian_Air_Force | sameAs | Военно-воздушные_силы_Индии</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Agra Airport | sameAs | аэропорт Агра</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Infraero | location | Brasília</otriple>
+        <otriple>Afonso_Pena_International_Airport | elevation | "910.742"^^xsd:double</otriple>
+        <otriple>Afonso_Pena_International_Airport | runwayLength | "2215.0"^^xsd:double</otriple>
+        <otriple>Afonso_Pena_International_Airport | operator | Infraero</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Infraero | location | Brasília</mtriple>
+        <mtriple>Afonso_Pena_International_Airport | elevationAboveTheSeaLevel | 911.0</mtriple>
+        <mtriple>Afonso_Pena_International_Airport | runwayLength | 2215.0</mtriple>
+        <mtriple>Afonso_Pena_International_Airport | operatingOrganisation | Infraero</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Afonso Pena International Airport is operated by Infraero, Brasilia. The airport is 911 meters above sea level and its runway length 2215.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Афонсу Пена эксплуатируется компанией Инфраеро, Бразилиа. Аэропорт находится на высоте 911 метров над уровнем моря, и длина его взлетно-посадочной полосы - 2215.</lex>
+      <lex lang="en" lid="Id2">Afonso Pena International Airport is located in Brasilia. The Airport is elevated 911 meters above sea level and the runway length is 2215.0. The Afonso Pena International Airport is also known as Infraero.</lex>
+      <lex lang="ru" lid="Id2">Международный аэропорт Афонсу Пена находится в городе Бразилиа. Аэропорт находится на высоте 911 метров над уровнем моря, а длина взлетно-посадочной полосы - 2215,0. Международный аэропорт Афонсу Пена также известен как подчиняющийся Инфраеро.</lex>
+      <lex lang="en" lid="Id3">Brasilia based Infraero are the operating organization for Afonso Pena International Airport. It is 911 metres above sea level and has a runway length of 2215.</lex>
+      <lex lang="ru" lid="Id3">Базирующаяся в городе Бразилиа компания Инфраеро - эксплуатирующая организация международного аэропорта Афонсу Пена. Он находится на высоте 911 метров над уровнем моря и имеет длину взлетно-посадочной полосы 2215.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Brasília | sameAs | Бразилиа</dbpedialink>
+        <dbpedialink direction="en2ru">Afonso_Pena_International_Airport | sameAs | Афонсу_Пена_(аэропорт)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Infraero | sameAs | Инфраеро</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X (X) (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Iraq | language | Kurdish_languages</otriple>
+        <otriple>Iraq | leaderName | Fuad_Masum</otriple>
+        <otriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Iraq | language | Kurdish_languages</otriple>
+        <otriple>Iraq | leader | Fuad_Masum</otriple>
+        <otriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Iraq | language | Kurdish_languages</mtriple>
+        <mtriple>Iraq | leader | Fuad_Masum</mtriple>
+        <mtriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</mtriple>
+        <mtriple>Fallujah | country | Iraq</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Al-Taqaddum Air Base serves the city of Fallujah, in Iraq, where Kurdish languages are spoken and Fuad Masum is the leader.</lex>
+      <lex lang="ru" lid="Id1">Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа в Ираке, где говорят на курдских языках, и Фуад Масум - лидер.</lex>
+      <lex lang="en" lid="Id2">Al-Taqaddum Air Base serves the city of Fallujah, which is in Iraq, where Fuad Masum is the leader and the Kurdish languages are spoken.</lex>
+      <lex lang="ru" lid="Id2">Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа, который находится в Ираке, где лидер - Фуад Масум, и курдские языки - разговорные.</lex>
+      <lex lang="en" lid="Id3">The Kurdish languages are spoken in Iraq which is led by Fuad Masum. The city of Fallujah is in the country and served by the Al Taqaddum air base.</lex>
+      <lex lang="ru" lid="Id3">На курдских языках говорят в государстве Ирак, которое возглавляет Фуад Масум. Город Эль-Фаллуджа находится в стране и обслуживается авиабазой Аль Такаддум.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Fuad_Masum | sameAs | Масум,_Фуад</dbpedialink>
+        <dbpedialink direction="en2ru">Kurdish_languages | sameAs | Курдские_языки</dbpedialink>
+        <dbpedialink direction="en2ru">Iraq | sameAs | Ирак</dbpedialink>
+        <dbpedialink direction="en2ru">Fallujah | sameAs | Эль-Фаллуджа</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Al-Taqaddum Air Base | sameAs | Авиабаза Аль Такаддум</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

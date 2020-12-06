@@ -1,0 +1,57 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University is located in the state of Alba.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The President of Acharya Institute of Technology is B. M. Reddy.</lex>
+      <lex comment="good" lid="Id2">Acharya Institute of Technology's president is B.M. Reddy.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Kerala | has to its northwest | Mahé,_India</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The northwest border to Kerala is Mahe in India.</lex>
+      <lex comment="good" lid="Id2">Kerala has to its northwest Mahé in India.</lex>
+      <lex comment="good" lid="Id3">Mahé in India is to the northwest of Kerala.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Mendrisio | neighboringMunicipalities | Meride</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Mendrisio | neighboringMunicipality | Meride</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Mendrisio | neighboringMunicipality | Meride</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Mendrisio and Meride are neighboring Municipalities.</lex>
+      <lex comment="good" lid="Id2">Mendrisio is a neighbouring municipality of Meride.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Romania | capital | Bucharest</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Romania | capital | Bucharest</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The capital of Romania is Bucharest.</lex>
+      <lex comment="good" lid="Id2">Bucharest is the capital of Romania.</lex>
+    </entry>
+    </entries>
+</benchmark>

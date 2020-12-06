@@ -1,0 +1,109 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Alma Mater of Alan Bean is UT Austin, B.S. 1955.</lex>
+      <lex lang="ru" lid="Id1">Альма-матер Алана Бина - Университет Техаса в Остине, степень бакалавра естественных наук 1995 года.</lex>
+      <lex lang="en" lid="Id2">Alan Bean graduated in 1955 from UT Austin with a B.S.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин выпустился в 1955 году из Университета Техаса в Остине со степенью бакалавра естественных наук.</lex>
+      <lex lang="en" lid="Id3">Alan Bean graduated from UT Austin in 1955 with a B.S.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин окончил Университет Техаса в Остине в 1955 году со степенью бакалавра естественных наук.</lex>
+      <lex lang="en" lid="Id4">Alan Bean graduated from UT Austin in 1955 with a Bachelor of Science degree.</lex>
+      <lex lang="ru" lid="Id4">Алан Бин окончил Университет Техаса в Остине в 1955 году со степенью бакалавра наук.</lex>
+      <lex lang="en" lid="Id5">Alan Bean received a Bachelor of Science degree at the University of Texas at Austin in 1955.</lex>
+      <lex lang="ru" lid="Id5">Алан Бин получил степень бакалавра наук в университете Техаса в Остине в 1955 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean was born on the 15th of March 1932.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин родился 15 марта 1932 года.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was born on Mar 15, 1932.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился 15 марта 1932 года.</lex>
+      <lex lang="en" lid="Id3">Alan Bean was born on March 15, 1932.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин родился 15 марта 1932 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthName | "Alan LaVern Bean"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthName | "Alan LaVern Bean"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean's full name was "Alan LaVern Bean".</lex>
+      <lex lang="ru" lid="Id1">Полным именем Алана Бина было Алан Лаверн Бин.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was born Alan LaVern Bean.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился Аланом Лаверном Бином.</lex>
+      <lex lang="en" lid="Id3">Alan Bean's birth name was Alan LaVern Bean.</lex>
+      <lex lang="ru" lid="Id3">Урожденным именем Алана Бина было Алан Лаверн Бин.</lex>
+      <lex lang="en" lid="Id4">Alan Bean's birth name is Alan LaVern Bean.</lex>
+      <lex lang="ru" lid="Id4">Урожденное имя Алана Бина - Алан Лаверн Бин.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Alan LaVern Bean | sameAs | Алан Лаверн Бин</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean was born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин родился в Уилере, штат Техас.</lex>
+      <lex lang="en" lid="Id2">Alan Bean's birthplace is Wheeler,, Texas.</lex>
+      <lex lang="ru" lid="Id2">Место рождения Алана Бина - Уилер, штат Техас.</lex>
+      <lex lang="en" lid="Id3">Alan Bean's birth place is Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id3">Местом рождения Алана Бина является Уилер, штат Техас.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | dateOfRet | "June 1981"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | dateOfRetirement | "June 1981"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean retired on June 1981.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин вышел в отставку в июне 1981 года.</lex>
+      <lex lang="en" lid="Id2">Alan Bean retired in June of 1981.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин ушел в отставку в июне 1981 года.</lex>
+      <lex lang="en" lid="Id3">Alan Bean retired in June 1981.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин ушел в отставку в июне 1981 года.</lex>
+      <lex lang="en" lid="Id4">Alan Bean's retirement was in June 1981.</lex>
+      <lex lang="ru" lid="Id4">Выход Алана Бина на пенсию состоялся в июне 1981 года.</lex>
+      <lex lang="en" lid="Id5">Alan Bean retired in June, 1981.</lex>
+      <lex lang="ru" lid="Id5">Алан Бин ушел в отставку в июне 1981 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

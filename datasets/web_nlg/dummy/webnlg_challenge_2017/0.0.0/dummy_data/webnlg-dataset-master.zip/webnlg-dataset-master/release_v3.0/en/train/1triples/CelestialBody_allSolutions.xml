@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The apoapsis for (15788) 1993 SB is 7715100000.0 (kilometres).</lex>
+      <lex comment="good" lid="Id2">15788 1993 SB has an apoapsis of 7715100000 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Fitzsimmons was the discoverer of 15788 1993 SB.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB was discovered by Alan Fitzsimmons.</lex>
+      <lex comment="good" lid="Id3">15788 1993 SB was discovered by Alan Fitzsimmons.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The discoverer of (15788) 1993 SB is Donal O'Ceallaigh.</lex>
+      <lex comment="good" lid="Id2">Donal O'Ceallaigh discovered (15788) 1993 SB.</lex>
+      <lex comment="good" lid="Id3">Donal O'Ceallaigh discovered 15788 1993 SB.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Iwan P Williams discovered 15788 1993 SB.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB was discovered by Iwan P Williams.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">15788 1993 SB was discovered by Roque de los Muchachos Observatory.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB was discovered by Roque de los Muchachos Observatory.</lex>
+    </entry>
+    </entries>
+</benchmark>

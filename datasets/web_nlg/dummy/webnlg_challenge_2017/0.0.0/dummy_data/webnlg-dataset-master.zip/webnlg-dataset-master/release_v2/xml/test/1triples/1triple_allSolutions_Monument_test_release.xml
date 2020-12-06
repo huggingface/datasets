@@ -1,0 +1,66 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument was established in the year 2000.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument was established in 2000.</lex>
+      <lex comment="good" lid="Id3">A monument to the 11th Mississippi Infantry was erected in 2000.</lex>
+      <lex comment="good" lid="Id4">11th Mississippi Infantry Monument was established in 2000.</lex>
+      <lex comment="good" lid="Id5">11th Mississippi Infantry Monument has been established in 2000.</lex>
+      <lex comment="good" lid="Id6">The 11th Mississippi Infantry Monument was completed in 2000.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adams_County,_Pennsylvania | has to its southeast | Carroll_County,_Maryland</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">To the southeast of Adams County, Pennsylvania lies Carroll County, Maryland.</lex>
+      <lex comment="good" lid="Id2">Adams County, Pennsylvania has Carroll County, Maryland to its southeast.</lex>
+      <lex comment="good" lid="Id3">Carroll County Maryland is southeast of Adams County Pennsylvania.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Azerbaijan | leader | Artur_Rasizade</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | leader | Artur_Rasizade</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Artur Rasizade was an Azerbaijan leader.</lex>
+      <lex comment="good" lid="Id2">Artur Rasizade is an Azerbaijan leader.</lex>
+      <lex comment="good" lid="Id3">Artur Rasizade is the leader of Azerbaijan.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Azerbaijan | leaderTitle | Prime_Minister_of_Azerbaijan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | leaderTitle | Prime_Minister_of_Azerbaijan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Prime Minister of Azerbaijan is the official title of the leader of Azerbaijan.</lex>
+      <lex comment="good" lid="Id2">The title of the leader of Azerbaijan is Prime Minister of Azerbaijan.</lex>
+      <lex comment="good" lid="Id3">The title of the leader of Azerbaijan is The Prime Minister of Azerbaijan.</lex>
+      <lex comment="good" lid="Id4">Azerbaijan's leader is the Prime Minister of Azerbaijan.</lex>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | nativeName | "Türk Şehitleri Anıtı"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | nativeName | "Türk Şehitleri Anıtı"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Native name of the Baku Turkish Martyrs' Memorial is "Türk Sehitleri Aniti".</lex>
+      <lex comment="good" lid="Id2">The native name of the Baku Turkish Martyrs' Memorial is Turk Sehitleri Aniti.</lex>
+      <lex comment="good" lid="Id3">The native name for the Baku Turkish Martyrs' Memorial is Türk Şehitleri Anıtı.</lex>
+      <lex comment="good" lid="Id4">The Baku Turkish Martyrs' Memorial is known locally as Türk Şehitleri Anıtı.</lex>
+      <lex comment="good" lid="Id5">Baku Turkish Martyrs' Memorial is called Turk Sehitleri Aniti.</lex>
+      <lex comment="good" lid="Id6">The Baku Turkish Martyrs' Memorial is known in Turkish as Turk Sehitleri Aniti.</lex>
+    </entry>
+    </entries>
+</benchmark>

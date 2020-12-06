@@ -1,0 +1,95 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+        <otriple>King_of_Prussia,_Pennsylvania | timeZone | North_American_Eastern_Time_Zone</otriple>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+        <otriple>United_States | areaTotal | 9833520000000.0</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | city | King_of_Prussia,_Pennsylvania</mtriple>
+        <mtriple>King_of_Prussia,_Pennsylvania | timeZone | North_American_Eastern_Time_Zone</mtriple>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>United_States | areaTotal | 9833516.63  (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is located in King of Prussia, Pennsylvania which is in the North American Eastern Time Zone. AmeriGas is working in the United States which has a total area of 9,833,516.63 square kilometers.</lex>
+      <lex comment="good" lid="Id2">Located in King of Prussia, Pennsylvania, AmeriGas serves customers in the United States, which covers a total area of 9833516.63 square kilometers. King of Prussia is in the North American Eastern time zone.</lex>
+      <lex comment="good" lid="Id3">AmeriGas, located in the city of King of Prussia, Pennsylvania, is in the North American Eastern Time Zone of the United States. The United States has a total area of 9833516.63 square kilometres.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+        <otriple>United_States | areaTotal | 9833520000000.0</otriple>
+        <otriple>United_States | foundingDate | 1776-07-04</otriple>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | city | King_of_Prussia,_Pennsylvania</mtriple>
+        <mtriple>United_States | areaTotal | 9833516.63  (square kilometres)</mtriple>
+        <mtriple>United_States | foundingDate | 1776-07-04</mtriple>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States, founded on July 4, 1776 covers a total area of 9833516.63 (square kilometres). AmeriGas works in the United States while located at King of Prussia, Pennsylvania.</lex>
+      <lex comment="good" lid="Id2">King of Prussia, Pennsylvania is the base of the American company of AmeriGas. The United States was founded on July 4, 1776 and has a total area of 9833516.63 (square kilometres).</lex>
+      <lex comment="good" lid="Id3">AmeriGas, based in King of Prussia, Pennsylvania, United States. The US was founded on July 4th, 1776 and has a total area of 9,833,516.63 square kilometers.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Chinabank | foundingYear | 1920-01-01</otriple>
+        <otriple>Chinabank | numberOfEmployees | 5594</otriple>
+        <otriple>Chinabank | netIncome | 1.51E10</otriple>
+        <otriple>Chinabank | numberOfLocations | 295</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Chinabank | foundingDate | 1920-08-16</otriple>
+        <otriple>Chinabank | numberOfEmployees | 5594</otriple>
+        <otriple>Chinabank | netIncome | 1.51E10</otriple>
+        <otriple>Chinabank | numberOfLocations | 295</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Chinabank | foundingDate | 1920-08-16</mtriple>
+        <mtriple>Chinabank | numberOfEmployees | 5594</mtriple>
+        <mtriple>Chinabank | netIncome | 15100000000</mtriple>
+        <mtriple>Chinabank | numberOfLocations | 295</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Chinabank was founded on August 16th 1920. It has 295 banking center with 5594 worker and a net income of 15,100,000,000.</lex>
+      <lex comment="good" lid="Id2">Chinabank was founded on 16 August, 1920. It has 295 locations, 5594 employees and a net income of 15,100,000,000.</lex>
+      <lex comment="good" lid="Id3">Chinabank (founded 1920-08-16) employs 5594 people with 295 branch locations, earning net income of 15100000000 currently.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>GMA_New_Media | location | Quezon_City</otriple>
+        <otriple>GMA_New_Media | industry | Entertainment</otriple>
+        <otriple>GMA_New_Media | product | World_Wide_Web</otriple>
+        <otriple>GMA_New_Media | subsidiary | Philippine_Entertainment_Portal</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | location | Quezon_City</mtriple>
+        <mtriple>GMA_New_Media | industry | Entertainment</mtriple>
+        <mtriple>GMA_New_Media | product | World_Wide_Web</mtriple>
+        <mtriple>GMA_New_Media | subsidiary | Philippine_Entertainment_Portal</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The entertainment company, GMA New Media, is based in Quezon City. It, and its subsidiary, Philippine Entertainment Portal, offer World Wide Web services.</lex>
+      <lex comment="good" lid="Id2">GMA New Media, located in the city of Quezon, produces web services and develops applications for the entertainment industry. Philippine Entertainment Portal, Inc. is a subsidiary of GMA New Media.</lex>
+      <lex comment="good" lid="Id3">GMA New Media is an entertainment industry maker of websites headquartered in Quezon City. Philippine Entertainment Portal is a GMA New Media subsidiary.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>GMA_New_Media | product | Mobile_Applications</otriple>
+        <otriple>GMA_New_Media | keyPerson | Felipe_Gozon</otriple>
+        <otriple>GMA_New_Media | location | GMA_Network_Center</otriple>
+        <otriple>GMA_New_Media | location | Philippines</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | product | Mobile_Applications</mtriple>
+        <mtriple>GMA_New_Media | keyPerson | Felipe_Gozon</mtriple>
+        <mtriple>GMA_New_Media | location | GMA_Network_Center</mtriple>
+        <mtriple>GMA_New_Media | location | Philippines</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA New Media makes mobile apps and is located in the GMA Network Center. Felipe Gozon is the key person of GMA New Media, which is located in the Philippines.</lex>
+      <lex comment="good" lid="Id2">The Philippine mobile application company, GMA New Media, is based in the GMA Network Center. One of GMA New Media's leaders is Felipe Gozon.</lex>
+      <lex comment="good" lid="Id3">Felipe Gozon is a key person at GMA New Media, a company located in the GMA Network Center in the Philippines with product offerings that include mobile applications.</lex>
+    </entry>
+    </entries>
+</benchmark>

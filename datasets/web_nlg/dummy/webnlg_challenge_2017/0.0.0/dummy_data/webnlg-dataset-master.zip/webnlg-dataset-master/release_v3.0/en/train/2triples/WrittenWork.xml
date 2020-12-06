@@ -1,0 +1,68 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | isbnNumber | "978-1-4165-4253-7"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis, written by Virginia DeMarce and Eric Flint, can be located by its ISBN number "978-1-4165-4253-7".</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis is written by Virginia DeMarce and Eric Flint and has the ISBN number 978-1-4165-4253-7.</lex>
+      <lex comment="good" lid="Id3">The ISBN number of 1634: The Bavarian Crisis is 978-1-4165-4253-7 and the authors are Virginia DeMarce and Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | Virginia_DeMarce</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | isbnNumber | "978-1-4165-4253-7"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Virginia_DeMarce</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis, written by Virginia DeMarce, can be located by its ISBN number "978-1-4165-4253-7".</lex>
+      <lex comment="good" lid="Id2">The book "1634: The Bavarian Crisis," by Virginia DeMarce, has ISBN number 978-1-4165-4253-7.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | "Print"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | "Print"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis is written by Virginia DeMarce and Eric Flint and is available in print form.</lex>
+      <lex comment="good" lid="Id2">'1634: The Bavarian Crisis', which was authored by Virginia DeMarce and Eric Flint, is available in print form.</lex>
+      <lex comment="good" lid="Id3">Virginia DeMarce and Eric Flint are the authors of 1634: The Bavarian Crisis which was put in print.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | isbnNumber | "978-1-4165-4253-7"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">'1634: The Bavarian Crisis', written by Eric Flint, can be found using its ISBN number, 978-1-4165-4253-7.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis was written by Eric Flint and has the ISBN number 978-1-4165-4253-7.</lex>
+      <lex comment="good" lid="Id3">978-1-4165-4253-7 is the ISBN number of "1634: The Bavarian Crisis" which was authored by Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | "Print"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | "Print"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis was written by Eric Flint and is available in print form.</lex>
+      <lex comment="good" lid="Id2">In 1634 the Bavarian Crisis was written by Eric Flint and was then put into print.</lex>
+      <lex comment="good" lid="Id3">1634: The Bavarian Crisis available in print is written by Eric Flint.</lex>
+    </entry>
+    </entries>
+</benchmark>

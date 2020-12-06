@@ -1,0 +1,74 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | capacity | "27250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>1._FC_Magdeburg | season | 2014–15_Regionalliga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | numberOfMembers | 27250</mtriple>
+        <mtriple>1._FC_Magdeburg | season | 2014–15_Regionalliga</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">FC Magedburg has 27250 members and was in Regionalliga in 2014.</lex>
+      <lex comment="good" lid="Id2">FC Magdeburg played in the Regionalliga in 2014-15 season and has 27250 members.</lex>
+      <lex comment="good" lid="Id3">1.FC Magdeburg has 27250 members and in the 2014-15 season they played in the Regionalliga.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | ground | "Verona, Italy"@en</otriple>
+        <otriple>A.C._Chievo_Verona | capacity | 39371</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | ground | "Verona, Italy"@en</otriple>
+        <otriple>A.C._Chievo_Verona | capacity | "39371"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | ground | "Verona, Italy"</mtriple>
+        <mtriple>A.C._Chievo_Verona | numberOfMembers | 39371</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Verona, Italy is the home to A.C. Chievo Verona which has 39371 members.</lex>
+      <lex comment="good" lid="Id2">Verona, Italy is the home to A.C. Chievo Verona who have 39371 members.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | manager | Rolando_Maran</otriple>
+        <otriple>Rolando_Maran | placeOfBirth | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | manager | Rolando_Maran</mtriple>
+        <mtriple>Rolando_Maran | placeOfBirth | Italy</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Rolando Maran, who has managed AC Chievo Verona, was born in Italy.</lex>
+      <lex comment="good" lid="Id2">Associazione Calcio ChievoVerona is managed by Italian born Rolando Maran.</lex>
+      <lex comment="good" lid="Id3">The manager of A.C. Chievo Verona is Rolando Maran, who was born in Italy.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | manager | Jorge_Humberto_Rodríguez</otriple>
+        <otriple>Jorge_Humberto_Rodríguez | team | FC_Dallas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.D._Isidro_Metapán | manager | Jorge_Humberto_Rodríguez</mtriple>
+        <mtriple>Jorge_Humberto_Rodríguez | club | FC_Dallas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jorge Humberto Rodriguez manages A.D. Isidro Metapan. He plays for FC Dallas.</lex>
+      <lex comment="good" lid="Id2">Jorge Humberto Rodriguez, manager of A D Isidro Metapan, plays for FC Dallas.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | 1500</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | season | 2014–15_A_EPSTH,_Greece</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | "1500"^^xsd:nonNegativeInteger</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | season | 2014–15_A_EPSTH,_Greece</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | numberOfMembers | 1500</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | season | 2014–15_A_EPSTH,_Greece</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">With 1500 members, A.E Dimitra Efxeinoupolis, were in the 2014-15 A EPSTH, Greece.</lex>
+      <lex comment="good" lid="Id2">A.E Dimitra Efxeinoupolis were in the 2014–15 A EPSTH. Greece season, and have 1500 members.</lex>
+    </entry>
+    </entries>
+</benchmark>

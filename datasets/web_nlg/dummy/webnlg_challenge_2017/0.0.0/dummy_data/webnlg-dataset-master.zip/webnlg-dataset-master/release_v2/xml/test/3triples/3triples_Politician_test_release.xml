@@ -1,0 +1,102 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abdul_Rahman_Ya'kub | deputy | Stephen_Yong_Kuet_Tze</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | successor | Abdul_Rahman_Ya'kub</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Rahman_Ya'kub | hasDeputy | Stephen_Yong_Kuet_Tze</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | successor | Abdul_Rahman_Ya'kub</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud was born in the Kingdom of Sarawak and he succeeded Abdul Rahman Ya'kub. Stephen Yong Kuet Tze is the deputy to Abdul Rahman Ya'kub.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud's birthplace was Kingdom of Sarawak and he was succeeded by Abdul Rahman Ya'Kub whose deputy was Stephen Yong Kuet Tze.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud was born in the Kingdom of Sarawak. Stephen Yong Kuet Tze is the deputy to Abdul Rahman Ya'kub who was succeeded by Abdul Taib Mahmud.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | office | "Chief of Defence Staff"</otriple>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Niger_State</otriple>
+        <otriple>Abdulsalami_Abubakar | almaMater | Technical_Institute,_Kaduna</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Niger_State</otriple>
+        <otriple>Abdulsalami_Abubakar | office | Chief_of_the_Defence_Staff_(Nigeria)</otriple>
+        <otriple>Abdulsalami_Abubakar | almaMater | Technical_Institute,_Kaduna</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | office | "Chief of Defence Staff"</otriple>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Niger_State</otriple>
+        <otriple>Abdulsalami_Abubakar | almaMater | "Technical Institute, Kaduna"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Niger_State</otriple>
+        <otriple>Abdulsalami_Abubakar | almaMater | "Technical Institute, Kaduna"@en</otriple>
+        <otriple>Abdulsalami_Abubakar | office | Chief_of_the_Defence_Staff_(Nigeria)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | birthPlace | Niger_State</mtriple>
+        <mtriple>Abdulsalami_Abubakar | almaMater | Technical_Institute,_Kaduna</mtriple>
+        <mtriple>Abdulsalami_Abubakar | office (workedAt, workedAs) | Chief_of_the_Defence_Staff_(Nigeria)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar was born in Niger State, graduated from the Technical Institute Kaduna and worked as the Nigerian Chief of the Defence Staff.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar was born in Niger State, graduated from the Technical Institute in Kaduna and became the Chief of the Defence Staff in Nigeria.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar's was born in Niger State. He attended the Technical Institute Kaduna and was part of the Chief of the Defence Staff in Nigeria.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</otriple>
+        <otriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</otriple>
+        <otriple>Olusegun_Obasanjo | vicePresident | Atiku_Abubakar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</mtriple>
+        <mtriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</mtriple>
+        <mtriple>Olusegun_Obasanjo | inOfficeWhileVicePresident | Atiku_Abubakar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Olusegun Obasanjo was succeeded by Abdulsalami Abubakar of the Nigerian Army and was in office during Atiku Abubaker's Vice Presidency.</lex>
+      <lex comment="good" lid="Id2">Olusegun Obasanjo, who was in office while Atiku Abubakar was Vice President, succeeded Nigerian Army man Abdulsalami Abubakar.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abel_Caballero | birthPlace | Ponteareas</otriple>
+        <otriple>Abel_Caballero | office | "Member of the Congress of Deputies"@en</otriple>
+        <otriple>Abel_Caballero | placeOfBirth | Galicia_(Spain)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abel_Caballero | office | "Member of theCongress of Deputies"</otriple>
+        <otriple>Abel_Caballero | birthPlace | Ponteareas</otriple>
+        <otriple>Abel_Caballero | placeOfBirth | Galicia_(Spain)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Caballero | birthPlace | Ponteareas</mtriple>
+        <mtriple>Abel_Caballero | office (workedAt, workedAs) | "Member of the Congress of Deputies"</mtriple>
+        <mtriple>Abel_Caballero | birthPlace | Galicia_(Spain)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Caballero was born in Ponteareas in Galicia, Spain and worked as a Member of the Congress of Deputies.</lex>
+      <lex comment="good" lid="Id2">Abel Caballero, born in Ponteareas, Galicia, Spain, worked as a Member of the Congress of Deputies.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abel_Caballero | birthPlace | Spain</otriple>
+        <otriple>Abel_Caballero | placeOfBirth | Galicia_(Spain)</otriple>
+        <otriple>Abel_Caballero | party | Spanish_Socialist_Workers'_Party</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abel_Caballero | birthPlace | Galicia_(Spain)</otriple>
+        <otriple>Abel_Caballero | placeOfBirth | Spain</otriple>
+        <otriple>Abel_Caballero | party | Spanish_Socialist_Workers'_Party</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Caballero | birthPlace | Spain</mtriple>
+        <mtriple>Abel_Caballero | birthPlace | Galicia_(Spain)</mtriple>
+        <mtriple>Abel_Caballero | party | Spanish_Socialist_Workers'_Party</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Caballero was born in Galicia, Spain, and is a member of the Spanish Socialist Workers' Party.</lex>
+      <lex comment="good" lid="Id2">Abel Caballero was born in Galicia in Spain and is a member of the Spanish Socialist Workers' Party.</lex>
+      <lex comment="good" lid="Id3">Abel Caballero, born in Galicia in Spain, is a member of the Spanish Socialist Workers' Party.</lex>
+    </entry>
+    </entries>
+</benchmark>

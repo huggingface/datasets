@@ -1,0 +1,150 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | nationality | United_States</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was an American fighter pilot, born in British Hong Kong on October 17, 1933. He retired on September 1, 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс был американским летчиком-истребителем, родившимся в британском Гонконге 17 октября 1933 года. Он вышел на пенсию 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders was born on 17th October 1933 and retired on the 1st September 1969. He born in Hong Kong and he was an American fighter pilot.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился 17 октября 1933 года и вышел в отставку 1 сентября 1969 года. Он родился в Гонконге и был американским летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id3">US national William Anders was born in British Hong Kong on 17th October 1933. The NASA test pilot retired on 1st September 1969.</lex>
+      <lex lang="ru" lid="Id3">Американский гражданин Уильям Андерс родился в британском Гонконге 17 октября 1933 года. Летчик-испытатель NASA вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+        <otriple>Apollo_8 | operator | NASA</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+        <mtriple>Apollo_8 | operator | NASA</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was a crew member on the NASA-operated Apollo 8 mission, along with Frank Borman. He received his MS from AFIT in 1962, and retired on September 1st 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс был членом экипажа на миссии НАСА "Аполлон-8" вместе с Фрэнком Борманом. В 1962 году он получил степень магистра естественных наук в AFIT и вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders graduated from AFIT with a M.S. in 1962 and went on to become a part of the Apollo 8 crew along with Frank Borman. William Anders retired in 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс окончил AFIT с M.S. в 1962 году и затем стал частью команды "Аполлона-8" вместе с Фрэнком Борманом. Уильям Андерс вышел в отставку в 1969 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">Frank_Borman | sameAs | Борман,_Фрэнк</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">NASA | sameAs | НАСА</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born in British Hong Kong on October 17th 1933. He served as a fighter pilot and was selected by NASA in 1963. He retired on September 1st 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс родился в Британском Гонконге 17 октября 1933 года. Он служил пилотом истребителя и был выбран НАСА в 1963 году. Он вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+        <otriple>Apollo_8 | operator | NASA</otriple>
+        <otriple>William_Anders | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+        <mtriple>Apollo_8 | operator | NASA</mtriple>
+        <mtriple>William_Anders | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders served as a Fighter pilot before being a member of Apollo 8's crew, operated by NASA, alongside Frank Borman. William Anders is now retired.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс работал в НАСА в качестве пилота истребителя и стал впоследствии членом экипажа "Аполлон-8" вместе с Фрэнком Борманом. Сейчас господин Андерс в отставке.</lex>
+      <lex lang="en" lid="Id2">William Anders worked for NASA as a fighter pilot and went on to become a part of Apollo 8's crew along with Frank Borman . Mr Anders is now retired.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс работал в НАСА в качестве пилота истребителя и затем стал членом экипажа "Аполлона-8" вместе с Фрэнком Борманом. Господин Андерс сейчас в отставке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">Frank_Borman | sameAs | Борман,_Фрэнк</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">NASA | sameAs | НАСА</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+        <otriple>Apollo_8 | crew2Up | Buzz_Aldrin</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+        <otriple>Apollo_8 | operator | NASA</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+        <mtriple>Apollo_8 | backupPilot | Buzz_Aldrin</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+        <mtriple>Apollo_8 | operator | NASA</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">In 1962, William Anders received a M.S. from his alma Mater, AFIT. He was a crew member on Apollo 8 operated by NASA with Buzz Aldrin a the backup pilot and Frank Borman as a crew member.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс окончил AFIT со степенью магистра естественных наук в 1962 году. Затем он стал членом экипажа "Аполлон-8" вместе с Фрэнком Борманом.</lex>
+      <lex lang="en" lid="Id2">William Anders graduated with a M.S. from AFIT in 1962. He then went on to become a member of the Apollo 8 crew along with Frank Borman.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс, окончивший AFIT в 1962 году со степенью магистра естественных наук , стал членом миссии "Аполлон-8". Фрэнк Борман сопровождал его на миссии, которой управляло НАСА, в то время как резервным пилотом был Базз Олдрин.</lex>
+      <lex lang="en" lid="Id3">William Anders, who graduated from AFIT in 1962 with an M.S went onto become a crew member of the Apollo 8 mission. Frank Borman accompanied him on the mission which was operated by NASA,whilst the back up pilot was Buzz Aldrin.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс, окончивший AFIT в 1962 году с "М.С", стал членом миссии "Аполлон-8". Фрэнк Борман сопровождал его на миссии, которой управляла НАСА, в то время как спиной пилота был Базз Олдрин.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">Frank_Borman | sameAs | Борман,_Фрэнк</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">Buzz_Aldrin | sameAs | Олдрин,_Базз</dbpedialink>
+        <dbpedialink direction="en2ru">NASA | sameAs | НАСА</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

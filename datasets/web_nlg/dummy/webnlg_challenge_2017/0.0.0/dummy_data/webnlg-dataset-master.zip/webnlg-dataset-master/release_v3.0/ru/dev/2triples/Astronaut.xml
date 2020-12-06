@@ -1,0 +1,133 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>William_Anders | nationality | United_States</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The American William Anders was born in British Hong Kong,.</lex>
+      <lex lang="ru" lid="Id1">Американец Уильям Андерс родился в Британском Гонконге.</lex>
+      <lex lang="en" lid="Id2">William Anders, who was from the United States, was actually born in British Hong Kong.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс, который был из США, на самом деле родился в Британском Гонконге.</lex>
+      <lex lang="en" lid="Id3">Although William Anders was from the United States, he was actually born in British Hong Kong.</lex>
+      <lex lang="ru" lid="Id3">Несмотря на то, что Уильям Андерс был из США, он действительно родился в Британском Гонконге.</lex>
+      <lex lang="en" lid="Id4">William Anders nationality is the United States, but he was born in Hong Kong.</lex>
+      <lex lang="ru" lid="Id4">По национальной принадлежности Уильям Андерс гражданин Соединенных Штатов Америки, но родился он в Гонконге.</lex>
+      <lex lang="en" lid="Id5">William Anders was born in British Hong Kong but has a United States nationality.</lex>
+      <lex lang="ru" lid="Id5">Уильям Андерс родился в Британском Гонконге,но имеет гражданство Соединенных Штатов.</lex>
+      <lex lang="en" lid="Id6">William Anders from the United States was born in British Hong Kong.</lex>
+      <lex lang="ru" lid="Id6">Уильям Андерс из США родился в Британском Гонконге.</lex>
+      <lex lang="en" lid="Id7">William Anders was born in British Hong Kong and is a citizen of the United States.</lex>
+      <lex lang="ru" lid="Id7">Уильям Андерс родился в Британском Гонконге и является гражданином США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born in British Hong Kong and later in life became a fighter pilot.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс родился в Британском Гонконге и позже в жизни стал летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id2">William Anders was a fighter pilot who was born in British, Hong Kong.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс, который родился в Британском Гонконге, был летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id3">William Anders (born in British Hong Kong) served as a Fighter pilot.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс (родился в Британском Гонконге) служил летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id4">Willian Anders born in British Hong Kong served as a fighter pilot.</lex>
+      <lex lang="ru" lid="Id4">Уильям Андерс, родившийся в Британском Гонконге, служил летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id5">William Anders, born in British Hong Kong, was a fighter pilot.</lex>
+      <lex lang="ru" lid="Id5">Уильям Андерс, родившийся в Британском Гонконге, был летчиком-истребителем.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders is a test pilot and member of Apollo 8's crew.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс - летчик-испытатель и член экипажа "Аполлон-8".</lex>
+      <lex lang="en" lid="Id2">William Anders was part of the Apollo 8 crew and was once a fighter pilot.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс входил в состав экипажа Аполлон-8 и был когда-то летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id3">William Anders was a fighter pilot and a crew member of Apollo 8.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс был летчиком-истребителем и членом экипажа "Аполлон-8".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>William_Anders | years | 1976</otriple>
+        <otriple>William_Anders | title | United_States_Ambassador_to_Norway</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | servedAsChiefOfTheAstronautOfficeIn | 1976</mtriple>
+        <mtriple>William_Anders | title | United_States_Ambassador_to_Norway</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders served as Chief of the Astronaut Office in 1976 and had a title as the United States Ambassador to Norway.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс занимал должность начальника Управления астронавтов в 1976 году и имел звание посла Соединенных Штатов в Норвегии.</lex>
+      <lex lang="en" lid="Id2">William Anders time as Chief of the Astronaut Office in 1976 has prepared him well for his new position as United States Ambassador to Norway.</lex>
+      <lex lang="ru" lid="Id2">Должность Уильяма Андерса в качестве начальника Управления астронавтов в 1976 году хорошо подготовила его для новой работы в качестве посла Соединенных Штатов в Норвегии.</lex>
+      <lex lang="en" lid="Id3">Th United States Ambassador to Norway, William Anders, served as Chief of the Astronaut Office in 1976.</lex>
+      <lex lang="ru" lid="Id3">Посол Соединенных Штатов в Норвегии Уильям Андерс занимал должность начальника Управления астронавтов в 1976 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1976 | sameAs | 1976_год</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">United States Ambassador to Norway | sameAs | посол Соединенных Штатов в Норвегии</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Both William Anders and Frank Borman were crew members aboard Apollo 8.</lex>
+      <lex lang="ru" lid="Id1">И Уильям Андерс, и Фрэнк Борман были членами экипажа на борту "Аполлона-8".</lex>
+      <lex lang="en" lid="Id2">Both William Anders and Frank Borman served as crew members on Apollo 8.</lex>
+      <lex lang="ru" lid="Id2">И Уильям Андерс, и Фрэнк Борман служили членами экипажа на Аполлоне-8.</lex>
+      <lex lang="en" lid="Id3">Among the crew of Apollo 8 were William Anders and Frank Borman.</lex>
+      <lex lang="ru" lid="Id3">Среди членов экипажа "Аполлона-8" были Уильям Андерс и Фрэнк Борман.</lex>
+      <lex lang="en" lid="Id4">Among the crew members of Apollo 8 were William Anders and Frank Borman.</lex>
+      <lex lang="ru" lid="Id4">Среди членов экипажа "Аполлона-8" были Уильям Андерс и Фрэнк Борман.</lex>
+      <lex lang="en" lid="Id5">William Anders and Frank Borman were Apollo 8 were crew members.</lex>
+      <lex lang="ru" lid="Id5">Уильям Андерс и Фрэнк Борман были членами экипажа "Аполлон-8".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">Frank_Borman | sameAs | Борман,_Фрэнк</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,104 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Peter_Stöger | clubs | LASK_Linz</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Peter_Stöger | team | LASK_Linz</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Peter_Stöger | club | LASK_Linz</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger played for the club LASK Linz.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер играл за клуб ЛАСК.</lex>
+      <lex lang="en" lid="Id2">Peter Stoger plays for LASK Linz.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер играет за ЛАСК.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">LASK_Linz | sameAs | ЛАСК_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Peter_Stöger | managerClub | SC_Wiener_Neustadt</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Peter_Stöger | club | SC_Wiener_Neustadt</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger is affiliated with the SC Wiener Neustadt club.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер связан с клубом СК “Винер-Нойштадт”.</lex>
+      <lex lang="en" lid="Id2">Peter Stöger played for SC Wiener Neustadt.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер играл за СК “Винер-Нойштадт”.</lex>
+      <lex lang="en" lid="Id3">Peter Stoger plays for SC Wiener Neustadt.</lex>
+      <lex lang="ru" lid="Id3">Петер Штёгер играет за СК “Винер-Нойштадт”.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">SC Wiener Neustadt | sameAs | СК “Винер-Нойштадт”</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Peter_Stöger | clubs | SK_Rapid_Wien</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Peter_Stöger | team | SK_Rapid_Wien</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Peter_Stöger | club | SK_Rapid_Wien</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger was at the club SK Rapid Wien.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер был в клубе Рапид.</lex>
+      <lex lang="en" lid="Id2">PeterStöger plays for SK Rapid Wien club.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер играет в Рапиде.</lex>
+      <lex lang="en" lid="Id3">Peter Stoger plays for SK Rapid Wien.</lex>
+      <lex lang="ru" lid="Id3">Петер Штёгер играет за Рапид.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">SK_Rapid_Wien | sameAs | Рапид_(футбольный_клуб,_Вена)</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Peter_Stöger | clubs | SK_Vorwärts_Steyr</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Peter_Stöger | team | SK_Vorwärts_Steyr</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Peter_Stöger | club | SK_Vorwärts_Steyr</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger played football for SK Vorwärts Steyr.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер играл за футбольный клуб Форвертс.</lex>
+      <lex lang="en" lid="Id2">Peter Stöger is in the SK Vorwärts Steyr club.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер - в Форвертсе.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">SK_Vorwärts_Steyr | sameAs | Форвертс_(футбольный_клуб,_Штайр)</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Rolando_Maran | team | A.C._Chievo_Verona</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Rolando_Maran | clubs | A.C._Chievo_Verona</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Rolando_Maran | managerClub | A.C._Chievo_Verona</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Rolando_Maran | club | A.C._Chievo_Verona</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Rolando Maran is attached to AC Chievo Verona .</lex>
+      <lex lang="ru" lid="Id1">Роландо Маран привязан к ФК “Кьево” (Верона).</lex>
+      <links>
+        <link direction="en2ru">Rolando Maran | sameAs | Роландо Маран</link>
+        <link direction="en2ru">A.C. Chievo Verona | includes | “Кьево” (Верона)</link>
+        <link direction="en2ru">A.C. Chievo Verona | includes | Верона</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,82 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">From Spain, Ajoblanco (alternatively known as Ajo blanco) has bread as an ingredient.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco, also known as "Ajo blanco", comes from Spain. Bread is one of the ingredients.</lex>
+      <lex comment="good" lid="Id3">Bread is an ingredient of Ajoblanco, which is from Spain and an alternative name to Ajo blanco.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco is from Andalusia, in Spain. Ajoblanco contains water.</lex>
+      <lex comment="good" lid="Id2">Water is an ingredient in Ajoblanco, which is a food found in Andalusia, in Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Indonesia | leader | Joko_Widodo</otriple>
+        <otriple>Indonesia | leaderName | Jusuf_Kalla</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Indonesia | leader | Jusuf_Kalla</otriple>
+        <otriple>Indonesia | leaderName | Joko_Widodo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | country | Indonesia</mtriple>
+        <mtriple>Indonesia | leader | Joko_Widodo</mtriple>
+        <mtriple>Indonesia | leader | Jusuf_Kalla</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem arem originates from the country of Indonesia, where two of the leaders are, Joko Widodo and Jusuf Kalla.</lex>
+      <lex comment="good" lid="Id2">Arem arem originates from Indonesia where two of the leaders are Joko Widodo and Jusuf Kalla.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Indonesia | leaderName | Jusuf_Kalla</otriple>
+        <otriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | country | Indonesia</mtriple>
+        <mtriple>Indonesia | leader | Jusuf_Kalla</mtriple>
+        <mtriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem is a food found nationwide in Indonesia, but is more specific to Java. Jusuf Kalla is the leader of Indonesia.</lex>
+      <lex comment="good" lid="Id2">Jusuf Kalla is the leader of Indonesia, the country which serves Arem-arem. While Arem-arem is nationwide in Indonesia, it is more specific to Java.</lex>
+      <lex comment="good" lid="Id3">Jusuf Kalla is a leader in Indonesia, where the dish arem-arem is found nationwide, though it is more specific to Java.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The leader of Italy is Sergio Mattarella, it is also where Italian is spoken and the arrabbiata sauce is from.</lex>
+      <lex comment="good" lid="Id2">Sergio Mattarella is a leader of Italy where the Italian language is spoken and Arrabbiata sauce can be found.</lex>
+      <lex comment="good" lid="Id3">Arrabbiata sauce is from Italy, where the spoken language is Italian and a leader is Sergio Mattarella.</lex>
+    </entry>
+    </entries>
+</benchmark>

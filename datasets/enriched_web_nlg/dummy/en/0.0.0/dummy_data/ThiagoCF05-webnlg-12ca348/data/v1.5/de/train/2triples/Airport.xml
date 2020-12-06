@@ -1,0 +1,49 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="2">
+			<originaltripleset>
+				<otriple>Aarhus | leaderName | Jacob_Bundsgaard</otriple>
+				<otriple>Aarhus_Airport | city | Aarhus</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus | leaderName | Jacob_Bundsgaard</mtriple>
+				<mtriple>Aarhus_Airport | cityServed | Aarhus</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | cityServed | Aarhus</striple>
+						<striple>Aarhus | leaderName | Jacob_Bundsgaard</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus dient der Stadt Aarhus, der Führer ist Jacob Bundsgaard. </text>
+				<template>AGENT-1 dient der Stadt BRIDGE-1, deren Führer PATIENT-1 ist.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | cityServed | Aarhus</striple>
+						<striple>Aarhus | leaderName | Jacob_Bundsgaard</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus dient der Stadt Aarhus, wo Jakob Bundsgaard führend ist. </text>
+				<template>AGENT-1 dient der Stadt BRIDGE-1, wo PATIENT-1 führend ist.</template>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | cityServed | Aarhus</striple>
+						<striple>Aarhus | leaderName | Jacob_Bundsgaard</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus dient der Stadt Aarhus, ihr Anführer ist Jacob Bundsgaard. </text>
+				<template>AGENT-1 dient der Stadt BRIDGE-1, BRIDGE-1 Führer ist PATIENT-1.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus_Airport</entity>
+				<entity>BRIDGE-1 | Aarhus</entity>
+				<entity>PATIENT-1 | Jacob_Bundsgaard</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

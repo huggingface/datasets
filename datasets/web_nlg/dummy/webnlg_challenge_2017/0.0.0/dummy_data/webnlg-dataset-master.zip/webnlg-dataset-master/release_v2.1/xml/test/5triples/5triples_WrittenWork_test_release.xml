@@ -1,0 +1,103 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</otriple>
+        <otriple>Ring_of_Fire_II | language | English_language</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_II</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+        <otriple>Grantville_Gazette_II | precededBy | The_Grantville_Gazette</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</mtriple>
+        <mtriple>Ring_of_Fire_II | language | English_language</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_II</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+        <mtriple>Grantville_Gazette_II | precededBy | The_Grantville_Gazette</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Ring of Fire II is written in English and preceded by Grantville Gazette, Grantville Gazette II and 1634: The Bavarian Crisis. The latter book is written by Virginia DeMarce and Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Administrative_Science_Quarterly | publisher | Cornell_University</otriple>
+        <otriple>Cornell_University | affiliation | Association_of_Public_and_Land-grant_Universities</otriple>
+        <otriple>Cornell_University | affiliations | Association_of_American_Universities</otriple>
+        <otriple>Cornell_University | president | Elizabeth_Garrett</otriple>
+        <otriple>Cornell_University | city | Ithaca,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Administrative_Science_Quarterly | publisher | Cornell_University</otriple>
+        <otriple>Cornell_University | affiliations | Association_of_Public_and_Land-grant_Universities</otriple>
+        <otriple>Cornell_University | affiliation | Association_of_American_Universities</otriple>
+        <otriple>Cornell_University | president | Elizabeth_Garrett</otriple>
+        <otriple>Cornell_University | city | Ithaca,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Administrative_Science_Quarterly | publisher | Cornell_University</mtriple>
+        <mtriple>Cornell_University | affiliation | Association_of_Public_and_Land-grant_Universities</mtriple>
+        <mtriple>Cornell_University | affiliation | Association_of_American_Universities</mtriple>
+        <mtriple>Cornell_University | president | Elizabeth_Garrett</mtriple>
+        <mtriple>Cornell_University | city | Ithaca,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Cornell University is affiliated with the Association of Public and Land-grant Universities and the Association of American Universities. The University is located in Ithaca New York and is overseen by its President, Elizabeth Garrett. It is responsible for publishing the Administrative Science Quarterly.</lex>
+      <lex comment="good" lid="Id2">Administrative Science Quarterly was published by Cornell University, located in Ithaca, New York, and affiliated with the Association of Public and Land-grant Universities, as well as with the Association of American Universities. President of Cornell University is Elizabeth Garrett.</lex>
+      <lex comment="good" lid="Id3">Affiliated with the Association of Public and Land-grant Universities and the Association of American Universities., Cornell University is the publisher of the Administrative Science Quarterly. The university is located in Ithaca New York and the president is Elizabeth Garrett.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>English_language | spokenIn | Great_Britain</otriple>
+        <otriple>A_Loyal_Character_Dancer | publisher | Soho_Press</otriple>
+        <otriple>A_Loyal_Character_Dancer | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>English_language | spokenIn | Great_Britain</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | publisher | Soho_Press</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Loyal Character Dancer is published by Soho Press in the United States, a country with an ethnic groups of African American and a language of English (also spoken in Great Britain).</lex>
+      <lex comment="good" lid="Id2">English is the language spoken in both Great Britain and the United States. However it is in the US that A Loyal Character Dancer was published by Soho Press. It is in this country that the ethnic group of African Americans can be found.</lex>
+      <lex comment="good" lid="Id3">A Loyal Character Dancer is published by Soho Press in the United States, where there is an ethnic group called the African Americans. English is the language of the United States and also of Great Britain.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>English_language | spokenIn | Great_Britain</otriple>
+        <otriple>A_Loyal_Character_Dancer | publisher | Soho_Press</otriple>
+        <otriple>A_Loyal_Character_Dancer | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>English_language | spokenIn | Great_Britain</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | publisher | Soho_Press</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The English language is spoken in Great Britain and the United States where Native Americans are an ethnic group. A Loyal Character Dancer is published in the United States by Soho Press.</lex>
+      <lex comment="good" lid="Id2">English is spoken in Great Britain but is also the language of the United States where Native Americans are one of the ethnic groups. The book "A Loyal Character Dancer" was published in the US by Soho Press.</lex>
+      <lex comment="good" lid="Id3">A Loyal Character Dancer is published by Soho Press in the United States. The language spoken in the United States (as well as in Great Britain) is English, and one of the US ethnic groups is Native Americans.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X (X (X) (X (X)))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>English_language | spokenIn | Great_Britain</otriple>
+        <otriple>A_Loyal_Character_Dancer | publisher | Soho_Press</otriple>
+        <otriple>Soho_Press | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Asian_Americans</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>English_language | spokenIn | Great_Britain</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | publisher | Soho_Press</mtriple>
+        <mtriple>Soho_Press | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Asian_Americans</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Loyal Character Dancer is published by Soho Press, located in the United States. English is the main language of the U.S., and is also spoken in Great Britain. The U.S. has an ethnic group called Asian Americans.</lex>
+      <lex comment="good" lid="Id2">A Loyal Character Dancer was published by Soho Press, which is located in the U.S. where they speak English, same as in Great Britain and have many Asian Americans.</lex>
+    </entry>
+    </entries>
+</benchmark>

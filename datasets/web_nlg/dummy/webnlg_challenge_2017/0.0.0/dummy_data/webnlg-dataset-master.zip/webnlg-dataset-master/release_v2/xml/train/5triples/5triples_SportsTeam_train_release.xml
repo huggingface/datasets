@@ -1,0 +1,126 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | ground | Italy</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.C. Lumezzane's ground is in Italy where Pietro Grasso leads the Italian people. The capital of the country is Rome and the Italian language is spoken.</lex>
+      <lex comment="good" lid="Id2">A.C. Lumezzane's ground is in Italy where the Italian language is spoken by the inhabitants who are known as Italians. The leader of the country is Pietro Grasso and the capital city is Rome.</lex>
+      <lex comment="good" lid="Id3">The Italian people are led by Pietro Grasso and speak the Italian language. The capital city is Rome and the AC Lumezzane club play in the country.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | officialLanguage | Italian_language</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | ground | Italy</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | officialLanguage | Italian_language</mtriple>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.C. Lumezzane play in Italy, where Rome is the capital and Italians live. It is also where Pietro Grasso is the leader and Italian is the official language.</lex>
+      <lex comment="good" lid="Id2">AC Lumezzane play in Italy where the capital city is Rome and the official language is Italian. The leader of the Italian people is Pietro Grasso,.</lex>
+      <lex comment="good" lid="Id3">Pietro Grasso leads Italy whose capital is Rome. The language there is Italian and its people are known as Italians. A.C. Lumezzane play in that country.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>Michele_Marcolini | team | A.C._Chievo_Verona</otriple>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Michele_Marcolini | clubs | Vicenza_Calcio</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Michele_Marcolini | clubs | A.C._Chievo_Verona</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Michele_Marcolini | team | Vicenza_Calcio</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | manager | Michele_Marcolini</mtriple>
+        <mtriple>Michele_Marcolini | club | A.C._Chievo_Verona</mtriple>
+        <mtriple>A.C._Lumezzane | ground | Italy</mtriple>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Michele_Marcolini | club | Vicenza_Calcio</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Michele Marcolini has been manager of AC Lumezzane which is located in Italy. He played for Vicenza Calcio, A.C. Chievo Verona. An Italian leader is Pietro Grasso.</lex>
+      <lex comment="good" lid="Id2">Michele Marcolini previously played for Vicenza Calcio but now plays for AC Chievo Verona. He is also the manager of AC Lumezzane who have their ground in Italy where Pietro Grasso is the leader.</lex>
+      <lex comment="good" lid="Id3">AC Lumezzane's ground is in Italy and their manager is Michele Marcolini who plays for A.C. Chievo Verona and is in the Vicenza Calcio Club. The leader of Italy is Pietro Grasso.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | capital | Athens</otriple>
+        <otriple>Greece | leader | Nikos_Voutsis</otriple>
+        <otriple>Greece | leaderName | Prokopis_Pavlopoulos</otriple>
+        <otriple>Greece | language | Greek_language</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | capital | Athens</otriple>
+        <otriple>Greece | leaderName | Nikos_Voutsis</otriple>
+        <otriple>Greece | leader | Prokopis_Pavlopoulos</otriple>
+        <otriple>Greece | language | Greek_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | location | Greece</mtriple>
+        <mtriple>Greece | capital | Athens</mtriple>
+        <mtriple>Greece | leader | Nikos_Voutsis</mtriple>
+        <mtriple>Greece | leader | Prokopis_Pavlopoulos</mtriple>
+        <mtriple>Greece | language | Greek_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Nikos Voutsis and Prokopis Pavlopoulos are leaders in Greece where the capital city is Athens and the Greek language is spoken. The country is also the location of the A.E Dimitra Efxeinoupolis club.</lex>
+      <lex comment="good" lid="Id2">The A.E Dimitra Efxeinoupolis club is located in Greece, where the language is Greek. Athens is the capital of Greece, and two of the leaders are Prokopis Pavlopoulos, and Nikos Voutsis.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | currency | Euro</otriple>
+        <otriple>Greece | capital | Athens</otriple>
+        <otriple>Greece | leaderName | Nikos_Voutsis</otriple>
+        <otriple>Greece | leader | Prokopis_Pavlopoulos</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | currency | Euro</otriple>
+        <otriple>Greece | capital | Athens</otriple>
+        <otriple>Greece | leader | Nikos_Voutsis</otriple>
+        <otriple>Greece | leaderName | Prokopis_Pavlopoulos</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | location | Greece</mtriple>
+        <mtriple>Greece | currency | Euro</mtriple>
+        <mtriple>Greece | capital | Athens</mtriple>
+        <mtriple>Greece | leader | Nikos_Voutsis</mtriple>
+        <mtriple>Greece | leader | Prokopis_Pavlopoulos</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.E Dimitra Efxeinoupolis is located in Greece where the leaders are Nikos Voutsis and Prokopis Pavloopoulos. The country's capital is Athens and their currency is the euro.</lex>
+      <lex comment="good" lid="Id2">Greece is led by Nikos Voutsis and Prokopis Pavlopoulos, the capital city is Athens and the country uses the euro as their currency. It is also the location of the A.E Dimitra Efxeinoupolis club.</lex>
+      <lex comment="good" lid="Id3">The A.E Dimitra Efxeinoupolis club is located in Greece which is led by Nikos Voutsis and Prokopis Pavlopoulos. The capital of the country is Athens and the currency used is the euro.</lex>
+    </entry>
+    </entries>
+</benchmark>

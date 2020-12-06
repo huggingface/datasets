@@ -1,0 +1,118 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | was a crew member of | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born on March 15, 1932 in Wheeler, Texas and is American. He graduated from UT Austin with a BSc. in 1955. He worked as a test pilot and as a member of Apollo 12. Bean is retired.</lex>
+      <lex comment="good" lid="Id2">Alan Bean is an American born on March 15, 1932 in Wheeler, Texas. He graduated from UT Austin in 1955 with a BSc. Bean was a test pilot and a member of Apollo 12. He is retired.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Alan_Shepard | status | "Deceased"@en</otriple>
+        <otriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"@en</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | selection | 1959</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+        <mtriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | was selected by NASA | 1959</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was born in New Hampshire on November 18th, 1923. He graduated from NWC in 1957 with an M.A. He was selected by NASA in 1959 and he was a test pilot. He died in California.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard,born on November 18, 1923,graduated from NWC in 1957 with an M.A. Alan Shepard served as a test pilot, and was selected by NASA in 1959.Alan Shepard, born in New Hampshire, died in California,.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard has died in California. He was born on 18 November 1923 in New Hampshire and attended school at NWC, graduating in 1957 with an MA. He became a test pilot and was eventually selected by NASA in 1959.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Apollo_12 | crew2Up | Alfred_Worden</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Apollo_12 | crew1Up | David_Scott</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Apollo_12 | backup pilot | Alfred_Worden</mtriple>
+        <mtriple>Alan_Bean | was a crew member of | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Apollo_12 | commander | David_Scott</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born in Wheeler, Texas and is an American. He was a crew member of Apollo 12 and a test pilot which was operated by NASA. Apollo 12 was commanded by David Scott and Alfred Worden was the backup pilot.</lex>
+      <lex comment="good" lid="Id2">Alan Bean is a US national, who was born in Wheeler, Texas. He was a test pilot and part of the crew of the NASA operated Apollo 12. Apollo 12 was commanded by David Scott, and had Alfred Worden as a backup pilot.</lex>
+      <lex comment="good" lid="Id3">Alan Bean is a US national, who was born in Wheeler, Texas. He served as a test pilot and was part of the crew of NASA operated Apollo 12. Other crew of Apollo 12 included Alfred Worden (back up pilot) and David Scott (commander).</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | alternativeNames | "Edwin E. Aldrin, Jr."@en</otriple>
+        <otriple>Buzz_Aldrin | selection | 1963</otriple>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+        <otriple>Buzz_Aldrin | occupation | Fighter_pilot</otriple>
+        <otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+        <otriple>Buzz_Aldrin | birthDate | "1930-01-20"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | alternativeNames | "Edwin E. Aldrin, Jr."</mtriple>
+        <mtriple>Buzz_Aldrin | was selected by NASA | 1963</mtriple>
+        <mtriple>Buzz_Aldrin | was a crew member of | Apollo_11</mtriple>
+        <mtriple>Buzz_Aldrin | occupation | Fighter_pilot</mtriple>
+        <mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+        <mtriple>Buzz_Aldrin | birthDate | "1930-01-20"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Edwin E. Aldrin, Jr. was better known by his nickname of Buzz Aldrin and as a test pilot he was picked to crew Apollo 11 by NASA in 1963. Aldrin was born in Glen Ridge, New Jersey on January 20th,1930 and in 1963 he graduated from MIT with a Sc. D.</lex>
+      <lex comment="good" lid="Id2">Edwin E. Aldrin, Jr. was better known as Buzz Aldrin, a fighter pilot and member of Apollo 11 after NASA picked him for the space program in 1963. Aldrin was born on January 20th, 1930 in Glen Ridge, New Jersey and a graduate of MIT's Sc. D. program in 1963.</lex>
+      <lex comment="good" lid="Id3">Edwin E. "Buzz" Aldrin Jr was a Fighter pilot who was born in Glen Ridge, New Jersey on 1930 01 20. In 1963, he graduated from Massachusetts Institute of Technology in 1963 with a doctorate in Science and was selected by NASA to be part of their Apollo 11 crew.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | nationality | United_States</otriple>
+        <otriple>Buzz_Aldrin | timeInSpace | "52.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+        <otriple>Buzz_Aldrin | occupation | Fighter_pilot</otriple>
+        <otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+        <otriple>Buzz_Aldrin | birthDate | "1930-01-20"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | nationality | United_States</mtriple>
+        <mtriple>Buzz_Aldrin | timeInSpace | "52.0"(minutes)</mtriple>
+        <mtriple>Buzz_Aldrin | was a crew member of | Apollo_11</mtriple>
+        <mtriple>Buzz_Aldrin | occupation | Fighter_pilot</mtriple>
+        <mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+        <mtriple>Buzz_Aldrin | birthDate | "1930-01-20"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">American Buzz Aldrin was a fighter pilot who later joined the Apollo 11 program where he spent 52 minutes in space. Aldrin was born January 20th, 1930 in Glen Ridge, New Jersey and in 1963 he graduated from MIT with a Sc. D.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was an American, who was born in Glen Ridge, New Jersey on the 20th January, 1930. He graduated from MIT with an Sc.D in 1963. He was a fighter pilot and member of the Apollo 11 crew. He walked in space for 52 minutes.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin was born on January 20, 1930 in Glen Ridge, New Jersey. He graduated from MIT with A sc. D 1n 1963; served as a fighter pilot, and was a member of the Apollo 11 crew. He spent 52 minutes in space.</lex>
+    </entry>
+    </entries>
+</benchmark>

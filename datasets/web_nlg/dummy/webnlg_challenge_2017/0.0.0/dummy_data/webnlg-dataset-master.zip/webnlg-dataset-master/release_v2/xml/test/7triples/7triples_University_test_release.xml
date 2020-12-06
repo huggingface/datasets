@@ -1,0 +1,116 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | students | 600</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | established | 1996</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | facultySize | "100"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | city | Mendrisio</otriple>
+        <otriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | numberOfStudents | 600</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | established | 1996</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | academicStaffSize | 100</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | city | Mendrisio</mtriple>
+        <mtriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Switzerland is led by the Federal Chancellor and is the location of the Accademia di Architettura di Mendrisio in the city of Mendrisio. The Accademia was established in 1996 and is led by the Dean, Mario Botta. There are 700 students and 100 academic staff.</lex>
+      <lex comment="good" lid="Id2">The Accademia di Architettura di Mendrisio is located in Mendrisio, Switzerland. It was established in 1996 and its dean is Mario Botta. It has 100 academic staff and 600 students. Switzerland's leader is the Federal Chancellor.</lex>
+      <lex comment="good" lid="Id3">Accademia di Architettura di Mendrisio can be found in Mendrisio, Switzerland. The school was created in 1996, its dean is Mario Botta, it has 600 students and 100 employees. The country is led by a Federal Chancellor.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | city | Bangalore</otriple>
+        <otriple>Acharya_Institute_of_Technology | director | "Dr. G. P. Prabhukumar"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | established | 2000</otriple>
+        <otriple>Acharya_Institute_of_Technology | motto | "Nurturing Excellence"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | country | "India"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | state | Karnataka</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | city | Bangalore</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | director | "Dr. G. P. Prabhukumar"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | established | 2000</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | motto | "Nurturing Excellence"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | country | "India"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | state | Karnataka</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bangalore in the state of Karnataka, India is the location of the Acharya Institute of Technology established in the year 2000. The motto of the Institute is "Nurturing Excellence" , the Director is Dr G P Prabhukumar and the President is B M Reddy.</lex>
+      <lex comment="good" lid="Id2">The Acharya Institute of Technology whose motto is "Nurturing Excellence" was established in 2000 in Bangalore, Karnataka in India. It's president is B.M. Reddy and director is Dr. G. P. Prabhukumar.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X (X)) (X (X)) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | free | All_India_Council_for_Technical_Education</otriple>
+        <otriple>All_India_Council_for_Technical_Education | location | Mumbai</otriple>
+        <otriple>Karnataka | northeast | Telangana</otriple>
+        <otriple>Acharya_Institute_of_Technology | sport | Tennis</otriple>
+        <otriple>Karnataka | west | Arabian_Sea</otriple>
+        <otriple>Acharya_Institute_of_Technology | state | Karnataka</otriple>
+        <otriple>Tennis | union | International_Tennis_Federation</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | was given the 'Technical Campus' status by | All_India_Council_for_Technical_Education</mtriple>
+        <mtriple>All_India_Council_for_Technical_Education | location | Mumbai</mtriple>
+        <mtriple>Karnataka | has to its northeast | Telangana</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | sportsOffered | Tennis</mtriple>
+        <mtriple>Karnataka | has to its west | Arabian_Sea</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | state | Karnataka</mtriple>
+        <mtriple>Tennis | sportsGoverningBody | International_Tennis_Federation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Acharya Institute of Technology in Karnataka state was given Technical Campus status by All India Council for Technical Education in Mumbai. The school offers tennis which is governed by the International Tennis Federation. Karnataka has the Arabian Sea to its west and in the northeast is Telangana.</lex>
+      <lex comment="good" lid="Id2">The Acharya Institute of Technology is in Karnataka, which is southwest of Telangana and east of the Arabian Sea. The institute offers Tennis courses and is governed by the International Tennis Federation and was given the 'Technical Campus' status by the All India Council for Technical Education in Mumbai.</lex>
+      <lex comment="good" lid="Id3">All India Council for Technical Education, which is located in Mumbai, gave the Acharya Institute of Technology Technical Staus. The Acharya Institute of Technology is located in the state of Karnataka, which has Telangana to the northeast and the Arabian Sea to the east. The Acharya Institute of Technology offers the sport of tennis, which is governed by the International Tennis Federation.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X (X (X) (X) (X) (X) (X))))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Romania | ethnicGroups | Germans_of_Romania</otriple>
+        <otriple>Romania | leaderTitle | Prime_Minister_of_Romania</otriple>
+        <otriple>Alba_Iulia | country | Romania</otriple>
+        <otriple>Romania | leaderName | Klaus_Iohannis</otriple>
+        <otriple>Romania | capital | Bucharest</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>Romania | anthem | Deșteaptă-te,_române!</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Romania | ethnicGroup | Germans_of_Romania</mtriple>
+        <mtriple>Romania | leaderTitle | Prime_Minister_of_Romania</mtriple>
+        <mtriple>Alba_Iulia | country | Romania</mtriple>
+        <mtriple>Romania | leaderName | Klaus_Iohannis</mtriple>
+        <mtriple>Romania | capital | Bucharest</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>Romania | anthem | Deșteaptă-te,_române!</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Germans of Romania are one of the ethnic groups in Romania which is led by Prime Minister Klaus Iohannis and has the anthem "Desteapta-te , romane!". The capital city of Romania is Bucharest but the 1 Decembrie 1918 University is located in the city of Alba Iulia.</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University is in the city Alba Iulia in Romania. Klaus Iohannis the leader of Romania and they also have a Prime Minister. The Germans of Romania are the main ethnic group in Romania and the capital is Bucharest. The Romania anthem is Deșteaptă-te, române!</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | academicStaffSize | 737</mtriple>
+        <mtriple>Denmark | leaderName | Lars_Løkke_Rasmussen</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | dean | "Thomas Pallesen"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | city | Aarhus</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | country | Denmark</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | affiliation | European_University_Association</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | established | 1928</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The School of Business and Social Sciences at the Aarhus University in Aarhus, Denmark is affiliated with the European University Association. The school was created in 1928, has 737 employees and its dean is Thomas Pallesen. Denmark's leader is Lars Løkke Rasmussen.</lex>
+      <lex comment="good" lid="Id2">Established in 1928, the School of Business and Social Sciences at the Aarhus University in Aarus, Denmark has a staff of 737 and is affiliated with the European University Association. The dean is Thomas Pallesen. Denmark's leader is Lars Løkke Rasmussen.</lex>
+    </entry>
+    </entries>
+</benchmark>

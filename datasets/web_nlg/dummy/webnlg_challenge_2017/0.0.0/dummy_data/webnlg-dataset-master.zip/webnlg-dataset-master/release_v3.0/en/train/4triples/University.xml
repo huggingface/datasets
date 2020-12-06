@@ -1,0 +1,88 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University is located in Alba Iulia, Alba. Its Latin name is "Universitas Apulensis" and its nickname is "Uab".</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University's latin name is "Universitas Apulensis". Its nickname is Uab and is located in Alba Iulia, Alba.</lex>
+      <lex comment="good" lid="Id3">The 1 Decembrie 1918 University (of the city of Alba Iulia in the state of Alba), has the nickname Uab and the Latin name Universitas Apulensis.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Breaz Valer Daniel is rector of the 1 Decembrie 1918 University, which has the nickname of Uab, and is located in the city of Alba Iulia, Romania.</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University, also known as Uab, is located in Alba Iulia, Romania. Its rector is Breaz Valer Daniel.</lex>
+      <lex comment="good" lid="Id3">The 1 Decembrie 1918 University of Alba Iulia, Romania has the nickname Uab and the rector is called Breaz Valer Daniel.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The rector of the 1 Decembrie 1918 University in the state of Alba, Romania is Breaz Valer Daniel. The latin name of the university is "Universitas Apulensis".</lex>
+      <lex comment="good" lid="Id2">The Decembrie 1918 University in Alba Romania has the latin name of Universitas Apulensis. Its rector is Breaz Valer Daniel.</lex>
+      <lex comment="good" lid="Id3">The 1 Decembrie 1918 University (Latin name - Universitas Apulensis) is located in Alba, Romania. Its rector is Breaz Valer Daniel.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | hasToItsNorthwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AWH Engineering College is located in Kuttikkattoor, Kerala and it has 250 academic staff. Kerala has Mahe, India to its northwest.</lex>
+      <lex comment="good" lid="Id2">Mahe, India is northwest of Kerala state where the AWH Engineering College with an academic staff of 250 is situated in the city of Kuttikkattoor.</lex>
+      <lex comment="good" lid="Id3">AWH Engineering College is located in Kuttikkattoor city, Kerala state. This state has to its northwest Mahe, India. The staff size of the AWH Engineering College is 250.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AWH Engineering College is to be found in the Indian city of Kuttikkattoor and has 250 academic staff. Also to be found in India is the river Ganges.</lex>
+      <lex comment="good" lid="Id2">The AWH Engineering College in Kuttikkattoor, India has 250 academic staff. The Ganges is a river in India.</lex>
+    </entry>
+    </entries>
+</benchmark>

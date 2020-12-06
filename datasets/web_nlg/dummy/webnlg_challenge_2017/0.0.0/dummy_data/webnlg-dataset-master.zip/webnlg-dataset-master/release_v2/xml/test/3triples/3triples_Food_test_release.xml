@@ -1,0 +1,92 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | region | Lazio</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Amatriciana_sauce | ingredient | Guanciale</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amatriciana_sauce | region | Lazio</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Amatriciana_sauce | ingredient | Guanciale</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Guanciale is an ingredient used in the preparation of Amatriciana sauce which is a traditional Italian sauce, that comes from the region of Lazio.</lex>
+      <lex comment="good" lid="Id2">Guanciale is an ingredient in Amatriciana sauce which comes from the Lazio region in Italy.</lex>
+      <lex comment="good" lid="Id3">Amatriciana, a sauce containing Guanciale, is a traditional Italian sauce from the Lazio region.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Arem-arem | ingredient | Banana_leaf</otriple>
+        <otriple>Arem-arem | ingredientName | "compressed rice cooked inbanana leafwith vegetables or minced meat fillings"</otriple>
+        <otriple>Arem-arem | region | Javanese_cuisine</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arem-arem | ingredient | Banana_leaf</otriple>
+        <otriple>Arem-arem | region | Javanese_cuisine</otriple>
+        <otriple>Arem-arem | mainIngredient | "compressed rice cooked in banana leaf with vegetables or minced meat fillings"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | ingredient | Banana_leaf</mtriple>
+        <mtriple>Arem-arem | region | Javanese_cuisine</mtriple>
+        <mtriple>Arem-arem | mainIngredients | "compressed rice cooked in banana leaf with vegetables or minced meat fillings"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A dish of Javanese cuisine, Arem arem has compressed rice cooked in banana leaf with vegetables or minced meat fillings.</lex>
+      <lex comment="good" lid="Id2">Arem arem is a Javanese dish and the main ingredients of Arem-arem are compressed rice cooked in banana leaf with vegetables or minced meat fillings.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Tomato</otriple>
+        <otriple>Tomato | division | Flowering_plant</otriple>
+        <otriple>Tomato | family | Solanaceae</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | ingredient | Tomato</mtriple>
+        <mtriple>Tomato | division | Flowering_plant</mtriple>
+        <mtriple>Tomato | family | Solanaceae</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tomato, used when making Arrabbiata sauce, is part of the flowering plant division and the Solanaceae family.</lex>
+      <lex comment="good" lid="Id2">Tomato, an ingredient of Arrabbiata sauce, is part of the flowering plant division and belongs to the family of solanaceae.</lex>
+      <lex comment="good" lid="Id3">An ingredient found in Arrabbiata sauce is the tomato, which belongs to the solanaceae family and is pat of the flowering plant division.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Arrabbiata_sauce | region | Rome</otriple>
+        <otriple>Arrabbiata_sauce | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | region | "Rome"@en</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Arrabbiata_sauce | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | region | Rome</mtriple>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Arrabbiata_sauce | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Rome, Italy is where the sauce called arrabbiata is from, it includes olive oil as an ingredient used in it's preparation.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce is made from olive oil and comes from Rome in Italy.</lex>
+      <lex comment="good" lid="Id3">Arrabbiata sauce is a traditional dish from Rome, Italy. Olive oil is one of the ingredients in the sauce.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | region | "Rome"@en</otriple>
+        <otriple>Arrabbiata_sauce | ingredient | Tomato</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Tomato</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Arrabbiata_sauce | region | Rome</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | region | Rome</mtriple>
+        <mtriple>Arrabbiata_sauce | ingredient | Tomato</mtriple>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tomatoes are found in Arrabbiata sauce, which is a dish from Rome in Italy.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce originates from the region of Rome, Italy, and tomato is one of its ingredients.</lex>
+    </entry>
+    </entries>
+</benchmark>

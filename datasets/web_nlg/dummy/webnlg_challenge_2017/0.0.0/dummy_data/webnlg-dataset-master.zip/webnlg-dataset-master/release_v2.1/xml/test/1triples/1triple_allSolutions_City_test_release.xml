@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | areaCode | "229"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | areaCode | 229</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The area code for Albany, Georgia is 229.</lex>
+      <lex comment="good" lid="Id2">The area code for Albany, Georgia, is 229.</lex>
+      <lex comment="good" lid="Id3">The area code of Albany in Georgia is 229.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | subdivisionName | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | isPartOf | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany Oregon is part of the U.S.</lex>
+      <lex comment="good" lid="Id2">Albany, Oregon is part of the United States.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | leaderTitle | "Mayor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | leaderTitle | Mayor</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Mayor is the leader in Albuquerque, N.M.</lex>
+      <lex comment="good" lid="Id2">The Mayor leads Albuquerque, New Mexico.</lex>
+      <lex comment="good" lid="Id3">The leader title of Albuquerque, New Mexico, is Mayor.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | leaderTitle | New_Mexico_House_of_Representatives</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | leaderTitle | New_Mexico_House_of_Representatives</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The New Mexico House of Representatives, is what the leader in Albuquerque (New Mexico), is called.</lex>
+      <lex comment="good" lid="Id2">Albuquerque, New Mexico is led by the New Mexico house of representatives.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | leaderTitle | New_Mexico_Senate</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | leaderTitle | New_Mexico_Senate</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The New Mexico Senate leads Albuquerque in New Mexico.</lex>
+      <lex comment="good" lid="Id2">Albuquerque, New Mexico is led by the New Mexico Senate.</lex>
+    </entry>
+    </entries>
+</benchmark>

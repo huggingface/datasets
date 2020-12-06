@@ -1,0 +1,49 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id5" size="2">
+			<originaltripleset>
+				<otriple>Al_Asad_Airbase | elevationF | 618</otriple>
+				<otriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"@en</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Al_Asad_Airbase | elevationAboveTheSeaLevel_(in_feet) | 618</mtriple>
+				<mtriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | elevationAboveTheSeaLevel_(in_feet) | 618</striple>
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Al Asad Airbase ist 618 ft über dem Meeresspiegel und befindet sich in der Provinz Al Anbar, Irak. </text>
+				<template>AGENT-1 ist PATIENT-1 ft über dem Meeresspiegel und befindet sich in PATIENT-2.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | elevationAboveTheSeaLevel_(in_feet) | 618</striple>
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Die Al Asad Airbase, die 618 Meter über dem Meeresspiegel liegt, befindet sich in der Provinz Al Anbar im Irak. </text>
+				<template>AGENT-1, das PATIENT-1 Meter über dem Meeresspiegel liegt, befindet sich in PATIENT-2.</template>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | elevationAboveTheSeaLevel_(in_feet) | 618</striple>
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Die Al Asad Airbase, die 618 m über dem Meeresspiegel liegt, befindet sich in der Provinz Al Anbar, Irak. </text>
+				<template>AGENT-1, das PATIENT-1 ft über dem Meeresspiegel, befindet sich in PATIENT-2.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Al_Asad_Airbase</entity>
+				<entity>PATIENT-1 | 618</entity>
+				<entity>PATIENT-2 | "Al Anbar Province, Iraq"</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

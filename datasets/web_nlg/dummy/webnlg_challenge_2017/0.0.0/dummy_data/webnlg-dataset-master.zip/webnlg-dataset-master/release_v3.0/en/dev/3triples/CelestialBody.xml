@@ -1,0 +1,133 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(410777)_2009_FD | orbitalPeriod | 3.9447e+07</otriple>
+        <otriple>(410777)_2009_FD | periapsis | 8.82343e+10</otriple>
+        <otriple>(410777)_2009_FD | discoverer | "Spacewatch"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(410777)_2009_FD | discoverer | Spacewatch</otriple>
+        <otriple>(410777)_2009_FD | orbitalPeriod | 3.9447e+07</otriple>
+        <otriple>(410777)_2009_FD | periapsis | 8.82343e+10</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(410777)_2009_FD | orbitalPeriod | 39447000.0</mtriple>
+        <mtriple>(410777)_2009_FD | periapsis | 88234300000.0</mtriple>
+        <mtriple>(410777)_2009_FD | discoverer | Spacewatch</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The celestial body known as (410777) 2009 FD has an orbital period of 39447000, has a periapsis of 88234300000.0 and it was discovered by Spacewatch.</lex>
+      <lex comment="good" lid="Id2">(410777) 2009 FD, which was discovered by Spacewatch, has an orbital period of 39447000.0 and a periapsis of 88234300000.0.</lex>
+      <lex comment="good" lid="Id3">Discovered by Spacewatch, (410777) 2009 FD has a periapsis of 88234300000.0, and an orbital period of 39447000.0.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | minimumTemperature | "202.0"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | minTemp | "-71.0"^^&lt;http://dbpedia.org/datatype/degreeCelsius&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | minTemp | "202.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/minimumTemperature | "202.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | minTemp | "202.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/minimumTemperature | "202.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/minimumTemperature | "202.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | minimumTemperature | "202.0"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/minimumTemperature | "202.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | minTemp | "-71.0"^^&lt;http://dbpedia.org/datatype/degreeCelsius&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/maximumTemperature | "500.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66063)_1998_RO1 | minimumTemperature | -71.0 (degreeCelsius)</mtriple>
+        <mtriple>(66063)_1998_RO1 | maximumTemperature | 500.0 (kelvins)</mtriple>
+        <mtriple>(66063)_1998_RO1 | apoapsis | 254989570.60815 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(66063) 1998 RO1 has an apoapsis of 254989570.60815 km, a maximum temperature of 500 kelvins and a minimum temperature of -71 degrees celsius.</lex>
+      <lex comment="good" lid="Id2">With an apoapsis of 254989570.60815 kilometres, (66063) 1998 RO1, has a minimum temperature of -71.0 degrees Celsius and a maximum temperature of 500.0 kelvins.</lex>
+      <lex comment="good" lid="Id3">The minimum temperature of (66063) 1998 RO1 is -71.0 deg celsius and its max temperature is 500.0 (kelvins). It has an apoapsis of 254989570.60815 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | Planet/averageSpeed | "37.16"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/density | "2000.0"^^&lt;http://dbpedia.org/datatype/kilogramPerCubicMetre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66391)_1999_KW4 | averageSpeed | 37.16 (kilometrePerSeconds)</mtriple>
+        <mtriple>(66391)_1999_KW4 | density | 2.0 (gramPerCubicCentimetres)</mtriple>
+        <mtriple>(66391)_1999_KW4 | apoapsis | 162164091.8388 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The celestial body known as (66391) 1999 KW4 has an apoapsis of 162164091.8388 km, an average speed of 37.16 kilometres per second, and a density of 2.0 grams per cubic centimetre.</lex>
+      <lex comment="good" lid="Id2">Having a density of 2.0 gm per cu cm, (66391) 1999 KW4, has an apoapsis of 162164091.8388 kilometres, an the average speed of 37.16 km per sec.</lex>
+      <lex comment="good" lid="Id3">The celestial body known as (66391) 1999 KW4 has an apoapsis of 162164091.8388 km and an average speed of 37.16 kilometres per second. Its density is 2.0 gm per cu cm.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1001_Gaussia | epoch | "27 June 2015 (JD2457200.5)"</otriple>
+        <otriple>1001_Gaussia | formerName | "1923 OAA907 XC"@en</otriple>
+        <otriple>1001_Gaussia | periapsis | 4.19113e+11</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1001_Gaussia | formerName | "1923 OAA907 XC"@en</otriple>
+        <otriple>1001_Gaussia | periapsis | 4.19113e+11</otriple>
+        <otriple>1001_Gaussia | epoch | "2015-06-27"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1001_Gaussia | epoch | 2015-06-27</mtriple>
+        <mtriple>1001_Gaussia | formerName | "1923 OAA907 XC"</mtriple>
+        <mtriple>1001_Gaussia | periapsis | 419113394.55312 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The periapsis of the 1001 Gaussia (formally known as 1923 OAA907 XC) is 419113394.55312 km and it has an epoch date of the 31st July 2016.</lex>
+      <lex comment="good" lid="Id2">1001 Gaussia, which was formerly called "1923 OAA907 XC", has an epoch date of 31 July 2016 and a periapsis of 419113394.55312 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>101_Helena | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | stateOfOrigin | Canada</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>101_Helena | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | stateOfOrigin | Canada</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The discoverer of 101 Helena is James Craig Watson who came from Canada. He died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id2">101 Helena was discovered by Canadian, James Craig Watson, who died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id3">James Craig Watson, who discovered 101 Helena, originated from Canada and died in Madison, Wisconsin.</lex>
+    </entry>
+    </entries>
+</benchmark>

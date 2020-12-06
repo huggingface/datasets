@@ -1,0 +1,94 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | West_Roxbury</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | West_Roxbury</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett was born in Maine and died in West Roxbury. He fought in the American Civil War and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Maine born Aaron S Daggett fought in the American Civil War, was awarded the Purple Heart and died in West Roxbury.</lex>
+      <lex comment="good" lid="Id3">American Civil War soldier and Purple Heart recipient Aaron S. Daggett, was born in Maine and died in West Roxbury.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_the_Wilderness</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | deathPlace | West_Roxbury</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_the_Wilderness</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | deathPlace | West_Roxbury</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Maine, Aaron S. Daggett; fought in the Battle of the Wilderness, was awarded the Purple Heart, and died in West Roxbury.</lex>
+      <lex comment="good" lid="Id2">Born in Maine, Aaron S. Daggett fought in the Battle of the Wilderness, awarded the Purple Heart, and died in West Roxbury.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett was born in Maine and died in West Roxbury. He fought in the Battle of the Wilderness and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Leiden_University</otriple>
+        <otriple>Ab_Klink | office | "Member of the House of Representatives"</otriple>
+        <otriple>Ab_Klink | party | Christian_Democratic_Appeal</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ab_Klink | office | "Member of the House of Representatives"</otriple>
+        <otriple>Ab_Klink | party | Christian_Democratic_Appeal</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | almaMater | "Leiden University"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | office (workedAt, workedAs) | "Member of the House of Representatives"</mtriple>
+        <mtriple>Ab_Klink | party | Christian_Democratic_Appeal</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Stellendam</mtriple>
+        <mtriple>Ab_Klink | almaMater | Leiden_University</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ab Klink was born in Stellendam and graduated from Leiden University. He belongs to the Christian Democratic Appeal party and worked as a Member of the House of Representatives.</lex>
+      <lex comment="good" lid="Id2">Ab Klink was born in Stellendam and attended Leiden University. He belongs to the Christian Democratic Appeal Party and worked as a Member of the House of Representatives.</lex>
+      <lex comment="good" lid="Id3">Leiden University is where Stellendam born Ab Klink studied. He belongs to the Christian Democratic Appeal party and worked as a Member of the House of Representatives.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | region | Asajaya</otriple>
+        <otriple>Abdul_Taib_Mahmud | residence | Kuching</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | region | Asajaya</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | residence | Kuching</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud was born in Miri, Malaysia and he lives in Kuching. His party is the Parti Pesaka Bumiputera Bersatu and he represented Asajaya.</lex>
+      <lex comment="good" lid="Id2">Mirir, Malaysia born Abdul Taib Mahmud, who lives in Kuching, represented the Asajaya region and was a member of the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud, who was born in Miri, Malaysia and lives in Kuching, was a member of the Parti Pesaka Bumiputera Bersatu and represented Asajaya.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | region | Kota_Samarahan</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | residence | "Demak Jaya, Jalan Bako, Kuching, Sarawak"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | region | Kota_Samarahan</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | residence | "Demak Jaya, Jalan Bako, Kuching, Sarawak"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud, who was born in the Kingdom of Sarawak and who lived in Demak Jaya, Jalan Bako, Kuching, Sarawak, represented Kota Samarahan and was a member of the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id2">Abdul Taid Mahmud belongs to the Parti Pesaka Bumiputera Bersatu and represented Kota Samarahan. He was born in the Kingdom of Sarawak and lived in Demak Jaya, Jalan Bako, Kuching, Sarawak.</lex>
+    </entry>
+    </entries>
+</benchmark>

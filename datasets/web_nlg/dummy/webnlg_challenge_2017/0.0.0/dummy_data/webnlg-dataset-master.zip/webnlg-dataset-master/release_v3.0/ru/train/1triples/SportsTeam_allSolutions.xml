@@ -1,0 +1,83 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1. FC Köln has 50000 members.</lex>
+      <lex lang="ru" lid="Id1">1. ФК "Кёльн" насчитывает 50 000 членов.</lex>
+      <lex lang="en" lid="Id2">F.C. Koln have 50000 members.</lex>
+      <lex lang="ru" lid="Id2">В ФК "Кёльн" состоят 50000 членов.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | season | 2014</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1 FC Köln played in the 2014 season.</lex>
+      <lex lang="ru" lid="Id1">ФК "Кёльн" играл в сезоне 2014 года.</lex>
+      <lex lang="en" lid="Id2">2014 saw 1. FC Koln participating.</lex>
+      <lex lang="ru" lid="Id2">ФК "Кёльн" играл в сезоне 2014 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">2014 | sameAs | 2014_год</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | season | 2014–15_Bundesliga</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1. FC Köln were in the 2014–15 Bundesliga season.</lex>
+      <lex lang="ru" lid="Id1">ФК "Кёльн" был в Бундеслиге в сезоне 2014-15.</lex>
+      <lex lang="en" lid="Id2">FC Köln played the 2014-15 season in the Bundesliga.</lex>
+      <lex lang="ru" lid="Id2">ФК "Кёльн" играл в Чемпионате Германии по футболу 2014/2015.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">2014–15_Bundesliga | sameAs | Чемпионат_Германии_по_футболу_2014/2015</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | league | 3._Liga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | league | 3._Liga</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1 FC Magdeburg is in the 3 Liga league.</lex>
+      <lex lang="ru" lid="Id1">ФК "Магдебург" участвует в Третьей лиге Германии по футболу.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">3._Liga | sameAs | Третья_лига_Германии_по_футболу</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The manager of FC Magdeburg is Jens Härtel.</lex>
+      <lex lang="ru" lid="Id1">Менеджер ФК "Магдебург" - Йенс Хертель.</lex>
+      <lex lang="en" lid="Id2">Jens Härtel has been the manager of 1 FC Magdeburg.</lex>
+      <lex lang="ru" lid="Id2">Йенс Хертель был менеджером ФК "Магдебург".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jens Härtel | sameAs | Йенс Хертель</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

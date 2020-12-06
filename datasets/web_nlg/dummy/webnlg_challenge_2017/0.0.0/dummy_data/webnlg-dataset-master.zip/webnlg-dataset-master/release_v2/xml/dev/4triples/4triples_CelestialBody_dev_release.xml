@@ -1,0 +1,143 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | epoch | 2006-12-31</mtriple>
+        <mtriple>(19255)_1994_VK8 | mass | 5.6 (kilograms)</mtriple>
+        <mtriple>(19255)_1994_VK8 | orbitalPeriod | 8788850000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | periapsis | 6155910000000.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">19255 1994 VK8 has a mass of 5.6 kgs, oribital period of 8788850000, periapsis of 615591000000, and an epoch of the 31st of December, 2006.</lex>
+      <lex comment="good" lid="Id2">The epoch of (19255) 1994 VK8, which has an orbital period of 8788850000.0, is on 31 December 2006. It weighs 5.6 kilos and has a periapsis of 6155910000000.0.</lex>
+      <lex comment="good" lid="Id3">(19255) 1994 VK8 has an orbital period of 8788850000.0 and a periapsis of 6155910000000.0. The epoch date is on 31 Decemberr 2006 and it has a mass of 5.6 kg.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "0.0925"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "0.0925"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | orbitalPeriod | 8788850000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | periapsis | 6155910000000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | epoch | 2006-12-31</mtriple>
+        <mtriple>(19255)_1994_VK8 | escapeVelocity | 0.0925 (kilometrePerSeconds)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(19255) 1994 VK8 has an orbital period of 8788850000.0 and a periapsis of 6155910000000.0. Its epoch is on 31 December 2006 and it has an escape velocity of 0.0925 kilometres per second.</lex>
+      <lex comment="good" lid="Id2">(19255) 1994 VK8 has an escape velocity of 0.0925 km/s, a periapsis of 6155910000000.0, an orbital period of 8788850000.0 and an epoch date of 31 December 2006.</lex>
+      <lex comment="good" lid="Id3">(19255) 1994 VK8 has an escape velocity of 0.0925 kilometres per second and an orbital period of 8788850000.0. The epoch of (19255) 1994 VK8 is on 31 December 2006 and it has a periapsis of 6155910000000.0.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+        <otriple>(66063)_1998_RO1 | escapeVelocity | "359.64"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+        <otriple>(66063)_1998_RO1 | escapeVelocity | "0.0999"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66063)_1998_RO1 | epoch | 2013-11-04</mtriple>
+        <mtriple>(66063)_1998_RO1 | orbitalPeriod | 360.29 (days)</mtriple>
+        <mtriple>(66063)_1998_RO1 | escapeVelocity | 0.0999 (kilometrePerSeconds)</mtriple>
+        <mtriple>(66063)_1998_RO1 | apoapsis | 254989570.60815 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(66063) 1998 RO1 has an epoch date of 2013-11-04 and an orbital period of 360.29 days. Its escape velocity is 0.0999 km/sec and it has an apoapsis of 254989570.60815 kilometres.</lex>
+      <lex comment="good" lid="Id2">(66063)1998 RO1 had its epoch date on 2013-11-04 and has an orbital period of 360.29 days.It has an escape velocity of 0.0999 km/s and its apoapsis is 254989570.60815 kilometres.</lex>
+      <lex comment="good" lid="Id3">The epoch date for 66063 1998 RO1 is November 4, 2013. Its orbital period is 360.29 days, has an escape velocity of .0999 km per sec., and its apoapsis is 254989570.60815 km.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/meanTemperature | "265.15"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/meanTemperature | "265.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66063)_1998_RO1 | meanTemperature | 265.0 (kelvins)</mtriple>
+        <mtriple>(66063)_1998_RO1 | apoapsis | 254989570.60815 (kilometres)</mtriple>
+        <mtriple>(66063)_1998_RO1 | epoch | 2013-11-04</mtriple>
+        <mtriple>(66063)_1998_RO1 | orbitalPeriod | 360.29 (days)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">66063 1998 RO1 has an epoch date of 4 November 2013. It's mean temperature is 265.0 kelvins and it has an apoapsis of 254989570.60815 kilometres. 360.29 days is the orbital period of this celestial body.</lex>
+      <lex comment="good" lid="Id2">The mean temperature of (66063) 1998 RO1 is 265.0 kelvins and its apoapsis is 254989570.60815 kilometres. It has an epoch date of 4 November 2013 and an orbital period of 360.29 days.</lex>
+      <lex comment="good" lid="Id3">(66063) 1998 RO1, with an average temperature of 265 kelvins and an epoch date of 4 November 2013, has an orbital period of 360.29 days and an apoapsis of 254989570.60815 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1001_Gaussia | discoverer | Sergey_Belyavsky</otriple>
+        <otriple>1001_Gaussia | epoch | "27 June 2015 (JD2457200.5)"</otriple>
+        <otriple>1001_Gaussia | formerName | "1923 OAA907 XC"@en</otriple>
+        <otriple>1001_Gaussia | periapsis | 4.19113e+11</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1001_Gaussia | discoverer | Sergey_Belyavsky</otriple>
+        <otriple>1001_Gaussia | formerName | "1923 OAA907 XC"@en</otriple>
+        <otriple>1001_Gaussia | periapsis | 4.19113e+11</otriple>
+        <otriple>1001_Gaussia | epoch | "2015-06-27"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1001_Gaussia | discoverer | Sergey_Belyavsky</mtriple>
+        <mtriple>1001_Gaussia | epoch | 2015-06-27</mtriple>
+        <mtriple>1001_Gaussia | formerName | "1923 OAA907 XC"</mtriple>
+        <mtriple>1001_Gaussia | periapsis | 419113394.55312 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The epoch of 1001 Gaussia (formerly known as 1923 OAA907 XC) is 31 July 2016. It was discovered by Sergey Belyavsky and has a periapsis of 419113394.55312 (kilometres).</lex>
+      <lex comment="good" lid="Id2">1923 OAA907 XC is the original name of 1001 Gaussia, which was discovered by Sergey Belyavsky and has an epoch date of June 27th 2015. Its periapsis measures 419113394.55312 kilometres.</lex>
+      <lex comment="good" lid="Id3">1001 Gaussia, discovered by Sergey Belyavsky, was formerly known as 1923 OAA907 XC. This asteroid, has an epoch on 31 July 2016, and a periapsis of, 419113394.55312 kilometres.</lex>
+    </entry>
+    </entries>
+</benchmark>

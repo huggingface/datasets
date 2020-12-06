@@ -1,0 +1,67 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id285" size="2">
+			<originaltripleset>
+				<otriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"@en</otriple>
+				<otriple>Al_Asad_Airbase | runwayLength | "3090.0"^^xsd:double</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</mtriple>
+				<mtriple>Al_Asad_Airbase | runwayLength | 3090.0</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3090.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Al_Asad_Airbase" number="1" tag="AGENT-1" type="description">The Al Asad Airbase</reference>
+					<reference entity="&quot;Al Anbar Province, Iraq&quot;" number="2" tag="PATIENT-1" type="description">the Al Anbar Province , Iraq</reference>
+					<reference entity="3090.0" number="3" tag="PATIENT-2" type="name">3090.0</reference>
+				</references>
+				<text>The Al Asad Airbase is situated in the Al Anbar Province, Iraq and has a runway length of 3090.0.</text>
+				<template>AGENT-1 is situated in PATIENT-1 and has a runway length of PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] situate in PATIENT-1 and VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway length of PATIENT-2 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3090.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Al_Asad_Airbase" number="1" tag="AGENT-1" type="name">Al Asad Airbase</reference>
+					<reference entity="&quot;Al Anbar Province, Iraq&quot;" number="2" tag="PATIENT-1" type="name">Al Anbar Province , Iraq</reference>
+					<reference entity="3090.0" number="3" tag="PATIENT-2" type="name">3090.0</reference>
+				</references>
+				<text>Al Asad Airbase is located in Al Anbar Province, Iraq and has a runway length of 3090.0.</text>
+				<template>AGENT-1 is located in PATIENT-1 and has a runway length of PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located in PATIENT-1 and VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway length of PATIENT-2 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3090.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Al_Asad_Airbase" number="1" tag="AGENT-1" type="name">Al Asad airbase</reference>
+					<reference entity="&quot;Al Anbar Province, Iraq&quot;" number="2" tag="PATIENT-1" type="name">Al Anbar Province , Iraq</reference>
+					<reference entity="3090.0" number="3" tag="PATIENT-2" type="name">3090.0</reference>
+				</references>
+				<text>Al Asad airbase is located at Al Anbar Province, Iraq and has a runway length is 3090.0.</text>
+				<template>AGENT-1 is located at PATIENT-1 and has a runway length is PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located at PATIENT-1 and VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway length VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-2 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Al_Asad_Airbase</entity>
+				<entity>PATIENT-1 | "Al Anbar Province, Iraq"</entity>
+				<entity>PATIENT-2 | 3090.0</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

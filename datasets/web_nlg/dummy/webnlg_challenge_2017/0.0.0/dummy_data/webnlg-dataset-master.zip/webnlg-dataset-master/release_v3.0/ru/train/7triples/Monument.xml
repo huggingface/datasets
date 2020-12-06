@@ -1,0 +1,194 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | range | Seminary_Ridge</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Seminary_Ridge</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 11th Mississippi Infantry Monument is located at Seminary Ridge in Adams County in the municipality of Gettysburg Pennsylvania (United States). It was established in the year 2000 and is categorised as a contributing property.</lex>
+      <lex lang="ru" lid="Id1">Памятник 11-му пехотному полку Миссисипи расположен на Семинарском хребте в округе Адамс в муниципалитете Геттисберг (Соединенные Штаты). Он был установлен в 2000 году и отнесён к историческим ценностям.</lex>
+      <lex lang="en" lid="Id2">The 11th Mississippi Infantry Monument (completed in 2000) is a contributing property found at Seminary Ridge, Adams County, in the municipality of Gettysburg in the American state of Pennsylvania.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-му пехотному полку Миссисипи (завершенный в 2000 году) является объектом исторической ценности и находится на Семинарском хребте в округе Адамс, в муниципалитете Геттисберга, штат Пенсильвания.</lex>
+      <lex lang="en" lid="Id3">Seminary Ridge in Gettysburg is located in Adams County, Pennsylvania and is the location of the 11th Mississippi Infantry monument which was established in 2000 and categorised as a contributing property within the United States.</lex>
+      <lex lang="ru" lid="Id3">Семинарский хребет в Геттисберге расположен в округе Адамс, штат Пенсильвания и является местом нахождения памятника 11-му пехотному полку Миссисипи, установленного в 2000 году и считающегося исторической ценностью США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Gettysburg,_Pennsylvania | sameAs | Геттисберг</dbpedialink>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Seminary Ridge | sameAs | Семинарский хребет</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Pennsylvania | sameAs | Пенсильвания</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSoutheast | Carroll_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsNorth | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">11th Mississippi Infantry Monument has been established in 2000 and is categorised as a contributing property. It is located in Adams County, Pennsylvania (United States). Carroll County Maryland is southeast of Adams county Pennsylvania and Pennsylvania's Cumberland County is to the north of the Adams County.</lex>
+      <lex lang="ru" lid="Id1">Памятник 11-му пехотному полку Миссисипи был установлен в 2000 году и считается объектом исторической ценности. Он расположен в округе Адамс, штат Пенсильвания, США. Кэрролл расположен к юго-востоку от округа Адамс, штат Пенсильвания, а Камберленд штата Пенсильвания к северу от округа Адамс.</lex>
+      <lex lang="en" lid="Id2">The 11th Mississippi Infantry Monument was established in 2000 in Adams County, Pennsylvania and is categorised as a contributing property of the United States. Adams County is located south of Cumberland County and Carroll County in Maryland lie to the southeast.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-му пехотному полку Миссисипи, который считается исторической ценностью в Соединенных Штатах, был установлен в 2000 году в округе Адамс, штат Пенсильвания. Округ Адамс расположен к югу от округа Камберленд, и граничит с округом Кэрролл, штат Мэриленд, на юго-востоке.</lex>
+      <lex lang="en" lid="Id3">The 11th Mississippi Infantry Monument was established in 2000 and is categorised as a contributing property. It is located in Adams County, Pennsylvania state (in the US). Adams County, Pennsylvania has Carroll County, Maryland to its southeast and Pennsylvania's Cumberland County is to the north of the Adams County.</lex>
+      <lex lang="ru" lid="Id3">Памятник 11-му пехотному полку Миссисипи был установлен в 2000 году и отнесён объектам, представляющим историческую ценность. Он расположен в округе Адамс, штат Пенсильвания (в США). На юго-востоке округа Адамс, штат Пенсильвания, есть округ Кэрролл, Мэриленд, и Камберленд к северу от округа Адамс.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Carroll_County,_Maryland | sameAs | Кэрролл_(округ,_Мэриленд)</dbpedialink>
+        <dbpedialink direction="en2ru">Cumberland_County,_Pennsylvania | sameAs | Камберленд_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Pennsylvania | sameAs | Пенсильвания</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X) (X (X) (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>Adams_County,_Pennsylvania | west | Franklin_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southwest | Frederick_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsWest | Franklin_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSoutheast | Carroll_County,_Maryland</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsNorth | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSouthwest | Frederick_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 11th Mississippi Infantry Monument is categorized as a Contributing property, and is found in Adams County, Pennsylvania, in the US. Adams County is to the east of Franklin County, Pennsylvania, and it has Carroll County Maryland to its southeast, Pennsylvania's Cumberland County to its north, and Maryland's Frederick County to its southwest.</lex>
+      <lex lang="ru" lid="Id1">Памятник 11-му пехотному полку Миссисипи относится к объектам культурного наследия и расположен в округе Адамс, штат Пенсильвания, США. Округ Адамс находится к востоку от округа Франклин, штат Пенсильвания, а к юго-востоку от него находится Кэрролл, к северу - округ Камберленд, штат Пенсильвания и округ Фредерик штата Мэриленд к юго-западу.</lex>
+      <lex lang="en" lid="Id2">Adams County is located in Pennsylvania, United States to the south of Cumberland County and to the east of Franklin County. Frederick County, Maryland is to the southwest and Carroll County, Maryland to the southeast. Adams County is the location of the 11th Mississippi Infantry monument which is categorised as a contributing property.</lex>
+      <lex lang="ru" lid="Id2">Округ Адамс находится в штате Пенсильвания, США, к югу от Камберленда, к востоку от Франклина. Фредерик находится к юго-западу, а округ Кэрролл штата Мэриленд к юго-востоку. Округ Адамс является местом расположения памятника 11-му пехотному полку Миссисипи, причисленного к объектам исторической ценности.</lex>
+      <lex lang="en" lid="Id3">Adams County, Pennsylvania which lies east of Franklin County, south of Cumberland County, northwest of Carroll County, Maryland and northeast of Frederick County, is the location of the 11th Mississippi Infantry monument which was established in 2000 and categorised as a contributing property within the United States.</lex>
+      <lex lang="ru" lid="Id3">Округ Адамс штата Пенсильвания, расположенный к востоку от Франклина, к югу от округа Камберленд, к северо-западу от округа Кэрролл штата Мэриленд и к северо-востоку от округа Фредерика, является местом расположения памятника 11-му пехотному полку Миссисипи, который классифицирован как объект исторической ценности США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Franklin_County,_Pennsylvania | sameAs | Франклин_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">Carroll_County,_Maryland | sameAs | Кэрролл_(округ,_Мэриленд)</dbpedialink>
+        <dbpedialink direction="en2ru">Cumberland_County,_Pennsylvania | sameAs | Камберленд_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">Frederick_County,_Maryland | sameAs | Фредерик_(округ,_Мэриленд)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X) (X) (X) (X (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southwest | Frederick_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSoutheast | Carroll_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsNorth | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSouthwest | Frederick_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Frederick County Maryland is to the south west of Adams County, Pennsylvania. To the south of Adams County is Cumberland County and to the northwest Carroll County, Maryland. Adams County is the location of the 11th Mississippi Infantry monument which was established in 2000 and categorised as a contributing property within the United States.</lex>
+      <lex lang="ru" lid="Id1">Округ Фредерик, штат Мэриленд находится к юго-западу от округа Адамс, штат Пенсильвания. К югу от округа Адамс находится округ Камберленд, а к северо-западу - округ Кэрролл, штат Мэриленд. В округе Адамс находится Памятник 11-му пехотному полку Миссисипи, который был установлен в 2000 году и классифицируется как историческая ценность.</lex>
+      <lex lang="en" lid="Id2">The 11th Mississippi Infantry monument, established in 2000, is categorised as a contributing property and located in Adams County, Pennsylvania which is north of Cumberland County. The County is northwest of Maryland's Carroll County and northeast of Frederick County, Maryland.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-му пехотному полку Миссисипи, созданный в 2000 году, классифицирован как объект культурного наследия и расположен в округе Адамс, штат Пенсильвания, к северу от округа Камберленд. Округ находится к северо-западу округа Мэриленд и к северо-востоку к округу Фредерик, штат Мэриленд.</lex>
+      <lex lang="en" lid="Id3">Adams County in Pennsylvania is located south of Cumberland County. Frederick County, Maryland is to the southwest and Carroll County, Maryland is to the southeast. The County is the location of the 11th Mississippi Infantry monument which was established in 2000 and is categorised as a contributing property.</lex>
+      <lex lang="ru" lid="Id3">Округ Адамс в Пенсильвании расположен к югу от округа Камберленд. Округ Фредерик, штат Мэриленд, находится на юго-западе, а округ Кэрролл - на юго-востоке. Округ Адамс является местом расположения Памятника 11-му пехотному полку Миссисипи, который был установлен в 2000 году и классифицируется как историческая ценность.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Carroll_County,_Maryland | sameAs | Кэрролл_(округ,_Мэриленд)</dbpedialink>
+        <dbpedialink direction="en2ru">Cumberland_County,_Pennsylvania | sameAs | Камберленд_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+        <dbpedialink direction="en2ru">Frederick_County,_Maryland | sameAs | Фредерик_(округ,_Мэриленд)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Pennsylvania | sameAs | Пенсильвания</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X) (X) (X) (X (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Adams_County,_Pennsylvania | west | Franklin_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsWest | Franklin_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSoutheast | Carroll_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsNorth | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Gettysburg is located in Adams County, Pennsylvania which lies to the south of Cumberland County, east of Franklin County and to the northwest of Carroll County, Maryland. It is the location of the 11th Mississippi Infantry monument which was established in 2000 and categorised as a contributing property within the United States.</lex>
+      <lex lang="ru" lid="Id1">Геттисберг расположен в округе Адамс, штат Пенсильвания, который находится к югу от округа Камберленд, к востоку от округа Франклин и к северо-западу от округа Кэрролл, штат Мэриленд. Это местоположение Памятника 11-му пехотному полку Миссисипи, который был установлен в 2000 году и считается исторической ценностью в Соединенных Штатах.</lex>
+      <lex lang="en" lid="Id2">The 11th Mississippi Infantry monument is located in the municipality of Gettysburg, Adams County which was established in 2000 and categorised as a contributing property. Adams County in Pennsylvania is located to the east of Franklin County and south of Cumberland County. To the north west is Carroll County, Maryland.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-му пехотному полку Миссисипи, который был установлен в 2000 году и считается исторической ценностью, расположен в муниципалитете Геттисберга, округ Адамс. Округ Адамс в Пенсильвании расположен к востоку от округа Франклин и к югу от округа Камберленд. На северо-западе находится округ Кэрролл, штат Мэриленд.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Franklin_County,_Pennsylvania | sameAs | Франклин_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">Gettysburg,_Pennsylvania | sameAs | Геттисберг</dbpedialink>
+        <dbpedialink direction="en2ru">Carroll_County,_Maryland | sameAs | Кэрролл_(округ,_Мэриленд)</dbpedialink>
+        <dbpedialink direction="en2ru">Cumberland_County,_Pennsylvania | sameAs | Камберленд_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

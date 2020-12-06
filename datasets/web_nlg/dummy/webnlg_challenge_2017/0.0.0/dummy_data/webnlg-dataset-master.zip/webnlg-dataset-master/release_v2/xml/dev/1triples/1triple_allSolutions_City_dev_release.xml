@@ -1,0 +1,57 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | areaCode | 325</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The area code of Abilene, in Texas, is 325.</lex>
+      <lex comment="good" lid="Id2">325 is the area code for Abilene, Texas.</lex>
+      <lex comment="good" lid="Id3">The area code for Abilene in Texas is 325.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is a part of Texas.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas, is part of Texas.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | leaderTitle | "Mayor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | leaderTitle | Mayor</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany, Georgia has a Mayor as leader.</lex>
+      <lex comment="good" lid="Id2">Albany, Georgia is led by a Mayor.</lex>
+      <lex comment="good" lid="Id3">The leader of Albany, Georgia is the Mayor.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | areaTotal | 4.59723e+07</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | areaTotal | 45.97 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany, Oregon has a total area of 45.97 square kilometres.</lex>
+      <lex comment="good" lid="Id2">The total area of Albany Oregon is 45.97 Sq K.</lex>
+      <lex comment="good" lid="Id3">The total area of Albany, Oregon is 45.97 sq kms.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany, Oregon is in the U.S.</lex>
+      <lex comment="good" lid="Id2">Albany, Oregon is located within the United States.</lex>
+    </entry>
+    </entries>
+</benchmark>

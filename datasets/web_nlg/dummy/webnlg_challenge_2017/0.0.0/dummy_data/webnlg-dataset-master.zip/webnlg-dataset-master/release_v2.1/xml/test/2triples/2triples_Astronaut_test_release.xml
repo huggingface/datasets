@@ -1,0 +1,74 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"</otriple>
+        <otriple>Alan_Bean | status | "Retired"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean, who is now retired, was born on March 15th, 1932.</lex>
+      <lex comment="good" lid="Id2">Born on March 15, 1932, Alan Bean has now retired.</lex>
+      <lex comment="good" lid="Id3">Alan Bean, who has since retired, was born on May 15th, 1932.</lex>
+      <lex comment="good" lid="Id4">Alan Bean was born on the 15th of March of 1932. He is currently retired.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Shepard | status | "Deceased"</otriple>
+        <otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+        <mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Former test pilot Alan Shepard has died.</lex>
+      <lex comment="good" lid="Id2">Test pilot Alan Shepard has died.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard was a test pilot who has since passed away.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | birthDate | "1930-01-20"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | birthDate | "1930-01-20"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was born on the 20th January, 1030 in Glen Ridge, New Jersey.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was born in Glen Ridge, New Jersey on January 20, 1930.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin was born on the 20th of January 1930, in Glen Ridge New Jersey.</lex>
+      <lex comment="good" lid="Id4">Buzz Aldrin was born on January 20th, 1930 in the community of Glen Ridge, New Jersey.</lex>
+      <lex comment="good" lid="Id5">Buzz Aldrin was born on 1930-01-20 in Glen Ridge New Jersey.</lex>
+      <lex comment="good" lid="Id6">Buzz Aldrin was born on 1930-01-20 in Glen Ridge, New Jersey.</lex>
+      <lex comment="good" lid="Id7">Buzz Aldrin was born on 1930-01-20, in Glen Ridge, New Jersey.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Glen_Ridge,_New_Jersey | isPartOf | Essex_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Glen_Ridge,_New_Jersey | isPartOf | Essex_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was born in Glen Ridge, located in the Essex County in New Jersey.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was born in Essex County, at Glen Ridge New Jersey.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | was a crew member of | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Apollo 8 crew included the British Hong Kong-born William Anders.</lex>
+      <lex comment="good" lid="Id2">William Anders was a member of the Apollo 8 crew and was born in British Hong Kong.</lex>
+      <lex comment="good" lid="Id3">William Anders was a crew member on Apollo 8 and was born in British Hong Kong.</lex>
+      <lex comment="good" lid="Id4">William Anders (born in British Hong Kong) was a crew member of Apollo 8.</lex>
+    </entry>
+    </entries>
+</benchmark>

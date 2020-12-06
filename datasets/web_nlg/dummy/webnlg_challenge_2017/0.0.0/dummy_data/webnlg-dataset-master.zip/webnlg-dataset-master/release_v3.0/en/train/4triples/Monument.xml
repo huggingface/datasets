@@ -1,0 +1,85 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument in Gettysburg, Pennsylvania of the U.S.A., is considered a contributing property and was erected in 2000.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">In 2000 a monument was erected to the 11th Mississippi Infantry in Adams County, Pennsylvania, US. It is now under the categorisation of Contributing Property.</lex>
+      <lex comment="good" lid="Id2">A monument to the 11th Mississippi Infantry was erected in 2000 and is located in Adams County, Pennsylvania. It is categorized as a Contributing Property to the United States.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument is a Contributing Property erected in 2000, and located in Adams County, Pennsylvania, in the United States.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSoutheast | Carroll_County,_Maryland</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsNorth | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adams County in Pennsylvania, USA is located to the south of Cumberland County and northwest of Carroll County, Maryland. It is the location of the 11th Mississippi Infantry monument.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument is located in Adams County, Pennsylvania, US, with Cumberland County lying to the north and Carroll County, Maryland to the southeast.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>Adams_County,_Pennsylvania | west | Franklin_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southwest | Frederick_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsWest | Franklin_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSouthwest | Frederick_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument's location is Adams County, Pennsylvania, United States. To the west of Adams County is Franklin County and to the southwest is Frederick County, Maryland.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument is located in Adams County, Pennsylvania, in the United States, and has Franklin County to its west and Frederick County, Maryland to its southwest.</lex>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11th Mississippi Infantry Monument's location is Adams County, Pennsylvania, was established in 2000 and falls under the category of Contributing property. The 11th Mississippi Infantry Monument is in the municipality of Gettysburg, Pennsylvania.</lex>
+      <lex comment="good" lid="Id2">The municipality of Gettysburg in Adams County, Pennsylvania is the location of the 11th Mississippi Infantry monument which was erected in 2000 and categorised as contributing property.</lex>
+      <lex comment="good" lid="Id3">Categorized as a contributing property, the 11th Mississippi Infantry Monument was established in 2000 in Gettysburg, Adams County, Pennsylvania.</lex>
+    </entry>
+    </entries>
+</benchmark>

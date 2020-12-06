@@ -1,0 +1,159 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Ethiopia | leader | Mulatu_Teshome</otriple>
+        <otriple>Addis_Ababa_City_Hall | country | Ethiopia</otriple>
+        <otriple>Addis_Ababa_City_Hall | location | Addis_Ababa</otriple>
+        <otriple>Ethiopia | language | Amharic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ethiopia | leader | Mulatu_Teshome</mtriple>
+        <mtriple>Addis_Ababa_City_Hall | country | Ethiopia</mtriple>
+        <mtriple>Addis_Ababa_City_Hall | location | Addis_Ababa</mtriple>
+        <mtriple>Ethiopia | language | Amharic</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Addis Ababa City Hall is in Addis Ababa, Ethiopia. Amharic is the national language, and their leader is Malatu Teshome.</lex>
+      <lex lang="ru" lid="Id1">Ратуша Аддис-Абебы находится в Аддис-Абебе, Эфиопия. Амхарский - национальный язык, а их лидером является Мулату Тешоме.</lex>
+      <lex lang="en" lid="Id2">Malatu Teshome is the leader of Ethiopia which has the Amharic language. Addis Ababa City Hall is located in Addis Ababa in the country.</lex>
+      <lex lang="ru" lid="Id2">Мулату Тешоме является лидером Эфиопии, в которой говорят на амхарском языке. Ратуша Аддис-Абебы расположена в этой стране в Аддис-Абебе.</lex>
+      <lex lang="en" lid="Id3">Ethiopia is led by Mulatu Teshome and has the spoken language of Amharic, and is the location of Addis Ababa City Hall, which can be found in Addis Ababa.</lex>
+      <lex lang="ru" lid="Id3">Эфиопия возглавляется Мулату Тешоме и имеет разговорный язык - амхарский, и является местом расположения ратуши Аддис-Абебы, которая находится в Аддис-Абебе.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Addis_Ababa | sameAs | Аддис-Абеба</dbpedialink>
+        <dbpedialink direction="en2ru">Ethiopia | sameAs | Эфиопия</dbpedialink>
+        <dbpedialink direction="en2ru">Amharic | sameAs | Амхарский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Mulatu_Teshome | sameAs | Мулату_Тешоме</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Addis Ababa City Hall | sameAs | Ратуша Аддис-Абебы</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Ethiopia | leader | Hailemariam_Desalegn</otriple>
+        <otriple>Addis_Ababa_City_Hall | country | Ethiopia</otriple>
+        <otriple>Ethiopia | leaderName | Mulatu_Teshome</otriple>
+        <otriple>Addis_Ababa_City_Hall | location | Addis_Ababa</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ethiopia | leader | Mulatu_Teshome</otriple>
+        <otriple>Ethiopia | leaderName | Hailemariam_Desalegn</otriple>
+        <otriple>Addis_Ababa_City_Hall | country | Ethiopia</otriple>
+        <otriple>Addis_Ababa_City_Hall | location | Addis_Ababa</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ethiopia | leader | Mulatu_Teshome</mtriple>
+        <mtriple>Ethiopia | leader | Hailemariam_Desalegn</mtriple>
+        <mtriple>Addis_Ababa_City_Hall | country | Ethiopia</mtriple>
+        <mtriple>Addis_Ababa_City_Hall | location | Addis_Ababa</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Addis Ababa City Hall is located in Addis Ababa, Ethiopia, where main leaders are Malatu Teshome and Hailemariam Desalegn.</lex>
+      <lex lang="ru" lid="Id1">Ратуша Аддис-Абебы расположена в Аддис-Абебе, Эфиопия, где основными лидерами являются Мулату Тешоме и Хайлемариам Десалень.</lex>
+      <lex lang="en" lid="Id2">Addis Ababa City Hall can be found in Addis Ababa, Ethiopia, a country led by Mulatu Teshome and Hailemariam Desalegn.</lex>
+      <lex lang="ru" lid="Id2">Ратуша Аддис-Абебы находится в Аддис-Абебе, Эфиопии, стране, возглавляемой Мулату Тешоме и Хайлемариамом Десаленем.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Hailemariam_Desalegn | sameAs | Десалень,_Хайлемариам</dbpedialink>
+        <dbpedialink direction="en2ru">Addis_Ababa | sameAs | Аддис-Абеба</dbpedialink>
+        <dbpedialink direction="en2ru">Ethiopia | sameAs | Эфиопия</dbpedialink>
+        <dbpedialink direction="en2ru">Mulatu_Teshome | sameAs | Мулату_Тешоме</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Addis Ababa City Hall | sameAs | Ратуша Аддис-Абебы</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X (X) (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Ethiopia | leader | Mulatu_Teshome</otriple>
+        <otriple>Ethiopia | leaderName | Hailemariam_Desalegn</otriple>
+        <otriple>Addis_Ababa_City_Hall | location | Addis_Ababa</otriple>
+        <otriple>Addis_Ababa | country | Ethiopia</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ethiopia | leader | Hailemariam_Desalegn</otriple>
+        <otriple>Ethiopia | leaderName | Mulatu_Teshome</otriple>
+        <otriple>Addis_Ababa_City_Hall | location | Addis_Ababa</otriple>
+        <otriple>Addis_Ababa | country | Ethiopia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ethiopia | leader | Mulatu_Teshome</mtriple>
+        <mtriple>Ethiopia | leader | Hailemariam_Desalegn</mtriple>
+        <mtriple>Addis_Ababa_City_Hall | location | Addis_Ababa</mtriple>
+        <mtriple>Addis_Ababa | country | Ethiopia</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Hailemariam Desalegn is the leader of Ethiopia along with Mulatu Teshome. Addis Ababa City Hall is located in the country in the city of Addis Ababa.</lex>
+      <lex lang="ru" lid="Id1">Хайлемариам Десалень является лидером Эфиопии вместе с Мулату Тешоме. Ратуша Аддис-Абебы расположена в стране в городе Аддис-Абеба.</lex>
+      <lex lang="en" lid="Id2">Leaders in Ethiopia are Malatu Teshome and Hailemariam Desalegn. Addis City Hall, Ethiopia is in Addis Ababa.</lex>
+      <lex lang="ru" lid="Id2">Лидерами в Эфиопии являются Мулату Тешоме и Хайлемариам Десалень. Ратуша Аддис-Абебы, Эфиопия находится в Аддис-Абебе.</lex>
+      <lex lang="en" lid="Id3">Addis Ababa City Hall is located in Addis Ababa, Ethiopia which is led by Malatu Teshome and Hailemariam Desalegn.</lex>
+      <lex lang="ru" lid="Id3">Ратуша Аддис-Абебы расположена в Аддис-Абебе, Эфиопии, которую возглавляют Мулату Тешоме и Хайлемариам Десалень.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Hailemariam_Desalegn | sameAs | Десалень,_Хайлемариам</dbpedialink>
+        <dbpedialink direction="en2ru">Addis_Ababa | sameAs | Аддис-Абеба</dbpedialink>
+        <dbpedialink direction="en2ru">Ethiopia | sameAs | Эфиопия</dbpedialink>
+        <dbpedialink direction="en2ru">Mulatu_Teshome | sameAs | Мулату_Тешоме</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Addis Ababa City Hall | sameAs | Ратуша Аддис-Абебы</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Gujarat | leaderName | Anandiben_Patel</otriple>
+        <otriple>India | leader | T._S._Thakur</otriple>
+        <otriple>Amdavad_ni_Gufa | locationTown | Gujarat</otriple>
+        <otriple>Amdavad_ni_Gufa | locationCountry | India</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Gujarat | leader | Anandiben_Patel</mtriple>
+        <mtriple>India | leader | T._S._Thakur</mtriple>
+        <mtriple>Amdavad_ni_Gufa | location | Gujarat</mtriple>
+        <mtriple>Amdavad_ni_Gufa | country | India</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Led by Anandiben Patel, Amdavad ni Gufa can be found in Gujarat, India, where India is led by T S Thakur.</lex>
+      <lex lang="ru" lid="Id1">Амдавад ни Гуфа находится в Гуджарате (Индия), возглавляемом Анандибен Пател; всю Индию возглавляет Т.С. Тхакур.</lex>
+      <lex lang="en" lid="Id2">Amdavad ni Gufa is located in Gujarat, India. The leader of Gujarat is Anandiben Patel and T.S. Thakur was an Indian leader.</lex>
+      <lex lang="ru" lid="Id2">Амдавад ни Гуфа находится в Гуджарате, Индия. Лидером Гуджарата является Анандибен Пател, а Т.С. Тхакур - индийский лидер.</lex>
+      <lex lang="en" lid="Id3">Amdavad ni Gufa is located in Gujarat India. Anandiben Patel is leader in Gujarat whilst TS Thakur is leader in India.</lex>
+      <lex lang="ru" lid="Id3">Амдавад ни Гуфа находится в Гуджарате,Индии. Анандибен Пател является лидером в Гуджарате, в то время как Т.С. Тхакур является лидером в Индии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Gujarat | sameAs | Гуджарат</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">T. S. Thakur | sameAs | Т.С. Тхакур (муж)</link>
+        <link direction="en2ru">Amdavad ni Gufa | sameAs | Амдавад ни Гуфа</link>
+        <link direction="en2ru">Anandiben Patel | sameAs | Анандибен Пател (жен)</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>India | leader | T._S._Thakur</otriple>
+        <otriple>Amdavad_ni_Gufa | locationTown | Ahmedabad</otriple>
+        <otriple>Amdavad_ni_Gufa | locationCountry | India</otriple>
+        <otriple>India | leaderName | Narendra_Modi</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>India | leader | T._S._Thakur</mtriple>
+        <mtriple>Amdavad_ni_Gufa | location | Ahmedabad</mtriple>
+        <mtriple>Amdavad_ni_Gufa | country | India</mtriple>
+        <mtriple>India | leader | Narendra_Modi</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Two of India's leaders are Narendra Modi and T S Thakur. Amdavad ni Gufa is located in Ahmedabad in the country.</lex>
+      <lex lang="ru" lid="Id1">Двое из лидеров Индии - Нарендра Моди и Т.С. Тхакур. Галерея Амдавад ни Гуфа находится в Ахмадабаде.</lex>
+      <lex lang="en" lid="Id2">Amdavad ni Gufa is located in Ahmedabad, India. Two leaders of the country are T S Thakur and Narendra Modi.</lex>
+      <lex lang="ru" lid="Id2">Амдавад ни Гуфа находится в Ахмадабаде, Индия. Два лидера страны - Т.С. Тхакур и Нарендра Моди.</lex>
+      <lex lang="en" lid="Id3">Amdavad ni Gufa is located in Ahmedabad, India, a country which has the leaders T S Thakur and Narendra Modi.</lex>
+      <lex lang="ru" lid="Id3">Амдавад ни Гуфа находится в Ахмадабаде, Индии, стране, в которой лидеры - Т.С. Тхакур и Нарендра Моди.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Narendra_Modi | sameAs | Моди,_Нарендра</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmedabad | sameAs | Ахмадабад</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">T. S. Thakur | sameAs | Т.С. Тхакур (муж)</link>
+        <link direction="en2ru">Amdavad ni Gufa | sameAs | Амдавад ни Гуфа</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

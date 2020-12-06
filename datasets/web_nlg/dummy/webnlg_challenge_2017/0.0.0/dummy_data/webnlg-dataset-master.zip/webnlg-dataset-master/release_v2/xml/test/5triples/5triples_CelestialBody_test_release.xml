@@ -1,0 +1,103 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | periapsis | 6.15591e+12</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | epoch | 2006-12-31</mtriple>
+        <mtriple>(19255)_1994_VK8 | mass | 5.6 (kilograms)</mtriple>
+        <mtriple>(19255)_1994_VK8 | orbitalPeriod | 8788850000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | periapsis | 6155910000000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | apoapsis | 6603633000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">19255 1994 VK8 has a mass of 5.6kg,an orbital period of 8788850000.0 and its epoch date was on 31 December 2006.It has a periapsis of 6155910000000.0 and its apoapsis is 6603633000.0 kilometres.</lex>
+      <lex comment="good" lid="Id2">The epoch of 19255 1994 VK8, which has a mass of 5.6 kilograms is December 31st, 2006. Its orbital period is 8,788,850,000 kilometres, with a periapsis of 6,155,910,000,000 kilometres and an apoapsis of 6,603,633,000 kilometres.</lex>
+      <lex comment="good" lid="Id3">19255 1994 VK8 has a mass of 5.6kg,an orbital period of 8788850000.0 and its epoch date was on 31 December 2006.It has a periapsis of 6155910000000.0 and its apoapsis is 6603633000.0 km.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>101_Helena | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | education | University_of_Michigan</otriple>
+        <otriple>James_Craig_Watson | stateOfOrigin | Canada</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+        <otriple>James_Craig_Watson | deathCause | Peritonitis</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>101_Helena | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | almaMater | University_of_Michigan</mtriple>
+        <mtriple>James_Craig_Watson | stateOfOrigin | Canada</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+        <mtriple>James_Craig_Watson | deathCause | Peritonitis</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">James Craig Watson, who discovered 101 Helena, originated from Canada and studied at the University of Michigan. He died in Madison, Wisconsin from peritonitis.</lex>
+      <lex comment="good" lid="Id2">101 Helena was discovered by James Craig Watson who originated from Canada and graduated from the University of Michigan. He later died of peritonitis in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id3">James Criag Watson originates from Canada and died from peritonitis in Madison,Wisconsin.His alma mater was the University of Michigan and he discovered 101 Helena.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1036_Ganymed | discoverer | Walter_Baade</otriple>
+        <otriple>Walter_Baade | deathPlace | Göttingen</otriple>
+        <otriple>Walter_Baade | birthPlace | German_Empire</otriple>
+        <otriple>Walter_Baade | almaMater | University_of_Göttingen</otriple>
+        <otriple>Walter_Baade | doctoralStudent | Allan_Sandage</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1036_Ganymed | discoverer | Walter_Baade</mtriple>
+        <mtriple>Walter_Baade | deathPlace | Göttingen</mtriple>
+        <mtriple>Walter_Baade | birthPlace | German_Empire</mtriple>
+        <mtriple>Walter_Baade | almaMater | University_of_Göttingen</mtriple>
+        <mtriple>Walter_Baade | doctoralStudent | Allan_Sandage</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">German Walter Baade discovered 1036 Ganymed. Baade died in Gottingen, was a graduate of the University of Gottingen and Allan Sandage was among his doctoral students.</lex>
+      <lex comment="good" lid="Id2">Walter Baade, who had a doctoral student named Allan Sandage, was born in the German Empire and graduated from the University of Gottingen. He discovered 1036 Ganymed and later died in Gottingen.</lex>
+      <lex comment="good" lid="Id3">Allan Sandage was a doctoral student of Walter Baade, the discoverer of 1036 Ganymed. Baade was born in the German empire and studied at the University of Gottingen, the city where he died.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1036_Ganymed | discoverer | Walter_Baade</otriple>
+        <otriple>Walter_Baade | nationality | Germany</otriple>
+        <otriple>Walter_Baade | birthPlace | German_Empire</otriple>
+        <otriple>Walter_Baade | almaMater | University_of_Göttingen</otriple>
+        <otriple>Walter_Baade | doctoralStudent | Allan_Sandage</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1036_Ganymed | discoverer | Walter_Baade</mtriple>
+        <mtriple>Walter_Baade | nationality | Germany</mtriple>
+        <mtriple>Walter_Baade | birthPlace | German_Empire</mtriple>
+        <mtriple>Walter_Baade | almaMater | University_of_Göttingen</mtriple>
+        <mtriple>Walter_Baade | doctoralStudent | Allan_Sandage</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Walter Baade, who had a doctoral student named Allan Sandage, was the discoverer of 1036 Ganymed. He was a German national born in the German Empire and graduated from the University of Gottingen.</lex>
+      </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>103_Hera | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | education | University_of_Michigan</otriple>
+        <otriple>103_Hera | discovered | "1868-09-07"^^xsd:date</otriple>
+        <otriple>James_Craig_Watson | nationality | Canada</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Hera | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | almaMater | University_of_Michigan</mtriple>
+        <mtriple>103_Hera | discovered | 1868-09-07</mtriple>
+        <mtriple>James_Craig_Watson | nationality | Canada</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Canadian James Craig Watson discovered 103 Hera on September 7th, 1868. His alma mater was the University of Michigan and Watson died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id2">James Craig Watson, a Canadian who attended the University of Michigan, discovered 103 Hera on Sept. 7, 1868. He died in Madison, Wisconsin.</lex>
+    </entry>
+    </entries>
+</benchmark>

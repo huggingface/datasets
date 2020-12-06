@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>René_Goscinny | nationality | French_people</otriple>
+        <otriple>Asterix_(character) | creator | René_Goscinny</otriple>
+        <otriple>Asterix_(character) | creators | Albert_Uderzo</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Asterix_(character) | creators | René_Goscinny</otriple>
+        <otriple>René_Goscinny | nationality | French_people</otriple>
+        <otriple>Asterix_(character) | creator | Albert_Uderzo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asterix_(comicsCharacter) | creator | René_Goscinny</mtriple>
+        <mtriple>René_Goscinny | nationality | French_people</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | creator | Albert_Uderzo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Asterix was created by Albert Uderzo and Rene Goscinny who is a French national.</lex>
+      <lex comment="good" lid="Id2">The comic character Asterix, was created by Albert Uderzo and René Goscinny, who is French.</lex>
+      <lex comment="good" lid="Id3">The comic book character Asterix was created by Albert Uderzo and the Frenchman René Goscinny.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Bananaman | starring | Tim_Brooke-Taylor</otriple>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>Bananaman | lastAired | "1986-04-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | starring | Tim_Brooke-Taylor</mtriple>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>Bananaman | lastAired | "1986-04-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The TV series Bananaman starred Tim Brooke-Taylor and was last aired on the BBC on 15th April 1986.</lex>
+      <lex comment="good" lid="Id2">Bananaman, which was broadcast by the BBC and last aired on April 15th, 1986, starred Tim Brooke-Taylor.</lex>
+      <lex comment="good" lid="Id3">Tim Brooke Taylor starred in Bananaman which was broadcast by the BBC and last aired on 15 April 1986.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Baymax | first | Big_Hero_6_(film)</otriple>
+        <otriple>Big_Hero_6_(film) | distributor | Walt_Disney_Studios_Motion_Pictures</otriple>
+        <otriple>Big_Hero_6_(film) | starring | Scott_Adsit</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baymax | firstAppearanceInFilm | Big_Hero_6_(film)</mtriple>
+        <mtriple>Big_Hero_6_(film) | distributor | Walt_Disney_Studios_Motion_Pictures</mtriple>
+        <mtriple>Big_Hero_6_(film) | starring | Scott_Adsit</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Walt Disney Studios Motion Pictures distributed Big Hero 6, a film starring Scott Adsit in which Baymax first appeared.</lex>
+      <lex comment="good" lid="Id2">The first appearance in a film for the character Baymax was Big Hero 6, distributed by Walt Disney Studios Motion Pictures, the film starred Scott Adsit.</lex>
+      <lex comment="good" lid="Id3">Walt Disney Studios Motion Pictures is the distributor of the film , Big Hero 6 starring Scott Adsit and in which Baymax made his first film appearance.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Big_Hero_6_(film) | distributor | Walt_Disney_Studios_Motion_Pictures</otriple>
+        <otriple>Baymax | series | Big_Hero_6_(film)</otriple>
+        <otriple>Big_Hero_6_(film) | starring | Scott_Adsit</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Big_Hero_6_(film) | distributor | Walt_Disney_Studios_Motion_Pictures</mtriple>
+        <mtriple>Baymax | series | Big_Hero_6_(film)</mtriple>
+        <mtriple>Big_Hero_6_(film) | starring | Scott_Adsit</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The film, Big hero 6 which includes the character of Baymax, stars Scott Adsit and is distributed by Walt Disney Studios Motion Pictures.</lex>
+      <lex comment="good" lid="Id2">The film, Big Hero 6 stars Scott Adsit and includes the character Baymax. It was distributed by Walt Disney Studios Motion Pictures.</lex>
+      <lex comment="good" lid="Id3">Big Hero 6 is distributed by Walt Disney Studios Motion Pictures and starts Scott Adsit and has a character called Baymax.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Big_Hero_6_(film) | starring | Ryan_Potter</otriple>
+        <otriple>Big_Hero_6_(film) | distributor | Walt_Disney_Studios_Motion_Pictures</otriple>
+        <otriple>Baymax | series | Big_Hero_6_(film)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Big_Hero_6_(film) | starring | Ryan_Potter</mtriple>
+        <mtriple>Big_Hero_6_(film) | distributor | Walt_Disney_Studios_Motion_Pictures</mtriple>
+        <mtriple>Baymax | series | Big_Hero_6_(film)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Walt Disney Studio Motion Picture distributed the film Big Hero 6, in which Ryan Potter starred and Baymax is a character.</lex>
+      <lex comment="good" lid="Id2">Baymax is a character in the Big Hero 6 film starring Ryan Potter and distributed by Walt Disney Studios Motion Pictures.</lex>
+      <lex comment="good" lid="Id3">The movie Big Hero 6 stars Ryan Potter which has Baymax as one of its characters, was distributed by Walt Disney Studios Motion Pictures.</lex>
+    </entry>
+    </entries>
+</benchmark>

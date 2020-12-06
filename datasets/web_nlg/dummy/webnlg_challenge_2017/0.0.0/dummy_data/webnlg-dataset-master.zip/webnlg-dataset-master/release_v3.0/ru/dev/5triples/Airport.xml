@@ -1,0 +1,174 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayLength | "1873.0"^^xsd:double</otriple>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | country | United_States</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayLength | "1872.69"^^xsd:double</otriple>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | country | United_States</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | runwayLength | 1873.0</mtriple>
+        <mtriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | country | United_States</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Atlantic City International Airport in Egg Harbor Township, New Jersey is in the U.S.A. The airport has a runway that is 1,873 long.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Атлантик-Сити в поселке Эгг Харбор, Нью-Джерси, находится в Соединённых Штатах Америки. Аэропорт имеет взлетно-посадочную полосу, которая длиной 1873.</lex>
+      <lex lang="en" lid="Id2">The Egg Harbor Township in New Jersey is located in Atlantic City, New Jersey. It is served by Atlantic City International Airport which has a runway length of 1873.</lex>
+      <lex lang="ru" lid="Id2">Поселок Эгг Харбор в Нью-Джерси расположен в Атлантик-Сити, штат Нью-Джерси. Его обслуживает международный аэропорт Атлантик-Сити, имеющий длину взлетно-посадочной полосы - 1873.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_Jersey | sameAs | Нью-Джерси</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Atlantic_County,_New_Jersey | sameAs | Атлантик_(округ,_Нью-Джерси)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | поселок Эгг Харбор</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | Нью-Джерси</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayLength | "3048.0"^^xsd:double</otriple>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | country | United_States</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | runwayLength | 3048.0</mtriple>
+        <mtriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | country | United_States</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Egg Harbor Township is a township in Atlantic County, New Jersey, United States, and is where Atlantic City International Airport is located. This airport has a runway length of 3048.0.</lex>
+      <lex lang="ru" lid="Id1">Поселок Эгг Харбор - это населенный пункт в округе Атлантик, Нью-Джерси, США, и является местом расположения международного аэропорта Атлантик-Сити. Этот аэропорт имеет длину взлетно-посадочной полосы 3048,0.</lex>
+      <lex lang="en" lid="Id2">Atlantic City International Airport, which has a runway length of 3048.0 is located in Egg Harbor Township, Atlantic County, New Jersey in the United States.</lex>
+      <lex lang="ru" lid="Id2">Международный аэропорт Атлантик-Сити, имеющий длину взлетно-посадочной полосы 3048,0, расположен в поселке Эгг Харбор, округ Атлантик, штат Нью-Джерси в США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_Jersey | sameAs | Нью-Джерси</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Atlantic_County,_New_Jersey | sameAs | Атлантик_(округ,_Нью-Джерси)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | поселок Эгг Харбор</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | Нью-Джерси</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayDesignation | "13/31"</otriple>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | country | United_States</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | runwayName | "13/31"</mtriple>
+        <mtriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | country | United_States</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Atlantic City International Airport in Egg Harbor Township, New Jersey is part of Atlantic County in the U.S.A. Its runway name is 13/31.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Атлантик Сити в поселке Эгг Харбор, Нью-Джерси, часть Атлантик в Соединённых Штатах Америки. Его взлетно-посадочная полоса - 13 / 31.</lex>
+      <lex lang="en" lid="Id2">13/31 is the runway name for Atlantic City International airport located in Egg Harbor Township, Atlantic County, New Jersey, United States.</lex>
+      <lex lang="ru" lid="Id2">13/31 - название взлетно-посадочной полосы международного аэропорта Атлантик-Сити, расположенного в поселке Эгг Харбор, округ Атлантик, Нью-Джерси, Соединенные Штаты Америки.</lex>
+      <lex lang="en" lid="Id3">Atlantic City International Airport is located in Egg Harbor Township, New Jersey in the United States.The Airport's runway name is called "13/31".</lex>
+      <lex lang="ru" lid="Id3">Международный аэропорт Атлантик-Сити расположен в поселке Эгг Харбор, штат Нью-Джерси в США. Взлетно-посадочная полоса аэропорта называется 13/31.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_Jersey | sameAs | Нью-Джерси</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Atlantic_County,_New_Jersey | sameAs | Атлантик_(округ,_Нью-Джерси)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | поселок Эгг Харбор</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | Нью-Джерси</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayDesignation | "4/22"</otriple>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | country | United_States</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | runwayName | "4/22"</mtriple>
+        <mtriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | country | United_States</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">4/22 is the runway name of Atlantic City International Airport which is located in Egg Harbor Township, New Jersey, (part of Atlantic County), in the United States.</lex>
+      <lex lang="ru" lid="Id1">4/22 - взлетно-посадочная полоса международного аэропорта Атлантик-Сити, который расположен в поселке Эгг Харбор, штат Нью-Джерси, (часть округа Атлантик), в Соединенных Штатах Америки.</lex>
+      <lex lang="en" lid="Id2">Atlantic City International Airport has the runway name 4/22 and is located at Egg Harbor Township, New Jersey (part of Atlantic County), in the United States.</lex>
+      <lex lang="ru" lid="Id2">Международный аэропорт Атлантик-Сити имеет взлетно-посадочную полосу под названием 4/22 и находится в поселке Эгг Харбор, штат Нью-Джерси (часть округа Атлантик), в Соединенных Штатах Америки.</lex>
+      <lex lang="en" lid="Id3">Egg Harbor Township, New Jersey (part of Atlantic county), in the United States, is where Atlantic City International Airport is located. It has the runway name 4/22.</lex>
+      <lex lang="ru" lid="Id3">Поселок Эгг Харбор, Нью-Джерси (часть округа Атлантик), в США, место, где расположен международный аэропорт Атлантик-Сити. Он имеет взлетно-посадочную полосу под названием 4/22.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_Jersey | sameAs | Нью-Джерси</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Atlantic_County,_New_Jersey | sameAs | Атлантик_(округ,_Нью-Джерси)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | поселок Эгг Харбор</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | Нью-Джерси</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Harrietstown,_New_York | country | United_States</otriple>
+        <otriple>Saranac_Lake,_New_York | subdivisionName | Harrietstown,_New_York</otriple>
+        <otriple>Harrietstown,_New_York | isPartOf | New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Harrietstown,_New_York | country | United_States</otriple>
+        <otriple>Saranac_Lake,_New_York | subdivisionName | Harrietstown,_New_York</otriple>
+        <otriple>Harrietstown,_New_York | isPartOf | New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Harrietstown,_New_York | country | United_States</mtriple>
+        <mtriple>Saranac_Lake,_New_York | isPartOf | Harrietstown,_New_York</mtriple>
+        <mtriple>Harrietstown,_New_York | isPartOf | New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Saranac Lake, New York is part of Harrietstown, New York in the United States and it is served by Adirondack Regional Airport. This airport also serves the city of Lake Placid, New York.</lex>
+      <lex lang="ru" lid="Id1">Саранак-Лейк, Нью-Йорк, является частью Хэрритстауна, Нью-Йорк, в США и обслуживается региональным аэропортом Адирондак. Этот аэропорт также обслуживает город Лейк-Плэсид.</lex>
+      <lex lang="en" lid="Id2">Adirondack Regional Airport serves Lake Placid, New York, and also Saranac Lake (part of Harrietstown), New York.</lex>
+      <lex lang="ru" lid="Id2">Региональный аэропорт Адирондак обслуживает деревню Лейк-Плэсид, Нью-Йорк, а также село Саранак-Лейк, Нью-Йорк.</lex>
+      <lex lang="en" lid="Id3">Saranac Lake and Harrietsown, are parts of New York which is located in the United States. Adirondack Regional Airport serves both the city of Saranac Lake and Lake Plaid, N.Y.</lex>
+      <lex lang="ru" lid="Id3">Саранак-Лейк и Хэрритстаун - это части Нью-Йорка, которые находятся в США. Региональный аэропорт Адирондак обслуживает оба города - Саранак-Лейк и Лейк-Плэсид, штат Нью-Йорк.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Lake_Placid,_New_York | sameAs | Лейк-Плэсид</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adirondack Regional Airport | sameAs | Региональный аэропорт Адирондак</link>
+        <link direction="en2ru">Harrietstown, New York | includes | Хэрритстаун</link>
+        <link direction="en2ru">Saranac Lake, New York | includes | Саранак-Лейк</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

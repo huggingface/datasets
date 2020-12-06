@@ -1,0 +1,89 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id673" size="4">
+			<originaltripleset>
+				<otriple>Al_Asad_Airbase | operator | United_States_Air_Force</otriple>
+				<otriple>Al_Asad_Airbase | location | Iraq</otriple>
+				<otriple>Al_Asad_Airbase | runwayLength | "3990.0"^^xsd:double</otriple>
+				<otriple>Al_Asad_Airbase | runwayDesignation | "08/26"</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</mtriple>
+				<mtriple>Al_Asad_Airbase | location | Iraq</mtriple>
+				<mtriple>Al_Asad_Airbase | runwayLength | 3990.0</mtriple>
+				<mtriple>Al_Asad_Airbase | runwayName | "08/26"</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</striple>
+						<striple>Al_Asad_Airbase | location | Iraq</striple>
+						<striple>Al_Asad_Airbase | runwayName | "08/26"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3990.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="United_States_Air_Force" number="1" tag="PATIENT-1" type="description">the United States Air Force</reference>
+					<reference entity="Al_Asad_Airbase" number="2" tag="AGENT-1" type="name">Al Asad Airbase</reference>
+					<reference entity="Iraq" number="3" tag="PATIENT-2" type="name">Iraq</reference>
+					<reference entity="&quot;08/26&quot;" number="4" tag="PATIENT-4" type="name">08/26</reference>
+					<reference entity="3990.0" number="5" tag="PATIENT-3" type="name">3990.0</reference>
+				</references>
+				<text>Operated by the United States Air Force, Al Asad Airbase (Iraq) has a runway name 08/26, and a runway length 3990.0.</text>
+				<template>Operated by PATIENT-1 , AGENT-1 (PATIENT-2) has a runway name PATIENT-4 , and a runway length PATIENT-3 .</template>
+				<lexicalization>VP[aspect=simple,tense=past,voice=active,person=null,number=null] operate by PATIENT-1 , AGENT-1 ( PATIENT-2 ) VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway name PATIENT-4 , and DT[form=undefined] a runway length PATIENT-3 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</striple>
+						<striple>Al_Asad_Airbase | location | Iraq</striple>
+						<striple>Al_Asad_Airbase | runwayName | "08/26"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3990.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="United_States_Air_Force" number="1" tag="PATIENT-1" type="description">The United States Air Force</reference>
+					<reference entity="Al_Asad_Airbase" number="2" tag="AGENT-1" type="name">Al Asad Airbase</reference>
+					<reference entity="Iraq" number="3" tag="PATIENT-2" type="name">Iraq</reference>
+					<reference entity="&quot;08/26&quot;" number="4" tag="PATIENT-4" type="name">08/26</reference>
+					<reference entity="3990.0" number="5" tag="PATIENT-3" type="name">3990.0</reference>
+				</references>
+				<text>The United States Air Force is operating Al Asad Airbase in Iraq with runway 08/26 that is 3990.0 long.</text>
+				<template>PATIENT-1 is operating AGENT-1 in PATIENT-2 with runway PATIENT-4 that is PATIENT-3 long .</template>
+				<lexicalization>PATIENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be AGENT-1 in PATIENT-2 with runway PATIENT-4 that VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-3 long .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</striple>
+						<striple>Al_Asad_Airbase | location | Iraq</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Al_Asad_Airbase | runwayLength | 3990.0</striple>
+						<striple>Al_Asad_Airbase | runwayName | "08/26"</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="United_States_Air_Force" number="1" tag="PATIENT-1" type="description">The US Air Force</reference>
+					<reference entity="Al_Asad_Airbase" number="2" tag="AGENT-1" type="description">the Al Asad Airbase</reference>
+					<reference entity="Iraq" number="3" tag="PATIENT-2" type="name">Iraq</reference>
+					<reference entity="Al_Asad_Airbase" number="4" tag="AGENT-1" type="pronoun">It</reference>
+					<reference entity="3990.0" number="5" tag="PATIENT-3" type="name">3,990</reference>
+					<reference entity="Al_Asad_Airbase" number="6" tag="AGENT-1" type="name">it 's</reference>
+					<reference entity="&quot;08/26&quot;" number="7" tag="PATIENT-4" type="name">08/26</reference>
+				</references>
+				<text>The US Air Force operates the Al Asad Airbase in Iraq. It has a runway length of 3,990 and it's runway is named 08/26.</text>
+				<template>PATIENT-1 operates AGENT-1 in PATIENT-2 . AGENT-1 has a runway length of PATIENT-3 and AGENT-1 runway is named PATIENT-4 .</template>
+				<lexicalization>PATIENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] operate AGENT-1 in PATIENT-2 . AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway length of PATIENT-3 and AGENT-1 runway VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] name PATIENT-4 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Al_Asad_Airbase</entity>
+				<entity>PATIENT-1 | United_States_Air_Force</entity>
+				<entity>PATIENT-2 | Iraq</entity>
+				<entity>PATIENT-3 | 3990.0</entity>
+				<entity>PATIENT-4 | "08/26"</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

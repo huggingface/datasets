@@ -1,0 +1,59 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.C._Milan | chairman | Silvio_Berlusconi</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | chairman | Silvio_Berlusconi</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Chairman of A C Milan is Silvio Berlusconi.</lex>
+      <lex comment="good" lid="Id2">Silvio Berlusconi is the chairman of A.C. Milan.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | birthPlace | Canada</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | placeOfBirth | Canada</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthPlace | Canada</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard's birthplace is Canada.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard was born in Canada.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abel_Hernández | team | Uruguay_Olympic_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | club | Uruguay_Olympic_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez is in the Uruguay Olympic football team.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez played for the Uruguay Olympic football team.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández plays for the Uruguay Olympic football team.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abel_Hernández | team | Uruguay_national_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | club | Uruguay_national_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez's club is the Uruguay National football team.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez plays for the Uruguay national football team.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abner_(footballer) | team | C.D._FAS</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abner_(footballer) | club | C.D._FAS</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The footballer Abner belongs to the club C.D. FAS.</lex>
+      <lex comment="good" lid="Id2">The footballer Abner plays for C.D. FAS.</lex>
+      <lex comment="good" lid="Id3">Abner is a footballer for the CD FAS club.</lex>
+    </entry>
+    </entries>
+</benchmark>

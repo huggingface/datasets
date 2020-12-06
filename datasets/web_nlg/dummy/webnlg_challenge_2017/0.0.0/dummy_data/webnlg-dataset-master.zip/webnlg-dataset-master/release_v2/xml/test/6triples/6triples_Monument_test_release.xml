@@ -1,0 +1,107 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | range | Seminary_Ridge</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Seminary_Ridge</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument is located at Seminary Ridge, in Adams County, Pennsylvania, USA. The monument was completed in 2000. It is classified as a Contributing property.</lex>
+      <lex comment="good" lid="Id2">In 2000 the 11th Mississippi Infantry Monument which is categorised as a contributing property, was established. It is located at Seminary Ridge, Adams County, Pennsylvania, in the US.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument is located at Seminary Ridge, in Adams County, Pennsylvania, USA. It was established in 2000, and is categorized as a Contributing Property.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X (X) (X) (X) (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Adams_County,_Pennsylvania | west | Franklin_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southwest | Frederick_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adams_County,_Pennsylvania | has to its west | Franklin_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | has to its southeast | Carroll_County,_Maryland</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | has to its north | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | has to its southwest | Frederick_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The location of the 11th Mississippi Infantry Monument is in Adams County, Pennsylvania. which has Franklin County to the west and Carroll County Maryland to the southeast. Cumberland County lies to the north with Frederick County, Maryland to the southwest. The 11th Mississippi Infantry Monument is a contributing property.</lex>
+      <lex comment="good" lid="Id2">Adams County, Pennsylvania is located to the south of Cumberland County, Pennsylvania, to the east of Franklin County, Pennsylvania, to the northeast of Frederick County, Maryland, and to the northwest of Carroll County, Maryland. The 11th Mississippi Infantry Monument, which is classified as a Contributing property, is located in Adams County.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Azerbaijan | leader | Artur_Rasizade</otriple>
+        <otriple>Azerbaijan | capital | Baku</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | material | "Red granite and white marble"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | designer | "Hüseyin Bütüner and Hilmi Güner"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | leader | Artur_Rasizade</mtriple>
+        <mtriple>Azerbaijan | capital | Baku</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | material | "Red granite and white marble"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | designer | "Hüseyin Bütüner and Hilmi Güner"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Baku is the capital of Azerbaijan which has Artur Rasizade as its leader. The country is the location of the Baku Turkish Martyrs Memorial, designed in red granite and white marble by Huseyin Butuner and Hilmi Guner. The memorial is dedicated to the Ottoman army soldiers killed in the Battle of Baku.</lex>
+      <lex comment="good" lid="Id2">Baku Turkish Martyrs' Memorial (designed by Huseyin Butuner and Hilmi Guner) is dedicated to the Ottoman Army soldiers killed in the Battle of Baku and is made of red granite and white marble. The memorial is located in Baku, the capital of Azerbaijan. Artur Rasizade was an Azerbaijan leader.</lex>
+      <lex comment="good" lid="Id3">The Baku Turkish Martyrs Memorial in Azerbaijan is dedicated to Ottoman Army soldiers killed in the Battle of Baku. It was designed by Hüseyin Bütüner and Hilmi Güner, and constructed from red granite and white marble. Baku is the capital of Azerbaijan, a country whose leaders include Artur Rasizade.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | material | "Red granite and white marble"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | nativeName | "Türk Şehitleri Anıtı"@en</otriple>
+        <otriple>Azerbaijan | leaderName | Artur_Rasizade</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | designer | "Hüseyin Bütüner and Hilmi Güner"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | material | "Red granite and white marble"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | nativeName | "Türk Şehitleri Anıtı"</mtriple>
+        <mtriple>Azerbaijan | leaderName | Artur_Rasizade</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | designer | "Hüseyin Bütüner and Hilmi Güner"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Baku Turkish Martyrs' Memorial (designed by Huseyin Butuner and Hilmi Guner) is located in Baku, Azerbaijan. It is made from red granite and white marble. It is dedicated to the Ottoman Army Soldiers killed in the Battle of Baku. The native name for the memorial is Türk Şehitleri Anıtı. The leader of Azerbaijan is Artur Rasizade.</lex>
+      <lex comment="good" lid="Id2">The Turkish leader is Artur Rasizade. Huseyin Butuner and Hilmi Guner designed the red granite and white marble Baku Turkish Martyrs Memorial, also known as Turk Sehitleri Aniti, in Azerbaijan. The memorial is dedicated to the soldiers who fell in the Battle of Baku.</lex>
+      </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Monocacy_National_Battlefield | location | Frederick_County,_Maryland</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | established | "1907-07-11"^^xsd:date</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | category | Historic_districts_in_the_United_States</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | district | Monocacy_National_Battlefield</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | state | "Maryland"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Monocacy_National_Battlefield | location | Frederick_County,_Maryland</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | established | "1907-07-11"</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | category | Historic_districts_in_the_United_States</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | district | Monocacy_National_Battlefield</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | state | "Maryland"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The U.S.A.'s 14th New Jersey Volunteer Infantry Monument in Frederick County, Maryland is in the Monocacy National Battlefield. It's in a historic district and was established om July 11th, 1907.</lex>
+      <lex comment="good" lid="Id2">The 14th New Jersey Volunteer Infantry Monument is located on the Monocacy National Battlefield, Frederick, Maryland. The monument was established in 1907-07-11 and is categorised as a historic district in the United States.</lex>
+      <lex comment="good" lid="Id3">The 14th New Jersey Volunteer Infantry Monument is located in Frederick County, Maryland, USA. Established on July 11, 1907, and situated on the Monocacy National Battlefield, the monument is categorized as a Historic district in the United States.</lex>
+    </entry>
+    </entries>
+</benchmark>

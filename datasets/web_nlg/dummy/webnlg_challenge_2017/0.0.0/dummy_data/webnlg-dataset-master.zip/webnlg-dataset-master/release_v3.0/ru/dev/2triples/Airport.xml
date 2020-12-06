@@ -1,0 +1,124 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Atlantic City International Airport is in Egg Harbor Township which is part of Atlantic County, New Jersey.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Атлантик Сити находится в поселке Эгг Харбор, который является частью Атлантика.</lex>
+      <lex lang="en" lid="Id2">Atlantic City International Airport is located at Egg Harbour Township, which is located in Atlantic City, New Jersey, United States.</lex>
+      <lex lang="ru" lid="Id2">Международный аэропорт Атлантик Сити расположен в поселке Эгг-Харбор, расположенном в Атлантик Сити, Нью Джерси, Соединенные Штаты.</lex>
+      <lex lang="en" lid="Id3">Atlantic City International Airport is in Egg Harbor Township, NJ, which is part of Atlantic County.</lex>
+      <lex lang="ru" lid="Id3">Международный аэропорт Атлантик Сити расположен в поселке Эгг Харбор, Нью-Джерси, являющемся частью Атлантика.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Atlantic_County,_New_Jersey | sameAs | Атлантик_(округ,_Нью-Джерси)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | поселок Эгг Харбор</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | Нью-Джерси</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | operator | Port_Authority_of_New_York_and_New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | elevation | "22.86"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atlantic_City_International_Airport | operatingOrganisation | Port_Authority_of_New_York_and_New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | elevationAboveTheSeaLevel | 23.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Atlantic City International Airport is operated by the Port Authority of New York and New Jersey and is 23.0 metres above sea level.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Атлантик Сити эксплуатируется Портовым управлением Нью-Йорка и Нью-Джерси и находится на высоте 23,0 метра над уровнем моря.</lex>
+      <lex lang="en" lid="Id2">The Atlantic City International Airport is run by the Port Authority of New York and New Jersey and is 23 m above sea level.</lex>
+      <lex lang="ru" lid="Id2">Международный аэропорт Атлантик Сити управляется Портовым управлением Нью-Йорка и Нью-Джерси и находится на высоте 23 м над уровнем моря.</lex>
+      <lex lang="en" lid="Id3">Atlantic City International Airport is 23.0 metres above sea level and is operated by the Port Authority of New York.</lex>
+      <lex lang="ru" lid="Id3">Международный аэропорт Атлантик Сити расположен на высоте 23,0 м над уровнем моря и управляется портовым управлением Нью-Йорка.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Port_Authority_of_New_York_and_New_Jersey | sameAs | Портовое_управление_Нью-Йорка_и_Нью-Джерси</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | operator | "Port Authority of New York and New Jersey &amp; SJTA"@en</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayDesignation | "13/31"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | operator | Port_Authority_of_New_York_and_New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | runwayDesignation | "13/31"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atlantic_City_International_Airport | operatingOrganisation | Port_Authority_of_New_York_and_New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | runwayName | "13/31"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">13/31 is the name of a runway at Atlantic City International Airport, operated by Port Authorities of New York and New Jersey.</lex>
+      <lex lang="ru" lid="Id1">13/31 - название взлетно-посадочной полосы в Международном аэропорту Атлантик Сити, эксплуатируемом Портовым управлением Нью-Йорка и Нью-Джерси.</lex>
+      <lex lang="en" lid="Id2">The Port Authority of New York and New Jersey is the operating organisation of Atlantic City International airport, which has the runway name of 13/31.</lex>
+      <lex lang="ru" lid="Id2">Портовое управление Нью-Йорка и Нью-Джерси - операционная организация международного аэропорта Атлантик Сити, которая имеет взлетно-посадочную полосу 13 / 31.</lex>
+      <lex lang="en" lid="Id3">Atlantic City International Airport, operated by the Port Authority of New York and New Jersey, has a runway named "13/31".</lex>
+      <lex lang="ru" lid="Id3">Международный аэропорт Атлантик Сити, эксплуатируемый портовым управлением Нью-Йорка и Нью-Джерси, имеет взлетно-посадочную полосу под названием "13/31".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Port_Authority_of_New_York_and_New_Jersey | sameAs | Портовое_управление_Нью-Йорка_и_Нью-Джерси</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | operator | Port_Authority_of_New_York_and_New_Jersey</otriple>
+        <otriple>Port_Authority_of_New_York_and_New_Jersey | headquarter | Four_World_Trade_Center</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atlantic_City_International_Airport | operatingOrganisation | Port_Authority_of_New_York_and_New_Jersey</mtriple>
+        <mtriple>Port_Authority_of_New_York_and_New_Jersey | headquarter | Four_World_Trade_Center</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Atlantic City International Airport is operated by the Port Authority of New York and New Jersey, which has its headquarters at the Four World Trade Centre.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Атлантик Сити эксплуатируется портовым управлением Нью-Йорка и Нью-Джерси, который имеет свою штаб-квартиру в четырех мировых торговых центрах.</lex>
+      <lex lang="en" lid="Id2">The Port Authority of New York and New Jersey is based at the Four World Trade Centre and operates Atlantic City international airport.</lex>
+      <lex lang="ru" lid="Id2">Портовое управление Нью-Йорка и Нью-Джерси базируется в Международном торговом центре и управляет международным аэропортом Атлантик Сити.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Port_Authority_of_New_York_and_New_Jersey | sameAs | Портовое_управление_Нью-Йорка_и_Нью-Джерси</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Four World Trade Center | sameAs | Международный торговый центр</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Atlantic_City_International_Airport | operator | Port_Authority_of_New_York_and_New_Jersey</otriple>
+        <otriple>Port_Authority_of_New_York_and_New_Jersey | headquarter | New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atlantic_City_International_Airport | operatingOrganisation | Port_Authority_of_New_York_and_New_Jersey</mtriple>
+        <mtriple>Port_Authority_of_New_York_and_New_Jersey | headquarter | New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Atlantic City International Airport is operated by the Port Authority of New York and New Jersey, based in New York.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Атлантик Сити эксплуатируется портовым управлением Нью-Йорка и Нью-Джерси, базирующимся в Нью-Йорке.</lex>
+      <lex lang="en" lid="Id2">The Port Authority of New York and New Jersey, headquartered in New York, is the operating organisation of Atlantic City International airport.</lex>
+      <lex lang="ru" lid="Id2">Портовое управление Нью-Йорка и Нью-Джерси, штаб-квартира которого находится в Нью-Йорке, является операционной организацией международного аэропорта Атлантик Сити.</lex>
+      <lex lang="en" lid="Id3">The Port Authority of New York and New Jersey is the operating organisation of Atlantic City International airport with its headquarters in New York.</lex>
+      <lex lang="ru" lid="Id3">Портовое управление Нью-Йорка и Нью-Джерси - операционная организация международного аэропорта Атлантик Сити со своей штаб-квартирой в Нью-Йорке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+        <dbpedialink direction="en2ru">Port_Authority_of_New_York_and_New_Jersey | sameAs | Портовое_управление_Нью-Йорка_и_Нью-Джерси</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

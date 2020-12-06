@@ -1,0 +1,64 @@
+<benchmark>
+	<entries>
+		<entry category="Astronaut" eid="Id1" size="6">
+			<originaltripleset>
+				<otriple>Alan_Bean | nationality | United_States</otriple>
+				<otriple>Alan_Bean | occupation | Test_pilot</otriple>
+				<otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+				<otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+				<otriple>Alan_Bean | timeInSpace | "100305.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+				<otriple>Alan_Bean | selection | 1963</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Alan_Bean | nationality | United_States</mtriple>
+				<mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+				<mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+				<mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+				<mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+				<mtriple>Alan_Bean | was selected by NASA | 1963</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Bean | nationality | United_States</striple>
+						<striple>Alan_Bean | occupation | Test_pilot</striple>
+						<striple>Alan_Bean | birthPlace | Wheeler,_Texas</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Alan_Bean | was selected by NASA | 1963</striple>
+						<striple>Alan_Bean | timeInSpace | "100305.0"(minutes)</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>United States @ test Pilot @ Alan Bean wurde in Wheeler, Texas geboren. 1955 absolvierte er sein Studium an UT Austin mit einem B.S. 1963 von der NASA gewählt, gelang ihm eine Gesamtplatzzeit von 100305,0 Minuten. </text>
+				<template>PATIENT-1 @ PATIENT-2 @ AGENT-1 wurde in PATIENT-4 geboren. In PATIENT-3, PATIENT-1 abgeschlossen PATIENT-3. Von der NASA in PATIENT-6 ausgewählt, gelang AGENT-1 die gesamte Raumzeit von PATIENT-5.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Bean | birthPlace | Wheeler,_Texas</striple>
+						<striple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Bean | was selected by NASA | 1963</striple>
+						<striple>Alan_Bean | occupation | Test_pilot</striple>
+						<striple>Alan_Bean | timeInSpace | "100305.0"(minutes)</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Alan Bean stammt ursprünglich aus Wheeler, Texas und absolvierte sein Studium an UT Austin 1955 mit einem Bachelor of Science-Abschluss. Alan Bean kam 1963 als Testpilot zur NASA und verbrachte 100305 Minuten im All. </text>
+				<template>AGENT-1 stammt ursprünglich von PATIENT-4 und schloss PATIENT-3 ab. AGENT-1 trat der NASA in PATIENT-6 als PATIENT-2 bei und verbrachte PATIENT-5 im All.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Alan_Bean</entity>
+				<entity>PATIENT-1 | United_States</entity>
+				<entity>PATIENT-2 | Test_pilot</entity>
+				<entity>PATIENT-3 | "UT Austin, B.S. 1955"</entity>
+				<entity>PATIENT-4 | Wheeler,_Texas</entity>
+				<entity>PATIENT-5 | "100305.0"(minutes)</entity>
+				<entity>PATIENT-6 | 1963</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

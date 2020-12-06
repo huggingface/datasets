@@ -1,0 +1,101 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Karl_Kesel | nationality | Americans</otriple>
+        <otriple>Auron_(comics) | creators | Karl_Kesel</otriple>
+        <otriple>Auron_(comics) | creator | Walt_Simonson</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Auron_(comics) | creator | Karl_Kesel</otriple>
+        <otriple>Karl_Kesel | nationality | Americans</otriple>
+        <otriple>Auron_(comics) | creators | Walt_Simonson</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Auron_(comicsCharacter) | creator | Karl_Kesel</mtriple>
+        <mtriple>Karl_Kesel | nationality | Americans</mtriple>
+        <mtriple>Auron_(comicsCharacter) | creator | Walt_Simonson</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic character Auron was created by Walt Simonson and the American, Karl Kesel.</lex>
+      <lex comment="good" lid="Id2">Karl Kesel, an American along with Walt Simonson created the comic book character Auron.</lex>
+      <lex comment="good" lid="Id3">The comic character, Auron, was created by Walt Simonson and the American Karl Kesel.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>BBC | keyPeople | Tony_Hall,_Baron_Hall_of_Birkenhead</otriple>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>BBC | locationCity | London</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>BBC | keyPerson | Tony_Hall,_Baron_Hall_of_Birkenhead</mtriple>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>BBC | city | London</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tony Hall, Baron Hall of Birkenhead, is a key person at the BBC which is located in London and broadcast Bananaman.</lex>
+      <lex comment="good" lid="Id2">A key person at the BBC, which is located in London and broadcast Bananaman, is Baron Hall of Birkenhead, Tony Hall.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Bananaman | starring | Bill_Oddie</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | network | "STV"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | starring | Bill_Oddie</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | broadcastedBy | "STV"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bill Oddie starred in Bananaman which first aired on 3 October 1983 and was broadcast by STV.</lex>
+      <lex comment="good" lid="Id2">Bill Oddie starred in Bananaman which was first aired on 3 October 1983 and broadcast by STV.</lex>
+      <lex comment="good" lid="Id3">Bananaman which first aired on October 3rd, 1983 stars Billie Oddie and is broadcasted by STV.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Baymax | creators | Duncan_Rouleau</otriple>
+        <otriple>Baymax | firstAppearance | "Big Hero 6(2014)"</otriple>
+        <otriple>Baymax | creator | Steven_T._Seagle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Baymax | creator | Duncan_Rouleau</otriple>
+        <otriple>Baymax | firstAppearance | "Big Hero 6(2014)"</otriple>
+        <otriple>Baymax | creators | Steven_T._Seagle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Baymax | first | Big_Hero_6_(film)</otriple>
+        <otriple>Baymax | creator | Duncan_Rouleau</otriple>
+        <otriple>Baymax | creators | Steven_T._Seagle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Baymax | first | Big_Hero_6_(film)</otriple>
+        <otriple>Baymax | creators | Duncan_Rouleau</otriple>
+        <otriple>Baymax | creator | Steven_T._Seagle</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baymax | firstAppearanceInFilm | Big_Hero_6_(film)</mtriple>
+        <mtriple>Baymax | creator | Duncan_Rouleau</mtriple>
+        <mtriple>Baymax | creator | Steven_T._Seagle</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Baymax first appeared in Big Hero 6 and was created by Duncan Rouleau and Steven T. Seagle.</lex>
+      <lex comment="good" lid="Id2">Baymax's first film appearance was in Big Hero 6. He was created by Duncan Rouleau and Steven T Seagle.</lex>
+      <lex comment="good" lid="Id3">Duncan Rouleau and Steven T. Seagle created Baymax who had his first movie appearance in Big Hero 6.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Bibbo_Bibbowski | creator | Jerry_Ordway</otriple>
+        <otriple>Bibbo_Bibbowski | creators | Marv_Wolfman</otriple>
+        <otriple>Bibbo_Bibbowski | fullName | "Bo Bibbowski"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Bibbo_Bibbowski | creators | Jerry_Ordway</otriple>
+        <otriple>Bibbo_Bibbowski | creator | Marv_Wolfman</otriple>
+        <otriple>Bibbo_Bibbowski | fullName | "Bo Bibbowski"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bibbo_Bibbowski | creator | Jerry_Ordway</mtriple>
+        <mtriple>Bibbo_Bibbowski | creator | Marv_Wolfman</mtriple>
+        <mtriple>Bibbo_Bibbowski | fullName | "Bo Bibbowski"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The creator of Bibbo Bibbowski, who is often called Bibbo, are Jerry Ordway and Marv Wolfman.</lex>
+    </entry>
+    </entries>
+</benchmark>

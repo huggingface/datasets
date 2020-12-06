@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus | leaderName | Jacob_Bundsgaard</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus | leader | Jacob_Bundsgaard</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The leader of Aarhus is Jacob Bundsgaard.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | runwayLength | "2702.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | runwayLength | 2702.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport's runway length is 2702.0.</lex>
+      <lex comment="good" lid="Id2">The Aarhus Airport has a runway length of 2702.0.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | elevationM | 507</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | elevation | "507.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adirondack_Regional_Airport | elevationAboveTheSeaLevel | 507</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adirondack Regional Airport is 507 metres above sea level.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | location | Harrietstown,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adirondack_Regional_Airport | location | Harrietstown,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adirondack Regional airport is located at Harrietstown, New York.</lex>
+      <lex comment="good" lid="Id2">Adirondack Regional Airport is located in Harrietstown, New York.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | San_Sebastián_de_los_Reyes</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | San_Sebastián_de_los_Reyes</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suárez Madrid–Barajas Airport is found in San Sebastián de los Reyes.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas airport is located at San Sebastian de los Reyes.</lex>
+      <lex comment="good" lid="Id3">The Adolfo Suárez Madrid–Barajas Airport is in San Sebastián de los Reyes.</lex>
+    </entry>
+    </entries>
+</benchmark>

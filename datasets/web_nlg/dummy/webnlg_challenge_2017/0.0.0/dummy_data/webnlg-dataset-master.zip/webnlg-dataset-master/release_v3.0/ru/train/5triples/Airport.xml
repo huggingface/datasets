@@ -1,0 +1,178 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"@en</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+        <otriple>Aarhus_Airport | elevation | "25.0"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | runwayDesignation | "10L/28R"</otriple>
+        <otriple>Aarhus_Airport | runwayLength | "2702.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"@en</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+        <otriple>Aarhus_Airport | elevation | "24.9936"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | runwayDesignation | "10L/28R"</otriple>
+        <otriple>Aarhus_Airport | runwayLength | "2702.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"</mtriple>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+        <mtriple>Aarhus_Airport | elevationAboveTheSeaLevel | 25.0</mtriple>
+        <mtriple>Aarhus_Airport | runwayName | "10L/28R"</mtriple>
+        <mtriple>Aarhus_Airport | runwayLength | 2702.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus, Denmark is served by Aarhus airport operated by Aarhus Lufthavn A/S which is 25 metres above sea level. The runway name is 10L/28R and has a length of 2702.0.</lex>
+      <lex lang="ru" lid="Id1">Орхус, Дания обслуживает аэропорт Орхус, эксплуатируемый компанией Орхус, которая находится в 25 метрах над уровнем моря. Название взлетно-посадочной полосы составляет 10L / 28R и имеет длину 2702,0.</lex>
+      <lex lang="en" lid="Id2">The city of Aarhus in Denmark is served by an airport callled Aarhus Airport operated by Aarhus Lufthavn A/S. Runway 10L/28R is the longest runway there at a length of 2702 and is 25m above sea level.</lex>
+      <lex lang="ru" lid="Id2">Город Орхус обслуживается аэропортом Орхус, эксплуатируемым аэропортом Орхус. Взлетно-посадочная полоса 10L/28R - самая длинная взлетно-посадочная полоса, ее длина 2702, и она находится на высоте 25 метров над уровнем моря.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airport in Denmark is operated by Aarhus Lufthavn A/S and is elevated 25 metres above sea level. The airport has a runway named 10L/28R which is 2702 metres long.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус в Дании управляется компанией "Аэропорт Орхус" и находится на высоте 25 метров над уровнем моря. Аэропорт имеет взлетно-посадочную полосу под названием 10L / 28R, длина которой составляет 2702 метра.</lex>
+      <links>
+        <link direction="en2ru">Aarhus Lufthavn A/S | sameAs | аэропорт Орхус</link>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Aarhus, Denmark | includes | Орхус</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"@en</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+        <otriple>Aarhus_Airport | elevation | "24.9936"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | runwayDesignation | "10R/28L"</otriple>
+        <otriple>Aarhus_Airport | runwayLength | "2702.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"</mtriple>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+        <mtriple>Aarhus_Airport | elevationAboveTheSeaLevel | 25.0</mtriple>
+        <mtriple>Aarhus_Airport | runwayName | "10R/28L"</mtriple>
+        <mtriple>Aarhus_Airport | runwayLength | 2702.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus Lufthavn A/S is the operating organisation of Aarhus Airport located at 25 metres above sea level in Aarhus, Denmark. The airport runway, named 10R/38L has a length of 2702.0.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус является эксплуатирующей организацией аэропорта Орхус, расположенного на высоте 25 метров над уровнем моря в городе Орхус, Дания. Взлетно-посадочная полоса аэропорта, названная 10R/38L, имеет длину 2702,0.</lex>
+      <lex lang="en" lid="Id2">Aarhus Airport is operated by Aarhus Lufthavn A/S and serves the city of Aaarhus.The airport is situated 25 meters above sea level and its 2702.0 long runway is called 10R/28L.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус находится под управлением организации Орхус и обслуживает Орхус. Аэропорт расположен на высоте 25 метров над уровнем моря и его взлетно-посадочная полоса длиной 2702 называется 10R/28L.</lex>
+      <links>
+        <link direction="en2ru">Aarhus Lufthavn A/S | sameAs | аэропорт Орхус</link>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Aarhus, Denmark | includes | Орхус</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | German_language</otriple>
+        <otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | German_language</otriple>
+        <otriple>Denmark | leader | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | German_language</mtriple>
+        <mtriple>Denmark | leader | Lars_Løkke_Rasmussen</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Lars Lokke Rasmussen is the leader of Denmark where the German language is spoken. The country is the location of Aarhus airport in Tirstrup, part of the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id1">Ларс Локке Расмуссен - лидер Дании, где говорят на немецком языке. Страна является местом расположения аэропорта Орхус в Тирструпе, части региона Центральная Ютландия.</lex>
+      <lex lang="en" lid="Id2">Aarhus Airport is located in Tirstrup, which is part of the Central Denmark region. Lars Løkke Rasmussen is the leader of Denmark, where German is the language spoken.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус расположен в Тирструпе, входящем в регион Центральной Ютландии. Ларс Лёкке Расмуссен - лидер Ютландии, где говорят на немецком языке.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airport is located in Tirstrup, which is part of the Central Denmark region. Lars Løkke Rasmussen is the leader of Denmark, where the language spoken is German.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус расположен в Тирструпе, входящем в регион Центральной Ютландии. Ларс Лёкке Расмуссен - лидер Ютландии, где говорят на немецком языке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Lars_Løkke_Rasmussen | sameAs | Расмуссен,_Ларс_Лёкке</dbpedialink>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">German_language | sameAs | Немецкий_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | German_language</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+        <otriple>Denmark | leader | Margrethe_II_of_Denmark</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | German_language</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+        <otriple>Denmark | leaderName | Margrethe_II_of_Denmark</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | German_language</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+        <mtriple>Denmark | leader | Margrethe_II_of_Denmark</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Margrethe II is the Queen of Denmark where the German language is spoken. The country is the location of Aarhus airport in Tirstrup, part of the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id1">Маргрете II - королева Дании, где говорят на немецком языке. Страна является местом расположения аэропорта Орхус в Тирструпе, части региона Центральная Ютландия.</lex>
+      <lex lang="en" lid="Id2">Aarhus Airport is located in Tirstrup, in the country of Denmark. It is part of the Central Denmark region. German is the language spoken there and the country is led by Margrethe II if Denmark.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус расположен в Тирструпе, в стране Дания. Это часть региона Центральная Ютландия. Немецкий - язык, на котором там говорят, и страна, возглавляемая Маргрете II - Дания.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airoprt is located in Tirstrup, Central Denmark, Denmark (German speaking), led by Margrethe II of Denmark.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус находится в Тирструпе, Центральная Ютландия, Дания (немецкоязычная), во главе с Маргрете II.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Margrethe_II_of_Denmark | sameAs | Маргрете_II</dbpedialink>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">German_language | sameAs | Немецкий_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | Greenlandic_language</otriple>
+        <otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | Greenlandic_language</otriple>
+        <otriple>Denmark | leader | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | Greenlandic_language</mtriple>
+        <mtriple>Denmark | leader | Lars_Løkke_Rasmussen</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Lars Lokke Rasmussen is the leader of Denmark where the Greenlandic language is spoken. The country is the location of Aarhus airport in Tirstrup, part of the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id1">Ларс Лёкке Расмуссен - лидер Ютландии, где говорят на гренландском языке. Страна является местом расположения аэропорта Орхус в Тирструп, часть региона Центральной Ютландии.</lex>
+      <lex lang="en" lid="Id2">The location of Aarhus Airport is Tirstrup, Denmark. Tirstrup is part of the Central Denmark region and the country is led by Lars Løkke Rasmussen. Greenlandic is spoken in that country.</lex>
+      <lex lang="ru" lid="Id2">Место расположения аэропорта Орхус - Тирструп, Дания. Тирструп - часть региона Центральной Ютландии, а страну возглавляет Ларс Лёкке Расмуссен. В этой стране говорят на гренландском языке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Greenlandic_language | sameAs | Гренландский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Lars_Løkke_Rasmussen | sameAs | Расмуссен,_Ларс_Лёкке</dbpedialink>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,58 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.C. Milan play in Serie A.</lex>
+      <lex comment="good" lid="Id2">AC Milan is in Serie A league.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Siniša Mihajlović is the manager for A.C. Milan.</lex>
+      <lex comment="good" lid="Id2">Siniša Mihajlović is manager of A.C. Milan.</lex>
+      <lex comment="good" lid="Id3">Siniša Mihajlović is the manager of A. C. Milan.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.S._Roma | league | Serie_A</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.S._Roma | league | Serie_A</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.S. Roma plays in the Serie A.</lex>
+      <lex comment="good" lid="Id2">A.S. Roma play in Serie A.</lex>
+      <lex comment="good" lid="Id3">A.S. Roma play in the Serie A league.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.S._Roma | position | Serie_A</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.S._Roma | position | Serie_A</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.S. Roma's position is the Serie A.</lex>
+      <lex comment="good" lid="Id2">A.S. Roma compete in Serie A.</lex>
+      <lex comment="good" lid="Id3">A.S. Roma is in Serie A.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AZ_Alkmaar | ground | AFAS_Stadion</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AZ_Alkmaar | ground | AFAS_Stadion</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AFAS Stadion is the ground of AZ Alkmaar.</lex>
+      <lex comment="good" lid="Id2">AZ Alkmaar's ground is AFAS Stadion.</lex>
+      <lex comment="good" lid="Id3">AZ Alkmaar play their home games at the AFAS Stadion.</lex>
+    </entry>
+    </entries>
+</benchmark>

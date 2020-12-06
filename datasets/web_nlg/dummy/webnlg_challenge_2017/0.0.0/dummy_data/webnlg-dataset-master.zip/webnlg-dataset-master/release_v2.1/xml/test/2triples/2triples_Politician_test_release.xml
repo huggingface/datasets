@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Abdul_Rahman_Ya'kub | deputy | Stephen_Yong_Kuet_Tze</otriple>
+        <otriple>Abdul_Taib_Mahmud | successor | Abdul_Rahman_Ya'kub</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Rahman_Ya'kub | hasDeputy | Stephen_Yong_Kuet_Tze</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | successor | Abdul_Rahman_Ya'kub</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Stephen Yong Kuet Tze is Abdul Rahman Ya'kub's deputy. Abdul Taib Mahmud was Abdul Rahman Ya'kub's successor.</lex>
+      <lex comment="good" lid="Id2">Abdul Rahman Ya'kub, who succeeded Abdul Taib Mahmud, has a deputy named Stephen Yong Kuet Tze.</lex>
+      <lex comment="good" lid="Id3">The successor of Abdul Taib Mahmud was Abdul Rahman Ya'kub, whose deputy is Stephen Yong Kuet Tze.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Minna</otriple>
+        <otriple>Abdulsalami_Abubakar | almaMater | "Technical Institute, Kaduna"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Minna</otriple>
+        <otriple>Abdulsalami_Abubakar | almaMater | Technical_Institute,_Kaduna</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | birthPlace | Minna</mtriple>
+        <mtriple>Abdulsalami_Abubakar | almaMater | Technical_Institute,_Kaduna</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar, was born in Minna, and has the Technical Institute Kaduna, for an almar mater.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar was born in Minna and he attended the Technical Institute Kaduna.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar was born in Minna and attended the Technical Institute in Kaduna.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | successor | Al-Amin_Daggash</otriple>
+        <otriple>Abdulsalami_Abubakar | office | Chief_of_the_Defence_Staff_(Nigeria)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | office | "Chief of Defence Staff"</otriple>
+        <otriple>Abdulsalami_Abubakar | successor | Al-Amin_Daggash</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | office (workedAt, workedAs) | Chief_of_the_Defence_Staff_(Nigeria)</mtriple>
+        <mtriple>Abdulsalami_Abubakar | successor | Al-Amin_Daggash</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Al-Amin Daggash was succeeded as Chief of the Defence Staff in Nigeria by Abdulsalami Abubakar.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar was the Chief of the Defence Staff in Nigeria and he was succeeded by Al-Amin Daggash.</lex>
+      <lex comment="good" lid="Id3">Al-Amin Daggash was succeeded by Abdulsalami Abubakar, who worked as the Nigerian Chief of the Defence Staff.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</otriple>
+        <otriple>Abdulsalami_Abubakar | activeYearsEndDate | "1999-05-29"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</mtriple>
+        <mtriple>Abdulsalami_Abubakar | activeYearsEndDate | 1999-05-29</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar, ended his career on 1999-05-29, and was succeeded by Olusegun Obasanjo.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar ended his career on 1999-05-29 and was succeeded by Olusegun Obasanjo.</lex>
+      <lex comment="good" lid="Id3">Olusegun Obasanjo was the successor to Abdulsalami Abubakar, who ended his career on 1999-05-29.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</otriple>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</mtriple>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar was also in office while Mr. Mike Akhigbe was Vice President. Olusegun Obasanjo succeeded Mr. Abubaka.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar, who was succeeded by Olusegun Obasanjo. was in office while Mike Akhigbe was Vice President.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar, whose successor was Olusegun Obasanjo was in office while Mike Akhigbe was the Vice President.</lex>
+    </entry>
+    </entries>
+</benchmark>

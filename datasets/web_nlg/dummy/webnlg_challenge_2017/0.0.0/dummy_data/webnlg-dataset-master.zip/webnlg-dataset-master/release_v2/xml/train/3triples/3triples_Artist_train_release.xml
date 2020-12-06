@@ -1,0 +1,139 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Punk_rock</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Punk_rock</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+        <mtriple>Ska_punk | stylisticOrigin | Punk_rock</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram, whose genre is Ska punk, plays for the Kids Imagine Nation band. Ska punk music origins are punk rock.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram plays ska punk music for the Kids Imagine Nation Band. Ska Punk's origin is Punk rock.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram, who plays Ska Punk, which emerged from Punk Rock, plays for the Kids Imagine Nation band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | activeYearsStartYear | 1998</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram began performing in 1998 and played for the Suburban Legends Band and also for the Kids Imagine Nation.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram, who started performing in 1998 is an artist with the band Kids Imagine Nation and also plays for the Suburban Legends band.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram began his performing career in 1998 and plays for Kids Imagine Nation and the Suburban Legends Band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Suburban_Legends | genre | Ska</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Suburban_Legends | genre | Ska</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+        <otriple>Suburban_Legends | genre | Ska</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+        <mtriple>Suburban_Legends | genre | Ska</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram played for the Suburban Legends and the Kids Imagine Nation bank. Suburban Legends genre is Ska.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram is a member of Kids Imagine Nation and Ska band, Suburban Legends.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram is an artist with Kids Imagine Nation band and Suburban Legends band (which has Ska as its genre).</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram plays for the Kids Imagine Nation band and also Suburban Legends band. His music genre is Ska punk.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram, of the musical genre Ska punk, plays for the Suburban Legends band and the band Kids Imagine Nation.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram plays for the Kids Imagine Nation band and the Suburban Legends band. His genre is ska punk music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Punk_rock</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Punk_rock</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+        <mtriple>Ska_punk | stylisticOrigin | Punk_rock</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ska punk originates from punk rock and is favored by Aaron Bertram, musician. Mr. Bertram plays for the Suburban Legends band.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram plays Ska punk in the Suburban Legends band. Ska Punk originated from Punk rock.</lex>
+      <lex comment="good" lid="Id3">Playing for the Suburban Legends band, Aaron Bertram performs ska punk music; which stylistically originates from Punk rock.</lex>
+    </entry>
+    </entries>
+</benchmark>

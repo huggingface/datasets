@@ -1,0 +1,104 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders retired on September 1st, 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders retired Sept 1st 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id3">William Anders retired on September 1, 1969.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс вышел на пенсию 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id4">William Anders retired in 1969-09-01.</lex>
+      <lex lang="ru" lid="Id4">Уильям Андерс ушел в отставку 01-09-1969.</lex>
+      <lex lang="en" lid="Id5">William Anders retired 1969-09-01.</lex>
+      <lex lang="ru" lid="Id5">Уильям Андерс вышел на пенсию 1969-09-01.</lex>
+      <lex lang="en" lid="Id6">William Anders retired on the 1st of September 1969.</lex>
+      <lex lang="ru" lid="Id6">Уильям Андерс вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>William_Anders | nationality | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Willian Anders has a nationality that is of the United States.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс имеет гражданство Соединенных Штатов.</lex>
+      <lex lang="en" lid="Id2">William Anders is an American.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс - американец.</lex>
+      <lex lang="en" lid="Id3">The nationality of William Anders is United States.</lex>
+      <lex lang="ru" lid="Id3">Гражданство Уильяма Андерса - США.</lex>
+      <lex lang="en" lid="Id4">William Anders is from the United States.</lex>
+      <lex lang="ru" lid="Id4">Уильям Андерс - из США.</lex>
+      <lex lang="en" lid="Id5">William Anders was from the United STates.</lex>
+      <lex lang="ru" lid="Id5">Уильям Андерс был родом из США.</lex>
+      <lex lang="en" lid="Id6">William Anders is a US national.</lex>
+      <lex lang="ru" lid="Id6">Уильям Андерс - гражданин США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was a Fighter pilot.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс был летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id2">William Anders served as a Fighter pilot.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс служил летчиком-истребителем.</lex>
+      <lex lang="en" lid="Id3">William Anders is a fighter pilot.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс - пилот истребителя.</lex>
+      <lex lang="en" lid="Id4">William Anders is a test pilot.</lex>
+      <lex lang="ru" lid="Id4">Уильям Андерс - летчик-испытатель.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>William_Anders | years | 1976</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | servedAsChiefOfTheAstronautOfficeIn | 1976</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders served as Chief of the Astronaut Office in 1976.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс занимал должность начальника отдела астронавтов в 1976 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1976 | sameAs | 1976_год</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>William_Anders | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders is retired.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс ушел в отставку.</lex>
+      <lex lang="en" lid="Id2">William Anders is now retired.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс сейчас в отставке.</lex>
+      <lex lang="en" lid="Id3">William Anders has retired.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс вышел на пенсию.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

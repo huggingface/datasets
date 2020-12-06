@@ -1,0 +1,183 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 1 Decembrie 1918 University is located in Alba Iulia, Alba, Romania. Its Latun name is "Universitas Apulensis" and its nickname is "Uab". Its rectore is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id1">Университет "1 декабря 1918" расположен в Алба-Юлии, Алба, Румыния. Его латинское название - "Universitas Apulensis" и его прозвище - "UAB". Его ректором является Бреаз Валер Даниэль.</lex>
+      <lex lang="en" lid="Id2">The rector of the 1 Decembrie 1918 University in Alba Iulia, Alba, Romania, is Breaz Valer Daniel. The latin name of the University is "Universitas Apulensis" and it is known by the nickname Uab.</lex>
+      <lex lang="ru" lid="Id2">Ректор Университета «1 декабря 1918» в Алба-Юлия, Румыния, - Бреаз Валер Даниэль. Латинское название университета - "Universitas Apulensis" и он известен по прозвищу UAB.</lex>
+      <lex lang="en" lid="Id3">The 1 Decembrie 1918 University is located in Alba Iulia, Alba, Romania. Its Latin name is "Universitas Apulensis," its rector is "Breaz Valer Daniel," and its nickname is Uab.</lex>
+      <lex lang="ru" lid="Id3">Университет «1 декабря 1918» расположен в Алба-Юлия, Алба, Румыния. Его латинское название - Universitas Apulensis, его ректор - Бреаз Валер Даниэль, а его прозвище - UAB.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alba_Iulia | sameAs | Алба-Юлия</dbpedialink>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Breaz Valer Daniel | sameAs | Бреаз Валер Даниэль</link>
+        <link direction="en2ru">Uab | sameAs | UAB</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+        <link direction="en2ru">Alba | sameAs | Алба</link>
+        <link direction="en2ru">Universitas Apulensis | sameAs | Universitas Apulensis</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>AWH_Engineering_College | faculty | 250</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | established | 2001</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The AWH Engineering College in Kuttikkattor, Kerala, India was established in 2001 and it has 250 academic staff. The Ganges is a river in India.</lex>
+      <lex lang="ru" lid="Id1">В 2001 году был создан Инженерный колледж «AWH» в Куттиккаттооре, штат Керала, Индия. Ганг - река в Индии.</lex>
+      <lex lang="en" lid="Id2">The River Ganges runs through India in which country the AWH Engineering College is located in the city of Kuttikkattoor in the state of Kerala. The College was established in 2001 and has 250 academic staff.</lex>
+      <lex lang="ru" lid="Id2">Река Ганг протекает через Индию, в которой расположен Инженерный колледж "AWH" в городе Куттиккаттооре в штате Керала. Колледж был основан в 2001 году и насчитывает 250 преподавателей.</lex>
+      <lex lang="en" lid="Id3">Established in 2001, the AWH Engineering College in Kuttikkattoor, Kerala India currently has 250 staff. A famous river in the country is the Ganges.</lex>
+      <lex lang="ru" lid="Id3">Созданный в 2001 году Инженерный колледж "AWH" в Куттиккаттооре, штат Керала, Индия, в настоящее время насчитывает 250 сотрудников. Знаменитая река в стране - Ганг.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ganges | sameAs | Ганг</dbpedialink>
+        <dbpedialink direction="en2ru">2001 | sameAs | 2001_год</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | established | 2001</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | hasToItsNorthwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">AWH Engineering College in Kuttikkattoor, India is in the state of Kerala which has Mahe to its northwest. The school was established in 2001 and employs 250 people in its academic department.</lex>
+      <lex lang="ru" lid="Id1">Инженерный колледж «AWH» в Куттиккаттооре, Индия, находится в штате Керала, который находится на северо-западе страны. Школа была создана в 2001 году и насчитывает 250 человек в своем академическом отделении.</lex>
+      <lex lang="en" lid="Id2">Established in 2001, the AWH Engineering College in Kuttikkattoor, Kerala, southeast of Mahe, India. It currently has 250 staff.</lex>
+      <lex lang="ru" lid="Id2">Созданный в 2001 году, Инженерный колледж «AWH» в Куттиккаттооре, штат Керала, на юго-востоке от Маэ, Индия. В настоящее время в нем насчитывается 250 сотрудников.</lex>
+      <lex lang="en" lid="Id3">Kerala is a state in India which is positioned with Mahe to it's northwest. It is also home to the AWH Engineering College which is located in the city of Kuttikkattoor, India. The college was founded in 2001 and has 250 members of staff.</lex>
+      <lex lang="ru" lid="Id3">Керала - это штат в Индии, который расположен с Маэ на северо-западе. Он также является домом для Инженерного колледжа "AWH", который расположен в городе Куттиккаттооре, Индия. Колледж был основан в 2001 году и имеет 250 сотрудников.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">2001 | sameAs | 2001_год</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Mahé, India | includes | Индия</link>
+        <link direction="en2ru">Mahé, India | includes | Маэ</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X) (X (X)) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>Kerala | leader | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">AWH Engineering College is in Kuttikkattoor, India in the state of Kerala. The school has 250 employees and Kerala is ruled by Kochi. The Ganges River is also found in India.</lex>
+      <lex lang="ru" lid="Id1">Инженерный колледж «AWH» находится в Куттиккаттооре, Индия, в штате Керала. В школе работают 250 сотрудников, а Кералой правит Коччи. Река Ганг также берет начало в Индии.</lex>
+      <lex lang="en" lid="Id2">The AWH Engineering College in Kuttikkattoor, Kerala India currently has 250 staff. Kerala's leader is named Kochi and a famous river in the country is the Ganges.</lex>
+      <lex lang="ru" lid="Id2">Инженерный колледж «AWH» в Куттиккаттооре, штат Керала, в настоящее время насчитывает 250 сотрудников. Лидером Керала называют Коччи, а знаменитую реку в стране - Ганг.</lex>
+      <lex lang="en" lid="Id3">AWH Engineering College located in Kuttikkattoor, Kerala, India has an academic staff of 250. The state of Kerala's leader is Kochi and one of the rivers of India is the Ganges.</lex>
+      <lex lang="ru" lid="Id3">Инженерный колледж «AWH» , расположенный в Куттиккаттооре, штат Керала, Индия, имеет академический персонал численностью 250 человек. Лидер штата Керала - Коччи, а одна из рек Индии - Ганг.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kochi | sameAs | Коччи</dbpedialink>
+        <dbpedialink direction="en2ru">Ganges | sameAs | Ганг</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | faculty | 250</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>Kerala | leader | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | hasToItsNorthwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The AWH Engineering College is located in Kuttikkattoor, Kerala, India. It has 250 academic staff. Kerala has Mahe, India to its northwest and its leader is Kochi.</lex>
+      <lex lang="ru" lid="Id1">Инженерный колледж «AWH» расположен в Куттиккаттооре, штат Керала, Индия. В его штат входят 250 научных сотрудников. На северо-западе Кералы находится Маэ, Индия, а ее лидер - Коччи.</lex>
+      <lex lang="en" lid="Id2">The state of Kerala in India is northwest of Mahe, India and is led by Kochi. It is the location of the AWH Engineering College in the city of Kuttikkattoor which has 250 academic staff.</lex>
+      <lex lang="ru" lid="Id2">Штат Керала в Индии находится к северо-западу от Маэ, Индия и возглавляется Кочи. Это местоположение Инженерного колледжа "AWH" в городе Куттиккаттооре, который имеет 250 преподавателей.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kochi | sameAs | Коччи</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Mahé, India | includes | Индия</link>
+        <link direction="en2ru">Mahé, India | includes | Маэ</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

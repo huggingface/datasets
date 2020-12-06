@@ -1,0 +1,89 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Hunt | team | SV_Werder_Bremen</otriple>
+        <otriple>SV_Werder_Bremen_II | manager | Alexander_Nouri</otriple>
+        <otriple>Aaron_Hunt | clubs | SV_Werder_Bremen_II</otriple>
+        <otriple>SV_Werder_Bremen_II | league | 3._Liga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen</mtriple>
+        <mtriple>SV_Werder_Bremen_II | manager | Alexander_Nouri</mtriple>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen_II</mtriple>
+        <mtriple>SV_Werder_Bremen_II | league | 3._Liga</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Hunt played for SV Werder Bremen and SV Werder Bremen II. The latter is managed by Alexander Nouri and is in the league 3 Liga.</lex>
+      <lex comment="good" lid="Id2">Alexander Nouri is the manager of SV Werder Bremen, which Aaron Hunt plays for. He also plays for, SV Werder Bremen II which is in the league 3 Liga.</lex>
+      <lex comment="good" lid="Id3">SV Werder Bremen is managed by Alexander Nouri and SV Werder Bremen II are players in 3 Liga. Aaron Hunt plays for both clubs.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Peñarol</otriple>
+        <otriple>Abel_Hernández | team | Central_Español</otriple>
+        <otriple>Peñarol | manager | Jorge_Orosmán_da_Silva</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | youthclub | Peñarol</mtriple>
+        <mtriple>Abel_Hernández | club | Central_Español</mtriple>
+        <mtriple>Peñarol | manager | Jorge_Orosmán_da_Silva</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernández plays for the club, U.S. Città di Palermo and played for the Central Espanol club. He was a member of youth club Peñarol which is managed by, Jorge Orosmán da Silva.</lex>
+      <lex comment="good" lid="Id2">Abel Hernández was a member of youth club Peñarol, managed by, Jorge Orosmán da Silva. Abel Hernandezalso played for the Central Espanol club and now his club is US Citta di Palermo.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández has played for Central Español and plays for the club, U.S. Città di Palermo. In his youth, he played for Peñarol, the manager of which, is Jorge Orosmán da Silva.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Adam_McQuaid | placeOfBirth | Prince_Edward_Island</otriple>
+        <otriple>Adam_McQuaid | dateOfBirth | "1986-10-12"^^xsd:date</otriple>
+        <otriple>Adam_McQuaid | Person/weight | "94.8024"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>Adam_McQuaid | birthYear | "1986"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_McQuaid | birthPlace | Prince_Edward_Island</mtriple>
+        <mtriple>Adam_McQuaid | birthDate | 1986-10-12</mtriple>
+        <mtriple>Adam_McQuaid | weight | 94.8024 (kilograms)</mtriple>
+        <mtriple>Adam_McQuaid | birthYear | 1986</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam McQuaid was born October 12th 1986 in Prince Edward Island and now weighs 94.8024kg.</lex>
+      <lex comment="good" lid="Id2">Adam McQuaid was born October 12th 1986 on Prince Edward Island. He weighs 94.8024 kilograms.</lex>
+      <lex comment="good" lid="Id3">Born on Oct 12, 1986 in P.E.I. is Adam McQuaid. He weighs 94.8024 Kg.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Akeem_Ayers | formerTeam | History_of_the_St._Louis_Rams</otriple>
+        <otriple>Akeem_Ayers | dateOfBirth | "1989-07-10"^^xsd:date</otriple>
+        <otriple>Akeem_Ayers | debutTeam | Tennessee_Titans</otriple>
+        <otriple>Akeem_Ayers | birthYear | "1989"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Ayers | formerTeam | St._Louis_Rams</mtriple>
+        <mtriple>Akeem_Ayers | birthDate | 1989-07-10</mtriple>
+        <mtriple>Akeem_Ayers | debutTeam | Tennessee_Titans</mtriple>
+        <mtriple>Akeem_Ayers | birthYear | 1989</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Ayers was born July 10, 1989 and debuted with the Tennessee Titans. He has played for the St. Louis Rams.</lex>
+      <lex comment="good" lid="Id2">Akeem Ayers; was born on 10th July 1989, made his debut for the Tennessee Titans and used to play for the St. Louis Rams.</lex>
+      <lex comment="good" lid="Id3">Akeem Ayers was born July 10th, 1989 and debuted with the Tennessee Titans. He also played for the St. Louis Rams at one point.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Akeem_Dent | debutTeam | Atlanta_Falcons</otriple>
+        <otriple>Akeem_Dent | formerTeam | Houston_Texans</otriple>
+        <otriple>Akeem_Dent | dateOfBirth | "1987-09-27"^^xsd:date</otriple>
+        <otriple>Akeem_Dent | placeOfBirth | "Atlanta, Georgia"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Dent | debutTeam | Atlanta_Falcons</mtriple>
+        <mtriple>Akeem_Dent | formerTeam | Houston_Texans</mtriple>
+        <mtriple>Akeem_Dent | birthDate | 1987-09-27</mtriple>
+        <mtriple>Akeem_Dent | birthPlace | "Atlanta, Georgia"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Dent was born on the 27th September 1987, in Atlanta, Georgia. He debuted with the Atlanta Falcons and his former team are the Houston Texans.</lex>
+      <lex comment="good" lid="Id2">Akeem Dent, born September 27, 1987 in Atlanta, Georgia, on the Atlanta Falcons. He also played for the Houston Texans formerly.</lex>
+      <lex comment="good" lid="Id3">Akeem Dent was born in Atlanta, Georgia, on the 27th of September, 1987. He debuted with the Atlanta Falcons and used to play for Houston Texans.</lex>
+    </entry>
+    </entries>
+</benchmark>

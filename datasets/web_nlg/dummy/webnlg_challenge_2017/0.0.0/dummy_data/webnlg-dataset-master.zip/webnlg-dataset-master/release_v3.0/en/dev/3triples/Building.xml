@@ -1,0 +1,76 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Cyril_Ramaphosa</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | leader | Cyril_Ramaphosa</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street is located in South Africa (Cyril Ramaphosa is one of the leaders), the capital of which is Cape Town.</lex>
+      <lex comment="good" lid="Id2">South Africa is the location of 11 Diagonal Street. The capital is Cape Town and the leader is Cyril Ramaphosa.</lex>
+      <lex comment="good" lid="Id3">Cyril Ramaphosa leads South Africa, whose capital, Cape Town, houses 11 Diagonal Street.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | leaderName | Jacob_Zuma</otriple>
+        <otriple>South_Africa | ethnicGroup | Coloured</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | leader | Jacob_Zuma</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Coloured</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street is located in South Africa, a country in which coloureds are one of the ethnic groups and Jacob Zuma is the leader.</lex>
+      <lex comment="good" lid="Id2">11 Diagonal Street is located in South Africa, populated by Coloured people and led by Jacob Zuma.</lex>
+      <lex comment="good" lid="Id3">The address, 11 Diagonal Street is located in South Africa where Jacob Zuma is a leader and some coloured people live.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | leaderName | Jacob_Zuma</otriple>
+        <otriple>South_Africa | ethnicGroup | White_South_African</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | leader | Jacob_Zuma</mtriple>
+        <mtriple>South_Africa | ethnicGroup | White_South_African</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street is in South Africa where the leader is Jacob Zuma. An ethnic group found there are white South Africans.</lex>
+      <lex comment="good" lid="Id2">The white South Africans are an ethnic group of the country where Jacob Zuma is leader and where 11 Diagonal Street is located.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>Cleveland | leaderName | Frank_G._Jackson</otriple>
+        <otriple>Cleveland | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | location | Cleveland</mtriple>
+        <mtriple>Cleveland | leader | Frank_G._Jackson</mtriple>
+        <mtriple>Cleveland | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Frank G Jackson is the leader of Cleveland, United States where 200 Public Square is located.</lex>
+      <lex comment="good" lid="Id2">200 Public Square is located in Cleveland, United States, where one of the leaders is Frank G Jackson.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | Buffalo,_New_York</otriple>
+        <otriple>Buffalo,_New_York | subdivisionName | Erie_County,_New_York</otriple>
+        <otriple>Buffalo,_New_York | isPartOf | New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | location | Buffalo,_New_York</mtriple>
+        <mtriple>Buffalo,_New_York | isPartOf | Erie_County,_New_York</mtriple>
+        <mtriple>Buffalo,_New_York | isPartOf | New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">250 Delaware Avenue is located in Buffalo, Erie County, New York.</lex>
+      <lex comment="good" lid="Id2">250 Delaware avenue is in Buffalo, Erie County, New York.</lex>
+    </entry>
+    </entries>
+</benchmark>

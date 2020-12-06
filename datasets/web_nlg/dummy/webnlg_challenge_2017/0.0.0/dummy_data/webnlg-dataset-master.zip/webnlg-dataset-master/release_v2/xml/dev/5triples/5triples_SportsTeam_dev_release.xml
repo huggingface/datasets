@@ -1,0 +1,112 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.F.C._Blackpool | manager | Stuart_Parker_(footballer)</otriple>
+        <otriple>Stuart_Parker_(footballer) | team | KV_Mechelen</otriple>
+        <otriple>Stuart_Parker_(footballer) | clubs | Chesterfield_F.C.</otriple>
+        <otriple>Blackpool | leaderName | Gordon_Marsden</otriple>
+        <otriple>A.F.C._Blackpool | ground | Blackpool</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.F.C._Blackpool | manager | Stuart_Parker_(footballer)</mtriple>
+        <mtriple>Stuart_Parker_(footballer) | club | KV_Mechelen</mtriple>
+        <mtriple>Stuart_Parker_(footballer) | club | Chesterfield_F.C.</mtriple>
+        <mtriple>Blackpool | leader | Gordon_Marsden</mtriple>
+        <mtriple>A.F.C._Blackpool | ground | Blackpool</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Gordon Marsden is the leader of Blackpool where AFC Blackpool are located. Their manager is Stuart Parker who is a member of Chesterfield FC and plays for KV Mechelen.</lex>
+      <lex comment="good" lid="Id2">Gordon Marsden is the leader of Blackpool where AFC Blackpool is located. The club is managed by Stuart Parker who is part of the KV Mechelen club and a member of Chesterfield FC.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>AEK_Athens_F.C. | league | Superleague_Greece</otriple>
+        <otriple>Superleague_Greece | champions | Olympiacos_F.C.</otriple>
+        <otriple>AEK_Athens_F.C. | manager | Gus_Poyet</otriple>
+        <otriple>Gus_Poyet | clubs | Real_Zaragoza</otriple>
+        <otriple>Gus_Poyet | team | Chelsea_F.C.</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AEK_Athens_F.C. | league | Superleague_Greece</otriple>
+        <otriple>Superleague_Greece | champions | Olympiacos_F.C.</otriple>
+        <otriple>AEK_Athens_F.C. | manager | Gus_Poyet</otriple>
+        <otriple>Gus_Poyet | team | Real_Zaragoza</otriple>
+        <otriple>Gus_Poyet | clubs | Chelsea_F.C.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AEK_Athens_F.C. | league | Superleague_Greece</mtriple>
+        <mtriple>Superleague_Greece | champions | Olympiacos_F.C.</mtriple>
+        <mtriple>AEK_Athens_F.C. | manager | Gus_Poyet</mtriple>
+        <mtriple>Gus_Poyet | club | Real_Zaragoza</mtriple>
+        <mtriple>Gus_Poyet | club | Chelsea_F.C.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Olympiacos F.C. were past champions in the Greece Superleague, the league AEK Athens FC compete in. Their manager is Gus Poyet, whose club is Real Zaragoza even though he played for Chelsea F.C.</lex>
+      <lex comment="good" lid="Id2">Gus Poyet is the manager of AEK Athens F.C. who play in the Superleague of Greece ( which has Olympiacos FC as previous champions). Poyet previously played for Chelsea FC and is in the Real Zaragoza club.</lex>
+      <lex comment="good" lid="Id3">Previous champions of the Superleague Greece are Olympiacos FC. AEK Athens FC also compete in the league and they are managed by Gus Poyet who previously played for Chelsea FC and whose club is Real Zaragoza.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | country | Brazil</otriple>
+        <otriple>Agremiação_Sportiva_Arapiraquense | ground | Estádio_Municipal_Coaracy_da_Mata_Fonseca</otriple>
+        <otriple>Estádio_Municipal_Coaracy_da_Mata_Fonseca | location | Alagoas</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</mtriple>
+        <mtriple>Campeonato_Brasileiro_Série_C | country | Brazil</mtriple>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | ground | Estádio_Municipal_Coaracy_da_Mata_Fonseca</mtriple>
+        <mtriple>Estádio_Municipal_Coaracy_da_Mata_Fonseca | location | Alagoas</mtriple>
+        <mtriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Estádio Municipal Coaracy da Mata Fonseca is the name of the ground of Agremiação Sportiva Arapiraquense. It is located in Alagoas. Agremiação Sportiva Arapiraquense play in the Campeonato Brasileiro Série C league from Brazil. The Vila Nova Futebol Clube were champions at the Série C.</lex>
+      <lex comment="good" lid="Id2">Vila Nova Futebol Clube have been champions of Campeonato Brasileiro Série C. from Brazil in which Agremiação Sportiva Arapiraquense also play. This latter team have their ground at Estádio Municipal Coaracy da Mata Fonseca which is located in Alagoas.</lex>
+      <lex comment="good" lid="Id3">Llocated in Alagoas, Estádio Municipal Coaracy da Mata Fonseca is the name of the ground of Agremiação Sportiva Arapiraquense. They play in the Campeonato Brasileiro Série C league, which is from Brazil, and the champions of which have been Vila Nova Futebol Clube.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | country | Brazil</otriple>
+        <otriple>Agremiação_Sportiva_Arapiraquense | ground | Estádio_Municipal_Coaracy_da_Mata_Fonseca</otriple>
+        <otriple>Estádio_Municipal_Coaracy_da_Mata_Fonseca | location | Arapiraca</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</mtriple>
+        <mtriple>Campeonato_Brasileiro_Série_C | country | Brazil</mtriple>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | ground | Estádio_Municipal_Coaracy_da_Mata_Fonseca</mtriple>
+        <mtriple>Estádio_Municipal_Coaracy_da_Mata_Fonseca | location | Arapiraca</mtriple>
+        <mtriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Vila Nova Futebol Clube have been champions of Campeonato Brasileiro Série C. league in Brazil. Agremiação Sportiva Arapiraquense also play in the league and have their home ground at Estádio Municipal Coaracy da Mata Fonseca in Arapiraca.</lex>
+      <lex comment="good" lid="Id2">Agremiação Sportiva Arapiraquense play in the Campeonato Brasileiro Série C league (in Brazil), which has been won by Vila Nova Futebol Clube. Agremiacao Sportiva Arapiraquense's ground is the Estadio Municipal Coaracy da Mata Fonseca, which is located in Arapiraca.</lex>
+      <lex comment="good" lid="Id3">Agremiação Sportiva Arapiraquense play in the Campeonato Brasileiro Série C league in Brazil. Vila Nova Futebol Clube are the champions of Serie C. Estádio Municipal Coaracy da Mata Fonseca (Arapiraca)is the name of the ground of Agremiação Sportiva Arapiraquense.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | country | Brazil</otriple>
+        <otriple>Agremiação_Sportiva_Arapiraquense | capacity | "17000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Agremiação_Sportiva_Arapiraquense | manager | Vica</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | country | Brazil</otriple>
+        <otriple>Agremiação_Sportiva_Arapiraquense | manager | Vica</otriple>
+        <otriple>Agremiação_Sportiva_Arapiraquense | capacity | 17000</otriple>
+        <otriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | league | Campeonato_Brasileiro_Série_C</mtriple>
+        <mtriple>Campeonato_Brasileiro_Série_C | country | Brazil</mtriple>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | manager | Vica</mtriple>
+        <mtriple>Agremiação_Sportiva_Arapiraquense | numberOfMembers | 17000</mtriple>
+        <mtriple>Campeonato_Brasileiro_Série_C | champions | Vila_Nova_Futebol_Clube</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Vila Nova Futebol Clube were champions at the Campeonato Brasileiro Série C. in Brazil. Agremiação Sportiva Arapiraquense who also play in the league have 17000 members and are managed by Vica.</lex>
+      <lex comment="good" lid="Id2">Agremiação Sportiva Arapiraquense play in the Campeonato Brasileiro Série C league in Brazil, which has been won by Vila Nova Futebol Clube. Agremiacao Sportiva Arapiraquense's ground can hold 17000 fans and the team is managed by Vica.</lex>
+      <lex comment="good" lid="Id3">Vila Nova Futebol Clube have been champions of Campeonato Brasileiro Série C, which is from Brazil. It is in this league that Agremiação Sportiva Arapiraquense play in. They are managed by Vica, and have17000 members.</lex>
+    </entry>
+    </entries>
+</benchmark>

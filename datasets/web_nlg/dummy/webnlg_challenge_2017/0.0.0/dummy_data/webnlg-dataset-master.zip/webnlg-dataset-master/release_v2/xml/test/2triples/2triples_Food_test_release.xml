@@ -1,0 +1,76 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Amatriciana_sauce | ingredient | Tomato</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Amatriciana_sauce | ingredient | Tomato</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Amatriciana sauce is made with tomatoes. It is a traditional Italian sauce.</lex>
+      <lex comment="good" lid="Id2">Amatriciana is a sauce containing tomato that comes from Italy.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Indonesia | leaderName | Jusuf_Kalla</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Indonesia | leader | Jusuf_Kalla</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | country | Indonesia</mtriple>
+        <mtriple>Indonesia | leaderName | Jusuf_Kalla</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem is a food found in Indonesia where Jusuf Kalla is the leader.</lex>
+      <lex comment="good" lid="Id2">Arem-arem is commonly served in Indonesia where Jusuf Kalla is leader.</lex>
+      <lex comment="good" lid="Id3">Arem-arem is a cuisine found in Jusuf Kalla led, Indonesia.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arrabbiata sauce can be found in Italy where the Italian language is spoken.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce is from Italy where the Italian language is spoken.</lex>
+      <lex comment="good" lid="Id3">Arrabbiata sauce can be found in Italy, where surprisingly Italian is spoken.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | leaderName | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Italy | leaderName | Sergio_Mattarella</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Sergio Mattarella is a leader in Italy, where Arrabbiata sauce is a traditional dish.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce can be found in Italy where Sergio Mattarella is the leader.</lex>
+      <lex comment="good" lid="Id3">Arrabbiata sauce is from Italy, where Sergio Mattarella is the leader.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Chili_pepper</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | ingredient | Chili_pepper</mtriple>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arrabbiata is an Italian sauce that contains chili pepper.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce can be found in Italy and one of the ingredients in it is chili pepper.</lex>
+      <lex comment="good" lid="Id3">Arrabbiata sauce, containing chili pepper, can be found in Italy.</lex>
+    </entry>
+    </entries>
+</benchmark>

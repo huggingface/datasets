@@ -1,0 +1,63 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="4">
+			<originaltripleset>
+				<otriple>Aarhus_Airport | location | Tirstrup</otriple>
+				<otriple>Tirstrup | country | Denmark</otriple>
+				<otriple>Denmark | capital | Copenhagen</otriple>
+				<otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+				<mtriple>Tirstrup | country | Denmark</mtriple>
+				<mtriple>Denmark | capital | Copenhagen</mtriple>
+				<mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | isPartOf | Central_Denmark_Region</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Denmark | capital | Copenhagen</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus befindet sich in Tirstrup, einem Teil der Zentralregion Dänemarks, das die Hauptstadt von Kopenhagen hat. </text>
+				<template>AGENT-1 befindet sich in BRIDGE-1, einem Teil von PATIENT-2 von BRIDGE-2, das die Hauptstadt von PATIENT-1 hat.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Denmark | capital | Copenhagen</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | isPartOf | Central_Denmark_Region</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Kopenhagen ist die Hauptstadt von Dänemark, wo sich der Flughafen Aarhus in Tirstrup befindet, der Teil der Region Zentral-Dänemark ist. </text>
+				<template>PATIENT-1 ist die Hauptstadt von BRIDGE-2, wo sich AGENT-1 in BRIDGE-1 befindet, die Teil von PATIENT-2 ist.</template>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | isPartOf | Central_Denmark_Region</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Denmark | capital | Copenhagen</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus befindet sich in Tirstrup, einem Teil der Region Zentral-Dänemark. Die Hauptstadt des Landes ist Kopenhagen. </text>
+				<template>AGENT-1 befindet sich in BRIDGE-1, einem Teil von PATIENT-2. Die Hauptstadt von BRIDGE-2 ist PATIENT-1.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus_Airport</entity>
+				<entity>BRIDGE-1 | Tirstrup</entity>
+				<entity>BRIDGE-2 | Denmark</entity>
+				<entity>PATIENT-1 | Copenhagen</entity>
+				<entity>PATIENT-2 | Central_Denmark_Region</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

@@ -1,0 +1,101 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | latinName | "Universitas Aarhusiensis"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The latin name of School of Business and Social Sciences at the Aarhus University is "Universitas Aarhusiensis".</lex>
+      <lex lang="ru" lid="Id1">Латинское название Школы бизнеса и социальных наук в Орхусском университете - "Universitas Aarhusiensis".</lex>
+      <lex lang="en" lid="Id2">The latin name of the School of Business and Social Sciences at Aarhus University is "universitas Aarhusiensis".</lex>
+      <lex lang="ru" lid="Id2">Латинское название Школы бизнеса и социальных наук в Орхусском университете - "Universitas Aarhusiensis".</lex>
+      <lex lang="en" lid="Id3">The School of Business and Social Sciences at the Aarhus University has the latin name Universitas Aarhusiensis.</lex>
+      <lex lang="ru" lid="Id3">Школа бизнеса и социальных наук в Орхусском университете имеет латинское название "Universitas Aarhusiensis".</lex>
+      <links>
+        <link direction="en2ru">School of Business and Social Sciences at the Aarhus University | sameAs | Школа бизнеса и социальных наук Орхусского университета / университета Орхуса</link>
+        <link direction="en2ru">Universitas Aarhusiensis | sameAs | Universitas Aarhusiensis</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Switzerland | anthem | Swiss_Psalm</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Switzerland | anthem | Swiss_Psalm</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Swiss Psalm is the anthem of Switzerland.</lex>
+      <lex lang="ru" lid="Id1">Швейцарский Псалом - гимн Швейцарии.</lex>
+      <lex lang="en" lid="Id2">The anthem of Switzerland is called the Swiss Psalm.</lex>
+      <lex lang="ru" lid="Id2">Гимн Швейцарии называется Швейцарский Псалом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Swiss_Psalm | sameAs | Гимн_Швейцарии</dbpedialink>
+        <dbpedialink direction="en2ru">Switzerland | sameAs | Швейцария</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Switzerland | leaderName | Johann_Schneider-Ammann</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Switzerland | leader | Johann_Schneider-Ammann</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Switzerland | leader | Johann_Schneider-Ammann</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Johann Schneider Ammann is the leader of Switzerland.</lex>
+      <lex lang="ru" lid="Id1">Йоханн Шнайдер Амманн - лидер Швейцарии.</lex>
+      <lex lang="en" lid="Id2">Johann Schneider-Ammann is the leader of Switzerland.</lex>
+      <lex lang="ru" lid="Id2">Йоханн Шнайдер-Амманн - лидер Швейцарии.</lex>
+      <lex lang="en" lid="Id3">The leader of Switzerland is Johann Schneider-Ammann.</lex>
+      <lex lang="ru" lid="Id3">Лидером Швейцарии является Йоханн Шнайдер-Амманн.</lex>
+      <lex lang="en" lid="Id4">Switzerland has a leader called Johann Schneider Ammann.</lex>
+      <lex lang="ru" lid="Id4">У Швейцарии есть лидер, которого зовут Йоханн Шнайдер-Амманн.</lex>
+      <lex lang="en" lid="Id5">Johann Schneider Ammann is the name of the leader of Switzerland.</lex>
+      <lex lang="ru" lid="Id5">Йоханн Шнайдер-Амманн - имя лидера Швейцарии.</lex>
+      <lex lang="en" lid="Id6">The leader of Switzerland is Johann 'Schneider-Ammann.</lex>
+      <lex lang="ru" lid="Id6">Лидером Швейцарии является Йоханн Шнайдер-Амманн.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Johann_Schneider-Ammann | sameAs | Шнайдер-Амманн,_Йоханн</dbpedialink>
+        <dbpedialink direction="en2ru">Switzerland | sameAs | Швейцария</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Federal Chancellor of Switzerland helps to lead the country.</lex>
+      <lex lang="ru" lid="Id1">Федеральный канцлер Швейцарии помогает руководить страной.</lex>
+      <lex lang="en" lid="Id2">The Federal Chancellor of Switzerland is the title of the leader of Switzerland.</lex>
+      <lex lang="ru" lid="Id2">Федеральный канцлер Швейцарии - это звание лидера Швейцарии.</lex>
+      <lex lang="en" lid="Id3">The leader of Switzerland is titled the Federal Chancellor of Switzerland.</lex>
+      <lex lang="ru" lid="Id3">Лидером Швейцарии является федеральный канцлер Швейцарии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Federal_Chancellor_of_Switzerland | sameAs | Федеральный_канцлер_Швейцарии</dbpedialink>
+        <dbpedialink direction="en2ru">Switzerland | sameAs | Швейцария</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Switzerland | legislature | Federal_Assembly_(Switzerland)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Switzerland | legislature | Federal_Assembly_(Switzerland)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Switzerland's legislature is formed in the Federal Assembly.</lex>
+      <lex lang="ru" lid="Id1">Законодательство Швейцарии принимается в Федеральном собрании.</lex>
+      <lex lang="en" lid="Id2">Switzerland's legislature is known as the Federal Assembly.</lex>
+      <lex lang="ru" lid="Id2">Законодательный орган Швейцарии известен как Федеральное собрание.</lex>
+      <lex lang="en" lid="Id3">The Federal Assembly legislates in Switzerland.</lex>
+      <lex lang="ru" lid="Id3">Федеральное собрание принимает законодательные акты в Швейцарии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Federal_Assembly_(Switzerland) | sameAs | Федеральное_собрание_Швейцарии</dbpedialink>
+        <dbpedialink direction="en2ru">Switzerland | sameAs | Швейцария</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

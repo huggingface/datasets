@@ -1,0 +1,82 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Hunt | team | VfL_Wolfsburg</otriple>
+        <otriple>VfL_Wolfsburg | manager | Dieter_Hecking</otriple>
+        <otriple>Aaron_Hunt | clubs | SV_Werder_Bremen_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Hunt | club | VfL_Wolfsburg</mtriple>
+        <mtriple>VfL_Wolfsburg | manager | Dieter_Hecking</mtriple>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen_II</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Hunt's club is VfL Wolfsburg who are managed by Dieter Hecking, but he previously played for SV Werder Bremen II.</lex>
+      <lex comment="good" lid="Id2">Aaron Hunt plays for the club SV Werder Bremen II and also VfL Wolfsburg which is managed by Dieter Hecking.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Central_Español</otriple>
+        <otriple>Abel_Hernández | team | Hull_City_A.F.C.</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | youthclub | Central_Español</mtriple>
+        <mtriple>Abel_Hernández | club | Hull_City_A.F.C.</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernández's clubs are Hull City AFC and US Citta di Palermo. He previously played youth football for Central Espanol.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez is a member of the Central Espanol youth team and he plays for Hull City AFC but his club is US Citta di Palermo.</lex>
+      <lex comment="good" lid="Id3">Abel Hernandez's club is US Citta di Palermo. He formerly played youth football for Central Espanol and now plays for Hull City AFC.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Adam_Maher | team | PSV_Eindhoven</otriple>
+        <otriple>Adam_Maher | placeOfBirth | Netherlands</otriple>
+        <otriple>Adam_Maher | clubs | AZ_Alkmaar</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adam_Maher | clubs | PSV_Eindhoven</otriple>
+        <otriple>Adam_Maher | placeOfBirth | Netherlands</otriple>
+        <otriple>Adam_Maher | team | AZ_Alkmaar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Maher | club | PSV_Eindhoven</mtriple>
+        <mtriple>Adam_Maher | birthPlace | Netherlands</mtriple>
+        <mtriple>Adam_Maher | club | AZ_Alkmaar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Netherlands born Adam Maher's former clubs include PSV Eindhoven and AZ Alkmaar.</lex>
+      <lex comment="good" lid="Id2">Adam Maher was born in the Netherlands and his clubs are PSV Eindhoven and AZ Alkmaar.</lex>
+      <lex comment="good" lid="Id3">Adam Maher was born in the Netherlands and is connected to the AZ Alkmaar club. His current club is PSV Eindhoven.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Akeem_Adams | team | United_Petrotrin_F.C.</otriple>
+        <otriple>United_Petrotrin_F.C. | ground | Palo_Seco</otriple>
+        <otriple>Akeem_Adams | clubs | W_Connection_F.C.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Adams | club | United_Petrotrin_F.C.</mtriple>
+        <mtriple>United_Petrotrin_F.C. | ground | Palo_Seco</mtriple>
+        <mtriple>Akeem_Adams | club | W_Connection_F.C.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Adams plays for W Connection FC, having previously played for United Petrotrin F.C., whose ground is Palo Seco.</lex>
+      <lex comment="good" lid="Id2">Akeem Adams played for W Connection F.C. and is a member of the United Petrotrin F.C. club, which play in Palo Seco.</lex>
+      <lex comment="good" lid="Id3">Akeem Adams played for W Connection F.C. and the United Petrotrin F.C., whose ground was Palo Seco.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Akeem_Ayers | formerTeam | Los_Angeles_Rams</otriple>
+        <otriple>Akeem_Ayers | draftRound | "2"</otriple>
+        <otriple>Akeem_Ayers | draftPick | "39"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Ayers | formerTeam | Los_Angeles_Rams</mtriple>
+        <mtriple>Akeem_Ayers | draftRound | "2"</mtriple>
+        <mtriple>Akeem_Ayers | draftPick | "39"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Former Los Angeles Rams team member, Akeem Ayers, was number 39 in the draft pick, in draft round 2.</lex>
+      <lex comment="good" lid="Id2">Akeem Ayers, whose former team was the Los Angeles Rams, was in draft round 2 and his draft pick number was 39.</lex>
+    </entry>
+    </entries>
+</benchmark>

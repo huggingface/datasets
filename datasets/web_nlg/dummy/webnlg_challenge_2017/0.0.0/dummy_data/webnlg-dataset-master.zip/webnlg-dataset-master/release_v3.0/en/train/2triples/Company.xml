@@ -1,0 +1,87 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+        <otriple>AmeriGas | foundingYear | 1959-01-01</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+        <otriple>AmeriGas | foundingYear | 1959-01-01</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>AmeriGas | foundingDate | 1959-01-01</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas was founded in the United States on 1959-01-01.</lex>
+      <lex comment="good" lid="Id2">AmeriGas, founded on 01-01-1959, works in the country of the United States.</lex>
+      <lex comment="good" lid="Id3">AmeriGas, whose home country is the United States, was founded on January 1, 1959.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+        <otriple>AmeriGas | numberOfEmployees | 8500</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+        <otriple>AmeriGas | numberOfEmployees | 8500</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>AmeriGas | numberOfEmployees | 8500</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is based in the United States and employs 8.5 thousand people.</lex>
+      <lex comment="good" lid="Id2">AmeriGas, whose current employment is 8,500, has its home in the United States.</lex>
+      <lex comment="good" lid="Id3">AmeriGas works in the United States with 8500 employees.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | White_American</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | White_American</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is working in the United States. White American is one of the ethnic groups in that same country.</lex>
+      <lex comment="good" lid="Id2">AmeriGas’s home country is the United States which one of ethnics groups is White Americans.</lex>
+      <lex comment="good" lid="Id3">AmeriGas works in the United States, where White-American is a category for an ethnic group.</lex>
+      <lex comment="good" lid="Id4">AmeriGas's home country is the US, where one of the ethnic groups is White Americans.</lex>
+      <lex comment="good" lid="Id5">AmeriGas works in the country of the United States which has an ethnic grouping of White-American.</lex>
+      <lex comment="good" lid="Id6">AmeriGas is working in the United States where White American is one of the ethnic groups.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+        <otriple>United_States | leader | Paul_Ryan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>United_States | leader | Paul_Ryan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas works in the United States where Paul Ryan is the leader.</lex>
+      <lex comment="good" lid="Id2">AmeriGas works in the United States, one of whose leaders is Paul Ryan.</lex>
+      <lex comment="good" lid="Id3">AmeriGas's home country is the United States, which has Paul Ryan as one of its leaders.</lex>
+      <lex comment="good" lid="Id4">AmeriGas is working in the United States where Paul Ryan is the name of one of the government leaders.</lex>
+      <lex comment="good" lid="Id5">AmeriGas works in the US, where Paul Ryan is the leader.</lex>
+      <lex comment="good" lid="Id6">AmeriGas is located in the United States, one of whose leaders is named Paul Ryan.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+        <otriple>United_States | leaderTitle | "Vice President"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+        <otriple>United_States | leaderTitle | "Vice President"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>United_States | leaderTitle | "Vice President"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas works in the US, where the Vice President is a leader.</lex>
+      <lex comment="good" lid="Id2">AmeriGas's home country is the United States, which has Vice President as one of its leadership titles.</lex>
+      <lex comment="good" lid="Id3">AmeriGas is working in the United States, where Vice President is one of the titles of its government leaders.</lex>
+    </entry>
+    </entries>
+</benchmark>

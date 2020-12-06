@@ -1,0 +1,96 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | escapeVelocity | 0.0925 (kilometrePerSeconds)</mtriple>
+        <mtriple>(19255)_1994_VK8 | mass | 5.6 (kilograms)</mtriple>
+        <mtriple>(19255)_1994_VK8 | apoapsis | 6603633000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">19255 1994 VK8, with a mass of 5.6kg, has an apoapsis of 6603633000.0 kilometres and an escape velocity of 0.0925 km/s.</lex>
+      <lex comment="good" lid="Id2">19255 1994 VK8 has a mass of 5.6kg and an escape velocity of 0.0925 kilometres per second. Its apoapsis is 6603633000.0 km.</lex>
+      <lex comment="good" lid="Id3">(19255) 1994 VK8 has an escape velocity of 0.0925 km per sec, a mass of 5.6 kgs and an apoapsis of 6603633000.0 km.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1000_Piazzia | orbitalPeriod | "488160.0"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | periapsis | 3.52497e+11</otriple>
+        <otriple>1000_Piazzia | epoch | "2015-06-27"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1000_Piazzia | epoch | "27 June 2015 (JD2457200.5)"</otriple>
+        <otriple>1000_Piazzia | orbitalPeriod | "488160.0"^^xsd:double</otriple>
+        <otriple>1000_Piazzia | periapsis | 3.52497e+11</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1000_Piazzia | orbitalPeriod | 488160.0</mtriple>
+        <mtriple>1000_Piazzia | periapsis | 352497000000.0</mtriple>
+        <mtriple>1000_Piazzia | epoch | 2015-06-27</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The celestial body known as 1000 Piazzia has an orbital period of 488160. It has a periapsis of 352497000000.0 and the epoch date of, 2015-06-27.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>101_Helena | mass | "3000.0"^^xsd:double</otriple>
+        <otriple>101_Helena | escapeVelocity | "0.0348"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>101_Helena | Planet/apoapsis | "4.41092E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>101_Helena | escapeVelocity | "125.28"^^xsd:double</otriple>
+        <otriple>101_Helena | mass | "3000.0"^^xsd:double</otriple>
+        <otriple>101_Helena | Planet/apoapsis | "4.41092E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>101_Helena | mass | 3.0 (kilograms)</mtriple>
+        <mtriple>101_Helena | escapeVelocity | 0.0348 (kilometrePerSeconds)</mtriple>
+        <mtriple>101_Helena | apoapsis | 441092000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">101 Helena (mass 3.0kgs) has an escape velocity of 0.0348 kilometres per second and its apoapsis is 441092000.0 (kms).</lex>
+      <lex comment="good" lid="Id2">101 Helena has a mass of 3.0 kgs, an escape velocity of 0.0348 kilometres per second, and an apoapsis of 441092000.0 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>103_Hera | discoverer | James_Craig_Watson</otriple>
+        <otriple>103_Hera | epoch | "2011-08-27"^^xsd:date</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Hera | discoverer | James_Craig_Watson</otriple>
+        <otriple>103_Hera | epoch | "August 27, 2011 (JD2455800.5)"</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Hera | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>103_Hera | epoch | 2011-08-27</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Hera has an epoch date of August 27th 2011 and was discovered by James Craig Watson, who died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id2">James Craig Watson was the discoverer of 103 Hera, the epoch of which is on the 31st of July 2016. He died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id3">103 Hera, which has the epoch of 27 August 2011, was discovered by James Craig Watson, who died in Madison, Wisconsin.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>103_Hera | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+        <otriple>James_Craig_Watson | deathCause | Peritonitis</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Hera | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+        <mtriple>James_Craig_Watson | deathCause | Peritonitis</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">James Craig Watson, who discovered 103 Hera, died in Madison, Wisconsin of peritonitis.</lex>
+      <lex comment="good" lid="Id2">103 Hera was discovered by James Craig Watson. He died in Madison, Wisconsin of peritonitis.</lex>
+      <lex comment="good" lid="Id3">103 Hera was discovered by James Craig Watson, who died of peritonitis in Madison, Wisconsin.</lex>
+    </entry>
+    </entries>
+</benchmark>

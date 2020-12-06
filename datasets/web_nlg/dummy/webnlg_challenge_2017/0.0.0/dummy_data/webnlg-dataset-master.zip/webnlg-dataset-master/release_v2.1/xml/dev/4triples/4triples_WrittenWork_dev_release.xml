@@ -1,0 +1,94 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | 1634:_The_Baltic_War</otriple>
+        <otriple>1634:_The_Baltic_War | author | David_Weber</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</otriple>
+        <otriple>Ring_of_Fire_II | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | 1634:_The_Baltic_War</mtriple>
+        <mtriple>1634:_The_Baltic_War | author | David_Weber</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</mtriple>
+        <mtriple>Ring_of_Fire_II | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis was preceded by 1634: The Baltic War (author: David Weber) and followed by Ring of Fire II which is written in English.</lex>
+      <lex comment="good" lid="Id2">1634: The Baltic War, written by David Weber, has two sequels, 1634: The Bavarian Crisis and Ring of Fire II (written in English).</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | E-book</otriple>
+        <otriple>1634:_The_Ram_Rebellion | numberOfPages | "512"^^xsd:positiveInteger</otriple>
+        <otriple>1634:_The_Ram_Rebellion | author | Virginia_DeMarce</otriple>
+        <otriple>1634:_The_Ram_Rebellion | isbn | "1-4165-2060-0"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | E-book</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | numberOfPages | "512"</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | author | Virginia_DeMarce</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | ISBN_number | "1-4165-2060-0"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion was written by Virginia DeMarce and has 512 pages. It can be found as an ebook and has the ISBN number of 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id2">The author of the novel 1634 The Ram Rebellions author is Virginia DeMarce, it is 512 pages long (also can be found as an e-book) and has an ISBN number 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id3">Virginia DeMarce is the author of 1634: The Ram Rebellion, which has 512 pages, the ISBN number 1-4165-2060-0 and is available as an e book.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AIDS_(journal) | country | United_Kingdom</otriple>
+        <otriple>United_Kingdom | capital | London</otriple>
+        <otriple>AIDS_(journal) | publisher | Lippincott_Williams_&amp;_Wilkins</otriple>
+        <otriple>United_Kingdom | leader | Elizabeth_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDS_(journal) | country | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | capital | London</mtriple>
+        <mtriple>AIDS_(journal) | publisher | Lippincott_Williams_&amp;_Wilkins</mtriple>
+        <mtriple>United_Kingdom | leaderName | Elizabeth_II</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDS journal is published by Lippincott, Williams &amp; Wilkins in the United Kingdom. The capital of the country is London and its leader is Elizabeth II.</lex>
+      <lex comment="good" lid="Id2">The AIDS journal was published in the United Kingdom by Lippincott, Williams &amp; Wilkins. The UK is governed by Elizabeth II and its capital is London.</lex>
+      <lex comment="good" lid="Id3">Published by Lippincott Williams &amp; Wilkins, the AIDS journal was published in the United Kingdom, the capital of the UK is London and the head of state is Elizabeth II.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | mediaType | "Print"@en</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | oclc | 51969173</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | isbn | "0-7653-0633-6"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | oclc | "51969173"</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | mediaType | "Print"@en</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | isbn | "0-7653-0633-6"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | mediaType | "Print"</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | OCLC_number | 51969173</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | ISBN_number | "0-7653-0633-6"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Fortress of Grey Ice was written by J. V. Jones and is available in print. The book has the ISBN number 0-7653-0633-6. It also has the OCLC number 51969173.</lex>
+      <lex comment="good" lid="Id2">The author of A Fortress of Grey Ice, available in print, is J.V. Jones and has an OCLC number of 51969173 and the ISBN number is 0-7653-0633-6.</lex>
+      <lex comment="good" lid="Id3">J.V. Jones authored A Fortress of Grey Ice, made available in print. Its OCLC and ISBN numbers are 51969173 and 0-7653-0633-6 respectively.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A_Long_Long_Way | previousWork | Annie_Dunne</otriple>
+        <otriple>A_Long_Long_Way | country | Ireland</otriple>
+        <otriple>A_Long_Long_Way | publisher | Viking_Press</otriple>
+        <otriple>A_Long_Long_Way | subsequentWork | The_Secret_Scripture</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Long_Long_Way | precededBy | Annie_Dunne</mtriple>
+        <mtriple>A_Long_Long_Way | country | Ireland</mtriple>
+        <mtriple>A_Long_Long_Way | publisher | Viking_Press</mtriple>
+        <mtriple>A_Long_Long_Way | followedBy | The_Secret_Scripture</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Published by Viking Press, the Irish novel A Long Long Way was preceded by Annie Dunne and followed by The Secret Scripture.</lex>
+      <lex comment="good" lid="Id2">A Long Long Way, written in Ireland and published by Viking Press, was preceded by Annie Dunne, and followed by The Secret Scripture.</lex>
+      <lex comment="good" lid="Id3">A Long Long Way was written in Ireland and published by Viking Press. It was preceded by Annie Dunne and followed by The Secret Scripture.</lex>
+    </entry>
+    </entries>
+</benchmark>

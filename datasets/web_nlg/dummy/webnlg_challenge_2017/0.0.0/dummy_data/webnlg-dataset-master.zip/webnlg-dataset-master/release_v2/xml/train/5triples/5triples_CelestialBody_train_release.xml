@@ -1,0 +1,188 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Donal O'Ceallaigh discovered 15788 1993 SB which has an epoch date of March 6th, 2006. The periapsis of 15788 1993 SB is 3,997,100,000,000 kilometres and it has an apoapsis of 7,715,100,000 kilometres.</lex>
+      <lex comment="good" lid="Id2">Donal O'Ceallaigh discovered (15788) 1993 SB, which has an epoch date of March 6th 2006, an orbital period of 7729430000.0, a periapsis of 3997100000000.0, and an apoapsis of 7715100000.0 km.</lex>
+      <lex comment="good" lid="Id3">The celestial body known as (15788) 1993 SB has an epoch date of 6 March 2006 and was discovered by Donal O Ceallaigh. It has an orbital period of 7729430000, a periapsis of 997100000000 and an apoapsis of 7715100000.0 kms.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Iwan P William discovered (15788) 1993 SB which has an epoch date of 6 March 2006 and an orbital period of 7729430000.0. The periapsis measures 3997100000000.0 and the apoapsis is 7715100000.0 kms.</lex>
+      <lex comment="good" lid="Id2">15788 1993 SB was discovered by Iwan P Williams and has an epoch date of 6 March 2006. The orbital period is 772943000, the periapsis is 3997100000000.0 and the apoapsis 7715100000 kilometres.</lex>
+      <lex comment="good" lid="Id3">15788 1993 SB was discovered by Iwan P Williams. Its orbital period is 7729430000, periapsis is 3997100000000, apoapsis is 7715100000 km, and its epoch is on the 6th of March, 2006.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+        <mtriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(15788) 1993 SB was discovered by Roque de los Muchachos Observatory and has the epoch date 6 March 2006 and an orbital period of 7729430000.0. The measurement of the periapsis is 3997100000000.0 and the apoapsis 7715100000 kilometres.</lex>
+      <lex comment="good" lid="Id2">The celestial body known as (15788) 1993 SB has a periapsis of 3997100000000 and an apoapsis of 7715100000.0 (kilometres). Discovered by Roque de los Muchachos Observatory, (15788) 1993 SB has an orbital periodd of 7729430000.0 and its epoch is 6th March 2006.</lex>
+      <lex comment="good" lid="Id3">(15788) 1993 SB has an orbital period of 7729430000.0,its epoch date was on March 6th 2006 and was discovered by Roque de los Muchachos Observatory.It has a periapsis of 3997100000000.0. and its apoapsis is 7715100000 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "Alan Fitzsimmons, and"@en</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</mtriple>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Fitzsimmons discovered 15788 1993 SB which has an epoch of March 6th,2006 and an orbital period of 7,729,430,000 kilometres. Its periapsis is 3,997,100,000,000 kilometres and it has an apoapsis of 7,715,100,000 kilometres.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB, which was discovered by Alan Fitzsimmons, has an epoch date of March 6th 2006 and an orbital period of 7729430000.0. The measurement of the apoapsis and periapsis is 7715100000 and 3997100000000.0 kms respectively.</lex>
+      <lex comment="good" lid="Id3">The celestial body known as (15788) 1993 SB, discovered by Alan Fitzsimmons, has a periapsis of 3997100000000, an epoch date of March 6th 2006, an apoapsis of 7715100000 km, and an orbital period of 7729430000.0.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "0.0925"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "0.0925"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | mass | "5600.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "0.0925"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | epoch | "December 31, 2006 (JD2454100.5)"</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "333.0"^^xsd:double</otriple>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | orbitalPeriod | 8.78885e+09</otriple>
+        <otriple>(19255)_1994_VK8 | epoch | "2006-12-31"^^xsd:date</otriple>
+        <otriple>(19255)_1994_VK8 | escapeVelocity | "0.0925"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | mass | "5.6"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | epoch | 2006-12-31</mtriple>
+        <mtriple>(19255)_1994_VK8 | mass | 5.6 (kilograms)</mtriple>
+        <mtriple>(19255)_1994_VK8 | orbitalPeriod | 8788850000.0</mtriple>
+        <mtriple>(19255)_1994_VK8 | escapeVelocity | 0.0925 (kilometrePerSeconds)</mtriple>
+        <mtriple>(19255)_1994_VK8 | apoapsis | 6603633000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">19255 1994 VK8 has a mass of 5.6 kilograms and an an orbital period of 8,788,850,000 days. Its escape velocity is .0925 kilometres per second, it has an apoapsis of 6,603,633,000 kilometres and an epoch of December 31st, 2006.</lex>
+      </entry>
+    </entries>
+</benchmark>

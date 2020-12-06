@@ -1,0 +1,59 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | density | "2.0"^^&lt;http://dbpedia.org/datatype/gramPerCubicCentimetre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | Planet/density | "2000.0"^^&lt;http://dbpedia.org/datatype/kilogramPerCubicMetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | density | 2.0 (gramPerCubicCentimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(19255) 1994 VK8 has a density of 2.0 grams per cubic centimetre.</lex>
+      <lex comment="good" lid="Id2">The celestial body known as (19255) 1994 VK8 has a density of 2 grams per cubic centimetres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(410777)_2009_FD | absMagnitude | "22.1"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(410777)_2009_FD | absoluteMagnitude | 22.1</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(410777) 2009 FD has an absolute magnitude of 22.1.</lex>
+      <lex comment="good" lid="Id2">The absolute magnitude of (410777) 2009 FD is 22.1.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66063)_1998_RO1 | apoapsis | 254989570.60815 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(66063) 1998 RO1 has an apoapsis of 254989570.60815 kilometres.</lex>
+      <lex comment="good" lid="Id2">The apoapsis for (66063) 1998 RO1 is 254989570.60815 kilometres.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1000_Piazzia | escapeVelocity | "0.0252"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1000_Piazzia | escapeVelocity | 0.0252 (kilometrePerSeconds)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1000 Piazzia has an escape velocity of 0.0252 kilometres per second.</lex>
+      <lex comment="good" lid="Id2">The escape velocity of 1000 Piazzia is 0.0252 km/sec.</lex>
+      <lex comment="good" lid="Id3">The escape velocity of 1000 Piazzia is 0.0252 (kilometrePerSeconds).</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1001_Gaussia | formerName | "1923 OAA907 XC"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1001_Gaussia | formerName | "1923 OAA907 XC"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1001 Gaussia was formerly known as 1923 OAA907 XC.</lex>
+      <lex comment="good" lid="Id2">The former name of 1001 Gaussia is "1923 OAA907 XC".</lex>
+      <lex comment="good" lid="Id3">1001 Gaussia's former name was 1923 OAA907 XC.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipDisplacement | 1.85e+09</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipDisplacement | "1850.0"^^&lt;http://dbpedia.org/datatype/tonne&gt;</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipDisplacement | 1850.0 (tonnes)</mtriple>
+        <mtriple>A-Rosa_Luna | topSpeed | 24.0</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">With a top speed of 24.0, the ship A Rosa Luna is 125800.00 millimetres long and weighs 1850 tonnes.</lex>
+      <lex comment="good" lid="Id2">A-Rosa Luna has a ship displacement of 1850 tonnes and a top speed of 24 km/h. Its length is 125.8 metres.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna which is 125.8 metres long has a top speed of 24.0 and weighs 1850 tonnes.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AIDAstella | shipChristened | "--03-16"^^xsd:gMonthDay</otriple>
+        <otriple>AIDAstella | shipInService | "2013-03-17"^^xsd:date</otriple>
+        <otriple>AIDAstella | MeanOfTransportation/length | "253260.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | christeningDate | 2013-03-16</mtriple>
+        <mtriple>AIDAstella | shipInService | 2013-03-17</mtriple>
+        <mtriple>AIDAstella | length | 253260.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAstella, 253260.0 millimetres long, was christened on March 16, 2013 and put into service the next day.</lex>
+      <lex comment="good" lid="Id2">The AIDAstella was christened on the 16th of March, 2013, put in service on March 17, 2013, and is 253260.0 millimetres in length.</lex>
+      <lex comment="good" lid="Id3">The AIDAstella was named on 16th March 2013 and launched on 17th. It is 253.26m long.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | enginetype | Four-stroke_engine</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | engine | Four-stroke_engine</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The American Locomotive Company built the ALCO RS-3 which has a 4-stroke engine and is 17068.8 millimeters long.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 has a four-stroke engine, a length of 17068.8 millimetres and was built by the American Locomotive Company.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3, built by the American Locomotive Company, is 17068.8 mm long with a four-stroke engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | enginetype | V12_engine</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | engine | V12_engine</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALCO RS-3, built by the American Locomotive Company, has a V12 engine and is 17068.8 millimetres.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 was built by the American Locomotive Company. It is 17068.8mm long and has a V12 engine.</lex>
+      <lex comment="good" lid="Id3">The American Locomotive Company built the ALCO RS-3 which is 17068.8mm long and has a V12 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>American_Locomotive_Company | foundationPlace | Schenectady,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+        <mtriple>American_Locomotive_Company | foundationPlace | Schenectady,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The American Locomotive Company was founded in Schenectady, New York and built the ALCO RS-3 which is 17068.8 mms in length.</lex>
+      <lex comment="good" lid="Id2">The American Locomotive Company, founded in Schenectady, New York, were the builders of the ALCO RS-3, which has a length of 17068.8 mm.</lex>
+      <lex comment="good" lid="Id3">The American Locomotive Company, founded in Schenectady, New York, built the 17068.8 millimetre ALCO RS-3.</lex>
+    </entry>
+    </entries>
+</benchmark>

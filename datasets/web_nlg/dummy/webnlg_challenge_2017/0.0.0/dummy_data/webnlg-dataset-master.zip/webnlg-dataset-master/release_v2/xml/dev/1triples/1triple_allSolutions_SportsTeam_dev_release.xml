@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stoger is the manager of FC Kolin.</lex>
+      <lex comment="good" lid="Id2">Peter Stöger is manager of 1. FC Köln.</lex>
+      <lex comment="good" lid="Id3">The manager of 1. FC Koln is Peter Stoger.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | season | 2014</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | season | 2014</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1 FC Magdeburg played in the 2014 season.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | season | 2014–15_Lega_Pro</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | season | 2014–15_Lega_Pro</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A C Lumezzane played the 2014-2015 season in Lega Pro.</lex>
+      <lex comment="good" lid="Id2">Lumezzane played in the Lega Pro during the 2014 season.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | fullname | "Asociación Deportiva"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.D._Isidro_Metapán | fullname | "Asociación Deportiva"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.D. Isidro Metapan's full name is "Asociación Deportiva".</lex>
+      <lex comment="good" lid="Id2">A.D. Isidro Metapán's full name is Asociación Deportiva.</lex>
+      <lex comment="good" lid="Id3">The fullname of A.D. Isidro Metapan is Asociacion Deportiva.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | fullname | "A.E Dimitra Efxeinoupolis"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | fullname | "A.E Dimitra Efxeinoupolis"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.E Dimitra Efxeinoupolis's full name is A.E Dimitra Efxeinoupolis.</lex>
+      <lex comment="good" lid="Id2">"A.E Dimitra Efxeinoupolis" is the full name of A.E Dimitra Efxeinoupolis.</lex>
+      <lex comment="good" lid="Id3">A.E Dimitra Efxeinoupolis has the fullname A.E Dimitra Efxeinoupolis.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,94 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>Texas | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>Texas | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Texas in the United States.Washington, D.C. is the capital of the U.S and English is its official language.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas, where English is spoken, is in the United States which has Washington D.C. as its capital.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas (English is one of the languages spoken), is in the United States, where Washington D.C. is the capital.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>United_States | demonym | Americans</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>United_States | demonym | Americans</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany, Georgia, is located within the United States where the inhabitants are called Americans.One of the ethnic groups in the United States are the African Americans.</lex>
+      <lex comment="good" lid="Id2">Albany is part of the state of Georgia in the United States. The people living in the US are called Americans and include the ethnic group of African Americans.</lex>
+      <lex comment="good" lid="Id3">Albany is located in the US state of Georgia. Americans are the people occupying the U.S, where one of the ethnic groups is the African Americans.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>United_States | ethnicGroup | Asian_Americans</otriple>
+        <otriple>United_States | language | English_language</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>United_States | ethnicGroup | Asian_Americans</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany is part of Georgia, in the United States. the country where English is spoken, and one of the ethnic groups is Asian Americans.</lex>
+      <lex comment="good" lid="Id2">Albany, Georgia, is in the United States, where English is the language, and where Asian Americans are one of the ethnic groups.</lex>
+      <lex comment="good" lid="Id3">Albany, Georgia is in the United States where English is spoken and Asian Americans are among the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | subdivisionName | Oregon</otriple>
+        <otriple>Oregon | capital | Salem,_Oregon</otriple>
+        <otriple>Albany,_Oregon | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | isPartOf | Oregon</mtriple>
+        <mtriple>Oregon | capital | Salem,_Oregon</mtriple>
+        <mtriple>Albany,_Oregon | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany is a city in Oregon, where the capital is Salem. Albany is located in the United States, where there is an ethnic group called African Americans.</lex>
+      <lex comment="good" lid="Id2">Albany is a city in Oregon located in the U.S. Salem is the capital of that state. African Americans are one ethnic group in the U.S.</lex>
+      <lex comment="good" lid="Id3">Albany is part of Oregon (capital is Salem), in the Unite States, where African Americans are one of the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | areaLand | 4.862e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | populationDensity | "1142.3"^^xsd:double</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaCode | 505575</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaTotal | "490.9"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | areaCode | "505, 575"</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaLand | 4.862e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaTotal | 4.909e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | populationDensity | "1142.3"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | areaCode | 505, 575</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | areaOfLand | 486.2 (square kilometres)</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | areaTotal | 490.9 (square kilometres)</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | populationDensity | 1142.3 (inhabitants per square kilometre)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albuquerque, in New Mexico, has a total are of 490.9 square kilometres and a land area of 486.2 square kilometres. It has a population density of 1142.3 people per square kilometers, and the area codes are 505 and 575.</lex>
+      <lex comment="good" lid="Id2">Albuquerque, New Mexico covers a total of 490.0 sq kms which includes a land area of 486.2 sq km. It has the area codes 505 and 575 and a population density of 1142.3 inhabitants per sq km.</lex>
+      </entry>
+    </entries>
+</benchmark>

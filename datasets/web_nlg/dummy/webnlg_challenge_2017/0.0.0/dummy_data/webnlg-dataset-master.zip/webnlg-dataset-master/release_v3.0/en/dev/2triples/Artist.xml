@@ -1,0 +1,97 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram plays for the Suburban Legends band and Kids Imagine Nation.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram is an artist with the band Kids Imagine Nation and plays for the Suburban Legends band.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram plays for both the Suburban Legends band and the Kids Imagine Nation band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Suburban_Legends | genre | Ska</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Suburban_Legends | genre | Ska</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Suburban_Legends | genre | Ska</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram plays for the Suburban Legends band and their genre is Ska.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram plays for the Suburban Legends band which play Ska music.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram plays for the Suburban Legends band who perform Ska music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | instrument | Guitar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | genre | Psychedelia</mtriple>
+        <mtriple>Aaron_Deer | instrument | Guitar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Guitarist Aaron Deer plays Psychedelia.</lex>
+      <lex comment="good" lid="Id2">Aaron Deer plays the guitar and performs Psychedelia music.</lex>
+      <lex comment="good" lid="Id3">Guitarist Aaron Deer performs music from the Psychedelia genre.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Isis_(band)</otriple>
+        <otriple>Aaron_Turner | associatedBand | Lotus_Eaters_(band)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Isis_(band)</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Lotus_Eaters_(band)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner is an artist for the band Isis and a musician in the Lotus Eaters band.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner, is a musician in the Lotus Eaters band and is an artist for the band Isis.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner has played for Isis and the Lotus Eaters band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abradab | birthPlace | Katowice</otriple>
+        <otriple>Abradab | placeOfBirth | Poland</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abradab | birthPlace | Poland</otriple>
+        <otriple>Abradab | placeOfBirth | Katowice</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | birthPlace | Katowice</mtriple>
+        <mtriple>Abradab | birthPlace | Poland</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abradab was born in Katowice, Poland.</lex>
+      <lex comment="good" lid="Id2">The birth place of Abradab is Poland, in Katowice.</lex>
+      <lex comment="good" lid="Id3">Abradab was born is Katowice, Poland.</lex>
+    </entry>
+    </entries>
+</benchmark>

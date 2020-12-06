@@ -1,0 +1,160 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Arion_(comics) | creators | Jan_Duursema</otriple>
+        <otriple>Jan_Duursema | awards | Eisner_Award</otriple>
+        <otriple>Arion_(comics) | alterEgo | "Ahri'ahn"@en</otriple>
+        <otriple>Arion_(comics) | creator | Paul_Kupperberg</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arion_(comics) | creator | Jan_Duursema</otriple>
+        <otriple>Jan_Duursema | awards | Eisner_Award</otriple>
+        <otriple>Arion_(comics) | alterEgo | "Ahri'ahn"@en</otriple>
+        <otriple>Arion_(comics) | creators | Paul_Kupperberg</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arion_(comicsCharacter) | creator | Jan_Duursema</mtriple>
+        <mtriple>Jan_Duursema | award | Eisner_Award</mtriple>
+        <mtriple>Arion_(comicsCharacter) | alternativeName | "Ahri'ahn"</mtriple>
+        <mtriple>Arion_(comicsCharacter) | creator | Paul_Kupperberg</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Arion (also known as Ahri'ahn) is a comic character created by Paul Kupperberg and Jan Duursema, who won the Eisner award.</lex>
+      <lex lang="ru" lid="Id1">Арион (также известный как Ари'ан) - персонаж комиксов, созданный Полом Куппербергом и Ян Дуурсемой, завоевавшей премию Айснера.</lex>
+      <lex lang="en" lid="Id2">Paul Kupperberg and Eisner Award winning Jan Duursema are the creators of the comic book character Arion, also know as Ahri'ahn.</lex>
+      <lex lang="ru" lid="Id2">Пол Купперберг и обладательница премии Айснера Ян Дуурсема - создатели персонажа комиксов Ариона, также известного как Ари'ан.</lex>
+      <lex lang="en" lid="Id3">The comic book character Arion (also known as Ahri'ahn), was created by Paul Kupperberg and Jan Duursema, the latter having won the Eisner Award.</lex>
+      <lex lang="ru" lid="Id3">Персонаж комиксов Арион (также известный как Ари'ан), был создан Полом Куппербергом и Ян Дуурсемой, причем последняя получила Премию Айснера.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Eisner_Award | sameAs | Премия_Айснера</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jan Duursema | sameAs | Ян Дуурсема</link>
+        <link direction="en2ru">Paul Kupperberg | sameAs | Пол Купперберг</link>
+        <link direction="en2ru">Ahri'ahn | sameAs | Ари'ан</link>
+        <link direction="en2ru">Arion (comicsCharacter) | includes | Арион</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Dick_Dillin | nationality | United_States</otriple>
+        <otriple>Aurakles | creator | Dick_Dillin</otriple>
+        <otriple>Aurakles | creators | Len_Wein</otriple>
+        <otriple>Aurakles | alterEgo | "Aurakles"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aurakles | creators | Dick_Dillin</otriple>
+        <otriple>Dick_Dillin | nationality | United_States</otriple>
+        <otriple>Aurakles | creator | Len_Wein</otriple>
+        <otriple>Aurakles | alterEgo | "Aurakles"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aurakles | creator | Dick_Dillin</mtriple>
+        <mtriple>Dick_Dillin | nationality | United_States</mtriple>
+        <mtriple>Aurakles | creator | Len_Wein</mtriple>
+        <mtriple>Aurakles | alternativeName | "Aurakles"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic book character Aurakles was created by Len Wein and the American Dick Dillin.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Аураклес был создан Леном Уэйном и американцем Диком Диллином.</lex>
+      <lex lang="en" lid="Id2">The comic book character Aurakles, with the alternative name Aurakles, was created by Dick Dillin (from the United States) and Len Wein.</lex>
+      <lex lang="ru" lid="Id2">Персонаж комиксов Аураклес, альтернативное имя – Аураклес, был создан Диком Диллином (из Соединённых Штатов Америки) и Леном Уэйном.</lex>
+      <lex lang="en" lid="Id3">The fictional character Aurakles, also known as ''Aurakles'' was created by Len Wein and Dick Dillin (American).</lex>
+      <lex lang="ru" lid="Id3">Вымышленный персонаж Аураклес, также известный как "Аураклес", был создан Леном Уэйном и Диком Диллином (американцем).</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Len_Wein | sameAs | Уэйн,_Лен</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Dick Dillin | sameAs | Дик Диллин</link>
+        <link direction="en2ru">Aurakles | sameAs | Аураклес</link>
+        <link direction="en2ru">Aurakles | sameAs | Аураклес</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>BBC | keyPeople | Rona_Fairhead</otriple>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>BBC | product | BBC_Radio</otriple>
+        <otriple>BBC | locationCity | London</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>BBC | keyPerson | Rona_Fairhead</mtriple>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>BBC | product | BBC_Radio</mtriple>
+        <mtriple>BBC | city | London</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The BBC, which is located in London, and where Rona Fairhead is a key person, once broadcast Bananaman and has a product called BBC radio.</lex>
+      <lex lang="ru" lid="Id1">Би-би-си, которая находится в Лондоне и где Рона Фэрхед является ключевой фигурой, однажды транслировала Бананамен и выпустила продукт под названием BBC Radio.</lex>
+      <lex lang="en" lid="Id2">The BBC, located in London, with Rona Fairhead as a key person, broadcast the TV series Bananaman and produces BBC radio.</lex>
+      <lex lang="ru" lid="Id2">"Би-би-си", расположенная в Лондоне, ключевой фигурой в которой является Рона Фэрхед, транслирует телесериал Бананамен и выпускает BBC Radio.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">London | sameAs | Лондон</dbpedialink>
+        <dbpedialink direction="en2ru">BBC_Radio | sameAs | BBC_Radio</dbpedialink>
+        <dbpedialink direction="en2ru">BBC | sameAs | Би-би-си</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bananaman | sameAs | Бананамен</link>
+        <link direction="en2ru">Rona Fairhead | sameAs | Рона Фэрхед</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Balder_(comics) | creators | Jack_Kirby</otriple>
+        <otriple>Jack_Kirby | nationality | Americans</otriple>
+        <otriple>Balder_(comics) | creator | Stan_Lee</otriple>
+        <otriple>Balder_(comics) | alterEgo | "Balder Odinson"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Balder_(comicsCharacter) | creator | Jack_Kirby</mtriple>
+        <mtriple>Jack_Kirby | nationality | Americans</mtriple>
+        <mtriple>Balder_(comicsCharacter) | creator | Stan_Lee</mtriple>
+        <mtriple>Balder_(comicsCharacter) | alternativeName | "Balder Odinson"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Balder is a comic character created by Stan Lee and the American, Jack Kirby. His alternative name is Balder Odinson.</lex>
+      <lex lang="ru" lid="Id1">Бальдер - персонаж комиксов, созданный Стэном Ли и американцем Джеком Кёрби. Его альтернативное имя - Бальдер Одинсон.</lex>
+      <lex lang="en" lid="Id2">The comic character of Balder is also known as "Balder Odinson". It was created by Stan Lee and the American, Jack Kirby.</lex>
+      <lex lang="ru" lid="Id2">Персонаж комиксов Бальдер также известен как "Бальдер Одинсон". Ее создали Стэн Ли и американец Джек Кёрби.</lex>
+      <lex lang="en" lid="Id3">The comic character, Balder has the alternative name of Balder Odinson . It was created by Stan Lee and the American, Jack Kirby.</lex>
+      <lex lang="ru" lid="Id3">Персонажа комиксов Бальдера называют также Бальдером Одинсоном. Его создали Стэн Ли и американец Джек Кёрби.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Jack_Kirby | sameAs | Джек_Кёрби</dbpedialink>
+        <dbpedialink direction="en2ru">Stan_Lee | sameAs | Стэн_Ли</dbpedialink>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Balder (comicsCharacter) | includes | Бальдер</link>
+        <link direction="en2ru">Balder Odinson | sameAs | Бальдер Одинсон</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>BBC | product | BBC_Radio</otriple>
+        <otriple>BBC | locationCity | Broadcasting_House</otriple>
+        <otriple>BBC | foundedBy | John_Reith,_1st_Baron_Reith</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>BBC | product | BBC_Radio</mtriple>
+        <mtriple>BBC | city | Broadcasting_House</mtriple>
+        <mtriple>BBC | foundedBy | John_Reith,_1st_Baron_Reith</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">John Reith, 1st Baron Reith founded the BBC who have their HQ at Broadcasting House. The BBC broadcast Bananaman and also produce BBC radio.</lex>
+      <lex lang="ru" lid="Id1">Джон Рейт , 1-й Барон Рейт основал "Би-би-си", штаб-квартира которой - Дом Вещания. Би-би-си транслирует Бананамена и имеет одноименное радио.</lex>
+      <lex lang="en" lid="Id2">The BBC, founded by John Reith, 1st Baron Reith, has its headquarters in Broadcasting House. The BBC produces BBC radio and broadcast the TV series Bananaman.</lex>
+      <lex lang="ru" lid="Id2">"Би-би-си" основана Джоном Рейтом, ее штаб - "Дом Вещания". "Би-би-си" транслирует одноименное радио, а также телесериал Бананамен.</lex>
+      <lex lang="en" lid="Id3">The founder of the BBC was 1st Baron John Reith and it is located at Broadcasting House in London. The BBC broadcast Bananaman and also produce BBC radio.</lex>
+      <lex lang="ru" lid="Id3">Основателем "Би-би-си" стал 1-й барон Джон Рейт. Дом Вещания находится в Лондоне. "Би-би-си" транслирует Бананамена, а также транслирует радио "Би-би-си".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">BBC_Radio | sameAs | BBC_Radio</dbpedialink>
+        <dbpedialink direction="en2ru">BBC | sameAs | Би-би-си</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bananaman | sameAs | Бананамен</link>
+        <link direction="en2ru">Broadcasting House | sameAs | телерадиокомпания</link>
+        <link direction="en2ru">John Reith, 1st Baron Reith | includes | Джон Рейт</link>
+        <link direction="en2ru">John Reith, 1st Baron Reith | includes | 1-й Барон Рейт</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

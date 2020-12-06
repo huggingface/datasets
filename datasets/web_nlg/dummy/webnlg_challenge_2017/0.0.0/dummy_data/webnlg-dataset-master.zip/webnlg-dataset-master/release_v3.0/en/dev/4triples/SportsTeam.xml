@@ -1,0 +1,100 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | fullname | "Associazione Calcio ChievoVerona S.r.l."@en</otriple>
+        <otriple>A.C._Chievo_Verona | ground | "Verona, Italy"@en</otriple>
+        <otriple>A.C._Chievo_Verona | season | 2014–15_Serie_A</otriple>
+        <otriple>A.C._Chievo_Verona | capacity | 39371</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | fullName | "Associazione Calcio ChievoVerona S.r.l."</mtriple>
+        <mtriple>A.C._Chievo_Verona | ground | "Verona, Italy"</mtriple>
+        <mtriple>A.C._Chievo_Verona | season | 2014–15_Serie_A</mtriple>
+        <mtriple>A.C._Chievo_Verona | numberOfMembers | 39371</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The full name of A.C. Chievo Verona is Associazione Calcio ChievoVerona S.r.l. and their home ground in Verona, Italy holds 39371 fans. The club played the 2014-15 season in Serie A.</lex>
+      <lex comment="good" lid="Id2">A.C. Chievo Verona played the 2014-15 season in Serie A and has 39371 members. Their full name is "Associazione Calcio ChievoVerona S.r.l." and their home ground is in Verona, Italy.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | manager | Rolando_Maran</otriple>
+        <otriple>Rolando_Maran | placeOfBirth | Italy</otriple>
+        <otriple>Rolando_Maran | managerClub | Unione_Triestina_2012_S.S.D.</otriple>
+        <otriple>Rolando_Maran | team | Carrarese_Calcio</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | manager | Rolando_Maran</mtriple>
+        <mtriple>Rolando_Maran | birthPlace | Italy</mtriple>
+        <mtriple>Rolando_Maran | club | Unione_Triestina_2012_S.S.D.</mtriple>
+        <mtriple>Rolando_Maran | club | Carrarese_Calcio</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Italian born Rolando Maran manages Associazione Calcio Chievo Verona. He is also in the Unione Triestina 2012 S.S.D. club as well as playing for Carrarese Calcio.</lex>
+      <lex comment="good" lid="Id2">Italian born Rolando Maran plays at the Carrarese Calcio and is in the Unione Triestina 2012 S.S.D. club. He is currently the manager of AC Chievo Verona.</lex>
+      <lex comment="good" lid="Id3">Born in Italy, Rolando Maran is the manager of AC Chievo Verona. He also plays for Carrarese Calcio and is in the Unione Triestina 2012 S.S.D. club.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>Michele_Marcolini | placeOfBirth | Italy</otriple>
+        <otriple>Michele_Marcolini | team | Torino_F.C.</otriple>
+        <otriple>Michele_Marcolini | clubs | F.C._Bari_1908</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>Michele_Marcolini | placeOfBirth | Italy</otriple>
+        <otriple>Michele_Marcolini | clubs | Torino_F.C.</otriple>
+        <otriple>Michele_Marcolini | team | F.C._Bari_1908</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | manager | Michele_Marcolini</mtriple>
+        <mtriple>Michele_Marcolini | birthPlace | Italy</mtriple>
+        <mtriple>Michele_Marcolini | club | Torino_F.C.</mtriple>
+        <mtriple>Michele_Marcolini | club | F.C._Bari_1908</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Michele Marcolini, manager of A.C. Lumezzane, was born in Italy, owns Torino F.C. And has been associated with F.C. Bari 1908.</lex>
+      <lex comment="good" lid="Id2">Italian born Michele Marcolini, previously at FC Bari 1908 and manager of AC Lumezzane, is the owner of Torino F.C.</lex>
+      <lex comment="good" lid="Id3">Italian born Michele Marcolini, previously of FC Bari 1908, is now the manager of A.C. Lumezzane, whist also the owner of Torino F.C.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | leaderName | Alexis_Tsipras</otriple>
+        <otriple>Greece | leader | Nikos_Voutsis</otriple>
+        <otriple>Greece | language | Greek_language</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | leader | Alexis_Tsipras</otriple>
+        <otriple>Greece | leaderName | Nikos_Voutsis</otriple>
+        <otriple>Greece | language | Greek_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | location | Greece</mtriple>
+        <mtriple>Greece | leader | Alexis_Tsipras</mtriple>
+        <mtriple>Greece | leader | Nikos_Voutsis</mtriple>
+        <mtriple>Greece | language | Greek_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Greece, led by Alexis Tsipras and Nikos Voutsis is the location of A.E. Dimitra Efxeinoupolis, where the language is greek.</lex>
+      <lex comment="good" lid="Id2">Greece is the location of the A.E Dimitra Efxeinoupolis club. The language of the country is Greek and two of the leaders are Alexis Tsipras and Nikos Voutsis.</lex>
+      <lex comment="good" lid="Id3">The A.E Dimitra Efxeinoupolis club is located in Greece where Alexis Tsipras heads Greece and Nikos Voutsis is the leader. Greek is a language spoken in the country.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A.S._Gubbio_1910 | fullname | "Associazione Sportiva Gubbio 1910 Srl"@en</otriple>
+        <otriple>A.S._Gubbio_1910 | season | 2014</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+        <otriple>A.S._Gubbio_1910 | capacity | 5300</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.S._Gubbio_1910 | fullName | "Associazione Sportiva Gubbio 1910 Srl"</mtriple>
+        <mtriple>A.S._Gubbio_1910 | season | 2014</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+        <mtriple>A.S._Gubbio_1910 | numberOfMembers | 5300</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The full name of the Italian club AS Gubbio 1910 is "Associazione Sportiva Gubbio 1910 Srl". They played in the 2014 season and they have 5300 members.</lex>
+      <lex comment="good" lid="Id2">The full name of A.S. Gubbio 1910 is Associazione Sportiva Gubbio 1910 Srl. The club has 5300 members and has a ground in Italy. It competed in the 2014 season.</lex>
+      <lex comment="good" lid="Id3">Associazione Sportiva Gubbio 1910 Srl (abbreviated to A.S.Gubbio 1910) has 5300 members, has its grounds in Italy and played in the 2014 season.</lex>
+    </entry>
+    </entries>
+</benchmark>

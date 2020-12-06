@@ -1,0 +1,116 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University is located in Alba Iulia, Alba, Romania. Its Latun name is "Universitas Apulensis" and its nickname is "Uab". Its rectore is Breaz Valer Daniel.</lex>
+      <lex comment="good" lid="Id2">The rector of the 1 Decembrie 1918 University in Alba Iulia, Alba, Romania, is Breaz Valer Daniel. The latin name of the University is "Universitas Apulensis" and it is known by the nickname Uab.</lex>
+      <lex comment="good" lid="Id3">The 1 Decembrie 1918 University is located in Alba Iulia, Alba, Romania. Its Latin name is "Universitas Apulensis," its rector is "Breaz Valer Daniel," and its nickname is Uab.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>AWH_Engineering_College | faculty | 250</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | established | 2001</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AWH Engineering College in Kuttikkattor, Kerala, India was established in 2001 and it has 250 academic staff. The Ganges is a river in India.</lex>
+      <lex comment="good" lid="Id2">The River Ganges runs through India in which country the AWH Engineering College is located in the city of Kuttikkattoor in the state of Kerala. The College was established in 2001 and has 250 academic staff.</lex>
+      <lex comment="good" lid="Id3">Established in 2001, the AWH Engineering College in Kuttikkattoor, Kerala India currently has 250 staff. A famous river in the country is the Ganges.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | established | 2001</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | has to its northwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AWH Engineering College in Kuttikkattoor, India is in the state of Kerala which has Mahe to its northwest. The school was established in 2001 and employs 250 people in its academic department.</lex>
+      <lex comment="good" lid="Id2">Established in 2001, the AWH Engineering College in Kuttikkattoor, Kerala, southeast of Mahe, India. It currently has 250 staff.</lex>
+      <lex comment="good" lid="Id3">Kerala is a state in India which is positioned with Mahe to it's northwest. It is also home to the AWH Engineering College which is located in the city of Kuttikkattoor, India. The college was founded in 2001 and has 250 members of staff.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X) (X (X)) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>Kerala | leaderName | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AWH Engineering College is in Kuttikkattoor, India in the state of Kerala. The school has 250 employees and Kerala is ruled by Kochi. The Ganges River is also found in India.</lex>
+      <lex comment="good" lid="Id2">The AWH Engineering College in Kuttikkattoor, Kerala India currently has 250 staff. Kerala's leader is named Kochi and a famous river in the country is the Ganges.</lex>
+      <lex comment="good" lid="Id3">AWH Engineering College located in Kuttikkattoor, Kerala, India has an academic staff of 250. The state of Kerala's leader is Kochi and one of the rivers of India is the Ganges.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | faculty | 250</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>Kerala | leaderName | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | has to its northwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AWH Engineering College is located in Kuttikkattoor, Kerala, India. It has 250 academic staff. Kerala has Mahe, India to its northwest and its leader is Kochi.</lex>
+      <lex comment="good" lid="Id2">The state of Kerala in India is northwest of Mahe, India and is led by Kochi. It is the location of the AWH Engineering College in the city of Kuttikkattoor which has 250 academic staff.</lex>
+      </entry>
+    </entries>
+</benchmark>

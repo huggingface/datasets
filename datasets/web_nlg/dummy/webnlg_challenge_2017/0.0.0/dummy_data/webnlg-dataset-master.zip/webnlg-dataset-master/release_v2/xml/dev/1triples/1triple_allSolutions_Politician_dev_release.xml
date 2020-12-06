@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battle | Battle_of_Mine_Run</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Mine_Run</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Battle of Mine Run was one fought by Aaron S Daggett.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in the Battle of Mine Run.</lex>
+      <lex comment="good" lid="Id3">The Battle of Mine Run was one of the battles that Aaron S. Daggett fought at.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdul_Rahman_Ya'kub | governor | Tuanku_Bujang_Tuanku_Othman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Rahman_Ya'kub | inOfficeWhileVicePresident | Tuanku_Bujang_Tuanku_Othman</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Rahman Ya'kub was in office while Tuanku Bujang Tuanku Othman was Vice President.</lex>
+      <lex comment="good" lid="Id2">Abdul Rahman Ya'kub was in office whilst Tuanku Bujang Tuanku Othman was Vice President.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | almaMater | University_of_Adelaide</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | almaMater | University_of_Adelaide</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud's Alma mater is the University of Adelaide.</lex>
+      <lex comment="good" lid="Id2">The University of Adelaide is the alma mater of Abdul Taib Mahmud.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | region | Kota_Samarahan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | region | Kota_Samarahan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud is from Kota Samarahan.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud is from the region of Kota Samarahan.</lex>
+      <lex comment="good" lid="Id3">Adul Taib Mahmud lived in the Kota Samarahan region.</lex>
+    </entry>
+    </entries>
+</benchmark>

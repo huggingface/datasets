@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">American retiree Alan Bean was born in Wheeler, Texas.</lex>
+      <lex comment="good" lid="Id2">Retired US National Alan Bean was born in Wheeler, Texas.</lex>
+      <lex comment="good" lid="Id3">Alan Bean was born in the United States in Wheeler, Texas and has retired.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | nationality | United_States</otriple>
+        <otriple>United_States | leaderName | Joe_Biden</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | nationality | United_States</mtriple>
+        <mtriple>United_States | leaderName | Joe_Biden</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was born in Glen Ridge, New Jersey, USA (the leader of which was Joe Biden).</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | nationality | United_States</otriple>
+        <otriple>Buzz_Aldrin | selection | 1963</otriple>
+        <otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | nationality | United_States</mtriple>
+        <mtriple>Buzz_Aldrin | was selected by NASA | 1963</mtriple>
+        <mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States National Buzz Aldrin, who graduated from Massachusetts Institute of Technology, Sc. D. in 1963, was hired by NASA shortly after his graduation.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin, a US national, was selected by NASA in 1963 having graduated from MIT in 1963 with a doctorate in Science.</lex>
+      <lex comment="good" lid="Id3">American Buzz Aldrin graduated from Massachusetts Institute of Technology in 1963 with a doctorate in Science and was hired by NASA that year.</lex>
+      <lex comment="good" lid="Id4">Buzz Aldrin (from the United States) went to Massachusetts Institute of Technology, Sc.D. 1963 and was selected by NASA in 1963.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Elliot_See | almaMater | University_of_Texas_at_Austin</otriple>
+        <otriple>Elliot_See | birthPlace | Dallas</otriple>
+        <otriple>Elliot_See | nationality | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Elliot_See | almaMater | University_of_Texas_at_Austin</mtriple>
+        <mtriple>Elliot_See | birthPlace | Dallas</mtriple>
+        <mtriple>Elliot_See | nationality | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Elliot See, a US national, was born in Dallas and graduated from the University of Texas at Austin.</lex>
+      <lex comment="good" lid="Id2">Elliot See, a US national born in Dallas, was a student at University of Texas at Austin.</lex>
+      <lex comment="good" lid="Id3">Elliot See, a United States national born in Dallas, attended the University of Texas at Austin.</lex>
+      <lex comment="good" lid="Id4">Elliot See (born in Dallas, United States) attended the University of Texas at Austin.</lex>
+      </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Elliot_See | almaMater | University_of_Texas_at_Austin</otriple>
+        <otriple>Elliot_See | deathPlace | St._Louis</otriple>
+        <otriple>Elliot_See | selection | 1962</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Elliot_See | almaMater | University_of_Texas_at_Austin</mtriple>
+        <mtriple>Elliot_See | deathPlace | St._Louis</mtriple>
+        <mtriple>Elliot_See | was selected by NASA | 1962</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Elliot See, who graduated from the University of Texas at Austin and was chosen by NASA in 1962, died in St. Louis.</lex>
+      <lex comment="good" lid="Id2">Elliot See who was selected by NASA in 1962, attended the University of Texas at Austin and died in St Louis.</lex>
+      <lex comment="good" lid="Id3">Elliot See, who graduated from the University of Texas in Austin and was chosen by NASA in 1962, has died in St Louis.</lex>
+    </entry>
+    </entries>
+</benchmark>

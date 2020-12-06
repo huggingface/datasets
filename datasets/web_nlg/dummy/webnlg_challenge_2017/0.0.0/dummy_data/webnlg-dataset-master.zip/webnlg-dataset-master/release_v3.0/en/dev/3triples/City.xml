@@ -1,0 +1,129 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | 2.865e+08</otriple>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | 2.86453e+08</otriple>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.5"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | 2.865e+08</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | 2.86453e+08</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | 2.86453e+08</otriple>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | 2.86453e+08</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | elevationAboveTheSeaLevel | 524.0</mtriple>
+        <mtriple>Abilene,_Texas | populationDensity | 429.9 (inhabitants per square kilometre)</mtriple>
+        <mtriple>Abilene,_Texas | areaTotal | 286.5 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene, Texas is 524 above sea level, is 286.5 square kilometres large and has 429.9 people per square kilometre.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas; is 524m above sea level, has a total area of 286.5 sq km, and a population density of 429.9 inhabitants per square kilometre.</lex>
+      <lex comment="good" lid="Id3">At 524 metres above sea level, Abilene (Texas) has a total area of 286.5 square kilometres, and a population density of 429.9 inhabitants per square kilometre.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is located in Texas in the United States. Washington, D. C. is the country's capital.</lex>
+      <lex comment="good" lid="Id2">Abilene is part of Texas which is in the US, the capital of which is Washington DC.</lex>
+      <lex comment="good" lid="Id3">Abilene is a part of Texas, in the United States, of which Washington, D.C. is the capital.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Dougherty_County,_Georgia</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Dougherty_County,_Georgia</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany is a city in Dougherty County, Georgia in the United States where African Americans are an ethnic group.</lex>
+      <lex comment="good" lid="Id2">Albany is part of Dougherty County in Georgia in the United States where African Americans are one of the ethnic groups.</lex>
+      <lex comment="good" lid="Id3">The United States is home to an ethnic group called African Americans and is where you will find Albany, Dougherty County in Georgia.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | country | United_States</otriple>
+        <otriple>Albany,_Oregon | subdivisionName | Linn_County,_Oregon</otriple>
+        <otriple>Albany,_Oregon | isPartOf | Benton_County,_Oregon</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Albany,_Oregon | country | United_States</otriple>
+        <otriple>Albany,_Oregon | isPartOf | Linn_County,_Oregon</otriple>
+        <otriple>Albany,_Oregon | subdivisionName | Benton_County,_Oregon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | country | United_States</mtriple>
+        <mtriple>Albany,_Oregon | isPartOf | Linn_County,_Oregon</mtriple>
+        <mtriple>Albany,_Oregon | isPartOf | Benton_County,_Oregon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany is a city in Linn County and part of Benton County, Oregon in the U.S.</lex>
+      <lex comment="good" lid="Id2">The city of Albany is part of both Linn County and Benton County, in Oregon, in the United States.</lex>
+      <lex comment="good" lid="Id3">Part of Linn County, the city of Albany, is also part of Benton County, Oregon, in the U.S.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | leaderTitle | New_Mexico_House_of_Representatives</otriple>
+        <otriple>New_Mexico_House_of_Representatives | leader | Don_Tripp</otriple>
+        <otriple>Albuquerque,_New_Mexico | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | leaderTitle | New_Mexico_House_of_Representatives</mtriple>
+        <mtriple>New_Mexico_House_of_Representatives | leader | Don_Tripp</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The New Mexico House of Representatives, led by Don Tripp, is the leader of Albuquerque, New Mexico in the United States.</lex>
+      <lex comment="good" lid="Id2">Albuquerque, New Mexico, U.S. is led by the New Mexico house of representatives, whose leader is Don Tripp.</lex>
+      <lex comment="good" lid="Id3">Albuquerque, New Mexico is in the United States and led by the New Mexico House of Representatives. Don Tripp leads that house.</lex>
+    </entry>
+    </entries>
+</benchmark>

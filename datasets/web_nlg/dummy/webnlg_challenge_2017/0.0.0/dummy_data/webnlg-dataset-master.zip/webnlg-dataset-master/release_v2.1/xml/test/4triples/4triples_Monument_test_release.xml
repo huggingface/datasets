@@ -1,0 +1,87 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | state | "Pennsylvania"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument (established in 2000) is in Pennsylvania in the United States, where it is categorised as a contributing property.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument is located in Pennsylvania in the United States. Established in the year 2000, the Monument falls under the category of Contributing property.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry monument is located in Pennsylvania, United States. It was established in 2000 and categorised as Contributing Property.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Azerbaijan | capital | Baku</otriple>
+        <otriple>Azerbaijan | leaderTitle | Prime_Minister_of_Azerbaijan</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+        <otriple>Azerbaijan | leaderName | Artur_Rasizade</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | capital | Baku</mtriple>
+        <mtriple>Azerbaijan | leaderTitle | Prime_Minister_of_Azerbaijan</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+        <mtriple>Azerbaijan | leaderName | Artur_Rasizade</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Turkish martyrs memorial is located in Baku, the capital of Azerbaijan, where the leader (Prime Minister of Azerbaijan) is called Artur Rasizade.</lex>
+      <lex comment="good" lid="Id2">Prime Minister of Azerbaijan is the official title of the leader of Azerbaijan and his name is Artur Rasizade. The Baku Turkish Martyrs' Memorial can be found in Baku, the capital of Azerbaijan.</lex>
+      <lex comment="good" lid="Id3">The Baku Turkish Martyrs' Memorial is located in Baku, the capital of Azerbaijan, which is led by the Prime Minister of Azerbaijan, Artur Rasizade.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Azerbaijan | capital | Baku</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | nativeName | "Türk Şehitleri Anıtı"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | capital | Baku</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | nativeName | "Türk Şehitleri Anıtı"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Baku Turkish Martyrs Memorial in Azerbaijan, which has Baku as its capital, is dedicated to the Ottoman Army soldiers killed in the Battle of Baku and is known locally as Türk Sehitleri Aniti.</lex>
+      <lex comment="good" lid="Id2">The Baku Turkish Martyrs memorial, also known as Turk Sehitleri Aniti, is dedicated to Ottoman soldiers killed in the battle of Baku. It is located in Baku, the capital of Azerbaijan.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Monocacy_National_Battlefield | location | Frederick_County,_Maryland</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | established | "1907-07-11"^^xsd:date</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | district | Monocacy_National_Battlefield</otriple>
+        <otriple>Monocacy_National_Battlefield | nearestCity | Frederick,_Maryland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Monocacy_National_Battlefield | location | Frederick_County,_Maryland</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | established | "1907-07-11"</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | district | Monocacy_National_Battlefield</mtriple>
+        <mtriple>Monocacy_National_Battlefield | nearestCity | Frederick,_Maryland</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 14th New Jersey Volunteer Infantry Monument was established 1907-07-11 at the Monocacy National Battlefield in the county of Frederick, Maryland, with Frederick, Maryland as its nearest city.</lex>
+      <lex comment="good" lid="Id2">The 14th New Jersey Volunteer Infantry Monument was established on July 11th, 1907 and located in the Monocacy National Battlefield in the county Frederick, Maryland. The city nearest to Monocacy National Battlefield is Frederick, Maryland.</lex>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderName | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The capital of Turkey is Ankara and the leader is Ahmet Davutoglu. Turkey is the location of the bronze Ataturk monument.</lex>
+      <lex comment="good" lid="Id2">The Atatürk Monument in Izmir is made of bronze, is located in Turkey, which is led by Ahmet Davutoglu and has Ankara as its capital.</lex>
+      <lex comment="good" lid="Id3">Ahmet Davutoglu is the leader of Turkey where the capital is Ankara. The Ataturk monument (Izmir) which is made of bronze is located within the country.</lex>
+    </entry>
+    </entries>
+</benchmark>

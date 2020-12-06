@@ -1,0 +1,91 @@
+<benchmark>
+	<entries>
+		<entry category="Astronaut" eid="Id1" size="7">
+			<originaltripleset>
+				<otriple>Alan_Shepard | status | "Deceased"@en</otriple>
+				<otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+				<otriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</otriple>
+				<otriple>Alan_Shepard | deathPlace | California</otriple>
+				<otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+				<otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+				<otriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+				<mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+				<mtriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</mtriple>
+				<mtriple>Alan_Shepard | deathPlace | California</mtriple>
+				<mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+				<mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+				<mtriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</mtriple>
+			</modifiedtripleset>
+			<lex comment="toFix" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Shepard | birthDate | "1923-11-18"</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Shepard | deathPlace | California</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Alan_Shepard | occupation | Test_pilot</striple>
+						<striple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</striple>
+						<striple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Alan_Shepard" number="1" tag="AGENT-1" type="name">Alan Shepard</reference>
+					<reference entity="&quot;1923-11-18&quot;" number="2" tag="PATIENT-6" type="name">November 18 , 1923</reference>
+					<reference entity="California" number="3" tag="PATIENT-4" type="name">California</reference>
+					<reference entity="Alan_Shepard" number="4" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="Test_pilot" number="5" tag="PATIENT-2" type="description">A Test pilot</reference>
+					<reference entity="Distinguished_Service_Medal_(United_States_Navy)" number="6" tag="BRIDGE-1" type="description">the Medal of Service Distinguished from The Sea-coast of The United States</reference>
+					<reference entity="Department_of_Commerce_Gold_Medal" number="7" tag="PATIENT-3" type="description">the Department of Commerce Gold Medal</reference>
+				</references>
+				<text>Alan Shepard was born on November 18, 1923. Murio in California. He was A Test pilot Rewarded with the Medal of Service Distinguished from The Sea-coast of The United States, Medal of the United States Navy is higher than the Department of Commerce Gold Medal.</text>
+				<template>AGENT-1 was born on PATIENT-6 . Murio in PATIENT-4 . AGENT-1 was PATIENT-2 Rewarded with BRIDGE-1 , Medal of the United States Navy is higher than PATIENT-3 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear on PATIENT-6 . Murio in PATIENT-4 . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=singular] be PATIENT-2 VP[aspect=simple,tense=past,voice=active,person=null,number=null] reward with BRIDGE-1 , Medal of DT[form=defined] the United States Navy VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be higher than PATIENT-3 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Shepard | occupation | Test_pilot</striple>
+						<striple>Alan_Shepard | birthPlace | New_Hampshire</striple>
+						<striple>Alan_Shepard | birthDate | "1923-11-18"</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</striple>
+						<striple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Alan_Shepard | deathPlace | California</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Test_pilot" number="1" tag="PATIENT-2" type="description">The</reference>
+					<reference entity="Alan_Shepard" number="2" tag="AGENT-1" type="name">test pilot Alan Bean</reference>
+					<reference entity="New_Hampshire" number="3" tag="PATIENT-5" type="name">New Hampshire</reference>
+					<reference entity="&quot;1923-11-18&quot;" number="4" tag="PATIENT-6" type="name">Nov 18th 1923</reference>
+					<reference entity="Alan_Shepard" number="5" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="Distinguished_Service_Medal_(United_States_Navy)" number="6" tag="BRIDGE-1" type="description">the Distinguished Service Medal</reference>
+					<reference entity="Department_of_Commerce_Gold_Medal" number="7" tag="PATIENT-3" type="description">the department of commerce gold medal</reference>
+					<reference entity="Alan_Shepard" number="8" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="California" number="9" tag="PATIENT-4" type="name">California</reference>
+				</references>
+				<text>The test pilot Alan Bean was born in New Hampshire on Nov 18th 1923. He was awarded the Distinguished Service Medal, which is higher than the department of commerce gold medal, in the United States Navy. He died in California.</text>
+				<template>PATIENT-2 AGENT-1 was born in PATIENT-5 on PATIENT-6 . AGENT-1 was awarded BRIDGE-1 , which is higher than PATIENT-3 , in the United States Navy . AGENT-1 died in PATIENT-4 .</template>
+				<lexicalization>PATIENT-2 AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear in PATIENT-5 on PATIENT-6 . AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] award BRIDGE-1 , which VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be higher than PATIENT-3 , in DT[form=defined] the United States Navy . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] die in PATIENT-4 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Alan_Shepard</entity>
+				<entity>BRIDGE-1 | Distinguished_Service_Medal_(United_States_Navy)</entity>
+				<entity>PATIENT-1 | "Deceased"</entity>
+				<entity>PATIENT-2 | Test_pilot</entity>
+				<entity>PATIENT-3 | Department_of_Commerce_Gold_Medal</entity>
+				<entity>PATIENT-4 | California</entity>
+				<entity>PATIENT-5 | New_Hampshire</entity>
+				<entity>PATIENT-6 | "1923-11-18"</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

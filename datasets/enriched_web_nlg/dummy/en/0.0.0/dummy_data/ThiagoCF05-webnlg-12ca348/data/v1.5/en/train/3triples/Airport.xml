@@ -1,0 +1,59 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="3">
+			<originaltripleset>
+				<otriple>Aarhus_Airport | location | Tirstrup</otriple>
+				<otriple>Tirstrup | country | Denmark</otriple>
+				<otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+				<mtriple>Tirstrup | country | Denmark</mtriple>
+				<mtriple>Denmark | leaderName | Lars_Løkke_Rasmussen</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Denmark | leaderName | Lars_Løkke_Rasmussen</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Denmark" number="1" tag="BRIDGE-2" type="name">Denmark</reference>
+					<reference entity="Lars_Løkke_Rasmussen" number="2" tag="PATIENT-1" type="name">Lars Lokke Rasmussen</reference>
+					<reference entity="Aarhus_Airport" number="3" tag="AGENT-1" type="name">Aarhus AIrport</reference>
+					<reference entity="Tirstrup" number="4" tag="BRIDGE-1" type="name">Tirstrup</reference>
+				</references>
+				<text>Denmark is lead by Lars Lokke Rasmussen and is the location of Aarhus AIrport, Tirstrup.</text>
+				<template>BRIDGE-2 is lead by PATIENT-1 and is the location of AGENT-1 , BRIDGE-1 .</template>
+				<lexicalization>BRIDGE-2 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] lead by PATIENT-1 and VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be DT[form=defined] the location of AGENT-1 , BRIDGE-1 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Denmark | leaderName | Lars_Løkke_Rasmussen</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Aarhus_Airport" number="1" tag="AGENT-1" type="name">Aarhus Airport</reference>
+					<reference entity="Tirstrup" number="2" tag="BRIDGE-1" type="name">Tirstrup</reference>
+					<reference entity="Denmark" number="3" tag="BRIDGE-2" type="name">Denmark</reference>
+					<reference entity="Lars_Løkke_Rasmussen" number="4" tag="PATIENT-1" type="name">Lars Lokke Rasmussen</reference>
+					<reference entity="Denmark" number="5" tag="BRIDGE-2" type="pronoun">its</reference>
+				</references>
+				<text>Aarhus Airport is found in Tirstrup, Denmark where Lars Lokke Rasmussen is its leader.</text>
+				<template>AGENT-1 is found in BRIDGE-1 , BRIDGE-2 where PATIENT-1 is BRIDGE-2 leader .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] find in BRIDGE-1 , BRIDGE-2 where PATIENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be BRIDGE-2 leader .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus_Airport</entity>
+				<entity>BRIDGE-1 | Tirstrup</entity>
+				<entity>BRIDGE-2 | Denmark</entity>
+				<entity>PATIENT-1 | Lars_Løkke_Rasmussen</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

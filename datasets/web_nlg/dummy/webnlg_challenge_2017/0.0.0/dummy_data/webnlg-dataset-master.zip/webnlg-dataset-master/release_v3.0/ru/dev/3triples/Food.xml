@@ -1,0 +1,136 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Dessert | hasVariant | Ice_cream</otriple>
+        <otriple>Bionico | ingredient | Raisin</otriple>
+        <otriple>Bionico | course | Dessert</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Dessert | dishVariation | Ice_cream</mtriple>
+        <mtriple>Bionico | ingredient | Raisin</mtriple>
+        <mtriple>Bionico | course | Dessert</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ice cream is a dessert, as is Bionico which contains raisins.</lex>
+      <lex lang="ru" lid="Id1">Мороженое – десерт, как и Бионико, который содержит изюм.</lex>
+      <lex lang="en" lid="Id2">Ice cream is a type of dessert, as is Bionico, which contains raisins.</lex>
+      <lex lang="ru" lid="Id2">Мороженое – разновидность десерта, как и Бионико, который содержит изюм.</lex>
+      <lex lang="en" lid="Id3">Bionico (which contains raisins) and ice cream are both served as a dessert.</lex>
+      <lex lang="ru" lid="Id3">Как бионико (который содержит изюм), так и мороженое подаются в качестве десерта.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Raisin | sameAs | Изюм</dbpedialink>
+        <dbpedialink direction="en2ru">Dessert | sameAs | Десерт</dbpedialink>
+        <dbpedialink direction="en2ru">Ice_cream | sameAs | Мороженое</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bionico | sameAs | Бионико</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Indonesia | capital | Jakarta</otriple>
+        <otriple>Indonesia | leader | Joko_Widodo</otriple>
+        <otriple>Bakso | country | Indonesia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Indonesia | capital | Jakarta</mtriple>
+        <mtriple>Indonesia | leader | Joko_Widodo</mtriple>
+        <mtriple>Bakso | country | Indonesia</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Joko Widodo is the leader of Indonesia, where the capital is Jakarta and where the dish Bakso is from.</lex>
+      <lex lang="ru" lid="Id1">Джоко Видодо - лидер Индонезии, где столица - Джакарта и откуда родом блюдо Баксо.</lex>
+      <lex lang="en" lid="Id2">Jakarta is the capital of Indonesia whose leader is Joko Widodo. Bakso is a dish from that country.</lex>
+      <lex lang="ru" lid="Id2">Джакарта - столица Индонезии, чьим лидером является Джоко Видодо. Баксо - блюдо этой страны.</lex>
+      <lex lang="en" lid="Id3">Bakso is a dish which originates from Indonesia, the Capital of Indonesia is Jakarta and it's leader is Joko Widodo.</lex>
+      <lex lang="ru" lid="Id3">Баксо – блюдо из Индонезии, столица Индонезии - Джакарта, и ее лидер - Джоко Видодо.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Indonesia | sameAs | Индонезия</dbpedialink>
+        <dbpedialink direction="en2ru">Bakso | sameAs | Баксо</dbpedialink>
+        <dbpedialink direction="en2ru">Jakarta | sameAs | Джакарта</dbpedialink>
+        <dbpedialink direction="en2ru">Joko_Widodo | sameAs | Джоко_Видодо</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Indonesia | language | Indonesian_language</otriple>
+        <otriple>Indonesia | leader | Jusuf_Kalla</otriple>
+        <otriple>Bakso | country | Indonesia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Indonesia | language | Indonesian_language</mtriple>
+        <mtriple>Indonesia | leaderName | Jusuf_Kalla</mtriple>
+        <mtriple>Bakso | country | Indonesia</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Jusuf Kalla is the leader of Indonesia where the language is Indonesian and one of the local dishes is Bakso.</lex>
+      <lex lang="ru" lid="Id1">Юсуф Калла - лидер Индонезии, где говорят на индонезийском языке, а одно из местных блюд - Баксо.</lex>
+      <lex lang="en" lid="Id2">Bakso is a dish from Indonesia where Jusuf Kalla is the leader and the Indonesian language is spoken.</lex>
+      <lex lang="ru" lid="Id2">Баксо – блюдо из Индонезии, где лидером выступает Юсуф Калла, и разговорным является индонезийский язык.</lex>
+      <lex lang="en" lid="Id3">Bakso is a dish from the country of Indonesia where Jusuf Kalla is a leader and the language spoken is Indonesian.</lex>
+      <lex lang="ru" lid="Id3">Баксо – блюдо из Индонезии, где Юсуф Калла является лидером и язык, на котором говорят - индонезийский.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Indonesia | sameAs | Индонезия</dbpedialink>
+        <dbpedialink direction="en2ru">Indonesian_language | sameAs | Индонезийский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Jusuf_Kalla | sameAs | Калла,_Юсуф</dbpedialink>
+        <dbpedialink direction="en2ru">Bakso | sameAs | Баксо</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leader | Laura_Boldrini</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leaderName | Laura_Boldrini</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Italy | leader | Laura_Boldrini</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Amatriciana sauce can be found in Italy, where the capital is Rome and where Laura Boldrini is the leader.</lex>
+      <lex lang="ru" lid="Id1">Соус Аматричана можно найти в Италии, где столица - Рим и где Лаура Больдрини — лидер.</lex>
+      <lex lang="en" lid="Id2">Amatriciana is a traditional sauce from Italy where the capital is Rome and Laura Boldrini is a leader.</lex>
+      <lex lang="ru" lid="Id2">Аматричана - традиционный соус из Италии, где столица - Рим и Лора Больдрини — лидер.</lex>
+      <lex lang="en" lid="Id3">Amatriciana sauce is a traditional sauce of Italy, where the capital is Rome and a key leader is Laura Boldrini.</lex>
+      <lex lang="ru" lid="Id3">Аматричана - это традиционный соус из Италии, где столицей является Рим, а ведущим руководителем Лаура Больдрини.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Laura_Boldrini | sameAs | Больдрини,_Лаура</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Amatriciana_sauce | sameAs | Аматричана</dbpedialink>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leaderName | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Amatriciana sauce comes from Italy where Sergio Mattarella is a leader and the capital is Rome.</lex>
+      <lex lang="ru" lid="Id1">Соус аматричана происходит из Италии, где Серджо Маттарелла - лидер, и столица - Рим.</lex>
+      <lex lang="en" lid="Id2">Amatriciana sauce is a traditional sauce from Italy which has the capital city of Rome and Sergio Mattarella as leader.</lex>
+      <lex lang="ru" lid="Id2">Соус Аматричана – это традиционный соус из Италии, в которой столица - Рим и Серхио Маттарелла - лидер.</lex>
+      <lex lang="en" lid="Id3">Italy is the country Amatriciana sauce comes from, its leader is Sergio Mattarella and its capital is Rome.</lex>
+      <lex lang="ru" lid="Id3">Италия – родина соуса аматричана, ее лидер - Серхио Маттарелла и столица - Рим.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">Amatriciana_sauce | sameAs | Аматричана</dbpedialink>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

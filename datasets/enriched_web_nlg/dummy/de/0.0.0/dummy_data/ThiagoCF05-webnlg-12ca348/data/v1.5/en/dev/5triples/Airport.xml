@@ -1,0 +1,82 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="5">
+			<originaltripleset>
+				<otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+				<otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+				<otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+				<otriple>Uttar_Pradesh | leaderName | Ram_Naik</otriple>
+				<otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</mtriple>
+				<mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+				<mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+				<mtriple>Uttar_Pradesh | leaderName | Ram_Naik</mtriple>
+				<mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Agra_Airport | location | Uttar_Pradesh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Bundelkhand</striple>
+						<striple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Uttar_Pradesh | leaderName | Ram_Naik</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Agra_Airport" number="1" tag="AGENT-1" type="name">Agra Airport</reference>
+					<reference entity="Uttar_Pradesh" number="2" tag="BRIDGE-1" type="name">Uttar</reference>
+					<reference entity="Bundelkhand" number="3" tag="PATIENT-4" type="name">Pradesh Bundelkhand</reference>
+					<reference entity="Agra_Airport" number="4" tag="AGENT-1" type="name">it 's</reference>
+					<reference entity="&quot;VIAG&quot;" number="5" tag="PATIENT-1" type="name">VIAG</reference>
+					<reference entity="Uttar_Pradesh" number="6" tag="BRIDGE-1" type="name">Utterar Pradesh</reference>
+					<reference entity="Ram_Naik" number="7" tag="PATIENT-3" type="name">Ram Naik</reference>
+				</references>
+				<text>Agra Airport is in Uttar Pradesh Bundelkhand, it's ICAO location identifier is VIAG. the leader of Utterar Pradesh is Ram Naik.</text>
+				<template>AGENT-1 is in BRIDGE-1 PATIENT-4 , AGENT-1 ICAO location identifier is PATIENT-1 . the leader of BRIDGE-1 is PATIENT-3 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be in BRIDGE-1 PATIENT-4 , AGENT-1 ICAO location identifier VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-1 . DT[form=defined] the leader of BRIDGE-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-3 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Agra_Airport | location | Uttar_Pradesh</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Uttar_Pradesh | isPartOf | Awadh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Bundelkhand</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</striple>
+					</sentence>
+					<sentence ID="4">
+						<striple>Uttar_Pradesh | leaderName | Ram_Naik</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Agra_Airport" number="1" tag="AGENT-1" type="name">Agra Airport</reference>
+					<reference entity="Uttar_Pradesh" number="2" tag="BRIDGE-1" type="name">Uttar Pradesh</reference>
+					<reference entity="Uttar_Pradesh" number="3" tag="BRIDGE-1" type="name">Uttar Pradesh</reference>
+					<reference entity="Awadh" number="4" tag="PATIENT-2" type="name">Awadh</reference>
+					<reference entity="Bundelkhand" number="5" tag="PATIENT-4" type="name">ad Bundelkhand</reference>
+					<reference entity="Agra_Airport" number="6" tag="AGENT-1" type="description">The Airport 's</reference>
+					<reference entity="Uttar_Pradesh" number="8" tag="BRIDGE-1" type="name">Uttar Pradesh</reference>
+					<reference entity="Ram_Naik" number="9" tag="PATIENT-3" type="name">Ram Naik</reference>
+				</references>
+				<text>Agra Airport is located in Uttar Pradesh. Uttar Pradesh is part of both Awadh ad Bundelkhand. The Airport's ICAO location identifier is "VIAG". The leader of Uttar Pradesh is called Ram Naik.</text>
+				<template>AGENT-1 is located in BRIDGE-1 . BRIDGE-1 is part of both PATIENT-2 PATIENT-4 . AGENT-1 ICAO location identifier is `` PATIENT-1 '' . The leader of BRIDGE-1 is called PATIENT-3 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located in BRIDGE-1 . BRIDGE-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be part of both PATIENT-2 PATIENT-4 . AGENT-1 ICAO location identifier VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be `` PATIENT-1 '' . DT[form=defined] the leader of BRIDGE-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] call PATIENT-3 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Agra_Airport</entity>
+				<entity>BRIDGE-1 | Uttar_Pradesh</entity>
+				<entity>PATIENT-1 | "VIAG"</entity>
+				<entity>PATIENT-2 | Awadh</entity>
+				<entity>PATIENT-3 | Ram_Naik</entity>
+				<entity>PATIENT-4 | Bundelkhand</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

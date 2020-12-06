@@ -1,0 +1,180 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.5"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaCode | "325"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaCode | "325"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaCode | "325"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaCode | "325"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42449e+07</otriple>
+        <otriple>Abilene,_Texas | elevation | "524.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | areaCode | 325</otriple>
+        <otriple>Abilene,_Texas | populationDensity | "429.9"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | areaOfWater | 14.2 (square kilometres)</mtriple>
+        <mtriple>Abilene,_Texas | elevationAboveTheSeaLevel | 524.0</mtriple>
+        <mtriple>Abilene,_Texas | areaCode | 325</mtriple>
+        <mtriple>Abilene,_Texas | populationDensity | 429.9 (inhabitants per square kilometre)</mtriple>
+        <mtriple>Abilene,_Texas | areaTotal | 286.5 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene, Texas lies 524.0 above sea level and has the area code of 325 and a population density of 429.9 inhabitants per sq km. It has a total area of 286.5 sq km of which 14.2 sq km are water.</lex>
+      <lex comment="good" lid="Id2">Abilene is in Texas and has the area code 325. It is 524.0 above sea level, has a water area of 14.2 sq km, and a total area of 286.5 sq km.</lex>
+      </entry>
+    <entry category="City" eid="Id2" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | largestCity | Houston</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>Texas | language | Spanish_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | largestCity | Houston</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>Texas | language | Spanish_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Texas, where the capital is Austin and the largest city is Houston. One of the languages spoken in Texas, which is part of the United States, is Spanish.</lex>
+      <lex comment="good" lid="Id2">Abilence is in Texas, United States. Houston is the largest city in Texas, where Spanish is spoken, and its capital is Austin.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>United_States | demonym | Americans</otriple>
+        <otriple>United_States | ethnicGroup | Asian_Americans</otriple>
+        <otriple>United_States | language | English_language</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>United_States | demonym | Americans</mtriple>
+        <mtriple>United_States | ethnicGroup | Asian_Americans</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">English is the language of the United States, where Asian Americans are an ethnic group and where the inhabitants are referred to as Americans. The US is home to Albany, which is found in the state of Georgia.</lex>
+      <lex comment="good" lid="Id2">In the U.S. there are many different types of Americans, including Asian Americans. The native language in the U.S. is English, which is poke in cities like Albany, Georgia.</lex>
+      <lex comment="good" lid="Id3">Albany is part of Georgia, in the United States. The English speaking country where the inhabitants are known as Americans and where Asian Americans are one of the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | areaLand | 4.862e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | populationDensity | "1142.3"^^xsd:double</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaCode | 505575</otriple>
+        <otriple>Albuquerque,_New_Mexico | subdivisionName | "New Mexico"@en</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaTotal | "490.9"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | areaLand | 4.862e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaTotal | 4.909e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | populationDensity | "1142.3"^^xsd:double</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaCode | 505575</otriple>
+        <otriple>Albuquerque,_New_Mexico | subdivisionName | "New Mexico"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | areaCode | "505, 575"</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaLand | 4.862e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | populationDensity | "1142.3"^^xsd:double</otriple>
+        <otriple>Albuquerque,_New_Mexico | subdivisionName | "New Mexico"@en</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaTotal | "490.9"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | populationDensity | "1142.3"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaLand | 4.862e+08</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaCode | 505575</otriple>
+        <otriple>Albuquerque,_New_Mexico | subdivisionName | "New Mexico"@en</otriple>
+        <otriple>Albuquerque,_New_Mexico | areaTotal | "490.9"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | areaOfLand | 486.2 (square kilometres)</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | populationDensity | 1142.3 (inhabitants per square kilometre)</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | areaCode | 505, 575</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | isPartOf | New_Mexico</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | areaTotal | 490.9 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albuquerque in New Mexico has a total area of 490.9 sq km, of which 486.2 is land. The population density is 1142.3 people per square kilometre. The area codes for Albuquerque are 505 and 575.</lex>
+      <lex comment="good" lid="Id2">The total area of Albuquerque in New Mexico is 490.9 square kilometres of which 486.2 is land. The population density is 1142.3 persons per sq km and the area codes there are 505 and 575.</lex>
+      <lex comment="good" lid="Id3">Albuquerque, N.M. has an area of land of 486.2 and total area of 490.9 square kilometers.The area codes in Albuquerque, New Mexico are 505 and 575 and there are 1142.3 people per square kilometres.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Anaheim,_California | leaderName | Tom_Tait</otriple>
+        <otriple>Anaheim,_California | isPartOf | California</otriple>
+        <otriple>California | language | Spanish_language</otriple>
+        <otriple>United_States_House_of_Representatives | location | United_States_Capitol</otriple>
+        <otriple>Anaheim,_California | leaderTitle | United_States_House_of_Representatives</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Anaheim,_California | leader | Tom_Tait</mtriple>
+        <mtriple>Anaheim,_California | isPartOf | California</mtriple>
+        <mtriple>California | language | Spanish_language</mtriple>
+        <mtriple>United_States_House_of_Representatives | location | United_States_Capitol</mtriple>
+        <mtriple>Anaheim,_California | leaderTitle | United_States_House_of_Representatives</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Anaheim is led by Tom Tait along with the United House of Representatives located in the US Capitol. The city is located in California where the Spanish language is spoken.</lex>
+      <lex comment="good" lid="Id2">Located in the United States Capitol, the United States House of Representatives leads Anaheim, California. Tom Tait is a leader in Anaheim, California, where the Spanish language is spoken.</lex>
+      </entry>
+    </entries>
+</benchmark>

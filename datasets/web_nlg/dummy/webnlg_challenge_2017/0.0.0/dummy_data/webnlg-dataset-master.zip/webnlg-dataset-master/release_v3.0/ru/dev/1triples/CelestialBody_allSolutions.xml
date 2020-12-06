@@ -1,0 +1,99 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>110_Lydia | temperature | "168.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>110_Lydia | Planet/temperature | "168.0"^^&lt;http://dbpedia.org/datatype/kelvin&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>110_Lydia | temperature | 168.0 (kelvins)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">110 Lydia has a temperature of 168 kelvins.</lex>
+      <lex lang="ru" lid="Id1">(110) Лидия имеет температуру 168 кельвинов.</lex>
+      <lex lang="en" lid="Id2">110 Lydia has a temperature of 168.0 kelvins.</lex>
+      <lex lang="ru" lid="Id2">(110) Лидия имеет температуру 168,0 кельвина.</lex>
+      <lex lang="en" lid="Id3">The asteroid 110 Lydia has a temperature of 168.0 kelvins.</lex>
+      <lex lang="ru" lid="Id3">Астероид (110) Лидия имеет температуру 168,0 кельвина.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">110_Lydia | sameAs | (110)_Лидия</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11264_Claudiomaccone | Planet/apoapsis | "4.75426E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11264_Claudiomaccone | apoapsis | 475426000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The apoapsis for 11264 Claudiomaccone is 475426000.0 (kilometres).</lex>
+      <lex lang="ru" lid="Id1">Апоцентр астероида 11264 Клаудиомакконе составляет 475,426 млн км.</lex>
+      <lex lang="en" lid="Id2">11264 Claudiomaccone has an apoapsis of 475426000.0 kilometres.</lex>
+      <lex lang="ru" lid="Id2">11264 Клаудиомакконе имеет апоапсиду 475426000,0 км.</lex>
+      <lex lang="en" lid="Id3">11264 Claudiomaccone has an apoapsis of 475426000 kilometres.</lex>
+      <lex lang="ru" lid="Id3">11264 Клаудиомакконе имеет апоцентр 475426000,0 км.</lex>
+      <links>
+        <link direction="en2ru">11264 Claudiomaccone | sameAs | 11264 Клаудиомакконе</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11264_Claudiomaccone | avgSpeed | "18.29"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11264_Claudiomaccone | averageSpeed | "65844.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11264_Claudiomaccone | Planet/averageSpeed | "18.29"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11264_Claudiomaccone | averageSpeed | 18.29 (kilometrePerSeconds)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">11264 Claudiomaccone has an average speed of 18.29 kilometres per second.</lex>
+      <lex lang="ru" lid="Id1">11264 Клаудиомакконе имеет среднюю скорость 18,29 километра в секунду.</lex>
+      <lex lang="en" lid="Id2">The celestial body known as 11264 Claudiomaccone has an average speed of 18.29km/s.</lex>
+      <lex lang="ru" lid="Id2">Небесное тело, известное как 11264 Клаудиомакконе, имеет среднюю скорость 18,29 км/с.</lex>
+      <lex lang="en" lid="Id3">The asteroid called 11264 Claudiomaccone has an average speed of 18.29 kilometres per second.</lex>
+      <lex lang="ru" lid="Id3">Астероид под названием 11264 Клаудиомакконе имеет среднюю скорость 18,29 километра в секунду.</lex>
+      <links>
+        <link direction="en2ru">11264 Claudiomaccone | sameAs | 11264 Клаудиомакконе</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11264_Claudiomaccone | discoverer | Nikolai_Chernykh</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11264_Claudiomaccone | discoverer | Nikolai_Chernykh</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">11264 Claudiomaccone was discovered by Nikolai Chernykh.</lex>
+      <lex lang="ru" lid="Id1">11264 Клаудиомакконе обнаружил Николай Степанович Черных.</lex>
+      <lex lang="en" lid="Id2">Nikolai Chernykh was the discoverer of 11264 Claudiomaccone.</lex>
+      <lex lang="ru" lid="Id2">Николай Степанович Черных был первооткрывателем 11264 Клаудиомакконе.</lex>
+      <lex lang="en" lid="Id3">Nikolai Chernykh discovered 11264 Claudiomaccone.</lex>
+      <lex lang="ru" lid="Id3">Николай Степанович Черных обнаружил 11264 Клаудиомакконе.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Nikolai_Chernykh | sameAs | Черных,_Николай_Степанович</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">11264 Claudiomaccone | sameAs | 11264 Клаудиомакконе</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11264_Claudiomaccone | epoch | "November 26, 2005 (JD2453700.5)"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11264_Claudiomaccone | epoch | 2005-11-26</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">11264 Claudiomaccone has the epoch date of 26 November 2005.</lex>
+      <lex lang="ru" lid="Id1">11264 Клаудиомакконе имеет эпоху 26 ноября 2005 года.</lex>
+      <lex lang="en" lid="Id2">11264 Claudiomaccone has an epoch date of November 26th 2005.</lex>
+      <lex lang="ru" lid="Id2">11264 Клаудиомакконе имеет эпоху 26 ноября 2005 года.</lex>
+      <links>
+        <link direction="en2ru">11264 Claudiomaccone | sameAs | 11264 Клаудиомакконе</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,101 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | leaderName | Cyril_Ramaphosa</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Asian_South_Africans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Cyril Ramaphosa is one of the leaders of South Africa, which capital is Cape Town. The address, 11 Diagonal Street is located in that country and one of the ethnic groups is Asian South Africans.</lex>
+      <lex comment="good" lid="Id2">Led by Cyril Ramaphosa, South Africa is location of 11 Diagonal Street, has the capital of Cape Town and has an ethnic group of Asian South Africans.</lex>
+      <lex comment="good" lid="Id3">With the capital of Cape Town, South Africa is the location of 11 Diagonal Street, has the ethnic group of Asian South Africans and one of its leaders is Cyril Ramaphosa.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | ethnicGroups | Asian_South_Africans</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | ethnicGroup | White_South_African</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | ethnicGroups | White_South_African</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Asian_South_Africans</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | ethnicGroup | White_South_African</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">With the capital of Cape Town, South Africa is the location of 11 Diagonal Street and has the ethnic groups of Asian South Africans and white South Africans.</lex>
+      <lex comment="good" lid="Id2">11 Diagonal Street is located in South Africa, of which Cape Town is the capital. Two ethnic groups within South Africa are the Asian South Africans, and white South Africans.</lex>
+      <lex comment="good" lid="Id3">11 Diagonal Street is located in South Africa, where the capital is Cape Town. White South Africans and Asian South Africans are ethnic groups in South Africa.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>Cleveland | subdivisionName | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | isPartOf | Ohio</otriple>
+        <otriple>Cleveland | governingBody | Cleveland_City_Council</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | location | Cleveland</mtriple>
+        <mtriple>Cleveland | isPartOf | Cuyahoga_County,_Ohio</mtriple>
+        <mtriple>Cleveland | isPartOf | Ohio</mtriple>
+        <mtriple>Cleveland | governingBody | Cleveland_City_Council</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">200 Public Square is located in Cleveland, Cuyahoga County, Ohio which is governed by Cleveland City Council.</lex>
+      <lex comment="good" lid="Id2">200 Public Square is located in Cleveland, Cuyahoga County, Ohio which is governed by the Cleveland City Council.</lex>
+      <lex comment="good" lid="Id3">200 Public Square is located in Cleveland, Cuyahoga County, Ohio, and is governed by Cleveland City Council.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</otriple>
+        <otriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | "12"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</otriple>
+        <otriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | 12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</mtriple>
+        <mtriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</mtriple>
+        <mtriple>250_Delaware_Avenue | floorArea | 30843.8 (square metres)</mtriple>
+        <mtriple>250_Delaware_Avenue | floorCount | 12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Construction beginning in January 2014, Postmodern art 250 Delaware Avenue has 12 floors with a total area of 30843.8 square meters.</lex>
+      <lex comment="good" lid="Id2">Construction of the 12 floor Postmodern style building, 250 Delaware Avenue, which has a floor area of 30843.8 square metres began in January 2014.</lex>
+      <lex comment="good" lid="Id3">First begun to be built in January 2014, the postmodernist art 250 Delaware Avenue has 12 floors and a total floor area of 30843.8 square metres.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Chicago</otriple>
+        <otriple>Chicago | isPartOf | DuPage_County,_Illinois</otriple>
+        <otriple>Chicago | country | United_States</otriple>
+        <otriple>Chicago | leaderName | Susana_Mendoza</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Chicago</mtriple>
+        <mtriple>Chicago | isPartOf | DuPage_County,_Illinois</mtriple>
+        <mtriple>Chicago | country | United_States</mtriple>
+        <mtriple>Chicago | leaderName | Susana_Mendoza</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">300 North LaSalle is located in Chicago, DuPage County, Illinois, United States where the leader is Susana Mendoza.</lex>
+      <lex comment="good" lid="Id2">300 North Lasalle is located in Chicago, DuPage County, Illinois, U.S. The leader or Chicago is Susana Mendoza.</lex>
+      <lex comment="good" lid="Id3">300 North LaSalle is situated in Chicago which is part of the Dupage County in Illinois located in the U.S. Susana Mendoza is currently the leader of Chicago.</lex>
+    </entry>
+    </entries>
+</benchmark>

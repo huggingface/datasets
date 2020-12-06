@@ -1,0 +1,66 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram is an artist with the band Kids Imagine Nation.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram plays for the Kids Imagine Nation band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram plays for the Suburban Legends band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram has a background with a non vocal instrument.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram is a non vocal instrumentalist.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | dateOfBirth | "1981-04-03"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | birthDate | 1981-04-03</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram's birth date is 1981-04-03.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram was born April 3, 1981.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram was born on April 3, 1981.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram's musical genre is Ska punk.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram performs ska punk music.</lex>
+    </entry>
+    </entries>
+</benchmark>

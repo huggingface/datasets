@@ -1,0 +1,116 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Architect John Madin, designed 103 Colmore Row, located on Colmore Row, in Birmingham, England.</lex>
+      <lex lang="ru" lid="Id1">Архитектор Джон Мадин спроектировал здание по Колмор-роу 103, расположенное на Колмор-роу, Бирмингем, Англия.</lex>
+      <lex lang="en" lid="Id2">John Madin designed 103 Colmore Row, Birmingham, England.</lex>
+      <lex lang="ru" lid="Id2">Джон Мадин спроектировал здание на Колмор-роу 103, Бирмингем, Англия.</lex>
+      <lex lang="en" lid="Id3">103 Colmore Row located in Birmingham, England was designed by the architect John Madin.</lex>
+      <lex lang="ru" lid="Id3">Здание по Колмор-роу 103, расположенное в Бирмингеме, Англия, было спроектировано архитектором Джоном Мадином.</lex>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+        <link direction="en2ru">Colmore Row, Birmingham, England | includes | Колмор-роу</link>
+        <link direction="en2ru">Colmore Row, Birmingham, England | includes | Бирмингем</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row, located at Colmore Row, was designed by the architect, John Madin.</lex>
+      <lex lang="ru" lid="Id1">Колмор-роу 103, расположенный на Колмор-роу, был спроектирован архитектором Джоном Мадином.</lex>
+      <lex lang="en" lid="Id2">John Madin is the architect of 103 Colmore Row, located in Colmore Row.</lex>
+      <lex lang="ru" lid="Id2">Джон Мадин - архитектор здания по Колмор-роу 103, расположенный на Колмор-роу.</lex>
+      <lex lang="en" lid="Id3">Architect John Madin designed 103 Colmore Row, located at Colmore Row.</lex>
+      <lex lang="ru" lid="Id3">Архитектор Джон Мадин спроектировал здание по Колмор-роу 103, расположенное на Колмор-роу.</lex>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+        <link direction="en2ru">Colmore Row | sameAs | Колмор-роу</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row was designed by John Madin, born in Birmingham.</lex>
+      <lex lang="ru" lid="Id1">Здание по Колмор-роу 103 было спроектировано Джоном Мадином, родившимся в Бирмингеме.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row was designed by the architect John Madin who was born in Birmingham.</lex>
+      <lex lang="ru" lid="Id2">Колмор-роу 103 был спроектирован архитектором Джоном Мадином, который родился в Бирмингеме.</lex>
+      <lex lang="en" lid="Id3">Architect John Madin, born in Birmingham, designed 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id3">Архитектор Джон Мадин, родившийся в Бирмингеме, спроектировал здание по Колмор-роу 103.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Birmingham | sameAs | Бирмингем</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | hometown | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | origin | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">John Madin was an architect from Birmingham who designed 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id1">Джон Мадин был архитектором из Бирмингема, который спроектировал здание по Колмор-роу 103.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row was designed by the architect John Madin whose hometown was Birmingham.</lex>
+      <lex lang="ru" lid="Id2">Здание по Колмор-роу 103 было спроектировано архитектором Джоном Мадином, родным городом которого был Бирмингем.</lex>
+      <lex lang="en" lid="Id3">John Madin from Birmingham was the architect of 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id3">Джон Мадин из Бирмингема был архитектором здания по Колмор-роу 103.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Birmingham | sameAs | Бирмингем</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row at Colmore Row was completed in 1976.</lex>
+      <lex lang="ru" lid="Id1">Здание по Колмор-роу 103 на Колмор-роу было завершено в 1976 году.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row was completed in 1976.</lex>
+      <lex lang="ru" lid="Id2">Колмор-роу 103 был построен в 1976 году.</lex>
+      <lex lang="en" lid="Id3">Number 103 in Colmore Row was completed in 1976.</lex>
+      <lex lang="ru" lid="Id3">Здание номер 103 по Колмор-роу был завершено в 1976 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1976 | sameAs | 1976_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Colmore Row | sameAs | Колмор-роу</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

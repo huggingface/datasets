@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Madin is an architect who was born in Birmingham, England and designed 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row located on Colmore Row, Birmingham, England, was designed by architect John Madin born in Birmingham.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row is located on Colmore Row, Birmingham, England and was designed by the architect John Madin who calls the city his hometown.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+        <otriple>Birmingham | leaderName | Andrew_Mitchell</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+        <mtriple>Birmingham | leaderName | Andrew_Mitchell</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Madin was born in Birmingham (with Andrew Mitchell as a key leader) and became an architect, designing 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id2">Andrew Mitchell is a leader in Birmingham where the architect John Madin who designed 103 Colmore Row was born.</lex>
+      </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+        <otriple>Birmingham | leaderName | John_Clancy_(Labour_politician)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+        <mtriple>Birmingham | leaderName | John_Clancy_(Labour_politician)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Clancy is a labor politican who leads Birmingham, where architect John Madin, who designed 103 Colmore Row, was born.</lex>
+      <lex comment="good" lid="Id2">John Clancy is the leader of Birmingham where John Madin, the designer of 103 Colmore Row, was born.</lex>
+      <lex comment="good" lid="Id3">Labour politician, John Clancy is the leader of Birmingham. John Madin was born in this city and was the architect of 103 Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+        <otriple>Birmingham | leaderName | Khalid_Mahmood_(British_politician)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+        <mtriple>Birmingham | leaderName | Khalid_Mahmood_(British_politician)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Birmingham born architect John Madin designed 103 Colmore Row. The British politician Khalid Mahmood is one of the leaders in Birmingham.</lex>
+      <lex comment="good" lid="Id2">Khalid Mahmood is one of the leaders of Birmingham which was the birthplace of architect, John Madin, who designed 103 Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+        <otriple>Birmingham | leaderName | Labour_Party_(UK)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+        <mtriple>Birmingham | leaderName | Labour_Party_(UK)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The architect John Madin was born in Birmingham (now led by the Labour Party) and designed 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id2">Birmingham, led by the Labour Party, was the birthplace of John Madin who was the architect that designed 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row was designed by the architect, John Madin who was born in Birmingham which is led by The Labour Party.</lex>
+    </entry>
+    </entries>
+</benchmark>

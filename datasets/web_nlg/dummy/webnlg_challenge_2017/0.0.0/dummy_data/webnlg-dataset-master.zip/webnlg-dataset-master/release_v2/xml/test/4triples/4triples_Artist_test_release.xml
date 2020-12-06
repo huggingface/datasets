@@ -1,0 +1,101 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedBand | Isis_(band)</otriple>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Sumac_(band)</otriple>
+        <otriple>Aaron_Turner | genre | Electroacoustic_music</otriple>
+        <otriple>Aaron_Turner | instrument | Singing</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Isis_(band)</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Sumac_(band)</mtriple>
+        <mtriple>Aaron_Turner | genre | Electroacoustic_music</mtriple>
+        <mtriple>Aaron_Turner | instrument | Singing</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Electroacoustic singer Aaron Turner is associated with the bands Sumac and Isis.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner, a singer who performs electroacoustic music, is with the band Isis and has performed with the group Sumac.</lex>
+      <lex comment="good" lid="Id3">Singer Aaron Turner plays electro-acoustic music and has played with the bands Isis and Sumac.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Turner | genre | Black_metal</otriple>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Sumac_(band)</otriple>
+        <otriple>Aaron_Turner | instrument | Electric_guitar</otriple>
+        <otriple>Black_metal | musicFusionGenre | Death_metal</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | genre | Black_metal</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Sumac_(band)</mtriple>
+        <mtriple>Aaron_Turner | instrument | Electric_guitar</mtriple>
+        <mtriple>Black_metal | musicFusionGenre | Death_metal</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Black metal musician Aaron Turner is a member of Sumac and plays Electric guitar. Death metal is a black metal fusion.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner plays electric guitar and his genre is Black Metal music in which Death metal is a fusion. He performed with the band Sumac.</lex>
+      <lex comment="good" lid="Id3">Electric guitar player Aaron Turner is a Black metal musician who performed with the band Sumac. Death metal is a fusion of black metal music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ace_Wilder | background | "solo_singer"</otriple>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | birthPlace | Sweden</otriple>
+        <otriple>Ace_Wilder | birthDate | "1982-07-23"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | birthPlace | Sweden</otriple>
+        <otriple>Ace_Wilder | birthDate | "1982-07-23"^^xsd:date</otriple>
+        <otriple>Ace_Wilder | background | "solo_singer"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ace_Wilder | background | "solo_singer"</mtriple>
+        <mtriple>Ace_Wilder | birthYear | 1982</mtriple>
+        <mtriple>Ace_Wilder | birthPlace | Sweden</mtriple>
+        <mtriple>Ace_Wilder | birthDate | 1982-07-23</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ace Wilder, born in Sweden on July 23, 1982 is a solo singer.</lex>
+      <lex comment="good" lid="Id2">Singer Ace Wilder was born July 23, 1982 in Sweden.</lex>
+      <lex comment="good" lid="Id3">Solo singer Ace Wilder was born in Sweden on 1982. His birthday is the 23rd July.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ace_Wilder | background | "solo_singer"</otriple>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | occupation | Songwriter</otriple>
+        <otriple>Ace_Wilder | birthPlace | Stockholm</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | occupation | Songwriter</otriple>
+        <otriple>Ace_Wilder | birthPlace | Stockholm</otriple>
+        <otriple>Ace_Wilder | background | "solo_singer"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ace_Wilder | background | "solo_singer"</mtriple>
+        <mtriple>Ace_Wilder | birthYear | 1982</mtriple>
+        <mtriple>Ace_Wilder | occupation | Songwriter</mtriple>
+        <mtriple>Ace_Wilder | birthPlace | Stockholm</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Songwriter and solo singer Ace Wilder was born in Stockholm in 1982.</lex>
+      <lex comment="good" lid="Id2">Solo singer Ace Wilder was born in Stockholm in 1982. He is also a songwriter.</lex>
+      <lex comment="good" lid="Id3">Songwriter, Ace Wilder, who has a background as a solo singer, was born in Stockholm, in 1982.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ace_Wilder | background | "solo_singer"</otriple>
+        <otriple>Ace_Wilder | birthYear | "1982"^^xsd:gYear</otriple>
+        <otriple>Ace_Wilder | occupation | Songwriter</otriple>
+        <otriple>Ace_Wilder | birthPlace | Sweden</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ace_Wilder | background | "solo_singer"</mtriple>
+        <mtriple>Ace_Wilder | birthYear | 1982</mtriple>
+        <mtriple>Ace_Wilder | occupation | Songwriter</mtriple>
+        <mtriple>Ace_Wilder | birthPlace | Sweden</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The songwriter Ace Wilder was born in Sweden in 1982. He has a background as a solo singer.</lex>
+      <lex comment="good" lid="Id2">Born in 1982 in Sweden, Ace Wilder is a solo singer and songwriter.</lex>
+      <lex comment="good" lid="Id3">Ace Wilder was born in Sweden in 1982. He is a solo singer and songwriter.</lex>
+    </entry>
+    </entries>
+</benchmark>

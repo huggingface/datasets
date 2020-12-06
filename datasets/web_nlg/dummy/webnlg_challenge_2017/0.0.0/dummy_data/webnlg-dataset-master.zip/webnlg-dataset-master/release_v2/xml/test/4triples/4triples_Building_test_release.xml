@@ -1,0 +1,101 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | Birmingham</otriple>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | buildingStartDate | "1973"</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | Birmingham</otriple>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | buildingStartDate | "1973"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | location | Birmingham</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | buildingStartDate | "1973"</mtriple>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The building of 103 Colmore Row began in 1973 and it was completed in 1976. It is located at 103 Colmore Row, Birmingham and it has 23 floors.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | ethnicGroups | Coloured</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | ethnicGroups | Asian_South_Africans</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | ethnicGroup | Coloured</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Asian_South_Africans</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Coloured</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street is in South Africa, the capital of which is Cape Town. Two of the ethnic groups within South Africa are coloured people and Asian South Africans.</lex>
+      </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>Cleveland | subdivisionName | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | country | United_States</otriple>
+        <otriple>Cleveland | governingBody | Cleveland_City_Council</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>Cleveland | isPartOf | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | country | United_States</otriple>
+        <otriple>Cleveland | governingBody | Cleveland_City_Council</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | location | Cleveland</mtriple>
+        <mtriple>Cleveland | isPartOf | Cuyahoga_County,_Ohio</mtriple>
+        <mtriple>Cleveland | country | United_States</mtriple>
+        <mtriple>Cleveland | governingBody | Cleveland_City_Council</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Cleveland City Council govern Cleveland, Cuyahoga County, Ohio, United States where 200 Public Square is located.</lex>
+      <lex comment="good" lid="Id2">200 Public square is in Cleveland, part of Cuyahoga County, Ohio in the United States and the governing body is the Cleveland City Council.</lex>
+      </entry>
+    <entry category="Building" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | Buffalo,_New_York</otriple>
+        <otriple>250_Delaware_Avenue | cost | "1.1E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | "12"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | location | Buffalo,_New_York</mtriple>
+        <mtriple>250_Delaware_Avenue | cost | "110 million (dollars)"</mtriple>
+        <mtriple>250_Delaware_Avenue | floorArea | 30843.8 (square metres)</mtriple>
+        <mtriple>250_Delaware_Avenue | floorCount | 12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">250 Delaware Avenue is located in Buffalo, New York and was built at a cost of 110 million (dollars). It has 12 floors with a total area of 30843.8 (square metres).</lex>
+      <lex comment="good" lid="Id2">250 Delaware Avenue in Buffalo, New York cost 110 million dollars and has 12 floors with a total area of 30843.8 square metres.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Chicago</otriple>
+        <otriple>Chicago | leaderName | Rahm_Emanuel</otriple>
+        <otriple>Chicago | isPartOf | Cook_County,_Illinois</otriple>
+        <otriple>Chicago | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Chicago</mtriple>
+        <mtriple>Chicago | leaderName | Rahm_Emanuel</mtriple>
+        <mtriple>Chicago | isPartOf | Cook_County,_Illinois</mtriple>
+        <mtriple>Chicago | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">300 North LaSalle is in Chicago, Cook County, Illinois, USA. Rahm Emanuel is the leader of the aforementioned city.</lex>
+      <lex comment="good" lid="Id2">300 North LaSalle is located in Chicago, which is a part of Cook County in Illinois, United States. Rahm Emanuel is a leader in Chicago.</lex>
+      <lex comment="good" lid="Id3">Rahm Emanuel is the leader of Chicago, Cook County, Illinois, United States which is the location of 300 North LaSalle.</lex>
+    </entry>
+    </entries>
+</benchmark>

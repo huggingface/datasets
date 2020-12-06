@@ -1,0 +1,105 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A_Long_Long_Way | country | Ireland</otriple>
+        <otriple>Ireland | ethnicGroup | White_people</otriple>
+        <otriple>The_Secret_Scripture | publisher | Faber_and_Faber</otriple>
+        <otriple>Ireland | location | Europe</otriple>
+        <otriple>A_Long_Long_Way | subsequentWork | The_Secret_Scripture</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Long_Long_Way | country | Ireland</mtriple>
+        <mtriple>Ireland | ethnicGroup | White_people</mtriple>
+        <mtriple>The_Secret_Scripture | publisher | Faber_and_Faber</mtriple>
+        <mtriple>Ireland | location | Europe</mtriple>
+        <mtriple>A_Long_Long_Way | followedBy | The_Secret_Scripture</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Faber and Faber are the publishers of The Secret Scripture, a sequel to A Long Long Way. That book comes from Ireland which is located in Europe and where there is an ethnic group of white people.</lex>
+      <lex comment="good" lid="Id2">Ireland, where the white people are an ethnic group, is situated within Europe. The book A Long Long Way was written in Ireland and published by Faber and Faber. The sequel to the book is known as The Secret Scripture.</lex>
+      <lex comment="good" lid="Id3">Ireland is a country within Europe and the ethnic group are white people. The novel A Long Long Way was written in Ireland and was followed by The Secret Scripture which was published by Faber and Faber.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A_Long_Long_Way | previousWork | Annie_Dunne</otriple>
+        <otriple>A_Long_Long_Way | country | Ireland</otriple>
+        <otriple>Ireland | ethnicGroup | White_people</otriple>
+        <otriple>The_Secret_Scripture | publisher | Faber_and_Faber</otriple>
+        <otriple>A_Long_Long_Way | subsequentWork | The_Secret_Scripture</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Long_Long_Way | precededBy | Annie_Dunne</mtriple>
+        <mtriple>A_Long_Long_Way | country | Ireland</mtriple>
+        <mtriple>Ireland | ethnicGroup | White_people</mtriple>
+        <mtriple>The_Secret_Scripture | publisher | Faber_and_Faber</mtriple>
+        <mtriple>A_Long_Long_Way | followedBy | The_Secret_Scripture</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ethnic group of Ireland is White people and is where A Long Long Way comes from. It was preceded by Annie Dunne and followed by The Secret Scripture which is published by Faber and Faber.</lex>
+      <lex comment="good" lid="Id2">An ethnic group of Ireland is white people where A Long Long Way comes from. It was preceded by Annie Dunne preceded and followed by The Secret Scripture which is published by Faber and Faber.</lex>
+      </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Above_the_Veil | country | Australians</otriple>
+        <otriple>Into_Battle_(novel) | subsequentWork | The_Violet_Keystone</otriple>
+        <otriple>Above_the_Veil | followedBy | Into_Battle_(novel)</otriple>
+        <otriple>Above_the_Veil | precededBy | Aenir</otriple>
+        <otriple>Aenir | previousWork | Castle_(novel)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Above_the_Veil | subsequentWork | Into_Battle_(novel)</otriple>
+        <otriple>Above_the_Veil | country | Australians</otriple>
+        <otriple>Into_Battle_(novel) | followedBy | The_Violet_Keystone</otriple>
+        <otriple>Above_the_Veil | precededBy | Aenir</otriple>
+        <otriple>Aenir | previousWork | Castle_(novel)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Above_the_Veil | country | Australians</mtriple>
+        <mtriple>Into_Battle_(novel) | followedBy | The_Violet_Keystone</mtriple>
+        <mtriple>Above_the_Veil | followedBy | Into_Battle_(novel)</mtriple>
+        <mtriple>Above_the_Veil | precededBy | Aenir</mtriple>
+        <mtriple>Aenir | precededBy | Castle_(novel)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Above the Veil is an Australian novel and the sequel to Aenir and Castle. It was later followed by Into Battle and The Violet Keystone.</lex>
+      <lex comment="good" lid="Id2">Above the Viel is an Austrlian novel and the sequel to Aenir and Castle. It was followed by Into Battle and The Violet Keystone.</lex>
+      <lex comment="good" lid="Id3">Above the Veil is an Austrlian novel and the sequel to Aenir and Castle. It was followed by Into the Battle and The Violet Keystone.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Administrative_Science_Quarterly | publisher | Cornell_University</otriple>
+        <otriple>Cornell_University | nickname | Cornell_Big_Red</otriple>
+        <otriple>Cornell_University | affiliation | Association_of_American_Universities</otriple>
+        <otriple>Cornell_University | state | New_York</otriple>
+        <otriple>Cornell_University | city | Ithaca,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Administrative_Science_Quarterly | publisher | Cornell_University</mtriple>
+        <mtriple>Cornell_University | nickname | Cornell_Big_Red</mtriple>
+        <mtriple>Cornell_University | affiliation | Association_of_American_Universities</mtriple>
+        <mtriple>Cornell_University | state | New_York</mtriple>
+        <mtriple>Cornell_University | city | Ithaca,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Cornell University is in Ithaca, New York and is nicknamed Cornell Big Red. They are the publisher of Administrative Science Quarterly and are affiliated with the Association of American Universities.</lex>
+      <lex comment="good" lid="Id2">Cornell University is in Ithaca, New York and their nickname is Cornell Big Red. They are the publisher of Administrative Science Quarterly and are affiliated with the Association of American Universities.</lex>
+      <lex comment="good" lid="Id3">Cornell Unversity is in Ithaca, New York and their nickname is Cornell Big Red. They are the publisher of the Administrative Science Quarterly and are affiliated with the Association of American Universities.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Administrative_Science_Quarterly | publisher | Cornell_University</otriple>
+        <otriple>Cornell_University | nickname | Cornell_Big_Red</otriple>
+        <otriple>Cornell_University | affiliation | Association_of_Public_and_Land-grant_Universities</otriple>
+        <otriple>Cornell_University | state | New_York</otriple>
+        <otriple>Cornell_University | city | Ithaca,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Administrative_Science_Quarterly | publisher | Cornell_University</mtriple>
+        <mtriple>Cornell_University | nickname | Cornell_Big_Red</mtriple>
+        <mtriple>Cornell_University | affiliation | Association_of_Public_and_Land-grant_Universities</mtriple>
+        <mtriple>Cornell_University | state | New_York</mtriple>
+        <mtriple>Cornell_University | city | Ithaca,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Administrative Science Quarterly is published by Cornell University, Ithaca, in the state of New York. Cornell University (nicknamed 'Cornell Big Red') is affiliated with the Association of Public and Land Grant Universities.</lex>
+      <lex comment="good" lid="Id2">Cornell Big Red is the nickname of Cornell University which is affiliated with the Association of Public and Land grant Universities. The University is in the city of Ithaca, New York, New York State and publishes the Administrative Science Quarterly.</lex>
+      <lex comment="good" lid="Id3">Cornell University, of Ithaca, New York, is the publisher of the Administrative Science Quarterly. The University, which has the nickname Cornell Big Red , is affiliated with the Association of Public and Land grant Universities.</lex>
+    </entry>
+    </entries>
+</benchmark>

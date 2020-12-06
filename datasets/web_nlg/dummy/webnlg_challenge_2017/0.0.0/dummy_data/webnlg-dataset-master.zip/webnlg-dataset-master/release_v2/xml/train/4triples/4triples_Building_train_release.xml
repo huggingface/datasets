@@ -1,0 +1,123 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row in Birmingham, England was completed in 1976 and designed by John Madin. It has 23 floors.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row is located on Colmore Row, Birmingham, England. It was designed by the architect, John Madin, has 23 floors and the building of it was completed in 1976.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row, Birmingham, England, with 23 floors, was designed by the architect John Madin and was completed in 1976.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Madin was the architect of 103 Colmore Row which has 23 floors and was completed in 1976.</lex>
+      <lex comment="good" lid="Id2">Designed by architect John Madin, 103 Colmore Row was completed in 1976, is comprised of 23 floors and is located at Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row, designed by John Madin (born in Birmingham) is located in Colmore Row, Birmingham, England. It's architectural style is Brutalist.</lex>
+      <lex comment="good" lid="Id2">An example of Brutalist architecture, 103 Colmore Row, in Birmingham, was conceived by local-born architect John Madin.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row, Birmingham, England was designed by the architect John Madin, who was born in the city. The architectural style of 103 Colmore Row falls under Brutalist architecture.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row was designed by the architect, John Madin, who was born in Birmingham. The building is in the architectural style " Brutalist architecture".</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row is located at Colmore Row and designed by John Madin born in Birmingham. It has the Brutalist architecture style.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row (located in Colmore Row) is in the architectural style " Brutalist architecture", and was designed by Birmingham born architect, John Madin.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Birmingham, John Madin designed 103 Colmore Row, which was completed in 1976 in Colmore Row, Birmingham, England.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row, in Birmingham, England, was designed by the architect John Madin, who was born in Birmingham; it was completed in 1976.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,89 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+        <otriple>1._FC_Köln | capacity | "50000"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>1._FC_Köln | season | 2014</mtriple>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stöger is manager of 1. FC Köln which has 50000 members and participated in the 2014 season.</lex>
+      <lex comment="good" lid="Id2">The manager of 1. FC Koln is Peter Stoger. The team has 50000 members and played in the 2014 season.</lex>
+      <lex comment="good" lid="Id3">1. FC Koln, whose manage is peter Stoger, participated in 2014 and now have 50000 members.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>1._FC_Köln | capacity | "50000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>1._FC_Köln | season | 2014–15_Bundesliga</mtriple>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stöger is manager of 1. FC Köln who were in the 2014–15 Bundesliga season and have 50000 members.</lex>
+      <lex comment="good" lid="Id2">The manager of 1. FC Koln is Peter Stoger. They have 50000 members and played the 2014-15 season in the Bundesliga.</lex>
+      <lex comment="good" lid="Id3">1. FC Köln were in the 2014–15 Bundesliga season, its manager is Peter Stoger and have 50000 members.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | Austria_national_football_team</otriple>
+        <otriple>Peter_Stöger | managerClub | FK_Austria_Wien</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | Austria_national_football_team</mtriple>
+        <mtriple>Peter_Stöger | club | FK_Austria_Wien</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The manager of 1. FC Koln is Peter Stoger who plays for the Austria national football team and is a member of the FK Austria Wien soccer club.</lex>
+      <lex comment="good" lid="Id2">Peter Stoger is currently at FK Austria Wien and manages FC Koln, he also plays international football for Austria.</lex>
+      <lex comment="good" lid="Id3">Peter Stoger is the manager of FC Koln, he plays for the Austria national football team and FK Austria Wien also.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | managerClub | SC_Wiener_Neustadt</otriple>
+        <otriple>Peter_Stöger | team | Austria_national_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | SC_Wiener_Neustadt</mtriple>
+        <mtriple>Peter_Stöger | club | Austria_national_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stöger is manager of 1. FC Köln and has played for SC Wiener Neustadt and the Austria national football team.</lex>
+      <lex comment="good" lid="Id2">Peter Stoger is the manager of FC Koln and plays for both SC Wiener Neustadt and the Austria national football team.</lex>
+      <lex comment="good" lid="Id3">The manager of 1. FC Koln is Peter Stoger who is affiliated with the SC Wiener Neustadt club and plays for the Austria national football team.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | managerClub | SC_Wiener_Neustadt</otriple>
+        <otriple>Peter_Stöger | team | FK_Austria_Wien</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | SC_Wiener_Neustadt</mtriple>
+        <mtriple>Peter_Stöger | club | FK_Austria_Wien</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Peter Stöger is manager of 1. FC Köln and is affiliated with SC Wiener Neustadt. He is currently at the FK Austria Wien club.</lex>
+      <lex comment="good" lid="Id2">The manager of 1. FC Koln is Peter Stoger who plays for SC Wiener Neustadt and is at the FK Austria Wien club.</lex>
+      <lex comment="good" lid="Id3">Peter Stoger plays for SC Wiener Neustadt and FK Austria Wien while also being a manager at 1. FC Koln.</lex>
+    </entry>
+    </entries>
+</benchmark>

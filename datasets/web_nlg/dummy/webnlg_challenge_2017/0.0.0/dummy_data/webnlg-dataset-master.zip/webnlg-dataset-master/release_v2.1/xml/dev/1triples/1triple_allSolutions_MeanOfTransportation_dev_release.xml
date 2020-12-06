@@ -1,0 +1,54 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Coronet"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Dodge Coronet is the alternative name for the 1955 Dodge.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge is also named the Dodge Coronet.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 230</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | 230 (cubic inches)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge engine is 230 cubic inches.</lex>
+      <lex comment="good" lid="Id2">The size of the engine in the 1955 Dodge is 230 cubic inches.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge has an engine size of 230 cubic inches.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Rostock</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDA_Cruises | location | Rostock</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The location of AIDA Cruises is Rostock.</lex>
+      <lex comment="good" lid="Id2">AIDA Cruises are located at Rostock.</lex>
+      <lex comment="good" lid="Id3">AIDA Cruises is based in Rostock.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDAluna | activeYearsStartDate | "2009-03-22"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAluna | activeYearsStartDate | 2009-03-22</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDAluna service was started on the 22nd of March, 2009.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDAluna | shipClass | "Sphinx class cruise ship"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAluna | shipClass | "Sphinx class cruise ship"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAluna is a Sphinx class cruise ship.</lex>
+    </entry>
+    </entries>
+</benchmark>

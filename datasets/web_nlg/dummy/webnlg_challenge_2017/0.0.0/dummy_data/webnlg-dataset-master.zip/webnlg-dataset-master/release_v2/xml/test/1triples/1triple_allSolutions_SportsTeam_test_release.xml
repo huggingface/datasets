@@ -1,0 +1,57 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | manager | Rolando_Maran</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | manager | Rolando_Maran</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Rolando Maran has managed AC Chievo Verona.</lex>
+      <lex comment="good" lid="Id2">Associazione Calcio ChievoVerona is managed by Rolando Maran.</lex>
+      <lex comment="good" lid="Id3">The manager of A.C. Chievo Verona is Rolando Maran.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | league | Salvadoran_Primera_División</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.D._Isidro_Metapán | league | Salvadoran_Primera_División</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A D Isidro Metapán play in a league called the Salvadoran Primera Division.</lex>
+      <lex comment="good" lid="Id2">A.D. Isidro Metapán is in the Salvadoran Primera División league.</lex>
+      <lex comment="good" lid="Id3">A.D. Isidro Metapan play in the Salvadoran Primera Division.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.F.C._Blackpool | fullname | "Association Football Club Blackpool"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.F.C._Blackpool | fullname | "Association Football Club Blackpool"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AFC Blackpool has the full name "Association Football Club Blackpool".</lex>
+      <lex comment="good" lid="Id2">A.F.C. Blackpool fullname is "Association Football Club Blackpool".</lex>
+      <lex comment="good" lid="Id3">The fullname of A.F.C. Blackpool is Association Football Club Blackpool.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.F.C._Blackpool | ground | "The Mechanics,"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.F.C._Blackpool | ground | "The Mechanics,"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.F.C. Blackpool's ground is The Mechanics.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A.F.C._Blackpool | ground | Blackpool</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.F.C._Blackpool | ground | Blackpool</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.F.C. Blackpool is in Blackpool.</lex>
+      <lex comment="good" lid="Id2">AFC Blackpool ground is located in Blackpool.</lex>
+      <lex comment="good" lid="Id3">AFC Blackpool ground is in Blackpool.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,106 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Akeem_Dent | debutTeam | Atlanta_Falcons</otriple>
+        <otriple>Akeem_Dent | formerTeam | Houston_Texans</otriple>
+        <otriple>Houston_Texans | locationCity | Houston</otriple>
+        <otriple>Atlanta_Falcons | owner | Arthur_Blank</otriple>
+        <otriple>Atlanta_Falcons | city | Atlanta</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Dent | debutTeam | Atlanta_Falcons</mtriple>
+        <mtriple>Akeem_Dent | formerTeam | Houston_Texans</mtriple>
+        <mtriple>Houston_Texans | city | Houston</mtriple>
+        <mtriple>Atlanta_Falcons | owner | Arthur_Blank</mtriple>
+        <mtriple>Atlanta_Falcons | city | Atlanta</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Dent made his debut with the Atlanta Falcons who play in Atlanta and are owned by Arthur Blank. He used to play in Houston for the Houston Texans.</lex>
+      <lex comment="good" lid="Id2">Akeem Dent's debut team was the Atlanta Falcons in Atlanta and whose team owner is Arthur Blank. He also played for Houston Texans out of Houston.</lex>
+      <lex comment="good" lid="Id3">The Atlanta Falcons of Atlanta was Akeem Dent's debut team. They are owned by Arthur Blank. Mr. Dent also played with the Houston Texans out of Houston.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Al_Kharaitiyat_SC | league | Qatar_Stars_League</otriple>
+        <otriple>Al_Kharaitiyat_SC | ground | Al_Khor</otriple>
+        <otriple>Alaa_Abdul-Zahra | clubs | Shabab_Al-Ordon_Club</otriple>
+        <otriple>Alaa_Abdul-Zahra | team | Al_Kharaitiyat_SC</otriple>
+        <otriple>Al_Kharaitiyat_SC | manager | Amar_Osim</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Al_Kharaitiyat_SC | league | Qatar_Stars_League</mtriple>
+        <mtriple>Al_Kharaitiyat_SC | ground | Al_Khor</mtriple>
+        <mtriple>Alaa_Abdul-Zahra | club | Shabab_Al-Ordon_Club</mtriple>
+        <mtriple>Alaa_Abdul-Zahra | club | Al_Kharaitiyat_SC</mtriple>
+        <mtriple>Al_Kharaitiyat_SC | manager | Amar_Osim</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alaa Abdul-Zahra's plays for the Shabab Al-Ordon Club and the AL Kharaitiyat SC. Al Kharaitiyat SC(home ground Al Khor) play in the Qatar Stars League and is managed by Amar Osim.</lex>
+      <lex comment="good" lid="Id2">Alaa Abdul-Zahra's clubs are Shabab Al-Ordon Club and Al Kharaitiyat SC. The latter team have their ground at Al Khor, are managed by Amar Osim and play in the Qatar Stars League.</lex>
+      <lex comment="good" lid="Id3">Alaa Abdul Zahra's club is Shabab Al-Ordon and he also plays for Al Kharaitiyat SC. This latter club plays in the Qatar Stars league, is located in Al Khor and is managed by Amar Osim.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aleksandr_Chumakov | deathPlace | Russia</otriple>
+        <otriple>Russia | leaderName | Valentina_Matviyenko</otriple>
+        <otriple>Aleksandr_Chumakov | clubs | FC_Torpedo_Moscow</otriple>
+        <otriple>Aleksandr_Chumakov | team | Soviet_Union_national_football_team</otriple>
+        <otriple>FC_Torpedo_Moscow | manager | Valery_Petrakov</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aleksandr_Chumakov | deathPlace | Russia</otriple>
+        <otriple>Russia | leader | Valentina_Matviyenko</otriple>
+        <otriple>Aleksandr_Chumakov | clubs | FC_Torpedo_Moscow</otriple>
+        <otriple>Aleksandr_Chumakov | team | Soviet_Union_national_football_team</otriple>
+        <otriple>FC_Torpedo_Moscow | manager | Valery_Petrakov</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aleksandr_Chumakov | deathPlace | Russia</mtriple>
+        <mtriple>Russia | leaderName | Valentina_Matviyenko</mtriple>
+        <mtriple>Aleksandr_Chumakov | club | FC_Torpedo_Moscow</mtriple>
+        <mtriple>Aleksandr_Chumakov | club | Soviet_Union_national_football_team</mtriple>
+        <mtriple>FC_Torpedo_Moscow | manager | Valery_Petrakov</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aleksandr Chumakov, who died in Russia, belonged to FC Torpedo Moscow and the Soviet Union national football team. FC Torpedo is managed by FC Torpedo, a Russian leader.</lex>
+      <lex comment="good" lid="Id2">Former Soviet Union international footballer Aleksandr Chumakov died in Russia, where the leader is Valentina Matviyenko. FC Torpedo Moscow, managed by Valery Petrakov, once signed Aleksandr Chumakov.</lex>
+      <lex comment="good" lid="Id3">Aleksandr Chumakov died in Russia where Valentina Matviyenko is a leader. He belongs to the Soviet Union national football team and has played for FC Torpedo Moscow under the manager Valery Petrakov.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aleksandr_Prudnikov | clubs | FC_Amkar_Perm</otriple>
+        <otriple>FC_Terek_Grozny | ground | Grozny</otriple>
+        <otriple>Aleksandr_Prudnikov | youthclubs | FC_Spartak_Moscow</otriple>
+        <otriple>Aleksandr_Prudnikov | team | FC_Terek_Grozny</otriple>
+        <otriple>FC_Terek_Grozny | manager | Rashid_Rakhimov</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aleksandr_Prudnikov | club | FC_Amkar_Perm</mtriple>
+        <mtriple>FC_Terek_Grozny | ground | Grozny</mtriple>
+        <mtriple>Aleksandr_Prudnikov | youthclub | FC_Spartak_Moscow</mtriple>
+        <mtriple>Aleksandr_Prudnikov | club | FC_Terek_Grozny</mtriple>
+        <mtriple>FC_Terek_Grozny | manager | Rashid_Rakhimov</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aleksandr Prudnikov is an associate of the youth side of FC Spartak Moscow. He plays for the Amkar Perm football club and the Terek Grozny FC which is managed by Rashid Rakhimov. The latter football club is in Grozny.</lex>
+      <lex comment="good" lid="Id2">Aleksandr Prudnikov once played for FC Spartak Moscow's youth team. He plays with the FC Amkar Perm and the FC Terek Grozny which is managed by Rashid Rakhimov and has its home territory in Grozny.</lex>
+      <lex comment="good" lid="Id3">Aleksandr Prudnikov, who represented FC Spartak Moscow at youth level, later played for Grozny based FC Terek Grozny - managed by Rashid Rakhimov - and FC Amkar Perm football club.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Alessio_Romagnoli | team | A.C._Milan</otriple>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>A.C._Milan | chairman | Silvio_Berlusconi</otriple>
+        <otriple>Alessio_Romagnoli | clubs | "→ Sampdoria"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>A.C._Milan | chairman | Silvio_Berlusconi</mtriple>
+        <mtriple>Alessio_Romagnoli | club | U.C._Sampdoria</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli is connected to UC Sampdoria and plays for the club A.C. Milan.AC Milan, which is in Serie A league, is managed by Siniša Mihajlović and chaired by, Silvio Berlusconi.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli has played for UC Sampdoria and more recently for Serie A side AC Milan, which is managed by Siniša Mihajlović and has the chairman Silvio Berlusconi.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is connected to UC Sampdoria and also plays for the AC Milan who are in the Serie A league. AC Milan is managed by Sinisa Mihajlovic and chaired by Silvio Berlusconi.</lex>
+    </entry>
+    </entries>
+</benchmark>

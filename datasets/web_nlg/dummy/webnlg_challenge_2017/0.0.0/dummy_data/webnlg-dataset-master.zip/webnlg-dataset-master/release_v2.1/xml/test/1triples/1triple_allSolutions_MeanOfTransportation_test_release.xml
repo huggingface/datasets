@@ -1,0 +1,73 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipChristened | "2005-04-07"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | christeningDate | "2005-04-07"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | christeningDate | 2005-04-07</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna was christened on the 7th of April 2005.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna was "christened" on the 7th April 2005.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna was christened on 7th April 2005.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDAluna | operator | AIDA_Cruises</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAluna | operator | AIDA_Cruises</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDA Cruises is the operator of the AIDAluna.</lex>
+      <lex comment="good" lid="Id2">The AIDAluna is operated by AIDA Cruises.</lex>
+      <lex comment="good" lid="Id3">AIDA Cruises are the operator of the ship AIDAluna.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDAstella | completionDate | "2013-03-11"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDAstella | shipCompleted | "2013-03-11"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | completionDate | 2013-03-11</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAstella was completed on March 11th 2013.</lex>
+      <lex comment="good" lid="Id2">The AIDAstella was completed on the 11th March 2013.</lex>
+      <lex comment="good" lid="Id3">AIDAstella was completed on March 11th 2013.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDAstella | shipMaidenVoyage | "2013-03-17"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDAstella | maidenVoyage | "2013-03-17"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | maidenVoyage | 2013-03-17</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAstella had its maiden voyage on March 17, 2013.</lex>
+      <lex comment="good" lid="Id2">The ship AIDAstella had her maiden voyage on March 17th 2013.</lex>
+      <lex comment="good" lid="Id3">The AIDAstella had its maiden voyage on the 17th of March 2013.</lex>
+      <lex comment="good" lid="Id4">The AIDAstella ship's first journey took place on 17/03/2013.</lex>
+      <lex comment="good" lid="Id5">The ship AIDAstella had her maiden voyage on March 17th 2003.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDAstella | operator | AIDA_Cruises</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ship AIDAstella is operated by AIDA Cruises.</lex>
+      <lex comment="good" lid="Id2">The operator of AIDAstella is AIDA Cruises.</lex>
+      <lex comment="good" lid="Id3">The AIDAstella is operated by AIDA Cruise Line.</lex>
+    </entry>
+    </entries>
+</benchmark>

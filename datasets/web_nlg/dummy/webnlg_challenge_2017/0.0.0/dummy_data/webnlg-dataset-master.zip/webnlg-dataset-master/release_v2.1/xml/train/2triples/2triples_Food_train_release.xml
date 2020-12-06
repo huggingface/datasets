@@ -1,0 +1,69 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Garlic is an ingredient used in Ajoblanco which originates from the country of Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco, containing the ingredient garlic, is from Spain.</lex>
+      <lex comment="good" lid="Id3">Garlic is an ingredient in the regional dish of Spain's Ajoblanco.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco is a dish from Spain that contains olive oil.</lex>
+      <lex comment="good" lid="Id2">Olive oil is an ingredient in Ajoblanco, a dish from Spain.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco, which contains olive oil, originates from Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco contains water and is from Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco has water as an ingredient and comes from Spain.</lex>
+      <lex comment="good" lid="Id3">The dish of ajoblanco contains water it originates in Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Spain | demonym | Spaniards</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Spain | demonym | Spaniards</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco originates from the country of Spain where the name for the people there are Spaniards.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco is from spain as are Spaniards.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco originates from the country of Spain, where Spaniards are from.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Spain | ethnicGroup | Spaniards</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Spain | ethnicGroup | Spaniards</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Spaniards of Spain boasts the origins of the dish, ajoblanco.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco is from Spain where Spaniards are an ethnic group.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco originates from the country of Spain where Spaniards are an ethnic group.</lex>
+    </entry>
+    </entries>
+</benchmark>

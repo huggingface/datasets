@@ -1,0 +1,129 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | George_Kapitan</otriple>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+        <otriple>Airman_(comics) | creators | George_Kapitan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | alternativeName | "Drake Stevens"</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | George_Kapitan</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">George Kapitan created the comic character Airman whose alter ego is Drake Stevens.</lex>
+      <lex lang="ru" lid="Id1">Джордж Капитан создал персонаж комиксов Airman, чье другое имя - Дрейк Стивенс.</lex>
+      <lex lang="en" lid="Id2">"Drake Stevens, known as Airman, was created by George Kapitan.</lex>
+      <lex lang="ru" lid="Id2">Дрейк Стивенс, известный как Airman, был создан Джорджем Капитаном.</lex>
+      <lex lang="en" lid="Id3">George Kapitan is the creator of the comic character "Airman" or otherwise known as "Drake Stevens".</lex>
+      <lex lang="ru" lid="Id3">Джордж Капитан - создатель персонажа комиксов "Airman" или иначе известный как "Дрейк Стивенс".</lex>
+      <links>
+        <link direction="en2ru">Airman (comicsCharacter) | includes | Эйрмен / Airman</link>
+        <link direction="en2ru">George Kapitan | sameAs | Джордж Капитан</link>
+        <link direction="en2ru">Drake Stevens | sameAs | Дрейк Стивенс</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+        <otriple>Airman_(comics) | creators | Harry_Sahle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | Harry_Sahle</otriple>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | alternativeName | "Drake Stevens"</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | Harry_Sahle</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic book character Airman, AKA Drake Stephens, was created by Harry Sahle.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Airman, AKA Дрейк Стивенс, был создан Гарри Сале.</lex>
+      <lex lang="en" lid="Id2">Drake Stevens is known as the comic character Airman, which was created by Harry Sahle.</lex>
+      <lex lang="ru" lid="Id2">Дрейк Стивенс известен как персонаж комиксов Airman, который был создан Гарри Сале.</lex>
+      <lex lang="en" lid="Id3">The comic character Airman, who has the alternative name Drake Stevens, was created by Harry Sahle.</lex>
+      <lex lang="ru" lid="Id3">Персонаж комиксов Airman, у которого есть альтернативное имя Дрейк Стивенс, был создан Гарри Сале.</lex>
+      <links>
+        <link direction="en2ru">Airman (comicsCharacter) | includes | Эйрмен / Airman</link>
+        <link direction="en2ru">Drake Stevens | sameAs | Дрейк Стивенс</link>
+        <link direction="en2ru">Harry Sahle | sameAs | Гарри Сале</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | George_Kapitan</otriple>
+        <otriple>Airman_(comics) | creators | Harry_Sahle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | Harry_Sahle</otriple>
+        <otriple>Airman_(comics) | creators | George_Kapitan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | creator | Harry_Sahle</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | George_Kapitan</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The creators of the comic character Airman were Harry Sahle and George Kapitan.</lex>
+      <lex lang="ru" lid="Id1">Создателями персонажа комиксов Airman были Гарри Сале и Джордж Капитан.</lex>
+      <lex lang="en" lid="Id2">The comic book character Airman was created by both Harry Sahle and George Kapitan.</lex>
+      <lex lang="ru" lid="Id2">Персонаж комиксов Airman был создан как Гарри Сале, так и Джорджем Капитаном.</lex>
+      <lex lang="en" lid="Id3">The creators of the comic book character Airman were Harry Sahle and George Kapitan.</lex>
+      <lex lang="ru" lid="Id3">Создателями персонажа комиксов Airman были Гарри Сале и Джордж Капитан.</lex>
+      <links>
+        <link direction="en2ru">Airman (comicsCharacter) | includes | Эйрмен / Airman</link>
+        <link direction="en2ru">George Kapitan | sameAs | Джордж Капитан</link>
+        <link direction="en2ru">Harry Sahle | sameAs | Гарри Сале</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | creators | Bill_Everett</otriple>
+        <otriple>Amazing-Man_(Centaur_Publications) | alterEgo | "John Aman"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | creator | Bill_Everett</otriple>
+        <otriple>Amazing-Man_(Centaur_Publications) | alterEgo | "John Aman"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amazing-Man_(comicsCharacter) | creator | Bill_Everett</mtriple>
+        <mtriple>Amazing-Man_(comicsCharacter) | alternativeName | "John Aman"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">John Aman (created by Bill Everett) is also known as Amazing-Man in the comics genre.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Джон Аман (созданный Биллом Эвереттом) также известен как Amazing-Man.</lex>
+      <lex lang="en" lid="Id2">Bill Everett is the creator of the comic character, Amazing-Man who has the alternative name, John Aman.</lex>
+      <lex lang="ru" lid="Id2">Билл Эверетт - создатель персонажа комиксов Amazing-Man, у которого есть альтернативное имя, Джон Аман.</lex>
+      <lex lang="en" lid="Id3">The comic book character Amazing-Man's alter ego is John Aman and it was created by Bill Everett.</lex>
+      <lex lang="ru" lid="Id3">Персонажа комиксов "Amazing-Man" также зовут Джон Аман, и его создал Билл Эверетт.</lex>
+      <links>
+        <link direction="en2ru">Amazing-Man (comicsCharacter) | includes | Эмейзин-мен / Amazing-Man</link>
+        <link direction="en2ru">Bill Everett | sameAs | Билл Эверетт</link>
+        <link direction="en2ru">John Aman | sameAs | Джон Аман</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>April_O'Neil | creators | Peter_Laird</otriple>
+        <otriple>April_O'Neil | creator | Kevin_Eastman</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>April_O'Neil | creator | Peter_Laird</otriple>
+        <otriple>April_O'Neil | creators | Kevin_Eastman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>April_O'Neil | creator | Peter_Laird</mtriple>
+        <mtriple>April_O'Neil | creator | Kevin_Eastman</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The character April O'Neil was created by Peter Laird and Kevin Eastman.</lex>
+      <lex lang="ru" lid="Id1">Персонаж Эйприл О’Нил был создан Питером Лэрдом и Кевином Истменом.</lex>
+      <lex lang="en" lid="Id2">April O'Neil was created by Kevin Eastman and Peter Laird.</lex>
+      <lex lang="ru" lid="Id2">Эйприла О'Нила создали Кевин Истмен и Питер Лэрд.</lex>
+      <lex lang="en" lid="Id3">Peter Laird and Kevin Eastman, created the character, April O'Neil.</lex>
+      <lex lang="ru" lid="Id3">Питер Лэрд и Кевин Истмен создали персонажа Эйприла О'Нила.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kevin_Eastman | sameAs | Истмен,_Кевин</dbpedialink>
+        <dbpedialink direction="en2ru">April_O'Neil | sameAs | Эйприл_О’Нил</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Laird | sameAs | Лэрд,_Питер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

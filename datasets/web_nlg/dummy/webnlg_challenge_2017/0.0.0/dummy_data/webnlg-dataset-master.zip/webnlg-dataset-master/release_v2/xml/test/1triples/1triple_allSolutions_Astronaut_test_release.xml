@@ -1,0 +1,63 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The nationality of Alan Bean is United States.</lex>
+      <lex comment="good" lid="Id2">Alan Bean's nationality is the United States.</lex>
+      <lex comment="good" lid="Id3">Alan Bean is American.</lex>
+      <lex comment="good" lid="Id4">Alan Bean was American.</lex>
+      <lex comment="good" lid="Id5">Alan Bean is a US national.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Apollo_8 | crew2Up | Buzz_Aldrin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Apollo_8 | backup pilot | Buzz_Aldrin</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was a backup pilot on the Apollo 8 mission.</lex>
+      <lex comment="good" lid="Id2">Apollo 8's backup pilot was Buzz Aldrin.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin graduated from Massachusetts Institute of Technology with a Sc.D in 1963.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin graduated in 1963 from MIT with a Sc.D.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin graduated from MIT with a Sc. D in 1963.</lex>
+      <lex comment="good" lid="Id4">Buzz Aldrin graduated from Massachusetts Institute of Technology, Sc.D. 1963.</lex>
+      <lex comment="good" lid="Id5">Buzz Aldrin graduated from Massachusetts Institute of Technology in 1963 with a doctorate in Science.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | was a crew member of | Apollo_11</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was a crew member of Apollo 11.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was a member of the Apollo 11 crew.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin was a crew member on Apollo 11.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | was selected by NASA | 1963</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">NASA selected Buzz Aldrin in 1963.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was selected by NASA in 1963.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin was selected to work for NASA in 1963.</lex>
+      <lex comment="good" lid="Id4">Buzz Aldrin was hired by NASA in 1963.</lex>
+    </entry>
+    </entries>
+</benchmark>

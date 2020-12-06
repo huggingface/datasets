@@ -1,0 +1,127 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Peñarol</otriple>
+        <otriple>Central_Español | league | Uruguayan_Segunda_División</otriple>
+        <otriple>Abel_Hernández | team | Central_Español</otriple>
+        <otriple>Peñarol | manager | Jorge_Orosmán_da_Silva</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Peñarol</otriple>
+        <otriple>Abel_Hernández | clubs | Central_Español</otriple>
+        <otriple>Central_Español | league | Uruguayan_Segunda_División</otriple>
+        <otriple>Peñarol | manager | Jorge_Orosmán_da_Silva</otriple>
+        <otriple>Abel_Hernández | team | U.S._Città_di_Palermo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | youthclub | Peñarol</mtriple>
+        <mtriple>Central_Español | league | Uruguayan_Segunda_División</mtriple>
+        <mtriple>Abel_Hernández | club | Central_Español</mtriple>
+        <mtriple>Peñarol | manager | Jorge_Orosmán_da_Silva</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Penarol, where Abel Hernandez played youth football, is managed by Jorge Orosmán da Silva. Hernandez later played for Uruguayan Segunda División side Central Español and then moved to U.S. Città di Palermo.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez is a member of Penarol's youth club and the club is managed by Jorge Orosmán da Silva. US Citta di Palermo and the Central Espanol are also Mr. Hernandez's clubs. The latter club is part of the Uruguayan Segunda División league.</lex>
+      <lex comment="good" lid="Id3">In his youth, Abel Hernández played for Peñarol where Jorge Orosman da Silva is the manager. He currently plays for US Citta di Palermo and also in the Uruguayan Segunda Division league with Central Espanol.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aleksandre_Guruli | team | FC_Karpaty_Lviv</otriple>
+        <otriple>FC_Karpaty_Lviv | manager | Oleh_Luzhny</otriple>
+        <otriple>Olympique_Lyonnais | chairman | Jean-Michel_Aulas</otriple>
+        <otriple>Aleksandre_Guruli | clubs | Olympique_Lyonnais</otriple>
+        <otriple>Olympique_Lyonnais | ground | Parc_Olympique_Lyonnais</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>FC_Karpaty_Lviv | manager | Oleh_Luzhny</otriple>
+        <otriple>Aleksandre_Guruli | team | Olympique_Lyonnais</otriple>
+        <otriple>Olympique_Lyonnais | chairman | Jean-Michel_Aulas</otriple>
+        <otriple>Olympique_Lyonnais | ground | Parc_Olympique_Lyonnais</otriple>
+        <otriple>Aleksandre_Guruli | clubs | FC_Karpaty_Lviv</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aleksandre_Guruli | club | FC_Karpaty_Lviv</mtriple>
+        <mtriple>FC_Karpaty_Lviv | manager | Oleh_Luzhny</mtriple>
+        <mtriple>Olympique_Lyonnais | chairman | Jean-Michel_Aulas</mtriple>
+        <mtriple>Aleksandre_Guruli | club | Olympique_Lyonnais</mtriple>
+        <mtriple>Olympique_Lyonnais | ground | Parc_Olympique_Lyonnais</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aleksandre Guruli's club is Olympique Lyonnais who are chaired by Jean-Michel Aulas and have their home ground at the Parc Olympique Lyonnais stadium. He also plays for FC Karpaty Lviv who are managed by Oleh Luzhny.</lex>
+      <lex comment="good" lid="Id2">Aleksandre Guruli played for the Olympique Lyonnais club who play their home games at the Parc Olympique Lyonnais and have the chairman, Jean-Michel Aulas. His current club is FC Karpaty Lviv managed by Oleh Luzhny.</lex>
+      <lex comment="good" lid="Id3">Aleksandre Guruli played for FC Karpaty Lviv who are managed by Oleh Luzhny. Guruli has also played for Olympique Lyonnais whose home ground is the Parc Olympique Lyonnais and whose chairman is Jean-Michel Aulas.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Alessio_Romagnoli | team | A.C._Milan</otriple>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | position | Defender_(association_football)</otriple>
+        <otriple>Alessio_Romagnoli | clubs | "→ Sampdoria"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | position | Defender_(association_football)</otriple>
+        <otriple>Alessio_Romagnoli | team | U.C._Sampdoria</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | position | Defender_(football)</mtriple>
+        <mtriple>Alessio_Romagnoli | club | U.C._Sampdoria</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The defender, Alessio Romagnoli is a member of the Serie A league club A.C. Milan who are managed by Sinisa Mihajlovic. He is also connected to UC Sampdoria.</lex>
+      <lex comment="good" lid="Id2">Defender Alessio Romagnoli, whose former clubs include UC Sampdoria, has played for the Serie A side AC Milan, which is managed by Siniša Mihajlović.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is a defender who plays for UC Sampdoria. He also plays in Serie A for AC Milan who are managed by Sinisa Mihajlovic.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Central_Español | league | Uruguayan_Segunda_División</otriple>
+        <otriple>Abel_Hernández | youthclubs | Central_Español</otriple>
+        <otriple>U.S._Città_di_Palermo | manager | Giuseppe_Iachini</otriple>
+        <otriple>Abel_Hernández | team | Uruguay_national_football_team</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Central_Español | league | Uruguayan_Segunda_División</mtriple>
+        <mtriple>Abel_Hernández | youthclub | Central_Español</mtriple>
+        <mtriple>U.S._Città_di_Palermo | manager | Giuseppe_Iachini</mtriple>
+        <mtriple>Abel_Hernández | club | Uruguay_national_football_team</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernández played youth football for Central Español part of the Uruguayan Segunda División league. Mr. Hernandez plays for the US Citta di Palermo and the Uruguay National football team. Giuseppe Iachini manages the U.S. Città di Palermo team.</lex>
+      <lex comment="good" lid="Id2">Central Español, where Abel Hernandez played youth football, are part of the Uruguayan Segunda División league. Hernández has represented Uruguay at international level and also played for the club U.S. Città di Palermo, where the manager is Giuseppe Iachini.</lex>
+      <lex comment="good" lid="Id3">Abel Hernandez played youth football for Central Espanol, part of the Uruguayan Segunda División league. He plays for the US Citta di Palermo, managed by Giuseppe Iachini, and the Uruguay National football team.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>FC_Spartak_Moscow | chairman | Sergey_Rodionov</otriple>
+        <otriple>FC_Spartak_Moscow | ground | Otkrytiye_Arena</otriple>
+        <otriple>Aleksandr_Prudnikov | clubs | FC_Spartak_Moscow</otriple>
+        <otriple>Aleksandr_Prudnikov | team | FC_Amkar_Perm</otriple>
+        <otriple>FC_Amkar_Perm | manager | Gadzhi_Gadzhiyev</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aleksandr_Prudnikov | team | FC_Spartak_Moscow</otriple>
+        <otriple>FC_Spartak_Moscow | chairman | Sergey_Rodionov</otriple>
+        <otriple>Aleksandr_Prudnikov | clubs | FC_Amkar_Perm</otriple>
+        <otriple>FC_Spartak_Moscow | ground | Otkrytiye_Arena</otriple>
+        <otriple>FC_Amkar_Perm | manager | Gadzhi_Gadzhiyev</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>FC_Spartak_Moscow | chairman | Sergey_Rodionov</mtriple>
+        <mtriple>FC_Spartak_Moscow | ground | Otkrytiye_Arena</mtriple>
+        <mtriple>Aleksandr_Prudnikov | club | FC_Spartak_Moscow</mtriple>
+        <mtriple>Aleksandr_Prudnikov | club | FC_Amkar_Perm</mtriple>
+        <mtriple>FC_Amkar_Perm | manager | Gadzhi_Gadzhiyev</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aleksandr Prudnikov's club is FC Spartak Moscow who have Sergey Rodionov as their chairman and play at the Otkrytiye arena. He also plays for FC Amkar Perm who are managed by Gadzhi Gadzhiyev.</lex>
+      <lex comment="good" lid="Id2">Aleksandr Prudnikov plays for FC Spartak Moscow who have their home ground at Otkrytiye Arena and are chaired by Sergey Rodionov. He also plays for FC Amkar Perm under the management of Gadzhi Gadzhiyev.</lex>
+      <lex comment="good" lid="Id3">Sergey Rodionov is the chairman of FC Spartak Moscow, who play at the Otkrytiye Arena and count Aleksandr Prudnikov as one of their former players. Prudnikov has also played for FC Amkar Perm, where the manager was Gadzhi Gadzhiyev.</lex>
+    </entry>
+    </entries>
+</benchmark>

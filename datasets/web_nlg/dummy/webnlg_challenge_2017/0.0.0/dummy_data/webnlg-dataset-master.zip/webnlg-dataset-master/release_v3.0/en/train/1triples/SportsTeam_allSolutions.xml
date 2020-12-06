@@ -1,0 +1,53 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1. FC Köln has 50000 members.</lex>
+      <lex comment="good" lid="Id2">F.C. Koln have 50000 members.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | season | 2014</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1 FC Köln played in the 2014 season.</lex>
+      <lex comment="good" lid="Id2">2014 saw 1. FC Koln participating.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | season | 2014–15_Bundesliga</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1. FC Köln were in the 2014–15 Bundesliga season.</lex>
+      <lex comment="good" lid="Id2">FC Köln played the 2014-15 season in the Bundesliga.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | league | 3._Liga</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | league | 3._Liga</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1 FC Magdeburg is in the 3 Liga league.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The manager of FC Magdeburg is Jens Härtel.</lex>
+      <lex comment="good" lid="Id2">Jens Härtel has been the manager of 1 FC Magdeburg.</lex>
+    </entry>
+    </entries>
+</benchmark>

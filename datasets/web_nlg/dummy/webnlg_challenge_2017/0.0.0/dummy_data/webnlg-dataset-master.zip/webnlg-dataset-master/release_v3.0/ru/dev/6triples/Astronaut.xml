@@ -1,0 +1,161 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | status | "Retired"@en</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | status | "Retired"</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born in in British Hong Kong on October 17th, 1933, was a Fighter pilot, was a member of Apollo 8's crew and retired on 1st September 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс родился в Британском Гонконге 17 октября 1933 года. Он служил летчиком-истребителем / пилотом истребителя и стал членом экипажа на Аполлоне-8 до того, как он вышел на пенсию в 1969 году.</lex>
+      <lex lang="en" lid="Id2">William Anders was born in Hong Kong on October 17th 1933. He served as a fighter pilot and became a crew member on Apollo 8 before he retired in 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился в Гонконге 17 октября 1933 года. Он служил пилотом истребителя и стал членом экипажа на "Аполлоне-8" до того, как он вышел на пенсию в 1969 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">In 1963 NASA chose William Anders to become a member of the Apollo 8 crew. Anders was a test pilot before that who was born in British Hong Kong on October 17th, 1933 and retired on September 1st, 1969.</lex>
+      <lex lang="ru" lid="Id1">В 1963 году НАСА выбрало Уильяма Андерса, чтобы тот стал членом экипажа "Аполлона-8". До этого Андерс был лётчиком-испытателем, он родился в Британском Гонконге 17 октября 1933 года и ушёл в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">Fighter pilot William Anders was picked by NASA in 1963 to join the Apollo 8 space mission. Anders was born in British Hong Kong on October 17th, 1933 and he retired September 1st, 1969.</lex>
+      <lex lang="ru" lid="Id2">Пилот истребителя Уильям Андерс был выбран НАСА в 1963 году, чтобы присоединиться к космической миссии "Аполлон-8". Андерс родился в британском Гонконге 17 октября 1933 года и ушел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | nationality | United_States</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">American William Anders was a test pilot who became a member of the Apollo 8 crew when NASA picked him in 1963. He was born in British Hong Kong and retired on September 1st, 1969.</lex>
+      <lex lang="ru" lid="Id1">Американец Уильям Андерс был летчиком-испытателем, который стал членом экипажа "Аполлон-8", когда НАСА отобрало его в 1963 году. Он родился в Британском Гонконге и вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders was born in British Hong Kong and is an American. He was chosen by NASA in 1963 and was a fighter pilot as well as a member of Apollo 8. He retired on Sept 1 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился в британском Гонконге и является американцем. Он был выбран НАСА в 1963 году, и он был пилотом истребителя, а также членом "Аполлона-8". Он вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born in British Hong Kong. He received an MS from AFIT in 1962 and joined NASA in 1963. He was a fighter pilot and a crew member on Apollo . He retired in 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс родился в Британском Гонконге. Он получил степень магистра естественных наук в AFIT в 1962 году и присоединился к НАСА в 1963 году. Он был пилотом истребителя и членом экипажа на "Аполлоне". Он вышел в отставку в 1969 году.</lex>
+      <lex lang="en" lid="Id2">William Anders was born in British Hong Kong. He graduated from AFIT in 1962 with an MS and was chosen by NASA in 1963. He was a fighter pilot and served as a crew member on Apollo 8. Anders retired in 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился в Британском Гонконге, был пилотом истребителя, окончил AFIT со степенью магистра естественных наук в 1962 году, был выбран НАСА в 1963 году, был членом экипажа "Аполлон-8" и вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id3">William Anders was born in in British Hong Kong, was a Fighter pilot, graduated from AFIT, M.S. in 1962, was chosen by NASA in 1963, was a member of Apollo 8's crew and retired on 1st September 1969.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс родился в британском Гонконге, был летчиком-истребителем, окончил AFIT, M.S. в 1962 году, был выбран НАСА в 1963 году, был членом экипажа "Аполлона-8" и вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | status | "Retired"@en</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | status | "Retired"</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born Oct 17th in British Hong Kong. He was crew member on Apollo 8 in 1963. He retired.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс родился в Британском Гонконге 17 октября 1933 года. НАСА выбрало его в 1963 году, и он служил членом команды "Аполлона-8". Он вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders was born in British Hong Kong on the 17th of October 1933. NASA selected him in 1963, and he served as a crew member of Apollo 8. He retired on the 1st of September, 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился в британском Гонконге 17 октября 1933 года. НАСА отобрало его в 1963 году, и он служил членом команды "Аполлона-8". Он вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

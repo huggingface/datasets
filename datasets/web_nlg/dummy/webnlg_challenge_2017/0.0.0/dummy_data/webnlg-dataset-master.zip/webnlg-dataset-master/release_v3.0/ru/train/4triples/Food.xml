@@ -1,0 +1,140 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredients | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco is from Andalusia inSpain. The main ingredients of Ajoblanco are bread, almonds, garlic, water and olive oil.</lex>
+      <lex lang="ru" lid="Id1">Ахобланко происходит из Андалусии в Испании. Основные ингредиенты ахобланко - хлеб, миндаль, чеснок, вода и оливковое масло.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco is from Andalusia, Spain. It contains bread, almonds, garlic, water, and olive oil.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко родом из Андалусии, Испания. Содержит в себе хлеб, миндаль, чеснок, воду и оливковое масло.</lex>
+      <lex lang="en" lid="Id3">Ajoblanco is from the Andalusia region of Spain and the main ingredients are Bread, almonds, garlic, water, and olive oil.</lex>
+      <lex lang="ru" lid="Id3">Ахобланко родом из региона Андалусия в Испании, а основные ингредиенты - хлеб, миндаль, чеснок, вода и оливковое масло.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Andalusia | sameAs | Андалусия</dbpedialink>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Garlic | sameAs | Чеснок</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredients | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco originates from the Andalusia region of Spain.Its main ingredients are:bread, almonds, garlic, water, and olive oil.</lex>
+      <lex lang="ru" lid="Id1">Ахобланко берет свое начало из Андалусской области Испании. Его основные ингредиенты: хлеб, миндаль, чеснок, вода и оливковое масло.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco is a Spanish dish found in Andalusia and bread, almonds, garlic, water and olive oil are among its ingredients.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко - это испанское блюдо, найденное в Андалусии, а его ингредиентами являются: хлеб, миндаль, чеснок, вода и оливковое масло.</lex>
+      <lex lang="en" lid="Id3">Bread, almonds, garlic, water, and olive oil are the main ingredients in Ajoblanco which is a food from Andalusia in Spain.</lex>
+      <lex lang="ru" lid="Id3">Хлеб, миндаль, чеснок, вода и оливковое масло - главные ингредиенты в ахобланко - блюде из Андалусии, Испания.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Andalusia | sameAs | Андалусия</dbpedialink>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Olive_oil | sameAs | Оливковое_масло</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredients | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Bread, almonds, garlic, water, and olive oil are the main ingredients in Ajoblanco, which is from Andalusia, in Spain.</lex>
+      <lex lang="ru" lid="Id1">Хлеб, миндаль, чеснок, вода и оливковое масло - главные ингредиенты ахобланко, блюда родом из Андалусии, в Испании.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco originates from the country of Spain and from Andalusia. Its main ingredients are bread, almonds, garlic, water and olive oil.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко происходит из Испании и из Андалусии. Ее основными ингредиентами являются хлеб, миндаль, чеснок, вода и оливковое масло.</lex>
+      <lex lang="en" lid="Id3">Ajoblanco, a dish from Andalusia and Spain. contains: water, bread, almonds, garlic and olive oil.</lex>
+      <lex lang="ru" lid="Id3">Ахобланко, блюдо из Андалусии и Испании. Содержит: воду, хлеб, миндаль, чеснок и оливковое масло.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Andalusia | sameAs | Андалусия</dbpedialink>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Water | sameAs | Вода</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Bread is an ingredient in Ajoblanco (Ajo blanco), which is from Andalusia, Spain.</lex>
+      <lex lang="ru" lid="Id1">Хлеб является ингредиентом ахобланко, который родом из Андалусии, Испания.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco (also called Ajo blanco) originates from Andalusia, Spain. Bread is a main ingredient.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко родом из Андалусии, Испании. Хлеб - главный ингредиент.</lex>
+      <lex lang="en" lid="Id3">Ajoblanco originates from the Aldalusian region of Spain and contains bread among its ingredients. Ajo blanco is an alternative written name of the food.</lex>
+      <lex lang="ru" lid="Id3">Ахобланко родом из Андалузского района в Испании, один из ингредиентов - хлеб. Ахо бланко – альтернативное письменное название блюда.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Andalusia | sameAs | Андалусия</dbpedialink>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Bread | sameAs | Хлеб</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ajo blanco | sameAs | ахобланко</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The garlicy dish Ajoblanco (also known as Ajo blanco) is from the Andalusia region of Spain.</lex>
+      <lex lang="ru" lid="Id1">Чесночное блюдо ахобланко (также известное как ахо бланко) родом из региона Андалусия в Испании.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco ( or Ajo blanco) originates from Spain and contains garlic.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко родом из Испании и содержит чеснок.</lex>
+      <lex lang="en" lid="Id3">Ajo blanco is the alternative name of ajoblanco which comes from the Andalusia region of Spain and has garlic as an ingredient.</lex>
+      <lex lang="ru" lid="Id3">Ахо бланко – альтернативное название ахобланко, которое родом из региона Андалусии Испании и содержит чеснок как ингредиент.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Andalusia | sameAs | Андалусия</dbpedialink>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Garlic | sameAs | Чеснок</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ajo blanco | sameAs | ахобланко</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

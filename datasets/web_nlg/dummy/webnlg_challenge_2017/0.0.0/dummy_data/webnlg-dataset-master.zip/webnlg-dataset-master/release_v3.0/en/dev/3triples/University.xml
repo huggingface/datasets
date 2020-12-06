@@ -1,0 +1,76 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | numberOfStudents | "600"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | numberOfStudents | 600</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Accademia di Architettura di Mendrisio is in Switzerland. Its dean is Mario Botta and it has 600 students.</lex>
+      <lex comment="good" lid="Id2">The Accademia di Architettura di Mendrisio of Switzerland has 600 students and the dean is called Mario Botta.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | city | Bangalore</otriple>
+        <otriple>Acharya_Institute_of_Technology | motto | "Nurturing Excellence"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | country | "India"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | city | Bangalore</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | motto | "Nurturing Excellence"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | country | "India"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Acharya Institute of Technology is located in Bangalore, India and its motto is: "Nurturing Excellence".</lex>
+      <lex comment="good" lid="Id2">The Acharya Institute of Technology in Bangalore, India has the motto "Nurturing Excellence".</lex>
+      <lex comment="good" lid="Id3">Acharya Institute of Technology is in Bangalore, India and its motto is"Nurturing Excellence".</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | city | Bangalore</otriple>
+        <otriple>Acharya_Institute_of_Technology | country | "India"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | city | Bangalore</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | country | "India"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">B.M. Reddy is the president of the Acharya Institute of Technology, which is located in Bangalore, India.</lex>
+      <lex comment="good" lid="Id2">The Acharya Institute of Technology is in Bangalore, India. Its president is B.M. Reddy.</lex>
+      <lex comment="good" lid="Id3">The Acharya Institute of Technology (Bangalore, India) has B. M. Reddy as its president.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | sport | Tennis</otriple>
+        <otriple>Acharya_Institute_of_Technology | established | 2000</otriple>
+        <otriple>Tennis | union | International_Tennis_Federation</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | sportsOffered | Tennis</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | established | 2000</mtriple>
+        <mtriple>Tennis | sportGoverningBody | International_Tennis_Federation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Acharya Institute of Technology offers tennis and it was established in 2000. The tennis governing body is the International Tennis Federation.</lex>
+      <lex comment="good" lid="Id2">The International Tennis Federation is the governing body for the sport which is offered at the Acharya Institute of Technology which was established in 2000.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>India | largestCity | Mumbai</otriple>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>India | largestCity | Mumbai</mtriple>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AWH Engineering College is in India. Mumbai is the largest city in India. The river Ganges runs through India.</lex>
+      <lex comment="good" lid="Id2">AWH Engineering College is located in the country of India, whose capital city is Mumbai. One of the rivers in India is called the Ganges.</lex>
+    </entry>
+    </entries>
+</benchmark>

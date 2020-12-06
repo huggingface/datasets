@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Fredericksburg</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Fredericksburg</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in the Battle of Fredericksburg and received the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S Daggett, fought in battles, most notably the Battle of Fredericksburg, he was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett was awarded the Purple Heart and fought in the Battle of Fredericksburg.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett fought at the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett, who fought in the Battle of Gettysburg, was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | "Parti Pesaka Bumiputera Bersatu"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taid Mahmud was born in Sarawak and is part of the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud was born in the Kingdom of Sarawak and his party is the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud, who was born in Sarawak, belongs to the Parti Pesaka Bumiputera Bersatu.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | "Parti Pesaka Bumiputera Bersatu"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Miri, Malaysia, is the birthplace of Abdul Taib Mahmud, whose party is the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud, was born in Miri, Malaysia, and is part of the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud, who was born in Miri, Malaysia, belongs to the Party Pesaka Bumiputera Bersatu.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+        <otriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+        <mtriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar, who served in the Nigerian Army was in office while Mike Akhigbe was Vice President.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar, who served in the NIgerian Army, was in office whilst Mike Akhigbe was Vice President.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar, served in the Nigerian Army, and was in office while Mike Akhigbe was the Vice President.</lex>
+    </entry>
+    </entries>
+</benchmark>

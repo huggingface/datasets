@@ -1,0 +1,153 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leader | Matteo_Renzi</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leaderName | Laura_Boldrini</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | leader | Matteo_Renzi</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Italy | leader | Laura_Boldrini</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Amatriciana sauce is a traditional sauce in Italy (the capital of which is Rome), where two of the country's leaders are Matteo Renzi and Laura Boldrini.</lex>
+      <lex lang="ru" lid="Id1">Аматричана – это традиционный соус в Италии (столицей которой является Рим), где два лидера - Маттео Ренци и Лаура Больдрини.</lex>
+      <lex lang="en" lid="Id2">The capital of Italy is Rome. Two leaders in Italy are Matteo Renzi and Laura Boldrini. Amatriciana sauce is a traditional sauce there.</lex>
+      <lex lang="ru" lid="Id2">Столица Италии - Рим. Два лидера в Италии - Маттео Ренци и Лаура Больдрини. Аматричана – это традиционный соус там.</lex>
+      <lex lang="en" lid="Id3">Amatriciana sauce can be found in Italy, where the capital is Rome and the leader is Laura Boldrini and/or Matteo Renzi.</lex>
+      <lex lang="ru" lid="Id3">Аматричану можно найти в Италии, где столица - Рим, а лидер – Лаура Больдрини и/или Маттео Ренци.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+        <dbpedialink direction="en2ru">Amatriciana_sauce | sameAs | Аматричана</dbpedialink>
+        <dbpedialink direction="en2ru">Laura_Boldrini | sameAs | Больдрини,_Лаура</dbpedialink>
+        <dbpedialink direction="en2ru">Matteo_Renzi | sameAs | Ренци,_Маттео</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leader | Matteo_Renzi</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leaderName | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leaderName | Matteo_Renzi</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | leader | Matteo_Renzi</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Two leaders of Italy, where Amatriciana sauce is found, are Matteo Renzi and Sergio Mattarella. Its capital is Rome.</lex>
+      <lex lang="ru" lid="Id1">Два лидера Италии, где найден соус Аматричана, - Маттео Ренци и Серхио Маттарелла. Ее столица - Рим.</lex>
+      <lex lang="en" lid="Id2">Italy is the country Amatriciana sauce comes from. The capital is Rome and political leaders include Matteo Renzi and Sergio Mattarella.</lex>
+      <lex lang="ru" lid="Id2">Италия – страна, из которой родом соус аматричана. Столицей является Рим и ее политические лидеры: Маттео Ренци и Серджо Маттарелла.</lex>
+      <lex lang="en" lid="Id3">Rome is the capital of Italy, where Sergio Mattarell and Matteo Renzi are leaders and where amatriciana sauce is a traditional dish.</lex>
+      <lex lang="ru" lid="Id3">Рим - столица Италии, где Серджо Маттарелла и Маттео Ренци - лидеры и где Аматричана - традиционное блюдо.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">Amatriciana_sauce | sameAs | Аматричана</dbpedialink>
+        <dbpedialink direction="en2ru">Matteo_Renzi | sameAs | Ренци,_Маттео</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leader | Laura_Boldrini</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Italy | leaderName | Laura_Boldrini</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Italy | leader | Laura_Boldrini</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Italy is the country Amatriciana sauce comes from and the capital is Rome. The leaders are Pietro Grasso and Laura Boldrini.</lex>
+      <lex lang="ru" lid="Id1">Италия – страна происхождения Аматричаны, и столица - Рим. Лидеры - Пьетро Грассо и Лаура Больдрини.</lex>
+      <lex lang="en" lid="Id2">Amatriciana sauce is a traditional Italian sauce. The capital of the country is Rome and the leader is either Pietro Grasso and/or Laura Boldrini.</lex>
+      <lex lang="ru" lid="Id2">Аматричана – это традиционный итальянский соус. Столица - Рим, а лидером является либо Пьетро Грассо и/или Лаура Больдрини.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+        <dbpedialink direction="en2ru">Amatriciana_sauce | sameAs | Аматричана</dbpedialink>
+        <dbpedialink direction="en2ru">Laura_Boldrini | sameAs | Больдрини,_Лаура</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Java | ethnicGroup | Baduy</otriple>
+        <otriple>Ayam_penyet | region | Singapore</otriple>
+        <otriple>Singapore | leaderName | Tony_Tan</otriple>
+        <otriple>Ayam_penyet | country | Java</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Java | ethnicGroup | Baduy</mtriple>
+        <mtriple>Ayam_penyet | region | Singapore</mtriple>
+        <mtriple>Singapore | leader | Tony_Tan</mtriple>
+        <mtriple>Ayam_penyet | country | Java</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ayam penyet is originates from Singapore and Tony Tan is the country's leader.It can also be found in Java where Baduy people are one of the ethnic groups.</lex>
+      <lex lang="ru" lid="Id1">Блюдо аям пеньет родом из Сингапура, и Тони Тан - лидер страны. Оно также может быть найдено на Яве, где народ бадуй являются одной из этнических групп.</lex>
+      <lex lang="en" lid="Id2">Baduy is an ethnic group of Java, where the dish ayam penyet can be found. This dish is from the Singapore region, where Tony Tan is a leader.</lex>
+      <lex lang="ru" lid="Id2">Бадуй - это этническая группа Явы, где можно найти блюдо аям пеньет. Это блюдо - из региона Сингапур, где Тони Тан - лидер.</lex>
+      <lex lang="en" lid="Id3">Ayam penyet is a dish from Java, where the Baduy are an ethnic group. The dish comes from Singapore where Tony Tan is the leader.</lex>
+      <lex lang="ru" lid="Id3">Аям пеньет - блюдо из Явы, где Бадуй - этническая группа. Блюдо происходит из Сингапура, где Тони Тан - лидер.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Baduy | sameAs | Бадуй</dbpedialink>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+        <dbpedialink direction="en2ru">Tony_Tan | sameAs | Тони_Тан</dbpedialink>
+        <dbpedialink direction="en2ru">Java | sameAs | Ява</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ayam penyet | sameAs | аям пеньет</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Java | ethnicGroup | Baduy</otriple>
+        <otriple>Singapore | language | English_language</otriple>
+        <otriple>Ayam_penyet | region | Singapore</otriple>
+        <otriple>Ayam_penyet | country | Java</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Java | ethnicGroup | Baduy</mtriple>
+        <mtriple>Singapore | language | English_language</mtriple>
+        <mtriple>Ayam_penyet | region | Singapore</mtriple>
+        <mtriple>Ayam_penyet | country | Java</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ayam penyet comes from Singapore and Java. English is spoken in Singapore. Baduy are an ethnic group living in Java.</lex>
+      <lex lang="ru" lid="Id1">Аям пеньет родом из Сингапура и Явы. В Сингапуре говорят по-английски. Бадуй - этническая группа, живущая на Яве.</lex>
+      <lex lang="en" lid="Id2">Ayam penyet is from Singapore and Java (home of the Baduy people). In Singapore English is one language spoken.</lex>
+      <lex lang="ru" lid="Id2">Блюдо аям пеньет родом из Сингапура и Явы (родина народа бадуй). В Сингапуре английский – один из языков, на которых говорят местные жители.</lex>
+      <lex lang="en" lid="Id3">Ayam penyet is from Singapore and Java (home of the Baduy people). In Singapore they speak English.</lex>
+      <lex lang="ru" lid="Id3">Блюдо аям пеньет - из Сингапура и Явы (родина народа бадуй). В Сингапуре говорят по-английски.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Baduy | sameAs | Бадуй</dbpedialink>
+        <dbpedialink direction="en2ru">English_language | sameAs | Английский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+        <dbpedialink direction="en2ru">Java | sameAs | Ява</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ayam penyet | sameAs | аям пеньет</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

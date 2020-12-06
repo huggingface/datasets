@@ -1,0 +1,106 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | region | Asajaya</otriple>
+        <otriple>Abdul_Taib_Mahmud | residence | Kuching</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthDate | "1936-05-21"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | region | Asajaya</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | residence | Kuching</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthDate | 1936-05-21</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud was born on 21 May 1936 in Miri, Malaysia, and lives in Kuching. His party was the Parti Pesaka Bumiputera Bersatu and he represented the Asajaya region.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud was born in Miri, Malaysia, on May 21st 1936 and lives in Kuching. He represented Asajaya and was a member of the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id3">Born on 1936-05-21, in Miri, Malaysia, Abdul Taib Mahmud, lives in Kuching. His party is Parti Pesaka Bumiputera Bersatu and he represented the Asajaya region.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+        <otriple>Abdulsalami_Abubakar | activeYearsEndDate | "1999-05-29"^^xsd:date</otriple>
+        <otriple>Mike_Akhigbe | predecessor | Oladipo_Diya</otriple>
+        <otriple>Mike_Akhigbe | militaryBranch | Nigerian_Navy</otriple>
+        <otriple>Mike_Akhigbe | successor | Atiku_Abubakar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+        <mtriple>Abdulsalami_Abubakar | activeYearsEndDate | 1999-05-29</mtriple>
+        <mtriple>Mike_Akhigbe | predecessor | Oladipo_Diya</mtriple>
+        <mtriple>Mike_Akhigbe | militaryBranch | Nigerian_Navy</mtriple>
+        <mtriple>Mike_Akhigbe | successor | Atiku_Abubakar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar who ended his career on May 29th, 1999, served in office while Mike Akhigbe was Vice President. Akhigbe served in the Nigerian Navy and succeeded Oladipo Diya as V.P. before Atiku Abubakar took over from Akhigbe.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar ended his career on 1999-05-29, having been in office while Mike Akhigbe was the Vice President. Oladipo Diya was predecessor to Mike Akhigbe, who belonged to the Nigerian Navy branch of the Military and his successor was Atiku Abubakar.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar served office during Mike Akhigbe's Vice Presidenacy and began his career 05/29/1999. Nigerian Navy veteran Mike Akhigbe preceded Oladipo Diya and succeeded Atiku Abubakar.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abraham_A._Ribicoff | deathPlace | United_States</otriple>
+        <otriple>Abraham_A._Ribicoff | party | Democratic_Party_(United_States)</otriple>
+        <otriple>Abraham_A._Ribicoff | birthPlace | Connecticut</otriple>
+        <otriple>Abraham_A._Ribicoff | nationality | "American"@en</otriple>
+        <otriple>Abraham_A._Ribicoff | office | "Governor of Connecticut"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abraham_A._Ribicoff | deathPlace | United_States</otriple>
+        <otriple>Abraham_A._Ribicoff | party | Democratic_Party_(United_States)</otriple>
+        <otriple>Abraham_A._Ribicoff | birthPlace | Connecticut</otriple>
+        <otriple>Abraham_A._Ribicoff | nationality | "American"@en</otriple>
+        <otriple>Abraham_A._Ribicoff | office | "Governor of Connecticut"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abraham_A._Ribicoff | deathPlace | United_States</mtriple>
+        <mtriple>Abraham_A._Ribicoff | party | Democratic_Party_(United_States)</mtriple>
+        <mtriple>Abraham_A._Ribicoff | birthPlace | Connecticut</mtriple>
+        <mtriple>Abraham_A._Ribicoff | nationality | American</mtriple>
+        <mtriple>Abraham_A._Ribicoff | office (workedAt, workedAs) | "Governor of Connecticut"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abraham A. Ribicoff was born in Connecticut, United States, where he became governor. He was a member of the Democratic party in the United States. He died in the United States.</lex>
+      <lex comment="good" lid="Id2">Abraham A Ribicoff was an American National born in Connecticut. He was a member of the United States Democratic Party and held the office of Governor of Connecticut before he died in the US.</lex>
+      <lex comment="good" lid="Id3">American Abraham A. Ribicoff born in Connecticut was a member of United States Democratic Party and worked as a governor of Connecticut. He passed away in United Staes.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abraham_A._Ribicoff | spouse | Casey_Ribicoff</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Abraham_A._Ribicoff | birthPlace | Connecticut</otriple>
+        <otriple>Abraham_A._Ribicoff | nationality | United_States</otriple>
+        <otriple>Abraham_A._Ribicoff | deathPlace | New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abraham_A._Ribicoff | spouse | Casey_Ribicoff</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>Abraham_A._Ribicoff | birthPlace | Connecticut</mtriple>
+        <mtriple>Abraham_A._Ribicoff | nationality | United_States</mtriple>
+        <mtriple>Abraham_A._Ribicoff | deathPlace | New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Native Americans are an ethnic group in the U.S., the country Abraham A. Ribicoff was a national of. Abraham A. Ribicoff; was born in Connecticut, married to Casey Ribicoff, and died in New York.</lex>
+      <lex comment="good" lid="Id2">Abraham A. Ribicoff was born in Connecticut. He was married to Casey Ribicoff. He was also a national to the United States and he died in New York. The Native Americans are an ethnic group in the U.S.</lex>
+      <lex comment="good" lid="Id3">Native Americans are an ethnic group in the U.S. one of the citizens of that country was, Abraham A Ribicoff. He born in Connecticut. married to Casey Ribicoff and died in New York.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Adam_Holloway | party | Conservative_Party_(UK)</otriple>
+        <otriple>Adam_Holloway | birthPlace | "Faversham, Kent, England"@en</otriple>
+        <otriple>Adam_Holloway | activeYearsStartDate | "2005-05-05"^^xsd:date</otriple>
+        <otriple>Adam_Holloway | branch | Grenadier_Guards</otriple>
+        <otriple>Adam_Holloway | almaMater | Magdalene_College,_Cambridge</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Holloway | party | Conservative_Party_(UK)</mtriple>
+        <mtriple>Adam_Holloway | birthPlace | "Faversham, Kent, England"</mtriple>
+        <mtriple>Adam_Holloway | activeYearsStartDate | 2005-05-05</mtriple>
+        <mtriple>Adam_Holloway | militaryBranch | Grenadier_Guards</mtriple>
+        <mtriple>Adam_Holloway | almaMater | Magdalene_College,_Cambridge</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Holloway, who was born in Faversham, Kent, England, is a member of the Conservative Party in the UK. He studied at Magdalene College Cambridge before joining the Grenadier Guards and later starting his political career on 5th May 2005.</lex>
+      <lex comment="good" lid="Id2">Englishman Adam Holloway, born in Faversham, Kent and having attended Magdalene College in Cambridge, then joined the Grenadier Guards. He is a member of the UK Conservative Party and began his political career on 5th May 2005.</lex>
+      <lex comment="good" lid="Id3">Adam Holloway was born in Faversham, Kent, England and he went to Magdalene College, Cambridge and joined the Grenadier Guards in the military before joining the Tories.</lex>
+    </entry>
+    </entries>
+</benchmark>

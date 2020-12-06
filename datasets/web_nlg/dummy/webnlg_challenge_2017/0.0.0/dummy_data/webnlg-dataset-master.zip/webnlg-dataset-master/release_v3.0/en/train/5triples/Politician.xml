@@ -1,0 +1,133 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliations | Association_of_MBAs</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Stellendam</mtriple>
+        <mtriple>Ab_Klink | nationality | Netherlands</mtriple>
+        <mtriple>Netherlands | leader | Mark_Rutte</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Erasmus University in Rotterdam (Assoc. of MBA's) alum and Netherlands national Ab Klink was born in Stellendam. The Netherlands is led by Mark Rutte.</lex>
+      <lex comment="good" lid="Id2">Ab Klink attended Erasmus University Rotterdam which is affiliated with the Association of MBAs. He was born in Stellendam in the Netherlands where the leader is Mark Rutte.</lex>
+      <lex comment="good" lid="Id3">Ab Klink attended Erasmus University Rotterdam, which is affiliated to Association of MBAs. Mark Rutte is the leader of the Netherlands, the country where Ab Klink was born, in Stellendam.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliations | Association_of_MBAs</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</mtriple>
+        <mtriple>Netherlands | currency | Euro</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Stellendam</mtriple>
+        <mtriple>Ab_Klink | nationality | Netherlands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ab Klink of Netherlands was born in Stellendam and attended Erasmus University in Rotterdam which is affiliated with the Association of MBAs. Netherlands uses the Euro as its currency.</lex>
+      <lex comment="good" lid="Id2">Ab Klink was born in Stellendam in Netherlands which uses the Euro as its currency. He attended Erasmus University in Rotterdam which is affiliated with the Association of MBAs.</lex>
+      <lex comment="good" lid="Id3">Erasmus University Rotterdam (Assoc. of MBA's) alum and Netherland national Ab Klink was born in Stellendam. The Euro is the Netherlands currency.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliations | Association_of_MBAs</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</mtriple>
+        <mtriple>Netherlands | currency | Euro</mtriple>
+        <mtriple>Ab_Klink | nationality | Netherlands</mtriple>
+        <mtriple>Netherlands | leader | Mark_Rutte</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ab Klink attended the Erasmus University Rotterdam which is affiliated with the Association of MBAs. He is a national of the Netherlands which is led by Mark Rutte and has the euro as its currency.</lex>
+      <lex comment="good" lid="Id2">Ab Klink is a national of the Netherlands, a country that uses the Euro for currency and is ked by Mark Rutte. Erasmus University Rotterdam, affiliated with the Association of MBAs, is Klink's alma mater.</lex>
+      <lex comment="good" lid="Id3">Ab Klink of Netherlands was a student at Erasmus University in Rotterdam which is affiliated with the Association of MBAs. Netherlands uses the Euro as its currency, and one of the country leaders is Mark Rutte.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+        <otriple>Ab_Klink | birthPlace | Netherlands</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliations | Association_of_MBAs</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+        <otriple>Ab_Klink | birthPlace | Netherlands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</mtriple>
+        <mtriple>Netherlands | currency | Euro</mtriple>
+        <mtriple>Netherlands | leader | Mark_Rutte</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Netherlands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Mark Rutte is the leader of the Netherlands, where the currency is the Euro. Ab Klink was born in the Netherlands and his Alma mater is Erasmus University Rotterdam. Erasmus University in Rotterdam is affiliated to the Association of MBAs.</lex>
+      <lex comment="good" lid="Id2">The alma mater of Ab Klink is Erasmus University in Rotterdam which is affiliated with the Association of MBAs. Klink was born in the Netherlands which is led by Mark Rutte and uses the euro currency.</lex>
+      <lex comment="good" lid="Id3">In the Netherlands, the currency is the euro and the leader is Mark Rutte. Born in the Netherlands, Ab Klink attended Erasmus University Rotterdam which is affiliated to Association of MBAs.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Netherlands | currency | Euro</otriple>
+        <otriple>Ab_Klink | almaMater | Sociology</otriple>
+        <otriple>Ab_Klink | birthPlace | Stellendam</otriple>
+        <otriple>Ab_Klink | nationality | Netherlands</otriple>
+        <otriple>Netherlands | leader | Mark_Rutte</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Netherlands | currency | Euro</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Stellendam</mtriple>
+        <mtriple>Ab_Klink | nationality | Netherlands</mtriple>
+        <mtriple>Netherlands | leader | Mark_Rutte</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Mark Rutte is the leader of the Netherlands, where the currency is the Euro. Ab Klink is from the Netherlands and was born in Stellendam. Ab Klink's Alma mater is Erasmus University Rotterdam.</lex>
+      <lex comment="good" lid="Id2">Ab Klink of Netherlands was born in Stellendam and attended Erasmus University in Rotterdam. The country's leader is Mark Rutte and its currency is the Euro.</lex>
+    </entry>
+    </entries>
+</benchmark>

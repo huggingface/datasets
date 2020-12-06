@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__2</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Custom Royal"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Custom Royal"</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a V8 engine, a hardtop and is also called the Dodge Custom Royal.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge, which was also known as the Dodge Custom Royal, has a V8 engine and a hardtop.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge is also known as the Dodge Custom Royal and has a hardtop and V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | wheelbase | "3.048"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | manufacturer | Dodge</mtriple>
+        <mtriple>1955_Dodge | wheelbase | 120.0 (inches)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Made by Dodge, the 1955 Dodge has a V8 engine and a 120 inch wheelbase.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge (manufactured by Dodge) has a V8 engine and a wheelbase of 120 inches.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, manufactured by Dodge, has a wheelbase of 120 inches and a V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__3</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Custom Royal"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Custom Royal"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge also known as the Dodge Custom Royal has a 3-speed auto transmission and a V8 type engine.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge has a V8 engine, a 3-speed automatic transmission and is also known as the Dodge Custom Royal.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, also called the Dodge Custom Royal, uses a 3-speed automatic transmission and has a V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__2</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Suburban"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Suburban"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge, also called the Dodge Suburban, has a V8 engine and a 3-speed auto transmission.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge, with the alternative name of "Dodge Suburban", has a V8 engine, a 3-speed automatic transmission.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, or "Dodge Suburban", has a 3-speed automatic transmission with a V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__3</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a V8 engine, a 3-speed automatic transmission and a hardtop.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge has a V8 engine, a 3-speed automatic transmission, and a hardtop.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge has a V8 engine, a hardtop, and a 3-speed automatic transmission.</lex>
+    </entry>
+    </entries>
+</benchmark>

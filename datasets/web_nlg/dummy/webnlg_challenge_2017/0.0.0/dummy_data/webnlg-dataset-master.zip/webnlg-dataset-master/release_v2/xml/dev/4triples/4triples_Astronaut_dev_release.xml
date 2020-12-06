@@ -1,0 +1,86 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Apollo_12 | crew1Up | David_Scott</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | was a crew member of | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Apollo_12 | commander | David_Scott</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean (of the United States) was a crew member of NASA's Apollo 12 under the commander David Scott.</lex>
+      <lex comment="good" lid="Id2">United States national Alan Bean was a crew member of NASA's Apollo 12 mission under commander David S cott.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"@en</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | dateOfRet | "1974-08-01"^^xsd:date</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | dateOfRetirement | "1974-08-01"</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard, who was born in New Hampshire on November 18th, 1923, graduated with a M.A. from NWC in 1957 and retired on August 1st, 1974.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was born 1923-11-18 in New Hampshire. He obtained a MA in 1957 from "NWC" he retired 1974-08-01.</lex>
+      </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Shepard | status | "Deceased"@en</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">American test pilot Alan Shepard died in California and was born in New Hampshire.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was born in New Hampshire and became a test pilot. He died in California.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard was born in New Hampshire and died in California. He served as a test pilot.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Alan_Shepard | mission | Apollo_14</otriple>
+        <otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Apollo_14 | operator | NASA</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | was a crew member of | Apollo_14</mtriple>
+        <mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Apollo_14 | operator | NASA</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was a test pilot born in New Hampshire who NASA picked as a member of Apollo 14.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard , originally from New Hampshire joined NASA as a test pilot and also became a member of Apollo 14.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard, who was born in New Hampshire and served as a test pilot, was a crew member of the NASA operated Apollo 14 mission.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Apollo_12 | crew2Up | Alfred_Worden</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Apollo_12 | crew1Up | David_Scott</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Apollo_12 | backup pilot | Alfred_Worden</mtriple>
+        <mtriple>Alan_Bean | was a crew member of | Apollo_12</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Apollo_12 | commander | David_Scott</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The backup pilot to Apollo 12 was Alfred Worden and also part of Apollo 12 were Alan Bean and commander David Scott who were all chosen by NASA.</lex>
+      <lex comment="good" lid="Id2">Alan Bean was a crew member on the NASA Apollo 12 mission along with backup pilot Alfred Worden and commander David Scott.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,59 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The architecture style of 103 Colmore Row falls under Brutalist architecture.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row is in the architectural style " Brutalist architecture".</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingStartDate | "1973"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | buildingStartDate | "1973"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1973 was the start date for the building at 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id2">The building of 103 Colmore Row began in 1973.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row opened in 1973.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row was completed in 1976.</lex>
+      <lex comment="good" lid="Id2">The building of 103 Colmore Row was completed in 1976.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">There are 23 floors at 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row has 23 floors.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row is located on Colmore Row, Birmingham, England.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row is located in Colmore Row, Birmingham, England.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row is in Birmingham, England.</lex>
+    </entry>
+    </entries>
+</benchmark>

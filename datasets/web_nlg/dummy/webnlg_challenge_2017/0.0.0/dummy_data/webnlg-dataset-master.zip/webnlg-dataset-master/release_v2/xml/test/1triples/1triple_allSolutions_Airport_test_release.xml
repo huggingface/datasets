@@ -1,0 +1,62 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | city | Abilene,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene, Texas is served by the Abilene regional airport.</lex>
+      <lex comment="good" lid="Id2">Abilene Regional Airport serves the city of Abilene in Texas.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suárez Madrid–Barajas Airport can be found in Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas airport is located at Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suarez Madrid-Barajas Airport is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "18L/36R"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayName | "18L/36R"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The runway name of Adolfo Suárez Madrid–Barajas Airport is 18L/36R.</lex>
+      <lex comment="good" lid="Id2">The runway name at Adolfo Suarez Madrid-Barajas airport is 18L/36R.</lex>
+      <lex comment="good" lid="Id3">The runway name of Adolfo Suarez Madrid-Barajas Airport is 18L/36R.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Afonso_Pena_International_Airport | icaoLocationIdentifier | "SBCT"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Afonso_Pena_International_Airport | ICAO_Location_Identifier | "SBCT"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Afonso Pena International Airport ICAO Location Idenitifier is SBCT.</lex>
+      <lex comment="good" lid="Id2">SBCT is the ICAO location identifier of Afonso Pena International Airport.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Afonso_Pena_International_Airport | cityServed | Curitiba</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Afonso_Pena_International_Airport | city | Curitiba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Afonso_Pena_International_Airport | cityServed | Curitiba</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Afonso Pena International Airport serves the city of Curitiba.</lex>
+      <lex comment="good" lid="Id2">Afonso Pena International Airport serves Curitiba.</lex>
+    </entry>
+    </entries>
+</benchmark>

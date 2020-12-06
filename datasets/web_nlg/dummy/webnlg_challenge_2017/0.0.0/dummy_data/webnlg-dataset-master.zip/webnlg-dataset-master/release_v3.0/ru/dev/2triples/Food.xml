@@ -1,0 +1,115 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Bionico | hasVariant | Cottage_cheese</otriple>
+        <otriple>Bionico | course | Dessert</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bionico | dishVariation | Cottage_cheese</mtriple>
+        <mtriple>Bionico | course | Dessert</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Bionico is served at the dessert course and can be varied by using cottage cheese.</lex>
+      <lex lang="ru" lid="Id1">Бионико подаётся как десертное блюдо и может разнообразиться добавлением творога.</lex>
+      <lex lang="en" lid="Id2">Bionico is a dish served for dessert that can be varied by using cottage cheese.</lex>
+      <lex lang="ru" lid="Id2">Бионико – блюдо, подаваемое на десерт, которое можно разнообразить при помощи зернёного творога.</lex>
+      <lex lang="en" lid="Id3">The desert Bionico, can be varied using cottage cheese.</lex>
+      <lex lang="ru" lid="Id3">Десерт Бионико можно разнообразить с помощью зернёного творога.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Cottage_cheese | sameAs | Зернёный_творог</dbpedialink>
+        <dbpedialink direction="en2ru">Dessert | sameAs | Десерт</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bionico | sameAs | Бионико</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Bionico | region | Jalisco</otriple>
+        <otriple>Bionico | ingredient | Condensed_milk</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bionico | region | Jalisco</mtriple>
+        <mtriple>Bionico | ingredient | Condensed_milk</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ingredient condensed milk is used in Bionico and this derives from the region of Jalisco.</lex>
+      <lex lang="ru" lid="Id1">В Бионико используется сгущенное молоко, которое происходит из района Халиско.</lex>
+      <lex lang="en" lid="Id2">Condensed milk is used in bionico which comes from the region of Jalisco.</lex>
+      <lex lang="ru" lid="Id2">Сгущенное молоко используется в Бионико, который поступает из региона Халиско.</lex>
+      <lex lang="en" lid="Id3">Bionico, made using condensed milk, is found in the region of Jalisco.</lex>
+      <lex lang="ru" lid="Id3">Бионико, в состав которого входит сгущенное молоко, можно встретить в регионе Халиско.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Condensed_milk | sameAs | Сгущённое_молоко</dbpedialink>
+        <dbpedialink direction="en2ru">Jalisco | sameAs | Халиско</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bionico | sameAs | Бионико</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Catalonia | leaderName | Carles_Puigdemont</otriple>
+        <otriple>Arròs_negre | region | Catalonia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Catalonia | leader | Carles_Puigdemont</mtriple>
+        <mtriple>Arròs_negre | region | Catalonia</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Arros negre is found in the region of Catalonia and the leader of the country is Carles Puigdemont.</lex>
+      <lex lang="ru" lid="Id1">Черную паэлью изобрели в регионе Каталония, а лидером этой страны является Карлес Пучдемон.</lex>
+      <lex lang="en" lid="Id2">Arros negre originates from Catalonia (led by Carles Puigdemont).</lex>
+      <lex lang="ru" lid="Id2">Арроз негре родом из Каталонии (во главе с Карлесом Пучдемоном).</lex>
+      <lex lang="en" lid="Id3">Arros negre is a region of Catalonia and Carles Puigdement is it's leader.</lex>
+      <lex lang="ru" lid="Id3">Арроз негре - регион Каталонии и Карлес Пучдемон – ее лидер.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Catalonia | sameAs | Каталония</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Arròs negre | sameAs | арроз негре / черная паэлья</link>
+        <link direction="en2ru">Carles Puigdemont | sameAs | Карлес Пучдемон</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Celery | genus | Apium</otriple>
+        <otriple>Bakso | ingredient | Celery</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Celery | genus | Apium</mtriple>
+        <mtriple>Bakso | ingredient | Celery</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Celery is a member of the genus Apium and is an ingredient of Bakso.</lex>
+      <lex lang="ru" lid="Id1">Сельдерей пахучий принадлежит роду Сельдерей и входит в состав Баксо.</lex>
+      <lex lang="en" lid="Id2">Bakso contain celery, which is from the genus apium.</lex>
+      <lex lang="ru" lid="Id2">Баксо содержит сельдерей пахучий из рода сельдерей.</lex>
+      <lex lang="en" lid="Id3">Celery is of the Apium genus and is an ingredient in Bakso.</lex>
+      <lex lang="ru" lid="Id3">Сельдерей пахучий из рода Сельдерей является ингредиентом в Баксо.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apium | sameAs | Сельдерей</dbpedialink>
+        <dbpedialink direction="en2ru">Celery | sameAs | Сельдерей_пахучий</dbpedialink>
+        <dbpedialink direction="en2ru">Bakso | sameAs | Баксо</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Hong_Kong | leaderName | Carrie_Lam_(politician)</otriple>
+        <otriple>Baked_Alaska | region | Hong_Kong</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Hong_Kong | leader | Carrie_Lam_(politician)</mtriple>
+        <mtriple>Baked_Alaska | region | Hong_Kong</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Baked Alaska comes from Hong Kong where Carrie Lam is a political leader.</lex>
+      <lex lang="ru" lid="Id1">"Запеченная Аляска" родом из Гонконга, где Кэрри Лам — политический лидер.</lex>
+      <lex lang="en" lid="Id2">Carrie Lam is the politician who leads Hong Kong, where Baked Alaska originates.</lex>
+      <lex lang="ru" lid="Id2">Кэрри Лам - политик, который возглавляет Гонконг, где встречается "Запечённая Аляска".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Hong_Kong | sameAs | Гонконг</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Baked Alaska | sameAs | “Запеченная Аляска”</link>
+        <link direction="en2ru">Carrie Lam (politician) | sameAs | Кэрри Лам</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,227 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row is located on Colmore Row, Birmingham, England. It was designed by the architect, John Madin, Who was born in Birmingham. It has 23 floors and was completed in 1976.</lex>
+      <lex lang="ru" lid="Id1">Колмор-роу 103 находится на Колмор-роу, Бирмингем, Англия. Его спроектировал архитектор Джон Мадин, который родился в Бирмингеме. Он имеет 23 этажа и был завершен в 1976 году.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row, Birmingham, England was designed by the architect John Madin, who was born in the city. The building has 23 floors and construction was completed in 1976.</lex>
+      <lex lang="ru" lid="Id2">Колмор-роу 103, Бирмингем, Англия было спроектировано архитектором Джоном Мадином, который родился в этом городе. Здание имеет 23 этажа, строительство было завершено в 1976 году.</lex>
+      <lex lang="en" lid="Id3">103 Colmore Row, completed in 1976 with 23 floors, is located on Colmore Row in Birmingham, England. It was designed by architect John Madin, who was born in Birmingham.</lex>
+      <lex lang="ru" lid="Id3">Колмор-роу 103, завершенный в 1976 году, с 23 этажами находится на Колмор-роу в Бирмингеме, Англия. Оно было разработано архитектором Джоном Мадином, который родился в Бирмингеме.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1976 | sameAs | 1976_год</dbpedialink>
+        <dbpedialink direction="en2ru">Birmingham | sameAs | Бирмингем</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">Colmore Row, Birmingham, England | includes | Колмор-роу</link>
+        <link direction="en2ru">Colmore Row, Birmingham, England | includes | Бирмингем</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">John Madin was the architect of the building located at 103 Colmore Row .The building was completed in 1976.</lex>
+      <lex lang="ru" lid="Id1">Джон Мадин был архитектором здания, расположенного по адресу Колмор-роу 103. Здание было завершено в 1976 году.</lex>
+      <lex lang="en" lid="Id2">Designed by, Birmingham born, architect, John Madin,103 Colmore Row was completed in 1976. It is located in Colmore Row and has 23 floors.</lex>
+      <lex lang="ru" lid="Id2">Спроектированное родившимся в Бирмингеме архитектором Джоном Мадином, Колмор-роу 103 было завершено в 1976 году. Оно расположено на Колмор-роу и имеет 23 этажа.</lex>
+      <lex lang="en" lid="Id3">Architect John Madin (born in Birmingham) designed 103 Colmore Row in 1976 (located at Colmore Row and boasts 23 floors).</lex>
+      <lex lang="ru" lid="Id3">Архитектор Джон Мадин (родился в Бирмингеме) спроектировал Колмор-роу 103 в 1976 году (расположено на Колмор-роу и может похвастаться 23 этажами).</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1976 | sameAs | 1976_год</dbpedialink>
+        <dbpedialink direction="en2ru">Birmingham | sameAs | Бирмингем</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">Colmore Row | sameAs | Колмор-роу</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "1.2E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | "50"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | 50</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "1.2E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "A$120 million"@en</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | "50"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "A$120 million"@en</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | 50</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>108_St_Georges_Terrace | location | Perth</mtriple>
+        <mtriple>Perth | country | Australia</mtriple>
+        <mtriple>108_St_Georges_Terrace | completionDate | 1988</mtriple>
+        <mtriple>108_St_Georges_Terrace | cost | "120 million (Australian dollars)"</mtriple>
+        <mtriple>108_St_Georges_Terrace | floorCount | 50</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">108 St Georges Terrace in Perth, Australia, has 50 floors and was completed in 198 at a cost of 120 million Australian dollars.</lex>
+      <lex lang="ru" lid="Id1">Сейнт Джордж Террас 108 в Перте, Австралия, имеет 50 этажей и была построена в 198 за 120 млн. австралийских долларов.</lex>
+      <lex lang="en" lid="Id2">108 St. Georges Terrace, with 50 floors, is located in Perth, Australia, and was completed in 1988. Its construction cost 120 million Australian dollars.</lex>
+      <lex lang="ru" lid="Id2">Сейнт Джордж Террас 108 с 50 этажами, находится в Перте, Австралия, и было завершено в 1988 году. Его строительство обошлось в 120 миллионов австралийских долларов.</lex>
+      <lex lang="en" lid="Id3">108 St Georges Terrace was completed in 1988 in Perth, Australia. It has a total of 50 floors and cost 120m Australian dollars.</lex>
+      <lex lang="ru" lid="Id3">Сейнт Джордж Террас 108 было завершено в 1988 году в Перте, Австралия. Оно имеет в общей сложности 50 этажей и стоило 120 миллионов австралийских долларов.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1988 | sameAs | 1988_год</dbpedialink>
+        <dbpedialink direction="en2ru">Australia | sameAs | Австралия</dbpedialink>
+        <dbpedialink direction="en2ru">Perth | sameAs | Перт_(Австралия)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">108 St Georges Terrace | sameAs | Сейнт Джордж Террас 108</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | ethnicGroups | White_South_African</otriple>
+        <otriple>South_Africa | ethnicGroup | Coloured</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | leader | Cyril_Ramaphosa</mtriple>
+        <mtriple>South_Africa | ethnicGroup | White_South_African</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Coloured</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">South Africa's ethnic groups include White South Africans and the Coloured. Its leader is Cyril Ramaphosa and its capital is Cape Town. 11 Diagonal Street is located in this country.</lex>
+      <lex lang="ru" lid="Id1">В число этнических групп Южно-Африканской Республики входят белые и цветные. Ее лидером является Сирил Рамафоса, и её столица - Кейптаун. Диагонал-стрит 11 находится в этой стране.</lex>
+      <lex lang="en" lid="Id2">Two of the South African ethnic groups are the Coloured people and the White South Africans. The country, which has Cyril Ramaphosa as one of its leaders, is the location of 11 Diagonal Street and has the capital city of Cape Town.</lex>
+      <lex lang="ru" lid="Id2">Две южноафриканские этнические группы - это цветные и белые в Южно-Африканской Республике. В стране, в которой Сирил Рамафоса один из лидеров,находится Диагонал-стрит 11 и столица - Кейптаун.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Cape_Town | sameAs | Кейптаун</dbpedialink>
+        <dbpedialink direction="en2ru">South_Africa | sameAs | Южно-Африканская_Республика</dbpedialink>
+        <dbpedialink direction="en2ru">White_South_African | sameAs | Белые_в_Южно-Африканской_Республике</dbpedialink>
+        <dbpedialink direction="en2ru">Cyril_Ramaphosa | sameAs | Рамафоса,_Сирил</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Coloured | sameAs | Цветные</link>
+        <link direction="en2ru">11 Diagonal Street | sameAs | Диагонал-стрит 11</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | leader | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Jacob_Zuma</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | leader | Jacob_Zuma</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | leader | Cyril_Ramaphosa</mtriple>
+        <mtriple>South_Africa | leader | Jacob_Zuma</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Asian_South_Africans</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Cyril Ramaphosa and Jacob Zuma are South African leaders. The Asian South Africans are one of the ethnic groups in the country which has the capital city of Cape Town and is the location of 11 Diagonal Street.</lex>
+      <lex lang="ru" lid="Id1">Сирил Рамафоса и Джейкоб Зума - лидеры Южной Африки. Азиатские южноафриканцы - одна из этнических групп в стране, которая имеет столицу Кейптаун и является месторасположением Диагонал-стрит 11.</lex>
+      <lex lang="en" lid="Id2">Cyril Ramaphosa and Jacob Zuma are leaders in South Africa where the capital city is Cape Town. One of the ethnic groups of the country are the Asian South Africans and the country is the location of 11 Diagonal Street.</lex>
+      <lex lang="ru" lid="Id2">Сирил Рамафоса и Джейкоб Зума - лидеры в Южно-Африканской Республике, где столица - Кейптаун. Одной из этнических групп страны являются азиатские южноафриканцы, и страна - это место расположения Диагонал-стрит 11.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Cape_Town | sameAs | Кейптаун</dbpedialink>
+        <dbpedialink direction="en2ru">Jacob_Zuma | sameAs | Зума,_Джейкоб</dbpedialink>
+        <dbpedialink direction="en2ru">South_Africa | sameAs | Южно-Африканская_Республика</dbpedialink>
+        <dbpedialink direction="en2ru">Cyril_Ramaphosa | sameAs | Рамафоса,_Сирил</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asian South Africans | sameAs | азиатские южноафриканцы</link>
+        <link direction="en2ru">11 Diagonal Street | sameAs | Диагонал-стрит 11</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

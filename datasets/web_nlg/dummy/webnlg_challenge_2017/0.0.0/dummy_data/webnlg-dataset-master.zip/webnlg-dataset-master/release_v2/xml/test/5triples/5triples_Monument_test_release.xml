@@ -1,0 +1,98 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | range | Seminary_Ridge</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Seminary_Ridge</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument, established in 2000 was built at Seminary Ridge, Gettysburg Pennsylvania, USA and is a contributing property.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument is in Seminary Ridge, Gettysburg, Pennsylvania, USA. It was established in 2000 and is categorized as a Contributing Property.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southwest | Frederick_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adams_County,_Pennsylvania | has to its southeast | Carroll_County,_Maryland</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | has to its north | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | has to its southwest | Frederick_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument is found in the Adams County in Pennsylvania and is categorised as a contributing property. Cumberland County, Pennsylvania is to the north of the Adams County. To the southeast lies Carroll County and to southwest lies Frederick County, both of Maryland.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument, classed as a contributing property, can be found in Adams County Pennsylvania. Adams County, south of Cumberland County has Carroll County, Maryland to the southeast and Frederick County, Maryland to the southwest.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument in Adams County, Pennsylvania is categorised as a contributing property. Adams County is surrounded by Carroll County, Maryland to its southeast, Cumberland County,, Pennsylvania in North and Frederick County Maryland in southwest.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Azerbaijan | capital | Baku</otriple>
+        <otriple>Azerbaijan | leaderTitle | Prime_Minister_of_Azerbaijan</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+        <otriple>Azerbaijan | leaderName | Artur_Rasizade</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | capital | Baku</mtriple>
+        <mtriple>Azerbaijan | leaderTitle | Prime_Minister_of_Azerbaijan</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+        <mtriple>Azerbaijan | leaderName | Artur_Rasizade</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Azerbaijan's leader is Artur Rasizade and his official title is Prime Minister of Azerbaijan. Baku is the capital and the Baku Turkish Martyrs Memorial which is dedicated to the Ottoman army soldiers killed in the Battle of Baku is located in the country.</lex>
+      <lex comment="good" lid="Id2">Dedicated to the Ottoman Army soldiers killed in the Battle of Baku and located in Baku is the Turkish Martyrs Memorial. Baku is the capital of Azerbaijan whose Prime Minister and leader is Artur Rasizade.</lex>
+      <lex comment="good" lid="Id3">The Baku Turkish Martyr's Memorial honours the Ottoman Army Soldiers killed in the Battle of Baku. Artur Rasizade is the leader and Prime Minister of Azerbaijan whose capital is Baku.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Azerbaijan | capital | Baku</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"@en</otriple>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+        <otriple>Azerbaijan | leaderName | Artur_Rasizade</otriple>
+        <otriple>Azerbaijan | legislature | National_Assembly_(Azerbaijan)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | capital | Baku</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | dedicatedTo | "Ottoman Army soldiers killed in the Battle of Baku"</mtriple>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+        <mtriple>Azerbaijan | leaderName | Artur_Rasizade</mtriple>
+        <mtriple>Azerbaijan | legislature | National_Assembly_(Azerbaijan)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Baku is the capital of Azerbaijan where the legislature is the National Assembly and the leader is Artur Rasizade. The country is the location of the Baku Turkish Martyrs memorial which is dedicated to the soldiers of the Ottoman army who lost their lives in the battle of Baku.</lex>
+      <lex comment="good" lid="Id2">The Turkish Martyrs Memorial, dedicated to Ottoman Army soldiers killed in the Battle of Baku is located in that city, the Capital of Azerbaijan. The leader of the country, Artur Rasizade is head of the National Assembly.</lex>
+      <lex comment="good" lid="Id3">The Baku Turkish Martyrs Memorial has been dedicated to Ottoman Army soldiers killed in the Battle of Baku. The Memorial is situated in Azerbaijan whose capital city is Baku. Azerbaijan has legislature of National Assembly and the leader's name is Artur Rasizade.</lex>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ahmet Davutoglu is the President of Turkey (the leader). While the capital of Turkey is Ankara, the largest city is Istanbul. Turkey is the location of the Ataturk monument (Izmir).</lex>
+      <lex comment="good" lid="Id2">President of Turkey is the official title of the Turkish leader and his name is Ahmet Davutoglu. Turkey's capital is Ankara and its largest city is Istanbul. The Atatürk Monument is located in Izmir, Turkey.</lex>
+      <lex comment="good" lid="Id3">The Ataturk Monument (Izmir) is located in Turkey, whose largest city is Istanbul and whose capital is Ankara. President of Turkey is the official title of the Turkish leader and his name is Ahmet Davutoglu.</lex>
+    </entry>
+    </entries>
+</benchmark>

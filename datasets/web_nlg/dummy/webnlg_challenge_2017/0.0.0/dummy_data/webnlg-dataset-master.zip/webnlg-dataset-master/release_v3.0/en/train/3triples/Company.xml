@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+        <otriple>AmeriGas | numberOfEmployees | 8500</otriple>
+        <otriple>AmeriGas | foundingYear | 1959-01-01</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>AmeriGas | numberOfEmployees | 8500</mtriple>
+        <mtriple>AmeriGas | foundingDate | 1959-01-01</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas, a U.S. company founded on 01-01-1959, has 8,500 employees.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is a United States company founded on Jan. 1, 1959 that employs 8,500 people.</lex>
+      <lex comment="good" lid="Id3">AmeriGas was founded on January, 1 in 1959 and has 8500 employees in the United States.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+        <otriple>AmeriGas | numberOfEmployees | 8500</otriple>
+        <otriple>AmeriGas | netIncome | 2.112E8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>AmeriGas | numberOfEmployees | 8500</mtriple>
+        <mtriple>AmeriGas | netIncome | 211200000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States based company, AmeriGas, earned a net income of $211,200,000 while employing 8500 people.</lex>
+      <lex comment="good" lid="Id2">Operating out of the United States, AmeriGas, which has 8,500 employees, has a net income of 211200000.</lex>
+      <lex comment="good" lid="Id3">AmeriGas is a company operating in the United States that employs 8500 people and has a net income of 211200000.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+        <otriple>United_States | longName | United States of America</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+        <mtriple>United_States | longName | United States of America</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The long name of the United States is the United States of America home to AmeriGas company in the energy industry.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is part of the energy industry in the US, whose full name is the United States of America.</lex>
+      <lex comment="good" lid="Id3">AmeriGas works in the energy industry of the USA, which stands for the United States of America.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+        <otriple>AmeriGas | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | city | King_of_Prussia,_Pennsylvania</mtriple>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is an energy industry in the United States that is located in King of Prussia, Pennsylvania.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is a United States energy company located in King of Prussia, Pennsylvania.</lex>
+      <lex comment="good" lid="Id3">AmeriGas, in the energy industry, is located in King of Prussia, Pennsylvania, United States.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+        <otriple>AmeriGas | operatingIncome | 3.807E8</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | city | King_of_Prussia,_Pennsylvania</mtriple>
+        <mtriple>AmeriGas | operatingIncome | 380700000</mtriple>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is a company in the energy industry that is located in King of Prussia, Pennsylvania with an operating income of $380,700,000.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is an energy company located in King of Prussia, PA with an operating income of $380,700,000.</lex>
+      <lex comment="good" lid="Id3">AmeriGas is a company in the energy industry that has an operating income of 380700000 and is located in King of Prussia, Pennsylvania.</lex>
+    </entry>
+    </entries>
+</benchmark>

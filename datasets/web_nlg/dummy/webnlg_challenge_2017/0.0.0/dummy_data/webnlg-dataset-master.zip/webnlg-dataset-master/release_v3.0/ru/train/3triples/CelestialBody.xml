@@ -1,0 +1,155 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">On 6 March 2006 Donal O'Ceallaigh discovered (15788) 1993 SB, which has a periapsis of 3997100000000.0. .</lex>
+      <lex lang="ru" lid="Id1">6 марта 2006 года Донал О’Келли обнаружил (15788) 1993 SB, который имеет периапсиду 3997100000000,0.</lex>
+      <lex lang="en" lid="Id2">Donal O'Ceallaigh discovered 15788 1993 SB and it has an epoch date of March 6, 2006. It's periapsis is 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id2">Донал О’Келли обнаружил 15788 1993 SB, который имеет эпоху 6 марта 2006 года. Его периапсида - 3997100000000,0.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Donal O'Ceallaigh | sameAs | Донал О’Келли</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">(15788) 1993 SB, discovered by Iwan P Williams, has the epoch date March 6th 2006 and a periapsis of 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id1">(15788) 1993 SB, обнаруженный Айваном П. Уильямсом, имеет эпоху 6 марта 2006 года и периапсиду 3997100000000,0.</lex>
+      <lex lang="en" lid="Id2">The celestial body known as (15788) 1993 SB has a periapsis of 3997100000000. It was discovered by Iwan P Williams and has the epoch date of 6 March 2006.</lex>
+      <lex lang="ru" lid="Id2">Небесное тело, известное как (15788) 1993 SB, имеет перицентр 3997100000000. Оно было обнаружено Айваном П. Уилльямсом и имеет эпоху 6 марта 2006 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Iwan P. Williams | sameAs | Айван П. Уилльямс</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "Alan Fitzsimmons, and"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "Alan Fitzsimmons, and"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The celestial body known as (15788) 1993 SB has a periapsis of 3997100000000. It was discovered by Alan Fitzsimmons and has an epoch of 6th March 2006.</lex>
+      <lex lang="ru" lid="Id1">Небесное тело, известное как (15788) 1993 SB, имеет периапсиду 3997100000000. Оно было обнаружено Аланом Фитцсиммонсом и имеет эпоху 6 марта 2006 года.</lex>
+      <lex lang="en" lid="Id2">Alan Fitzsimmons discovered (15788) 1993 SB and it has the epoch date of March 6th 2006, and a periapsis of 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id2">Алан Фитцсиммонс обнаружил (15788) 1993 SB, и он имеет дату эпохи 6 марта 2006 года и перицентр 3997100000000,0 км.</lex>
+      <lex lang="en" lid="Id3">(15788) 1993 SB, which was discovered by Alan Fitzsimmons, has the epoch date of 6th March 2006 and a periapsis of 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id3">(15788) 1993 SB, который был обнаружен Аланом Фитцсиммонсом, имеет эпоху 6-го марта 2006 года и периапсиду 3997100000000,0.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Alan Fitzsimmons | sameAs | Алан Фитцсиммонс</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Roque de los Muchachos Observatory discovered (15788) 1993 SB, which has a periapsis of 3997100000000.0, on 6th March 2006.</lex>
+      <lex lang="ru" lid="Id1">Обсерватория Роке-де-лос-Мучачос обнаружила (15788) 1993 SB, которое имеет перицентр 3997100000000,0, 6 марта 2006 года.</lex>
+      <lex lang="en" lid="Id2">(15788) 1993 SB has an epoch date of March 6th 2006,its periapsis is 3997100000000.0 and it was discovered by Roque de los Muchachos Observatory.</lex>
+      <lex lang="ru" lid="Id2">(15788) 1993 SB имеет эпоху 6 марта 2006 года, его периапсида - 3997100000000,0 и он был обнаружен Обсерваторией Роке-де-лос-Мучачос.</lex>
+      <lex lang="en" lid="Id3">(15788) 1993 SB has an epoch date of March 6th 2006 ,has a periapsis of 3997100000000.0 and it was discovered by the Roque de los Muchachos Observatory.</lex>
+      <lex lang="ru" lid="Id3">(15788) 1993 SB имеет эпоху 6 марта 2006 года, перицентр 3997100000000,0 и был обнаружен Обсерваторией Роке-де-лос-Мучачос.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Roque_de_los_Muchachos_Observatory | sameAs | Обсерватория_Роке-де-лос-Мучачос</dbpedialink>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | Planet/averageSpeed | "4.56"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/density | "2000.0"^^&lt;http://dbpedia.org/datatype/kilogramPerCubicMetre&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | averageSpeed | 4.56 (kilometrePerSeconds)</mtriple>
+        <mtriple>(19255)_1994_VK8 | density | 2.0 (gramPerCubicCentimetres)</mtriple>
+        <mtriple>(19255)_1994_VK8 | apoapsis | 6603633000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">(19255) 1994 VK8 has an average speed of 4.56 km per second. It has a density of 2.0 grams per cubic centimetre and an apoapsis of 6603633000.0 km.</lex>
+      <lex lang="ru" lid="Id1">Транснептуновый объект (19255) 1994 VK8 имеет среднюю скорость 4,56 км/с. Он имеет плотность 2,0 гр/см³ и апоапсиду 660363300,0 км.</lex>
+      <lex lang="en" lid="Id2">(19255) 1994 VK8 has a density of 2.0 gm per cu cm, an apoapsis of 6603633000.0 km and an average speed of 4.56 km per sec.</lex>
+      <lex lang="ru" lid="Id2">Транснептуновый объект (19255) 1994 VK8 имеет плотность 2,0 г/см³, апоапсиду 6603633000,0 километров, а его средняя скорость 4,56 км/с.</lex>
+      <lex lang="en" lid="Id3">(19255) 1994 VK8, with an average speed of 4.56 km/s, has a density of 2.0 grams per cubic centimetre and an apoapsis of 6603633000.0 km.</lex>
+      <lex lang="ru" lid="Id3">(19255) 1994 VK8 со средней скоростью 4,56 км/с, имеет плотность 2,0 г/см³ и апоапсиду 6603633000,0 километров.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(19255)_1994_VK8 | sameAs | (19255)_1994_VK8</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

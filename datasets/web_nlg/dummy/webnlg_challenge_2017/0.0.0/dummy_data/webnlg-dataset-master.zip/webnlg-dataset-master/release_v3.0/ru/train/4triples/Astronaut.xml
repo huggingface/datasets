@@ -1,0 +1,144 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | selectedByNasa | 1963</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, who was born in Wheeler, Texas, graduated from the University of Texas with a B.S. in 1955 and in 1963 NASA picked him as part of the Apollo 12 space program.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, который родился в Уилере, штат Техас, окончил Университет Техаса со степенью бакалавра технических наук в 1955 году, а в 1963 году НАСА отобрало его в рамках космической программы "Аполлон-12".</lex>
+      <lex lang="en" lid="Id2">Alan Bean was born in Wheeler, Texas. He attended the University of Texas in Austin and obtained a B.S. in 1955. He was selected by NASA in 1963 and was a crew member on Apollo 12.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился в Уилере, штат Техас. Он посещал Университет Техаса в Остине и получил степень бакалавра технических наук в 1955. Он был отобран НАСА в 1963 году и стал членом экипажа "Аполлон-12".</lex>
+      <lex lang="en" lid="Id3">Alan Bean who was born in 1963 in Wheeler, Texas , graduated in 1955 and went on to become a crew member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин родился в 1963 году в Уилере, штат Техас. В 1955 году окончил Университет Техаса в Остине со степенью бакалавра технических наук и продолжил карьеру в качестве члена экипажа "Аполлона-12".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, who was part of Apollo 12, was born in Wheeler, Texas on March 15th, 1932 and is now retired.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин родился в Уилере, штат Техас 15 марта 1932 года. Принимал участие в миссии "Аполлона-12", на данный момент в отставке.</lex>
+      <lex lang="en" lid="Id2">Alan Bean, who was a crew member on Apollo 12, was born 1932.03.15 in Wheeler Texas has now retired .</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился 15 марта 1932 года в городе Уилер, штат Техас. Был членом экипажа "Аполлона-12", на данный момент в отставке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean is a citizen of the United State and graduated from UT Austin in 1955. He was a crew member of Apollo 12 and is currently retired.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин - гражданин Соединенных Штатов Америки и в 1955 году окончил университет Техаса в Остине. Он был членом экипажа "Аполлон-12" и в настоящее время находится в отставке.</lex>
+      <lex lang="en" lid="Id2">Alan Bean, who has now retired, is a United States citizen who graduated from UT Austin, BS in 1955 and served as a crew member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, который сейчас вышел на пенсию, является гражданином Соединенных Штатов Америки, который окончил университет Техаса в Остине со степенью бакалавра технических наук в 1955 году и служил членом экипажа "Аполлон-12".</lex>
+      <lex lang="en" lid="Id3">Alan Bean was a United States national. His Alma mater was UT Austin and he graduated with a B.S. in 1955. He was a crew member of Apollo 12. He is now retired.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин был гражданином Соединенных Штатов Америки. Его альма-матер - Университет Техаса в Остине, который он окончил в 1955 году со степенью бакалавра технических наук. Он был членом экипажа "Аполлон-12". Сейчас он в отставке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean is a United States citizen born in Wheeler, Texas on 15 March 1932 and who graduated from UT Austin BS in 1955.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин - гражданин Соединенных Штатов Америки, родившийся в Уилере, штат Техас, 15 марта 1932 года и окончивший университет Техаса в Остине со степенью бакалавра технических наук в 1955 году.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was born on March 15, 1932 in Wheeler, Texas. He was a United States citizen. His Alma mater was UT, Austin and he graduated with a B,S. In 1955.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился 15 марта 1932 года в Уилере, штат Техас. Он был гражданином Соединенных Штатов Америки. Его альма-матер - Университет Техаса в Остине, который он окончил в 1955 году со степенью бакалавра технических наук.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">American Alan Bean was born in Wheeler, Texas on March 15th, 1932 and was a member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id1">Американец Алан Бин родился в городе Уилер, штат Техас, 15 марта 1932 года и был членом экипажа "Аполлон-12".</lex>
+      <lex lang="en" lid="Id2">Alan Bean is a national of the United States. He was born in Wheeler Texas on 1932-03-15. He was a crew member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин - гражданин Соединенных Штатов Америки. Он родился в Уилере, штат Техас 15 марта 1932 года. Он был членом экипажа "Аполлон-12".</lex>
+      <lex lang="en" lid="Id3">Alan Bean, a United States national, was born on 15 March 1932 in Wheeler Texas. He was a crew member on Apollo 12.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин, гражданин Соединенных Штатов, родился 15 марта 1932 года в городе Уилере, Техас. Он был членом экипажа "Аполлона-12".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

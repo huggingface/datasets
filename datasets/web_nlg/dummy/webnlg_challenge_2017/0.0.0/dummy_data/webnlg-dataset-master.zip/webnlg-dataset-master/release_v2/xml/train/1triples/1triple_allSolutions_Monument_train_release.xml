@@ -1,0 +1,64 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument falls under the category of Contributing property.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument is categorized as a Contributing Property.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument is categorised as a contributing property.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument is located in the United States.</lex>
+      <lex comment="good" lid="Id2">11th Mississippi Infantry Monument is in the United States.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument is in the United States.</lex>
+      <lex comment="good" lid="Id4">The 11th Mississippi Infantry Monument is based in the US.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11th Mississippi Infantry Monument's location is Adams County, Pennsylvania.</lex>
+      <lex comment="good" lid="Id2">The location of the 11th Mississippi Infantry Monument is Adams County, Pennsylvania.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument is located in Adams County, Pennsylvania.</lex>
+      <lex comment="good" lid="Id4">11th Mississippi Infantry Monument is found in the Adams County in Pennsylvania.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | range | Seminary_Ridge</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Seminary_Ridge</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument is located at Seminary Ridge.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument's location is in the Seminary Ridge.</lex>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 11th Mississippi Infantry Monument is in the municipality of Gettysburg , Pennsylvania.</lex>
+      <lex comment="good" lid="Id2">The 11th Mississippi Infantry Monument is placed in the municipality of Gettysburg in Pennsylvania.</lex>
+      <lex comment="good" lid="Id3">The 11th Mississippi Infantry Monument is in the municipality of Gettysburg, Pennsylvania.</lex>
+      <lex comment="good" lid="Id4">The 11th Mississippi Infantry Monument is located in Gettysburg, Pennsylvania.</lex>
+      <lex comment="good" lid="Id5">11th Mississippi Infantry Monument is in Gettysburg, Pennsylvania.</lex>
+      <lex comment="good" lid="Id6">The 11th Mississippi Infantry Monument is in the municipality of Gettysburg Pennsylvania.</lex>
+      <lex comment="good" lid="Id7">The municipality for the 11th Mississippi Infantry Monument is Gettysburg, Pennsylvania.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,173 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Java | ethnicGroup | Javanese_people</otriple>
+        <otriple>Ayam_penyet | region | Singapore</otriple>
+        <otriple>Singapore | leaderName | Tony_Tan</otriple>
+        <otriple>Singapore | language | Standard_Chinese</otriple>
+        <otriple>Ayam_penyet | country | Java</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Java | ethnicGroup | Javanese_people</mtriple>
+        <mtriple>Ayam_penyet | region | Singapore</mtriple>
+        <mtriple>Singapore | leader | Tony_Tan</mtriple>
+        <mtriple>Singapore | language | Standard_Chinese</mtriple>
+        <mtriple>Ayam_penyet | country | Java</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Javanese dish, Ayam penyet, is also found in Singapore. This Chinese-speaking nation, led by Tony Tan, is known for ayam penyet, which is a national dish of Java.</lex>
+      <lex lang="ru" lid="Id1">Яванское блюдо, аям пеньет, также можно найти в Сингапуре. Эта нация, говорящая на китайском языке, возглавляемая Тони Таном, известна из-за аям пеньет, которое является национальным блюдом Явы.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+        <dbpedialink direction="en2ru">Javanese_people | sameAs | Яванцы</dbpedialink>
+        <dbpedialink direction="en2ru">Java | sameAs | Ява</dbpedialink>
+        <dbpedialink direction="en2ru">Tony_Tan | sameAs | Тони_Тан</dbpedialink>
+        <dbpedialink direction="en2ru">Standard_Chinese | sameAs | Путунхуа</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ayam penyet | sameAs | аям пеньет</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Java | ethnicGroup | Javanese_people</otriple>
+        <otriple>Singapore | language | English_language</otriple>
+        <otriple>Singapore | leaderName | Halimah_Yacob</otriple>
+        <otriple>Ayam_penyet | region | Singapore</otriple>
+        <otriple>Ayam_penyet | country | Java</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Java | ethnicGroup | Javanese_people</mtriple>
+        <mtriple>Singapore | language | English_language</mtriple>
+        <mtriple>Singapore | leader | Halimah_Yacob</mtriple>
+        <mtriple>Ayam_penyet | region | Singapore</mtriple>
+        <mtriple>Ayam_penyet | country | Java</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">English is spoken in Singapore where the leader is Halimah Yacob. Ayam penet is from Singapore and Java where the Javanese people are an ethnic group.</lex>
+      <lex lang="ru" lid="Id1">На английском языке говорят в Сингапуре, где лидером является Якоб Халима. Аям пеньет - из Сингапура и Явы, где яванцы - этническая группа.</lex>
+      <lex lang="en" lid="Id2">The Javenese people are an ethnic group in Java, where there is a dish called ayam penyet. The dish originates from Singapore, where the leader is Halimah Yacob and one of the languages spoken is English.</lex>
+      <lex lang="ru" lid="Id2">Яванцы — это этническая группа на Яве, где есть блюдо, которое называется аям пеньет. Блюдо происходит из Сингапура, где лидером является Халима Якоб и один из языков, на которых говорят, - английский.</lex>
+      <lex lang="en" lid="Id3">Halimah leds the country of Singapore, where English is spoken. Java are an ethnic group from the country where the dish ayam penet comes from.</lex>
+      <lex lang="ru" lid="Id3">Халима возглавляет страну Сингапур, где говорят на английском. Ява - это этническая группа страны, откуда происходит блюдо аям пеньет.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">English_language | sameAs | Английский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+        <dbpedialink direction="en2ru">Javanese_people | sameAs | Яванцы</dbpedialink>
+        <dbpedialink direction="en2ru">Java | sameAs | Ява</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Halimah Yacob | sameAs | Якоб Халима</link>
+        <link direction="en2ru">Ayam penyet | sameAs | аям пеньет</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Java | ethnicGroup | Javanese_people</otriple>
+        <otriple>Singapore | leaderName | Halimah_Yacob</otriple>
+        <otriple>Ayam_penyet | region | Singapore</otriple>
+        <otriple>Singapore | language | Standard_Chinese</otriple>
+        <otriple>Ayam_penyet | country | Java</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Java | ethnicGroup | Javanese_people</mtriple>
+        <mtriple>Singapore | leader | Halimah_Yacob</mtriple>
+        <mtriple>Ayam_penyet | region | Singapore</mtriple>
+        <mtriple>Singapore | language | Standard_Chinese</mtriple>
+        <mtriple>Ayam_penyet | country | Java</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ayam penyet comes from the country of Java where the Javanese are the ethnic people. Ayam penyet is also from the Singapore region where Standard Chinese is spoken and Halimah Yacob is the leader.</lex>
+      <lex lang="ru" lid="Id1">Аям пеньет родом с Явы, где яванцы - этнические жители. Аям пеньет также родом из Сингапура, где говорят на путунхуа, а Якоб Халима является лидером.</lex>
+      <lex lang="en" lid="Id2">Standard Chinese is spoken in Singapore and the leader is Halimah Yacob. The Javanese people are an ethnic group of Java and this is one of the places that Ayam penyet comes from, the other being Singapore.</lex>
+      <lex lang="ru" lid="Id2">В Сингапуре разговаривают на языке путунхуа, лидер здесь - Якоб Халима. Яванцы - это этническая группа Явы, и это одно из тех мест, откуда родом аям пеньет, другое - Сингапур.</lex>
+      <lex lang="en" lid="Id3">Ayam penyet is a dish from the region of Singapore where they speak Standard Chinese and the leader is Halimah Yacob. The Javanese people are an ethnic group of Java and Ayam penyet is eaten there.</lex>
+      <lex lang="ru" lid="Id3">Аям пеньет - блюдо из региона Сингапура, где говорят на путунхуа, а лидер - Якоб Халима. Яванцы — это этническая группа на Яве, и там едят блюдо аям пеньет.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+        <dbpedialink direction="en2ru">Javanese_people | sameAs | Яванцы</dbpedialink>
+        <dbpedialink direction="en2ru">Java | sameAs | Ява</dbpedialink>
+        <dbpedialink direction="en2ru">Standard_Chinese | sameAs | Путунхуа</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Halimah Yacob | sameAs | Якоб Халима</link>
+        <link direction="en2ru">Ayam penyet | sameAs | аям пеньет</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Philippines | ethnicGroups | Ilocano_people</otriple>
+        <otriple>Philippines | languages | Arabic</otriple>
+        <otriple>Philippines | ethnicGroup | Zamboangans</otriple>
+        <otriple>Philippines | language | Philippine_Spanish</otriple>
+        <otriple>Batchoy | country | Philippines</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Philippines | languages | Arabic</otriple>
+        <otriple>Philippines | ethnicGroups | Zamboangans</otriple>
+        <otriple>Philippines | language | Philippine_Spanish</otriple>
+        <otriple>Batchoy | country | Philippines</otriple>
+        <otriple>Philippines | ethnicGroup | Ilocano_people</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Philippines | ethnicGroup | Ilocano_people</mtriple>
+        <mtriple>Philippines | language | Arabic</mtriple>
+        <mtriple>Philippines | ethnicGroup | Zamboangans</mtriple>
+        <mtriple>Philippines | language | Philippine_Spanish</mtriple>
+        <mtriple>Batchoy | country | Philippines</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Batchoy is eaten in the Philippines where Philippine Spanish and Arabic are spoken. It is also where the Zamboangans and Ilocano people are two of the ethnic groups.</lex>
+      <lex lang="ru" lid="Id1">Бачой едят на Филиппинах, где говорят на испанском языке на Филиппинах и арабском. Также там жители Замбоанги и Илоки являются двумя этническими группами.</lex>
+      <lex lang="en" lid="Id2">Zamboangans and Ilocano people are ethnic groups from the Philippines which is home to the dish batchoy and where Philippine Spanish and Arabic are spoken.</lex>
+      <lex lang="ru" lid="Id2">Жители Замбоанги и илоки - этнические группы из Филиппин, которые являются родиной блюда бачой, и где говорят на испанском языке на Филиппинах и на арабском.</lex>
+      <lex lang="en" lid="Id3">Batchoy comes from the Philippines, where Philippine Spanish and Arabic are among the languages spoken, and the Zamboangans and IIocano people are ethnic groups.</lex>
+      <lex lang="ru" lid="Id3">Бачой родом из Филиппин, где филиппинский испанский и арабский - среди языков, на которых разговаривают, а жители Замбоанги и илоки - этнические группы.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Philippines | sameAs | Филиппины</dbpedialink>
+        <dbpedialink direction="en2ru">Arabic | sameAs | Арабский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Philippine_Spanish | sameAs | Испанский_язык_на_Филиппинах</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ilocano people | sameAs | илоки</link>
+        <link direction="en2ru">Zamboangans | sameAs | жители Замбоанги</link>
+        <link direction="en2ru">Batchoy | sameAs | бачой</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Philippines | language | Arabic</otriple>
+        <otriple>Philippines | ethnicGroups | Zamboangans</otriple>
+        <otriple>Philippines | officialLanguage | Philippine_English</otriple>
+        <otriple>Batchoy | country | Philippines</otriple>
+        <otriple>Philippines | ethnicGroup | Ilocano_people</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Philippines | ethnicGroups | Ilocano_people</otriple>
+        <otriple>Philippines | language | Arabic</otriple>
+        <otriple>Philippines | ethnicGroup | Zamboangans</otriple>
+        <otriple>Philippines | officialLanguage | Philippine_English</otriple>
+        <otriple>Batchoy | country | Philippines</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Philippines | ethnicGroup | Ilocano_people</mtriple>
+        <mtriple>Philippines | language | Arabic</mtriple>
+        <mtriple>Philippines | ethnicGroup | Zamboangans</mtriple>
+        <mtriple>Philippines | officialLanguage | Philippine_English</mtriple>
+        <mtriple>Batchoy | country | Philippines</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Batchoy comes from the Philippines, a country where the official language is Philippine English. It is also where one of the other languages is Arabic. Additionally, it is where the Ilocano people and Zamboangans are two of the ethnic groups.</lex>
+      <lex lang="ru" lid="Id1">Бачой родом из Филиппин, где официальным языком является филиппинский английский. Также здесь один из языков - арабский. Кроме того, здесь находятся илоки и жители Замбоанги - две из этнических групп.</lex>
+      <lex lang="en" lid="Id2">Philippines is the country where the dish Batchoy comes from. Ethnic groups there include Zamboangans and the llocano people. Languages spoken are Philippine English and Arabic.</lex>
+      <lex lang="ru" lid="Id2">Филиппины – страна, откуда родом блюдо бачой. К этническим группам относятся жители Замбоанги и илоки. Языки, на которых говорят, - английский и арабский.</lex>
+      <lex lang="en" lid="Id3">Philippines is the country Batchoy comes from. The country's ethnic groups include the llocano and Zamboangan people. Philippine English is the official language but Arabic is also spoken there.</lex>
+      <lex lang="ru" lid="Id3">Филиппины - страна, откуда родом бачой. В состав этнических групп страны входят илоки и жители Замбоанги. Филиппинский английский является официальным языком, однако там также говорят на арабском языке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Philippines | sameAs | Филиппины</dbpedialink>
+        <dbpedialink direction="en2ru">Arabic | sameAs | Арабский_язык</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ilocano people | sameAs | илоки</link>
+        <link direction="en2ru">Zamboangans | sameAs | жители Замбоанги</link>
+        <link direction="en2ru">Batchoy | sameAs | бачой</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

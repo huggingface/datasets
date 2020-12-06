@@ -1,0 +1,76 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Abilene_Regional_Airport | city | Abilene,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is in Texas and is served by the Abilene regional airport.</lex>
+      <lex comment="good" lid="Id2">Abilene, part of Texas, is served by the Abilene regional airport.</lex>
+      <lex comment="good" lid="Id3">Abilene regional airport serves the city of Abilene which is in Texas.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Alcobendas</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "3499.71"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Alcobendas</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 3500.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suárez Madrid–Barajas Airport is in Alcobendas and has a runway length of 3500.</lex>
+      <lex comment="good" lid="Id2">Located in Alcobendas, Adolfo Suarez Madrid-Barajas Airport has a runway with the length of 3500.0 metres.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "3499.71"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | San_Sebastián_de_los_Reyes</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 3500.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | San_Sebastián_de_los_Reyes</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Adolfo Suárez Madrid–Barajas Airport located at San Sebastian de los Reyes has a runway length of 3500.</lex>
+      <lex comment="good" lid="Id2">The Adolfo Suárez Madrid–Barajas Airport is in San Sebastián de los Reyes and has a runway length of 3500.0 metres.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suarez Madrid-Barajas airport is located at San Sebastian de los Reyes and has a runway length of 3500.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>India | leaderName | T._S._Thakur</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>India | leader | T._S._Thakur</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | India</mtriple>
+        <mtriple>India | leaderName | T._S._Thakur</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra Airport is in India where one of its leaders is T.S. Thakur.</lex>
+      <lex comment="good" lid="Id2">Agra Airport is in India, where the leader is TS Thakur.</lex>
+      <lex comment="good" lid="Id3">Agra Airport is located in India, where the leader is T S Thakur.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Al_Asad_Airbase | elevationF | 618</otriple>
+        <otriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Al_Asad_Airbase | elevationAboveTheSeaLevel_(in_feet) | 618</mtriple>
+        <mtriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Al Asad Airbase is 618 ft above sea level and is located in Al Anbar Province, Iraq.</lex>
+      <lex comment="good" lid="Id2">The Al Asad Airbase which is elevated 618 feet above sea level, is located in the Al Anbar Province in Iraq.</lex>
+      <lex comment="good" lid="Id3">The Al Asad Airbase, which is 618 ft above sea level, is located in Al Anbar Province, Iraq.</lex>
+    </entry>
+    </entries>
+</benchmark>

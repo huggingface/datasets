@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | ethnicGroups | Coloured</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | ethnicGroup | Coloured</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Coloured</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street is in South Africa. One South African group is the Coloured.</lex>
+      <lex comment="good" lid="Id2">The address, 11 Diagonal Street is located in South Africa which is home to some coloured people.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>200_Public_Square | floorCount | 45</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>200_Public_Square | floorCount | "45"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | location | Cleveland</mtriple>
+        <mtriple>200_Public_Square | floorCount | 45</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">There are 45 floors at 200 Public Square in Cleveland.</lex>
+      <lex comment="good" lid="Id2">200 Public square, Cleveland, has a floor count of 45.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>20_Fenchurch_Street | location | London</otriple>
+        <otriple>London | leaderTitle | European_Parliament</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>20_Fenchurch_Street | location | London</mtriple>
+        <mtriple>London | leaderTitle | European_Parliament</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">20 Fenchurch Street is located in London, which is currently led by the European Parliament.</lex>
+      <lex comment="good" lid="Id2">20 Fenchurch Street is located in London, which is led via the European Parliament.</lex>
+      <lex comment="good" lid="Id3">20 Fenchurch Street is located in London which is lead via the European Parliament.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | United_States</otriple>
+        <otriple>United_States | leaderName | Barack_Obama</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | location | United_States</mtriple>
+        <mtriple>United_States | leaderName | Barack_Obama</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">250 Delaware Avenue is located in the United States, the leader of which was Barack Obama.</lex>
+      <lex comment="good" lid="Id2">250 Delaware Avenue is located in the United States - which is led by Barack Obama.</lex>
+      </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Illinois</otriple>
+        <otriple>300_North_LaSalle | floorCount | 60</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Illinois</otriple>
+        <otriple>300_North_LaSalle | floorCount | "60"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Illinois</mtriple>
+        <mtriple>300_North_LaSalle | floorCount | 60</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">There are 60 floors at 300 North LaSalle in Illinois.</lex>
+      <lex comment="good" lid="Id2">300 North LaSalle in Illinois has 60 floors.</lex>
+    </entry>
+    </entries>
+</benchmark>

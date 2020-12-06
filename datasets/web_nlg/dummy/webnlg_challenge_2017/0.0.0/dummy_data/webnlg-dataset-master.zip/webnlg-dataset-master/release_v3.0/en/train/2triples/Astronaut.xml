@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born on March 15, 1932 and received a Bachelor of Science degree at the University of Texas at Austin in 1955.</lex>
+      <lex comment="good" lid="Id2">Alan Bean was born on the 15th of March 1932 and graduated from UT Austin in 1955 with a B.S.</lex>
+      <lex comment="good" lid="Id3">Alan Bean was born on the 15th of March 1932 and his Alma Mater is UT Austin, B.S. 1955.</lex>
+      <lex comment="good" lid="Id4">Alan Bean (born 1932-03-15)'s alma mater was UT Austin B.S. 1955.</lex>
+      <lex comment="good" lid="Id5">Alan Bean (born on 1932-03-15) graduated from UT Austin in 1955 with a B.Sc. degree.</lex>
+      <lex comment="good" lid="Id6">Alan Bean was born on March 15, 1932 and his alma mater was UT Austin BS, in 1955.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born in Wheeler, Texas on Mar 15, 1932 .</lex>
+      <lex comment="good" lid="Id2">Alan Bean was born on Mar 15, 1932, in Wheeler, Texas.</lex>
+      <lex comment="good" lid="Id3">Alan Bean was born in Wheeler, Texas on March 15th, 1932.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">American Alan Bean was born in Wheeler Texas.</lex>
+      <lex comment="good" lid="Id2">Alan Bean was an American, who was born in Wheeler, Texas.</lex>
+      <lex comment="good" lid="Id3">Alan Bean is an American who was born in Wheeler, Texas.</lex>
+      <lex comment="good" lid="Id4">Alan Bean was born in Wheeler, Texas, United States.</lex>
+      <lex comment="good" lid="Id5">Alan Bean was born in Wheeler, Texas and is a citizen of the United States.</lex>
+      <lex comment="good" lid="Id6">Alan Bean is an American, born in Wheeler, Texas.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean, who was born in Wheeler Texas, performed as a test pilot.</lex>
+      <lex comment="good" lid="Id2">Alan Bean, born in Wheeler, Texas, performs as a test pilot.</lex>
+      <lex comment="good" lid="Id3">Alan Bean was a test pilot who was born in Wheeler, Texas.</lex>
+      <lex comment="good" lid="Id4">Alan Bean was born in Wheeler, Texas and pursued a career as a test pilot.</lex>
+      <lex comment="good" lid="Id5">Alan Bean (born in Wheeler Texas) served as a test pilot.</lex>
+      <lex comment="good" lid="Id6">Alan Bean (born in Wheeler Texas) served as test pilot.</lex>
+      <lex comment="good" lid="Id7">Alan Bean, a test pilot, was born in Wheeler, Texas.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+        <mtriple>Alan_Bean | selectedByNasa | 1963</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean, hired by NASA in 1963, spent over 69 days in space.</lex>
+      <lex comment="good" lid="Id2">After being recruited by NASA in 1963, Alan Bean spent 100305 minutes in space.</lex>
+      <lex comment="good" lid="Id3">Alan Bean, who was picked by NASA in 1963 for the space program, was in space for a total of 100,305 minutes.</lex>
+    </entry>
+    </entries>
+</benchmark>

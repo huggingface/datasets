@@ -1,0 +1,72 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.C._Cesena | league | Serie_B</otriple>
+        <otriple>Serie_B | champions | Carpi_F.C._1909</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Cesena | league | Serie_B</mtriple>
+        <mtriple>Serie_B | champions | Carpi_F.C._1909</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AC Cesena are in the Serie B league, the previous champions of which are Carpi FC 1909.</lex>
+      <lex comment="good" lid="Id2">A.C. Cesana play in Serie B, in which Carpi FC 1909 are the champions.</lex>
+      <lex comment="good" lid="Id3">AC Cesena are in the Serie B league, previously won by Carpi F.C. 1909.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | ground | Stadio_Marc'Antonio_Bentegodi</otriple>
+        <otriple>A.C._Chievo_Verona | league | Serie_A</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | ground | Stadio_Marc'Antonio_Bentegodi</mtriple>
+        <mtriple>A.C._Chievo_Verona | league | Serie_A</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AC Chievo Verona play in the Serie A league and their home ground is Stadio Marc Antonio Bentegodi.</lex>
+      <lex comment="good" lid="Id2">The home ground of A.C. Chievo Verona is Stadio Marc'Antonio Bentegodi and the club is in the league, Serie A.</lex>
+      <lex comment="good" lid="Id3">The home ground of A.C. Chievo Verona is Stadio Marc'Antonio Bentegodi, he played in Serie A.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | ground | Italy</mtriple>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.C. Lumezzane's ground is in Italy where the leader is Pietro Grasso.</lex>
+      <lex comment="good" lid="Id2">A.C. Lumezzane play in italy where the leader is Pietro Grasso.</lex>
+      <lex comment="good" lid="Id3">A.C. Lumezzane play in Italy, where the leader is Pietro Grasso.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | manager | Jorge_Humberto_Rodríguez</otriple>
+        <otriple>Jorge_Humberto_Rodríguez | team | C.D._FAS</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.D._Isidro_Metapán | manager | Jorge_Humberto_Rodríguez</mtriple>
+        <mtriple>Jorge_Humberto_Rodríguez | club | C.D._FAS</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jorge Humberto Rodríguez manages the A.D. Isidro Metapan, he played for the C.D. FAS.</lex>
+      <lex comment="good" lid="Id2">Jorge Humberto Rodriguez manages A.D. Isidro Metapan. He is in the C.D. FAS.</lex>
+      <lex comment="good" lid="Id3">Jorge Humberto Rodríguez manages the A.D. Isidro Metapan and plays for C.D. FAS.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | "1500"^^xsd:nonNegativeInteger</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | league | A_EPSTH_2nd_GROUP</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | 1500</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | league | A_EPSTH_2nd_GROUP</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | numberOfMembers | 1500</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | league | A_EPSTH_2nd_GROUP</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.E. Dimitra Efeinoupolis has 1500 members and is in the EPSTH 2nd GROUP league.</lex>
+      <lex comment="good" lid="Id2">With 1500 members, A.E Dimitra Efxeinoupolis, play in the A EPSTH 2nd GROUP.</lex>
+    </entry>
+    </entries>
+</benchmark>

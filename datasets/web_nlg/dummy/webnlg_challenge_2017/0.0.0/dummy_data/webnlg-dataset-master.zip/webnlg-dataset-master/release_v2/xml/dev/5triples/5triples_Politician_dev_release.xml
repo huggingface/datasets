@@ -1,0 +1,106 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | successor | Adenan_Satem</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | residence | "Demak Jaya, Jalan Bako, Kuching, Sarawak"@en</otriple>
+        <otriple>Adenan_Satem | almaMater | University_of_Adelaide</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | successor | Adenan_Satem</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | residence | "Demak Jaya, Jalan Bako, Kuching, Sarawak"</mtriple>
+        <mtriple>Adenan_Satem | almaMater | University_of_Adelaide</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The birth place of Abdul Taid Mahmud was the Kingdom of Sarawak and his residence was Demak Jaya, Jalan Bako, Kuching, Sarawak. He was a member of the Parti Pesaka Bumiputera Bersatu and was succeeded by Adenan Satem who had attended the University of Adelaide.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud was born in the Kingdom of Sarawak and lives in Demak Jaya, Jalan Bako, Kuching, Sarawak. He is a member of the Parti Pesaka Bumiputera Bersatu and was succeeded by the University of Adelaide educated Adenan Satem.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud was born in the Kingdom of Sarawak, lives in Demak Jaya, Jalan Bako, Kuching, Sarawak and is a member of the Parti Pesaka Bumiputera Bersatu. He was succeeded by Adenan Satem, who studied at the University of Adelaide.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</otriple>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+        <otriple>Abdulsalami_Abubakar | activeYearsEndDate | "1999-05-29"^^xsd:date</otriple>
+        <otriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</otriple>
+        <otriple>Mike_Akhigbe | predecessor | Oladipo_Diya</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | successor | Olusegun_Obasanjo</mtriple>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+        <mtriple>Abdulsalami_Abubakar | activeYearsEndDate | 1999-05-29</mtriple>
+        <mtriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</mtriple>
+        <mtriple>Mike_Akhigbe | predecessor | Oladipo_Diya</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar served in the Nigerian Army and was in office whilst Mike Akhigbe (the successor to Oladipo Diya) was Vice President. His career ended on 29 May 1999 and he was succeeded by Olusegun Obasanjo.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar, who served in the Nigerian Army, ended his career on May 29th, 1999 and served in office while Mike Akhigbe was the Vice President. Akhigbe succeeded Oladipo Diya while Olusegun Obasanjo took over from Abubaka when he left office.</lex>
+      <lex comment="good" lid="Id3">Olusegun Obasanjo succeeded Abdulsalami Abubakar, who served in the Nigerian Army and ended his career on 1999-05-2. Abdulsalami Abubakar was in office while Mike Akhigbe, who succeeded Oladipo Diya, was Vice President.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abraham_A._Ribicoff | office | "United States Secretary of Health, Education, and Welfare"</otriple>
+        <otriple>Abraham_A._Ribicoff | party | Democratic_Party_(United_States)</otriple>
+        <otriple>Abraham_A._Ribicoff | deathPlace | New_York_City</otriple>
+        <otriple>Abraham_A._Ribicoff | birthPlace | Connecticut</otriple>
+        <otriple>Abraham_A._Ribicoff | nationality | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abraham_A._Ribicoff | office | "United States Secretary of Health, Education, and Welfare"</otriple>
+        <otriple>Abraham_A._Ribicoff | party | Democratic_Party_(United_States)</otriple>
+        <otriple>Abraham_A._Ribicoff | deathPlace | New_York_City</otriple>
+        <otriple>Abraham_A._Ribicoff | birthPlace | Connecticut</otriple>
+        <otriple>Abraham_A._Ribicoff | nationality | "American"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abraham_A._Ribicoff | office (workedAt, workedAs) | "United States Secretary of Health, Education, and Welfare"</mtriple>
+        <mtriple>Abraham_A._Ribicoff | party | Democratic_Party_(United_States)</mtriple>
+        <mtriple>Abraham_A._Ribicoff | deathPlace | New_York_City</mtriple>
+        <mtriple>Abraham_A._Ribicoff | birthPlace | Connecticut</mtriple>
+        <mtriple>Abraham_A._Ribicoff | nationality | American</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abraham A Ribicoff was a US national born in Connecticut and dying in New York City. He was a member of the Democratic Party in the U.S.A. and worked as the United States Secretary of Health, Education, and Welfare.</lex>
+      <lex comment="good" lid="Id2">Abraham A. Ribicoff who was born in Connecticut, United States, worked as the United States Secretary of Health, Education, and Welfare and he was a member of the Democratic Party in the United States. He died in New York City.</lex>
+      <lex comment="good" lid="Id3">Democrat Abraham A. Ribicoff was born in Connecticut and died in New York City. He worked as the United States Secretary of Health, Education and Welfare.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abraham_A._Ribicoff | spouse | Casey_Ribicoff</otriple>
+        <otriple>Casey_Ribicoff | birthPlace | Chicago</otriple>
+        <otriple>Abraham_A._Ribicoff | deathPlace | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Abraham_A._Ribicoff | nationality | "American"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abraham_A._Ribicoff | spouse | Casey_Ribicoff</mtriple>
+        <mtriple>Casey_Ribicoff | birthPlace | Chicago</mtriple>
+        <mtriple>Abraham_A._Ribicoff | deathPlace | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>Abraham_A._Ribicoff | nationality | American</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">American Abraham A. Ribicoff died in the United States and was married to Casey Ribicoff who was born in Chicago. Native Americans are one of several ethnic groups in the U.S.</lex>
+      <lex comment="good" lid="Id2">Abraham A Ribicoff was born and died in the United States, a country where one of the ethnic groups are the Native Americans. He was married to Casey Ribicoff who was born in Chicago.</lex>
+      <lex comment="good" lid="Id3">Native Americans are the ethnic group in the United States, the country Abraham A. Ribicoff was a national of. Bornin Chicago, Casey Ribicoff was the wife of Abraham A. Ribcoff, who died in the United States.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Adam_Holloway | birthPlace | Kent</otriple>
+        <otriple>Adam_Holloway | office | "for Gravesham"@en</otriple>
+        <otriple>Adam_Holloway | activeYearsStartDate | "2005-05-05"^^xsd:date</otriple>
+        <otriple>Adam_Holloway | branch | Grenadier_Guards</otriple>
+        <otriple>Adam_Holloway | almaMater | Magdalene_College,_Cambridge</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Holloway | birthPlace | Kent</mtriple>
+        <mtriple>Adam_Holloway | office (workedAt, workedAs) | Member_of_Parliament_for_Gravesham</mtriple>
+        <mtriple>Adam_Holloway | activeYearsStartDate | 2005-05-05</mtriple>
+        <mtriple>Adam_Holloway | militaryBranch | Grenadier_Guards</mtriple>
+        <mtriple>Adam_Holloway | almaMater | Magdalene_College,_Cambridge</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Holloway was born in Kent and attended Magdalene College in Cambridge. He began his career on 5 May 2005 and served in the Grenadier Guards and became a member of parliament for Gravesham.</lex>
+      <lex comment="good" lid="Id2">Gravesham Parliament member and Magdalene College Cambridge alum Adam Holloway, was born in Kent. A Grenadier Guard, he began his career 05/05/2005.</lex>
+      <lex comment="good" lid="Id3">Adam Holloway was born in Kent, and began his career on the 5th May 2005. He served in the Grenadier guards and was a MP for Gravesham. His alma mater is Magdalene College, Cambridge.</lex>
+    </entry>
+    </entries>
+</benchmark>

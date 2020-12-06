@@ -1,0 +1,83 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | Danish_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | Danish_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport is located in Tirstrup, Denmark; where the language is Danish.</lex>
+      <lex comment="good" lid="Id2">Aarhus Airport is located in Tirstrup, Denmark where the language spoken is Danish.</lex>
+      <lex comment="good" lid="Id3">Aarhus Airport is located in Tirstrup, Denmark where the Danish language is spoken.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | Faroese_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | Faroese_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The location of Aarhus Airport is Tirstrup which is in Denmark where one of the languages is Faroese.</lex>
+      <lex comment="good" lid="Id2">The location of Aarhus Airport is Tirstrup, in Denmark where one of the languages is Faroese.</lex>
+      <lex comment="good" lid="Id3">Aarhus Airport is in Tirstrup, Denmark. Faroese is the language there.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | German_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | German_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tirstrup is located in Denmark, where people speak German. Aarhus Airport serves Tirstrup.</lex>
+      <lex comment="good" lid="Id2">Aarhus Airport is located in Tirstrup, Denmark where the German language is spoken.</lex>
+      <lex comment="good" lid="Id3">Aarhus Airport is located in Tirstrup, Denmark. German is the language spoken in that country.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | Greenlandic_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | Greenlandic_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport is located in Tirstrup, Denmark and Greenlandic is the official language in Denmark.</lex>
+      <lex comment="good" lid="Id2">The location of Aarhus Airport is Tirstrup which is in Denmark where one of the languages spoken is Greenlandic.</lex>
+      <lex comment="good" lid="Id3">Aarhus Airport is located in Tirstrup, Denmark where the Greenlandic language is spoken.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | leader | Lars_Løkke_Rasmussen</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | leaderName | Lars_Løkke_Rasmussen</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Denmark is led by Lars Lokke Rasmussen and is the location of Aarhus AIrport, Tirstrup.</lex>
+      <lex comment="good" lid="Id2">Aarhus Airport is found in Tirstrup, Denmark where Lars Lokke Rasmussen is its leader.</lex>
+    </entry>
+    </entries>
+</benchmark>

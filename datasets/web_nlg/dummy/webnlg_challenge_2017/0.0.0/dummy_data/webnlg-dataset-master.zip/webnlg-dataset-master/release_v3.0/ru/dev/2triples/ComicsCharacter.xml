@@ -1,0 +1,140 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | John_Buscema</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | Roy_Thomas</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | John_Buscema</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | Roy_Thomas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | John_Buscema</mtriple>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | Roy_Thomas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic book character Dane Whitman ( otherwise known as the Black Knight ), was created by both Roy Thomas and John Buscema.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Дейн Уитмен (иначе известный как Черный рыцарь), был создан и Роем Томасом, и Джоном Буссемой.</lex>
+      <lex lang="en" lid="Id2">Dane Whitman, from the Black Knight was created by John Buscema and Roy Thomas.</lex>
+      <lex lang="ru" lid="Id2">Дейн Уитмен из Черного рыцаря был создан Джоном Буссемой и Роем Томасом.</lex>
+      <lex lang="en" lid="Id3">Dane Whitman, aka Black Night was created by John Buscema and Roy Thomas.</lex>
+      <lex lang="ru" lid="Id3">Дейн Уитмен, также известный как Черный Рыцарь был создан Джоном Буссемой и Роем Томасом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Roy_Thomas | sameAs | Томас,_Рой</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Дейн Уитмен</link>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Черный рыцарь</link>
+        <link direction="en2ru">John Buscema | sameAs | Джон Буссема</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>John_Buscema | nationality | Americans</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | John_Buscema</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | John_Buscema</otriple>
+        <otriple>John_Buscema | nationality | Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | John_Buscema</mtriple>
+        <mtriple>John_Buscema | nationality | Americans</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Dane Whitman, alter ego Black Knight, was created by the American, John Buscema.</lex>
+      <lex lang="ru" lid="Id1">Дейн Уитмен, альтернативное имя которого Черный Рыцарь, был создан американцем Джоном Буссемой.</lex>
+      <lex lang="en" lid="Id2">Dane Whitman, a.k.a. Black Knight, was created by John Buscema (American) in the comics genre.</lex>
+      <lex lang="ru" lid="Id2">Дейн Уитмен, известный также как Черный рыцарь, был создан Джоном Буссемой (американцем) в жанре комиксов.</lex>
+      <lex lang="en" lid="Id3">Dane Whitman, a.k.a. Black Knight, was created by John Buscema (Amercian) and considered to be in the comics genre.</lex>
+      <lex lang="ru" lid="Id3">Дейн Уитмен, также известный как Черный рыцарь, был создан Джоном Буссемой (американцем) и считался персонажем жанра комиксов.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Дейн Уитмен</link>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Черный рыцарь</link>
+        <link direction="en2ru">John Buscema | sameAs | Джон Буссема</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | Roy_Thomas</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | alterEgo | "Dane Whitman"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | Roy_Thomas</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | alterEgo | "Dane Whitman"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | Roy_Thomas</mtriple>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | alternativeName | "Dane Whitman"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Dane Whitman is the alternative name for the comic character, Dane Whitman Black Knight which was created by Roy Thomas.</lex>
+      <lex lang="ru" lid="Id1">Дейн Уитмен, альтернативное имя персонажа комиксов Дейн Уитмен Черный Рыцарь, был создан Роем Томасом.</lex>
+      <lex lang="en" lid="Id2">The comic book character Dane Whitman Black Knight is also known as simply Dane Whitman or the alter ego Black Knight, and was created by Roy Thomas.</lex>
+      <lex lang="ru" lid="Id2">Персонаж комиксов Дейн Уитмен (Черный рыцарь), также известный как просто Дейн Уитмен или под другим его именем Черный рыцарь, был создан Роем Томасом.</lex>
+      <lex lang="en" lid="Id3">Dane Whitman Black, also known as Dane Whitman was created by Roy Thomas.</lex>
+      <lex lang="ru" lid="Id3">Дейн Уитмен Блэк, также известный как Дейн Уитмен, был создан Роем Томасом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Roy_Thomas | sameAs | Томас,_Рой</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Дейн Уитмен</link>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Черный рыцарь</link>
+        <link direction="en2ru">Dane Whitman | sameAs | Дейн Уитмен</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Duncan_Rouleau | nationality | Americans</otriple>
+        <otriple>Baymax | creators | Duncan_Rouleau</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Baymax | creator | Duncan_Rouleau</otriple>
+        <otriple>Duncan_Rouleau | nationality | Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Duncan_Rouleau | nationality | Americans</mtriple>
+        <mtriple>Baymax | creator | Duncan_Rouleau</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Duncan Rouleau is an American national who created Baymax.</lex>
+      <lex lang="ru" lid="Id1">Дункан Руло - американский гражданин, создавший Баймакс.</lex>
+      <lex lang="en" lid="Id2">Baymax was created by American, Duncan Rouleau.</lex>
+      <lex lang="ru" lid="Id2">Баймакс был создан американцем Дунканом Руло.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Baymax | sameAs | Баймакс</link>
+        <link direction="en2ru">Duncan Rouleau | sameAs | Дункан Руло</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Ben_Urich | creator | Gene_Colan</otriple>
+        <otriple>Gene_Colan | nationality | Americans</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Gene_Colan | nationality | Americans</otriple>
+        <otriple>Ben_Urich | creators | Gene_Colan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Gene_Colan | nationality | Americans</mtriple>
+        <mtriple>Ben_Urich | creator | Gene_Colan</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Gene Colan is the American national who created the character Ben Urich.</lex>
+      <lex lang="ru" lid="Id1">Джин Колан - американский гражданин, создавший персонажа Бена Урича.</lex>
+      <lex lang="en" lid="Id2">Ben Urich was created by Gene Colan, an American.</lex>
+      <lex lang="ru" lid="Id2">Бен Урич был создан американцем Джином Коланом.</lex>
+      <lex lang="en" lid="Id3">The American Gene Nolan created the character Ben Urich.</lex>
+      <lex lang="ru" lid="Id3">Американец Джин Колан создал персонажа Бена Урича.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+        <dbpedialink direction="en2ru">Gene_Colan | sameAs | Колан,_Джин</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Ben Urich | sameAs | Бен Урич</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

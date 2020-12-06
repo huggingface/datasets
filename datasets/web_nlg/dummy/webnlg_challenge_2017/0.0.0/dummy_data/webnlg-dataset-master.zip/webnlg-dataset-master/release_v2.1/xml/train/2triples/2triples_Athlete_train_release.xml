@@ -1,0 +1,76 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Alessio_Romagnoli | team | A.C._Milan</otriple>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli plays in Serie A for AC Milan.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli plays for the club A.C. Milan which is in the Serie A league.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is a member of the A.C. Milan club which plays in the Serie A league.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.S._Roma | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.S._Roma</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.S._Roma | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | team | A.S._Roma</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.S._Roma | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.S._Roma</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli is a member of A.S. Roma who play in the Serie A league.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli plays for A.S. Roma, which is playing in the Serie A.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is part of the A.S. Roma Serie A team.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>A.S._Roma | position | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.S._Roma</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.S._Roma | position | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.S._Roma</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli plays for AS Roma in Serie A.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli plays for AS Roma in the Serie A.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli plays for A.S. Roma in Serie A.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AZ_Alkmaar | ground | AFAS_Stadion</otriple>
+        <otriple>Adam_Maher | team | AZ_Alkmaar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AZ_Alkmaar | ground | AFAS_Stadion</mtriple>
+        <mtriple>Adam_Maher | club | AZ_Alkmaar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Maher's club is AZ Alkmaar whose ground is AFAS Stadion.</lex>
+      <lex comment="good" lid="Id2">Adam Maher is connected to the AZ Alkmaar club whose ground is AFAS Stadion.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | placeOfBirth | Canada</otriple>
+        <otriple>Canada | language | Inuktitut</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthPlace | Canada</mtriple>
+        <mtriple>Canada | language | Inuktitut</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Inuktitut is a spoken language in Canada, the birthplace of Aaron Boogaard.</lex>
+      <lex comment="good" lid="Id2">Inuktitut is a language spoken in Canada where Aaron Boogaard was born.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard's birthplace was Canada, where one of the languages spoken is Inuktitut.</lex>
+    </entry>
+    </entries>
+</benchmark>

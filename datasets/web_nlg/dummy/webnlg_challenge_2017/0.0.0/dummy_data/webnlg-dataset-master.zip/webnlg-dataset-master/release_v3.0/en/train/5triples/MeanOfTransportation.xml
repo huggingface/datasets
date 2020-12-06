@@ -1,0 +1,118 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | builder | Germany</otriple>
+        <otriple>A-Rosa_Luna | shipDisplacement | 1.85e+09</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | builder | Germany</mtriple>
+        <mtriple>A-Rosa_Luna | shipDisplacement | 1850.0 (tonnes)</mtriple>
+        <mtriple>A-Rosa_Luna | topSpeed | 24.0</mtriple>
+        <mtriple>A-Rosa_Luna | builder | "Neptun Werft, Warnemünde,"</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna was built by Neptun Werft in Warnemunde, Germany. It has a length of 125.8 metres, a ship displacement of 1850 tonnes, and a top speed of 24.0.</lex>
+      <lex comment="good" lid="Id2">Made in Germany by Neptun Werft Warnemunde, and weighing 1850 tons, is a craft called the A-Rosa Luna. It is 125800.0 millimetres in length and has 24 as its top speed.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna was built in Germany by Neptun Werft, Warnemünde and is 125800.0 (millimetres) long. That ship displacement is 1850 tons and its top speed is 24.0.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | builder | Rostock</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | shipDisplacement | "1850.0"^^&lt;http://dbpedia.org/datatype/tonne&gt;</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | builder | Rostock</otriple>
+        <otriple>A-Rosa_Luna | shipDisplacement | 1.85e+09</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | builder | Rostock</mtriple>
+        <mtriple>A-Rosa_Luna | shipDisplacement | 1850.0 (tonnes)</mtriple>
+        <mtriple>A-Rosa_Luna | topSpeed | 24.0</mtriple>
+        <mtriple>A-Rosa_Luna | builder | "Neptun Werft, Warnemünde,"</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna was built in Rostock by Neptun Werft, Warnemünde. At 125800.0 millimetres long, the A-Rosa Luna has a top speed of 24 km/h and a ship displacement of 1850 tonnes.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna was built by Neptun Werft, Warnemunde in Rostock. It weighs 1850 tonnes has a top speed of 24.0 and a length of 125800mm.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna was built by Neptun Werft, Warnemünde in Rostock. It has a ship displacement of 1850 tonnes, a top speed of 24 km/h and is 125800.0 mms in length.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipLaunch | "2004-12-16"^^xsd:date</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | shipDisplacement | "1850.0"^^&lt;http://dbpedia.org/datatype/tonne&gt;</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipDisplacement | 1.85e+09</otriple>
+        <otriple>A-Rosa_Luna | shipLaunch | "2004-12-16"^^xsd:date</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipDisplacement | 1850.0 (tonnes)</mtriple>
+        <mtriple>A-Rosa_Luna | shipLaunch | 2004-12-16</mtriple>
+        <mtriple>A-Rosa_Luna | topSpeed | 24.0</mtriple>
+        <mtriple>A-Rosa_Luna | builder | "Neptun Werft, Warnemünde,"</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna was built by Neptun Werft, Warnemünde. It weighs 1850 tonnes, is 125800.0 (millimetres) long and has a top speed of 24.0. The ship was launched on December 16, 2004.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna has a 24.0 top speed, weighs 1850 tons and is 125.8 meters long. Made by Neptun Werft, Warnemunde, it was launched December 16,2004.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipDisplacement | 1.85e+09</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | builder | Neptun_Werft</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipDisplacement | 1850.0 (tonnes)</mtriple>
+        <mtriple>A-Rosa_Luna | topSpeed | 24.0</mtriple>
+        <mtriple>A-Rosa_Luna | builder | "Neptun Werft, Warnemünde,"</mtriple>
+        <mtriple>A-Rosa_Luna | builder | Neptun_Werft</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna was built on the Neptun Werft, Warnemunde. It has a ship displacement of 1850 tonnes, a top speed of 24.0 and is 125.8 metres long.</lex>
+      <lex comment="good" lid="Id2">The ship A-Rosa Luna was built by Neptun Werft, Warnemunde. It and is 125800.0 millimetres in length and weighs 1850 tonnes. It has a top speed of 24.0.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna was built by Neptun Werft, Warnemünde. Weighing 1850 tonnes, it has a top speed of 24.0 and a length of 125.8 metres.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipDisplacement | 1.85e+09</otriple>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>A-Rosa_Luna | powerType | MTU_Friedrichshafen</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | topSpeed | "24.0"^^xsd:double</otriple>
+        <otriple>A-Rosa_Luna | shipBuilder | "Neptun Werft, Warnemünde,"@en</otriple>
+        <otriple>A-Rosa_Luna | shipDisplacement | "1850.0"^^&lt;http://dbpedia.org/datatype/tonne&gt;</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>A-Rosa_Luna | powerType | MTU_Friedrichshafen</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipDisplacement | 1850.0 (tonnes)</mtriple>
+        <mtriple>A-Rosa_Luna | topSpeed | 24.0</mtriple>
+        <mtriple>A-Rosa_Luna | builder | "Neptun Werft, Warnemünde,"</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+        <mtriple>A-Rosa_Luna | powerType | MTU_Friedrichshafen</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna was built by Neptun Werft, Warnemunde. It weighs 1850 tonnes, measues 125.8 meters lng and is powered by MTU Friedrichshafen made engines. It has a top seed of 24.0.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna was built by Neptun Werft, Warnemunde and is powered by a MTU Friedrichshafen engine. It has a ship displacement of 1850 tonnes, a top speed of 24 km/h and has a total length of 125800.0 mms.</lex>
+    </entry>
+    </entries>
+</benchmark>

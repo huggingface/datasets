@@ -1,0 +1,116 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | ground | St._Vincent–St._Mary_High_School</otriple>
+        <otriple>St._Vincent–St._Mary_High_School | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron_Summit_Assault | ground | St._Vincent–St._Mary_High_School</mtriple>
+        <mtriple>St._Vincent–St._Mary_High_School | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Akron Summit Assault's ground is St. Vincent-St. Mary High School in the United States.</lex>
+      <lex lang="ru" lid="Id1">Площадка ФК Акрон - это Школа Сент-Винсент – Сент-Мэри в Соединённых Штатах Америки.</lex>
+      <lex lang="en" lid="Id2">St Vincent-St Mary High School is the ground of Akron Summit Assault and is located in United States.</lex>
+      <lex lang="ru" lid="Id2">Школа Сент-Винсент – Сент-Мэри - это площадка футбольного клуба "Акрон" и располагается в Соединенных Штатах Америки.</lex>
+      <lex lang="en" lid="Id3">St. Vincent-St.Mary High School in the United States is the ground of Akron Summit Assault.</lex>
+      <lex lang="ru" lid="Id3">Школа Сент-Винсент – Сент-Мэри в США является площадкой футбольного клуба Акрон.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">St. Vincent–St. Mary High School | sameAs | Школа Сент-Винсент – Сент-Мэри</link>
+        <link direction="en2ru">Akron Summit Assault | sameAs | Футбольный клуб “Акрон” (США)</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | ground | St._Vincent–St._Mary_High_School</otriple>
+        <otriple>St._Vincent–St._Mary_High_School | state | Ohio</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron_Summit_Assault | ground | St._Vincent–St._Mary_High_School</mtriple>
+        <mtriple>St._Vincent–St._Mary_High_School | state | Ohio</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">St Vincent-St Mary High School in Ohio is the ground of Akron Summit Assault.</lex>
+      <lex lang="ru" lid="Id1">Средняя католическая школа св.Винсента и св.Мэри в Огайо - база ФК Акрон (США).</lex>
+      <lex lang="en" lid="Id2">St Vincent-St Mary High School, located in the state of Ohio, is the ground of Akron Summit Assault.</lex>
+      <lex lang="ru" lid="Id2">Школа Сент-Винсент – Сент-Мэри, расположенная в штате Огайо, является площадкой ФК “Акрон” (США).</lex>
+      <lex lang="en" lid="Id3">St. Vincent–St. Mary High School, in the state of Ohio, is the ground of Akron Summit Assault.</lex>
+      <lex lang="ru" lid="Id3">Школа Сент-Винсент – Сент-Мэри в штате Огайо является площадкой футбольного клуба "Акрон" (США).</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ohio | sameAs | Огайо</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">St. Vincent–St. Mary High School | sameAs | Школа Сент-Винсент – Сент-Мэри</link>
+        <link direction="en2ru">Akron Summit Assault | sameAs | Футбольный клуб “Акрон” (США)</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | league | Premier_Development_League</otriple>
+        <otriple>Premier_Development_League | champions | K-W_United_FC</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron_Summit_Assault | league | Premier_Development_League</mtriple>
+        <mtriple>Premier_Development_League | champions | K-W_United_FC</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Premier Development League has K-W United F.C., (who have been champions) and Akron Summit among its competing teams.</lex>
+      <lex lang="ru" lid="Id1">В лигу развития, входит ФК КВ Юнайтед (которые были чемпионами) и Футбольный клуб “Акрон” (США) среди конкурирующих команд.</lex>
+      <lex lang="en" lid="Id2">Akron Summit Assault play in the Premier Development League, which K-W United FC were once the champions of.</lex>
+      <lex lang="ru" lid="Id2">Футбольный клуб "Акрон" (США) играет в Лиге Развития, которую однажды выиграли КВ Юнайтед.</lex>
+      <lex lang="en" lid="Id3">In the Premier Development League, Akron Summit Assault play and the champions are K-W United FC.</lex>
+      <lex lang="ru" lid="Id3">В Лиге развития играет футбольный клуб "Акрон", и чемпионами являются КВ Юнайтед.</lex>
+      <links>
+        <link direction="en2ru">K-W United FC | sameAs | КВ Юнайтед</link>
+        <link direction="en2ru">Premier Development League | sameAs | Лига развития</link>
+        <link direction="en2ru">Akron Summit Assault | sameAs | Футбольный клуб “Акрон” (США)</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | capacity | 3000</otriple>
+        <otriple>Akron_Summit_Assault | manager | "Denzil Antonio"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | manager | Denzil_Antonio</otriple>
+        <otriple>Akron_Summit_Assault | capacity | 3000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron_Summit_Assault | manager | Denzil_Antonio</mtriple>
+        <mtriple>Akron_Summit_Assault | numberOfMembers | 3000</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Denzil Antonio is the manager of Akron Summit Assault which has 3000 members.</lex>
+      <lex lang="ru" lid="Id1">Дензил Антонио является менеджером Футбольного клуба “Акрон” (США), насчитывающего 3000 членов.</lex>
+      <lex lang="en" lid="Id2">Denzil Antonio was the manager of Akron Summit Assault, it has 3000 members.</lex>
+      <lex lang="ru" lid="Id2">Дензил Антонио был менеджером Футбольного клуба “Акрон” (США), он насчитывает 3000 членов.</lex>
+      <lex lang="en" lid="Id3">Akron Summit Assault, which has got 3000 members, was managed by Denzil Antonio.</lex>
+      <lex lang="ru" lid="Id3">Дензил Антонио руководил футбольным клубом "Акрон" (США), насчитывавшим 3000 участников.</lex>
+      <links>
+        <link direction="en2ru">Denzil Antonio | sameAs | Дензил Антонио</link>
+        <link direction="en2ru">Akron Summit Assault | sameAs | Футбольный клуб “Акрон” (США)</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | manager | Denzil_Antonio</otriple>
+        <otriple>Akron_Summit_Assault | season | 2011_PDL_season</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron_Summit_Assault | manager | Denzil_Antonio</mtriple>
+        <mtriple>Akron_Summit_Assault | season | 2011_PDL_season</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The manager of Akron Summit Assault, who play in the 2011 PDL season, is Denzil Antonio.</lex>
+      <lex lang="ru" lid="Id1">Тренером футбольного клуба "Акрон" (США), играющего в сезоне 2011 в Профессиональной лиге развития, является Дензил Антонио.</lex>
+      <lex lang="en" lid="Id2">Akron Summit Assault, (managed by Denzil Antonio), played in the 2011 PDL season.</lex>
+      <lex lang="ru" lid="Id2">ФК “Акрон” (США) (под руководством Дензила Антонио), играл в сезоне 2011 года Лиги профессионального развития.</lex>
+      <lex lang="en" lid="Id3">Denzil Antonio was the manager of Akron Summit Assault and they participated in the 2011 PDL season.</lex>
+      <lex lang="ru" lid="Id3">Дензил Антонио был тренером футбольного клуба "Акрон" (США), и они участвовали в сезоне 2011 Профессиональной лиги развития.</lex>
+      <links>
+        <link direction="en2ru">Denzil Antonio | sameAs | Дензил Антонио</link>
+        <link direction="en2ru">2011 PDL season | includes | ПДЛ / Профессиональная лига развития</link>
+        <link direction="en2ru">Akron Summit Assault | sameAs | Футбольный клуб “Акрон” (США)</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

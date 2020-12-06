@@ -1,0 +1,139 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ground of A.S. Gubbio 1910 is located in Italy where Pietro Grasso is the leader and the capital city is Rome.</lex>
+      <lex lang="ru" lid="Id1">Площадка "Губбио" расположена в Италии, где Пьетро Грассо является лидером и столица - Рим.</lex>
+      <lex lang="en" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy. whose leader is Pietro Grasso and capital is Rome.</lex>
+      <lex lang="ru" lid="Id2">Площадка ФК "Губбио" расположена в Италии, лидером которой является Пьетро Грассо, а столицей - Рим.</lex>
+      <lex lang="en" lid="Id3">The ground of A.S. Gubbio 1910 is located in Italy, the capital of which is Rome and it's leader is Pietro Grasso.</lex>
+      <lex lang="ru" lid="Id3">Площадка ФК "Губбио" находится в Италии, столицей которой является Рим, а лидером - Пьетро Грассо.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ground of A.S. Gubbio 1910 is located in Italy where Pietro Grasso is the leader of the Italians.</lex>
+      <lex lang="ru" lid="Id1">Площадка "Губбио" расположена в Италии, где Пьетро Грассо является лидером итальянцев.</lex>
+      <lex lang="en" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy, the country of Italians where the leader is Pietro Grasso.</lex>
+      <lex lang="ru" lid="Id2">Площадка "Губбио" расположена в Италии, в стране итальянцев, где лидером является Пьетро Грассо.</lex>
+      <lex lang="en" lid="Id3">Italy (led by Pietro Grasso) is home to the Italian people and A.S. Gubbio 1910.</lex>
+      <lex lang="ru" lid="Id3">Италия (во главе с Пьетро Грассо) - родина итальянского народа и "Губбио".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Italians | sameAs | Итальянцы</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Pietro Grasso and Sergio Mattarella are leaders in Italy where the ground of AS Gubbio 1910 is located.</lex>
+      <lex lang="ru" lid="Id1">Пьетро Грассо и Серджо Маттарелла - лидеры в Италии, где расположена площадка "Губбио".</lex>
+      <lex lang="en" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy. The leader of Italy is Pietro Grasso and/or Sergio Mattarella.</lex>
+      <lex lang="ru" lid="Id2">Площадка "Губбио" находится в Италии. Лидером Италии является Пьетро Грассо и / или Серджо Маттарелла.</lex>
+      <lex lang="en" lid="Id3">The ground of A.S. Gubbio 1910 is located in Italy, where Sergio Mattarella and Pietro Grasso are leaders.</lex>
+      <lex lang="ru" lid="Id3">Площадка "Губбио" расположена в Италии, где лидерами являются Серджо Маттарелла и Пьетро Грассо.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ground of A.S. Gubbio 1910 is located in Italy where the leader is Sergio Mattarella and Italian is the spoken language.</lex>
+      <lex lang="ru" lid="Id1">Площадка "Губбио" расположена в Италии, где лидер - Серджо Маттарелла и итальянский - разговорный язык.</lex>
+      <lex lang="en" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy, who's leader is Sergio Mattarella and where they speak Italian.</lex>
+      <lex lang="ru" lid="Id2">Площадка ФК "Губбио" расположена в Италии, лидером которой является Серджо Маттарелла и где говорят по-итальянски.</lex>
+      <lex lang="en" lid="Id3">The ground of A.S. Gubbio 1910 is located in Italy. The country's leader is Sergio Mattarella and there they speak Italian.</lex>
+      <lex lang="ru" lid="Id3">Площадка ФК "Губбио" находится в Италии. Лидер страны - Серджо Маттарелла, и там говорят по-итальянски.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italian_language | sameAs | Итальянский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Luciano_Spalletti | managerClub | Empoli_F.C.</otriple>
+        <otriple>A.S._Roma | manager | Luciano_Spalletti</otriple>
+        <otriple>Luciano_Spalletti | team | Virtus_Entella</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Luciano_Spalletti | team | Empoli_F.C.</otriple>
+        <otriple>A.S._Roma | manager | Luciano_Spalletti</otriple>
+        <otriple>Luciano_Spalletti | clubs | Virtus_Entella</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Luciano_Spalletti | clubs | Empoli_F.C.</otriple>
+        <otriple>A.S._Roma | manager | Luciano_Spalletti</otriple>
+        <otriple>Luciano_Spalletti | team | Virtus_Entella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Luciano_Spalletti | club | Empoli_F.C.</mtriple>
+        <mtriple>A.S._Roma | manager | Luciano_Spalletti</mtriple>
+        <mtriple>Luciano_Spalletti | club | Virtus_Entella</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Luciano Spalletti played for Empoli F.C. and Virtus Entella. He has also been manager of AS Roma.</lex>
+      <lex lang="ru" lid="Id1">Лучано Спаллетти играл за "Эмполи" и "Виртус Энтелла". Он также был менеджером "Ромы".</lex>
+      <lex lang="en" lid="Id2">Luciano Spalletti is a manager for the AS Roma club and plays for Empoli F. C. as well as Virtus Entella.</lex>
+      <lex lang="ru" lid="Id2">Лучано Спаллетти является менеджером ФК "Рома" и играет за ФК "Эмполи", а также за "Виртус Энтелла".</lex>
+      <lex lang="en" lid="Id3">Luciano Spalletti plays for Empoli F.C. and Virtus Entella while managing A.S. Roma.</lex>
+      <lex lang="ru" lid="Id3">Лучано Спаллетти играет за ФК "Эмполи" и "Виртус Энтелла", одновременно управляя ФК “Рома”.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Luciano_Spalletti | sameAs | Спаллетти,_Лучано</dbpedialink>
+        <dbpedialink direction="en2ru">Empoli_F.C. | sameAs | Эмполи_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Virtus_Entella | sameAs | Виртус_Энтелла</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Roma | sameAs | Рома_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

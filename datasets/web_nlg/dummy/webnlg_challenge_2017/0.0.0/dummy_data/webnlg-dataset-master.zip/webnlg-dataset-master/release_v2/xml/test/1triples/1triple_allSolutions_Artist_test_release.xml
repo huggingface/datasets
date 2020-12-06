@@ -1,0 +1,60 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Deer | label | Kill_Rock_Stars</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | recordLabel | Kill_Rock_Stars</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Deer has been signed to the record label Kill Rock Stars.</lex>
+      <lex comment="good" lid="Id2">Aaron Deer is signed to the record label Kill Rock Stars.</lex>
+      <lex comment="good" lid="Id3">Aaron Deer's record label is called Kill Rock Stars.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Turner | genre | Progressive_metal</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | genre | Progressive_metal</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner plays progressive metal music.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner performs progressive metal music.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner uses the genre Progressive metal.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abradab | dateOfBirth | "1978-11-12"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | birthDate | 1978-11-12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abradab was born on November 12th 1978.</lex>
+      <lex comment="good" lid="Id2">The birth date of Abradab is 12th November 1978.</lex>
+      <lex comment="good" lid="Id3">Abradab was born on 12th November 1978.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abradab | placeOfBirth | Poland</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abradab | birthPlace | Poland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | birthPlace | Poland</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The birth place of Abradab is Poland.</lex>
+      <lex comment="good" lid="Id2">Abradab was born in Poland.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abradab | genre | Hip_hop_music</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | genre | Hip_hop_music</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The musical genre of Abradab is hip hop music.</lex>
+      <lex comment="good" lid="Id2">Abradab performs hip hop music.</lex>
+    </entry>
+    </entries>
+</benchmark>

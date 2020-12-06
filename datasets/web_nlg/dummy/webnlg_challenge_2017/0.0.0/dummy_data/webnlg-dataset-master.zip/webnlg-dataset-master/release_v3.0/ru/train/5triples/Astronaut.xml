@@ -1,0 +1,164 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | selectedByNasa | 1963</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean (born on March 15, 1932) graduated from UT Austin in 1955 with a B.S. Alan Bean who was chosen by NASA in 1963 is an American born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин (родился 15 марта 1932 года) окончил Университет Техаса в Остине в 1955 году со степенью бакалавра технических наук. Алан Бин, выбранный НАСА в 1963 году, - американец, родившийся в Уилере, штат Техас.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was an American astronaut, born on March 15, 1932 in Wheeler, Texas. He received a Bachelor of Science degree at the University of Texas at Austin in 1955 and was chosen by NASA in 1963.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился в Уилере, штат Техас в 1932 году и окончил университет в 1955 году как бакалавр технических наук. Затем Алан Бин перешел в НАСА в 1963 году.</lex>
+      <lex lang="en" lid="Id3">Alan Bean was born in Wheeler, Texas in 1932 and graduated with a B.S. in 1955. Alan Bean then went on to join NASA in 1963.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин родился в Wheeler, штат Техас в 1932 году и окончил в 1955 году Б.С. Затем Алан Бин перешел в NASA в 1963 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean was a US citizen who was born in Wheeler, Texas, He graduated from UT Austin in 1955 with a B.S. degree. He was a test pilot and he served as a crew member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id1">Американский летчик-испытатель Алан Бин из Уилера, штат Техас, получил степень бакалавра технических наук в Университете Техаса в Остине в 1955 году и стал членом экипажа на летной миссии "Аполлон-12".</lex>
+      <lex lang="en" lid="Id2">American test pilot Alan Bean from Wheeler, Texas, received a Bachelor of Science degree at the University of Texas at Austin in 1955 and went on to become a crew member on the Apollo 12 flight mission.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин (родился в городе Уилер, штат Техас) - гражданин США, который стал членом экипажа "Аполлона-12", выступив в качестве летчика-испытателя. В 1955 году он получил степень бакалавра технических наук в Техасском университете в Остине.</lex>
+      <lex lang="en" lid="Id3">Alan Bean (born Wheeler, Texas) is a US national who became a crew member of Apollo 12 having served as a test pilot. He eceived a Bachelor of Science degree at the University of Texas at Austin in 1955.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин (родился Wheeler, Texas) - гражданин США, который стал членом экипажа "Аполлон-12", выступив в качестве летчика-испытателя. Он получил степень бакалавра наук в Техасском университете в Остине в 1955 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Test pilot | sameAs | летчик-испытатель</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The American Alan Bean was born on the 15th of March 1932 in Wheeler, Texas. He graduated in 1955 from UT Austin with a B.S. He worked as a test pilot.</lex>
+      <lex lang="ru" lid="Id1">Американец Алан Бин родился 15 марта 1932 года в Уилере, штат Техас. Окончил в 1955 году Университет Техаса в Остине со степенью бакалавра технических наук. Он работал летчиком-испытателем.</lex>
+      <lex lang="en" lid="Id2">American test pilot Alan Bean, born Mar 15, 1932 in Wheeler, Texas, graduated from UT Austin in 1955 with a Bachelor of Science degree.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, летчик-испытатель США, родился 15 марта 1932 года в Уилере, штат Техас. После окончания в 1955 году Университета Техаса в Остине со степенью бакалавра технических наук, он стал летчиком-испытателем.</lex>
+      <lex lang="en" lid="Id3">Alan Bean, a US test pilot was born on the 15th of March 1932 in Wheeler, Texas. After graduating in 1955 from UT Austin with a B.S., he became a test pilot.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин, летчик-испытатель США, родился 15 марта 1932 года в Уилере, штат Техас. После окончания в 1955 году UT Austin со степенью B.S. он стал летчиком-испытателем.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Test pilot | sameAs | летчик-испытатель</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean was born in Wheeler, Texas on March 15 1932. He went on to become a test pilot and is now retired.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин родился в Уилере, штат Техас 15 марта 1932 года. Он стал летчиком-испытателем и сейчас на пенсии.</lex>
+      <lex lang="en" lid="Id2">Alan Bean, born Mar 15, 1932. in Wheeler, Texas. was an American test pilot. He has since retired.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин - гражданин США, который родился в Уилере, штат Техас, 15 марта 1932 года. Перед уходом на пенсию он служил летчиком-испытателем.</lex>
+      <lex lang="en" lid="Id3">Alan Bean is a US national who was born in Wheeler, Texas on 15 March 1932. Before retiring he served as a test pilot.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин - гражданин США, который родился в Уилере, штат Техас 15 марта 1932 года. Перед уходом он служил летчиком-испытателем.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Test pilot | sameAs | летчик-испытатель</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean is a United Stated national born in Wheeler, Texas on the 15th of March, 1932. He was a test pilot and served as a crew member aboard Apollo 12.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин - гражданин Соединенных Штатов, родившийся в Уилере, штат Техас, 15 марта 1932 года. Он был пилотом-испытателем и членом экипажа на борту "Аполлона-12".</lex>
+      <lex lang="en" lid="Id2">American,Alan Bean,who was a test pilot, was born on March 15,1932 in Wheeler, Texas. He went on to become a crew member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился 15 марта 1932 года в Уилере, штат Техас. Он был летчиком-испытателем и членом экипажа Аполлон-12.</lex>
+      <lex lang="en" lid="Id3">Alan Bean was born on March 15, 1932 in Wheeler, Texas. He was a test pilot and a crew member of Apollo 12.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин родился 15 марта 1932 года в Уилере, штат Техас. Он был летчиком-испытателем и членом экипажа "Аполлон-12".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Test pilot | sameAs | летчик-испытатель</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

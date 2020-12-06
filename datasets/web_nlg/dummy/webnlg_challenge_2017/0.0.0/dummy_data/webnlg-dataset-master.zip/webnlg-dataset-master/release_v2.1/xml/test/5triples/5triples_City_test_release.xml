@@ -1,0 +1,104 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>United_States | leaderTitle | President_of_the_United_States</otriple>
+        <otriple>United_States | demonym | Americans</otriple>
+        <otriple>United_States | ethnicGroup | Asian_Americans</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>United_States | leaderTitle | President_of_the_United_States</mtriple>
+        <mtriple>United_States | demonym | Americans</mtriple>
+        <mtriple>United_States | ethnicGroup | Asian_Americans</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States, where the inhabitants are known as Americans, is led by the President and has Asian Americans as an ethnic group. It is the location of Albany, part of the state of Georgia.</lex>
+      <lex comment="good" lid="Id2">Albany is located in the US state of Georgia, U.S. With the leader called the President of the United States there are Asian Americans as well as Americans living there.</lex>
+      <lex comment="good" lid="Id3">Americans are the people occupying the U.S., whose leader is the President of the United States, and Asian Americans are an ethnic group there. Albany is part of the state of Georgia in the United States.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Fulton_County,_Georgia | largestCity | Atlanta</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</otriple>
+        <otriple>Alpharetta,_Georgia | subdivisionName | Fulton_County,_Georgia</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Fulton_County,_Georgia | largestCity | Atlanta</otriple>
+        <otriple>Alpharetta,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Fulton_County,_Georgia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alpharetta,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>Fulton_County,_Georgia | largestCity | Atlanta</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Fulton_County,_Georgia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alpharetta, is in Fulton County, Georgia, in the United States, a country where Native Americans are an ethnic group. The largest city in Fulton County is Atlanta.</lex>
+      <lex comment="good" lid="Id2">The Native Americans are an ethnic group in the United States where Fulton County is found. The County, which is in the state of Georgia is the location of Alpharetta and has Atlanta as its largest city.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X (X (X (X) (X)))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</otriple>
+        <otriple>Potter_County,_Texas | state | Texas</otriple>
+        <otriple>Texas | country | United_States</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</mtriple>
+        <mtriple>Potter_County,_Texas | state | Texas</mtriple>
+        <mtriple>Texas | country | United_States</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The capital of the United States is Washington D.C, the language of this country is english. Amarillo, that its a beautiful place located in this country is part of Potter County in the state of Texas.</lex>
+      <lex comment="good" lid="Id2">Amarillo is part of Potter County in Texas in the United States whose capital is Washington DC and English is the language.</lex>
+      <lex comment="good" lid="Id3">Amarillo is part of Potter County, Texas, in the U.S., where the capital is Washington DC and English is the language spoken.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X) (X (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</otriple>
+        <otriple>Texas | language | English_language</otriple>
+        <otriple>Potter_County,_Texas | state | Texas</otriple>
+        <otriple>Amarillo,_Texas | country | United_States</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</mtriple>
+        <mtriple>Texas | language | English_language</mtriple>
+        <mtriple>Potter_County,_Texas | state | Texas</mtriple>
+        <mtriple>Amarillo,_Texas | country | United_States</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">In Amarillo, Pottery County, Texas U.S. the native language is English. It is also spoken in the capital of Texas, Austin.</lex>
+      <lex comment="good" lid="Id2">Amarillo, Potter County is located in English speaking Texas (United States), with its state capital as Austin.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</otriple>
+        <otriple>Texas | language | English_language</otriple>
+        <otriple>Potter_County,_Texas | state | Texas</otriple>
+        <otriple>Potter_County,_Texas | country | United_States</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</mtriple>
+        <mtriple>Texas | language | English_language</mtriple>
+        <mtriple>Potter_County,_Texas | state | Texas</mtriple>
+        <mtriple>Potter_County,_Texas | country | United_States</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">English is spoken in Texas, United States. Austin is the capital of Texas, which is also the location of Amarillo, Potter County.</lex>
+      <lex comment="good" lid="Id2">English is spoken in US state of Texas, where the capital is Austin. Texas is home to Amarillo, which is part of Potter County.</lex>
+      <lex comment="good" lid="Id3">The United States town of Amarillo is in Potter County, Texas where English is spoken and Austin is the capital.</lex>
+    </entry>
+    </entries>
+</benchmark>

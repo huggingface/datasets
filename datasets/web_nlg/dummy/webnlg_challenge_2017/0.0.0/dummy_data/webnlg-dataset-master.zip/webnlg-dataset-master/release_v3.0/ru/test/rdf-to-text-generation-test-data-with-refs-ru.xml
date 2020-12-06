@@ -1,0 +1,145 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Baked_Alaska | course | Dessert</otriple>
+        <otriple>Dessert | hasVariant | Cookie</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+        <otriple>Baked_Alaska | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baked_Alaska | course | Dessert</mtriple>
+        <mtriple>Dessert | dishVariation | Cookie</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+        <mtriple>Baked_Alaska | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="Id1">“Запеченная Аляска” и печенье – десерты. "Запеченная Аляска" происходит из Соединённых Штатов Америки, в которых этническая группа - Афроамериканцы.</lex>
+      <lex lang="ru" lid="Id2">"Запеченная Аляска" и печенье - разновидность десерта и происходит из Соединённых Штатов Америки. Афроамериканцы - одна из этнических групп этой страны.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">African_Americans | sameAs | Афроамериканцы</dbpedialink>
+        <dbpedialink direction="en2ru">Cookie | sameAs | Печенье</dbpedialink>
+        <dbpedialink direction="en2ru">Dessert | sameAs | Десерт</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Baked Alaska | sameAs | “Запеченная Аляска”</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | fullname | "Akron Metro Futbol Club Summit Assault"@en</otriple>
+        <otriple>Akron_Summit_Assault | manager | "Denzil Antonio"@en</otriple>
+        <otriple>Akron_Summit_Assault | capacity | "3000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Akron_Summit_Assault | season | 2011_PDL_season</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | fullname | "Akron Metro Futbol Club Summit Assault"@en</otriple>
+        <otriple>Akron_Summit_Assault | manager | Denzil_Antonio</otriple>
+        <otriple>Akron_Summit_Assault | season | 2011_PDL_season</otriple>
+        <otriple>Akron_Summit_Assault | capacity | 3000</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | fullname | "Akron Metro Futbol Club Summit Assault"@en</otriple>
+        <otriple>Akron_Summit_Assault | capacity | "3000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Akron_Summit_Assault | manager | Denzil_Antonio</otriple>
+        <otriple>Akron_Summit_Assault | season | 2011_PDL_season</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Akron_Summit_Assault | fullname | "Akron Metro Futbol Club Summit Assault"@en</otriple>
+        <otriple>Akron_Summit_Assault | manager | "Denzil Antonio"@en</otriple>
+        <otriple>Akron_Summit_Assault | season | 2011_PDL_season</otriple>
+        <otriple>Akron_Summit_Assault | capacity | 3000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron_Summit_Assault | fullName | "Akron Metro Futbol Club Summit Assault"</mtriple>
+        <mtriple>Akron_Summit_Assault | numberOfMembers | 3000</mtriple>
+        <mtriple>Akron_Summit_Assault | manager | Denzil_Antonio</mtriple>
+        <mtriple>Akron_Summit_Assault | season | 2011_PDL_season</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="Id1">Насчитывающий 3000 членов сильный Футбольный клуб “Акрон” (США), полное наименование - Футбольный клуб «Акрон Саммит Ассолт» (США), играет в Профессиональной лиге развития в 2011 году. Дензил Антонио был ранее их менеджером.</lex>
+      <links>
+        <link direction="en2ru">Akron Summit Assault | sameAs | Футбольный клуб “Акрон” (США)</link>
+        <link direction="en2ru">Akron Metro Futbol Club Summit Assault | sameAs | Футбольный клуб “Акрон Саммит Ассолт” (США)</link>
+        <link direction="en2ru">Denzil Antonio | sameAs | Дензил Антонио</link>
+        <link direction="en2ru">2011 PDL season | includes | ПДЛ / Профессиональная лига развития</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Bandeja_paisa | ingredient | Avocado</otriple>
+        <otriple>Bandeja_paisa | country | Colombian_cuisine</otriple>
+        <otriple>Bandeja_paisa | region | Paisa_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bandeja_paisa | ingredient | Avocado</mtriple>
+        <mtriple>Bandeja_paisa | country | Colombian_cuisine</mtriple>
+        <mtriple>Bandeja_paisa | region | Paisa_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="Id1">Часть колумбийской, кухни бандеха паиса - это традиционное блюда региона Пайса. Одним из главных ингредиентов в этом блюде является авокадо.</lex>
+      <lex lang="ru" lid="Id2">Авокадо - один из ингредиентов в блюде бандеха паиса, которое является блюдом колумбийской кухни. Оно родом из региона Пайса.</lex>
+      <lex lang="ru" lid="Id3">Авокадо - один из ингредиентов в блюде бандеха паиса, который представляет собой типичную колумбийскую кухню из региона Паиса.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Avocado | sameAs | Авокадо</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Colombian cuisine | sameAs | колумбийская кухня</link>
+        <link direction="en2ru">Bandeja paisa | sameAs | бандеха паиса</link>
+        <link direction="en2ru">Paisa Region | sameAs | регион Пайса</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>April_O'Neil | creators | Peter_Laird</otriple>
+        <otriple>Peter_Laird | nationality | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Peter_Laird | nationality | United_States</otriple>
+        <otriple>April_O'Neil | creator | Peter_Laird</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>April_O'Neil | creator | Peter_Laird</mtriple>
+        <mtriple>Peter_Laird | nationality | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="Id1">Эйприл О 'Нил был создан Питером Лэрдом, из Соединенных Штатов Америки.</lex>
+      <lex lang="ru" lid="Id2">Персонаж Эйприл О'Нил был создан Питером Лэрдом, гражданином Соединенных Штатов Америки.</lex>
+      <lex lang="ru" lid="Id3">Эйприл О 'Нил был создан американцем Питером Лэрдом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">April_O'Neil | sameAs | Эйприл_О’Нил</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Laird | sameAs | Лэрд,_Питер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X (X) (X) (X) (X) (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Romania | ethnicGroups | Germans_of_Romania</otriple>
+        <otriple>Romania | leader | Klaus_Iohannis</otriple>
+        <otriple>Romania | patronSaint | Andrew_the_Apostle</otriple>
+        <otriple>Romania | capital | Bucharest</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>Romania | anthem | Deșteaptă-te,_române!</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Romania | ethnicGroup | Germans_of_Romania</mtriple>
+        <mtriple>Romania | leader | Klaus_Iohannis</mtriple>
+        <mtriple>Romania | patronSaint | Andrew_the_Apostle</mtriple>
+        <mtriple>Romania | capital | Bucharest</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>Romania | anthem | Deșteaptă-te,_române!</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="Id1">Университет «1 декабря 1918» находится в Румынии. Столица Румынии - Бухарест; ее лидером является Клаус Йоханнис и его покровитель - Андрей Первозванный. Этническая группа страны - румынские немцы, а гимн - "Проснись, румын!".</lex>
+      <lex lang="ru" lid="Id2">Университет «1 декабря 1918» находится в Румынии под руководством Клауса Йоханниса, столицей Румынии является Бухарест. Румынский гимн - "Проснись, румын!", ее покровитель - Андрей Первозванный и ее этническая группа - румынские немцы.</lex>
+      <lex lang="ru" lid="Id3">Университет «1 декабря 1918» находится в Румынии. Столица страны - Бухарест, а лидером является Клаус Йоханнис. Этнически страна в основном немецкая, ее покровитель - это Андрей Первозванный, а национальный гимн - "Проснись, румын!".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Deșteaptă-te,_române! | sameAs | Гимн_Румынии</dbpedialink>
+        <dbpedialink direction="en2ru">Germans_of_Romania | sameAs | Немцы_в_Румынии</dbpedialink>
+        <dbpedialink direction="en2ru">Andrew_the_Apostle | sameAs | Андрей_Первозванный</dbpedialink>
+        <dbpedialink direction="en2ru">Bucharest | sameAs | Бухарест</dbpedialink>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+        <dbpedialink direction="en2ru">Klaus_Iohannis | sameAs | Йоханнис,_Клаус</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

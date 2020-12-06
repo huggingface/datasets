@@ -1,0 +1,129 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1 Decembrie 1918 University is located in Alba, Romania and its Latin name is "Universitas Apulensis".</lex>
+      <lex lang="ru" lid="Id1">Университет "1 декабря 1918" находится в Альбе, Румыния, и его латинское название - "Universitas Apulensis".</lex>
+      <lex lang="en" lid="Id2">The 1 Decembrie 1918 University is located in the state of Alba, Romania. The latin name for this university is "Universitas Apulensis".</lex>
+      <lex lang="ru" lid="Id2">Университет "1 декабря 1918" находится в Албе, Румыния. Латинское название для этого университета - "Universitas Apulensis".</lex>
+      <lex lang="en" lid="Id3">The Latin name of 1 Decembrie 1918 University in Alba, Romania, is Universitas Apulensis.</lex>
+      <lex lang="ru" lid="Id3">Латинское название Университета «1 декабря 1918» в Альбе, Румыния, - Universitas Apulensis.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Alba | sameAs | Алба</link>
+        <link direction="en2ru">Universitas Apulensis | sameAs | Universitas Apulensis</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 1 Decembrie 1918 University is located in Alba lulia, Alba. Its nickname is Uab.</lex>
+      <lex lang="ru" lid="Id1">Университет "1 декабря 1918" находится в Албе-Юлии, Алба. Его прозвище - UAB.</lex>
+      <lex lang="en" lid="Id2">The nickname of the 1 Decembrie 1918 University in Alba Iulia, Alba, is Uab.</lex>
+      <lex lang="ru" lid="Id2">Прозвище Университета "1 декабря 1918" в Алба-Юлия, Алба - UAB.</lex>
+      <lex lang="en" lid="Id3">The 1 Decembrie 1918 University is also known as Uab and located in Alba Iulia, Alba.</lex>
+      <lex lang="ru" lid="Id3">Университет "1 декабря 1918" также известен как UAB и расположен в Алба-Юлия, Алба.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alba_Iulia | sameAs | Алба-Юлия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Uab | sameAs | UAB</link>
+        <link direction="en2ru">Alba | sameAs | Алба</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The nickname of the 1 Decembrie 1918 University is Uab. The latin name is "Universitas Apulensis" and the rector is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id1">Другое название Университета "1 декабря 1918" - UAB. Латинское название - "Universitas Apulensis" и ректором является Бреаз Валер Даниэль.</lex>
+      <lex lang="en" lid="Id2">1 Decembrie 1918 University is known informally as Uab and the latin name is Universitas Apulensis. The recor is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id2">Университет «1 декабря 1918» неформально известен как UAB и его латинское название - Universitas Apulensis. Его ректор - Бреаз Валер Даниэль.</lex>
+      <links>
+        <link direction="en2ru">Breaz Valer Daniel | sameAs | Бреаз Валер Даниэль</link>
+        <link direction="en2ru">Uab | sameAs | UAB</link>
+        <link direction="en2ru">Universitas Apulensis | sameAs | Universitas Apulensis</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1 Decembrie 1918 University is located in Alba Iulia, Romania and its rector is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id1">Университет "1 декабря 1918" находится в Албе-Юлии, Румыния, его ректор - Бреаз Валер Даниэль.</lex>
+      <lex lang="en" lid="Id2">The rector of 1 Decembrie 1918 University in Alba Iulia in Romania is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id2">Ректор Университета "1 декабря 1918" в городе Алба-Юлия в Румынии - Бреаз Валер Даниэль.</lex>
+      <lex lang="en" lid="Id3">The rector of 1 Decembrie 1918 University, in Alba Iulia, Romania, is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id3">Ректор Университета «1 декабря 1918» в Алба-Юлия, Румыния, - Бреаз Валер Даниэль.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+        <dbpedialink direction="en2ru">Alba_Iulia | sameAs | Алба-Юлия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Breaz Valer Daniel | sameAs | Бреаз Валер Даниэль</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The AWH Engineering College is located in Kuttikkattoor, Kerala and it has 250 academic staff.</lex>
+      <lex lang="ru" lid="Id1">Инженерный колледж "AWH" расположен в Куттиккаттооре, штат Керала, и имеет 250 научных сотрудников.</lex>
+      <lex lang="en" lid="Id2">There is an academic staff of 250 at the AWH Engineering College which is located in Kuttikkattoor in the state of Kerala.</lex>
+      <lex lang="ru" lid="Id2">Штат преподавателей Инженерного колледжа "AWH", расположенного в Куттиккаттооре в штате Керала, составляет 250 человек.</lex>
+      <lex lang="en" lid="Id3">AWH Engineering College is located in Kuttikkattoor, Kerala and has a staff of 250.</lex>
+      <lex lang="ru" lid="Id3">Инженерный колледж « AWH » находится в Куттиккаттооре, штат Керала, и имеет штат в 250 человек.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

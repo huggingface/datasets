@@ -1,0 +1,240 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | city | Aarhus</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | academicStaffSize | 737</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | dean | "Thomas Pallesen"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | country | Denmark</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | latinName | "Universitas Aarhusiensis"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | affiliation | European_University_Association</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | established | 1928</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">In 1928 the School of Business and Social Sciences at the Aarhus University was established in the city of Aarhus, Denmark. Dean Thomas Pallesen heads the School which has the Latin name of "Universitas Aarhusiensis" . There are 737 academic staff and it is affiliated with the European University Association.</lex>
+      <lex lang="ru" lid="Id1">В 1928 году в Орхусе, Дания, была создана Школа бизнеса и социальных наук Орхусского университета. Декан Томас Паллесен возглавляет школу, которая имеет латинское название "Universitas Aarhusiensis". Имеется 737 научных сотрудников, и она связана с Ассоциацией университетов Европы.</lex>
+      <lex lang="en" lid="Id2">The School of Business and Social Sciences at the Aarhus University in Aarhus, Denmark was established in 1928. It has 737 academic staff and its Latin name is "Universitas Aarhusiensis". Its dean is Thomas Pellesen and it is affiliated with the European University Association.</lex>
+      <lex lang="ru" lid="Id2">В 1928 году была создана Школа бизнеса и социальных наук Орхусского университета в Орхусе, Дания. В ее состав входят 737 научных сотрудников и ее латинское название - "Universitas Aarhusiensis". Ее декан - Томас Паллесен, и она связана с Ассоциацией университетов Европы.</lex>
+      <lex lang="en" lid="Id3">The School of Business and Social Sciences at the Aarhus University, in Aarhus, Denmark, is affiliated with the European University Association. The school was created in 1928 and uses Universitas Aarhusiensis as its Latin name. Its dean is Thomas Pallesen and it has 737 employees.</lex>
+      <lex lang="ru" lid="Id3">Школа бизнеса и социальных наук Орхусского университета в Орхусе, Дания, связана с Ассоциацией университетов Европы. Школа была создана в 1928 году и использует "Universitas Aarhusiensis" в качестве своего латинского названия. Ее декан - Томас Паллесен, и в школе имеется 737 сотрудников.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">European_University_Association | sameAs | Ассоциация_университетов_Европы</dbpedialink>
+        <dbpedialink direction="en2ru">1928 | sameAs | 1928_год</dbpedialink>
+        <dbpedialink direction="en2ru">Aarhus | sameAs | Орхус</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Universitas Aarhusiensis | sameAs | Universitas Aarhusiensis</link>
+        <link direction="en2ru">School of Business and Social Sciences at the Aarhus University | sameAs | Школа бизнеса и социальных наук Орхусского университета / университета Орхуса</link>
+        <link direction="en2ru">Thomas Pallesen | sameAs | Томас Паллесен</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | numberOfStudents | "16000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | students | 16000</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliation | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | students | 16000</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | city | Aarhus</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | academicStaffSize | 737</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | dean | "Thomas Pallesen"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | numberOfStudents | 16000</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | country | Denmark</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | affiliation | European_University_Association</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | established | 1928</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">In 1928 the School of Business and Social Sciences at the Aarhus University was established in the city of Aarhus, Denmark. The School is affiliated with the European University Association and is led by Dean Thomas Pallesen. There are 16000 students and an academic staff of 737.</lex>
+      <lex lang="ru" lid="Id1">В 1928 году в Орхусе, Дания, была создана Школа бизнеса и социальных наук Орхусского университета. Школа связана с Ассоциацией университетов Европы и возглавляется деканом Томасом Паллесеном. В школе насчитывается 16000 студентов и академический коллектив из 737 человек.</lex>
+      <lex lang="en" lid="Id2">The School of Business and Social Sciences at the Aarhus University is located in Aarhus, Denmark and it was established in 1928. Its dean is Thomas Pallesen; it has 737 academic staff and 16,000 students. It is affiliated to the European University Association.</lex>
+      <lex lang="ru" lid="Id2">Школа бизнеса и социальных наук Орхусского университета расположена в Орхусе, Дания, и была создана в 1928 году. Ее декан - Томас Паллесен; она насчитывает 737 научных сотрудников и 16 000 студентов. Она входит в Ассоциацию университетов Европы.</lex>
+      <lex lang="en" lid="Id3">The School of Business and Social Sciences at the Aarhus University in Aarhus, Denmark is affiliated with the European University Association. It was created in 1928 and its dean today is Thomas Pallesen. It has 16,000 students and 737 employees.</lex>
+      <lex lang="ru" lid="Id3">Школа бизнеса и социальных наук Орхусского университета в Орхусе, Дания, связана с Ассоциацией университетов Европы. Она была создана в 1928 году, а ее декан сегодня - Томас Паллесен. В ней насчитывается 16 000 студентов и 737 сотрудников.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">European_University_Association | sameAs | Ассоциация_университетов_Европы</dbpedialink>
+        <dbpedialink direction="en2ru">1928 | sameAs | 1928_год</dbpedialink>
+        <dbpedialink direction="en2ru">Aarhus | sameAs | Орхус</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">School of Business and Social Sciences at the Aarhus University | sameAs | Школа бизнеса и социальных наук Орхусского университета / университета Орхуса</link>
+        <link direction="en2ru">Thomas Pallesen | sameAs | Томас Паллесен</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | students | 16000</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliation | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | students | 16000</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | numberOfStudents | "16000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | facultySize | "737"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | city | Aarhus</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | academicStaffSize | 737</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | numberOfStudents | 16000</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | country | Denmark</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | latinName | "Universitas Aarhusiensis"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | affiliation | European_University_Association</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | established | 1928</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">In 1928 the School of Business and Social Sciences at the Aarhus University was established in the city of Aarhus, Denmark. The Latin name is "Universitas Aarhusiensis" and the School is now affiliated with the European University Association. There are 1600 students and 737 academic staff.</lex>
+      <lex lang="ru" lid="Id1">В 1928 году в Орхусе, Дания, была создана Школа бизнеса и социальных наук Орхусского университета. Латинское название - "Universitas Aarhusiensis", и школа в настоящее время связана с Ассоциацией университетов Европы. В школе насчитывается 1600 студентов и 737 научных сотрудников.</lex>
+      <lex lang="en" lid="Id2">The School of Business and Social Sciences at the Aarhus University is located in Aarhus, Denmark. It was established in 1928, and it has 737 academic staff and 16,000 students. Its Latin name is "Universitas Aarhusiensis" and it is affiliated with the European University Association.</lex>
+      <lex lang="ru" lid="Id2">Школа бизнеса и социальных наук Орхусского университета расположена в Орхусе, Дания. Она была создана в 1928 году, она насчитывает 737 научных сотрудников и 16 000 студентов. Ее латинское название - "Universitas Aarhusiensis" и она входит в Ассоциацию университетов Европы.</lex>
+      <lex lang="en" lid="Id3">The School of Business and Social Sciences at the Aarhus University, established in 1928, has 737 academic staff and 16,000 students. It is in Aarhus, Denmark and affiliated with the European University Association. Its Latin name is Universitas Aarhusiensis.</lex>
+      <lex lang="ru" lid="Id3">Школа бизнеса и социальных наук Орхусского университета, учрежденная в 1928 году, насчитывает 737 научных сотрудников и 16 000 студентов. Она находится в Орхусе, Дания, и связана с Ассоциацией университетов Европы. Ее латинское название - Universitas Aarhusiensis.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">European_University_Association | sameAs | Ассоциация_университетов_Европы</dbpedialink>
+        <dbpedialink direction="en2ru">1928 | sameAs | 1928_год</dbpedialink>
+        <dbpedialink direction="en2ru">Aarhus | sameAs | Орхус</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Universitas Aarhusiensis | sameAs | Universitas Aarhusiensis</link>
+        <link direction="en2ru">School of Business and Social Sciences at the Aarhus University | sameAs | Школа бизнеса и социальных наук Орхусского университета / университета Орхуса</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | students | 16000</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | facultySize | "737"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | faculty | 737</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliation | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | numberOfStudents | "16000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | latinName | "Universitas Aarhusiensis"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | city | Aarhus</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | dean | "Thomas Pallesen"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | numberOfStudents | 16000</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | academicStaffSize | 737</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | latinName | "Universitas Aarhusiensis"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | affiliation | European_University_Association</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | established | 1928</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Dean of the School of Business and Social Sciences at the Aarhus University in the city of Aarhus is Thomas Pallesen. The School was established in 1928 and is affiliated with the European University Association. The latin name for the School is "Universitas Aarhusiensis" and there are 737 academic staff and 16000 students.</lex>
+      <lex lang="ru" lid="Id1">Декан Школы бизнеса и социальных наук Орхусского университета в городе Орхус - Томас Паллесен. Школа была создана в 1928 году и связана с Ассоциацией университетов Европы. Латинское название школы - "Universitas Aarhusiensis", и в ней насчитывается 737 научных сотрудников и 16000 студентов.</lex>
+      <lex lang="en" lid="Id2">The School of Business and Social Sciences is located in Aarhus and it was established in 1928. It has 737 academic staff and 16,000 students. Its dean is Thomas Pallesen and it is affiliated with the European University Association.</lex>
+      <lex lang="ru" lid="Id2">Школа бизнеса и социальных наук расположена в Орхусе, и она была создана в 1928 году. В ее состав входят 737 научных сотрудников и 16 000 учащихся. Ее декан - Томас Паллесен, и она связана с Ассоциацией университетов Европы.</lex>
+      <lex lang="en" lid="Id3">The School of Business and Social Sciences at the Aarhus University (Universitas Aarhusiensis, in Latin), was established in 1928 in Aarhus. The school has 737 academic staff and 1600 students, and is affiliated with the European University Association. Its dean is Thomas Pallesen.</lex>
+      <lex lang="ru" lid="Id3">1928 году в Орхусе была создана Школа бизнеса и социальных наук Орхусского университета (Universitas Aarhusiensis, на латинском языке). В школе работают 737 научных сотрудников и 1600 студентов, и она связана с Ассоциацией университетов Европы. Ее декан - Томас Паллесен.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">European_University_Association | sameAs | Ассоциация_университетов_Европы</dbpedialink>
+        <dbpedialink direction="en2ru">1928 | sameAs | 1928_год</dbpedialink>
+        <dbpedialink direction="en2ru">Aarhus | sameAs | Орхус</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Universitas Aarhusiensis | sameAs | Universitas Aarhusiensis</link>
+        <link direction="en2ru">School of Business and Social Sciences at the Aarhus University | sameAs | Школа бизнеса и социальных наук Орхусского университета / университета Орхуса</link>
+        <link direction="en2ru">Thomas Pallesen | sameAs | Томас Паллесен</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | numberOfStudents | "16000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>European_University_Association | headquarters | Brussels</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | dean | "Thomas Pallesen"@en</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | city | Aarhus</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | students | 16000</otriple>
+        <otriple>European_University_Association | headquarters | Brussels</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | country | Denmark</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | affiliations | European_University_Association</otriple>
+        <otriple>Aarhus_University,_School_of_Business_and_Social_Sciences | established | 1928</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | dean | "Thomas Pallesen"</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | city | Aarhus</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | numberOfStudents | 16000</mtriple>
+        <mtriple>European_University_Association | headquarter | Brussels</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | country | Denmark</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | affiliation | European_University_Association</mtriple>
+        <mtriple>School of Business and Social Sciences at the Aarhus University | established | 1928</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The city of Aarhus in Denmark is the location of the School of Business and Social Sciences at the Aarhus University which was established in 1928 and affiliated with the European University Association headquartered in Brussels. The current Dean is Thomas Pallesen and there are 16000 students.</lex>
+      <lex lang="ru" lid="Id1">В городе Орхус в Дании расположена Школа бизнеса и социальных наук Орхусского университета, который был создан в 1928 году и является филиалом Ассоциации университетов Европы с штаб-квартирой в Брюссельском столичном регионе. Нынешний декан - Томас Паллесен, в школе учатся 16000 студентов.</lex>
+      <lex lang="en" lid="Id2">The School of Business and Social Sciences at the Aarhus University is located in Aarhus, Denmark. It was established in 1928 and it has 16,000 students. Its dean is Thomas Pallesen. It is affiliated to the European University Association in Brussels.</lex>
+      <lex lang="ru" lid="Id2">Школа бизнеса и социальных наук Орхусского университета расположена в Орхусе, Дания. Она была создана в 1928 году и насчитывает 16 тысяч студентов. Ее декан - Томас Паллесен. Она входит в Ассоциацию университетов Европы в Брюсселе.</lex>
+      <lex lang="en" lid="Id3">The School of Business and Social Sciences at the Aarhus University in Aarhus, Denmark is affiliated with the European University Association which is headquartered in Brussels. It was established in 1928, has 16,000 students and its dean is Thomas Pallesen.</lex>
+      <lex lang="ru" lid="Id3">Школа бизнеса и социальных наук Орхусского университета в Орхусе, Дания, связана с Ассоциацией университетов Европы, штаб-квартира которой находится в Брюсселе. Она была создана в 1928 году, имеет 16 тысяч студентов, и ее декан - Томас Паллесен.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Brussels | sameAs | Брюссельский_столичный_регион</dbpedialink>
+        <dbpedialink direction="en2ru">European_University_Association | sameAs | Ассоциация_университетов_Европы</dbpedialink>
+        <dbpedialink direction="en2ru">1928 | sameAs | 1928_год</dbpedialink>
+        <dbpedialink direction="en2ru">Aarhus | sameAs | Орхус</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">School of Business and Social Sciences at the Aarhus University | sameAs | Школа бизнеса и социальных наук Орхусского университета / университета Орхуса</link>
+        <link direction="en2ru">Thomas Pallesen | sameAs | Томас Паллесен</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

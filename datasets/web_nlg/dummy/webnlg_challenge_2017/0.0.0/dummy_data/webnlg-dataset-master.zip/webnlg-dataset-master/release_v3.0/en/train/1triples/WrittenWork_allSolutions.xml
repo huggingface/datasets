@@ -1,0 +1,55 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Baltic_War | author | David_Weber</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Baltic_War | author | David_Weber</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">David Weber is the author of 1634: The Baltic War.</lex>
+      <lex comment="good" lid="Id2">1634: The Baltic War was written by David Weber.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | isbnNumber | "978-1-4165-4253-7"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis can be located by its ISBN number "978-1-4165-4253-7".</lex>
+      <lex comment="good" lid="Id2">The ISBN number of 1634: The Bavarian Crisis is 978-1-4165-4253-7.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The authors of 1634: The Bavarian Crisis are Virginia DeMarce and Eric Flint.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis is written by Virginia DeMarce and Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Virginia_DeMarce</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Virginia_DeMarce</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Virginia DeMarce is the author of 1634: The Bavarian Crisis.</lex>
+      <lex comment="good" lid="Id2">The author of 1634: The Bavarian Crisis is Virginia DeMarce.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The novel 1634: The Bavarian Crisis is followed by Ring of Fire II.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis was followed by Ring of Fire II.</lex>
+      <lex comment="good" lid="Id3">1634: The Bavarian Crisis is followed by Ring of Fire II.</lex>
+    </entry>
+    </entries>
+</benchmark>

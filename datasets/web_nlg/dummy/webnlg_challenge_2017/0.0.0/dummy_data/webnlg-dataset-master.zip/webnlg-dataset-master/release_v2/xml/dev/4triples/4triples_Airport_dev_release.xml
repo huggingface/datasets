@@ -1,0 +1,100 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "1121.05"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "1121.0"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Abilene_Regional_Airport | runwayLength | 1121.0</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">With a runway length of 1,121 metres, Abilene regional airport serves Abilene, Texas, in the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas is served by the Abilene regional airport in the U.S. Its runway is 1121 long.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas, United States, is served by Abilene Regional Airport, which has a runway length of 1121.0.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Alcobendas</otriple>
+        <otriple>ENAIRE | locationCity | Madrid</otriple>
+        <otriple>Alcobendas | country | Spain</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | operator | ENAIRE</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Alcobendas</mtriple>
+        <mtriple>ENAIRE | locationCity | Madrid</mtriple>
+        <mtriple>Alcobendas | country | Spain</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | operatingOrganisation | ENAIRE</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suarez Madrid Barajas Airport is located in Alcobendas, Spain, and operated by the Madrid-based ENAIRE.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas Airport is located in Alcobendas,Spain. The airport is operated by ENAIRE.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suárez Madrid–Barajas Airport, operated by Madrid's ENAIRE, is located in Alcobendas, Spain.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "18R/36L"</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "3499.71"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | operator | ENAIRE</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayName | "18R/36L"</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 3500.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | operatingOrganisation | ENAIRE</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suarez Madrid-Barajas airport is located at Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas and is operated by ENAIRE. The runway name is 18R/26L and is 3,500 in length.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suárez Madrid–Barajas Airport can be found in Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas. ENAIRE operates this Airport. 18R/36L is the runway name and its length is 3500.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suarez Madrid-Barajas airport is located at Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas and run by ENAIRE. Its runway name is 18R/36L and it is 3500 m long,.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Agra_Airport | elevation | "167.94"^^xsd:double</otriple>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | elevation | "167.945"^^xsd:double</otriple>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | elevationAboveTheSeaLevel_(in_metres) | 167.94</mtriple>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra airport is in Uttar Pradesh, which is part of Awadh and Bundelkhand, is located 167.94 metres above sea level.</lex>
+      <lex comment="good" lid="Id2">Agra Airport is 167.94 metres above sea level and located in Uttar Pradesh, part of Awadh and Bundelkhand.</lex>
+      </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+        <otriple>Uttar_Pradesh | leaderName | Ram_Naik</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+        <mtriple>Uttar_Pradesh | leaderName | Ram_Naik</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra airport is located in Uttar Pradesh (led by Ram Naik) which is part of Awadh and Bundelkhand.</lex>
+      <lex comment="good" lid="Id2">Ram Naik is the leader in Uttar Pradesh where Agra airport is located and is part of Awadh and Bundelkhand.</lex>
+      <lex comment="good" lid="Id3">Agra airport is located in Uttar Pradesh which is part of Awadh and also Bundelkhand, and led by Ram Naik.</lex>
+    </entry>
+    </entries>
+</benchmark>

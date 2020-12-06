@@ -1,0 +1,83 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Fredericksburg</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Fredericksburg</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Purple Heart recipient Aaron S. Daggett was born in Maine and, most notably, fought in the Battle of Fredericksburg.</lex>
+      <lex comment="good" lid="Id2">Born in Maine, Purple Heart recipient, Aaron S Daggett has fought in battles, the most notable being the Battle of Fredericksburg.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett, born in Maine, fought in the Battle of Fredericksburg. He was given the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Ab_Klink | party | Christian_Democratic_Appeal</otriple>
+        <otriple>Ab_Klink | birthPlace | Netherlands</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Sociology</otriple>
+        <otriple>Ab_Klink | party | Christian_Democratic_Appeal</otriple>
+        <otriple>Ab_Klink | birthPlace | Netherlands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Ab_Klink | party | Christian_Democratic_Appeal</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Netherlands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ab Klink was born in the Netherlands, belongs to the Christian Democratic Appeal party and graduated from Erasmus University in Rotterdam.</lex>
+      <lex comment="good" lid="Id2">Born in the Netherlands, Ab Klink attended Erasmus University Rotterdam and belongs to the Christian Democratic Appeal party.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | residence | Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | "Barisan Ra'ayat Jati Sarawak"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | residence | Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | party | "Barisan Ra'ayat Jati Sarawak"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in the Kingdom of Sarawak, Abdul Taib Mahmud, resides in Sarawak and is a member of Barisan Ra'ayat Jati Sarawak party.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud was born and lives in the Kingdom of Sarawak and is a member of the "Barisan Ra'ayat Jati Sarawak" party.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud, a member of Barisan Ra'ayat Jati Sarawak party, was born in Kingdom of Sarawak and lives in Sarawak.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | residence | Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | "Barisan Ra'ayat Jati Sarawak"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | residence | Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Miri,_Malaysia</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | party | "Barisan Ra'ayat Jati Sarawak"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Miri, Malaysia, and living in, Sarawak, Abdul Taib Mahmud, is a member of Barisan Ra'ayat Jati Sarawak party.</lex>
+      <lex comment="good" lid="Id2">Born in Miri, in Malaysia, Abdul Taib Mahmud, resides in Sarawak and is a member of the "Barisan Ra'ayat Jati Sarawak" party.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud, a member of the Barisan Ra'ayat Jati Sarawak party, was born in Miri, Malaysia and lives in Sarawak.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+        <otriple>Mike_Akhigbe | predecessor | Oladipo_Diya</otriple>
+        <otriple>Mike_Akhigbe | successor | Atiku_Abubakar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+        <mtriple>Mike_Akhigbe | predecessor | Oladipo_Diya</mtriple>
+        <mtriple>Mike_Akhigbe | successor | Atiku_Abubakar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Oladipo Diya was the predecessor of Mike Akhigbe, whose successor was Atiku Abubakar. Abdulsalami Abubakar was in office while Mike Akhigbe was the Vice President.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar was in office whilst Mike Akhigbe was Vice President. Oladipo Diya was the predecessor of Mike Akhigbe, who was succeeded by Atiku Abubakar.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar was in office while Mike Akhigbe was Vice President who took over from Oladipo Diya and then was succeeded by Atiku Abubakar.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,67 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Saskatchewan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Saskatchewan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard was born in Saskatchewan and his club is Wichita Thunder.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard was born in Saskatchewan and plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard was born in Saskatchewan and played for Wichita Thunder club.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Abel_Hernández | team | Peñarol</otriple>
+        <otriple>Peñarol | manager | Jorge_Orosmán_da_Silva</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | club | Peñarol</mtriple>
+        <mtriple>Peñarol | manager | Jorge_Orosmán_da_Silva</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez played for the club Penarol, which was managed by Jorge Orosmán da Silva.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez has played for the club Peñarol which is managed by Jorge Orosmán da Silva.</lex>
+      <lex comment="good" lid="Id3">Peñarol, managed by Jorge Orosmán da Silva, is a former club of the player Abel Hernandez.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Adam_Maher | team | Netherlands_national_under-17_football_team</otriple>
+        <otriple>Adam_Maher | clubs | AZ_Alkmaar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Maher | club | Netherlands_national_under-17_football_team</mtriple>
+        <mtriple>Adam_Maher | club | AZ_Alkmaar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Maher is connected to the AZ Alkmaar club and plays for the Netherlands National club for players under 17.</lex>
+      <lex comment="good" lid="Id2">AZ Alkmaar player Adam Maher represented the Netherlands national side at Under 17 level.</lex>
+      <lex comment="good" lid="Id3">Adam Maher is connected to the AZ Alkmaar club and played for the Netherlands national under-17 football team.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ahmad_Kadhim_Assad | team | Steel_Azin_F.C.</otriple>
+        <otriple>Ahmad_Kadhim_Assad | clubs | Al_Shorta_SC</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ahmad_Kadhim_Assad | club | Steel_Azin_F.C.</mtriple>
+        <mtriple>Ahmad_Kadhim_Assad | club | Al_Shorta_SC</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ahmad Kadhim Assad clubs are Steel Azin FC and Al Shorta SC.</lex>
+      <lex comment="good" lid="Id2">Ahmad Kadhim Assad played for both Steel Azin F.C. and Al Shorta SC.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Akeem_Adams | team | Trinidad_and_Tobago_national_football_team</otriple>
+        <otriple>Akeem_Adams | clubs | T&amp;TEC_Sports_Club</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Adams | club | Trinidad_and_Tobago_national_football_team</mtriple>
+        <mtriple>Akeem_Adams | club | T&amp;TEC_Sports_Club</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Adams plays for the Trinidad and Tobago National football team and the T&amp;TEC Sports Club.</lex>
+      <lex comment="good" lid="Id2">Akeem Adams, who plays for the Trinidad and Tobago national football team formerly played for the T&amp;TEC Sports Club.</lex>
+    </entry>
+    </entries>
+</benchmark>

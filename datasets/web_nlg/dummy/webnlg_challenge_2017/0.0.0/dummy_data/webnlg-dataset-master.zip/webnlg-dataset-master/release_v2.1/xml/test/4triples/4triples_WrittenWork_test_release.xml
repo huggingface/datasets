@@ -1,0 +1,107 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_III</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | "issues II, III, IV, V and VI"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>Eric_Flint | birthPlace | Burbank,_California</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_III</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | "DeMarce short stories in the The Grantville Gazettes"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis was written by Eric Flint who was born in Burbank, California. It was the sequel to Grantville Gazette III and DeMarce short stories in the Grantville Gazettes.</lex>
+      <lex comment="good" lid="Id2">Eric Flint (born Burbank, California) is the author of 1634: The Bavarian Crisis, which is the sequel to Grantville Gazette III. DeMarce short stories in the Grantville Gazettes preceded 1634: The Bavarian Crisis.</lex>
+      <lex comment="good" lid="Id3">Eric Flint, born in Burbank, California, is the author of 1634: The Bavarian Crisis. DeMarce short stories in the Grantville Gazettes and Grantville Gazette III preceded 1634: The Bavarian Crisis.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | E-book</otriple>
+        <otriple>1634:_The_Ram_Rebellion | numberOfPages | "512"^^xsd:positiveInteger</otriple>
+        <otriple>1634:_The_Ram_Rebellion | author | "Eric Flint, Virginia DeMarce, et al."@en</otriple>
+        <otriple>1634:_The_Ram_Rebellion | isbn | "1-4165-2060-0"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | E-book</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | numberOfPages | "512"</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | author | "Eric Flint, Virginia DeMarce, et al."</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | ISBN_number | "1-4165-2060-0"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion was written by Eric Flint, Virginia DeMarce, et al. and has 512 pages. It can be found as an E book and the ISBN number of 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion is available as an E-Book and is 512 pages long. It was written by Eric Flint, Virginia DeMarce, et al. and has the ISBN number 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id3">1634: The Ram Rebellion (ISBN 1-4165-2060-0) written by Eric Flint, Virginia DeMarce, et al is 512 pages long and available in E-Book.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AIDS_(journal) | country | United_Kingdom</otriple>
+        <otriple>AIDS_(journal) | publisher | Lippincott_Williams_&amp;_Wilkins</otriple>
+        <otriple>Lippincott_Williams_&amp;_Wilkins | parentCompany | Wolters_Kluwer</otriple>
+        <otriple>United_Kingdom | leader | Elizabeth_II</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Lippincott_Williams_&amp;_Wilkins | parent | Wolters_Kluwer</otriple>
+        <otriple>AIDS_(journal) | country | United_Kingdom</otriple>
+        <otriple>AIDS_(journal) | publisher | Lippincott_Williams_&amp;_Wilkins</otriple>
+        <otriple>United_Kingdom | leader | Elizabeth_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDS_(journal) | country | United_Kingdom</mtriple>
+        <mtriple>AIDS_(journal) | publisher | Lippincott_Williams_&amp;_Wilkins</mtriple>
+        <mtriple>Lippincott_Williams_&amp;_Wilkins | parentCompany | Wolters_Kluwer</mtriple>
+        <mtriple>United_Kingdom | leaderName | Elizabeth_II</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDS journal, published by Lippincott Williams &amp; Wilkins, is from the United Kingdom (led by Elizabeth II). The parent company of Lippincott is Wolters Kluwer.</lex>
+      <lex comment="good" lid="Id2">Wolters Kluwer, the parent company of Lippincott Williams &amp; Wilkins that publishes AIDS (journal), is in the UK where Elizabeth II is the leader.</lex>
+      <lex comment="good" lid="Id3">Wolters Kluwer is the parent company of Lippincott Williams &amp; Wilkins. They publish the AIDS (journal) in the United Kingdom where the leader is Elizabeth II.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | mediaType | Hardcover</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | oclc | 51969173</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | isbn | "0-7653-0633-6"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | mediaType | Hardcover</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | oclc | "51969173"</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | isbn | "0-7653-0633-6"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Fortress_of_Grey_Ice | mediaType | Hardcover</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | OCLC_number | 51969173</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | ISBN_number | "0-7653-0633-6"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Fortress of Grey Ice, by J V Jones, has the OCLC number 51969173, the ISBN number 0-7653-0633-6 and is available in hardcover.</lex>
+      <lex comment="good" lid="Id2">A Fortress of Grey Ice, written by J.V. Jones and produced in hardcover, has the ISBN number 0-7653-0633-6 and the OCLC number 51969173.</lex>
+      <lex comment="good" lid="Id3">J V Jones is the author of A Fortress of Grey Ice which was published in hardcover. The OCLC number is 51969173 and the ISBN number is 0-7653-0633-6.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A_Loyal_Character_Dancer | author | Qiu_Xiaolong</otriple>
+        <otriple>A_Loyal_Character_Dancer | isbn | "1-56947-301-3"</otriple>
+        <otriple>A_Loyal_Character_Dancer | mediaType | Hardcover</otriple>
+        <otriple>A_Loyal_Character_Dancer | oclc | "49805501"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A_Loyal_Character_Dancer | author | Qiu_Xiaolong</otriple>
+        <otriple>A_Loyal_Character_Dancer | oclc | 49805501</otriple>
+        <otriple>A_Loyal_Character_Dancer | isbn | "1-56947-301-3"</otriple>
+        <otriple>A_Loyal_Character_Dancer | mediaType | Hardcover</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Loyal_Character_Dancer | author | Qiu_Xiaolong</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | OCLC_number | 49805501</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | ISBN_number | "1-56947-301-3"</mtriple>
+        <mtriple>A_Loyal_Character_Dancer | mediaType | Hardcover</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The book, A Loyal Character Dancer, has the ISBN number of 1-56947-301-3 and The OCLC number is 49805501. It was penned by Qiu Xiaolong and can be found in hardcover.</lex>
+      <lex comment="good" lid="Id2">The hardcover book A Loyal Character Dancer was written by Qiu Xiaolong, has an OCLC number of 49805501 and an ISBN number of 1-56947-301-3.</lex>
+      <lex comment="good" lid="Id3">The book A Loyal Character Dancer, written by Qiu Xiaolong, was published in hardcover. It has the ISBN number 1-56947-301-3 and OCLC number 49805501.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,142 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Bolt_(DC_Comics) | creators | Paris_Cullins</otriple>
+        <otriple>Paris_Cullins | nationality | United_States</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Ernie_Colón</otriple>
+        <otriple>Bolt_(DC_Comics) | alterEgo | "Larry Bolatinsky"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Paris_Cullins | nationality | United_States</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Paris_Cullins</otriple>
+        <otriple>Bolt_(DC_Comics) | creators | Ernie_Colón</otriple>
+        <otriple>Bolt_(DC_Comics) | alterEgo | "Larry Bolatinsky"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Paris_Cullins | nationality | United_States</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | creator | Paris_Cullins</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | creator | Ernie_Colón</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | alternativeName | "Larry Bolatinsky"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Larry Bolatinsky is the alternative name for the comic book character Bolt, which was created by Ernie Colon and the American Paris Cullins.</lex>
+      <lex lang="ru" lid="Id1">Ларри Болатинский - другое имя персонажа комиксов Болта, созданного Эрни Колоном и американцем Пэрисом Каллинсом.</lex>
+      <lex lang="en" lid="Id2">Ernie Colon and the US national Paris Cullins created the comic character of Bolt, who has the alternative name of Larry Bolatinsky.</lex>
+      <lex lang="ru" lid="Id2">Эрни Колон и гражданин США Пэрис Каллинс создали персонажа комиксов Болта, у которого есть альтернативное имя – Ларри Болатинский.</lex>
+      <lex lang="en" lid="Id3">Ernie Colón and the American Paris Cullins were among the creators of the comic book character Bolt, also known as Larry Bolatinsky.</lex>
+      <lex lang="ru" lid="Id3">Среди создателей персонажа комиксов Болт, также известного как Ларри Болатинский, были Эрни Колон и американец Пэрис Каллинс.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Paris Cullins | sameAs | Пэрис Каллинс</link>
+        <link direction="en2ru">Ernie Colón | sameAs | Эрни Колон</link>
+        <link direction="en2ru">Larry Bolatinsky | sameAs | Ларри Болатинский</link>
+        <link direction="en2ru">Bolt (comicsCharacter) | includes | Болт</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>René_Goscinny | nationality | French_people</otriple>
+        <otriple>Asterix_(character) | creator | René_Goscinny</otriple>
+        <otriple>Asterix_(character) | alterEgo | "Astérix"@en</otriple>
+        <otriple>Asterix_(character) | creators | Albert_Uderzo</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Asterix_(character) | creators | René_Goscinny</otriple>
+        <otriple>René_Goscinny | nationality | French_people</otriple>
+        <otriple>Asterix_(character) | alterEgo | "Astérix"@en</otriple>
+        <otriple>Asterix_(character) | creator | Albert_Uderzo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>René_Goscinny | nationality | French_people</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | creator | René_Goscinny</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | alternativeName | "Astérix"</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | creator | Albert_Uderzo</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic character Asterix is sometimes called "Astérix" and was created by Albert Uderzo and the French national, Rene Goscinny.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Астерикс, иногда называемый "Astérix", был создан Альбером Удерзо и французом Рене Госинни.</lex>
+      <lex lang="en" lid="Id2">Albert Uderzo and French born René Goscinny, are the creators of the comic character Asterix, also know as Astérix.</lex>
+      <lex lang="ru" lid="Id2">Альбер Удерзо и француз Рене Госинни - создатели персонажа комиксов Астерикс, также известного как Астерикс.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">René_Goscinny | sameAs | Госинни,_Рене</dbpedialink>
+        <dbpedialink direction="en2ru">French_people | sameAs | Французы</dbpedialink>
+        <dbpedialink direction="en2ru">Albert_Uderzo | sameAs | Удерзо,_Альбер</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asterix (comicsCharacter) | includes | Астерикс</link>
+        <link direction="en2ru">Astérix | sameAs | Астерикс</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Roger_McKenzie_(comics) | nationality | United_States</otriple>
+        <otriple>Ben_Urich | creators | Roger_McKenzie_(comics)</otriple>
+        <otriple>Ben_Urich | creator | Gene_Colan</otriple>
+        <otriple>Ben_Urich | fullName | "Benjamin Urich"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ben_Urich | creator | Roger_McKenzie_(comics)</otriple>
+        <otriple>Roger_McKenzie_(comics) | nationality | United_States</otriple>
+        <otriple>Ben_Urich | creators | Gene_Colan</otriple>
+        <otriple>Ben_Urich | fullName | "Benjamin Urich"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Roger_McKenzie_(comic_book_writer) | nationality | United_States</mtriple>
+        <mtriple>Ben_Urich | creator | Roger_McKenzie_(comic_book_writer)</mtriple>
+        <mtriple>Ben_Urich | creator | Gene_Colan</mtriple>
+        <mtriple>Ben_Urich | fullName | "Benjamin Urich"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The American comic book writer Roger McKenzie and Gene Colan created the character Ben Urich, who has the full name Benjamin Urich.</lex>
+      <lex lang="ru" lid="Id1">Американский писатель-комик Роджер Маккензи и Джин Колан создали персонажа Бена Урича, который имеет полное имя Бенджамин Урич.</lex>
+      <lex lang="en" lid="Id2">The comic book writer, Roger McKenzie is an American and along with Gene Colan created Ben (Benjamin) Urich.</lex>
+      <lex lang="ru" lid="Id2">Автор комиксов Роджер Маккензи - американец и вместе с Джином Коланом они создали Бена (Бенджамина) Урича.</lex>
+      <lex lang="en" lid="Id3">The character of Ben Urich, whose full name is Benjamin Urich, was created by Gene Colan and the comic book writer Roger Mckenzie who is American.</lex>
+      <lex lang="ru" lid="Id3">Персонаж Бена Урича, чье полное имя - Бенджамин Урич, был создан Джином Коланом и писателем комиксов Роджером Макензи, который является американцем.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Gene_Colan | sameAs | Колан,_Джин</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Benjamin Urich | sameAs | Бенджамин Урич</link>
+        <link direction="en2ru">Ben Urich | sameAs | Бен Урич</link>
+        <link direction="en2ru">Roger McKenzie (comic book writer) | includes | Роджер Маккензи</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Black_Pirate | creator | Sheldon_Moldoff</otriple>
+        <otriple>Sheldon_Moldoff | nationality | Americans</otriple>
+        <otriple>Sheldon_Moldoff | awards | Inkpot_Award</otriple>
+        <otriple>Black_Pirate | alterEgo | "Jon Valor"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Sheldon_Moldoff | nationality | Americans</otriple>
+        <otriple>Black_Pirate | creators | Sheldon_Moldoff</otriple>
+        <otriple>Sheldon_Moldoff | awards | Inkpot_Award</otriple>
+        <otriple>Black_Pirate | alterEgo | "Jon Valor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Sheldon_Moldoff | nationality | Americans</mtriple>
+        <mtriple>Black_Pirate | creator | Sheldon_Moldoff</mtriple>
+        <mtriple>Sheldon_Moldoff | award | Inkpot_Award</mtriple>
+        <mtriple>Black_Pirate | alternativeName | "Jon Valor"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Black Pirate, also know as Jon Valor, was created by the Inkpot Award winning American, Sheldon Moldoff.</lex>
+      <lex lang="ru" lid="Id1">Черный Пират, также известный как Джон Валор, был создан американцем Шелдоном Молдоффом, получившим премию "Инкпот".</lex>
+      <lex lang="en" lid="Id2">American Sheldon Moldoff, who has won the Inkpot Award, created The Black Pirate, whose alternative name is Jon Valor.</lex>
+      <lex lang="ru" lid="Id2">Американец Шелдон Молдофф, завоевавший премию "Инкпот", создал Черного Пирата, чье альтернативное имя - Джон Валор.</lex>
+      <lex lang="en" lid="Id3">The black pirate, also known as Jon Valor, was created by Sheldon Moldoff, an American who has won the Inkpot award.</lex>
+      <lex lang="ru" lid="Id3">Черный рыцарь, также известный как Джон Валор, был создан американцем Шелдоном Молдоффом, который получил премию "Инкпот".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Inkpot Award | sameAs | премия “Инкпот”</link>
+        <link direction="en2ru">Black Pirate | sameAs | Черный Пират</link>
+        <link direction="en2ru">Sheldon Moldoff | sameAs | Шелдон Молдофф</link>
+        <link direction="en2ru">Jon Valor | sameAs | Джон Валор</link>
+      </links>
+    </entry>
+  </entries>
+</benchmark>

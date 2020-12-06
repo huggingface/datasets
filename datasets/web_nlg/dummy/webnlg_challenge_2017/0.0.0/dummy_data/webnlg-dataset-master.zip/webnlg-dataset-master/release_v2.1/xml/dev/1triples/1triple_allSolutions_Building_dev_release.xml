@@ -1,0 +1,62 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row was designed by the architect, John Madin.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row was designed by the architect John Madin.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row is located at Colmore Row.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row is located in Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | buildingEndDate | "1983"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | completionDate | 1983</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | completionDate | 1983</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">11 Diagonal Street was completed in 1983.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>200_Public_Square | buildingEndDate | "1985"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>200_Public_Square | completionDate | 1985</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | completionDate | 1985</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 200 Public Square was completed in 1985.</lex>
+      <lex comment="good" lid="Id2">200 Public Square was completed in 1985.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>20_Fenchurch_Street | buildingStartDate | "January 2009"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>20_Fenchurch_Street | startDate | "January 2009"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>20_Fenchurch_Street | buildingStartDate | "January 2009"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The building at 20 Fenchurch Street was started in January 2009.</lex>
+      <lex comment="good" lid="Id2">The construction of 20 Fenchurch Street began in January 2009.</lex>
+    </entry>
+    </entries>
+</benchmark>

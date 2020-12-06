@@ -1,0 +1,106 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id883" size="5">
+			<originaltripleset>
+				<otriple>Al_Asad_Airbase | runwayLength | "3992.88"^^xsd:double</otriple>
+				<otriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"@en</otriple>
+				<otriple>Al_Asad_Airbase | operator | "United States Air Force"@en</otriple>
+				<otriple>Al_Asad_Airbase | icaoLocationIdentifier | "ORAA"</otriple>
+				<otriple>Al_Asad_Airbase | runwayDesignation | "08/26"</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</mtriple>
+				<mtriple>Al_Asad_Airbase | runwayLength | 3992.88</mtriple>
+				<mtriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</mtriple>
+				<mtriple>Al_Asad_Airbase | ICAO_Location_Identifier | "ORAA"</mtriple>
+				<mtriple>Al_Asad_Airbase | runwayName | "08/26"</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | runwayName | "08/26"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3992.88</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+						<striple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</striple>
+						<striple>Al_Asad_Airbase | ICAO_Location_Identifier | "ORAA"</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Al_Asad_Airbase" number="1" tag="AGENT-1" type="name">Al Asad air base</reference>
+					<reference entity="&quot;08/26&quot;" number="2" tag="PATIENT-5" type="name">08/26</reference>
+					<reference entity="3992.88" number="3" tag="PATIENT-2" type="name">3992.8</reference>
+					<reference entity="Al_Asad_Airbase" number="4" tag="AGENT-1" type="pronoun">It</reference>
+					<reference entity="&quot;Al Anbar Province, Iraq&quot;" number="5" tag="PATIENT-3" type="description">the Al Anbar Province of Iraq</reference>
+					<reference entity="United_States_Air_Force" number="6" tag="PATIENT-1" type="description">the United States Air Force</reference>
+					<reference entity="&quot;ORAA&quot;" number="7" tag="PATIENT-4" type="name">ORAA</reference>
+				</references>
+				<text>Al Asad air base has a runway name of 08/26 which is 3992.8 in length. It is situated in the Al Anbar Province of Iraq, is operated by the United States Air Force and has the ICAO location identifier ORAA.</text>
+				<template>AGENT-1 has a runway name of PATIENT-5 which is PATIENT-2 in length . AGENT-1 is situated in PATIENT-3 , is operated by PATIENT-1 and has the ICAO location identifier PATIENT-4 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=undefined] a runway name of PATIENT-5 which VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-2 in length . AGENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] situate in PATIENT-3 , VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] operate by PATIENT-1 and VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] have DT[form=defined] the ICAO location identifier PATIENT-4 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</striple>
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Al_Asad_Airbase | ICAO_Location_Identifier | "ORAA"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3992.88</striple>
+						<striple>Al_Asad_Airbase | runwayName | "08/26"</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="United_States_Air_Force" number="1" tag="PATIENT-1" type="description">The United States Airport</reference>
+					<reference entity="Al_Asad_Airbase" number="2" tag="AGENT-1" type="description">the Al Asad airbase</reference>
+					<reference entity="&quot;Al Anbar Province, Iraq&quot;" number="3" tag="PATIENT-3" type="description">the Al Anbar Province , Iraq</reference>
+					<reference entity="Al_Asad_Airbase" number="4" tag="AGENT-1" type="name">Al Asad Airbase</reference>
+					<reference entity="&quot;ORAA&quot;" number="5" tag="PATIENT-4" type="name">ORAA</reference>
+					<reference entity="3992.88" number="6" tag="PATIENT-2" type="name">3992.88m</reference>
+					<reference entity="&quot;08/26&quot;" number="7" tag="PATIENT-5" type="name">08/26</reference>
+				</references>
+				<text>The United States Airport operates the Al Asad airbase which is located in the Al Anbar Province, Iraq. The ICAO location identifer of Al Asad Airbase is ORAA and the length is 3992.88m and the runway is known as 08/26.</text>
+				<template>PATIENT-1 operates AGENT-1 which is located in PATIENT-3 . The ICAO location identifer of AGENT-1 is PATIENT-4 and the length is PATIENT-2 and the runway is known as PATIENT-5 .</template>
+				<lexicalization>PATIENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] operate AGENT-1 which VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located in PATIENT-3 . DT[form=defined] the ICAO location identifer of AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-4 and DT[form=defined] the length VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be PATIENT-2 and DT[form=defined] the runway VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] know as PATIENT-5 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</striple>
+						<striple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Al_Asad_Airbase | ICAO_Location_Identifier | "ORAA"</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Al_Asad_Airbase | runwayName | "08/26"</striple>
+						<striple>Al_Asad_Airbase | runwayLength | 3992.88</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Al_Asad_Airbase" number="1" tag="AGENT-1" type="name">Al Asad Airbase</reference>
+					<reference entity="&quot;Al Anbar Province, Iraq&quot;" number="2" tag="PATIENT-3" type="name">Al Anbar Province , Iraq</reference>
+					<reference entity="United_States_Air_Force" number="3" tag="PATIENT-1" type="description">the United States Air Force</reference>
+					<reference entity="&quot;ORAA&quot;" number="4" tag="PATIENT-4" type="name">ORAA</reference>
+					<reference entity="Al_Asad_Airbase" number="5" tag="AGENT-1" type="description">the airbase</reference>
+					<reference entity="Al_Asad_Airbase" number="6" tag="AGENT-1" type="name">It 's</reference>
+					<reference entity="&quot;08/26&quot;" number="7" tag="PATIENT-5" type="name">`` 08/26 ''</reference>
+					<reference entity="3992.88" number="8" tag="PATIENT-2" type="name">3992.88</reference>
+				</references>
+				<text>Al Asad Airbase is located in Al Anbar Province, Iraq and is operated by the United States Air Force. ORAA is the ICAO location of the airbase. It's runway, named "08/26" measures a length of 3992.88.</text>
+				<template>AGENT-1 is located in PATIENT-3 and is operated by PATIENT-1 . PATIENT-4 is the ICAO location of AGENT-1 . AGENT-1 runway , named PATIENT-5 measures a length of PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located in PATIENT-3 and VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] operate by PATIENT-1 . PATIENT-4 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be DT[form=defined] the ICAO location of AGENT-1 . AGENT-1 runway , VP[aspect=simple,tense=past,voice=active,person=null,number=null] name PATIENT-5 VP[aspect=simple,tense=present,voice=active,person=3rd,number=null] measure DT[form=undefined] a length of PATIENT-2 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Al_Asad_Airbase</entity>
+				<entity>PATIENT-1 | United_States_Air_Force</entity>
+				<entity>PATIENT-2 | 3992.88</entity>
+				<entity>PATIENT-3 | "Al Anbar Province, Iraq"</entity>
+				<entity>PATIENT-4 | "ORAA"</entity>
+				<entity>PATIENT-5 | "08/26"</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

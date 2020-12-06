@@ -1,0 +1,137 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean was born on March 15, 1932 and received a Bachelor of Science degree at the University of Texas at Austin in 1955.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин родился 15 марта 1932 года и получил степень бакалавра технических наук в Университете Техаса в Остине в 1955 году.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was born on the 15th of March 1932 and graduated from UT Austin in 1955 with a B.S.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился 15 марта 1932 года и окончил Университет Техаса в Остине бакалавром технических наук.</lex>
+      <lex lang="en" lid="Id3">Alan Bean was born on the 15th of March 1932 and his Alma Mater is UT Austin, B.S. 1955.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин родился 15 марта 1932 года, его альма-матер - Университет Техаса в Остине, ученая степень - бакалавр технических наук, год выпуска - 1955.</lex>
+      <lex lang="en" lid="Id4">Alan Bean (born 1932-03-15)'s alma mater was UT Austin B.S. 1955.</lex>
+      <lex lang="ru" lid="Id4">Альма-матер Алана Бина (родился 15.03.1932) был Университет Техаса в Остине, бакалавр технических наук 1955.</lex>
+      <lex lang="en" lid="Id5">Alan Bean (born on 1932-03-15) graduated from UT Austin in 1955.</lex>
+      <lex lang="ru" lid="Id5">Алан Бин (родился в 1932-03-15) окончил Университет Техаса в Остине в 1955 году.</lex>
+      <lex lang="en" lid="Id6">Alan Bean was born on March 15, 1932 and his alma mater was UT Austin BS, in 1955.</lex>
+      <lex lang="ru" lid="Id6">Алан Бин родился 15 марта 1932 года и его альма-матер как бакалавра технических наук был Университет Техаса в Остине в 1955 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean was born in Wheeler, Texas on Mar 15, 1932 .</lex>
+      <lex lang="ru" lid="Id1">Алан Бин родился в городе Уилере, штат Техас, 15 марта 1932 года.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was born on Mar 15, 1932, in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин родился 15 марта 1932 года в Уилере, штат Техас.</lex>
+      <lex lang="en" lid="Id3">Alan Bean was born in Wheeler, Texas on March 15th, 1932.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин родился 15 марта в Уилере, Техас.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">American Alan Bean was born in Wheeler Texas.</lex>
+      <lex lang="ru" lid="Id1">Американец Алан Бин родился в городе Уилер штат Техас.</lex>
+      <lex lang="en" lid="Id2">Alan Bean was an American, who was born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин был американцем, который родился в городе Уилере, штат Техас.</lex>
+      <lex lang="en" lid="Id3">Alan Bean is an American who was born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин - американец, который родился в Уилере, штат Техас.</lex>
+      <lex lang="en" lid="Id4">Alan Bean was born in Wheeler, Texas, United States.</lex>
+      <lex lang="ru" lid="Id4">Алан Бин родился в Уилере, штат Техас, США.</lex>
+      <lex lang="en" lid="Id5">Alan Bean was born in Wheeler, Texas and is a citizen of the United States.</lex>
+      <lex lang="ru" lid="Id5">Алан Бин родился в Уилере, штат Техас, и является гражданином Соединенных Штатов Америки.</lex>
+      <lex lang="en" lid="Id6">Alan Bean is an American, born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id6">Алан Бин - американец, родившийся в Уилере, Техас.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, who was born in Wheeler Texas, performed as a test pilot.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, который родился в Уилере, Техас, выступал в качестве летчика-испытателя.</lex>
+      <lex lang="en" lid="Id2">Alan Bean, born in Wheeler, Texas, performs as a test pilot.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, родившийся в Уилере, штат Техас, выступает в качестве летчика-испытателя.</lex>
+      <lex lang="en" lid="Id3">Alan Bean was a test pilot who was born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин был летчиком-испытателем, который родился в Уилере, штат Техас.</lex>
+      <lex lang="en" lid="Id4">Alan Bean was born in Wheeler, Texas and pursued a career as a test pilot.</lex>
+      <lex lang="ru" lid="Id4">Алан Бин родился в Уилере, штат Техас, и построил карьеру летчика-испытателя.</lex>
+      <lex lang="en" lid="Id5">Alan Bean (born in Wheeler Texas) served as a test pilot.</lex>
+      <lex lang="ru" lid="Id5">Алан Бин (родился в Уилере, Техас) служил летчиком-испытателем.</lex>
+      <lex lang="en" lid="Id6">Alan Bean( born in Wheeler Texas) served as test pilot.</lex>
+      <lex lang="ru" lid="Id6">Алан Бин (родился в Уилере, штат Техас) служил летчиком-испытателем.</lex>
+      <lex lang="en" lid="Id7">Alan Bean, a test pilot, was born in Wheeler, Texas.</lex>
+      <lex lang="ru" lid="Id7">Алан Бин, летчик-испытатель, родился в Уилере, штат Техас.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Wheeler, Texas | includes | Уилер</link>
+        <link direction="en2ru">Wheeler, Texas | includes | Техас</link>
+        <link direction="en2ru">Test pilot | sameAs | летчик-испытатель</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+        <mtriple>Alan_Bean | selectedByNasa | 1963</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, hired by NASA in 1963, spent over 69 days in space.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, нанятый НАСА в 1963 году, провел в космосе более 69 дней.</lex>
+      <lex lang="en" lid="Id2">After being recruited by NASA in 1963, Alan Bean spent 100305 minutes in space.</lex>
+      <lex lang="ru" lid="Id2">После того, как в 1963 году был завербован в НАСА, Алан Бин провел в космосе 100305 минут.</lex>
+      <lex lang="en" lid="Id3">Alan Bean, who was picked by NASA in 1963 for the space program, was in space for a total of 100,305 minutes.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин, который был отобран НАСА для космической программы в 1963 году, находился в космосе в общей сложности 100 305 минут.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

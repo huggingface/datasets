@@ -1,0 +1,93 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row was designed by John Madin who was born in Birmingham.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row was designed by Birmingham born architect John Madin.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row was designed by the architect, John Madin from Birmingham.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>Cleveland | isPartOf | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | leaderName | Frank_G._Jackson</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>Cleveland | subdivisionName | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | leaderName | Frank_G._Jackson</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | location | Cleveland</mtriple>
+        <mtriple>Cleveland | isPartOf | Cuyahoga_County,_Ohio</mtriple>
+        <mtriple>Cleveland | leaderName | Frank_G._Jackson</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">200 Public Square is located in Cleveland, part of Cuyahoga County, Ohio which is led by Frank G Jackson.</lex>
+      <lex comment="good" lid="Id2">200 Public square is in Cleveland which is part of Cuyahoga County, Ohio. The leader in Cleveland is Frank G Jackson.</lex>
+      <lex comment="good" lid="Id3">Frank G Jackson leads Cleveland, part of Cuyahoga County in Ohio where 200 Public Square is located.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | United_States</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | 12</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | United_States</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | "12"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | location | United_States</mtriple>
+        <mtriple>250_Delaware_Avenue | floorArea | 30843.8 (square metres)</mtriple>
+        <mtriple>250_Delaware_Avenue | floorCount | 12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">250 Delaware Avenue in the United States has 12 floors that cover 30843.8 square metres.</lex>
+      <lex comment="good" lid="Id2">250 Delaware Avenue in the United States has 12 floors with a total floor area of 30843.8 square metres.</lex>
+      <lex comment="good" lid="Id3">250 Delaware Avenue is located in the United States. It has a floor area of 30843.8 square metres and a floor count of 12.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Chicago</otriple>
+        <otriple>Chicago | leaderName | Rahm_Emanuel</otriple>
+        <otriple>Chicago | isPartOf | DuPage_County,_Illinois</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Chicago</mtriple>
+        <mtriple>Chicago | leaderName | Rahm_Emanuel</mtriple>
+        <mtriple>Chicago | isPartOf | DuPage_County,_Illinois</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">300 North LaSalle is located in Chicago, DuPage County in Illinois, where Rahm Emanuel is the leader.</lex>
+      <lex comment="good" lid="Id2">300 North LaSalle is located in Chicago, part of DuPage County, Illinois where Rahm Emanuel is a leader.</lex>
+      <lex comment="good" lid="Id3">Rahm Emanuel is the leader of Chicago, which is a part of Dupage County Illinois and the location of 300 North LaSalle.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>320_South_Boston_Building | architect | George_Winkler</otriple>
+        <otriple>George_Winkler | country | United_States</otriple>
+        <otriple>320_South_Boston_Building | floorCount | "22"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>320_South_Boston_Building | architect | George_Winkler</otriple>
+        <otriple>George_Winkler | country | United_States</otriple>
+        <otriple>320_South_Boston_Building | floorCount | 22</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>320_South_Boston_Building | architect | George_Winkler</mtriple>
+        <mtriple>George_Winkler | country | United_States</mtriple>
+        <mtriple>320_South_Boston_Building | floorCount | 22</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">George Winkler, United States, is the architect of the 22 floor 320 South Boston Building.</lex>
+      <lex comment="good" lid="Id2">George Winkler from the United States was the architect of 320 South Boston Building. 320 South Boston Street has 22 floors.</lex>
+    </entry>
+    </entries>
+</benchmark>

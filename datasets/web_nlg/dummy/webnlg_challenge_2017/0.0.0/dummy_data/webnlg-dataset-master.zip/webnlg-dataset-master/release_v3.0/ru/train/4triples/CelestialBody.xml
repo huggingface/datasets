@@ -1,0 +1,160 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Donal O'Ceallaigh discovered (15788) 1993 SB which has an epoch date of March 6th 2006. It has an orbital period of 7729430000 and a periapsis of 3997100000000.</lex>
+      <lex lang="ru" lid="Id1">Донал О’Келли обнаружил (15788) 1993 SB, который имеет эпоху 6 марта 2006 года. Он имеет орбитальный период 7729430000 и перицентр 3997100000000.</lex>
+      <lex lang="en" lid="Id2">The celestial body known as (15788) 1993 SB has a periapsis of 3997100000000 and an orbital period of 7729430000.0. It was discovered by Donal O Ceallaigh and has the epoch date of 6 March 2006.</lex>
+      <lex lang="ru" lid="Id2">Небесное тело, известное как (15788) 1993 SB, имеет перицентр 3997100000000 и орбитальный период 7729430000,0. Оно было обнаружено Доналом О’Келли и имеет эпоху 6 марта 2006 года.</lex>
+      <lex lang="en" lid="Id3">(15788) 1993 SB has an epoch date of March 6th 2006 and was discovered by Donal O Ceallaigh. It has an orbital period of 7729430000 and a periapsis of 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id3">(15788) 1993 SB имеет эпоху 6 марта 2006 года и был обнаружен Доналом О’Келли. Он имеет орбитальный период 7729430000 и перицентр 3997100000000,0.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Donal O'Ceallaigh | sameAs | Донал О’Келли</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Donal O'Ceallaigh discovered (15788) 1993 SB, which has an epoch date of March 6th 2006 and an apoapsis of 7715100000 kilometres. The periapsis of this celestial body measures 3997100000000.</lex>
+      <lex lang="ru" lid="Id1">Донал О’Келли обнаружил (15788) 1993 SB, который имеет эпоху 6 марта 2006 года и апоцентр 7715100000 километров. Перицентр этого небесного тела равен 3997100000000.</lex>
+      <lex lang="en" lid="Id2">Donald O'Ceallaigh discovered (15788)1993 SB whose epoch date was on March 6th 2006.Its periapsis is 3997100000000 and its apoapsis is 7715100000.0 kilometres.</lex>
+      <lex lang="ru" lid="Id2">Донал О’Келли обнаружил (15788) 1993 SB, чья эпоха пришлась на 6 марта 2006 года. Его перицентр - 3997100000000, а апоцентр - 7715100000,0 километров.</lex>
+      <lex lang="en" lid="Id3">(15788) 1993 SB, which was discovered by Donal O Ceallaigh, has an epoch date of March 6th 2006. The periapsis measurement is 3997100000000.0 and the apoapsis is 7715100000.0 (kilometres).</lex>
+      <lex lang="ru" lid="Id3">(15788) 1993 SB, который обнаружил Донал О’Келли, имеет эпоху 6 марта 2006 года. Размер перицентра составляет 3997100000000,0, а апоцентра - 7715100000,0 (километров).</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Donal O'Ceallaigh | sameAs | Донал О’Келли</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Iwan P Williams discovered 15788 1993 SB on its epoch date of March 6th 2006. That celestial body has an orbital period of 7729430000.0 and a periapsis of 3997100000000.</lex>
+      <lex lang="ru" lid="Id1">Айван П. Уилльямс обнаружил 15788 1993 SB с эпохой 6 марта 2006 года. Это небесное тело имеет орбитальный период 7729430000,0 и перицентр 3997100000000.</lex>
+      <lex lang="en" lid="Id2">Iwan P Williams discovered 15788 1993 SB on its epoch date of March 6th 2006. The celestial body has an orbital period of 7729430000.0 and a periapsis of 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id2">Айван П. Уилльямс обнаружил 15788 1993 SB с эпохой 6 марта 2006 года. Небесное тело имеет орбитальный период 7729430000,0 и перицентр 3997100000000,0.</lex>
+      <lex lang="en" lid="Id3">15788 was discovered by Iwan P Williams on 1993 SB. Its orbital period is 7729430000, periapsis of 3997100000000, and its epoch is the 6th of March, 2006.</lex>
+      <lex lang="ru" lid="Id3">15788 был обнаружен Айваном П. Уилльямсом в 1993 SB. Его орбитальный период - 7729430000, перицентр - 3997100000000, а его эпоха - 6 марта 2006 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Iwan P. Williams | sameAs | Айван П. Уилльямс</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | Planet/apoapsis | "7.7151E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+        <mtriple>(15788)_1993_SB | apoapsis | 7715100000.0 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The celestial body, discovered by Iwan P Williams, known as (15788) 1993 SB, has a periapsis of 3997100000000. It has an epoch date of March 6th 2006 and an apoapsis of 7715100000 kilometres.</lex>
+      <lex lang="ru" lid="Id1">Небесное тело, обнаруженное Айваном П. Уилльямсом, известное как (15788) 1993 SB, имеет перицентр 3997100000000. Оно имеет эпоху 6 марта 2006 года и апоцентр 7715100000 километров.</lex>
+      <lex lang="en" lid="Id2">Iwan P Williams discovered 15788 1993 SB, it has an epoch date of March 6th 2006, a periapsis of 3997100000000.0. and an apoapsis of 7715100000.0 Km.</lex>
+      <lex lang="ru" lid="Id2">Айван П. Уилльямс обнаружил 15788 1993 SB, он имеет эпоху 6 марта 2006 года, перицентр 3997100000000,0. и апоцентр 7715100000,0 км.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Iwan P. Williams | sameAs | Айван П. Уилльямс</link>
+      </links>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+        <otriple>(15788)_1993_SB | orbitalPeriod | 7.72943e+09</otriple>
+        <otriple>(15788)_1993_SB | periapsis | 3.9971e+12</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | orbitalPeriod | 7729430000.0</mtriple>
+        <mtriple>(15788)_1993_SB | periapsis | 3997100000000.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The celestial body known as (15788) 1993 SB was discovered by Roque de los Muchachos Observatory on 6 March 2006. It has an orbital period of 7729430000.0 and a periapsis of 3997100000000.</lex>
+      <lex lang="ru" lid="Id1">Небесное тело, известное как (15788) 1993 SB, было обнаружено обсерваторией Роке-де-лос-Мучачос 6 марта 2006 года. Оно имеет орбитальный период 7729430000,0 и перицентр 3997100000000.</lex>
+      <lex lang="en" lid="Id2">(15788) 1993 SB was discovered by Roque de los Muchachos Observatory and has an epoch of 6th March 2006. It has an orbital period of 7729430000 and a periapsis of 3997100000000.</lex>
+      <lex lang="ru" lid="Id2">(15788) 1993 SB был обнаружен Обсерваторией Роке-де-лос-Мучачос и имеет эпоху 6 марта 2006 года. Он имеет орбитальный период 7729430000 и перицентр 3997100000000.</lex>
+      <lex lang="en" lid="Id3">(15788) 1993 SB, with an epoch date of March 6, 2006 was found by Roque de los Muchachos Observatory. It has an orbital period of 7729430000.0 and periapsis of 3997100000000.0.</lex>
+      <lex lang="ru" lid="Id3">(15788) 1993 SB, с эпохой 6 марта 2006 года, был найден Обсерваторией Роке-де-лос-Мучачос. Он имеет орбитальный период 7729430000,0 и перицентр 3997100000000,0.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Roque_de_los_Muchachos_Observatory | sameAs | Обсерватория_Роке-де-лос-Мучачос</dbpedialink>
+        <dbpedialink direction="en2ru">(15788)_1993_SB | sameAs | (15788)_1993_SB</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

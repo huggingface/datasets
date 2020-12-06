@@ -1,0 +1,99 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The currency of Turkey is Turkish Lira.</lex>
+      <lex lang="ru" lid="Id1">Валютой Турции является турецкая лира.</lex>
+      <lex lang="en" lid="Id2">The currency of Turkey is the Turkish lira.</lex>
+      <lex lang="ru" lid="Id2">Валюта Турции - турецкая лира.</lex>
+      <lex lang="en" lid="Id3">The currency in Turkey is the Turkish Lira.</lex>
+      <lex lang="ru" lid="Id3">Валютой в Турции является турецкая лира.</lex>
+      <lex lang="en" lid="Id4">Turkey's currency is the Turkish lira.</lex>
+      <lex lang="ru" lid="Id4">Валюта Турции - турецкая лира.</lex>
+      <lex lang="en" lid="Id5">the currency used in Turkey is lira.</lex>
+      <lex lang="ru" lid="Id5">Валюта, используемая в Турции, - лира.</lex>
+      <lex lang="en" lid="Id6">The Turkish currency is the Turkish lira.</lex>
+      <lex lang="ru" lid="Id6">Турецкая валюта - турецкая лира.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Turkish_lira | sameAs | Турецкая_лира</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The largest city in Turkey is Istanbul.</lex>
+      <lex lang="ru" lid="Id1">Самый крупный город в Турции - Стамбул.</lex>
+      <lex lang="en" lid="Id2">Istanbul is the largest city in Turkey.</lex>
+      <lex lang="ru" lid="Id2">Стамбул - крупнейший город в Турции.</lex>
+      <lex lang="en" lid="Id3">Turkey's largest City is Istanbul.</lex>
+      <lex lang="ru" lid="Id3">Крупнейший город Турции - Стамбул.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Istanbul | sameAs | Стамбул</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ahmet Davutoglu is a leader of Turkey.</lex>
+      <lex lang="ru" lid="Id1">Ахмет Давутоглу - лидер Турции.</lex>
+      <lex lang="en" lid="Id2">Ahmet Davutoglu is the leader of Turkey.</lex>
+      <lex lang="ru" lid="Id2">Ахмет Давутоглу - лидер Турции.</lex>
+      <lex lang="en" lid="Id3">Leader of Turkey is Ahmet Davutoglu.</lex>
+      <lex lang="ru" lid="Id3">Лидер Турции - Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id4">Ahmet_Davutoğlu is Turkey's leader.</lex>
+      <lex lang="ru" lid="Id4">Ахмет Давутоглу - лидер Турции.</lex>
+      <lex lang="en" lid="Id5">The Leader Of Turkey is Ahmet Davutoğlu.</lex>
+      <lex lang="ru" lid="Id5">Лидер Турции - Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id6">Ahmet Davutoglu is the Turkish leader.</lex>
+      <lex lang="ru" lid="Id6">Ахмет Давутоглу - турецкий лидер.</lex>
+      <lex lang="en" lid="Id7">Turkey's leader is Ahmet Davutoğlu.</lex>
+      <lex lang="ru" lid="Id7">Лидером Турции является Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id8">Turkey leader name is Ahmet Davutoğlu.</lex>
+      <lex lang="ru" lid="Id8">Лидера Турции зовут Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id9">The Turkish leader's name is Ahmet Davutoglu.</lex>
+      <lex lang="ru" lid="Id9">Имя турецкого лидера - Ахмет Давутоглу.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The leader's title in Turkey is the President of Turkey.</lex>
+      <lex lang="ru" lid="Id1">Титул лидера Турции - Президент Турции.</lex>
+      <lex lang="en" lid="Id2">Turkey's leader is the President of Turkey.</lex>
+      <lex lang="ru" lid="Id2">Лидером Турции является президент Турции.</lex>
+      <lex lang="en" lid="Id3">President of Turkey is the official title of the Turkish leader.</lex>
+      <lex lang="ru" lid="Id3">Официальным титулом турецкого лидера является Президент Турции.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+      </links>
+    </entry>
+  </entries>
+</benchmark>

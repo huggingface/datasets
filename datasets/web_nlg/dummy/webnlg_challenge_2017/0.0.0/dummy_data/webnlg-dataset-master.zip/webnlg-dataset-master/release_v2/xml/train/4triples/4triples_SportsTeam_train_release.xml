@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | Berliner_AK_07</otriple>
+        <otriple>Jens_Härtel | clubs | FC_Sachsen_Leipzig</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | Berliner_AK_07</mtriple>
+        <mtriple>Jens_Härtel | club | FC_Sachsen_Leipzig</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Härtel has been the manager of 1 FC Magdeburg, has played for 1. FC Lokomotive Leipzig and Berliner AK 07 as well as representing the club FC Sachsen Leipzig.</lex>
+      <lex comment="good" lid="Id2">Jens Hartel has played for 1. FC Lokomotive Leipzig, Berliner AK 07, FC Sachsen Leipzig and is manager of FC Magdeburg.</lex>
+      <lex comment="good" lid="Id3">Jens Härtel, previously of Berliner AK 07 and FC Sachsen Leipzig, is now a player for 1. FC Lokomotive Leipzig whilst managing 1 FC Magdeburg.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | Berliner_AK_07</otriple>
+        <otriple>Jens_Härtel | clubs | SV_Babelsberg_03</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | Berliner_AK_07</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Härtel first club was FC Lokomotive Leipzig. He has been involved in SV Babelsberg 03 and Berliner AK 07.</lex>
+      <lex comment="good" lid="Id2">The first club Jens Hartel played for was FC Lokomotive Leipzig and he currently plays for SV Babelsberg 03. His club is Berliner AK 07 and he is manager of 1 FC Magdeburg.</lex>
+      <lex comment="good" lid="Id3">The manager of FC Magdeburg is Jens Härtel. He also plays for 1. FC Lokomotive Leipzig and SV Babelsberg 03, and his club is Berliner AK 07.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | RB_Leipzig</otriple>
+        <otriple>Jens_Härtel | clubs | SV_Germania_Schöneiche</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | RB_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Germania_Schöneiche</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Hartel is in the RB Leipzig club and plays for both SV Germania Schoneiche and 1 FC Lokomotive Leipzig. He has also been the manager of 1FC Magdeburg.</lex>
+      <lex comment="good" lid="Id2">Jens Härtel started his career playing for FC Lokomotive Leipzig. Since then he has been the manager of 1 FC Magdeburg and is currently in the RB Leipzig club and playing for SV Germania Schoneiche.</lex>
+      </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | SV_Babelsberg_03</otriple>
+        <otriple>Jens_Härtel | clubs | FC_Sachsen_Leipzig</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+        <mtriple>Jens_Härtel | club | FC_Sachsen_Leipzig</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Härtel, the manager of FC Magdeburg also plays for 1. FC Lokomotive Leipzig, SV Babelsberg 03 and he has played for FC Sachsen Leipzig.</lex>
+      </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | SV_Babelsberg_03</otriple>
+        <otriple>Jens_Härtel | clubs | FSV_Zwickau</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+        <mtriple>Jens_Härtel | club | FSV_Zwickau</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Hartel plays for 1.FC Lokomotive Leipzig and for SV Babelsberg 03. He is a member of the FSV Zwickau club and the manager of FC MAgdeburg.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,78 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_III</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_III</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis is written by Virginia DeMarce and Eric Flint and was preceded by Grantville Gazette III.</lex>
+      <lex comment="good" lid="Id2">1634: the Bavarian Crisis, authored by Virginia DeMarce and Eric Flint, was preceded by Grantville Gazette III.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | E-book</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | E-book</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Eric Flint is the author of '1634: The Ram Rebellion' which can be found as an E book.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion available as an E-Book is written by Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | Hardcover</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | Hardcover</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion was written by Eric Flint and can be found in hardcover.</lex>
+      <lex comment="good" lid="Id2">The book titled 1634: The Ram Rebellion is a hardcover book by Eric Flint.</lex>
+      <lex comment="good" lid="Id3">1634: The Ram Rebellion, available in hardcover was written by Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>ACM_Transactions_on_Information_Systems | abbreviation | "ACM Trans. Inf. Syst."@en</otriple>
+        <otriple>ACM_Transactions_on_Information_Systems | coden | "ATISET"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>ACM_Transactions_on_Information_Systems | abbreviation | "ACM Trans. Inf. Syst."@en</otriple>
+        <otriple>ACM_Transactions_on_Information_Systems | coden | "ATISET"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>ACM_Transactions_on_Information_Systems | coden | "ATISET"@en</otriple>
+        <otriple>ACM_Transactions_on_Information_Systems | abbreviation | "ACM Trans. Inf. Syst."</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>ACM_Transactions_on_Information_Systems | coden | "ATISET"</otriple>
+        <otriple>ACM_Transactions_on_Information_Systems | abbreviation | "ACM Trans. Inf. Syst."</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ACM_Transactions_on_Information_Systems | abbreviation | "ACM Trans. Inf. Syst."</mtriple>
+        <mtriple>ACM_Transactions_on_Information_Systems | CODEN_code | "ATISET"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">ACM Transactions on Information Systems with the CODEN ATISET is abbreviated as ACM Trans. Inf. Syst.</lex>
+      <lex comment="good" lid="Id2">ACM Transactions on Information Systems (abbreviated to ACM Trans. Inf. Syst.) has the CODEN code "ATISET".</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AIDS_(journal) | country | United_Kingdom</otriple>
+        <otriple>United_Kingdom | leader | Elizabeth_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDS_(journal) | country | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | leaderName | Elizabeth_II</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDS journal is from the United Kingdom whose leader is Elizabeth II.</lex>
+      <lex comment="good" lid="Id2">The AIDS journal was published in the United Kingdom whose leader is Elizabeth II.</lex>
+      <lex comment="good" lid="Id3">The AIDS journal was published in the United Kingdom, where the leader is Elizabeth II.</lex>
+    </entry>
+    </entries>
+</benchmark>

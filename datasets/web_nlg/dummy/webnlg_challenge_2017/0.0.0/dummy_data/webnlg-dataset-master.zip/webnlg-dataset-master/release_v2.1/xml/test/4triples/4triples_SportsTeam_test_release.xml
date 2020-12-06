@@ -1,0 +1,97 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | managerClub | SV_Babelsberg_03</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Union_Berlin</otriple>
+        <otriple>Jens_Härtel | clubs | FSV_Zwickau</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Union_Berlin</mtriple>
+        <mtriple>Jens_Härtel | club | FSV_Zwickau</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Härtel has been the manager of 1 FC Magdeburg, part of SV Babelsberg 03 club and 1 FC Union Berlin. He is also attched to FSV Zwickau.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Chievo_Verona | manager | Rolando_Maran</otriple>
+        <otriple>Rolando_Maran | managerClub | F.C._Bari_1908</otriple>
+        <otriple>Rolando_Maran | placeOfBirth | Italy</otriple>
+        <otriple>Rolando_Maran | team | Carrarese_Calcio</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Chievo_Verona | manager | Rolando_Maran</mtriple>
+        <mtriple>Rolando_Maran | club | F.C._Bari_1908</mtriple>
+        <mtriple>Rolando_Maran | placeOfBirth | Italy</mtriple>
+        <mtriple>Rolando_Maran | club | Carrarese_Calcio</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Rolando Maran has worked at FC Bari 1908. He managed Associazione Calcio Chievo Verona and is in the Carrarese Calcio club. He was born in Italy.</lex>
+      <lex comment="good" lid="Id2">Rolando Maran was born in Italy and is in the Carrarese Calcio Club. He currently plays for F.C. Bari 1908 while managing A.C. Chievo Verona.</lex>
+      <lex comment="good" lid="Id3">Rolando Maran, who was born in Italy and has previously worked for FC Bari 1908. He currently plays for Carrarese Calcio and manages Associazione Calcio Chievo Verona.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>Michele_Marcolini | team | A.C._Chievo_Verona</otriple>
+        <otriple>Michele_Marcolini | placeOfBirth | Italy</otriple>
+        <otriple>Michele_Marcolini | clubs | Torino_F.C.</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>Michele_Marcolini | placeOfBirth | Italy</otriple>
+        <otriple>Michele_Marcolini | team | Torino_F.C.</otriple>
+        <otriple>Michele_Marcolini | clubs | A.C._Chievo_Verona</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | manager | Michele_Marcolini</mtriple>
+        <mtriple>Michele_Marcolini | placeOfBirth | Italy</mtriple>
+        <mtriple>Michele_Marcolini | club | Torino_F.C.</mtriple>
+        <mtriple>Michele_Marcolini | club | A.C._Chievo_Verona</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Italian born, Michele Marcolini plays for A.C. Chievo Verona, owns Torino F.C., and is manager of A.C. Lumezzane.</lex>
+      <lex comment="good" lid="Id2">Italian born Michele Marcolini has been the manager of AC Lumezzane. He currently plays for Torino FC and AC Chievo Verona.</lex>
+      <lex comment="good" lid="Id3">Michele Marcolini was born in Italy and has been the manager of AC Lumezzane. He currently owns Torino F.C. and plays for A.C. Chievo Verona.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | 1500</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | chairman | Antonis_Milionis</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | ground | Efxeinoupoli</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | league | A_EPSTH_2nd_GROUP</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | "1500"^^xsd:nonNegativeInteger</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | chairman | Antonis_Milionis</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | ground | Efxeinoupoli</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | league | A_EPSTH_2nd_GROUP</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | numberOfMembers | 1500</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | chairman | Antonis_Milionis</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | ground | Efxeinoupoli</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | league | A_EPSTH_2nd_GROUP</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Antonis Milionis is chairman of A.E Dimitra Efxeinoupolis which has 1500 members. It is in the league EPSTH 2nd GROUP and its grounds are in the town of Efxeinoupoli.</lex>
+      <lex comment="good" lid="Id2">A.E Dimitra Efxeinoupolis is in the league, EPSTH 2nd GROUP and have 1500 members. Their chairman is Antonis Milionis and their home ground is situated in Efxeinoupoli.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.F.C._Blackpool | manager | Stuart_Parker_(footballer)</otriple>
+        <otriple>Blackpool | leaderName | Conservative_Party_(UK)</otriple>
+        <otriple>Stuart_Parker_(footballer) | team | Stockport_County_F.C.</otriple>
+        <otriple>A.F.C._Blackpool | ground | Blackpool</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.F.C._Blackpool | manager | Stuart_Parker_(footballer)</mtriple>
+        <mtriple>Blackpool | leader | Conservative_Party_(UK)</mtriple>
+        <mtriple>Stuart_Parker_(footballer) | club | Stockport_County_F.C.</mtriple>
+        <mtriple>A.F.C._Blackpool | ground | Blackpool</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Stuart Parker who plays for Stockport County F.C. was a manager at AFC Blackpool. The club is also located in Blackpool. The Conservative Party (UK) is the leader of Blackpool.</lex>
+      <lex comment="good" lid="Id2">AFC Blackpool in Blackpool are managed by Stuart Parker, previously a player for Stockport County F.C. The leader of Blackpool is the Conservative Party (UK).</lex>
+    </entry>
+    </entries>
+</benchmark>

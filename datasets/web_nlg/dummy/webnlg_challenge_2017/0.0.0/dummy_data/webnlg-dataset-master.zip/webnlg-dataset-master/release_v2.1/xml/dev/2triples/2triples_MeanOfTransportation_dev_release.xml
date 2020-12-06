@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>A-Rosa_Luna | christeningDate | "2005-04-07"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipChristened | "2005-04-07"^^xsd:date</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | christeningDate | 2005-04-07</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A-Rosa Luna is 125800.0 millimetres long and was christened on April 7th, 2005.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna was christened on the 7th of April 2005 and is 125800.0 mm in length.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna is 125800.0 millimetres in length and was christened on the 7th of April 2005.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipClass | Cruise_ship</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipClass | Cruise_ship</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna is 125800.0 millimetres in length and classed as a cruise ship.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna which is 125.8 metres long, is classed as a Cruise ship.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna cruise ship is 125800.0 millimetres in length.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Rostock</otriple>
+        <otriple>AIDAluna | operator | AIDA_Cruises</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDA_Cruises | location | Rostock</mtriple>
+        <mtriple>AIDAluna | operator | AIDA_Cruises</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAluna is operated by AIDA Cruises which are located at Rostock.</lex>
+      <lex comment="good" lid="Id2">AIDA Cruises, located in Rostock, are the operator of the ship AIDAluna.</lex>
+      <lex comment="good" lid="Id3">AIDAluna is operated by AIDA Cruises from Rostock.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AIDAstella | shipChristened | "--03-16"^^xsd:gMonthDay</otriple>
+        <otriple>AIDAstella | MeanOfTransportation/length | "253260.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDAstella | MeanOfTransportation/length | "253260.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>AIDAstella | christeningDate | "2013-03-16"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | christeningDate | 2013-03-16</mtriple>
+        <mtriple>AIDAstella | length | 253260.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAstella is 253.26m long and was launched March 16th 2013.</lex>
+      <lex comment="good" lid="Id2">The AIDAstella was christened on the 16th of March, 2013 and is 253260.0 millimetres long.</lex>
+      <lex comment="good" lid="Id3">AIDAstella is 253260.0 millimetres in length and was christened on 2013-03-16.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</otriple>
+        <otriple>ALCO_RS-3 | enginetype | Four-stroke_engine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</mtriple>
+        <mtriple>ALCO_RS-3 | engine | Four-stroke_engine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Montreal Locomotive Works is the builder of the ALCO RS-3 which has a four-stroke engine.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 built by the Montreal Locomotive Works has a four-stroke engine.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3 has a four-stroke engine and was built by the Montreal Locomotive Works.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | shipOrdered | "2004-01-22"^^xsd:date</otriple>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A-Rosa_Luna | MeanOfTransportation/length | "125800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>A-Rosa_Luna | orderDate | "2004-01-22"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A-Rosa_Luna | shipOrdered | 2004-01-22</mtriple>
+        <mtriple>A-Rosa_Luna | length | 125800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A-Rosa Luna ship is 125800.0 mms in length and was ordered on 22 January 2004.</lex>
+      <lex comment="good" lid="Id2">The A-Rosa Luna ship which is 125800.0 millimetres in length, was ordered on January 22nd 2004.</lex>
+      <lex comment="good" lid="Id3">The A-Rosa Luna ship was ordered on the 22nd January 2004 and it is 125.8 metres long.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Germany</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDAstella | operator | AIDA_Cruises</otriple>
+        <otriple>AIDA_Cruises | location | Germany</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDA_Cruises | location | Germany</mtriple>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAstella is operated by AIDA Cruise Line, which is located in Germany.</lex>
+      <lex comment="good" lid="Id2">AIDA Cruises is located in Germany and is operated by AIDAstella.</lex>
+      <lex comment="good" lid="Id3">The ship AIDAstella is operated by AIDA Cruises which is located in Germany.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AIDAluna | topSpeed | "40.744"^^xsd:double</otriple>
+        <otriple>AIDAluna | MeanOfTransportation/length | "252000.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAluna | topSpeed | 40.744</mtriple>
+        <mtriple>AIDAluna | length | 252000.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDAluna has a top speed is 40.744 and is 252000.0 mms in length.</lex>
+      <lex comment="good" lid="Id2">The AIDAluna has a top speed of 40.744 and it 252 metres long.</lex>
+      <lex comment="good" lid="Id3">The AIDAluna is 252m long and has a top speed of 40.744.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</otriple>
+        <otriple>ALCO_RS-3 | powertype | Diesel-electric_transmission</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</mtriple>
+        <mtriple>ALCO_RS-3 | powerType | Diesel-electric_transmission</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Montreal Locomotive Works is the builder of the ALCO RS-3 which has a diesel-electric transmission.</lex>
+      <lex comment="good" lid="Id2">The Diesel-electric transmission ALCO RS-3 was built by the Montreal Locomotive Works.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3, has a diesel-electric transmission and was built by the Montreal Locomotive Works.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>ALV_X-1 | diameter | "5.0"^^&lt;http://dbpedia.org/datatype/foot&gt;</otriple>
+        <otriple>ALV_X-1 | rocketStages | "2"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>ALV_X-1 | MeanOfTransportation/diameter | "1.524"^^&lt;http://dbpedia.org/datatype/metre&gt;</otriple>
+        <otriple>ALV_X-1 | rocketStages | "2"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>ALV_X-1 | stages | 2</otriple>
+        <otriple>ALV_X-1 | MeanOfTransportation/diameter | "1.524"^^&lt;http://dbpedia.org/datatype/metre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALV_X-1 | diameter | 1.524 (metres)</mtriple>
+        <mtriple>ALV_X-1 | rocketStages | 2</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALV X-1 has 2 rocket stages and a diameter of 1.524 metres.</lex>
+      <lex comment="good" lid="Id2">The ALV X-1 rocket has 2 stages and a diameter of 1.524 metres.</lex>
+    </entry>
+    </entries>
+</benchmark>

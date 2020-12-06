@@ -1,0 +1,118 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | runwayLength | "2776.73"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+        <otriple>Aarhus_Airport | elevation | "25.0"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | runwayDesignation | "10L/28R"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | runwayLength | "2776.73"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+        <otriple>Aarhus_Airport | elevation | "24.9936"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | runwayDesignation | "10L/28R"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | runwayLength | 2776.0</mtriple>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+        <mtriple>Aarhus_Airport | elevationAboveTheSeaLevel_(in_metres) | 25.0</mtriple>
+        <mtriple>Aarhus_Airport | runwayName | "10L/28R"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Operated by Aarhus Lufthavn A/S, Aarhus Airport is 25 metres above sea level. It has a runway length of 2776.0 and the runway name, 10L/28R.</lex>
+      <lex comment="good" lid="Id2">Aarhus Lufthavn A/S is the operation organisation of Aarhus Airport which is 25.0 metres above the sea level. It has a runway length of 2776.0 and a runway with the name 10L/28R.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.0"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | elevation | "506.882"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.0"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | elevation | "506.882"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.45"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | elevation | "506.882"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.45"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | elevation | "506.882"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | runwayLength | 2003.0</mtriple>
+        <mtriple>Adirondack_Regional_Airport | elevationAboveTheSeaLevel_(in_metres) | 507</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Lake Placid and the city of Saranac Lake (both in New York) are served by the Adirondack Regional Airport. This airport is 507 metres above sea level and has a runway that is 2003 metres long.</lex>
+      <lex comment="good" lid="Id2">Adirondack Regional Airport serves the city of Lake Placid and the city of Saranac, New York, the airport is 507 metres above sea level with a runway length of 2003.0.</lex>
+      <lex comment="good" lid="Id3">Adirondack Regional Airport serves the city of Saranac Lake and Lake Placid in New York. It is 507 m above sea level and its runway is 2003 m long.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "18L/36R"</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "3499.71"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | operator | ENAIRE</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayName | "18L/36R"</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 3500.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | operatingOrganisation | ENAIRE</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suárez Madrid-Barajas Airport, operated by ENAIRE, is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas. The airport's runway is designated 18L/36R and has a length of 3500.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suárez Madrid–Barajas Airport can be found in Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas and is operated by ENAIRE. The runway name is 18L/36R with a length of 3500.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suárez Madrid–Barajas Airport can be found in Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas and is operated by ENAIRE. The airport has a runway length of 3500, which is named 18L/36R.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | iataLocationIdentifier | "AGR"</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | iataLocationIdentifier | "AGR"</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | India</mtriple>
+        <mtriple>Agra_Airport | operatingOrganisation | Indian_Air_Force</mtriple>
+        <mtriple>Agra_Airport | IATA_Location_Identifier | "AGR"</mtriple>
+        <mtriple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra Airport is in India, which is operated by the Indian Air Force. The IATA I.D. of the Agra Airport is AGR; the ICAO Location Identifier of Agra Airport is VIAG.</lex>
+      <lex comment="good" lid="Id2">Agra airport in India is operated by the Indian Air Force. It has the location identifier of VIAG and the IATA location identifier of AGR.</lex>
+      <lex comment="good" lid="Id3">Agra Airport in India is operated by the Indian Air Force. It has the IATA location identifier of AGR and the ICAO identifier of VIAG.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Agra_Airport | operator | "/"@en</otriple>
+        <otriple>Agra_Airport | iataLocationIdentifier | "AGR"</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+        <otriple>Agra_Airport | location | Agra</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | operatingOrganisation | Airports_Authority_of_India</mtriple>
+        <mtriple>Agra_Airport | IATA_Location_Identifier | "AGR"</mtriple>
+        <mtriple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</mtriple>
+        <mtriple>Agra_Airport | location | Agra</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Located in Agra, Agra Airport has the IATA Location Identifier is AGR and its ICAO Location IdentifierVIAG. This airport is operated by the Airports Authority of India.</lex>
+      <lex comment="good" lid="Id2">Agra's airport is Agra Airport it is operated by The Airports Authority of India, AGR is the IATA I.D. and the location identifier is VIAG.</lex>
+      <lex comment="good" lid="Id3">Agra airport, whose location id is VIAG OR IATA is located in Agra. The Airports Authority of India operates it.</lex>
+    </entry>
+    </entries>
+</benchmark>

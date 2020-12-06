@@ -1,0 +1,94 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | wheelbase | "120.0"^^&lt;http://dbpedia.org/datatype/inch&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | wheelbase | "3.048"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | manufacturer | Dodge</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | wheelbase | 120.0 (inches)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge is made by the Dodge company and has a V8 engine, a 3-speed automatic transmission and a wheelbase of 120 inches.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge is manufactured by Dodge and it has a V8 engine. It has a wheelbase of 120 inches and has a 3 speed automatic transmission.</lex>
+      <lex comment="good" lid="Id3">Dodge is the manufacturer of the 1955 Dodge which has a V8 engine, a 3 speed automatic transmission and a wheelbase of 120 inches.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | related | DeSoto_Custom</otriple>
+        <otriple>DeSoto_Custom | relatedMeanOfTransportation | Chrysler_Newport</otriple>
+        <otriple>DeSoto_Custom | successor | DeSoto_Firedome</otriple>
+        <otriple>DeSoto_Custom | manufacturer | DeSoto_(automobile)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | relatedMeanOfTransportation | DeSoto_Custom</mtriple>
+        <mtriple>DeSoto_Custom | relatedMeanOfTransportation | Chrysler_Newport</mtriple>
+        <mtriple>DeSoto_Custom | successor | DeSoto_Firedome</mtriple>
+        <mtriple>DeSoto_Custom | manufacturer | DeSoto_(automobile)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge, the Chrysler Newport and the DeSoto Custom are related means of transportation. DeSoto are the manufacturers of the DeSoto Custom, the successor of which, is the DeSoto Firedome.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge is related to the Chrysler Newport and the DeSoto Custom which was made by DeSoto and succeeded by the DeSoto Firedome.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge is related to the Chrysler Newport and the DeSoto Custom. The DeSoto Firedome succeeded the Desoto Custom which is manufactured by DeSoto .</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>AIDAluna | maidenVoyage | "2009-03-22"^^xsd:date</otriple>
+        <otriple>AIDAluna | shipBeam | "32.2"^^xsd:double</otriple>
+        <otriple>AIDAluna | MeanOfTransportation/length | "252000.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>AIDAluna | powerType | Caterpillar_Inc.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAluna | maidenVoyage | 2009-03-22</mtriple>
+        <mtriple>AIDAluna | shipBeam | 32.2</mtriple>
+        <mtriple>AIDAluna | length | 252000.0 (millimetres)</mtriple>
+        <mtriple>AIDAluna | powerType | Caterpillar_Inc.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The length of the AIDAluna ship beam is 32.2 and it is 252000.0 millimetres long. It is powered by Caterpillar Inc. and had its maiden voyage on the 22nd of March, 2009.</lex>
+      <lex comment="good" lid="Id2">The AIDAluna, powered by a Caterpillar Inc. engine, has a 32.2 long ship beam and is 252000.0mm long. Its maiden voyage was March 22,2009.</lex>
+      <lex comment="good" lid="Id3">The AIDAluna has a ship beam of 32.2 and is 252000.0 millimetres long. It is powered by Caterpillar Inc. and made the maiden voyage on 22 March 2009.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>AIDAstella | length | "253.26"^^xsd:double</otriple>
+        <otriple>AIDAstella | shipBeam | "32.2"^^xsd:double</otriple>
+        <otriple>AIDAstella | builder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | length | 253260.0 (millimetres)</mtriple>
+        <mtriple>AIDAstella | shipBeam | 32.2</mtriple>
+        <mtriple>AIDAstella | builder | Meyer_Werft</mtriple>
+        <mtriple>AIDAstella | owner | Costa_Crociere</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDAstella is 253260.0 millimetres long and has a beam of 32.2 metres. AIDAstella was built by Meyer Werft and is owned by Costa Crociere.</lex>
+      <lex comment="good" lid="Id2">AIDAstella is 253260.0 millimetres in length and has a beam of 32.2 metres. It is owned by Costa Crociere and was built by Meyer Werft.</lex>
+      </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | length | "253.26"^^xsd:double</otriple>
+        <otriple>AIDAstella | builder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+        <mtriple>AIDAstella | length | 253260.0 (millimetres)</mtriple>
+        <mtriple>AIDAstella | builder | Meyer_Werft</mtriple>
+        <mtriple>AIDAstella | owner | Costa_Crociere</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Costa Crociere is the owner of the AIDAstella which is 25326.0 millimetres long. It was built by Meyer Werft and operated by AIDA Cruise Line.</lex>
+      <lex comment="good" lid="Id2">AIDAstella is 253260.0 millimetres long and was built by Meyer Werft. It is owned by Costa Crociere and operated by AIDA Cruises.</lex>
+      <lex comment="good" lid="Id3">The AIDAstella was built by Meyer Werft and is 253260.0 millimetres in length. It is owned by Costa Crociere and operated by AIDA cruises.</lex>
+    </entry>
+    </entries>
+</benchmark>

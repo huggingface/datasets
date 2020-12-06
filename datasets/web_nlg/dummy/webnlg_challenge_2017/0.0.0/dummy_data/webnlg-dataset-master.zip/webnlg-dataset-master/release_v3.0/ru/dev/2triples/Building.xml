@@ -1,0 +1,121 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | built | 1904</otriple>
+        <otriple>Asser_Levy_Public_Baths | location | Manhattan</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | Manhattan</otriple>
+        <otriple>Asser_Levy_Public_Baths | yearOfConstruction | "1904"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | Manhattan</mtriple>
+        <mtriple>Asser_Levy_Public_Baths | yearOfConstruction | 1904</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Asser Levy Public Baths, built in 1904, is located in Manhattan.</lex>
+      <lex lang="ru" lid="Id1">Общественные бани Ашера Леви, построенные в 1904 году, расположены на Манхэттене.</lex>
+      <lex lang="en" lid="Id2">Asser Levy Public Baths in Manhattan were constructed in 1904.</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви на Манхэттене были построены в 1904 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+        <dbpedialink direction="en2ru">1904 | sameAs | 1904_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | Manhattan</otriple>
+        <otriple>Manhattan | isPartOf | New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | Manhattan</mtriple>
+        <mtriple>Manhattan | isPartOf | New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Asser Levy Public Baths is located in Manhattan, which is a part of New York.</lex>
+      <lex lang="ru" lid="Id1">Общественные бани Ашера Леви находятся на Манхэттене, который является частью Нью-Йорка.</lex>
+      <lex lang="en" lid="Id2">Asser Levy Public Baths are in Manhattan, New York.</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви находятся на Манхэттене, в Нью-Йорке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | Manhattan</otriple>
+        <otriple>Manhattan | leaderName | Cyrus_Vance,_Jr.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | Manhattan</mtriple>
+        <mtriple>Manhattan | leader | Cyrus_Vance,_Jr.</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Asser Levy Public Baths is located in Manhattan where Cyrus Vance Jr. is the leader.</lex>
+      <lex lang="ru" lid="Id1">Общественные бани Ашера Леви находятся на Манхэттене, где Сайрус Вэнс-младший является лидером.</lex>
+      <lex lang="en" lid="Id2">Asser Levy Public Baths is located in Manhattan where Cyrus Vance Jr. is one of the leaders.</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви находятся на Манхэттене, где один из лидеров Сайрус Вэнс-младший.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Cyrus Vance, Jr. | sameAs | Сайрус Вэнс-младший</link>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | Manhattan</otriple>
+        <otriple>Manhattan | leaderName | Gale_Brewer</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | Manhattan</mtriple>
+        <mtriple>Manhattan | leader | Gale_Brewer</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Gale Brewer is the leader of Manhattan, which is the location of Asser Levy Public Baths.</lex>
+      <lex lang="ru" lid="Id1">Гейл Брюэр - лидер Манхэттена, который является местом расположения общественных бань Ашера Леви.</lex>
+      <lex lang="en" lid="Id2">Gale Brewer is the leader of Manhattan, where the Asser Levy Public Baths can be found.</lex>
+      <lex lang="ru" lid="Id2">Гейл Брюэр - лидер Манхэттена, где можно найти общественные бани Ашера Леви.</lex>
+      <lex lang="en" lid="Id3">Asser Levy Public Baths is located in Manhattan whose leader is Gale Brewer.</lex>
+      <lex lang="ru" lid="Id3">Общественные бани Ашера Леви находятся на Манхэттене, лидером которого является Гейл Брюэр.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Gale Brewer | sameAs | Гейл Брюэр (жен)</link>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | New_York_City</otriple>
+        <otriple>Asser_Levy_Public_Baths | built | 1904</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | New_York_City</otriple>
+        <otriple>Asser_Levy_Public_Baths | yearOfConstruction | "1904"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | New_York_City</mtriple>
+        <mtriple>Asser_Levy_Public_Baths | yearOfConstruction | 1904</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Asser Levy Public Baths which was built in 1904 is located in New York City.</lex>
+      <lex lang="ru" lid="Id1">Общественные бани Ашера Леви, построенные в 1904 году, расположены в Нью-Йорке.</lex>
+      <lex lang="en" lid="Id2">Asser Levy Public Baths (constructed in 1904) are located in New York City.</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви (построенные в 1904 году) расположены в Нью-Йорке.</lex>
+      <lex lang="en" lid="Id3">The location of Asser Levy Public Baths, built in 1904, is New York City.</lex>
+      <lex lang="ru" lid="Id3">Общественные бани Ашера Леви, построенные в 1904 году, находятся в Нью-Йорке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York_City | sameAs | Нью-Йорк</dbpedialink>
+        <dbpedialink direction="en2ru">1904 | sameAs | 1904_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

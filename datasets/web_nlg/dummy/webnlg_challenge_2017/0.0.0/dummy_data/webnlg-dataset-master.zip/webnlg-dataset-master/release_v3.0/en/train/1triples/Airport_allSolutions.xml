@@ -1,0 +1,54 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Aarhus is the airport of Aarhus, Denmark.</lex>
+      <lex comment="good" lid="Id2">Aarhus Airport serves the city of Aarhus, Denmark.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | city | Aarhus</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | cityServed | Aarhus</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus airport serves the city of Aarhus.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | elevation | "25.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | elevationAboveTheSeaLevel | 25.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport is 25 metres above sea level.</lex>
+      <lex comment="good" lid="Id2">Aarhus airport is at an elevation of 25 metres above seal level.</lex>
+      <lex comment="good" lid="Id3">Aarhus Airport is 25.0 metres above the sea level.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport is located in Tirstrup.</lex>
+      <lex comment="good" lid="Id2">The location of Aarhus Airport is Tirstrup.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport is operated by Aarhus Lufthavn A/S.</lex>
+      <lex comment="good" lid="Id2">Aarhus Lufthavn A/S is the operation organisation of Aarhus Airport.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,116 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Turkey, where the leader is Ahmet Davutoglu, is the location of the bronze Ataturk monument in Izmir.</lex>
+      <lex lang="ru" lid="Id1">Турция, где лидер - Ахмет Давутоглу, является местом расположения бронзового памятника Ататюрку в Измире.</lex>
+      <lex lang="en" lid="Id2">The bronze Atatürk Monument (İzmir) is found in Turkey, where the leader is Ahmet Davutoglu.</lex>
+      <lex lang="ru" lid="Id2">Бронзовый памятник Ататюрку (Измир) находится в Турции, где является главой Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id3">The bronze Atatürk momument is in Turkey, where the leader is Ahmet Davutoğlu.</lex>
+      <lex lang="ru" lid="Id3">Бронзовый памятник Ататюрку находится в Турции, где лидером является Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id4">The Atatürk Monument made of bronze is located in İzmir, Turkey, whose leader is Ahmet Davutoğlu.</lex>
+      <lex lang="ru" lid="Id4">Памятник Ататюрку, выполненный в бронзе, расположен в Измире, Турция, лидером которой является Ахмет Давутоглу.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+        <link direction="en2ru">Bronze | sameAs | бронза</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Ataturk Monument (Izmir) is located in Turkey, where the leader is Ahmet Davutoglu and the currency is the Turkish Lira.</lex>
+      <lex lang="ru" lid="Id1">Памятник Ататюрку (город Измир) расположен в Турции, где лидером является Ахмет Давутоглу и валюта - турецкая лира.</lex>
+      <lex lang="en" lid="Id2">The Atatürk Monument is located in İzmir, Turkey, where the leader is Ahmet Davutoğlu and the currency is the lira.</lex>
+      <lex lang="ru" lid="Id2">Памятник Ататюрку расположен в Измире, Турция, где лидером является Ахмет Давутоглу и валюта - Турецкая лира.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+        <dbpedialink direction="en2ru">Turkish_lira | sameAs | Турецкая_лира</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | open | "1932-07-27"^^xsd:date</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | inaugurationDate | "1932-07-27"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Turkey, where the official title of the leader is President, is the location of the Ataturk Monument. The monument was inaugurated on 27 July 1932.</lex>
+      <lex lang="ru" lid="Id1">Памятник Ататюрку, открытый 27 июля 1932 года, находится в Турции, где главой является Президент.</lex>
+      <lex lang="en" lid="Id2">The Atatürk Monument (İzmir) was inaugurated on July 27th, 1932 and can be found in Turkey, where the title of the leader is President of Turkey.</lex>
+      <lex lang="ru" lid="Id2">Памятник Ататюрку в Измире был открыт 27 июля 1932 года и находится в Турции, где звание лидера носит Президент Турции.</lex>
+      <lex lang="en" lid="Id3">The Atatürk Monument, located in Izmir, Turkey (led by the President of Turkey), was inaugurated on the 27th of July, 1932.</lex>
+      <lex lang="ru" lid="Id3">Памятник Ататюрку, расположенный в Измире, Турция (во главе с президентом Турции), был открыт 27 июля 1932 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ahmet Davutoglu is the President of Turkey. The Ataturk Monument (Izmir) is located in Turkey.</lex>
+      <lex lang="ru" lid="Id1">Ахмет Давутоглу - президент Турции. Памятник Ататюрку (Измир) расположен в Турции.</lex>
+      <lex lang="en" lid="Id2">Ahmet Davutoglu is the leader of Turkey, officially known as the President of Turkey. This country is where the Ataturk monument (Izmir) can be located.</lex>
+      <lex lang="ru" lid="Id2">Ахмет Давутоглу - лидер Турции, официально известный как президент Турции. Эта страна, где находится памятник Ататюрку (Измир).</lex>
+      <lex lang="en" lid="Id3">The Atatürk Monument is in Turkey, where Ahmet Davutoglu is the leader and holds the title of President of Turkey.</lex>
+      <lex lang="ru" lid="Id3">Памятник Ататюрку находится в Турции, где Ахмет Давутоглу является лидером и занимает пост президента Турции.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+      </links>
+    </entry>
+  </entries>
+</benchmark>

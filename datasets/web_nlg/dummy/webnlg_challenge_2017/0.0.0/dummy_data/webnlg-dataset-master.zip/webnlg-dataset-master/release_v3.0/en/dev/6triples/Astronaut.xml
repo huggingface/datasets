@@ -1,0 +1,107 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Apollo_12 | crew1Up | David_Scott</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Apollo_12 | commander | David_Scott</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">American Alan Bean was a member of NASA's Apollo 12 which was commanded by David Scott. Bean, who was born in Wheeler, Texas, is now retired.</lex>
+      <lex comment="good" lid="Id2">American Alan Bean was born in Wheeler, Texas and is retired. He was on the crew of Apollo 12, whose operator was NASA and David Scott was the commander of Apollo 12.</lex>
+      <lex comment="good" lid="Id3">Alan Bean is originally from Wheeler, Texas, USA and joined NASA where he became a crew member of Apollo 12. David Scott was his commander and Mr Bean is now retired.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"@en</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | selection | 1959</otriple>
+        <otriple>Alan_Shepard | nationality | United_States</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | selectedByNasa | 1959</mtriple>
+        <mtriple>Alan_Shepard | nationality | United_States</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The American Alan Shepard was born on November 18, 1923, in New Hampshire. He graduated with an M.A. from NWC in 1957, and was hired by NASA in 1959. Shepard died in California.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was an American who went to school at NWC and graduated with an MA in 1957. He was selected by NASA in 1959. He was born in New Hampshire on November 18, 1923 and died in California.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="6">
+      <originaltripleset>
+        <otriple>Alan_Shepard | status | "Deceased"@en</otriple>
+        <otriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"@en</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | selection | 1959</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+        <mtriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | selectedByNasa | 1959</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was born on the 18th of November, 1923 in New Hampshire. He graduated from NWC with an M.A. in 1957 and was selected by NASA in 1959. His death place was California.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was born November 18th, 1923 in New Hampshire. He graduated from NWC with an M.A. in 1957 and was selected by NASA in 1959. He passed away in California.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Alan_Shepard | mission | Apollo_14</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | dateOfRet | "1974-08-01"^^xsd:date</otriple>
+        <otriple>Apollo_14 | operator | NASA</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | mission | Apollo_14</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | dateOfRetirement | "1974-08-01"</mtriple>
+        <mtriple>Apollo_14 | operator | NASA</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was born on November 18, 1923, in New Hampshire. He served as a crew member on NASA's Apollo 14 mission before retiring on August 1, 1974. Shepard passed away in California.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was part of NASA's Apollo 14 crew. He was born in New Hampshire on November 18th, 1923, he retired August 1st, 1974 and died in California.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard was born in 1923 in New Hampshire . He worked for NASA and became a crew member for Apollo 14 before he retired in August 1974. He later died in California.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="6">
+      <originaltripleset>
+        <otriple>Alan_Shepard | ribbon | "American Defense Service ribbon.svg"@en</otriple>
+        <otriple>Alan_Shepard | deathDate | "1998-07-21"^^xsd:date</otriple>
+        <otriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | ribbonAward | "American Defense Service ribbon.svg"</mtriple>
+        <mtriple>Alan_Shepard | deathDate | "1998-07-21"</mtriple>
+        <mtriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | award | Distinguished_Service_Medal_(United_States_Navy)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was born in New Hampshire. He was won the American Defence Service Ribbon. The United States Navy also awarded him the Distinguished Service Medal, which is higher than the Department of Commerce Gold Medal. He died in California on July 21st, 1998.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard (who died on the 21st of July, 1998 in California) was born in New Hampshire. He was awarded American Defense Service ribbon, as well as the Distinguished Service Medal by the United States Navy. The Distinguished Service Medal of the United States Navy is ranked higher than the Department of Commerce Gold Medal.</lex>
+      <lex comment="good" lid="Id3">The U.S Navy awarded Alan Shepard the Distinguished Service Medal, an award that ranks higher than the Department of Commerce Gold Medal. Shepard who was born in New Hampshire and died July 21st, 1998 in California, was also the recipient of the American Defense Service Ribbon.</lex>
+    </entry>
+    </entries>
+</benchmark>

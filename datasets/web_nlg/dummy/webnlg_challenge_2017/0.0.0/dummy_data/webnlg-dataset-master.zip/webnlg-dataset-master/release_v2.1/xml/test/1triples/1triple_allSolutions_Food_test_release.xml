@@ -1,0 +1,54 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | ingredient | Pecorino_Romano</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amatriciana_sauce | ingredient | Pecorino_Romano</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">An ingredient of amatriciana sauce is pecorino romano.</lex>
+      <lex comment="good" lid="Id2">Pecorino Romano is an ingredient used in Amatriciana sauce.</lex>
+      <lex comment="good" lid="Id3">Pecorino Romano is an ingredient of Amatriciana sauce.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Chili_pepper</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | ingredient | Chili_pepper</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">An important ingredient in arrabbiata sauce is chili pepper.</lex>
+      <lex comment="good" lid="Id2">The chili pepper serves as an ingredient in Arrabbiata sauce.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arròs_negre | ingredient | White_rice</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | ingredient | White_rice</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arros negre contains white rice as an ingredient.</lex>
+      <lex comment="good" lid="Id2">White rice is an ingredient in Arròs negre.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arròs_negre | region | Catalonia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | region | Catalonia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arros negre is from the region of Catalonia.</lex>
+      <lex comment="good" lid="Id2">Arròs negre is from the Catalonia region.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arròs_negre | region | Valencian_Community</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | region | Valencian_Community</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arros negre comes from the region of the Valencian Community.</lex>
+    </entry>
+    </entries>
+</benchmark>

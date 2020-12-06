@@ -1,0 +1,139 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Olympic_Stadium_(Athens) | location | Athens</otriple>
+        <otriple>AEK_Athens_F.C. | league | Superleague_Greece</otriple>
+        <otriple>Superleague_Greece | champions | Olympiacos_F.C.</otriple>
+        <otriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Olympic_Stadium_(Athens) | location | Athens</mtriple>
+        <mtriple>AEK_Athens_F.C. | league | Superleague_Greece</mtriple>
+        <mtriple>Superleague_Greece | champions | Olympiacos_F.C.</mtriple>
+        <mtriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Previous Greece Superleague champions AEK Athens FC play their home games at The Olympic Stadium, Athens.</lex>
+      <lex lang="ru" lid="Id1">Предыдущие чемпионы Чемпионата Греции по футболу - ФК "АЕК" играют свои домашние игры на Олимпийском стадионе в Афинах.</lex>
+      <lex lang="en" lid="Id2">AEK Athens F.C. have there home ground at the Olympic Stadium (Athens) which is located in Athens. They currently play in the Superleague of Greece whose current champions are Olympiacos F.C..</lex>
+      <lex lang="ru" lid="Id2">ФК "АЕК" имеют домашнюю площадку на Олимпийском Стадионе, который расположен в Афинах. В настоящее время они играют в Чемпионате Греции по футболу, где действующим чемпионом является ФК "Олимпиакос".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Olympiacos_F.C. | sameAs | Олимпиакос_(футбольный_клуб,_Пирей)</dbpedialink>
+        <dbpedialink direction="en2ru">Athens | sameAs | Афины</dbpedialink>
+        <dbpedialink direction="en2ru">Olympic_Stadium_(Athens) | sameAs | Олимпийский_стадион_(Афины)</dbpedialink>
+        <dbpedialink direction="en2ru">Superleague_Greece | sameAs | Чемпионат_Греции_по_футболу</dbpedialink>
+        <dbpedialink direction="en2ru">AEK_Athens_F.C. | sameAs | АЕК_(футбольный_клуб,_Афины)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Olympic_Stadium_(Athens) | location | Athens</otriple>
+        <otriple>AEK_Athens_F.C. | manager | Gus_Poyet</otriple>
+        <otriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</otriple>
+        <otriple>Gus_Poyet | team | Chelsea_F.C.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Olympic_Stadium_(Athens) | location | Athens</mtriple>
+        <mtriple>AEK_Athens_F.C. | manager | Gus_Poyet</mtriple>
+        <mtriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</mtriple>
+        <mtriple>Gus_Poyet | club | Chelsea_F.C.</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Olympic Stadium, in Athens, is the home ground of AEK Athens FC. the manager of which, is Gus Poyet, who played for Chelsea F.C.</lex>
+      <lex lang="ru" lid="Id1">Олимпийский стадион в Афинах является домашней площадкой ФК "АЕК Афины, менеджером которого является Густаво Пойет, который играл за ФК "Челси".</lex>
+      <lex lang="en" lid="Id2">The Olympic Stadium (Athens) is the home ground of AEK Athens F.C. whose manager is Gus Poyet. He played for Chelsea F.C.</lex>
+      <lex lang="ru" lid="Id2">Олимпийский стадион (Афины) - домашняя площадка ФК "АЕК Афины", менеджером которого является Густаво Пойет. Он играл за ФК "Челси".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Chelsea_F.C. | sameAs | Челси_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Gus_Poyet | sameAs | Пойет,_Густаво</dbpedialink>
+        <dbpedialink direction="en2ru">Athens | sameAs | Афины</dbpedialink>
+        <dbpedialink direction="en2ru">Olympic_Stadium_(Athens) | sameAs | Олимпийский_стадион_(Афины)</dbpedialink>
+        <dbpedialink direction="en2ru">AEK_Athens_F.C. | sameAs | АЕК_(футбольный_клуб,_Афины)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Olympic_Stadium_(Athens) | location | Athens</otriple>
+        <otriple>AEK_Athens_F.C. | manager | Gus_Poyet</otriple>
+        <otriple>Gus_Poyet | team | Real_Zaragoza</otriple>
+        <otriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Olympic_Stadium_(Athens) | location | Athens</mtriple>
+        <mtriple>AEK_Athens_F.C. | manager | Gus_Poyet</mtriple>
+        <mtriple>Gus_Poyet | club | Real_Zaragoza</mtriple>
+        <mtriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Located in Athens, the Olympic Stadium, is the ground for AEK Athens FC. The manager of which, used to be Gus Poyet, who, is in the Real Zaragoza club.</lex>
+      <lex lang="ru" lid="Id1">Расположенный в Афинах Олимпийский стадион - площадка для ФК "AEK Афины", менеджером которого раньше был Густаво Пойет, который является членом ФК "Реал Сарагоса".</lex>
+      <lex lang="en" lid="Id2">The Olympic Stadium in Athens is the home of AEK Athens FC. The football club's manager used to be Gus Poyet, who played for Real Zaragoza in the past.</lex>
+      <lex lang="ru" lid="Id2">Олимпийский стадион в Афинах - дом ФК "АЕК". Руководителем футбольного клуба раньше был Густаво Пойет, который играл за "Реал Сарагоса" в прошлом.</lex>
+      <lex lang="en" lid="Id3">The Olympic Stadium (Athens) is the home ground of AEK Athens F.C. whose manager is Gus Poyet. His club is Real Zaragoza.</lex>
+      <lex lang="ru" lid="Id3">Олимпийский стадион (Афины) - домашняя площадка ФК "АЕК", руководителем которого является Густаво Пойет. Его клубом является "Реал Сарагоса".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Gus_Poyet | sameAs | Пойет,_Густаво</dbpedialink>
+        <dbpedialink direction="en2ru">Athens | sameAs | Афины</dbpedialink>
+        <dbpedialink direction="en2ru">Real_Zaragoza | sameAs | Реал_Сарагоса</dbpedialink>
+        <dbpedialink direction="en2ru">Olympic_Stadium_(Athens) | sameAs | Олимпийский_стадион_(Афины)</dbpedialink>
+        <dbpedialink direction="en2ru">AEK_Athens_F.C. | sameAs | АЕК_(футбольный_клуб,_Афины)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Peter_Stöger | team | FC_Admira_Wacker_Mödling</otriple>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | clubs | Favoritner_AC</otriple>
+        <otriple>Peter_Stöger | managerClub | FK_Austria_Wien</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Peter_Stöger | club | FC_Admira_Wacker_Mödling</mtriple>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | Favoritner_AC</mtriple>
+        <mtriple>Peter_Stöger | club | FK_Austria_Wien</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stoger, manager for the FC Koln, was also a part of FC Admira Wacker Modling and Favoritner AC as well as the FK Austria Wien Soccer Club.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер, менеджер ФК "Кёльн", также входил в состав ФК "Адмира Ваккер Мёдлинг" и Спортивный Клуб “Фаворитнер”, а также ФК "Аустрия".</lex>
+      <lex lang="en" lid="Id2">Peter Stöger is a player in FC Admira Wacker Mödling and Favoritner AC. He also manages 1. FC Köln and is at the FK Austria Wien club.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер - игрок в ФК "Адмира Ваккер Мёдлинг" и в Спортивном Клубе “Фаворитнер”. Он также управляет ФК "Кёльн" и работает в ФК "Аустрия ".</lex>
+      <lex lang="en" lid="Id3">Peter Stöger's club is the FC Admira Wacker Mödling. He is also manager of 1. FC Köln, a player for Favoritner AC and a member of the FK Austria Wien soccer club.</lex>
+      <lex lang="ru" lid="Id3">Клуб Петера Штёгера - это ФК "Адмира Ваккер Мёдлинг". Он также является менеджером ФК "Кёльн", игроком Спортивного Клуба “Фаворитнер” и членом ФК "Аустрия".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">FC_Admira_Wacker_Mödling | sameAs | Адмира_Ваккер_Мёдлинг</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">FK_Austria_Wien | sameAs | Аустрия_(футбольный_клуб,_Вена)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Favoritner AC | sameAs | Спортивный Клуб “Фаворитнер”</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Peter_Stöger | team | FC_Admira_Wacker_Mödling</otriple>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | managerClub | SC_Wiener_Neustadt</otriple>
+        <otriple>Peter_Stöger | clubs | LASK_Linz</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Peter_Stöger | club | FC_Admira_Wacker_Mödling</mtriple>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | SC_Wiener_Neustadt</mtriple>
+        <mtriple>Peter_Stöger | club | LASK_Linz</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger is the manager of 1. FC Köln and plays for FC Admira Wacker Mödling. He is affiliated with SC Wiener Neustadt club and previously played for the club LASK Linz.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер является руководителем ФК "Кёльн" и играет за ФК "Адмира Ваккер Мёдлинг". Он связан с клубом СК “Винер-Нойштадт” и ранее играл за клуб "ЛАСК".</lex>
+      <lex lang="en" lid="Id2">Peter Stoger plays for both LASK Linz and FC Admira Wacker Modling. He previously played for SC Wiener Neustadt but is now the manager of FC Kolin.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер играет как за "ЛАСК", так и за ФК "Адмира Ваккер Мёдлинг". Ранее он играл за СК “Винер-Нойштадт”, но сейчас является руководителем ФК "Кёльн".</lex>
+      <lex lang="en" lid="Id3">Peter Stoger, who plays for FC Admira Wacker Modling is also the manager of FC Kolin. He is affiliated with the SC Wiener Neustadt club and previously played for the club LASK Linz.</lex>
+      <lex lang="ru" lid="Id3">Петер Штёгер, который играет за ФК "Адмира Ваккер Мёдлинг", также является менеджером ФК "Кёльн". Он связан с СК “Винер-Нойштадт” и ранее играл за ФК "ЛАСК".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">FC_Admira_Wacker_Mödling | sameAs | Адмира_Ваккер_Мёдлинг</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">LASK_Linz | sameAs | ЛАСК_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">SC Wiener Neustadt | sameAs | СК “Винер-Нойштадт”</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

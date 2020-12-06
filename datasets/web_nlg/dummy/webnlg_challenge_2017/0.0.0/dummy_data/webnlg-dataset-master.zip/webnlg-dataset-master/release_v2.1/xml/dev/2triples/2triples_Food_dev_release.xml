@@ -1,0 +1,68 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bread is an ingredient of Ajoblanco which originates from Spain.</lex>
+      <lex comment="good" lid="Id2">One of the ingredients of Ajoblanco is bread and it originates from Spain.</lex>
+      <lex comment="good" lid="Id3">Bread is an ingredient of Ajoblanco which comes from Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Almond</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Almond</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco, from Andalusia, has almond as one of its ingredients.</lex>
+      <lex comment="good" lid="Id2">Almond is an ingredient in ajoblanco, from Andalusia.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco is from the Andalusia region and has almond as one of its ingredients.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | region | Lazio</otriple>
+        <otriple>Amatriciana_sauce | ingredient | Tomato</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amatriciana_sauce | region | Lazio</mtriple>
+        <mtriple>Amatriciana_sauce | ingredient | Tomato</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tomato is an ingredient in Amatriciana sauce which comes from Lazio.</lex>
+      <lex comment="good" lid="Id2">Amatriciana sauce is from the Lazio region and tomato is one of the ingredients.</lex>
+      <lex comment="good" lid="Id3">Tomato is an ingredient in Amatriciana sauce which comes from the region of Lazio.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Antioquia_Department | country | Colombia</otriple>
+        <otriple>Bandeja_paisa | region | Antioquia_Department</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Antioquia_Department | country | Colombia</mtriple>
+        <mtriple>Bandeja_paisa | region | Antioquia_Department</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bandeja paisa comes from the Antioquia Department of Colombia.</lex>
+      <lex comment="good" lid="Id2">Bandeja paisa is a dish found in the Antioquia Department of Colombia.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Arem-arem | region | Indonesia</otriple>
+        <otriple>Arem-arem | ingredient | Banana_leaf</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | region | Indonesia</mtriple>
+        <mtriple>Arem-arem | ingredient | Banana_leaf</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem uses the ingredient banana leaf, it is a common dish in Indonesia.</lex>
+      <lex comment="good" lid="Id2">Banana leaf is an ingredient in arem arem, which comes from Indonesia.</lex>
+      <lex comment="good" lid="Id3">Arem arem which includes banana leaf, comes from Indonesia.</lex>
+    </entry>
+    </entries>
+</benchmark>

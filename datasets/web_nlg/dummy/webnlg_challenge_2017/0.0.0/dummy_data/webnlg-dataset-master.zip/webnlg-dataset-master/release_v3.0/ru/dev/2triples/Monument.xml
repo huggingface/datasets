@@ -1,0 +1,93 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Monocacy_National_Battlefield | location | Frederick_County,_Maryland</otriple>
+        <otriple>14th_New_Jersey_Volunteer_Infantry_Monument | district | Monocacy_National_Battlefield</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Monocacy_National_Battlefield | location | Frederick_County,_Maryland</mtriple>
+        <mtriple>14th_New_Jersey_Volunteer_Infantry_Monument | district | Monocacy_National_Battlefield</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 14th New Jersey Volunteer Infantry Monument is found in the Monocacy National Battlefield which is located in Frederick County, Maryland.</lex>
+      <lex lang="ru" lid="Id1">Памятник 14-й добровольческой пехоте Нью-Джерси находится на Национальном поле битвы в Монокаси, которое расположено в округе Фредерик, Мэриленд.</lex>
+      <lex lang="en" lid="Id2">The 14th New Jersey Volunteer Infantry Monument is located in the district of the Monocacy National Battlefield which is located Frederick County, Maryland.</lex>
+      <lex lang="ru" lid="Id2">Памятник 14-й добровольческой пехоте Нью-Джерси расположен в районе Национального поля битвы в Монокаси, который расположен в графстве Фредерик, штат Мэриленд.</lex>
+      <lex lang="en" lid="Id3">The 14th New Jersey Volunteer Infantry Monument is in the Monacacy National Battlefield in Frederick, Maryland.</lex>
+      <lex lang="ru" lid="Id3">Памятник 14-й добровольческой пехоте Нью-Джерси находится на национальном поле битвы в Монокаси во Фредерике, штат Мэриленд.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Frederick_County,_Maryland | sameAs | Фредерик_(округ,_Мэриленд)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">14th New Jersey Volunteer Infantry Monument | sameAs | Памятник 14-му добровольческому пехотному полку Нью-Джерси</link>
+        <link direction="en2ru">Monocacy National Battlefield | sameAs | Национальное поле битвы в Монокаси</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Atatürk Monument is located in Izmir, Turkey, where the capital is Ankara.</lex>
+      <lex lang="ru" lid="Id1">Памятник Ататюрку расположен в Измире, Турция, где столица - Анкара.</lex>
+      <lex lang="en" lid="Id2">The Atatürk Monument is located in İzmir, Turkey which capital is Ankara.</lex>
+      <lex lang="ru" lid="Id2">Памятник Ататюрку расположен в Измире, Турция, столица которой - Анкара.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ankara | sameAs | Анкара</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Atatürk Monument (İzmir) is found in Turkey where the currency is the Turkish Lira.</lex>
+      <lex lang="ru" lid="Id1">Памятник Ататюрку (Измир) находится в Турции, валютой которой является турецкая лира.</lex>
+      <lex lang="en" lid="Id2">The Atatürk Monument is in Turkey, where the currency is the lira.</lex>
+      <lex lang="ru" lid="Id2">Памятник Ататюрку находится в Турции, где валюта - лира.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Turkish_lira | sameAs | Турецкая_лира</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Atatürk Monument is in Turkey which largest city is Istanbul.</lex>
+      <lex lang="ru" lid="Id1">Памятник Ататюрку находится в Турции, крупнейшим городом в которой является Стамбул.</lex>
+      <lex lang="en" lid="Id2">Istanbul is the largest city in Turkey, where the Atatürk Monument is located.</lex>
+      <lex lang="ru" lid="Id2">Стамбул - крупнейший город в Турции, где находится памятник Ататюрку.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Istanbul | sameAs | Стамбул</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+  </entries>
+</benchmark>

@@ -1,0 +1,69 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Architect John Madin, designed 103 Colmore Row, located on Colmore Row, in Birmingham, England.</lex>
+      <lex comment="good" lid="Id2">John Madin designed 103 Colmore Row, Birmingham, England.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row located in Birmingham, England was designed by the architect John Madin.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row, located at Colmore Row, was designed by the architect, John Madin.</lex>
+      <lex comment="good" lid="Id2">John Madin is the architect of 103 Colmore Row, located in Colmore Row.</lex>
+      <lex comment="good" lid="Id3">Architect John Madin designed 103 Colmore Row, located at Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row was designed by John Madin, born in Birmingham.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row was designed by the architect John Madin who was born in Birmingham.</lex>
+      <lex comment="good" lid="Id3">Architect John Madin, born in Birmingham, designed 103 Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | hometown | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | hometown | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Madin was an architect from Birmingham who designed 103 Colmore Row.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row was designed by the architect John Madin whose hometown was Birmingham.</lex>
+      <lex comment="good" lid="Id3">John Madin from Birmingham was the architect of 103 Colmore Row.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row at Colmore Row was completed in 1976.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row was completed in 1976.</lex>
+      <lex comment="good" lid="Id3">Number 103 in Colmore Row was completed in 1976.</lex>
+    </entry>
+    </entries>
+</benchmark>

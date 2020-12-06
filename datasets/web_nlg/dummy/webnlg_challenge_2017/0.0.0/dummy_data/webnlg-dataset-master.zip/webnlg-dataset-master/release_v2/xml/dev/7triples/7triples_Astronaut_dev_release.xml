@@ -1,0 +1,116 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | was a crew member of | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born on March 15, 1932 in Wheeler, Texas and is American. He worked as a test pilot and was a member of Apollo 12, which was run by NASA. Bean is retired.</lex>
+      <lex comment="good" lid="Id2">Alan Bean is an American, who was born in Wheeler, Texas on 15th March 1832. He was a test pilot and crew member on the NASA operated Apollo 12 flight mission. He is now retired.</lex>
+      <lex comment="good" lid="Id3">Alan Bean is a US national who was on the crew of Apollo 12. His birthplace is Wheeler, Texas. He was born on March 15, 1932 and he is retired. He performed as a test pilot on The Apollo 12 mission that was operated by NASA.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Alan_Bean | occupation | Test_pilot</otriple>
+        <otriple>Apollo_12 | crew1Up | David_Scott</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | was a crew member of | Apollo_12</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+        <mtriple>Apollo_12 | commander | David_Scott</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born in Wheeler, Texas and attended UT Austin where he graduated in 1955 with a BS. Prior to his retirement he served as a test pilot and was selected by NASA to serve as a crew member on Apollo 12 alongside commander David Scott.</lex>
+      </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"@en</otriple>
+        <otriple>Alan_Shepard | mission | Apollo_14</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | selection | 1959</otriple>
+        <otriple>Alan_Shepard | nationality | United_States</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"</mtriple>
+        <mtriple>Alan_Shepard | was a crew member of | Apollo_14</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | was selected by NASA | 1959</mtriple>
+        <mtriple>Alan_Shepard | nationality | United_States</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was born on Nov 18, 1923 in New Hampshire, US. He graduated from NWC in 1957 with an M.A. In 1959 he began working for NASA and was a member of Apollo 14. He died in California.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was born on November 18th, 1923 in New Hampshire. He was an American, who graduated from NWC in 1957 with an M.A. He was chosen by NASA in 1959 and he was a crew member of Apollo 11.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard is a US citizen who was born in New Hampshire on November 18th, 1923. He graduated from NWC with an MA in 1957. He was chosen by NASA in 1959 and he crewed Apollo 14.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Alan_Shepard | status | "Deceased"@en</otriple>
+        <otriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"@en</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | nationality | United_States</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+        <mtriple>Alan_Shepard | almaMater | "NWC, M.A. 1957"</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | nationality | United_States</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was born on Nov 18, 1923 in New Hampshire, USA. He graduated from NWC in 1957 with an M.A. He worked as a test pilot before passing away in California.</lex>
+      <lex comment="good" lid="Id2">American Alan Shepard was born in New Hampshire on Nov 18, 1923. He graduated from NWC with a M.A. in 1957 and was a test pilot. He deceased and died in California.</lex>
+      <lex comment="good" lid="Id3">The deceased Alan Shepard, a United States national, was born in New Hampshire on 1923-11-18. He graduated from NWC, M.A. in 1957 and served as a Test pilot. Alan Shepard died in California.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X) (X) (X (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Alan_Shepard | status | "Deceased"@en</otriple>
+        <otriple>Alan_Shepard | occupation | Test_pilot</otriple>
+        <otriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | birthPlace | New_Hampshire</otriple>
+        <otriple>Alan_Shepard | birthDate | "1923-11-18"^^xsd:date</otriple>
+        <otriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | status | "Deceased"</mtriple>
+        <mtriple>Alan_Shepard | occupation | Test_pilot</mtriple>
+        <mtriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | birthPlace | New_Hampshire</mtriple>
+        <mtriple>Alan_Shepard | birthDate | "1923-11-18"</mtriple>
+        <mtriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</mtriple>
+      </modifiedtripleset>
+      <lex comment="toFix" lid="Id1">Alan Shepard was born on November 18, 1923. Murio in California. He was A Test pilot Rewarded with the Medal of Service Distinguished from The Sea-coast of The United States, Medal of the United States Navy is higher than the Department of Commerce Gold Medal.</lex>
+      <lex comment="good" lid="Id2">The test pilot Alan Bean was born in New Hampshire on Nov 18th 1923. He was awarded the Distinguished Service Medal, which is higher than the department of commerce gold medal, in the United States Navy. He died in California.</lex>
+    </entry>
+    </entries>
+</benchmark>

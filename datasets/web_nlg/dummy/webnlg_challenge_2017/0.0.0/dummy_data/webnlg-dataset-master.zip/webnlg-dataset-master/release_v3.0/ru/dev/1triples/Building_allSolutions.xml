@@ -1,0 +1,88 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>New_York_City | isPartOf | Manhattan</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>New_York_City | subdivisionName | Manhattan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>New_York_City | isPartOf | Manhattan</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Manhattan is part of New York City.</lex>
+      <lex lang="ru" lid="Id1">Манхэттен - часть Нью-Йорка.</lex>
+      <lex lang="en" lid="Id2">New York City is part of Manhattan.</lex>
+      <lex lang="ru" lid="Id2">Нью-Йорк - часть Манхэттена.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York_City | sameAs | Нью-Йорк</dbpedialink>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>New_York_City | isPartOf | New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>New_York_City | isPartOf | New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">New York City is part of New York.</lex>
+      <lex lang="ru" lid="Id1">Нью-Йорк - часть Нью-Йорка.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York_City | sameAs | Нью-Йорк</dbpedialink>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Pacific_Grove,_California | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Pacific_Grove,_California | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Pacific Grove, California is in the United States.</lex>
+      <lex lang="ru" lid="Id1">Пасифик Гров, Калифорния, находится в США.</lex>
+      <lex lang="en" lid="Id2">Pacific Grove, California is located in the United States.</lex>
+      <lex lang="ru" lid="Id2">Пасифик Гров, Калифорния находится в США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Pacific Grove, California | includes | Пасифик Гров</link>
+        <link direction="en2ru">Pacific Grove, California | includes | Калифорния</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Perth | country | Australia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Perth | country | Australia</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Perth is located in Australia.</lex>
+      <lex lang="ru" lid="Id1">Перт находится в Австралии.</lex>
+      <lex lang="en" lid="Id2">Perth is in Australia.</lex>
+      <lex lang="ru" lid="Id2">Перт находится в Австралии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Australia | sameAs | Австралия</dbpedialink>
+        <dbpedialink direction="en2ru">Perth | sameAs | Перт_(Австралия)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Republic_of_Ireland | currency | Euro</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Republic_of_Ireland | currency | Euro</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The currency of the Republic of Ireland is the euro.</lex>
+      <lex lang="ru" lid="Id1">Валюта Ирландии - евро.</lex>
+      <lex lang="en" lid="Id2">The Republic of Ireland's currency is the Euro.</lex>
+      <lex lang="ru" lid="Id2">Валюта Ирландии - это евро.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Republic_of_Ireland | sameAs | Ирландия</dbpedialink>
+        <dbpedialink direction="en2ru">Euro | sameAs | Евро</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

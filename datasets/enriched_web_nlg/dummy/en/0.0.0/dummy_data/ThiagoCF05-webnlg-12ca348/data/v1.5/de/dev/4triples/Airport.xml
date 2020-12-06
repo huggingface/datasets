@@ -1,0 +1,58 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="4">
+			<originaltripleset>
+				<otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+				<otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+				<otriple>Abilene_Regional_Airport | runwayLength | "1121.05"^^xsd:double</otriple>
+				<otriple>Abilene,_Texas | country | United_States</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+				<mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+				<mtriple>Abilene_Regional_Airport | runwayLength | 1121.0</mtriple>
+				<mtriple>Abilene,_Texas | country | United_States</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Abilene_Regional_Airport | runwayLength | 1121.0</striple>
+						<striple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</striple>
+						<striple>Abilene,_Texas | country | United_States</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Mit einer Fahrbahnlänge von 1.121 Metern bedient Abilene Regionalflughafen Abilene, Texas, in den USA. </text>
+				<template>Mit einer Fahrbahnlänge von PATIENT-2 Metern bedient AGENT-1 BRIDGE-1, in PATIENT-3.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</striple>
+						<striple>Abilene,_Texas | country | United_States</striple>
+						<striple>Abilene_Regional_Airport | runwayLength | 1121.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Abilene, Texas wird vom Abilene Regionalflughafen in den USA @ seine Piste ist 1121 lang. </text>
+				<template>BRIDGE-1 wird von AGENT-1 in PATIENT-3 @ AGENT-1 Startbahn ist PATIENT-2 lang.</template>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Abilene,_Texas | country | United_States</striple>
+						<striple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</striple>
+						<striple>Abilene_Regional_Airport | runwayLength | 1121.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Abilene, Texas, USA, wird vom Regionalflughafen Abilene bedient, der eine Fahrbahnlänge von 1121,0 hat. </text>
+				<template>BRIDGE-1, PATIENT-3, wird von AGENT-1 bedient, die eine Fahrbahnlänge von PATIENT-2 hat.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Abilene_Regional_Airport</entity>
+				<entity>BRIDGE-1 | Abilene,_Texas</entity>
+				<entity>PATIENT-1 | Texas</entity>
+				<entity>PATIENT-2 | 1121.0</entity>
+				<entity>PATIENT-3 | United_States</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

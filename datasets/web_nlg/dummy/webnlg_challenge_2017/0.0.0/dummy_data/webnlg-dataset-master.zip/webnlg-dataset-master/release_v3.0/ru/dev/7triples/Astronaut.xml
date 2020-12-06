@@ -1,0 +1,180 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born on Oct 17, 1933 in British Hong Kong. He graduated from AFIT in 1962 with an M.S. Anders was a fighter pilot and joined NASA in 1963, where he was a member of Apollo 8. He retired on Sept 1, 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс был летчиком-истребителем, родившимся 17 октября 1933 года в Британском Гонконге. Он окончил AFIT в 1962 году магистром естественных наук и присоединился к НАСА в 1963 году. Он также входил в "Аполлон-8". Андерс вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders was a fighter pilot born on Oct 17, 1933 in British Hong Kong. He graduated from AFIT in 1962 with an M.S. and joined NASA in 1963. He was also part of Apollo 8. Anders retired on Sept 1, 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился в Британском Гонконге 17 октября 1933 года, работал в НАСА с 1963 года в составе экипажа "Аполлон-8" и ушел в отставку 1 сентября 1969 года. По окончании в 1962 году AFIT со степенью магистра естественных наук, Андерс служил пилотом истребителя.</lex>
+      <lex lang="en" lid="Id3">William Anders was born in British Hong Kong on October 17th, 1933 and after joing NASA in 1963 as part of the Apollo 8 crew, he retired on September 1st, 1969. Anders was a test pilot who in 1962 graduated with a M.S. from AFIT.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс родился в британском Гонконге 17 октября 1933 года. Он присоединился к NASA в 1963 году в составе экипажа "Аполлон-8" и ушел в отставку 1 сентября 1969 года. Андерс был летчиком-испытателем, который в 1962 году окончил AFIT со степенью M.S.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | nationality | United_States</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born on Oct 17, 1933 in British Hong Kong but is from the US. He graduated from AFIT in 1962 with an M.S. He was a fighter pilot and began working with NASA in 1963. Anders retired on Sept 1, 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс - гражданин США, который родился в Британском Гонконге 17 октября 1933 года. Он получил степень магистра естественных наук от своей альма-матер, AFIT. Он был пилотом истребителя, который присоединился к НАСА в 1963 году и вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders is a US national, who was born in British Hong Kong on October 17th, 1933. He received a M.S. from his alma Mater, AFIT. H was a fighter pilot who joined NASA in 1963 and retired on the 1st September, 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс был гражданином США и родился в Британском Гонконге 17 октября 1933 года. В 1962 году окончил AFIT со степенью магистра естественных наук и стал пилотом истребителя перед тем, как присоединился к НАСА в 1963 году. Он вышел на пенсию 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id3">William Anders was a US citizen who was born in British Hong Kong on 17 October 1933. He graduated from AFIT in 1962 with an MA and became a fighter pilot before joining NASA in 1963. He retired on 1 September 1969.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс был гражданином США, который родился в британском Гонконге 17 октября 1933 года. Он окончил AFIT в 1962 году со степенью М.А. и стал пилотом истребителя перед вступлением в НАСА в 1963 году. Он вышел на пенсию 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | nationality | United_States</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders was born in October 17th 1933 in British Hong Kong. William was chosen by NASA in 1963 as a figter pilot for the Apollo 8 crew. He later retired in 1969.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс был родился 17 октября 1933 года в Британском Гонконге. Уильям был выбран НАСА в 1963 году как летчик-истребитель для экипажа "Аполлона-8". Позднее он вышел в отставку в 1969 году.</lex>
+      <lex lang="en" lid="Id2">William Anders was a US National born in British Hong Kong in 1933. He was selected by NASA in 1963 where he crewed Apollo 8 as a Fighter pilot. He retired in 1969.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс был гражданином США, родившимся в британском Гонконге в 1933 году. Он был выбран НАСА в 1963 году, где он был членом экипажа на борту "Аполлона-8" в качестве летчика-истребителя. Он вышел в отставку в 1969 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | nationality | United_States</otriple>
+        <otriple>William_Anders | status | "Retired"@en</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | nationality | United_States</mtriple>
+        <mtriple>William_Anders | status | "Retired"</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders is from the US. He was born in British Hong Kong on October 17th, 1933. He was selected by NASA in 1963. He was a fighter pilot, who retired on September 1st 1969.</lex>
+      <lex lang="ru" lid="Id1">Американец Уильям Андерс родился 17 октября 1933 года в Британском Гонконге. Он присоединился к НАСА в 1963 году в качестве пилота истребителя и вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">American William Anders was born on October 17th, 1933 in British Hong Kong. He joined NASA in 1963 as a Fighter pilot and retired on September 1, 1969.</lex>
+      <lex lang="ru" lid="Id2">Вышедший в отставку Уильям Андерс, гражданин США, родился в Британском Гонконге 17.10.1933 года. Он был летчиком-истребителем и присоединился к НАСА в 1963 году. Уильям Андерс вышел в отставку 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id3">Retired William Anders, a US national, was born in British Hong Kong on 17/10/1933. He was a Fighter pilot and joined NASA in 1963. William Anders retired on the 1st of September 1969.</lex>
+      <lex lang="ru" lid="Id3">Отставной Уильям Андерс, гражданин США, родился в британском Гонконге 17 / 10 / 1933. Он был летчиком-истребителем и присоединился к NASA в 1963 году. Уильям Андерс вышел в отставку 1 сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>William_Anders | dateOfRet | "1969-09-01"^^xsd:date</otriple>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | status | "Retired"@en</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | dateOfRetirement | "1969-09-01"</mtriple>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | status | "Retired"</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders has retired. He was born 17 October 1933 in British Hong Kong and graduated from AFIT with an MS in 1962. He served as a fighter pilot and was selected by NASA in 1963.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс родился 17 октября 1933 года в Британском Гонконге. Окончил AFIT со степенью магистра естественных наук в 1963 году и был выбран НАСА в 1936 году в качестве пилота истребителя. Он вышел на пенсию 1 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id2">William Anders was born on the 17th of October 1933 in Brithish Hong Kong. He graduated, with a M.S., from AFIT in 1963 and was chosen by NASA in 1936 as a Fighter pilot. He retired on 1969-09-01.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс родился в Британском Гонконге 17 октября 1933 года. В 1962 году он окончил AFIT со степенью магистра естественных наук, а в 1963 году был выбран НАСА в качестве пилота истребителя, кем и работал до выхода на пенсию 9 сентября 1969 года.</lex>
+      <lex lang="en" lid="Id3">William Anders was born in British Hong Kong on the 17th of October 1933. He graduated with an M.S. from AFIT in 1962 and was selected by NASA in 1963 serving as a fighter pilot before his retirement on the 9th of september 1969.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс родился в британском Гонконге 17 октября 1933 года. Он окончил AFIT в 1962 году со степень магистра естественных наук и был выбран NASA в 1963 году в качестве пилота истребителя. Он вышел на пенсию 9-го сентября 1969 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,167 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">103 Colmore Row is located on Colmore Row, Birmingham, England. It was designed by the architect, John Madin, Who was born in Birmingham. It has 23 floors and was completed in 1976.</lex>
+      <lex comment="good" lid="Id2">103 Colmore Row, Birmingham, England was designed by the architect John Madin, who was born in the city. The building has 23 floors and construction was completed in 1976.</lex>
+      <lex comment="good" lid="Id3">103 Colmore Row, completed in 1976 with 23 floors, is located on Colmore Row in Birmingham, England. It was designed by architect John Madin, who was born in Birmingham.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | floorCount | 23</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+        <otriple>103_Colmore_Row | location | Colmore_Row</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+        <mtriple>103_Colmore_Row | location | Colmore_Row</mtriple>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Madin was the architect of the building located at 103 Colmore Row .The building was completed in 1976.</lex>
+      <lex comment="good" lid="Id2">Designed by, Birmingham born, architect, John Madin,103 Colmore Row was completed in 1976. It is located in Colmore Row and has 23 floors.</lex>
+      <lex comment="good" lid="Id3">Architect John Madin (born in Birmingham) designed 103 Colmore Row in 1976 (located at Colmore Row and boasts 23 floors).</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "1.2E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | "50"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | 50</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "1.2E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "A$120 million"@en</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | "50"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>108_St_Georges_Terrace | location | Perth</otriple>
+        <otriple>Perth | country | Australia</otriple>
+        <otriple>108_St_Georges_Terrace | completionDate | 1988</otriple>
+        <otriple>108_St_Georges_Terrace | cost | "A$120 million"@en</otriple>
+        <otriple>108_St_Georges_Terrace | floorCount | 50</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>108_St_Georges_Terrace | location | Perth</mtriple>
+        <mtriple>Perth | country | Australia</mtriple>
+        <mtriple>108_St_Georges_Terrace | completionDate | 1988</mtriple>
+        <mtriple>108_St_Georges_Terrace | cost | "120 million (Australian dollars)"</mtriple>
+        <mtriple>108_St_Georges_Terrace | floorCount | 50</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">108 St Georges Terrace in Perth, Australia, has 50 floors and was completed in 198 at a cost of 120 million Australian dollars.</lex>
+      <lex comment="good" lid="Id2">108 St. Georges Terrace, with 50 floors, is located in Perth, Australia, and was completed in 1988. Its construction cost 120 million Australian dollars.</lex>
+      <lex comment="good" lid="Id3">108 St Georges Terrace was completed in 1988 in Perth, Australia. It has a total of 50 floors and cost 120m Australian dollars.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | ethnicGroups | White_South_African</otriple>
+        <otriple>South_Africa | ethnicGroup | Coloured</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | leaderName | Cyril_Ramaphosa</mtriple>
+        <mtriple>South_Africa | ethnicGroup | White_South_African</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Coloured</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">South Africa's ethnic groups include White South Africans and the Coloured. Its leader is Cyril Ramaphosa and its capital is Cape Town. 11 Diagonal Street is located in this country.</lex>
+      <lex comment="good" lid="Id2">Two of the South African ethnic groups are the Coloured people and the White South Africans. The country, which has Cyril Ramaphosa as one of its leaders, is the location of 11 Diagonal Street and has the capital city of Cape Town.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | leader | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Jacob_Zuma</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>11_Diagonal_Street | location | South_Africa</otriple>
+        <otriple>South_Africa | capital | Cape_Town</otriple>
+        <otriple>South_Africa | leaderName | Cyril_Ramaphosa</otriple>
+        <otriple>South_Africa | leader | Jacob_Zuma</otriple>
+        <otriple>South_Africa | ethnicGroup | Asian_South_Africans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11_Diagonal_Street | location | South_Africa</mtriple>
+        <mtriple>South_Africa | capital | Cape_Town</mtriple>
+        <mtriple>South_Africa | leaderName | Cyril_Ramaphosa</mtriple>
+        <mtriple>South_Africa | leaderName | Jacob_Zuma</mtriple>
+        <mtriple>South_Africa | ethnicGroup | Asian_South_Africans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Cyril Ramaphosa and Jacob Zuma are South African leaders. The Asian South Africans are one of the ethnic groups in the country which has the capital city of Cape Town and is the location of 11 Diagonal Street.</lex>
+      <lex comment="good" lid="Id2">Cyril Ramaphosa and Jacob Zuma are leaders in South Africa where the capital city is Cape Town. One of the ethnic groups of the country are the Asian South Africans and the country is the location of 11 Diagonal Street.</lex>
+    </entry>
+    </entries>
+</benchmark>

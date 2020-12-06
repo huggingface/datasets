@@ -1,0 +1,156 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Japan | leader | Akihito</otriple>
+        <otriple>Akita,_Akita | subdivisionName | Akita_Prefecture</otriple>
+        <otriple>Japan | ethnicGroup | Brazilians_in_Japan</otriple>
+        <otriple>Akita,_Akita | country | Japan</otriple>
+        <otriple>Akita_Museum_of_Art | location | Akita,_Akita</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Japan | leader | Akihito</mtriple>
+        <mtriple>Akita,_Akita | isPartOf | Akita_Prefecture</mtriple>
+        <mtriple>Japan | ethnicGroup | Brazilians_in_Japan</mtriple>
+        <mtriple>Akita,_Akita | country | Japan</mtriple>
+        <mtriple>Akita_Museum_of_Art | location | Akita,_Akita</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Akita Museum of Art is located in Akita, Akita which is part of Akita Prefecture, Japan. The emperor of Japan is Akihito and one of the ethnic groups in the country is the Brazilians.</lex>
+      <lex lang="ru" lid="Id1">Музей искусств "Акита" расположен в городе Акита, который входит в префектуру Акита, Япония. Император Японии – Акихито, и одна из этнических групп в стране – бразильцы.</lex>
+      <lex lang="en" lid="Id2">The Akita Museum of Art is located in Akita, Akita Prefecture, Japan. The Emperor of Japan is Akihito and one of the country's ethnic groups are the Brazilians.</lex>
+      <lex lang="ru" lid="Id2">Музей искусств "Акита" расположен в Аките, префектура Акита, Япония. Император Японии –Акихито, и одна из этнических групп страны – бразильцы.</lex>
+      <lex lang="en" lid="Id3">The Akita Museum of Art is located in Akita, Akita which is part of Akita Prefecture, Japan. The leader of Japan is called Akihito and the Brazilians in Japan are an ethnic group found in the country.</lex>
+      <lex lang="ru" lid="Id3">Музей искусств "Акита" расположен в городе Акита, который входит в префектуру Акита, Япония. Лидер Японии – Акихито, а диаспора бразильцев в Японии – одна из этнических групп, которые можно найти в стране.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Akita,_Akita | sameAs | Акита_(город)</dbpedialink>
+        <dbpedialink direction="en2ru">Japan | sameAs | Япония</dbpedialink>
+        <dbpedialink direction="en2ru">Akihito | sameAs | Акихито</dbpedialink>
+        <dbpedialink direction="en2ru">Akita_Prefecture | sameAs | Акита_(префектура)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Brazilians in Japan | sameAs | диаспора бразильцев в Японии</link>
+        <link direction="en2ru">Akita Museum of Art | sameAs | Музей искусств Акита</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>London | leaderTitle | Parliament_of_the_United_Kingdom</otriple>
+        <otriple>20_Fenchurch_Street | location | United_Kingdom</otriple>
+        <otriple>United_Kingdom | capital | London</otriple>
+        <otriple>London | leaderName | Boris_Johnson</otriple>
+        <otriple>United_Kingdom | currency | Pound_sterling</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>London | leaderTitle | Parliament_of_the_United_Kingdom</mtriple>
+        <mtriple>20_Fenchurch_Street | location | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | capital | London</mtriple>
+        <mtriple>London | leader | Boris_Johnson</mtriple>
+        <mtriple>United_Kingdom | currency | Pound_sterling</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Parliament of the United Kingdom, along with Boris Johnson are leaders in London, the capital of the United Kingdom. The UK used the pound sterling as currency and is the location of 20 Fenchurch Street.</lex>
+      <lex lang="ru" lid="Id1">Парламент Великобритании вместе с Борисом Джонсоном являются лидерами в Лондоне, столице Великобритании. Великобритания использует фунт стерлингов в качестве валюты и является местом расположения Фенчёрч-стрит 20.</lex>
+      <lex lang="en" lid="Id2">20 Fenchurch Street is located within the United Kingdom, the capital of which is London (leader Boris Johnson). The currency of the UK is the Pound Sterling and the Parliament of the United Kingdom is the leader of London.</lex>
+      <lex lang="ru" lid="Id2">Фенчёрч-стрит 20 расположена в Великобритании, столицей которого является Лондон (лидер Борис Джонсон). Валютой Великобритании является фунт стерлингов и парламент Соединенного Королевства - лидер Лондона.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">London | sameAs | Лондон</dbpedialink>
+        <dbpedialink direction="en2ru">Pound_sterling | sameAs | Фунт_стерлингов</dbpedialink>
+        <dbpedialink direction="en2ru">Parliament_of_the_United_Kingdom | sameAs | Парламент_Великобритании</dbpedialink>
+        <dbpedialink direction="en2ru">United_Kingdom | sameAs | Великобритания</dbpedialink>
+        <dbpedialink direction="en2ru">Boris_Johnson | sameAs | Джонсон,_Борис</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">20 Fenchurch Street | sameAs | Фенчёрч-стрит 20</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>London | leaderTitle | Parliament_of_the_United_Kingdom</otriple>
+        <otriple>20_Fenchurch_Street | location | United_Kingdom</otriple>
+        <otriple>United_Kingdom | capital | London</otriple>
+        <otriple>London | leaderName | Boris_Johnson</otriple>
+        <otriple>United_Kingdom | leader | Elizabeth_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>London | leaderTitle | Parliament_of_the_United_Kingdom</mtriple>
+        <mtriple>20_Fenchurch_Street | location | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | capital | London</mtriple>
+        <mtriple>London | leader | Boris_Johnson</mtriple>
+        <mtriple>United_Kingdom | leader | Elizabeth_II</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Elizabeth II is a leader of the United Kingdom and Boris Johnson is a leader in the capital city of London along with the Parliament of the United Kingdom. The country is the location of 20 Fenchurch Street.</lex>
+      <lex lang="ru" lid="Id1">Елизавета II - лидер Великобритании, а Борис Джонсон - лидер в городе-столице Лондоне вместе с парламентом Великобритании. В стране находится Фенчёрч-стрит 20.</lex>
+      <lex lang="en" lid="Id2">London, the capital of the UK, is led by the Parliament of the United Kingdom along with Boris Johnson. Elizabeth II is leader of the United Kingdom which is the location of 20 Fenchurch Street.</lex>
+      <lex lang="ru" lid="Id2">Лондоном, столицей Великобритании,управляет парламент Великобритании вместе с Борисом Джонсоном. Елизавета II - лидер Великобритании, которая является местом расположения Фенчёрч-стрит 20.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">London | sameAs | Лондон</dbpedialink>
+        <dbpedialink direction="en2ru">Parliament_of_the_United_Kingdom | sameAs | Парламент_Великобритании</dbpedialink>
+        <dbpedialink direction="en2ru">United_Kingdom | sameAs | Великобритания</dbpedialink>
+        <dbpedialink direction="en2ru">Elizabeth_II | sameAs | Елизавета_II</dbpedialink>
+        <dbpedialink direction="en2ru">Boris_Johnson | sameAs | Джонсон,_Борис</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">20 Fenchurch Street | sameAs | Фенчёрч-стрит 20</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>London | leaderTitle | Parliament_of_the_United_Kingdom</otriple>
+        <otriple>20_Fenchurch_Street | location | United_Kingdom</otriple>
+        <otriple>United_Kingdom | capital | London</otriple>
+        <otriple>United_Kingdom | demonym | British_people</otriple>
+        <otriple>London | leaderName | Boris_Johnson</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>London | leaderTitle | Parliament_of_the_United_Kingdom</mtriple>
+        <mtriple>20_Fenchurch_Street | location | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | capital | London</mtriple>
+        <mtriple>United_Kingdom | demonym | British_people</mtriple>
+        <mtriple>London | leader | Boris_Johnson</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The government of the UK is the Parliament and its capital is London. London's leader is Boris Johnson. 20 Fenchurch Street is located in the UK. The demonym for natives of the UK is the British people.</lex>
+      <lex lang="ru" lid="Id1">Правительство Великобритании - это парламент, и её столица - Лондон. Лидером Лондона является Борис Джонсон. Фенчёрч-стрит 20 находится в Великобритании. Демоним для коренных жителей Великобритании - британцы.</lex>
+      <lex lang="en" lid="Id2">20 Fenchurch Street is located in the United Kingdom, the capital of which is London. The leader of London is called Boris Johnson, the Parliament of the United Kingdom is also the leader of the city. Natives of the UK are called British people.</lex>
+      <lex lang="ru" lid="Id2">Фенчёрч-стрит 20 расположено в Великобритании, столицей которого является Лондон. Лидером Лондона называют Бориса Джонсона, парламент Великобритании также управляет городом. Коренные жители Великобритании называются британцами.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">London | sameAs | Лондон</dbpedialink>
+        <dbpedialink direction="en2ru">Parliament_of_the_United_Kingdom | sameAs | Парламент_Великобритании</dbpedialink>
+        <dbpedialink direction="en2ru">United_Kingdom | sameAs | Великобритания</dbpedialink>
+        <dbpedialink direction="en2ru">Boris_Johnson | sameAs | Джонсон,_Борис</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">20 Fenchurch Street | sameAs | Фенчёрч-стрит 20</link>
+        <link direction="en2ru">British people | sameAs | британцы</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X) (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>London | leaderTitle | Parliament_of_the_United_Kingdom</otriple>
+        <otriple>20_Fenchurch_Street | location | United_Kingdom</otriple>
+        <otriple>United_Kingdom | capital | London</otriple>
+        <otriple>United_Kingdom | demonym | British_people</otriple>
+        <otriple>United_Kingdom | leaderName | Elizabeth_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>London | leaderTitle | Parliament_of_the_United_Kingdom</mtriple>
+        <mtriple>20_Fenchurch_Street | location | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | capital | London</mtriple>
+        <mtriple>United_Kingdom | demonym | British_people</mtriple>
+        <mtriple>United_Kingdom | leader | Elizabeth_II</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Natives of the United kingdom are called British people, their leader is Elizabeth II and 20 Fenchurch Street is located there. The capital is London and their leader is the Parliament of the United Kingdom.</lex>
+      <lex lang="ru" lid="Id1">Коренными жителями Великобритании называют британцев, их лидером являются Елизавета II и здесь находится Фенчёрч-стрит 20. Столица - Лондон, а их лидером является парламент Великобритании.</lex>
+      <lex lang="en" lid="Id2">The native people of the United Kingdom are led by Elizabeth II and are known as British. The Parliament of the UK is the leader of London, the capital city, and the country is the location of 20 Fenchurch Street.</lex>
+      <lex lang="ru" lid="Id2">Коренные жители Великобритании возглавляются Елизаветой II и известны как англичане. Парламент Великобритании является лидером Лондона, столицы страны, а в стране расположено здание Фенчёрч-стрит 20.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">London | sameAs | Лондон</dbpedialink>
+        <dbpedialink direction="en2ru">Parliament_of_the_United_Kingdom | sameAs | Парламент_Великобритании</dbpedialink>
+        <dbpedialink direction="en2ru">United_Kingdom | sameAs | Великобритания</dbpedialink>
+        <dbpedialink direction="en2ru">Elizabeth_II | sameAs | Елизавета_II</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">20 Fenchurch Street | sameAs | Фенчёрч-стрит 20</link>
+        <link direction="en2ru">British people | sameAs | британцы</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

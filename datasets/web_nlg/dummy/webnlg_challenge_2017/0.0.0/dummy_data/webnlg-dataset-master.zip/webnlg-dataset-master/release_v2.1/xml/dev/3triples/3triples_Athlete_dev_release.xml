@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | height | "1.905"^^xsd:double</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Regina,_Saskatchewan</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | height | 1.905</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Regina,_Saskatchewan</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard was born in Regina, Saskatchewan and plays for Wichita Thunder. He is 1.905 m high.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard's birthplace is Regina, Saskatchewan and he is 1.905m high. He played for the club Wichita Thunder.</lex>
+      <lex comment="good" lid="Id3">Aaron Boogaard, who plays for Wichita Thunder, is 1.905 tall and was born in Regina, Saskatchewan.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Hunt | team | VfL_Wolfsburg</otriple>
+        <otriple>Aaron_Hunt | clubs | SV_Werder_Bremen_II</otriple>
+        <otriple>Aaron_Hunt | youthclubs | Goslarer_SC_08</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Hunt | club | VfL_Wolfsburg</mtriple>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen_II</mtriple>
+        <mtriple>Aaron_Hunt | youthclub | Goslarer_SC_08</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Hunt's youth club was Goslarer SC 08, his club is VfL Wolfsburg and he plays for SV Werder Bremen II.</lex>
+      <lex comment="good" lid="Id2">Aaron Hunt, who plays for Vfl Wolfsburg, used to play for both, the Goslarer SC 08 youth team and SV Werder Bremen II.</lex>
+      <lex comment="good" lid="Id3">Aaron Hunt, whose club is VfL Wolfsburg, used to play for, the Goslarer SC 08 youth team and SV Werder Bremen II.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Hunt | team | VfL_Wolfsburg</otriple>
+        <otriple>Aaron_Hunt | youthclubs | Goslarer_SC_08</otriple>
+        <otriple>Aaron_Hunt | clubs | SV_Werder_Bremen</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Hunt | club | VfL_Wolfsburg</mtriple>
+        <mtriple>Aaron_Hunt | youthclub | Goslarer_SC_08</mtriple>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Hunt plays for Vfl Wolfsburg and SV Werder Bremen. He was a member of the Goslarer SC 08 youth team.</lex>
+      <lex comment="good" lid="Id2">Aaron Hunt represented the club Goslarer SC 08 at youth level and has since played for both SV Werder Bremen and Vfl Wolfsburg.</lex>
+      <lex comment="good" lid="Id3">Aaron Hunt's club is VfL Wolfsburg but he previously played for both SV Werder Bremen and Goslarer SC 08 youth team.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Central_Español</otriple>
+        <otriple>Abel_Hernández | team | U.S._Città_di_Palermo</otriple>
+        <otriple>Abel_Hernández | clubs | Peñarol</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Central_Español</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+        <otriple>Abel_Hernández | team | Peñarol</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | youthclub | Central_Español</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+        <mtriple>Abel_Hernández | club | Peñarol</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez played youth football for Central Espanol. He has since been associated with clubs US Citta di Palermo and Penarol.</lex>
+      <lex comment="good" lid="Id2">Abel Hernández played football at youth level for Central Español. At senior level he has played for US Citta di Palermo and Penarol.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández plays football for U.S. Città di Palermo, having previously played for Penarol and at youth level for Central Español.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Ahmad_Kadhim_Assad | team | Iraq_national_football_team</otriple>
+        <otriple>Esteghlal_Ahvaz_F.C. | manager | Adnan_Hamad</otriple>
+        <otriple>Ahmad_Kadhim_Assad | clubs | Esteghlal_Ahvaz_F.C.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ahmad_Kadhim_Assad | club | Iraq_national_football_team</mtriple>
+        <mtriple>Esteghlal_Ahvaz_F.C. | manager | Adnan_Hamad</mtriple>
+        <mtriple>Ahmad_Kadhim_Assad | club | Esteghlal_Ahvaz_F.C.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ahmad Kadhim Assad, who formerly played for Esteghlal Ahvaz FC, plays for the Iraq national football team which is managed by Adnan Hamad.</lex>
+      <lex comment="good" lid="Id2">Ahmad Kadhim Assad is part of the Esteghlal Ahvaz F.C. in the Iraq national football team. Esteghlal Ahvaz F.C. manages Adnan Hamad.</lex>
+      <lex comment="good" lid="Id3">Iraqi national football team player, Ahmad Kadhim Assad played for Esteghlal Ahvaz F.C., the manager of which, is Adnan Hamad.</lex>
+    </entry>
+    </entries>
+</benchmark>

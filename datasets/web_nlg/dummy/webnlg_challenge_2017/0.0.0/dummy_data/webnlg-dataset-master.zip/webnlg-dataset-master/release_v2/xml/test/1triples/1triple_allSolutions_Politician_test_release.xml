@@ -1,0 +1,53 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ab_Klink | placeOfBirth | "Stellendam, Netherlands"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | birthPlace | "Stellendam, Netherlands"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Stellendam, Netherlands is the birthplace of Ab Klink.</lex>
+      <lex comment="good" lid="Id2">Ab Klink was born in Stellendam, Netherlands.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | party | "Parti Bumiputera Sarawak"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | party | "Parti Bumiputera Sarawak"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud belongs to the party of Parti Bumiputera Sarawak.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud is a member of the Parti Bumiputera Sarawak Party.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | activeYearsEndDate | "1999-05-29"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | activeYearsEndDate | 1999-05-29</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar ended his career on 1999-05-29.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Minna</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | birthPlace | Minna</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar was born in Minna.</lex>
+      <lex comment="good" lid="Id2">Minna was the birthplace of Abdulsalami Abubakar.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | birthPlace | Niger_State</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | birthPlace | Niger_State</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar's birthplace was Niger State.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar was born in Niger State.</lex>
+    </entry>
+    </entries>
+</benchmark>

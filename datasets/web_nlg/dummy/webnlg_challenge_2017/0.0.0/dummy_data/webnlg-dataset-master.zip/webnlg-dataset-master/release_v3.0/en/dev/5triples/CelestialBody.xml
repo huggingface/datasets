@@ -1,0 +1,154 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | escapeVelocity | "359.64"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | formerName | "1999 SN5"@en</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+        <otriple>(66063)_1998_RO1 | epoch | "2013-11-04"^^xsd:date</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | formerName | "1999 SN5"@en</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+        <otriple>(66063)_1998_RO1 | epoch | "2013-11-04"^^xsd:date</otriple>
+        <otriple>(66063)_1998_RO1 | escapeVelocity | "0.0999"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+        <otriple>(66063)_1998_RO1 | escapeVelocity | "359.64"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | formerName | "1999 SN5"@en</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+        <otriple>(66063)_1998_RO1 | formerName | "1999 SN5"@en</otriple>
+        <otriple>(66063)_1998_RO1 | orbitalPeriod | 3.11291e+07</otriple>
+        <otriple>(66063)_1998_RO1 | escapeVelocity | "0.0999"^^xsd:double</otriple>
+        <otriple>(66063)_1998_RO1 | Planet/apoapsis | "2.5498957060815E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66063)_1998_RO1 | epoch | 2013-11-04</mtriple>
+        <mtriple>(66063)_1998_RO1 | escapeVelocity | 0.0999 (kilometrePerSeconds)</mtriple>
+        <mtriple>(66063)_1998_RO1 | formerName | "1999 SN5"</mtriple>
+        <mtriple>(66063)_1998_RO1 | orbitalPeriod | 360.29 (days)</mtriple>
+        <mtriple>(66063)_1998_RO1 | apoapsis | 254989570.60815 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The celestial body known as (66063) 1998 RO1, which has the epoch date 13 January 2016, was formerly called 1999 SN5 and has an orbital period of 360.29 days. Its apoapsis measurement is 254989570.60815 kms and the escape velocity is 0.0999 km per sec.</lex>
+      <lex comment="good" lid="Id2">The asteroid (66063) 1998 RO1, formerly known as 1999 SN5, has an orbital period of 360.29 days, an apoapsis of 254989570.60815 km, and an escape velocity of 0.0999 km/sec. The epoch of (66063) 1998 RO1 is on the 13th of January 2016.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | epoch | "July 14, 2004 (JD2453200.5)"</otriple>
+        <otriple>(66391)_1999_KW4 | escapeVelocity | "0.0"^^xsd:double</otriple>
+        <otriple>(66391)_1999_KW4 | orbitalPeriod | 1.62447e+07</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | density | "2000.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | epoch | "July 14, 2004 (JD2453200.5)"</otriple>
+        <otriple>(66391)_1999_KW4 | escapeVelocity | "0.0"^^xsd:double</otriple>
+        <otriple>(66391)_1999_KW4 | orbitalPeriod | 1.62447e+07</otriple>
+        <otriple>(66391)_1999_KW4 | density | "2.0"^^&lt;http://dbpedia.org/datatype/gramPerCubicCentimetre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | escapeVelocity | "0.0"^^xsd:double</otriple>
+        <otriple>(66391)_1999_KW4 | orbitalPeriod | 1.62447e+07</otriple>
+        <otriple>(66391)_1999_KW4 | epoch | "2004-07-14"^^xsd:date</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | density | "2000.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | epoch | "July 14, 2004 (JD2453200.5)"</otriple>
+        <otriple>(66391)_1999_KW4 | orbitalPeriod | 1.62447e+07</otriple>
+        <otriple>(66391)_1999_KW4 | escapeVelocity | 0</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | density | "2000.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | escapeVelocity | "0.0"^^xsd:double</otriple>
+        <otriple>(66391)_1999_KW4 | orbitalPeriod | 1.62447e+07</otriple>
+        <otriple>(66391)_1999_KW4 | epoch | "2004-07-14"^^xsd:date</otriple>
+        <otriple>(66391)_1999_KW4 | density | "2.0"^^&lt;http://dbpedia.org/datatype/gramPerCubicCentimetre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | epoch | "July 14, 2004 (JD2453200.5)"</otriple>
+        <otriple>(66391)_1999_KW4 | orbitalPeriod | 1.62447e+07</otriple>
+        <otriple>(66391)_1999_KW4 | density | "2.0"^^&lt;http://dbpedia.org/datatype/gramPerCubicCentimetre&gt;</otriple>
+        <otriple>(66391)_1999_KW4 | escapeVelocity | 0</otriple>
+        <otriple>(66391)_1999_KW4 | Planet/apoapsis | "1.621640918388E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66391)_1999_KW4 | epoch | 2004-07-14</mtriple>
+        <mtriple>(66391)_1999_KW4 | escapeVelocity | 0</mtriple>
+        <mtriple>(66391)_1999_KW4 | orbitalPeriod | 16244700.0</mtriple>
+        <mtriple>(66391)_1999_KW4 | apoapsis | 162164091.8388 (kilometres)</mtriple>
+        <mtriple>(66391)_1999_KW4 | density | 2.0 (gramPerCubicCentimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The celestial body known as (66391) 1999 KW4 has an epoch date of 14 July 2004 and an escape velocity of zero. It has a density of 2 gms per cu cm, an orbital period of 16244700 and an apoapsis of 162164091.8388 km.</lex>
+      <lex comment="good" lid="Id2">The celestial body known as (66391) 1999 KW4 has an orbital period of 16244700 and an escape velocity of 0. It has a density of 2.0 grams per cubic centimetre and an apoapsis of 162164091.8388 kilometres. Its epoch date is July 14th 2004.</lex>
+      <lex comment="good" lid="Id3">The asteroid called (66391) 1999 KW4, which has the epoch date 14 July 2004, has an orbital period of 16244700.0 and an escape velocity of zero. Its density is 2.0 gm per cu cm and the apoapsis measurement is 162164091.8388 kms.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>101_Helena | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | education | University_of_Michigan</otriple>
+        <otriple>101_Helena | discovered | "1868-08-15"^^xsd:date</otriple>
+        <otriple>James_Craig_Watson | nationality | Canada</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>101_Helena | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | almaMater | University_of_Michigan</mtriple>
+        <mtriple>101_Helena | discovered | 1868-08-15</mtriple>
+        <mtriple>James_Craig_Watson | nationality | Canada</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">James Craig Watson, who discovered 101 Helena on 15th August 1868, is a Canadian national who attended the University of Michigan. He died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id2">101 Helena was discovered by the Canadian James Craig Watson on August 15th 1868. Mr Watson, who studied at the University of Michigan, died in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id3">Canadian James Craig Watson discovered 101 Helena on August 15th, 1868. He attended the University of Michigan and died in Madison, Wisconsin.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>101_Helena | discoverer | James_Craig_Watson</otriple>
+        <otriple>James_Craig_Watson | education | University_of_Michigan</otriple>
+        <otriple>James_Craig_Watson | nationality | Canada</otriple>
+        <otriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</otriple>
+        <otriple>James_Craig_Watson | deathCause | Peritonitis</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>101_Helena | discoverer | James_Craig_Watson</mtriple>
+        <mtriple>James_Craig_Watson | almaMater | University_of_Michigan</mtriple>
+        <mtriple>James_Craig_Watson | nationality | Canada</mtriple>
+        <mtriple>James_Craig_Watson | deathPlace | Madison,_Wisconsin</mtriple>
+        <mtriple>James_Craig_Watson | deathCause | Peritonitis</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">101 Helena was discovered by James Craig Watson, a Canadian, whose Alma mater is the University of Michigan. He died of peritonitis in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id2">101 Helena was discovered by Canadian, James Craig Watson, whose Alma mater was the University of Michigan, and who died from peritonitis, in Madison, Wisconsin.</lex>
+      <lex comment="good" lid="Id3">Canadian James Craig Watson discovered 101 Helena. Watson's alma mater was the University of Michigan and he died in Madison, Wisconsin of peritonitis.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1036_Ganymed | discoverer | Walter_Baade</otriple>
+        <otriple>Walter_Baade | birthPlace | German_Empire</otriple>
+        <otriple>Walter_Baade | deathPlace | West_Germany</otriple>
+        <otriple>Walter_Baade | almaMater | University_of_Göttingen</otriple>
+        <otriple>Walter_Baade | doctoralStudent | Allan_Sandage</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1036_Ganymed | discoverer | Walter_Baade</mtriple>
+        <mtriple>Walter_Baade | birthPlace | German_Empire</mtriple>
+        <mtriple>Walter_Baade | deathPlace | West_Germany</mtriple>
+        <mtriple>Walter_Baade | almaMater | University_of_Göttingen</mtriple>
+        <mtriple>Walter_Baade | doctoralStudent | Allan_Sandage</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Walter Baade was born in the German Empire, died in West Germany and discovered 1036 Ganymed. His Alma mater was the University of Gottingen and Allan Sandage was his doctoral student.</lex>
+      <lex comment="good" lid="Id2">Walter Baade, who discovered 1036 Ganymed, was born in the German Empire and died in West Germany. He graduated from the University of Gottingen and one of his doctoral students was Allan Sandage.</lex>
+      <lex comment="good" lid="Id3">Walter Baade, who was born in the German empire and died in West Germany, discovered 1036 Ganymed. Baade's alma mater was the University of Gottingen and one of his doctoral students was Allan Sandage.</lex>
+    </entry>
+    </entries>
+</benchmark>

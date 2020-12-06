@@ -1,0 +1,95 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Rostock</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | builder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Rostock</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | shipBuilder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDA_Cruises | location | Rostock</mtriple>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+        <mtriple>AIDAstella | builder | Meyer_Werft</mtriple>
+        <mtriple>AIDAstella | owner | Costa_Crociere</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ship AIDAstella is operated by Rostock based AIDA Cruises. It was built by Meyer Werft and is owned by Costa Crociere.</lex>
+      <lex comment="good" lid="Id2">Located at Rostock, AIDA Cruises operate AIDAstella ship which was built by Meyer Werft and owned by Costa Crociere.</lex>
+      <lex comment="good" lid="Id3">The AIDAstella was built by Meyer Werft . It is owned by Costa Crociere and operated by AIDA Cruise Line based in Rostock.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | builddate | "May 1950 &amp;ndash; August 1956"@en</otriple>
+        <otriple>ALCO_RS-3 | enginetype | V12_engine</otriple>
+        <otriple>ALCO_RS-3 | powertype | Diesel-electric_transmission</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | buildDate | "May 1950 - August 1956"</mtriple>
+        <mtriple>ALCO_RS-3 | engine | V12_engine</mtriple>
+        <mtriple>ALCO_RS-3 | powerType | Diesel-electric_transmission</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALCO RS-3 was produced and built by the American Locomotive Company between May 1950 and August 1956. It has a V12 engine and a diesel-electric transmission.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3, built by the American Locomotive Company, has a diesel-electric, V12 engine and was produced from May 1950 to August 1956.</lex>
+      <lex comment="good" lid="Id3">The American Locomotive Company produced the ALCO RS-3 between May 1950 and August 1956. It has a V12 engine and a diesel-electric transmission.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>American_Locomotive_Company | locationCountry | United_States</otriple>
+        <otriple>American_Locomotive_Company | foundationPlace | Schenectady,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+        <mtriple>American_Locomotive_Company | locationCountry | United_States</mtriple>
+        <mtriple>American_Locomotive_Company | foundationPlace | Schenectady,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The American Locomotive Co. was founded in Schenectady, New York and is located in the US. It built the ALCO RS-3 which is 17068.8 mms in length.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 was made in the U.S. in Schenectady, N.Y. by the American Locomotive Co. The ALCO RS-3 is 17068.8 millimetres long.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3 whose length is 17068.8mm, was built by the American Locomotive Company in Schenectady, New York, US.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</otriple>
+        <otriple>ALCO_RS-3 | builddate | "May 1950 &amp;ndash; August 1956"@en</otriple>
+        <otriple>ALCO_RS-3 | enginetype | V12_engine</otriple>
+        <otriple>ALCO_RS-3 | powertype | Diesel-electric_transmission</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</mtriple>
+        <mtriple>ALCO_RS-3 | buildDate | "May 1950 - August 1956"</mtriple>
+        <mtriple>ALCO_RS-3 | engine | V12_engine</mtriple>
+        <mtriple>ALCO_RS-3 | powerType | Diesel-electric_transmission</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Montreal Locomotive Works built the ALCO RS-3 between May 1950 and Aug. 1956. It has a V12 engine and Diesel-Electric transmission.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 was built by the Montreal Locomotive Works and produced between May 1950 and August 1956. It has a V12 engine and a diesel-electric transmission.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3 which was produced between May 1950 and August 1956, was built by the Montreal Locomotive Works. It has a diesel-electric transmission and a V12 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</otriple>
+        <otriple>ALCO_RS-3 | cylindercount | 12</otriple>
+        <otriple>ALCO_RS-3 | builddate | "May 1950 &amp;ndash; August 1956"@en</otriple>
+        <otriple>ALCO_RS-3 | enginetype | Four-stroke_engine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | Montreal_Locomotive_Works</mtriple>
+        <mtriple>ALCO_RS-3 | cylinderCount | 12</mtriple>
+        <mtriple>ALCO_RS-3 | buildDate | "May 1950 - August 1956"</mtriple>
+        <mtriple>ALCO_RS-3 | engine | Four-stroke_engine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALCO RS-3 has 12 cylinders and a four-stroke engine. It was produced by the Montreal Locomotive Works between May 1950 and August 1956.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 was built by the Montreal Locomotive Works and produced between May 1950 and August 1956. It has 12 cylinders and a four-stroke engine.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3 has 12 cylinders and a four-stroke engine. It was built between May 1950 and August 1956 by Montreal Locomotive Works.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,69 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 230</otriple>
+        <otriple>1955_Dodge | bodyStyle | Convertible</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | 230 (cubic inches)</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Convertible</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge is a convertible with a 230 cubic inch engine.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge convertible's engine size is 230 cubic inches.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge is a convertible and has a 230 cubic inch engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 230</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | 230 (cubic inches)</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a hardtop and it engine is 230 cubic inches.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge, has an engine size of 230 cubic inches and a hardtop.</lex>
+      <lex comment="good" lid="Id3">The engine size in the 1955 Dodge is 230 cubic inches and the vehicle has a hardtop.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 230</otriple>
+        <otriple>1955_Dodge | bodyStyle | Station_wagon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | 230 (cubic inches)</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Station_wagon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge, has a station wagon style body and an engine that is, 230 cubic inches.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge station wagon has an engine that is 230 cubic inches.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge has an engine size of 230 cubic inches and a station wagon style body.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | "V8"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Station_wagon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | AMC_V8_engine</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Station_wagon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge is station wagon with an AMC V8 engine.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge has an AMC V8 engine and a station wagon style body.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge has an AMC V8 engine and is a station wagon.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__1</otriple>
+        <otriple>1955_Dodge | bodyStyle | Station_wagon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | Straight-six_engine</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Station_wagon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a straight six engine and a station wagon style body.</lex>
+      <lex comment="good" lid="Id2">The Dodge 1955 has a straight-six engine and a station wagon style body.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge has a station wagon style body and a straight-six engine.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,154 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+        <otriple>Denmark | leaderName | Margrethe_II_of_Denmark</otriple>
+        <otriple>Denmark | language | Faroese_language</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+        <otriple>Denmark | leader | Margrethe_II_of_Denmark</otriple>
+        <otriple>Denmark | language | Faroese_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+        <mtriple>Denmark | leaderName | Margrethe_II_of_Denmark</mtriple>
+        <mtriple>Denmark | language | Faroese_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The location of Aarhus Airport is Tirstrup, part of the Central Denmark region, in Denmark. Where the leader is Margrethe II of Denmark and where the language is Faroese.</lex>
+      <lex comment="good" lid="Id2">Margrethe II is the leader of Denmark where the Faroese language is spoken. The country is the location of Aarhus airport in Tirstrup, part of the Central Denmark region.</lex>
+      <lex comment="good" lid="Id3">Margrethe II of Denmark is the leader of Denmark where the Faroese language is spoken. Aarhus airport is located in Tirstrup, part of the Central Denmark region.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "2193.95"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | elevation | "545.897"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | icaoLocationIdentifier | "KABI"</otriple>
+        <otriple>Abilene_Regional_Airport | runwayDesignation | "17L/35R"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "2193.95"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | elevation | "546.0"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | icaoLocationIdentifier | "KABI"</otriple>
+        <otriple>Abilene_Regional_Airport | runwayDesignation | "17L/35R"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "2194.0"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | elevation | "545.897"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | icaoLocationIdentifier | "KABI"</otriple>
+        <otriple>Abilene_Regional_Airport | runwayDesignation | "17L/35R"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+        <mtriple>Abilene_Regional_Airport | runwayLength | 2194.0</mtriple>
+        <mtriple>Abilene_Regional_Airport | elevationAboveTheSeaLevel_(in_metres) | 546</mtriple>
+        <mtriple>Abilene_Regional_Airport | ICAO_Location_Identifier | "KABI"</mtriple>
+        <mtriple>Abilene_Regional_Airport | runwayName | "17L/35R"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene, Texas is served by Abilene regional airport which is 546 metres above sea level and has the ICAO location identifier of KABI. It has the runway name of 17L/35R with a length of 2194.0.</lex>
+      <lex comment="good" lid="Id2">Abilene Regional airport, whichis 546 metres above sea level, has the ICAO location identifier of KABI and serves the city of Abilene, Texas. It has the runway named 17L/35R which is 2194.0 in length.</lex>
+      <lex comment="good" lid="Id3">Runway 17L/35R at Abilene Regional Airport in Texas has a length of 2194 and is 546m above sea level. It has the identifier of KABI.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "4100.0"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevation | "610.0"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | operator | ENAIRE</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "14L/32R"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "4099.86"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevation | "609.6"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | operator | ENAIRE</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "14L/32R"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 4100.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevationAboveTheSeaLevel_(in_metres) | 610.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | operatingOrganisation | ENAIRE</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayName | "14L/32R"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suarez Madrid-Barajas Airport, operated by ENAIRE, is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas. It is located 610 metres above sea level and has a runway name of 14L/32R which is 4100.0 in length.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas Airport is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas at an elevation of 610.0 metres above sea level. It is operated by ENAIRE and has a runway name of 14L/36R with a length of 4100.0.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suarez Madrid-Barajas Airport, which is operated by ENAIRE, is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas. The airport is 610 metres above sea level, and has a runway length of 4,100 which is named 14L/32R.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | runwayLength | "1817.83"^^xsd:double</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | elevation | "167.945"^^xsd:double</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | runwayLength | "1818.0"^^xsd:double</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | elevation | "167.945"^^xsd:double</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | runwayLength | "1817.83"^^xsd:double</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | elevation | "167.945"^^xsd:double</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | runwayLength | "1818.0"^^xsd:double</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | elevation | "167.945"^^xsd:double</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | runwayLength | "1817.83"^^xsd:double</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | elevation | "167.94"^^xsd:double</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | India</mtriple>
+        <mtriple>Agra_Airport | runwayLength | 1818.0</mtriple>
+        <mtriple>Agra_Airport | operatingOrganisation | Indian_Air_Force</mtriple>
+        <mtriple>Agra_Airport | elevationAboveTheSeaLevel_(in_metres) | 167.94</mtriple>
+        <mtriple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The runway length at Agra airport in India is 1818 and the ICAO location identifier is VIAG. The airport is operated by the Indian Air Force and is 167.94 metres above sea level.</lex>
+      <lex comment="good" lid="Id2">Agra airport has the ICAO location identifier of VIAG and it has a runway length of 1818. It is located in India at 167.94 metres above sea level and is operated by the Indian air force.</lex>
+      <lex comment="good" lid="Id3">Agra Airport, in India, is operated by the Indian Air Force. The airport's ICAO Location Identifier is VIAG and it is elevated 167.94 meters above sea level. This airport has a runway which measures 1818.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Al_Asad_Airbase | operator | United_States_Air_Force</otriple>
+        <otriple>Al_Asad_Airbase | location | Iraq</otriple>
+        <otriple>Al_Asad_Airbase | runwayLength | "3990.0"^^xsd:double</otriple>
+        <otriple>Al_Asad_Airbase | icaoLocationIdentifier | "ORAA"</otriple>
+        <otriple>Al_Asad_Airbase | runwayDesignation | "08/26"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</mtriple>
+        <mtriple>Al_Asad_Airbase | location | Iraq</mtriple>
+        <mtriple>Al_Asad_Airbase | runwayLength | 3990.0</mtriple>
+        <mtriple>Al_Asad_Airbase | ICAO_Location_Identifier | "ORAA"</mtriple>
+        <mtriple>Al_Asad_Airbase | runwayName | "08/26"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Al Asad airbase is in Iraq and is operated by the United States Air Force. the ICAO location identifier is ORAA and the runway, which is called 08/26 has a length of 3990.</lex>
+      <lex comment="good" lid="Id2">The United States Air Force operates an Airbase in Iraq called Al Asad Airbase. Its ICAO location ID is ORAA. Its runway "08/26" is 3990.0 in length.</lex>
+    </entry>
+    </entries>
+</benchmark>

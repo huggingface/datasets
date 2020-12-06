@@ -1,0 +1,49 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="5">
+			<originaltripleset>
+				<otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+				<otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+				<otriple>Abilene_Regional_Airport | runwayLength | "2193.95"^^xsd:double</otriple>
+				<otriple>Abilene,_Texas | country | United_States</otriple>
+				<otriple>Abilene,_Texas | subdivisionName | Jones_County,_Texas</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+				<mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+				<mtriple>Abilene_Regional_Airport | runwayLength | 2194.0</mtriple>
+				<mtriple>Abilene,_Texas | country | United_States</mtriple>
+				<mtriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Abilene_Regional_Airport | runwayLength | 2194.0</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Mit einer Fahrbahnlänge von 2194,0 bedient Abilene Regionalflughafen Abiliene, Teil von Jones County, Texas, in den USA. </text>
+				<template>Mit einer Fahrbahnlänge von PATIENT-2 bedient AGENT-1 Abiliene, Teil von PATIENT-4, PATIENT-3.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Abilene_Regional_Airport | runwayLength | 2194.0</striple>
+						<striple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</striple>
+						<striple>Abilene,_Texas | isPartOf | Jones_County,_Texas</striple>
+						<striple>Abilene,_Texas | country | United_States</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Regionalflughafen Abilene hat eine Fahrbahnlänge von 2194,0 und dient Abilene, Jones County, Texas in den USA. </text>
+				<template>AGENT-1 hat eine Landebahn von PATIENT-2 und dient BRIDGE-1, PATIENT-4 in PATIENT-3.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Abilene_Regional_Airport</entity>
+				<entity>BRIDGE-1 | Abilene,_Texas</entity>
+				<entity>PATIENT-1 | Texas</entity>
+				<entity>PATIENT-2 | 2194.0</entity>
+				<entity>PATIENT-3 | United_States</entity>
+				<entity>PATIENT-4 | Jones_County,_Texas</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

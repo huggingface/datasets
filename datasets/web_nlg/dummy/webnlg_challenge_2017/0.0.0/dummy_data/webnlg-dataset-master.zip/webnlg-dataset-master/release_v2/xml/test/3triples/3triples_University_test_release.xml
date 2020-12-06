@@ -1,0 +1,92 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AWH Engineering College is located in Kerala, India and it has 250 academic staff.</lex>
+      <lex comment="good" lid="Id2">AWH Engineering College has an academic staff of 250 and is located in the state of Kerala, India.</lex>
+      <lex comment="good" lid="Id3">AWH Engineering College in Kerala, India has a staff of 250.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | city | Bangalore</otriple>
+        <otriple>Acharya_Institute_of_Technology | postgrad | "~700"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | affiliations | Visvesvaraya_Technological_University</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | city | Bangalore</otriple>
+        <otriple>Acharya_Institute_of_Technology | numberOfPostgraduateStudents | "700"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Acharya_Institute_of_Technology | affiliations | Visvesvaraya_Technological_University</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | city | Bangalore</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | numberOfPostgraduateStudents | 700</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | affiliation | Visvesvaraya_Technological_University</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Acharya Institute of Technology is in Bangalore. It has 700 postgraduate students and is affiliated with the Visvesvaraya Technological University.</lex>
+      <lex comment="good" lid="Id2">The Acharya Institute of Technology, Bangalore, has 700 postgraduate students and is affiliated with Visvesvaraya Technological University.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Kerala | leaderName | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | has to its northwest | Mahé,_India</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AWH Engineering College is located in Kerala. The leader of Kerala is Kochi. To the northwest of Kerala is Mahe, India.</lex>
+      <lex comment="good" lid="Id2">Kochi is the leader of Kerala which is southeast of Mahe India, and the location of the AWH Engineering College.</lex>
+      <lex comment="good" lid="Id3">The AWH Engineering College in Kerala is southeast of Mahe in India. The leader of Kerala is named Kochi.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Romania | ethnicGroups | Germans_of_Romania</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>Romania | anthem | Deșteaptă-te,_române!</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Romania | ethnicGroup | Germans_of_Romania</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>Romania | anthem | Deșteaptă-te,_române!</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Romania's ethnic group is Germans of Romania and its university is 1 Decembrie 1918 University. Its anthem is called Desteapta-te romane.</lex>
+      <lex comment="good" lid="Id2">Romania is the home of the ethnic group of Germans of Romania, and is the location of the 1 Decembrie 1918 University. The Romanian anthem is Desteapta-te romane.</lex>
+      <lex comment="good" lid="Id3">The 1 Decembrie 1918 University is located in Romania, which is ethnically German and the national anthem is Deșteaptă-te, române!</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Romania | ethnicGroups | Germans_of_Romania</otriple>
+        <otriple>Romania | leaderName | Klaus_Iohannis</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Romania | ethnicGroup | Germans_of_Romania</otriple>
+        <otriple>Romania | leaderName | Klaus_Iohannis</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Romania | leader | Klaus_Iohannis</otriple>
+        <otriple>Romania | ethnicGroup | Germans_of_Romania</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Romania | ethnicGroup | Germans_of_Romania</mtriple>
+        <mtriple>Romania | leaderName | Klaus_Iohannis</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University is in Romania. Romania is led by Klaus Iohannis, a member of Germans of Romania.</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University is located in Romania. The Romanian leader is called Klaus Iohannis and one of the country's ethnic groups are the Germans of Romania.</lex>
+    </entry>
+    </entries>
+</benchmark>

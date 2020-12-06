@@ -1,0 +1,69 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Salem_Church</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Salem_Church</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett fought in the Battle of Salem Church and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett, fought in the Battle of Salem Church and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett, who fought in the Battle of Salem Church, was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in the American Civil War. He was given the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in battles in the American Civil War and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett, fought in the American Civil War, and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+        <otriple>American_Civil_War | commander | Abraham_Lincoln</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+        <mtriple>American_Civil_War | commander | Abraham_Lincoln</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in the American Civil War, where Abraham Lincoln was a commander.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in the American Civil War, the war in which Abraham Lincoln was a commander.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett fought in the American Civil War in which Abraham Lincoln was a commander.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+        <otriple>American_Civil_War | commander | Jefferson_Davis</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+        <mtriple>American_Civil_War | commander | Jefferson_Davis</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in the American Civil War where Jefferson Davis was a commander.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in battles in the American Civil War, during which one of the commanders was, Jefferson Davis.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett fought in the American Civil War, where Jefferson Davis was a commander.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Cold_Harbor</otriple>
+        <otriple>Battle_of_Cold_Harbor | commander | Robert_E._Lee</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Cold_Harbor</mtriple>
+        <mtriple>Battle_of_Cold_Harbor | commander | Robert_E._Lee</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in the Battle of Cold Harbor where Robert E. Lee was the commander.</lex>
+      <lex comment="good" lid="Id2">Aaron S Daggett took part in the Battle of Cold Harbor, the battle where one of the commanders was, Robert E. Lee.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett fought in the Battle of Cold Harbor where Robert E Lee was the commander.</lex>
+    </entry>
+    </entries>
+</benchmark>

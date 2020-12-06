@@ -1,0 +1,88 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Punjab,_Pakistan | leaderTitle | Provincial_Assembly_of_the_Punjab</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Punjab,_Pakistan | leaderTitle | Provincial_Assembly_of_the_Punjab</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Punjab, Pakistan, is led by the Provincial Assembly of the Punjab.</lex>
+      <lex lang="ru" lid="Id1">Пенджаб, Пакистан, возглавляется Провинциальной ассамблеей Пенджаба.</lex>
+      <lex lang="en" lid="Id2">Punjab, Pakistan is led by the Provincial Assembly of the Punjab.</lex>
+      <lex lang="ru" lid="Id2">Пенджаб, Пакистан возглавляется Провинциальной ассамблеей Пенджаба.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Punjab,_Pakistan | sameAs | Пенджаб_(Пакистан)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Provincial Assembly of the Punjab | sameAs | Провинциальная ассамблея Пенджаба</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>San_Sebastián_de_los_Reyes | isPartOf | Community_of_Madrid</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>San_Sebastián_de_los_Reyes | isPartOf | Community_of_Madrid</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">San Sebastian de los Reyes is part of the Community of Madrid.</lex>
+      <lex lang="ru" lid="Id1">Сан-Себастьян-де-лос-Рейес является частью Сообщества Мадрида.</lex>
+      <lex lang="en" lid="Id2">San Sebastián de los Reyes is part of the Community of Madrid.</lex>
+      <lex lang="ru" lid="Id2">Сан-Себастьян-де-лос-Рейес входит в состав Мадрида.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">San_Sebastián_de_los_Reyes | sameAs | Сан-Себастьян-де-лос-Рейес</dbpedialink>
+        <dbpedialink direction="en2ru">Community_of_Madrid | sameAs | Мадрид_(автономное_сообщество)</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>San_Sebastián_de_los_Reyes | leaderParty | People's_Party_(Spain)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>San_Sebastián_de_los_Reyes | leaderParty | People's_Party_(Spain)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The People's Party is the lead party of San Sebastian de los Reyes, Spain.</lex>
+      <lex lang="ru" lid="Id1">Народная партия - ведущая партия Сан-Себастьян-де-лос-Рейеса, Испания.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">People's_Party_(Spain) | sameAs | Народная_партия_(Испания)</dbpedialink>
+        <dbpedialink direction="en2ru">San_Sebastián_de_los_Reyes | sameAs | Сан-Себастьян-де-лос-Рейес</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Saranac_Lake,_New_York | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Saranac_Lake,_New_York | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Saranac Lake, New York is located in the U.S.</lex>
+      <lex lang="ru" lid="Id1">Саранак-Лейк, штат Нью-Йорк находится в США.</lex>
+      <lex lang="en" lid="Id2">Saranac Lake New York is located in the United States.</lex>
+      <lex lang="ru" lid="Id2">Саранак-Лейк, штат Нью-Йорк, находится в США.</lex>
+      <lex lang="en" lid="Id3">Saranac Lake, New York is located in the United States.</lex>
+      <lex lang="ru" lid="Id3">Саранак-Лейк, штат Нью-Йорк, находится в США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Saranac Lake, New York | includes | Саранак-Лейк</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Saranac_Lake,_New_York | isPartOf | Essex_County,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Saranac_Lake,_New_York | isPartOf | Essex_County,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Saranac Lake, New York is part of Essex County, New York.</lex>
+      <lex lang="ru" lid="Id1">Саранак-Лейк, штат Нью-Йорк, является частью округа Эссекс, штат Нью-Йорк.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Essex_County,_New_York | sameAs | Эссекс_(округ,_Нью-Йорк)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Saranac Lake, New York | includes | Саранак-Лейк</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

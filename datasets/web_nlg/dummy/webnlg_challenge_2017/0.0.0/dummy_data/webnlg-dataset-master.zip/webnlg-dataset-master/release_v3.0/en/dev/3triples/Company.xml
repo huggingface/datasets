@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>AmeriGas | operatingIncome | 3.807E8</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AmeriGas | operatingIncome | 3.807E8</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+        <otriple>AmeriGas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | operatingIncome | 380700000</mtriple>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas, a United States company in the energy industry, has an operating income of $380,700,000.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is an energy company working in the United States with an operating income of 380700000.</lex>
+      <lex comment="good" lid="Id3">AmeriGas, a United States company in the energy industry, has earned 380,700,000 in operating income.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Chinabank | foundationPlace | Manila</otriple>
+        <otriple>Chinabank | location | Philippines</otriple>
+        <otriple>Chinabank | foundationPlace | Insular_Government_of_the_Philippine_Islands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Chinabank | foundationPlace | Manila</mtriple>
+        <mtriple>Chinabank | location | Philippines</mtriple>
+        <mtriple>Chinabank | foundationPlace | Insular_Government_of_the_Philippine_Islands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Chinabank was founded in Manila in the Philippines (under the Insular Government) and remains located there.</lex>
+      <lex comment="good" lid="Id2">Chinabank was founded in Manila, during the Insular Government period, and is still located in the Philippines.</lex>
+      <lex comment="good" lid="Id3">Founded in Manila in the Philippines, Chinabank's foundation place is the Insular Government of the Philippine Islands.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>GMA_New_Media | industry | Entertainment</otriple>
+        <otriple>GMA_New_Media | type | Media_company</otriple>
+        <otriple>GMA_New_Media | product | World_Wide_Web</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | industry | Entertainment</mtriple>
+        <mtriple>GMA_New_Media | type | Media_company</mtriple>
+        <mtriple>GMA_New_Media | product | World_Wide_Web</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA New Media is an entertainment industry media company offering services concerning the World Wide Web.</lex>
+      <lex comment="good" lid="Id2">GMA New Media, a web-services producing media company, offers applications in the entertainment industry.</lex>
+      <lex comment="good" lid="Id3">GMA New Media, Inc. is a media company and GMA New Media is in the entertainment industry that makes web sites.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>GMA_New_Media | industry | Mass_Media</otriple>
+        <otriple>GMA_New_Media | location | Philippines</otriple>
+        <otriple>GMA_New_Media | location | Quezon_City</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | industry | Mass_Media</mtriple>
+        <mtriple>GMA_New_Media | location | Philippines</mtriple>
+        <mtriple>GMA_New_Media | location | Quezon_City</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA New Media, located in the Filipino city of Quezon, is in the mass media industry.</lex>
+      <lex comment="good" lid="Id2">The mass media industry company of GMA New Media has its headquarters in Quezon City which is located in the Philippines.</lex>
+      <lex comment="good" lid="Id3">GMA New Media is a mass media company located in Quezon City, Philippines.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>GMA_New_Media | parentCompany | GMA_Network_(company)</otriple>
+        <otriple>GMA_Network_(company) | type | Public_company</otriple>
+        <otriple>GMA_New_Media | keyPerson | Felipe_Gozon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | parentCompany | GMA_Network_(company)</mtriple>
+        <mtriple>GMA_Network_(company) | type | Public_company</mtriple>
+        <mtriple>GMA_New_Media | keyPerson | Felipe_Gozon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Felipe Gozon is the key person of GMA New Media which is a subsidiary of GMA Network, a public company.</lex>
+      <lex comment="good" lid="Id2">Felipe Gozon is a key person in GMA New Media whose parent company is GMA Network, a public company.</lex>
+      <lex comment="good" lid="Id3">GMA Network is a public company and also the parent company of GMA New Media where Felipe Gozon is the key person.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,85 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="4">
+			<originaltripleset>
+				<otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+				<otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+				<otriple>Uttar_Pradesh | leaderName | Ram_Naik</otriple>
+				<otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+				<mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+				<mtriple>Uttar_Pradesh | leaderName | Ram_Naik</mtriple>
+				<mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Agra_Airport | location | Uttar_Pradesh</striple>
+						<striple>Uttar_Pradesh | leaderName | Ram_Naik</striple>
+						<striple>Uttar_Pradesh | isPartOf | Awadh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Bundelkhand</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Agra_Airport" number="1" tag="AGENT-1" type="name">Agra airport</reference>
+					<reference entity="Uttar_Pradesh" number="2" tag="BRIDGE-1" type="name">Uttar Pradesh</reference>
+					<reference entity="Ram_Naik" number="3" tag="PATIENT-2" type="name">Ram Naik</reference>
+					<reference entity="Awadh" number="4" tag="PATIENT-1" type="name">Awadh</reference>
+					<reference entity="Bundelkhand" number="5" tag="PATIENT-3" type="name">Bundelkhand</reference>
+				</references>
+				<text>Agra airport is located in Uttar Pradesh (lead by Ram Naik) which is part of Awadh and Bundelkhand.</text>
+				<template>AGENT-1 is located in BRIDGE-1 ( lead by PATIENT-2 ) which is part of PATIENT-1 and PATIENT-3 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located in BRIDGE-1 ( lead by PATIENT-2 ) which VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be part of PATIENT-1 and PATIENT-3 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Uttar_Pradesh | leaderName | Ram_Naik</striple>
+						<striple>Agra_Airport | location | Uttar_Pradesh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Awadh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Bundelkhand</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Ram_Naik" number="1" tag="PATIENT-2" type="name">Ram Naik</reference>
+					<reference entity="Uttar_Pradesh" number="2" tag="BRIDGE-1" type="name">Uttar Pradesh</reference>
+					<reference entity="Agra_Airport" number="3" tag="AGENT-1" type="name">Agra airport</reference>
+					<reference entity="Awadh" number="4" tag="PATIENT-1" type="name">Awadh</reference>
+					<reference entity="Bundelkhand" number="5" tag="PATIENT-3" type="name">Bundelkhand</reference>
+				</references>
+				<text>Ram Naik is the leader in Uttar Pradesh where Agra airport is located and is part of Awadh and Bundelkhand.</text>
+				<template>PATIENT-2 is the leader in BRIDGE-1 where AGENT-1 is located and is part of PATIENT-1 and PATIENT-3 .</template>
+				<lexicalization>PATIENT-2 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be DT[form=defined] the leader in BRIDGE-1 where AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located and VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be part of PATIENT-1 and PATIENT-3 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Agra_Airport | location | Uttar_Pradesh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Awadh</striple>
+						<striple>Uttar_Pradesh | isPartOf | Bundelkhand</striple>
+						<striple>Uttar_Pradesh | leaderName | Ram_Naik</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Agra_Airport" number="1" tag="AGENT-1" type="name">Agra airport</reference>
+					<reference entity="Uttar_Pradesh" number="2" tag="BRIDGE-1" type="name">Uttar Pradesh</reference>
+					<reference entity="Awadh" number="3" tag="PATIENT-1" type="name">Awadh</reference>
+					<reference entity="Bundelkhand" number="4" tag="PATIENT-3" type="name">Bundelkhand</reference>
+					<reference entity="Ram_Naik" number="5" tag="PATIENT-2" type="name">Ram Naik</reference>
+				</references>
+				<text>Agra airport is located in Uttar Pradesh which is part of Awadh and also Bundelkhand, and lead by Ram Naik.</text>
+				<template>AGENT-1 is located in BRIDGE-1 which is part of PATIENT-1 and also PATIENT-3 , and lead by PATIENT-2 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be located in BRIDGE-1 which VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be part of PATIENT-1 and also PATIENT-3 , and lead by PATIENT-2 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Agra_Airport</entity>
+				<entity>BRIDGE-1 | Uttar_Pradesh</entity>
+				<entity>PATIENT-1 | Awadh</entity>
+				<entity>PATIENT-2 | Ram_Naik</entity>
+				<entity>PATIENT-3 | Bundelkhand</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

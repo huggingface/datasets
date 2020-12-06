@@ -1,0 +1,89 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</otriple>
+        <otriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</otriple>
+        <otriple>Ab_Klink | office | Ministry_of_Health,_Welfare_and_Sport_(Netherlands)</otriple>
+        <otriple>Ab_Klink | birthPlace | Netherlands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ab_Klink | almaMater | Erasmus_University_Rotterdam</mtriple>
+        <mtriple>Erasmus_University_Rotterdam | affiliation | Association_of_MBAs</mtriple>
+        <mtriple>Ab_Klink | office (workedAt, workedAs) | Ministry_of_Health,_Welfare_and_Sport_(Netherlands)</mtriple>
+        <mtriple>Ab_Klink | birthPlace | Netherlands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ab Klink was born in Netherlands and worked for his country's Ministry of Health, Welfare and Sport office. He attended Erasmus University in Rotterdam which is affiliated with the Association of MBAs.</lex>
+      <lex comment="good" lid="Id2">Ab Klink worked at the Ministry of Health, Welfare and Sport in Netherlands, the country where he was born. He was a student of Erasmus University in Rotterdam which is affiliated with the Association of MBAs.</lex>
+      <lex comment="good" lid="Id3">Erasmus University Rotterdam (Assoc. MBAs) alum Ab Klink, born in the Netherlands, is employed at the Netherlands Ministry of Health, Welfare and Sport.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | residence | Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+        <otriple>Abdul_Taib_Mahmud | region | Asajaya</otriple>
+        <otriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | residence | Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | region | Asajaya</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | birthPlace | Kingdom_of_Sarawak</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud's birthplace was Kingdom of Sarawak and he resides in Sarawak. His party is the Parti Pesaka Bumiputera Bersatu and he represented Asajaya.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud was born and resided in the Kingdom of Sarawak. He was in the Parti Pesaka Bumiputera Bersatu and represented the Asajaya region.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud represented the Asajaya region and was a member of the Parti Pesaka Bumiputera Bersatu. He was born in the Kingdom of Sarawak and still lives there.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abdul_Taib_Mahmud | successor | Adenan_Satem</otriple>
+        <otriple>Adenan_Satem | birthPlace | Japanese_occupation_of_British_Borneo</otriple>
+        <otriple>Abdul_Taib_Mahmud | residence | Sarawak</otriple>
+        <otriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdul_Taib_Mahmud | successor | Adenan_Satem</mtriple>
+        <mtriple>Adenan_Satem | birthPlace | Japanese_occupation_of_British_Borneo</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | residence | Sarawak</mtriple>
+        <mtriple>Abdul_Taib_Mahmud | party | Parti_Pesaka_Bumiputera_Bersatu</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdul Taib Mahmud (who lives in Sarawak)'s successor was Adenan Satem who was born in Japanese Occupation of British Borneo. Abdul Taib Mahmud's party is the Parti Pesaka Bumiputera Bersatu.</lex>
+      <lex comment="good" lid="Id2">Abdul Taib Mahmud, who lives in Sarawak, belongs to the Parti Pesaka Bumiputera Bersatu. He was succeeded by Adenan Satem, who was born in the Japanese occupation Of British Borneo.</lex>
+      <lex comment="good" lid="Id3">Abdul Taib Mahmud resides in Sarawak and is a member of the Parti Pesaka Bumiputera Bersatu. His successor was Adenan Satem who was born in British Borneo during the Japanese occupation.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+        <otriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</otriple>
+        <otriple>Mike_Akhigbe | predecessor | Oladipo_Diya</otriple>
+        <otriple>Mike_Akhigbe | successor | Atiku_Abubakar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+        <mtriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Army</mtriple>
+        <mtriple>Mike_Akhigbe | predecessor | Oladipo_Diya</mtriple>
+        <mtriple>Mike_Akhigbe | successor | Atiku_Abubakar</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abdulsalami Abubakar served in the Nigerian Army and was in office whilst Mike Akhigbe was Vice President. Oladipo Diya was the predecessor of Mike Akhigbe and his successor was Atiku Abubakar.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar served in the Nigerian Army and was in office while Mike Akhigbe was Vice President. Oladipo Diya was the predecessor of Mike Akhigbe and Atiku Abubakar was his successor.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar, who served in the Nigerian Army, was in office while Mike Akhigbe was Vice President. Akhigbe succeeded Oladipo Diya and then he himself was succeeded by Atiku Abubakar.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abdulsalami_Abubakar | vicePresident | Mike_Akhigbe</otriple>
+        <otriple>Mike_Akhigbe | predecessor | Oladipo_Diya</otriple>
+        <otriple>Abdulsalami_Abubakar | successor | Al-Amin_Daggash</otriple>
+        <otriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Air_Force</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abdulsalami_Abubakar | inOfficeWhileVicePresident | Mike_Akhigbe</mtriple>
+        <mtriple>Mike_Akhigbe | predecessor | Oladipo_Diya</mtriple>
+        <mtriple>Abdulsalami_Abubakar | successor | Al-Amin_Daggash</mtriple>
+        <mtriple>Abdulsalami_Abubakar | militaryBranch | Nigerian_Air_Force</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Oladipo Diya was Mike Akhigbe's predecessor, Abdulsalami Abubakar was in office whilst Mike Akhigbe was Vice President. Abdulsalami Abubakar, was a member of the Nigerian Air Force, and his successor was Al-Amin Daggash.</lex>
+      <lex comment="good" lid="Id2">Abdulsalami Abubakar was a member of the Nigerian Air Force. He was in office while Mike Akhigbe was Vice President. Oladipo Diya was the predecessor of Mike Akhigbe and Al-Amin Daggash was the successor of Abdulsalami Abubakar.</lex>
+      <lex comment="good" lid="Id3">Abdulsalami Abubakar, who served in the Nigerian Air Force, was in office whilst Mike Akhigbe was Vice President and was preceded by Al-Amin Daggash. Mike Akhigbe succeeded Oladipo Diya.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,89 @@
+<benchmark>
+	<entries>
+		<entry category="Astronaut" eid="Id1" size="7">
+			<originaltripleset>
+				<otriple>Alan_Bean | nationality | United_States</otriple>
+				<otriple>Alan_Bean | occupation | Test_pilot</otriple>
+				<otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+				<otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+				<otriple>Alan_Bean | timeInSpace | "100305.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+				<otriple>Alan_Bean | selection | 1963</otriple>
+				<otriple>Alan_Bean | status | "Retired"@en</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Alan_Bean | nationality | United_States</mtriple>
+				<mtriple>Alan_Bean | occupation | Test_pilot</mtriple>
+				<mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+				<mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+				<mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+				<mtriple>Alan_Bean | was selected by NASA | 1963</mtriple>
+				<mtriple>Alan_Bean | status | "Retired"</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Bean | birthPlace | Wheeler,_Texas</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Alan_Bean | occupation | Test_pilot</striple>
+						<striple>Alan_Bean | was selected by NASA | 1963</striple>
+					</sentence>
+					<sentence ID="4">
+						<striple>Alan_Bean | timeInSpace | "100305.0"(minutes)</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Alan Bean wurde in Wheeler, Texas geboren und stammt aus den USA. Er absolvierte 1955 von UT Austin mit einem B.S. Er arbeitete als Testpilot und 1963 für die NASA. Er verbrachte 100305 Minuten im All und ist jetzt im Ruhestand. </text>
+				<template>AGENT-1 wurde in PATIENT-4 geboren und stammt aus den USA. AGENT-1 schloss 1955 von PATIENT-3 ab. AGENT-1 arbeitete als PATIENT-2 und für die NASA in PATIENT-6. AGENT-1 verbrachte PATIENT-5 im All und ist jetzt im Ruhestand.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Bean | birthPlace | Wheeler,_Texas</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Alan_Bean | occupation | Test_pilot</striple>
+						<striple>Alan_Bean | was selected by NASA | 1963</striple>
+					</sentence>
+					<sentence ID="4">
+						<striple>Alan_Bean | timeInSpace | "100305.0"(minutes)</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Alan Bean ist ein Amerikaner und wurde in Wheeler, Texas, geboren. Er absolvierte sein Studium an der UT in Austin im Jahr 1955 mit einem B.S. Er arbeitete als Testpilot und wurde 1963 für die NASA eingesetzt. Bohne verbrachte 100305 Minuten im All, und er ist inzwischen im Ruhestand. </text>
+				<template>AGENT-1 ist ein Amerikaner und wurde in PATIENT-4 geboren. AGENT-1 wurde von PATIENT-3 abgeschlossen. AGENT-1 arbeitete als PATIENT-2 und wurde für die NASA in PATIENT-6 eingesetzt. Bohne verbrachte PATIENT-5 im All, und AGENT-1 hat sich inzwischen zurückgezogen.</template>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Alan_Bean | birthPlace | Wheeler,_Texas</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</striple>
+						<striple>Alan_Bean | occupation | Test_pilot</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Alan_Bean | was selected by NASA | 1963</striple>
+					</sentence>
+					<sentence ID="4" />
+				</sortedtripleset>
+				<text>Der Amerikaner Alan Bean wurde in Wheeler, Texas, geboren. Er absolvierte sein Studium an UT Austin im Jahr 1955 mit einem B.S. Und trat als Testpilot auf. Er wurde 1963 von der NASA gewählt und war im All 100305 Minuten. Er ist jetzt im Ruhestand. </text>
+				<template>American AGENT-1 wurde in PATIENT-4 geboren. AGENT-1 wurde von PATIENT-3 abgeschlossen und als PATIENT-2 durchgeführt. AGENT-1 wurde von der NASA in PATIENT-6 gewählt und war im Raum 100305 Minuten. AGENT-1 ist jetzt im Ruhestand.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Alan_Bean</entity>
+				<entity>PATIENT-1 | United_States</entity>
+				<entity>PATIENT-2 | Test_pilot</entity>
+				<entity>PATIENT-3 | "UT Austin, B.S. 1955"</entity>
+				<entity>PATIENT-4 | Wheeler,_Texas</entity>
+				<entity>PATIENT-5 | "100305.0"(minutes)</entity>
+				<entity>PATIENT-6 | 1963</entity>
+				<entity>PATIENT-7 | "Retired"</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

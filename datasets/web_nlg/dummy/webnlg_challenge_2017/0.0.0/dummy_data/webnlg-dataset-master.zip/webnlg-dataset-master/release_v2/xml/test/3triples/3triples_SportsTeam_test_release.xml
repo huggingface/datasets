@@ -1,0 +1,87 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | SV_Germania_Schöneiche</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Germania_Schöneiche</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jens Hartel currently plays for SV Germania Schoneiche, his first club was FC Lokomotive Leipzig and he has managed 1 FC Magdeburg.</lex>
+      <lex comment="good" lid="Id2">Jens Härtel has been the manager of 1 FC Magdeburg and plays for both 1. FC Lokomotive Leipzig and SV Germania Schoneiche.</lex>
+      <lex comment="good" lid="Id3">Jens Hartel plays for 1.FC Lokomotive Leipzig and SV Germania Schoneiche while also managing FC Magdeburg.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>A.C._Cesena | manager | Massimo_Drago</otriple>
+        <otriple>Massimo_Drago | clubs | A.S.D._Licata_1931</otriple>
+        <otriple>Massimo_Drago | team | A.S.D._S.S._Nola_1925</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Cesena | manager | Massimo_Drago</mtriple>
+        <mtriple>Massimo_Drago | club | A.S.D._Licata_1931</mtriple>
+        <mtriple>Massimo_Drago | club | A.S.D._S.S._Nola_1925</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Massimo Drago has been the manager of A C Cesena, plays for ASD SS Nola 1925 and was also at the club ASD Licita 1931.</lex>
+      <lex comment="good" lid="Id2">Massimo Drago played for A.S.D. S.S. Nola 1925, managed A C Cesena and now plays for A.S.D. Licata 1931.</lex>
+      </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | fullname | "Associazione Calcio Lumezzane SpA"@en</otriple>
+        <otriple>A.C._Lumezzane | league | "Lega Pro/A"@en</otriple>
+        <otriple>A.C._Lumezzane | capacity | "4150"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | fullname | "Associazione Calcio Lumezzane SpA"@en</otriple>
+        <otriple>A.C._Lumezzane | league | "Lega Pro/A"@en</otriple>
+        <otriple>A.C._Lumezzane | capacity | 4150</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | fullname | "Associazione Calcio Lumezzane SpA"</mtriple>
+        <mtriple>A.C._Lumezzane | league | "Lega Pro/A"</mtriple>
+        <mtriple>A.C._Lumezzane | numberOfMembers | 4150</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The "Associazione Calcio Lumezzane SpA" is the full name of A.C. Lumezzane who play in Lega Pro/A and have 4150 members.</lex>
+      <lex comment="good" lid="Id2">Associazione Calcio Lumezzane SpA (abbreviated to A.C. Lumezzane) play in the Lega Pro/A and has 4150 members.</lex>
+      <lex comment="good" lid="Id3">The fullname of A.C. Lumezzane is Associazione Calcio Lumezzane SpA. It is in the Lega Pro/A league and has 4150 members.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | manager | Jorge_Humberto_Rodríguez</otriple>
+        <otriple>Jorge_Humberto_Rodríguez | team | Alianza_F.C.</otriple>
+        <otriple>Jorge_Humberto_Rodríguez | managerClub | El_Salvador_national_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.D._Isidro_Metapán | manager | Jorge_Humberto_Rodríguez</mtriple>
+        <mtriple>Jorge_Humberto_Rodríguez | club | Alianza_F.C.</mtriple>
+        <mtriple>Jorge_Humberto_Rodríguez | club | El_Salvador_national_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jorge Humberto Rodriguez is not only the manager of A. D. Isidro Metapan, but also plays for Alianza F.C. as well as the El Salvador national football team.</lex>
+      <lex comment="good" lid="Id2">Jorge Humberto Rodriguez is the manager of A.D. Isidro Metapan and his club is Alianza F.C. but he plays for the El Salvador national football team.</lex>
+      </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | 1500</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | chairman | Antonis_Milionis</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | ground | Efxeinoupoli</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | capacity | "1500"^^xsd:nonNegativeInteger</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | chairman | Antonis_Milionis</otriple>
+        <otriple>A.E_Dimitra_Efxeinoupolis | ground | Efxeinoupoli</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | numberOfMembers | 1500</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | chairman | Antonis_Milionis</mtriple>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | ground | Efxeinoupoli</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.E. Dimitra Efxeinoupolis has 1500 members, is chaired by Antonis Milionis, and is located in the town of Efxeinoupoli.</lex>
+      <lex comment="good" lid="Id2">Antonis Milionis is chairman of A.E Dimitra Efxeinoupolis. they have 1500 members and their ground is located in the town of Efxeinoupoli.</lex>
+      <lex comment="good" lid="Id3">The ground of A.E. Dimitra Efxeinoupolis is located in Efeinoupoli, has 1500 members and its chairman is Antonis Milionis.</lex>
+    </entry>
+    </entries>
+</benchmark>

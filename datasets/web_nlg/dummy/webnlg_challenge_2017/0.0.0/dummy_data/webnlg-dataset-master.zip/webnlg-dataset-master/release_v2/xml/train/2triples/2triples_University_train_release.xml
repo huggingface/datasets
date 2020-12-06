@@ -1,0 +1,65 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>Romania | anthem | Deșteaptă-te,_române!</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>Romania | anthem | Deșteaptă-te,_române!</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1 Decembrie 1918 University is located in Romania where the anthem is Deșteaptă-te, române!</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University is in Romania whose national anthem is Deșteaptă-te, române!</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University of Romania has the latin name Universitas Apulensis.</lex>
+      <lex comment="good" lid="Id2">1 Decembrie 1918 University 's latin name is Universitas Apulensis and is located in Romania.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Breaz Valer Daniel is the rector of the 1 Decembrie 1918 University in the city of Alba Iulia.</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University is situated in the city of Alba lulia and the rector is Breaz Valer Daniel.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University is situated in the state of Alba, Romania.</lex>
+      <lex comment="good" lid="Id2">1 Decembrie 1918 University is in the state of Alba, Romania.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">There are 250 academic staff at the AWH Engineering College in the city of Kuttikkattoor.</lex>
+      <lex comment="good" lid="Id2">AWH Engineering College in Kuttikkattoor has an academic staff size of 250 people.</lex>
+      <lex comment="good" lid="Id3">AWH Engineering College has a staff size of 250 and is in the city of Kuttikkattoor.</lex>
+    </entry>
+    </entries>
+</benchmark>

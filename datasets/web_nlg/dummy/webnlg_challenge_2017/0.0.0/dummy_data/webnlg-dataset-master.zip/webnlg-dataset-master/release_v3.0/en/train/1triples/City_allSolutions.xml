@@ -1,0 +1,58 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaWater | 1.42e+07</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | areaOfWater | 14.2 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">There are 14.2 square kilometers of water in Abilene, Texas.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas has a water area of 14.2 square kilometres.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas has an area of water that is 14.2 square kilometres.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | areaTotal | "286.4526850031616"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | areaTotal | 286.5 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene (Texas) has a total area of 286.5 square kilometres.</lex>
+      <lex comment="good" lid="Id2">Abilene in Texas has a total area of 286.5 SqK.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas has a total area of 286.5 sq km.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is in Texas, in the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas is located in the United States.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas is located within the United States.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | elevation | "523.951"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | elevationAboveTheSeaLevel | 524.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene Texas is 524m above sea level.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas is 524.0 above sea level.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas is situated at 524.0 above sea level.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Jones County in Texas.</lex>
+      <lex comment="good" lid="Id2">Abilene is part of Jones County, Texas.</lex>
+    </entry>
+    </entries>
+</benchmark>

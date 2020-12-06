@@ -1,0 +1,57 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | isbn | "1-4165-2060-0"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | ISBN_number | "1-4165-2060-0"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ISBN number of 1634: The Ram Rebellion is 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion has the ISBN number 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id3">1634: The Ram Rebellion has an ISBN number 1-4165-2060-0.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | author | Eric_Flint</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | author | Eric_Flint</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Eric Flint is the author of 1634: The Ram Rebellion.</lex>
+      <lex comment="good" lid="Id2">Eric Flint wrote the book "1634: The Ram Rebellion".</lex>
+      <lex comment="good" lid="Id3">1634: The Ram Rebellion was written by Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | "Print"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | "Print"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion was published in print.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AIDS_(journal) | country | United_Kingdom</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDS_(journal) | country | United_Kingdom</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AIDS journal was published in the United Kingdom.</lex>
+      <lex comment="good" lid="Id2">AIDS journal is from the United Kingdom.</lex>
+      <lex comment="good" lid="Id3">AIDS (journal) is published in the UK.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>A_Glastonbury_Romance | oclc | "76798317"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Glastonbury_Romance | OCLC_number | 76798317</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Glastonbury Romance has the OCLC number 76798317.</lex>
+      <lex comment="good" lid="Id2">The OCLC number of "A Glastonbury Romance is 76798317.</lex>
+      <lex comment="good" lid="Id3">The OCLC number for A Glastonbury Romance is 76798317.</lex>
+    </entry>
+    </entries>
+</benchmark>

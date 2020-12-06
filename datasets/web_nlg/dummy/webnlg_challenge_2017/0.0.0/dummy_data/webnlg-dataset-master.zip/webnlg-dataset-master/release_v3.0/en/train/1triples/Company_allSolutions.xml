@@ -1,0 +1,63 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AmeriGas | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AmeriGas | locationCountry | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas works in the country of the United States.</lex>
+      <lex comment="good" lid="Id2">AmeriGas's home country is the United States.</lex>
+      <lex comment="good" lid="Id3">AmeriGas is working in the United States.</lex>
+      <lex comment="good" lid="Id4">AmeriGas is located in the country of the United States.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AmeriGas | foundingYear | 1959-01-01</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | foundingDate | 1959-01-01</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas was founded on 01-01-1959.</lex>
+      <lex comment="good" lid="Id2">AmeriGas was founded on January 1, 1959.</lex>
+      <lex comment="good" lid="Id3">AmeriGas was founded on 1959-01-01.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is in the energy industry.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is a company in the energy industry.</lex>
+      <lex comment="good" lid="Id3">AmeriGas's industry is classified as the energy industry.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | city | King_of_Prussia,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is located in King of Prussia, Pennsylvania.</lex>
+      <lex comment="good" lid="Id2">AmeriGas's location is the city of King of Prussia, Pennsylvania.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>AmeriGas | netIncome | 2.112E8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | netIncome | 211200000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The net income of AmeriGas is 211200000.</lex>
+      <lex comment="good" lid="Id2">AmeriGas has a net income of $211,200,000.</lex>
+      <lex comment="good" lid="Id3">AmeriGas earns 211200000 of net income.</lex>
+      <lex comment="good" lid="Id4">AmeriGas has a net income of 211200000.</lex>
+    </entry>
+    </entries>
+</benchmark>

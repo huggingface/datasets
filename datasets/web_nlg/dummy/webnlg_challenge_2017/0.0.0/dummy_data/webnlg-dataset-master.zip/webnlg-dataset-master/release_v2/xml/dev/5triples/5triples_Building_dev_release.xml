@@ -1,0 +1,110 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X (X) (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>20_Fenchurch_Street | location | United_Kingdom</otriple>
+        <otriple>United_Kingdom | capital | London</otriple>
+        <otriple>London | leaderName | Boris_Johnson</otriple>
+        <otriple>United_Kingdom | leader | Elizabeth_II</otriple>
+        <otriple>United_Kingdom | currency | Pound_sterling</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>20_Fenchurch_Street | location | United_Kingdom</mtriple>
+        <mtriple>United_Kingdom | capital | London</mtriple>
+        <mtriple>London | leaderName | Boris_Johnson</mtriple>
+        <mtriple>United_Kingdom | leaderName | Elizabeth_II</mtriple>
+        <mtriple>United_Kingdom | currency | Pound_sterling</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">20 Fenchurch Street is located within the United Kingdom, where London is the capital, and the currency is pounds sterling. Boris Johnson is the leader in London, and one of the leaders of the United Kingdom is Elizabeth II.</lex>
+      <lex comment="good" lid="Id2">The United Kingdom uses the currency of the pound sterling and is led by Elizabeth II along with Boris Johnson. The capital city is London and the country is also the location of 20 Fenchurch Street.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | Buffalo,_New_York</otriple>
+        <otriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</otriple>
+        <otriple>250_Delaware_Avenue | cost | "1.1E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | "12"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | Buffalo,_New_York</otriple>
+        <otriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</otriple>
+        <otriple>250_Delaware_Avenue | cost | "1.1E8"^^&lt;http://dbpedia.org/datatype/usDollar&gt;</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | 12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | location | Buffalo,_New_York</mtriple>
+        <mtriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</mtriple>
+        <mtriple>250_Delaware_Avenue | cost | "110 million (dollars)"</mtriple>
+        <mtriple>250_Delaware_Avenue | floorArea | 30843.8 (square metres)</mtriple>
+        <mtriple>250_Delaware_Avenue | floorCount | 12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">250 Delaware Avenue was built in Buffalo New York at a cost of 110 million dollars. Construction began in January 2014 and the building has 12 floors with an area of 30843.8 square metres.</lex>
+      <lex comment="good" lid="Id2">There are 12 floors at 250 Delaware Avenue in Buffalo, New York. Construction, which began in January 2014 cost 110 million dollars for a floor area of 30843.8 square metres.</lex>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Chicago</otriple>
+        <otriple>Chicago | leaderName | Rahm_Emanuel</otriple>
+        <otriple>Chicago | isPartOf | DuPage_County,_Illinois</otriple>
+        <otriple>300_North_LaSalle | floorCount | "60"^^xsd:positiveInteger</otriple>
+        <otriple>Chicago | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Chicago</mtriple>
+        <mtriple>Chicago | leaderName | Rahm_Emanuel</mtriple>
+        <mtriple>Chicago | isPartOf | DuPage_County,_Illinois</mtriple>
+        <mtriple>300_North_LaSalle | floorCount | 60</mtriple>
+        <mtriple>Chicago | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Rahm Emanuel is the leader of Chicago, DuPage County, Illinois, United States which is the location of the building at 300 North LaSalle which has 60 floors.</lex>
+      <lex comment="good" lid="Id2">300 North LaSalle has 60 floors and is located in Chicago, DuPage County, Illinois, United States. The leader of Chicago is Rahm Emanuel.</lex>
+      <lex comment="good" lid="Id3">300 North LaSalle, which has 60 floors, is located in Chicago which is part of DuPage County in Illinois, United States. The leader of Chicago is Rahm Emanuel.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>3Arena | owner | Live_Nation_Entertainment</otriple>
+        <otriple>Dublin | leaderTitle | Dáil_Éireann</otriple>
+        <otriple>Dublin | country | Republic_of_Ireland</otriple>
+        <otriple>3Arena | location | Dublin</otriple>
+        <otriple>Dublin | isPartOf | Leinster</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>3Arena | owner | Live_Nation_Entertainment</otriple>
+        <otriple>Dublin | leaderTitle | Dáil_Éireann</otriple>
+        <otriple>Dublin | country | Republic_of_Ireland</otriple>
+        <otriple>3Arena | location | Dublin</otriple>
+        <otriple>Dublin | subdivisionName | Leinster</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>3Arena | owner | Live_Nation_Entertainment</mtriple>
+        <mtriple>Dublin | leaderTitle | Dáil_Éireann</mtriple>
+        <mtriple>Dublin | country | Republic_of_Ireland</mtriple>
+        <mtriple>3Arena | location | Dublin</mtriple>
+        <mtriple>Dublin | isPartOf | Leinster</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">3Arena (owned by Live Nation Entertainment) is located in Dublin, Republic of Ireland. Dáil Éireann is a leader in Dublin, which is part of Leinster.</lex>
+      <lex comment="good" lid="Id2">3Arena, owned by Live Nation Entertainment, is located in Dublin, which is part of Leinster in the Republic of Ireland. Dáil Éireann is a leader in Dublin.</lex>
+      <lex comment="good" lid="Id3">Located in Dublin, Leinster, 3Arena is owned by Live Nation Entertainment. Dublin is also part of the Republic of Ireland and is led by Dáil Éireann.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Adisham_Hall | architecturalStyle | "Tudor and Jacabian"@en</otriple>
+        <otriple>Adisham_Hall | location | Sri_Lanka</otriple>
+        <otriple>Adisham_Hall | buildingEndDate | "1931"</otriple>
+        <otriple>Adisham_Hall | buildingStartDate | "1927"</otriple>
+        <otriple>Adisham_Hall | address | "St. Benedict's Monastery, Adisham, Haputhale, Sri Lanka"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adisham_Hall | architecturalStyle | "Tudor and Jacabian"</mtriple>
+        <mtriple>Adisham_Hall | location | Sri_Lanka</mtriple>
+        <mtriple>Adisham_Hall | completionDate | 1931</mtriple>
+        <mtriple>Adisham_Hall | buildingStartDate | "1927"</mtriple>
+        <mtriple>Adisham_Hall | address | "St. Benedict's Monastery, Adisham, Haputhale, Sri Lanka"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adisham Hall in Sri Lanka was constructed between 1927 and 1931 at St Benedicts Monastery, Adisham, Haputhale, Sri Lanka in the Tudor and Jacobean style of architecture.</lex>
+      <lex comment="good" lid="Id2">Construction of Adisham Hall took place between 1927 and 1931 in the architectural style of Tudor and Jacobean. It is located at St Benedict's Monastery, Adisham, Haputhale, Sri Lanka.</lex>
+    </entry>
+    </entries>
+</benchmark>

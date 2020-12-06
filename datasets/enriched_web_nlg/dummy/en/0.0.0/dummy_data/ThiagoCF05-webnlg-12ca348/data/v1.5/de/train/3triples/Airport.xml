@@ -1,0 +1,55 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="3">
+			<originaltripleset>
+				<otriple>Aarhus_Airport | location | Tirstrup</otriple>
+				<otriple>Tirstrup | country | Denmark</otriple>
+				<otriple>Denmark | language | Danish_language</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+				<mtriple>Tirstrup | country | Denmark</mtriple>
+				<mtriple>Denmark | language | Danish_language</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Denmark | language | Danish_language</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus befindet sich in Tirstrup, Dänemark, wo die Sprache Dänisch ist. </text>
+				<template>AGENT-1 befindet sich in BRIDGE-1, BRIDGE-2, wo die Sprache PATIENT-1 ist.</template>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Denmark | language | Danish_language</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus befindet sich in Tirstrup, Dänemark, wo die gesprochene Sprache dänisch ist. </text>
+				<template>AGENT-1 befindet sich in BRIDGE-1, BRIDGE-2, wo die gesprochene Sprache PATIENT-1 ist.</template>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Denmark | language | Danish_language</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Flughafen Aarhus befindet sich in Tirstrup, Dänemark, wo die dänische Sprache gesprochen wird. </text>
+				<template>AGENT-1 befindet sich in BRIDGE-1, BRIDGE-2, wo PATIENT-1 gesprochen wird.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus_Airport</entity>
+				<entity>BRIDGE-1 | Tirstrup</entity>
+				<entity>BRIDGE-2 | Denmark</entity>
+				<entity>PATIENT-1 | Danish_language</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

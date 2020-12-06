@@ -1,0 +1,124 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany, Georgia is in the United States, home to a number of ethnic groups including, African Americans.</lex>
+      <lex comment="good" lid="Id2">Albany, Georgia is part of the United States of America where one of the ethnic groups are the African Americans.</lex>
+      <lex comment="good" lid="Id3">Albany, Georgia, is in the United States where African Americans are one of the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | isPartOf | Oregon</otriple>
+        <otriple>Oregon | largestCity | Portland,_Oregon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | isPartOf | Oregon</mtriple>
+        <mtriple>Oregon | largestCity | Portland,_Oregon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Portland is the largest city in Oregon which also includes Albany.</lex>
+      <lex comment="good" lid="Id2">Portland is the largest city in Oregon, the state which is home to Albany.</lex>
+      <lex comment="good" lid="Id3">Albany is a city in Oregon along with Portland which is the largest.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | areaTotal | "6.81"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | areaTotal | "6.81166873018368"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | areaTotal | "6.81"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3316527565869"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alexandria,_Indiana | areaTotal | 6.81 (square kilometres)</mtriple>
+        <mtriple>Alexandria,_Indiana | populationDensity | 755.3 (inhabitants per square kilometre)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alexandria, Indiana (total area 6.81 sq km), has a population density of 755.3 inhabitants per square kilometre.</lex>
+      <lex comment="good" lid="Id2">Alexandria, Indiana, covers an area of 6.81 sq kilometres and has a population density of 755.3 inhabitants per sq km.</lex>
+      <lex comment="good" lid="Id3">The population density of Alexandria, Indiana, is 755.3 (inhabitants per square kilometer) and it occupies 6.81 square kilometers.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</otriple>
+        <otriple>Potter_County,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</mtriple>
+        <mtriple>Potter_County,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Amarillo can be located in Potter County, Texas which is in the United States of America.</lex>
+      <lex comment="good" lid="Id2">Amarillo is part of Potter County, Texas, U.S.</lex>
+      <lex comment="good" lid="Id3">Amarillo is located in Potter County, Texas in the United States of America.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Anaheim,_California | elevation | "48.0"^^xsd:double</otriple>
+        <otriple>Anaheim,_California | areaTotal | 1.316e+08</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Anaheim,_California | elevation | "47.8536"^^xsd:double</otriple>
+        <otriple>Anaheim,_California | areaTotal | 1.316e+08</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Anaheim,_California | elevation | "48.0"^^xsd:double</otriple>
+        <otriple>Anaheim,_California | areaTotal | "131.6"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Anaheim,_California | elevation | "47.8536"^^xsd:double</otriple>
+        <otriple>Anaheim,_California | areaTotal | "131.6"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Anaheim,_California | elevation | "48.0"^^xsd:double</otriple>
+        <otriple>Anaheim,_California | areaTotal | "131.5998858742825"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Anaheim,_California | elevation | "47.8536"^^xsd:double</otriple>
+        <otriple>Anaheim,_California | areaTotal | "131.5998858742825"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Anaheim,_California | elevationAboveTheSeaLevel | 48.0</mtriple>
+        <mtriple>Anaheim,_California | areaTotal | 131.6 (square kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Anaheim, California is situated at 48.0 above sea level and has a total area of 131.6 square kilometres.</lex>
+      <lex comment="good" lid="Id2">Anaheim, California is situated at 48.0 above sea level and has a total area of 131.6 sq km.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,99 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X (X) (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+        <otriple>Texas | country | United_States</otriple>
+        <otriple>United_States | largestCity | New_York_City</otriple>
+        <otriple>Texas | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+        <mtriple>Texas | country | United_States</mtriple>
+        <mtriple>United_States | largestCity | New_York_City</mtriple>
+        <mtriple>Texas | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene and Austin are in the united states in the state of Texas, New York City is the largest city of the US and english is spoken in Texas.</lex>
+      <lex comment="good" lid="Id2">Abilene is a part of Texas, where Austin is the capital and English is spoken. Texas is located in the United States, where New York City is the biggest city.</lex>
+      <lex comment="good" lid="Id3">English is spoken in Austin thats the capital of Texas in the US. Abilene is also a part of Texas however the largest city in the United States is New York City.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X (X) (X (X) (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+        <otriple>Texas | country | United_States</otriple>
+        <otriple>United_States | largestCity | New_York_City</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+        <mtriple>Texas | country | United_States</mtriple>
+        <mtriple>United_States | largestCity | New_York_City</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The U.S. is made up of some huge cities, the biggest being New York City. However, there is also the Austin, the capital of Texas, as well as Abilene Texas. All of which English is the natie language.</lex>
+      <lex comment="good" lid="Id2">Abilene and Austin (capital of), Texas are part of the U.S. The United States has its largest city as New York and has English as its spoken language.</lex>
+      <lex comment="good" lid="Id3">Texas is in the United States where they speak English and the largest city is New York City. Abilene, Texas, is part of Texas but the capital is Austin.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | largestCity | Houston</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>Texas | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | largestCity | Houston</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>Texas | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is a part of Texas in the U.S. whose largest city in Texas is Houston. English is spoken in that state. The capital of the U.S. is Washington, D.C.</lex>
+      <lex comment="good" lid="Id2">The United States, which has the capital city of Washington DC, is the location of Texas. The English language is spoken in Texas which is the location of Abilene ad has the largest city of Houston.</lex>
+      <lex comment="good" lid="Id3">In the United States is where you can find Abilene of Texas, in which Houston is the largest city, and English is a language spoken. The country's capital is Washington DC.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | largestCity | Houston</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>Texas | language | Spanish_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | largestCity | Houston</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>Texas | language | Spanish_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is in Texas, USA, as is Houston, its largest city. Spanish is one of the languages spoken in Texas and the capital of the USA is Washington, D.C.</lex>
+      <lex comment="good" lid="Id2">Spanish is spoken in Texas, the location of Abilene and Houston (the largest city). The state is located in the United States which has the capital of Washington DC.</lex>
+      <lex comment="good" lid="Id3">Abilene is in US state of Texas, where the largest city is Houston and where Spanish is spoken. The capital of the US is Washington DC.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X (X) (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | largestCity | Houston</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>Texas | country | United_States</otriple>
+        <otriple>Texas | language | Spanish_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | largestCity | Houston</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>Texas | country | United_States</mtriple>
+        <mtriple>Texas | language | Spanish_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Texas, where the largest city is Houston. Texas, where Spanish is spoken, is located in the United States, the capital of which is Washington DC.</lex>
+      <lex comment="good" lid="Id2">Washington DC is the capital of the United States. The country is the location of Texas where one of the languages spoken is Spanish . Both Abilene and Houston (the largest city) in found in Texas.</lex>
+      <lex comment="good" lid="Id3">Texas is located in the United States but the capital is Washington, D.C. Abilene is a part of Texas but the largest city is Houston and one of the languages spoken there is Spanish.</lex>
+    </entry>
+    </entries>
+</benchmark>

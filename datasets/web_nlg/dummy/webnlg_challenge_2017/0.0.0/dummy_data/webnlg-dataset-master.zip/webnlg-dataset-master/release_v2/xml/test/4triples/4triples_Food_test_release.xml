@@ -1,0 +1,101 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | region | Lazio</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Amatriciana_sauce | ingredient | Tomato</otriple>
+        <otriple>Amatriciana_sauce | mainIngredient | "Tomatoes, guanciale, cheese , olive oil"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | region | Lazio</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Amatriciana_sauce | ingredient | Tomato</otriple>
+        <otriple>Amatriciana_sauce | ingredientName | "Tomatoes,guanciale, cheese (Pecorino Romano),olive oil"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amatriciana_sauce | region | Lazio</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Amatriciana_sauce | ingredient | Tomato</mtriple>
+        <mtriple>Amatriciana_sauce | mainIngredients | "Tomatoes, guanciale, cheese, olive oil"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Amatriciana sauce is a traditional Italian sauce from the region of Lazio. Its ingredients include tomatoes, guanciale, cheese and olive oil.</lex>
+      <lex comment="good" lid="Id2">Amatriciana sauce is from the Lazio region of Italy. The main ingredients are Tomatoes, guanciale, cheese, and olive oil.</lex>
+      <lex comment="good" lid="Id3">Amatriciana is a traditional Italian sauce from Lazio. The main ingredients are tomatoes, guanciale, cheese and olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leaderName | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | leaderName | Pietro_Grasso</mtriple>
+        <mtriple>Italy | leaderName | Sergio_Mattarella</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Pietro Grasso and Sergio Mattarella are leaders of Italy, where the capital is Rome. Arrabbiata is a sauce found in Italy.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce can be found in Italy, the capital of which is Rome. Pietro Grasso and Sergio Mattarella are leaders of the country.</lex>
+      <lex comment="good" lid="Id3">Pietro Grasso and Sergio Mattarella are both leaders in Italy, the capital city of which is Rome. Arrabbiata sauce comes from Italy.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Arròs_negre | country | Spain</otriple>
+        <otriple>Arròs_negre | mainIngredient | "White rice, cuttlefish or squid, cephalopod ink, cubanelle peppers"@en</otriple>
+        <otriple>Arròs_negre | region | Catalonia</otriple>
+        <otriple>Arròs_negre | ingredient | Cuttlefish</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | country | Spain</mtriple>
+        <mtriple>Arròs_negre | mainIngredients | "White rice, cuttlefish or squid, cephalopod ink, cubanelle peppers"</mtriple>
+        <mtriple>Arròs_negre | region | Catalonia</mtriple>
+        <mtriple>Arròs_negre | ingredient | Cuttlefish</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arròs negre is from Catalonia Spain and its ingredients are white rice, cuttlefish or squid, cephalopod ink and cubanelle peppers.</lex>
+      <lex comment="good" lid="Id2">Arròs negre is a traditional dish from Catalonia, Spain. The main ingredients are white rice, cuttlefish or squid, cephalopod ink and cubanelle peppers.</lex>
+      <lex comment="good" lid="Id3">Arros negre is from the region of Catalonia in Spain. The main ingredients are white rice, cuttlefish or squid, cephalopod ink, cubanelle peppers.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Arròs_negre | country | Spain</otriple>
+        <otriple>Arròs_negre | mainIngredient | "White rice, cuttlefish or squid, cephalopod ink, cubanelle peppers"@en</otriple>
+        <otriple>Arròs_negre | region | Catalonia</otriple>
+        <otriple>Arròs_negre | ingredient | White_rice</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | country | Spain</mtriple>
+        <mtriple>Arròs_negre | mainIngredients | "White rice, cuttlefish or squid, cephalopod ink, cubanelle peppers"</mtriple>
+        <mtriple>Arròs_negre | region | Catalonia</mtriple>
+        <mtriple>Arròs_negre | ingredient | White_rice</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A traditional dish from the Catalonia region in Spain is Arròs negre . The main ingredients in it are, white rice, cuttlefish or squid, cephalopod ink, cubanelle peppers.</lex>
+      <lex comment="good" lid="Id2">Arròs negre is a traditional dish from Catalonia, Spain. The main ingredients in arròs negre are white rice, cuttlefish or squid, cephalopod ink and cubanelle peppers.</lex>
+      <lex comment="good" lid="Id3">Arròs negre is from Catalonia, Spain. The main ingredients of Arròs negre are white rice, cuttlefish or squid, cephalopod ink, cubanelle peppers.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Arròs_negre | country | Spain</otriple>
+        <otriple>Spain | ethnicGroup | Spaniards</otriple>
+        <otriple>Arròs_negre | region | Catalonia</otriple>
+        <otriple>Catalonia | leaderName | Parliament_of_Catalonia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | country | Spain</mtriple>
+        <mtriple>Spain | ethnicGroup | Spaniards</mtriple>
+        <mtriple>Arròs_negre | region | Catalonia</mtriple>
+        <mtriple>Catalonia | leaderName | Parliament_of_Catalonia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Spaniards are the ethnic group in Spain, where a traditional dish is Arròs negre. It comes from the region of Catalonia, which is led by the Parliament of Catalonia.</lex>
+      <lex comment="good" lid="Id2">Arros negre is a traditional dish from Spain, where the ethnic group is the Spaniards. Arros negre is from the region of Catalonia, whose leaders are the Parliament of Catalonia.</lex>
+      <lex comment="good" lid="Id3">Arros negre is from the Catalonia region (led by Parliament) of Spain and enjoyed by Spaniards.</lex>
+    </entry>
+    </entries>
+</benchmark>

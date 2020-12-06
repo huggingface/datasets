@@ -1,0 +1,103 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "2193.95"^^xsd:double</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>Abilene,_Texas | subdivisionName | Jones_County,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Abilene_Regional_Airport | runwayLength | 2194.0</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">With a runway length of 2194.0, Abilene regional airport serves Abiliene, part of Jones County, Texas, in the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene Regional Airport has a runway length of 2194.0 and serves Abilene, Jones County, Texas in the United States.</lex>
+      </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene_Regional_Airport | runwayLength | "2193.95"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | elevation | "545.897"^^xsd:double</otriple>
+        <otriple>Abilene_Regional_Airport | icaoLocationIdentifier | "KABI"</otriple>
+        <otriple>Abilene_Regional_Airport | runwayDesignation | "17R/35L"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+        <mtriple>Abilene_Regional_Airport | runwayLength | 2194.0</mtriple>
+        <mtriple>Abilene_Regional_Airport | elevationAboveTheSeaLevel_(in_metres) | 546</mtriple>
+        <mtriple>Abilene_Regional_Airport | ICAO_Location_Identifier | "KABI"</mtriple>
+        <mtriple>Abilene_Regional_Airport | runwayName | "17R/35L"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Serving the city of Abilene in Texas, is Abilene Regional Airport. It has the ICAO location identifier KABI and the runway name 17R/35L. The airport is 546 metres above sea level and has a runway length of 2194.0.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas is served by Abilene Regional Airport which has the ICAO location identifier of KABI. It is located 546 metres above sea level and has a runway 2194 metres long with the name of 17R/35L.</lex>
+      <lex comment="good" lid="Id3">Abilene Regional Airport serves the city of Abilene in Texas, it's ICAO identifier is KABI, it's runway length is 2194.0 and is 546 metres above sea level, the name of the runway is 17R/35L.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "4348.89"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Madrid</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevation | "609.6"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | operator | ENAIRE</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "14L/32R"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 4349.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Madrid</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevationAboveTheSeaLevel_(in_metres) | 610.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | operatingOrganisation | ENAIRE</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayName | "14L/32R"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Adolfo Suárez Madrid–Barajas Airport is operated by ENAIRE and can be found in Madrid.The airport is situated 610.0 meters above sea level and has a 4,349 kilometers long runway whose name is 14L/32R.</lex>
+      <lex comment="good" lid="Id2">Adofo Suárez Madrid-Barajas Airport, which lies 610 metres above sea level, is located in Madrid and operated by ENAIRE. The airport's runway, named 14L/32R, has a length of 4349.0.</lex>
+      </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+        <otriple>Uttar_Pradesh | leaderName | Ram_Naik</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+        <otriple>Uttar_Pradesh | leaderName | Ram_Naik</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</mtriple>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+        <mtriple>Uttar_Pradesh | leaderName | Ram_Naik</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra Airport is in Uttar Pradesh Bundelkhand, it's ICAO location identifier is VIAG. the leader of Utterar Pradesh is Ram Naik.</lex>
+      <lex comment="good" lid="Id2">Agra Airport is located in Uttar Pradesh. Uttar Pradesh is part of both Awadh ad Bundelkhand. The Airport's ICAO location identifier is "VIAG". The leader of Uttar Pradesh is called Ram Naik.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Agra_Airport | nativenameA | "Kheria Air Force Station"@en</otriple>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+        <otriple>Uttar_Pradesh | leaderName | Ram_Naik</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Bundelkhand</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | nativeName | "Kheria Air Force Station"</mtriple>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+        <mtriple>Uttar_Pradesh | leaderName | Ram_Naik</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Bundelkhand</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ram Naik is the leader of Uttar Pradesh which is part of Awadh and Bundelkhand. It is the location of Agra airport which has the native name of Kheria Air Force Station.</lex>
+      <lex comment="good" lid="Id2">Agra Airport, which has the native name of Kheria Air Force Station, is in Uttar Pradesh, part of Awadh and Bundelkhand, where Ram Naik is the leader.</lex>
+      <lex comment="good" lid="Id3">Agra Airport is located in Uttar Pradesh which is part of Awadh and Bundelkhand. Kheria Air Force Station is its native name. Ram Naik is the leader in Uttar Pradesh.</lex>
+    </entry>
+    </entries>
+</benchmark>

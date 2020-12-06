@@ -1,0 +1,141 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 11th Mississippi Infantry Monument in Gettysburg, Pennsylvania of the U.S.A., is considered a contributing property and was erected in 2000.</lex>
+      <lex lang="ru" lid="Id1">Памятник 11-му пехотному полку Миссисипи в Геттисберге, Пенсильвания, США, был возведен в 2000 году, и считается объектом исторической ценности.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Gettysburg,_Pennsylvania | sameAs | Геттисберг</dbpedialink>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">In 2000 a monument was erected to the 11th Mississippi Infantry in Adams County, Pennsylvania, US. It is now under the categorisation of Contributing Property.</lex>
+      <lex lang="ru" lid="Id1">В 2000 году в округе Адамс, Пенсильвания, США, был установлен Памятник 11-му пехотному полку Миссисипи. В настоящее время памятник входит в категорию объектов исторической ценности.</lex>
+      <lex lang="en" lid="Id2">A monument to the 11th Mississippi Infantry was erected in 2000 and is located in Adams County, Pennsylvania. It is categorized as a Contributing Property to the United States.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-му пехотному полку Миссисипи был возведен в 2000 году, и находится он в округе Адамс, Пенсильвания. Памятник классифицирован как объект исторического наследия Соединенных Штатов Америки.</lex>
+      <lex lang="en" lid="Id3">The 11th Mississippi Infantry Monument is a Contributing Property erected in 2000, and located in Adams County, Pennsylvania, in the United States.</lex>
+      <lex lang="ru" lid="Id3">Памятник 11-му пехотному полку Миссисипи – это объект исторической ценности, возведённый в 2000 году и находящийся в округе Адамс штата Пенсильвания, в Соединённых Штатах Америки.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>Adams_County,_Pennsylvania | southeast | Carroll_County,_Maryland</otriple>
+        <otriple>Adams_County,_Pennsylvania | north | Cumberland_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSoutheast | Carroll_County,_Maryland</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsNorth | Cumberland_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Adams County in Pennsylvania is located to the south of Cumberland County and northwest of Carroll County, Maryland. It is the location of the 11th Mississippi Infantry monument.</lex>
+      <lex lang="ru" lid="Id1">Округ Адамс в штате Пенсильвания расположен к югу от округа Камберленд и к северо-западу от округа Кэрролл, штат Мэриленд. Здесь находится Памятник 11-му пехотному полку Миссисипи.</lex>
+      <lex lang="en" lid="Id2">The 11th Mississippi Infantry Monument is located in Adams County, Pennsylvania with Cumberland County lying to the north and Carroll County, Maryland to the southeast.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-й пехоте Миссисипи расположен в округе Адамс, штат Пенсильвания, к северу от которого находится округ Камберленд, а округ Кэрролл, штат Мэриленд на - юго-востоке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Carroll_County,_Maryland | sameAs | Кэрролл_(округ,_Мэриленд)</dbpedialink>
+        <dbpedialink direction="en2ru">Cumberland_County,_Pennsylvania | sameAs | Камберленд_(округ,_Пенсильвания)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | country | "United States"@en</otriple>
+        <otriple>Adams_County,_Pennsylvania | west | Franklin_County,_Pennsylvania</otriple>
+        <otriple>Adams_County,_Pennsylvania | southwest | Frederick_County,_Maryland</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | country | "United States"</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsWest | Franklin_County,_Pennsylvania</mtriple>
+        <mtriple>Adams_County,_Pennsylvania | hasToItsSouthwest | Frederick_County,_Maryland</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 11th Mississippi Infantry Monument's location is Adams County, Pennsylvania, United States. To the west of Adams County is Franklin County and to the southwest is Frederick County, Maryland.</lex>
+      <lex lang="ru" lid="Id1">Памятник 11-му пехотному полку Миссисипи находится в округе Адамс, штат Пенсильвания, Соединенные Штаты. К западу от округа Адамс находится округ Франклин, а к юго-западу - графство Фредерик, штат Мэриленд.</lex>
+      <lex lang="en" lid="Id2">The 11th Mississippi Infantry Monument is located in Adams County, Pennsylvania, in the United States, and has Franklin County to its west and Frederick County, Maryland to its southwest.</lex>
+      <lex lang="ru" lid="Id2">Памятник 11-му пехотному полку Миссисипи находится в округе Адамс, штат Пенсильвания, Соединенные Штаты. К западу от округа Адамс находится округ Франклин, а к юго-западу - округ Фредерик, штат Мэриленд.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Franklin_County,_Pennsylvania | sameAs | Франклин_(округ,_Пенсильвания)</dbpedialink>
+        <dbpedialink direction="en2ru">Frederick_County,_Maryland | sameAs | Фредерик_(округ,_Мэриленд)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>11th_Mississippi_Infantry_Monument | region | Adams_County,_Pennsylvania</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | established | 2000</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</otriple>
+        <otriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>11th_Mississippi_Infantry_Monument | location | Adams_County,_Pennsylvania</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | established | 2000</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | category | Contributing_property</mtriple>
+        <mtriple>11th_Mississippi_Infantry_Monument | municipality | Gettysburg,_Pennsylvania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">11th Mississippi Infantry Monument's location is Adams County, Pennsylvania, was established in 2000 and falls under the category of Contributing property. The 11th Mississippi Infantry Monument is in the municipality of Gettysburg , Pennsylvania.</lex>
+      <lex lang="ru" lid="Id1">Памятник 11-му пехотному полку Миссисипи находится в округе Адамс, штате Пенсильвания, был создан в 2000 году и подпадает под категорию исторической ценности. Памятник 11-му пехотному полку Миссисипи находится в муниципалитете Геттисберг, штат Пенсильвания.</lex>
+      <lex lang="en" lid="Id2">The municipality of Gettysburg in Adams County, Pennsylvania is the location of the 11th Mississippi Infantry monument which was erected in 2000 and categorised as contributing property.</lex>
+      <lex lang="ru" lid="Id2">Муниципалитет Геттисберга в округе Адамс, штат Пенсильвания, является местом расположения памятника 11-му пехотному полку Миссисипи, который был возведен в 2000 году и классифицирован как историческая ценность.</lex>
+      <lex lang="en" lid="Id3">Categorized as a contributing property, the 11th Mississippi Infantry Monument was established in 2000 in Gettysburg, Adams County, Pennsylvania.</lex>
+      <lex lang="ru" lid="Id3">В 2000 году в Геттисберге, округ Адамс, штат Пенсильвания, в 2000 году был возведен памятник 11-му пехотному полку Миссисипи, который был классифицирован как историческая ценность.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Gettysburg,_Pennsylvania | sameAs | Геттисберг</dbpedialink>
+        <dbpedialink direction="en2ru">2000 | sameAs | 2000_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | округ Адамс</link>
+        <link direction="en2ru">Adams County, Pennsylvania | includes | Пенсильвания</link>
+        <link direction="en2ru">11th Mississippi Infantry Monument | sameAs | Памятник 11-му пехотному полку Миссисипи</link>
+        <link direction="en2ru">Contributing property | sameAs | историческое здание / историческая ценность</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

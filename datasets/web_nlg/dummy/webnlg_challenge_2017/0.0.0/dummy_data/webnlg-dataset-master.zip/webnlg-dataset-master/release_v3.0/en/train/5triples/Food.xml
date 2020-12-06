@@ -1,0 +1,110 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco or ajo blanco, a dish made of bread, almonds, garlic, water, olive oil, is from the Andalusia region of Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco (also known as Ajo blanco) is a dish from Andalusia, Spain and includes the ingredients bread, almonds, garlic, water and olive oil.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco is a dish containing bread, almonds, garlic, water and olive oil. It is also called Ajo blanco. It is found in the Andalusia region of Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco, a dish with Spanish roots, is a mix of bread, almonds, garlic, water and olive oil. It originated in the Andalusia region and is also known as Ajo Blanco.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco, (alternative name Ajo Blanco), is a dish from the Andalusia region of Spain and includes the main ingredients bread, water, almonds, garlic and olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco, also known as Ajo blanco, is a dish from the Andalusia region of Spain and includes the ingredients bread, almonds, garlic, water and olive oil.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco (or Ajo blanco) originates from Andalusia in Spain. The main ingredients are bread, almonds, garlic, water and olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Almond</otriple>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Almond</mtriple>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco, also known as Ajo Blanco comes from the Andalusian region of Spain and its main ingredients are bread, almonds, garlic, water and olive oil.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco (Ajo blanco) includes almonds, bread, garlic, water and olive oil, is found in Andalusia and originates from Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Almond</otriple>
+        <otriple>Almond | family | Rosaceae</otriple>
+        <otriple>Almond | unrankedDivisio | Flowering_plant</otriple>
+        <otriple>Almond | ordo | Rosales</otriple>
+        <otriple>Almond | order | Rosids</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Almond</otriple>
+        <otriple>Almond | family | Rosaceae</otriple>
+        <otriple>Almond | division | Flowering_plant</otriple>
+        <otriple>Almond | ordo | Rosales</otriple>
+        <otriple>Almond | order | Rosids</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Almond</otriple>
+        <otriple>Almond | division | Flowering_plant</otriple>
+        <otriple>Almond | familia | Rosaceae</otriple>
+        <otriple>Almond | ordo | Rosales</otriple>
+        <otriple>Almond | order | Rosids</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Almond</mtriple>
+        <mtriple>Almond | family | Rosaceae</mtriple>
+        <mtriple>Almond | division | Flowering_plant</mtriple>
+        <mtriple>Almond | order | Rosales</mtriple>
+        <mtriple>Almond | order | Rosids</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Almonds are part of the Rosaceae family, and one of the members of the Rosales order. They are also part of the order of Rosids and a flowering plant. Ajoblanco has almonds as an ingredient.</lex>
+      <lex comment="good" lid="Id2">Almond is a main ingredient in Ajoblanco. It is classed as a flowering plant and is from the Rosaceae family and the order Rosids or Rosales.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco has almond as one of its ingredients, which is from the Rosales or Rosids order of the Rosaceae family, and in the division of flowering plants.</lex>
+    </entry>
+    </entries>
+</benchmark>

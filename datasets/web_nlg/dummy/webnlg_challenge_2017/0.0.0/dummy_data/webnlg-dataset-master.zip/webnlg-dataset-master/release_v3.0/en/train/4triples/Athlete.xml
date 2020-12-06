@@ -1,0 +1,89 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | team | Italy_national_under-16_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | club | Italy_national_under-16_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli who played for the Italy national under-16 football team, is a member of AC Milan who are in the Serie A league and managed by Sinisa Mihajlovic.</lex>
+      <lex comment="good" lid="Id2">Former Italian national under-16 football player, Alessio Romagnoli, plays for the club A.C. Milan, which is managed by Siniša Mihajlović and is in Serie A league.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli, was in Italy's national under 16's football team and plays for A.C. Milan. Siniša Mihajlović is the manager for A.C. Milan which is in Serie A league.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | team | Italy_national_under-17_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | club | Italy_national_under-17_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli, was a member of the Italian national under 17 football team, and plays for A.C. Milan. Siniša Mihajlović is manager of A.C. Milan which is in Serie A league.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli is in the Italian national under 17 team and also plays in the Serie A for AC Milan who are managed by Sinisa Mihajlovic.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is a member of the Italian national under 17 football team and also for AC Milan who play in Serie A and are managed by Sinisa Mihajlovic.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | team | Italy_national_under-19_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | club | Italy_national_under-19_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli, who once represented the Italian Under 19 football team, later played for AC Milan, managed by Siniša Mihajlović in Serie A.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli plays for A.C. Milan in Serie A and formerly played for the Italy national under-19 football team. Siniša Mihajlović is the manager of the A.C. Milan club.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli, formerItalian national under-19 football team member, plays for the club A.C. Milan. Siniša Mihajlović is manager of A.C. Milan, which is in Serie A league.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | birthYear | "1986"^^xsd:gYear</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Regina,_Saskatchewan</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | dateOfBirth | "1986-08-11"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthYear | 1986</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Regina,_Saskatchewan</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthDate | 1986-08-11</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard, whose club is Wichita Thunder, was born in Regina, Saskatchewan, on 11/08/1986.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard, who was born on 11 August 1986 in Regina, Saskatchewan, played for the club Wichita Thunder.</lex>
+      <lex comment="good" lid="Id3">Born on August 11, 1986 in Regina, Saskatchewan, Aaron Boogaard played with the Wichita Thunder club.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Boogaard | birthYear | "1986"^^xsd:gYear</otriple>
+        <otriple>Aaron_Boogaard | team | Wichita_Thunder</otriple>
+        <otriple>Aaron_Boogaard | placeOfBirth | Canada</otriple>
+        <otriple>Aaron_Boogaard | dateOfBirth | "1986-08-11"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Boogaard | birthYear | 1986</mtriple>
+        <mtriple>Aaron_Boogaard | club | Wichita_Thunder</mtriple>
+        <mtriple>Aaron_Boogaard | birthPlace | Canada</mtriple>
+        <mtriple>Aaron_Boogaard | birthDate | 1986-08-11</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Boogaard was born in Canada on 11th August 1986 and plays for Wichita Thunder.</lex>
+      <lex comment="good" lid="Id2">Aaron Boogaard, whose club is Wichita Thunder, was born in Canada, on August 11th, 1986.</lex>
+      <lex comment="good" lid="Id3">Born on 11th August 1986 in Canada, Aaron Boogaard has played for Wichita Thunder.</lex>
+    </entry>
+    </entries>
+</benchmark>

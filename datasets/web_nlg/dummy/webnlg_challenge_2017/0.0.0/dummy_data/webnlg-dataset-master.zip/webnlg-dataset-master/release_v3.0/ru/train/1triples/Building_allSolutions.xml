@@ -1,0 +1,94 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | architecturalStyle | Brutalist_architecture</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The architecture style of 103 Colmore Row falls under Brutalist architecture.</lex>
+      <lex lang="ru" lid="Id1">Архитектурный стиль Колмор-роу 103 относится к Брутализму.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row is in the architectural style " Brutalist architecture".</lex>
+      <lex lang="ru" lid="Id2">Колмор-роу 103 выстроен в архитектурном стиле Брутализм.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Brutalist_architecture | sameAs | Брутализм</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingStartDate | "1973"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | buildingStartDate | "1973"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1973 was the start date for the building at 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id1">Строительство на Колмор-роу 103 началось в 1973 году.</lex>
+      <lex lang="en" lid="Id2">The building of 103 Colmore Row began in 1973.</lex>
+      <lex lang="ru" lid="Id2">Строительство Колмор-роу 103 началось в 1973 году.</lex>
+      <lex lang="en" lid="Id3">103 Colmore Row opened in 1973.</lex>
+      <lex lang="ru" lid="Id3">Колмор-роу 103 открылся в 1973 году.</lex>
+      <links>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | buildingEndDate | "1976"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>103_Colmore_Row | completionDate | 1976</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | completionDate | 1976</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row was completed in 1976.</lex>
+      <lex lang="ru" lid="Id1">Колмор-роу 103 был завершен в 1976 году.</lex>
+      <lex lang="en" lid="Id2">The building of 103 Colmore Row was completed in 1976.</lex>
+      <lex lang="ru" lid="Id2">Строительство на 103 Колмор-роу 103 было завершено в 1976 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1976 | sameAs | 1976_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | floorCount | "23"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | floorCount | 23</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">There are 23 floors at 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id1">В Колмор-роу 103 есть 23 этажа.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row has 23 floors.</lex>
+      <lex lang="ru" lid="Id2">Колмор-роу 103 имеет 23 этажа.</lex>
+      <links>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>103_Colmore_Row | location | "Colmore Row, Birmingham, England"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row is located on Colmore Row, Birmingham, England.</lex>
+      <lex lang="ru" lid="Id1">Колмор-роу 103 находится на Колмор-роу, Бирмингем, Англия.</lex>
+      <lex lang="en" lid="Id2">103 Colmore Row is located in Colmore Row, Birmingham, England.</lex>
+      <lex lang="ru" lid="Id2">Колмор-роу 103 находится в Колмор-роу, Бирмингем, Англия.</lex>
+      <lex lang="en" lid="Id3">103 Colmore Row is in Birmingham, England.</lex>
+      <lex lang="ru" lid="Id3">Колмор-роу 103 находится в Бирмингеме, Англия.</lex>
+      <links>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+        <link direction="en2ru">Colmore Row, Birmingham, England | includes | Колмор-роу</link>
+        <link direction="en2ru">Colmore Row, Birmingham, England | includes | Бирмингем</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

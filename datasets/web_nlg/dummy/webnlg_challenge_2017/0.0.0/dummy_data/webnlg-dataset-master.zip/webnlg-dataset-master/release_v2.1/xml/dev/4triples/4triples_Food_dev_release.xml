@@ -1,0 +1,110 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredients | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bread, almonds, garlic, water, and olive oil are the main ingredients in Ajoblanco, a food which originates from Andalusia, in Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco is from Andalusia Spain and ingredients include bread, almonds, garlic, water, and olive oil.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco, a dish from the Andalusia region of Spain, has the main ingredients bread, almonds, garlic, water and olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Water is an ingredient in Ajoblanco, also known as Ajo blanco, a dish that comes from Andalusia Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco is a food originates from the Andalusian region of Spain and contains water. An other alternative name of the dish is Ajo blanco.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Arem-arem | hasVariant | Lemper</otriple>
+        <otriple>Arem-arem | ingredient | Banana_leaf</otriple>
+        <otriple>Arem-arem | ingredientName | "compressed rice cooked inbanana leafwith vegetables or minced meat fillings"</otriple>
+        <otriple>Arem-arem | region | Javanese_cuisine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | dishVariation | Lemper</mtriple>
+        <mtriple>Arem-arem | ingredient | Banana_leaf</mtriple>
+        <mtriple>Arem-arem | mainIngredients | "compressed rice cooked in banana leaf with vegetables or minced meat fillings"</mtriple>
+        <mtriple>Arem-arem | region | Javanese_cuisine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Lemper, a dish variation of Arem-Arem contains Banana leaf in which is cooked compressed rice with vegetables or minced meat fillings and is a form of Javanese cuisine.</lex>
+      <lex comment="good" lid="Id2">The main ingredients of Arem-arem are compressed rice cooked in banana leaf with vegetables or minced meat fillings. The dish is of Javanese cuisine and has a variation known as Lemper.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Arem-arem | ingredient | Banana_leaf</otriple>
+        <otriple>Arem-arem | ingredientName | "compressed rice cooked inbanana leafwith vegetables or minced meat fillings"</otriple>
+        <otriple>Arem-arem | course | "Main course"@en</otriple>
+        <otriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arem-arem | ingredient | Banana_leaf</otriple>
+        <otriple>Arem-arem | course | "Main course"@en</otriple>
+        <otriple>Arem-arem | mainIngredient | "compressed rice cooked in banana leaf with vegetables or minced meat fillings"@en</otriple>
+        <otriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | ingredient | Banana_leaf</mtriple>
+        <mtriple>Arem-arem | course | "Main course"</mtriple>
+        <mtriple>Arem-arem | mainIngredients | "compressed rice cooked in banana leaf with vegetables or minced meat fillings"</mtriple>
+        <mtriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem is a food that is found nationwide in Indonesia, but more specific to Java, it can be served as a main course and has a banana leaf in it. Its main ingredients are compressed rice cooked in banana leaf with vegetables or minced meat fillings.</lex>
+      <lex comment="good" lid="Id2">The main ingredients of Arem-arem are compressed rice cooked in banana leaf with vegetables or minced meat fillings. It is served as a main course and is found nationwide in Indonesia and more specifically in Java.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Chili_pepper</otriple>
+        <otriple>Arrabbiata_sauce | mainIngredient | "Tomatoes, red chili, garlic, olive oil"@en</otriple>
+        <otriple>Arrabbiata_sauce | region | "Rome"@en</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Chili_pepper</otriple>
+        <otriple>Arrabbiata_sauce | ingredientName | "Tomatoes,red chili,garlic,olive oil"</otriple>
+        <otriple>Arrabbiata_sauce | region | "Rome"@en</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Chili_pepper</otriple>
+        <otriple>Arrabbiata_sauce | mainIngredient | "Tomatoes, red chili, garlic, olive oil"@en</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Arrabbiata_sauce | region | Rome</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredient | Chili_pepper</otriple>
+        <otriple>Arrabbiata_sauce | ingredientName | "Tomatoes,red chili,garlic,olive oil"</otriple>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Arrabbiata_sauce | region | Rome</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | ingredient | Chili_pepper</mtriple>
+        <mtriple>Arrabbiata_sauce | mainIngredients | "Tomatoes, red chili, garlic, olive oil"</mtriple>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Arrabbiata_sauce | region | Rome</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arrabbiata sauce originates from the region of Rome in Italy. It is made with tomatoes, red chili, garlic and olive oil.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce is a traditional dish from Rome, Italy. The main ingredients of it are tomatoes, red chili pepper, garlic and olive oil.</lex>
+      <lex comment="good" lid="Id3">Arrabbiata sauce is a traditional dish from Rome in Italy. An important ingredient is chili pepper and it also contains tomatoes, red chili, garlic and olive oil.</lex>
+    </entry>
+    </entries>
+</benchmark>

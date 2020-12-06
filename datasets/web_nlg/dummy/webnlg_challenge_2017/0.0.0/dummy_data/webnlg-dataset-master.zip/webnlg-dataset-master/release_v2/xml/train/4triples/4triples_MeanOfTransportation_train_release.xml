@@ -1,0 +1,125 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | wheelbase | "3.048"^^xsd:double</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | wheelbase | "120.0"^^&lt;http://dbpedia.org/datatype/inch&gt;</otriple>
+        <otriple>1955_Dodge | manufacturer | "Dodge"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | wheelbase | "120.0"^^&lt;http://dbpedia.org/datatype/inch&gt;</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__3</otriple>
+        <otriple>1955_Dodge | wheelbase | "120.0"^^&lt;http://dbpedia.org/datatype/inch&gt;</otriple>
+        <otriple>1955_Dodge | manufacturer | "Dodge"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__4</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | wheelbase | "3.048"^^xsd:double</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__2</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | wheelbase | "3.048"^^xsd:double</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | manufacturer | Dodge</mtriple>
+        <mtriple>1955_Dodge | wheelbase | 120.0 (inches)</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a V8 engine, a hardtop and a wheelbase of 120.0 inches. It was manufactured by Dodge.</lex>
+      <lex comment="good" lid="Id2">Manufactured by Dodge, the 1955 Dodge; has a wheelbase of 120.0 inches, a V8 engine and has a hardtop.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, manufactured by Dodge, has a V8 engine, a hardtop and a wheelbase 120 inches.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__5</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+        <otriple>1955_Dodge | wheelbase | "120.0"^^&lt;http://dbpedia.org/datatype/inch&gt;</otriple>
+        <otriple>1955_Dodge | bodyStyle | Station_wagon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | manufacturer | Dodge</mtriple>
+        <mtriple>1955_Dodge | wheelbase | 120.0 (inches)</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Station_wagon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge, manufactured by Dodge, is a station wagon. It has a V8 engine and a wheelbase of 120 inches.</lex>
+      <lex comment="good" lid="Id2">Dodge is the manufacturer of the 1955 Dodge; which has a station wagon style body, V8 engine and a wheelbase of 120 inches.</lex>
+      <lex comment="good" lid="Id3">The manufacturer of the 1955 Dodge, which has a station wagon style body, is the company Dodge. It has a wheelbase of 120 inches and has a V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__4</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Coronet"</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a V8 engine, uses a 3-speed automatic transmission, has a hardtop and is sometimes known as the Dodge Coronet.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge, which is also known as the Dodge Coronet, has a V8 engine, a 3-speed automatic transmission and a hardtop.</lex>
+      <lex comment="good" lid="Id3">he 1955 Dodge with a hardtop has a V8 engine and a 3 speed auto transmission. It is also called the Dodge Coronet.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | engine | 1955_Dodge__2</otriple>
+        <otriple>1955_Dodge | transmission | "3-speed automatic"</otriple>
+        <otriple>1955_Dodge | aka | "Dodge Coronet"@en</otriple>
+        <otriple>1955_Dodge | bodyStyle | Station_wagon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | engine | V8_engine</mtriple>
+        <mtriple>1955_Dodge | transmission | "3-speed automatic"</mtriple>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Coronet"</mtriple>
+        <mtriple>1955_Dodge | bodyStyle | Station_wagon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a V8 engine and a 3-speed automatic transmission. It has a station wagon style body and an alternative name of the Dodge Coronet.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge has a V8 engine and uses a 3-speed automatic transmission. It has a station wagon style body and has the alternative name of Dodge Coronet.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge is also named the Dodge Coronet and has a station wagon style body. It uses a 3-speed automatic transmission and has a V8 engine.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1955_Dodge | related | Plymouth_Plaza</otriple>
+        <otriple>1955_Dodge | relatedMeanOfTransportation | DeSoto_Custom</otriple>
+        <otriple>Dodge | keyPerson | Sergio_Marchionne</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1955_Dodge | related | DeSoto_Custom</otriple>
+        <otriple>1955_Dodge | relatedMeanOfTransportation | Plymouth_Plaza</otriple>
+        <otriple>Dodge | keyPerson | Sergio_Marchionne</otriple>
+        <otriple>1955_Dodge | manufacturer | Dodge</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | relatedMeanOfTransportation | DeSoto_Custom</mtriple>
+        <mtriple>1955_Dodge | relatedMeanOfTransportation | Plymouth_Plaza</mtriple>
+        <mtriple>Dodge | keyPerson | Sergio_Marchionne</mtriple>
+        <mtriple>1955_Dodge | manufacturer | Dodge</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Sergio Marchionne was a key person at Dodge, the manufacturer of the 1955 Dodge. This car, along with the DeSoto Custom and Plymouth Plaza are related means of car transportation.</lex>
+      <lex comment="good" lid="Id2">Sergio Marchionne was a key person at Dodge, which manufactured the 1955 Dodge car.</lex>
+      <lex comment="good" lid="Id3">The 1955 Dodge, manufactured by Dodge, is related to DeSoto Custom and Plymouth Plaza as means of transportation; the key person of Dodge is Sergio Marchionne.</lex>
+    </entry>
+    </entries>
+</benchmark>

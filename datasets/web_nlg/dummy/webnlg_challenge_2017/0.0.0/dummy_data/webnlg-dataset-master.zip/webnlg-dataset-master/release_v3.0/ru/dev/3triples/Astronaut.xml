@@ -1,0 +1,133 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>William_Anders | occupation | Fighter_pilot</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders, born in British Hong Kong, was a fighter pilot a member of Apollo 8's crew.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс, родившийся в Британском Гонконге, был летчиком-истребителем и членом экипажа "Аполлона-8".</lex>
+      <lex lang="en" lid="Id2">British Hong Kong born William Anders was a fighter pilot on Apollo 8.</lex>
+      <lex lang="ru" lid="Id2">Британский Гонконг - родина Уильяма Андерса - пилота истребителя на "Аполлон-8".</lex>
+      <lex lang="en" lid="Id3">William Anders was born in British Hong Kong, served as a test pilot and was a member of the Apollo 8 crew.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс родился в Британском Гонконге, служил тестовым пилотом и входил в состав экипажа "Аполлон-8".</lex>
+      <lex lang="en" lid="Id4">William Anders (born in British Hong Kong) served as a fighter pilot and was a crew member of Apollo 8.</lex>
+      <lex lang="ru" lid="Id4">Уильям Андерс (родился в Британском Гонконге) служил пилотом истребителя и являлся членом экипажа "Аполлон-8".</lex>
+      <lex lang="en" lid="Id5">William Anders( born in British Hong Kong) was a part of Apollo 8 and served as fighter pilot.</lex>
+      <lex lang="ru" lid="Id5">Уильям Андерс (родился в Британском Гонконге) входил в "Аполлон-8" и служил пилотом истребителя.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Fighter pilot | sameAs | летчик-истребитель / пилот истребителя</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>William_Anders | title | United_States_Ambassador_to_Norway</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | title | United_States_Ambassador_to_Norway</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Born in British Hong Kong, William Anders graduated AFIT, M.S. in 1962 and is now the US Ambassador to Norway.</lex>
+      <lex lang="ru" lid="Id1">Рожденный в Британском Гонконге Уильям Андерс, окончил AFIT магистром естественных наук в 1962 году, и сейчас является послом США в Норвегии.</lex>
+      <lex lang="en" lid="Id2">United States Ambassador to Norway, William Anders, was born in British Hong Kong and graduated from his alma Mater, AFIT, in 1962 with an M.S.</lex>
+      <lex lang="ru" lid="Id2">Посол Соединенных Штатов в Норвегии Уильям Андерс родился в Британском Гонконге и окончил свою альма-матер, AFIT, в 1962 году со степенью магистра естественных наук.</lex>
+      <lex lang="en" lid="Id3">William Anders was born in British Hong Kong and went to AFIT, M.S. 1962 and was the United States Ambassador to Norway.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс родился в Британском Гонконге и поступил в AFIT на магистра естественных наук в 1962 году и был послом Соединенных Штатов в Норвегии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">United States Ambassador to Norway | sameAs | посол Соединенных Штатов в Норвегии</link>
+        <link direction="en2ru">British Hong Kong | sameAs | Британский Гонконг</link>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+        <otriple>Apollo_8 | operator | NASA</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+        <mtriple>Apollo_8 | operator | NASA</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">NASA's Apollo 8 crew included Frank Borman and William Anders.</lex>
+      <lex lang="ru" lid="Id1">В состав экипажа "Аполлона-8" под руководством НАСА вошли Фрэнк Борман и Уильям Андерс.</lex>
+      <lex lang="en" lid="Id2">William Anders and Frank Borman were both crew members on Apollo 8 operated by NASA.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс и Фрэнк Борман были членами экипажа на Аполлоне-8, под управлением НАСА.</lex>
+      <lex lang="en" lid="Id3">William Anders and Frank Borman were crew members of NASA's Apollo 8.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс и Фрэнк Борман были членами экипажа НАСА "Аполлон-8".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">Frank_Borman | sameAs | Борман,_Фрэнк</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+        <dbpedialink direction="en2ru">NASA | sameAs | НАСА</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>William_Anders | almaMater | "AFIT, M.S. 1962"@en</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+        <mtriple>William_Anders | almaMater | "AFIT, M.S. 1962"</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders received an MS from his alma Mater, AFIT, in 1962 and served as a crew member of Apollo 8 along with Frank Borman,.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс получил степень магистра естественных наук в его Альма Матер AFIT в 1962 и служил членом экипажа Аполлон-12 вместе с Фрэнком Борманом.</lex>
+      <lex lang="en" lid="Id2">William Anders, who graduated from AFIT in 1962 with an M.S., was a crew member of Apollo 8 along with Fr.ank Borman.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс, который окончил AFIT в 1962 году со степенью магистра естественных наук, был членом экипажа "Аполлон-8" вместе с Фрэнком Борманом.</lex>
+      <lex lang="en" lid="Id3">William Anders, who graduated with an M.S., from AFIT in 1962, served as a crew member on Apollo 8 alongside Frank Borman.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс, магистр естественных наук AFIT 1962 года, служил членом экипажа на Аполлоне-8 вместе с Фрэнком Борманом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">Frank_Borman | sameAs | Борман,_Фрэнк</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AFIT, M.S. 1962 | includes | AFIT</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>William_Anders | selection | 1963</otriple>
+        <otriple>William_Anders | birthDate | "1933-10-17"^^xsd:date</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>William_Anders | selectedByNasa | 1963</mtriple>
+        <mtriple>William_Anders | birthDate | "1933-10-17"</mtriple>
+        <mtriple>William_Anders | mission | Apollo_8</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">William Anders, born 1933-10-17, joined NASA in 1963 to serve as a crew member on Apollo 8.</lex>
+      <lex lang="ru" lid="Id1">Уильям Андерс, родившийся 17.10.1933, присоединился к НАСА в 1963 году, чтобы выступать в качестве члена экипажа на "Аполлоне-8".</lex>
+      <lex lang="en" lid="Id2">William Anders, who was born on the 17th of October, 1933, joined NASA in 1963 and served as a member of the crew of Apollo 8.</lex>
+      <lex lang="ru" lid="Id2">Уильям Андерс, который родился 17 октября 1933 года, присоединился к НАСА в 1963 году и служил членом экипажа Аполлона 8.</lex>
+      <lex lang="en" lid="Id3">William Anders, born 17 October 1933 was chosen by NASA in 1963 and served as a crew member on Apollo 8.</lex>
+      <lex lang="ru" lid="Id3">Уильям Андерс, родившийся 17 октября 1933 года, был выбран НАСА в 1963 году и служил членом экипажа на Аполлон-8.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+        <dbpedialink direction="en2ru">Apollo_8 | sameAs | Аполлон-8</dbpedialink>
+        <dbpedialink direction="en2ru">William_Anders | sameAs | Андерс,_Уильям</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

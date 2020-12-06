@@ -1,0 +1,95 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">From Andalusia, Spain, Ajoblanco is made with bread, almonds, garlic, water and olive oil. Ajo blanco is an alternative name to Ajoblanco.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco, also known as Ajo blanco is a dish from the Andalusian region of Spain and includes the main ingredients of bread, almonds, garlic, water and olive oil.</lex>
+      <lex comment="good" lid="Id3">A dish found in the Andalusian region of Spain is called Ajoblanco (or Ajo blanco). It contains bread, almonds, garlic, water and olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Amatriciana_sauce | region | Lazio</otriple>
+        <otriple>Amatriciana_sauce | country | Italy</otriple>
+        <otriple>Amatriciana_sauce | ingredient | Guanciale</otriple>
+        <otriple>Amatriciana_sauce | course | Italian_meal_structure</otriple>
+        <otriple>Amatriciana_sauce | mainIngredient | "Tomatoes, guanciale, cheese , olive oil"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amatriciana_sauce | region | Lazio</mtriple>
+        <mtriple>Amatriciana_sauce | country | Italy</mtriple>
+        <mtriple>Amatriciana_sauce | ingredient | Guanciale</mtriple>
+        <mtriple>Amatriciana_sauce | course | Italian_meal_structure</mtriple>
+        <mtriple>Amatriciana_sauce | mainIngredient | "Tomatoes, guanciale, cheese, olive oil"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tomatoes, guanciale, cheese, and olive oil are main ingredients in the traditional Amatriciana sauce, which comes from the region of Lazio and can be found in an Italian meal.</lex>
+      <lex comment="good" lid="Id2">Amatriciana is a traditional sauce from Lazio, Italy. It includes cheese along with tomatoes, guanciale and olive oil.</lex>
+      <lex comment="good" lid="Id3">Amatriciana sauce can be found in Italian food and comes from the country's Lazio region. The main ingredients of the sauce are guanciale, tomatoes, cheese, and olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Arem-arem | region | Javanese_cuisine</otriple>
+        <otriple>Indonesia | leaderName | Joko_Widodo</otriple>
+        <otriple>Indonesia | currency | Indonesian_rupiah</otriple>
+        <otriple>Indonesia | language | Indonesian_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | country | Indonesia</mtriple>
+        <mtriple>Arem-arem | region | Javanese_cuisine</mtriple>
+        <mtriple>Indonesia | leader | Joko_Widodo</mtriple>
+        <mtriple>Indonesia | currency | Indonesian_rupiah</mtriple>
+        <mtriple>Indonesia | language | Indonesian_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem, a Javanese dish, is commonly served in Indonesia where the leader is Joko Widodo. It is also where the currency is the Indonesian rupiah and where Indonesian language is the language spoken.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | country | Italy</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | country | Italy</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Sergio Mattarella is a leader in Italy, a country where Rome is the capital, and both the people and the language spoken are Italian. Arrabbiata sauce can be found in Italy.</lex>
+      <lex comment="good" lid="Id2">Arrabbiata sauce is from Italy where the capital is Rome, Italian is the language spoken and Sergio Mattarella is a leader. People there are called Italians.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Arròs_negre | region | Valencian_Community</otriple>
+        <otriple>Valencian_Community | leaderName | Ximo_Puig</otriple>
+        <otriple>Arròs_negre | country | Spain</otriple>
+        <otriple>Spain | demonym | Spaniards</otriple>
+        <otriple>Spain | leader | Felipe_VI_of_Spain</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arròs_negre | region | Valencian_Community</mtriple>
+        <mtriple>Valencian_Community | leader | Ximo_Puig</mtriple>
+        <mtriple>Arròs_negre | country | Spain</mtriple>
+        <mtriple>Spain | demonym | Spaniards</mtriple>
+        <mtriple>Spain | leader | Felipe_VI_of_Spain</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ximo Puig is a leader of the Valencian Community which is where Arros negre comes from. It is a traditional dish from Spain, where the people are called Spaniards and the leader is Felipe VI of Spain.</lex>
+      <lex comment="good" lid="Id2">Arros negre is from the Valencian Community of Spain, home to the Spaniards, led by Felipe VI and Ximo Puig.</lex>
+    </entry>
+    </entries>
+</benchmark>

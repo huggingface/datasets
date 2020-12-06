@@ -1,0 +1,154 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</otriple>
+        <otriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</otriple>
+        <otriple>Egg_Harbor_Township,_New_Jersey | subdivisionName | Atlantic_County,_New_Jersey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | New_Jersey</mtriple>
+        <mtriple>Atlantic_City_International_Airport | location | Egg_Harbor_Township,_New_Jersey</mtriple>
+        <mtriple>Egg_Harbor_Township,_New_Jersey | isPartOf | Atlantic_County,_New_Jersey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Atlantic City International Airport is located in Egg Harbor Township (a township in Atlantic County) , New Jersey, United States.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт "Атлантик Сити" расположен в поселке Эгг Харбор (населенный пункт в Атлантическом округе), штат Нью-Джерси, Соединенные Штаты Америки.</lex>
+      <lex lang="en" lid="Id2">Atlantic City International Airport is located in Egg Harbor Township which is in New Jersey.</lex>
+      <lex lang="ru" lid="Id2">Международный аэропорт "Атлантик Сити" расположен в поселке Эгг Харбор, который находится в Нью-Джерси.</lex>
+      <lex lang="en" lid="Id3">Atlantic City International Airport is in Egg Harbor Township, Atlantic County, New Jersey.</lex>
+      <lex lang="ru" lid="Id3">Международный аэропорт Атлантик-Сити находится в поселке Эгг Харбор, округ Атлантик, Нью-Джерси.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_Jersey | sameAs | Нью-Джерси</dbpedialink>
+        <dbpedialink direction="en2ru">Atlantic_County,_New_Jersey | sameAs | Атлантик_(округ,_Нью-Джерси)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Atlantic City International Airport | sameAs | Международный аэропорт Атлантик Сити</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | поселок Эгг Харбор</link>
+        <link direction="en2ru">Egg Harbor Township, New Jersey | includes | Нью-Джерси</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Indian_Air_Force | aircraftHelicopter | HAL_Light_Combat_Helicopter</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Indian_Air_Force | aircraftTransport | Boeing_C-17_Globemaster_III</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Indian_Air_Force | aircraftHelicopter | HAL_Light_Combat_Helicopter</mtriple>
+        <mtriple>Agra_Airport | operatingOrganisation | Indian_Air_Force</mtriple>
+        <mtriple>Indian_Air_Force | transportAircraft | Boeing_C-17_Globemaster_III</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Agra Airport is operated by the Indian Air Force which uses HAL Light Combat Helicopter (aircraft helicopter) and the Boeing C-17 Globemaster III (a transport aircraft).</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Агра эксплуатируется Военно-воздушными силами Индии, использующими HAL LCH (вертолет) и Boeing C-17 Globemaster III (транспортный самолет).</lex>
+      <lex lang="en" lid="Id2">The operating organization for Agra Airport is the Indian Air Force who deploy the HAL Light Combat Helicopter and the Boeing C17 Globemaster III transport aircraft.</lex>
+      <lex lang="ru" lid="Id2">Эксплуатирующая организация аэропорта Агра - военно-воздушные силы Индии, которые применяют транспортные самолеты HAL LCH и Boeing C17 Globemaster III.</lex>
+      <lex lang="en" lid="Id3">Agra airport is operated by the Indian Air Force, using HAL light combat helicopters and Beoing C-17 globemaster III.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Агра эксплуатируется Военно-воздушными силами Индии с использованием легких боевых вертолетов HAL LCH и Boeing C-17 Globemaster III.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Indian_Air_Force | sameAs | Военно-воздушные_силы_Индии</dbpedialink>
+        <dbpedialink direction="en2ru">HAL_Light_Combat_Helicopter | sameAs | HAL_LCH</dbpedialink>
+        <dbpedialink direction="en2ru">Boeing_C-17_Globemaster_III | sameAs | Boeing_C-17_Globemaster_III</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Agra Airport | sameAs | аэропорт Агра</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Infraero | location | Brasília</otriple>
+        <otriple>Afonso_Pena_International_Airport | elevation | "910.742"^^xsd:double</otriple>
+        <otriple>Afonso_Pena_International_Airport | operator | Infraero</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Infraero | location | Brasília</otriple>
+        <otriple>Afonso_Pena_International_Airport | elevation | "911.0"^^xsd:double</otriple>
+        <otriple>Afonso_Pena_International_Airport | operator | Infraero</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Infraero | location | Brasília</mtriple>
+        <mtriple>Afonso_Pena_International_Airport | elevationAboveTheSeaLevel | 911.0</mtriple>
+        <mtriple>Afonso_Pena_International_Airport | operatingOrganisation | Infraero</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Afonso Pena International airport is located 911 metres above sea level and operated by Infraero located in Brasilia.</lex>
+      <lex lang="ru" lid="Id1">Международный аэропорт Афонсу Пена расположен на высоте 911 метров над уровнем моря и эксплуатируется компанией Инфраеро, расположенной в Бразилиа.</lex>
+      <lex lang="en" lid="Id2">At 911.0 metres above sea level, Afonso Pena International Airport is operated by Infraero which is in Brasilia.</lex>
+      <lex lang="ru" lid="Id2">На высоте 911,0 метров над уровнем моря международный аэропорт Афонсу Пена используется компанией Инфраеро, которая находится в Бразилиа.</lex>
+      <lex lang="en" lid="Id3">Infraero, in Brasilia, is served by Afonso Pena Aiport, with an elevation of 911 meters about sea level and is operated by Infraero.</lex>
+      <lex lang="ru" lid="Id3">Инфраеро, в Бразилиа, обслуживается аэропорта Афонсу Пена, находится на высоте 911 метров от уровня моря и эксплуатируется компанией "Инфраеро".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Brasília | sameAs | Бразилиа</dbpedialink>
+        <dbpedialink direction="en2ru">Afonso_Pena_International_Airport | sameAs | Афонсу_Пена_(аэропорт)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Infraero | sameAs | Инфраеро</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Iraq | language | Kurdish_languages</otriple>
+        <otriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Iraq | language | Kurdish_languages</mtriple>
+        <mtriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</mtriple>
+        <mtriple>Fallujah | country | Iraq</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Al-Taqaddum Air Base serves the city of Fallujah, in the country of Iraq where the Kurdish language is spoken.</lex>
+      <lex lang="ru" lid="Id1">Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа, в стране Ирак, где говорят на курдском языке.</lex>
+      <lex lang="en" lid="Id2">Al-Taqaddum Air Base serves the city of Fallujah in Iraq where the Kurdish languages are spoken.</lex>
+      <lex lang="ru" lid="Id2">Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа в Ираке, где говорят на курдских языках.</lex>
+      <lex lang="en" lid="Id3">The Al Taqaddum Air Base serves the city of Fallujah in Iraq, a country where the Kurdish languages are spoken.</lex>
+      <lex lang="ru" lid="Id3">Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа в Ираке, стране, где говорят на курдских языках.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Fallujah | sameAs | Эль-Фаллуджа</dbpedialink>
+        <dbpedialink direction="en2ru">Iraq | sameAs | Ирак</dbpedialink>
+        <dbpedialink direction="en2ru">Kurdish_languages | sameAs | Курдские_языки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Al-Taqaddum Air Base | sameAs | Авиабаза Аль Такаддум</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Iraq | leaderName | Fuad_Masum</otriple>
+        <otriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Iraq | leader | Fuad_Masum</otriple>
+        <otriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Iraq | leaderName | Fuad_Masum</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+        <otriple>Al-Taqaddum_Air_Base | city | Fallujah</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Iraq | leader | Fuad_Masum</otriple>
+        <otriple>Fallujah | country | Iraq</otriple>
+        <otriple>Al-Taqaddum_Air_Base | city | Fallujah</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Iraq | leader | Fuad_Masum</mtriple>
+        <mtriple>Al-Taqaddum_Air_Base | cityServed | Fallujah</mtriple>
+        <mtriple>Fallujah | country | Iraq</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Al-Taqaddum Air Base is located in Fallujah, a city in Fuad Masum led Iraq.</lex>
+      <lex lang="ru" lid="Id1">Авиабаза Аль Такаддум расположена в Эль-Фаллудже, городе, в котором Фуад Масум правил Ираком.</lex>
+      <lex lang="en" lid="Id2">Fuad Masum leads Iraq where Al Taqaddum air base serves the city of Fallujah.</lex>
+      <lex lang="ru" lid="Id2">Фуад Масум возглавляет Ирак, где Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа.</lex>
+      <lex lang="en" lid="Id3">The Al Taqaddum Air Base serves the city of Fallujah in Iraq. The country is led by Fuad Masum.</lex>
+      <lex lang="ru" lid="Id3">Авиабаза Аль Такаддум обслуживает город Эль-Фаллуджа в Ираке. Страну возглавляет Фуад Масум.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Iraq | sameAs | Ирак</dbpedialink>
+        <dbpedialink direction="en2ru">Fallujah | sameAs | Эль-Фаллуджа</dbpedialink>
+        <dbpedialink direction="en2ru">Fuad_Masum | sameAs | Масум,_Фуад</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Al-Taqaddum Air Base | sameAs | Авиабаза Аль Такаддум</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

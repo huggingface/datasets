@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett, born in Greene, Maine, fought in the American Civil War and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Born in Greene, Maine, Aaron S Daggett fought in battles during the American Civil War and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett was born in Maine and fought in the American Civil War. He was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Born in Maine, Aaron S. Daggett fought in the American Civil War and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Maine born Aaron S Daggett fought in the American Civil War and was later awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Greene Maine, Aaron S. Daggett, fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett was born in Greene, Maine, he fought at the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Gettysburg</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett. who was born in Maine, fought in the Battle of Gettysburg and awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett, who fought in the Battle of Gettysburg and was awarded the Purple Heart was born in Maine.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett, who was born in Maine, fought in the Battle of Gettysburg and was awarded the Purple Heart.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_the_Wilderness</otriple>
+        <otriple>Aaron_S._Daggett | award | Purple_Heart</otriple>
+        <otriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_the_Wilderness</mtriple>
+        <mtriple>Aaron_S._Daggett | award | Purple_Heart</mtriple>
+        <mtriple>Aaron_S._Daggett | birthPlace | Greene,_Maine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Greene, Maine is the birthplace of Aaron S Daggett who fought in the Battle of the Wilderness and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett, who was born in Greene Maine, fought in the Battle of the Wilderness and was awarded the Purple Heart.</lex>
+      <lex comment="good" lid="Id3">Aaron S Daggett, born in Greene, Maine, took part in the Battle of the Wilderness and was awarded the Purple Heart.</lex>
+    </entry>
+    </entries>
+</benchmark>

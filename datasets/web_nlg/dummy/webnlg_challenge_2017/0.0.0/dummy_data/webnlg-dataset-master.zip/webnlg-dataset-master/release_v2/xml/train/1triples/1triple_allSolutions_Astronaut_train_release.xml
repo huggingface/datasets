@@ -1,0 +1,64 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+      </modifiedtripleset>
+      <lex comment="toFix" lid="Id1">The Alma Mater of Alan Bean is UT Austin, B.S. 1955.</lex>
+      <lex comment="good" lid="Id2">Alan Bean graduated in 1955 from UT Austin with a B.S.</lex>
+      <lex comment="good" lid="Id3">Alan Bean graduated from UT Austin in 1955 with a B.S.</lex>
+      <lex comment="good" lid="Id4">Alan Bean graduated from UT Austin in 1955 with a Bachelor of Science degree.</lex>
+      <lex comment="good" lid="Id5">Alan Bean received a Bachelor of Science degree at the University of Texas at Austin in 1955.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born on the 15th of March 1932.</lex>
+      <lex comment="good" lid="Id2">Alan Bean was born on Mar 15, 1932.</lex>
+      <lex comment="good" lid="Id3">Alan Bean was born on March 15, 1932.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthName | "Alan LaVern Bean"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthName | "Alan LaVern Bean"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean's full name was "Alan LaVern Bean".</lex>
+      <lex comment="good" lid="Id2">Alan Bean was born Alan LaVern Bean.</lex>
+      <lex comment="good" lid="Id3">Alan Bean's birth name was Alan LaVern Bean.</lex>
+      <lex comment="good" lid="Id4">Alan Bean's birth name is Alan LaVern Bean.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born in Wheeler, Texas.</lex>
+      <lex comment="toFix" lid="Id2">Alan Bean's birthplace is Wheeler,, Texas.</lex>
+      <lex comment="good" lid="Id3">Alan Bean's birth place is Wheeler, Texas.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Bean | dateOfRet | "June 1981"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | dateOfRetirement | "June 1981"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean retired on June 1981.</lex>
+      <lex comment="good" lid="Id2">Alan Bean retired in June of 1981.</lex>
+      <lex comment="good" lid="Id3">Alan Bean retired in June 1981.</lex>
+      <lex comment="good" lid="Id4">Alan Bean's retirement was in June 1981.</lex>
+      <lex comment="good" lid="Id5">Alan Bean retired in June, 1981.</lex>
+    </entry>
+    </entries>
+</benchmark>

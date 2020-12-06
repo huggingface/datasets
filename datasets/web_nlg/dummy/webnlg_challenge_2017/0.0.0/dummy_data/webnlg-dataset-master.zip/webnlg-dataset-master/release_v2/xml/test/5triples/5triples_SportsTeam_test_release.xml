@@ -1,0 +1,108 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | manager | Michele_Marcolini</otriple>
+        <otriple>A.C._Lumezzane | ground | Italy</otriple>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Michele_Marcolini | clubs | F.C._Bari_1908</otriple>
+        <otriple>Michele_Marcolini | team | Vicenza_Calcio</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | manager | Michele_Marcolini</mtriple>
+        <mtriple>A.C._Lumezzane | ground | Italy</mtriple>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Michele_Marcolini | club | F.C._Bari_1908</mtriple>
+        <mtriple>Michele_Marcolini | club | Vicenza_Calcio</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Italy is led by Pietro Grasso and is where AC Lumezzane play. Their manager is Michele Marcolini who is in the Vicenza Calcio club and plays for FC Bari 1908.</lex>
+      <lex comment="good" lid="Id2">The manager of A.C. Lumezzane is Michele Marcolini who has played for F.C. Bari 1908 and Vicenza Calcio. A.C. Lumezzane's ground is in Italy where the leader is Pietro Grasso.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.F.C._Blackpool | manager | Stuart_Parker_(footballer)</otriple>
+        <otriple>Stuart_Parker_(footballer) | clubs | Chesterfield_F.C.</otriple>
+        <otriple>Stuart_Parker_(footballer) | team | Stockport_County_F.C.</otriple>
+        <otriple>A.F.C._Blackpool | ground | Blackpool</otriple>
+        <otriple>Blackpool | leaderName | Labour_Party_(UK)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.F.C._Blackpool | manager | Stuart_Parker_(footballer)</mtriple>
+        <mtriple>Stuart_Parker_(footballer) | club | Chesterfield_F.C.</mtriple>
+        <mtriple>Stuart_Parker_(footballer) | club | Stockport_County_F.C.</mtriple>
+        <mtriple>A.F.C._Blackpool | ground | Blackpool</mtriple>
+        <mtriple>Blackpool | leader | Labour_Party_(UK)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.F.C. Blackpool is in Blackpool, which council is Labour, it has had Stuart Parker as their manager, whose football club was Stockport County F.C and is attached to Chesterfield football club.</lex>
+      </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.S._Gubbio_1910 | league | Serie_D</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+        <otriple>Serie_D | champions | S.S._Robur_Siena</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.S._Gubbio_1910 | league | Serie_D</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+        <mtriple>Serie_D | champions | S.S._Robur_Siena</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">S.S. Robur Siena are champions of Serie D. league in which AS Gubbio 1910 also play. This latter team has their ground in Italy where the Italian language is spoken and the leader is Sergio Mattarella.</lex>
+      <lex comment="good" lid="Id2">A.S. Gubbio 1910 is in the Serie D league in Italy. Champions of Serie D are the S.S. Robur Siena. Sergio Mattarella leads Italy and Italian is the language spoken there.</lex>
+      </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>AEK_Athens_F.C. | manager | Gus_Poyet</otriple>
+        <otriple>Gus_Poyet | team | Real_Zaragoza</otriple>
+        <otriple>Olympic_Stadium_(Athens) | location | Marousi</otriple>
+        <otriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</otriple>
+        <otriple>Gus_Poyet | clubs | Chelsea_F.C.</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AEK_Athens_F.C. | manager | Gus_Poyet</otriple>
+        <otriple>Gus_Poyet | clubs | Real_Zaragoza</otriple>
+        <otriple>Olympic_Stadium_(Athens) | location | Marousi</otriple>
+        <otriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</otriple>
+        <otriple>Gus_Poyet | team | Chelsea_F.C.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AEK_Athens_F.C. | manager | Gus_Poyet</mtriple>
+        <mtriple>Gus_Poyet | club | Real_Zaragoza</mtriple>
+        <mtriple>Olympic_Stadium_(Athens) | location | Marousi</mtriple>
+        <mtriple>AEK_Athens_F.C. | ground | Olympic_Stadium_(Athens)</mtriple>
+        <mtriple>Gus_Poyet | club | Chelsea_F.C.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Gus Poyet is in the Real Zaragoza club and previously played for Chelsea FC. He now manages AEK Athens who have their home ground at the Olympic Stadium (Athens) at Marousi.</lex>
+      <lex comment="good" lid="Id2">Gus Poyet is the manager of AEK Athens who play at their home ground of the Olympic Stadium (Athens) at Marousi. He previously played for Chelsea FC and is associated with Real Zaragoza FC.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AS Gubbio 1910 is located in Italy where the Italian language is spoken and Pietro Grasso is the leader. The country is inhabited by Italians who have Rome as their capital city.</lex>
+      <lex comment="good" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy, the capital of which is Rome, and the leader's name is Pietro Grasso. The people of Italy are Italian, as is the language spoken.</lex>
+      <lex comment="good" lid="Id3">The ground of A.S. Gubbio 1910 is located in Italy. In this country; the language spoken is Italian, Rome is the capital, the inhabitants are called Italians, and the leader is Pietro Grasso.</lex>
+    </entry>
+    </entries>
+</benchmark>

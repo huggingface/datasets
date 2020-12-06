@@ -1,0 +1,95 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abel_Hernández | clubs | Peñarol</otriple>
+        <otriple>Abel_Hernández | youthclubs | Central_Español</otriple>
+        <otriple>Hull_City_A.F.C. | manager | Steve_Bruce</otriple>
+        <otriple>Abel_Hernández | team | Hull_City_A.F.C.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | club | Peñarol</mtriple>
+        <mtriple>Abel_Hernández | youthclub | Central_Español</mtriple>
+        <mtriple>Hull_City_A.F.C. | manager | Steve_Bruce</mtriple>
+        <mtriple>Abel_Hernández | club | Hull_City_A.F.C.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A former player of the Central Español youth club, Abel Hernandez belongs to the club Penarol. He also plays for, Steve Bruce managed, Hull City A.F.C.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez, who played for Penarol, was a member of the Central Espanol youth team. Abel Hernández's club is Hull City A.F.C. which is managed by, Steve Bruce.</lex>
+      <lex comment="good" lid="Id3">Abel Hernandez, whose club is Penarol, played youth football for Central Español. his club is also Hull City A.F.C., the manager of which, is Steve Bruce.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Peñarol</otriple>
+        <otriple>U.S._Città_di_Palermo | manager | Giuseppe_Iachini</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+        <otriple>U.S._Città_di_Palermo | league | Serie_A</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | youthclub | Peñarol</mtriple>
+        <mtriple>U.S._Città_di_Palermo | manager | Giuseppe_Iachini</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+        <mtriple>U.S._Città_di_Palermo | league | Serie_A</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernández, who was a member of youth club Peñarol, plays for the club, U.S. Città di Palermo. The club is managed by Giuseppe Iachini and play in the Serie A league.</lex>
+      <lex comment="good" lid="Id2">When he was younger, Abel Hernández played for Peñarol. He now plays for US Citta di Palermo in the Serie A. League and managed by Giuseppe Iachini.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández plays for, Giuseppe Iachini managed, U.S. Città di Palermo. in the Serie A league. He has played for Peñarol.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Adam_McQuaid | draftTeam | Columbus_Blue_Jackets</otriple>
+        <otriple>Boston_Bruins | generalManager | Don_Sweeney</otriple>
+        <otriple>Columbus_Blue_Jackets | city | Columbus,_Ohio</otriple>
+        <otriple>Adam_McQuaid | team | Boston_Bruins</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adam_McQuaid | draftTeam | Columbus_Blue_Jackets</otriple>
+        <otriple>Columbus_Blue_Jackets | locationCity | Columbus,_Ohio</otriple>
+        <otriple>Boston_Bruins | generalManager | Don_Sweeney</otriple>
+        <otriple>Adam_McQuaid | team | Boston_Bruins</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_McQuaid | draftTeam | Columbus_Blue_Jackets</mtriple>
+        <mtriple>Boston_Bruins | generalManager | Don_Sweeney</mtriple>
+        <mtriple>Columbus_Blue_Jackets | city | Columbus,_Ohio</mtriple>
+        <mtriple>Adam_McQuaid | club | Boston_Bruins</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam McQuaid was originally drafted to the Columbus Blue Jackets out of Columbus, Ohio. He nows plays with the Boston Bruins whose general manager is Don Sweeney.</lex>
+      <lex comment="good" lid="Id2">Don Sweeney is general manager for the Boston Bruins, the team Adam McQuaid played for. McQuaid was drafted to the Columbus Blue Jackets, from Columbus, Ohio.</lex>
+      <lex comment="good" lid="Id3">Adam McQuaid was drafted with the Columbus Blue Jackets in Columbus, Ohio. He played for the Boston Bruins whose manager is Don Sweeney.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Akeem_Ayers | formerTeam | New_England_Patriots</otriple>
+        <otriple>Akeem_Ayers | dateOfBirth | "1989-07-10"^^xsd:date</otriple>
+        <otriple>Akeem_Ayers | debutTeam | Tennessee_Titans</otriple>
+        <otriple>Akeem_Ayers | birthYear | "1989"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Ayers | formerTeam | New_England_Patriots</mtriple>
+        <mtriple>Akeem_Ayers | birthDate | 1989-07-10</mtriple>
+        <mtriple>Akeem_Ayers | debutTeam | Tennessee_Titans</mtriple>
+        <mtriple>Akeem_Ayers | birthYear | 1989</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Ayers was born on 10th July 1989. He made his debut for the Tennessee Titans and used to play for the New England Patriots.</lex>
+      <lex comment="good" lid="Id2">Born on July 10th, 1989, Akeem Ayers, made his debut for the Tennessee Titans and used to play for the New England Patriots.</lex>
+      <lex comment="good" lid="Id3">Akeem Ayers was born on 10th July 1989. His debut team was the Tennessee Titans and his former team is the New England Patriots.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Akeem_Dent | birthYear | "1987"^^xsd:gYear</otriple>
+        <otriple>Akeem_Dent | formerTeam | Houston_Texans</otriple>
+        <otriple>Akeem_Dent | dateOfBirth | "1987-09-27"^^xsd:date</otriple>
+        <otriple>Akeem_Dent | placeOfBirth | "Atlanta, Georgia"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Dent | birthYear | 1987</mtriple>
+        <mtriple>Akeem_Dent | formerTeam | Houston_Texans</mtriple>
+        <mtriple>Akeem_Dent | birthDate | 1987-09-27</mtriple>
+        <mtriple>Akeem_Dent | birthPlace | "Atlanta, Georgia"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Dent, who used to play for Houston Texans, was born on 27 September 1987 in Atlanta, Georgia.</lex>
+      <lex comment="good" lid="Id2">Akeem Dent was born in Atlanta, Georgia on 27th September 1987 and played for the Houston Texans.</lex>
+      <lex comment="good" lid="Id3">Former Houston Texans player, Akeem Dent, was born in Atlanta Georgia, on 09/27/1987.</lex>
+    </entry>
+    </entries>
+</benchmark>

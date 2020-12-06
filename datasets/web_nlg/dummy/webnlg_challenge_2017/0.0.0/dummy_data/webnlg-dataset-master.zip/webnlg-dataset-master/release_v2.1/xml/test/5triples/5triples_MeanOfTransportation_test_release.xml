@@ -1,0 +1,113 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Germany</otriple>
+        <otriple>Costa_Crociere | parent | Carnival_Corporation_&amp;_plc</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | shipBuilder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIDA_Cruises | location | Germany</otriple>
+        <otriple>Costa_Crociere | parentCompany | Carnival_Corporation_&amp;_plc</otriple>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | shipBuilder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | shipOwner | Costa_Crociere</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDA_Cruises | location | Germany</mtriple>
+        <mtriple>Costa_Crociere | parentCompany | Carnival_Corporation_&amp;_plc</mtriple>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+        <mtriple>AIDAstella | builder | Meyer_Werft</mtriple>
+        <mtriple>AIDAstella | owner | Costa_Crociere</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDAstella was built by Meyer Werft, owned by Costa Crociere, the parent company of which is, Carnival Corporation &amp; plc. AIDAstella is operated by AIDA Cruises which is located in Germany.</lex>
+      <lex comment="good" lid="Id2">Carnival Corporation &amp; plc is the parent company of Costa Crociere which is the owner of the AIDAstella. The AIDAstella was built by Meyer Werft and is operated by AIDA Cruises which is based in Germany.</lex>
+      <lex comment="good" lid="Id3">Carnival Corporation &amp; plc is the parent company of Costa Crociere, who own the AIDAstella. AIDAstella was built by Meyer Werft and is operated by AIDA Cruise Line, located in Germany.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>ALCO_RS-3 | cylindercount | 12</otriple>
+        <otriple>ALCO_RS-3 | builddate | "May 1950 &amp;ndash; August 1956"@en</otriple>
+        <otriple>ALCO_RS-3 | enginetype | Four-stroke_engine</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+        <mtriple>ALCO_RS-3 | cylinderCount | 12</mtriple>
+        <mtriple>ALCO_RS-3 | buildDate | "May 1950 - August 1956"</mtriple>
+        <mtriple>ALCO_RS-3 | engine | Four-stroke_engine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALCO RS-3, built by the American Locomotive Company, was produced Between May 1950 and August 1956. It has 12 cylinders, a four-stroke engine and is 17068.8 millimetres.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3 was built by the American Locomotive Company and was produced between May 1950 and August 1956. It has a cylinder count of 12, is 17068.8 (millimetres) in length, and has a four-stroke engine.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3 was made from May 1950 until August 1956 by the American Locomotive Company. It is 17068.8mm long, has a four-stroke engine and 12 cylinders.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>ALV_X-1 | countryOrigin | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>United_States | demonym | Americans</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>United_States | anthem | The_Star-Spangled_Banner</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALV_X-1 | countryOrigin | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>United_States | demonym | Americans</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>United_States | anthem | The_Star-Spangled_Banner</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The inhabitants of the United States, from where ALV X-1 hails, are called Americans. The Star Spangled Banner is the national anthem of the united States, Washington D.C. is its capital city and Native Americans one of its ethnic groups .</lex>
+      <lex comment="good" lid="Id2">The ALV X-1 originated in the United States where the inhabitants are known as Americans and include the ethnic group of Native Americans. The capital city is Washington DC and the national anthem is the Star Spangled Banner.</lex>
+      <lex comment="good" lid="Id3">The United States, has its capital at Washington D.C. and the national anthem as The Star Spangled Banner. It is home to Americans, Native Americans and the ALV X-1.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Alhambra_(1855) | shipOwner | P&amp;O_(company)</otriple>
+        <otriple>P&amp;O_(company) | location | London</otriple>
+        <otriple>Alhambra_(1855) | shipBeam | "8.3"^^xsd:double</otriple>
+        <otriple>Alhambra_(1855) | powerType | Humphrys,_Tennant_and_Dykes</otriple>
+        <otriple>Alhambra_(1855) | builder | Samuda_Brothers</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alhambra | owner | P&amp;O_(company)</mtriple>
+        <mtriple>P&amp;O_(company) | location | London</mtriple>
+        <mtriple>Alhambra | shipBeam | 8.3 m</mtriple>
+        <mtriple>Alhambra | powerType | Humphrys,_Tennant_and_Dykes</mtriple>
+        <mtriple>Alhambra | builder | Samuda_Brothers</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">P&amp;O company is located in London and owns the Alhambra which was built by, the Samuda Brothers. The Alhambra has an 8.3m ship beam and is powered by a Humphrys, Tennant and Dykes engine.</lex>
+      <lex comment="good" lid="Id2">A transport London company called P&amp;O owns the Alhambra ship which contains a Humphrys, Tennant and Dykes power type and has a ship beam of 8.3 m. The ship was built by the Samuda Brothers.</lex>
+      <lex comment="good" lid="Id3">The Alhambra, with an 8.3m ship beam, is powered by a Humphrys, Tennant and Dykes. It is owned by London based, P&amp;O and built by the Samuda Brothers.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>American_Motors | successor | Eagle_(automobile)</otriple>
+        <otriple>American_Motors | subsidiary | Wheel_Horse</otriple>
+        <otriple>AMC_Matador | manufacturer | American_Motors</otriple>
+        <otriple>American_Motors | fate | Chrysler</otriple>
+        <otriple>American_Motors | keyPeople | Roy_D._Chapin,_Jr.</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>American_Motors | successor | Eagle_(automobile)</otriple>
+        <otriple>American_Motors | subsidiary | Wheel_Horse</otriple>
+        <otriple>AMC_Matador | manufacturer | American_Motors</otriple>
+        <otriple>American_Motors | fate | Chrysler</otriple>
+        <otriple>American_Motors | keyPerson | Roy_D._Chapin,_Jr.</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>American_Motors | successor | Eagle_(automobile)</mtriple>
+        <mtriple>American_Motors | subsidiary | Wheel_Horse</mtriple>
+        <mtriple>AMC_Matador | manufacturer | American_Motors</mtriple>
+        <mtriple>American_Motors | fate | Chrysler</mtriple>
+        <mtriple>American_Motors | keyPerson | Roy_D._Chapin,_Jr.</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AMC Matador is manufactured by American Motors, a key person of the company is Roy D Chapin Jr. The Wheel Horse is a subsidiary of American Motors which was succeeded by Eagle and acquired by Chrysler.</lex>
+      <lex comment="good" lid="Id2">The AMC Matador is manufactured by American Motors, whose subsidiary is The Wheel Horse and successor is Eagle. American Motors was acquired by Chrysler and Roy D Chapin Jr is a key person there.</lex>
+      <lex comment="good" lid="Id3">Roy D Chapin Jr is a key person at American Motors who manufactured the AMC Matador. The company was acquired by Chrysler, was succeeded by Eagle ad has a subsidiary known as The Wheel Horse.</lex>
+    </entry>
+    </entries>
+</benchmark>

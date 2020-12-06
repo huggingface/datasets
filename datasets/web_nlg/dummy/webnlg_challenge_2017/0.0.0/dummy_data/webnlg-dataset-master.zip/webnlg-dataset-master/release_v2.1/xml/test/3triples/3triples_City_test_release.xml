@@ -1,0 +1,124 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States of America is home to the ethnic group Native Americans and is where you will find Albany, in the state of Georgia.</lex>
+      <lex comment="good" lid="Id2">Albany is part of the state of Georgia, United States, of which Native Americans are one of the ethnic groups.</lex>
+      <lex comment="good" lid="Id3">Albany is part of Georgia, in the United States, where Native Americans are one of the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | areaTotal | "6.81166873018368"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "265.0"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3316527565869"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "265.0"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | areaTotal | "6.81"^^&lt;http://dbpedia.org/datatype/squareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^&lt;http://dbpedia.org/datatype/inhabitantsPerSquareKilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81167e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.332"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alexandria,_Indiana | areaTotal | 6.81e+06</otriple>
+        <otriple>Alexandria,_Indiana | elevation | "264.871"^^xsd:double</otriple>
+        <otriple>Alexandria,_Indiana | populationDensity | "755.3"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alexandria,_Indiana | areaTotal | 6.81 (square kilometres)</mtriple>
+        <mtriple>Alexandria,_Indiana | elevationAboveTheSeaLevel | 265.0</mtriple>
+        <mtriple>Alexandria,_Indiana | populationDensity | 755.3 (inhabitants per square kilometre)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alexandria, Indiana is elevated 265 metres above sea level, its total area is 6.81 square kilometres and its population density is 755.3 inhabitants per sq km.</lex>
+      <lex comment="good" lid="Id2">Alexandria, Indiana is located 265 above sea level, has a total area of 6.81 sq km and a population density of 755.3 inhabitants per sq km.</lex>
+      <lex comment="good" lid="Id3">At 265m above sea level, Alexandria, Indiana, has a population density of 755.3 inhabitants per square kilometre, and a total area of 6.81 square kilometres.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Asian_Americans</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alpharetta,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Asian_Americans</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alpharetta can be found in Georgia in the United States, the country that is home to an ethnic group called Asian Americans.</lex>
+      <lex comment="good" lid="Id2">Alpharetta is part of the state of Georgia in the United States. One of the ethnic groups found in this country is Asian Americans.</lex>
+      <lex comment="good" lid="Id3">Alpharetta, Georgia, is in the United States, where Asian Americans are one of the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Fulton_County,_Georgia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alpharetta,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Fulton_County,_Georgia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alpharetta, is part of Fulton County, Georgia in the United States where Native Americans are an ethnic group.</lex>
+      <lex comment="good" lid="Id2">Native Americans are an ethnic group in the United States, which is where you will find Alpharetta, Fulton County, Georgia.</lex>
+      <lex comment="good" lid="Id3">Alpharetta (Fulton County), Georgia is in the United States where one of the ethnic groups residing there are the Native Americans.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alpharetta,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alpharetta is part of the U.S. state, Georgia where Native Americans are an ethnic group.</lex>
+      <lex comment="good" lid="Id2">The Native Americans are an ehtnic group within the United States and Alpharetta Georgia is located within the United States.</lex>
+      <lex comment="good" lid="Id3">The United States includes the ethnic group of Native Americans and is the location of Alpharetta, part of the state of Georgia.</lex>
+    </entry>
+    </entries>
+</benchmark>

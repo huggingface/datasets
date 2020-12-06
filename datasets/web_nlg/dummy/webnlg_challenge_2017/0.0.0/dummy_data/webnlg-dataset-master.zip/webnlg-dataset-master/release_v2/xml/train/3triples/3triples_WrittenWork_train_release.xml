@@ -1,0 +1,78 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | "Print"@en</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | Virginia_DeMarce</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | ISBN_number | "978-1-4165-4253-7"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | "Print"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Virginia_DeMarce</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis written by Virginia DeMarce is available in print form and can be located by it's ISBN number "978-1-4165-4253-7".</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis was authored by Virginia DeMarce and has a ISBN number of 978-1-4165-4253-7.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | "Print"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | ISBN_number | "978-1-4165-4253-7"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | "Print"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis can be located by it's ISBN number "978-1-4165-4253-7", its author is Eric Flint and was put in print.</lex>
+      <lex comment="good" lid="Id2">The 1634 The Bavarian Crisis by Eric Flint, was put in print and has the ISBN number 978-1-4165-4253-7.</lex>
+      <lex comment="good" lid="Id3">1634: The Bavarian Crisis was put into print and written by Eric Flint. It can be located by the ISBN number 978-1-4165-4253-7.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | Hardcover</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | ISBN_number | "978-1-4165-4253-7"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | Hardcover</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The hardcover book 1634: The Bavarian Crisis was written by Eric Flint and has the ISBN number 978-1-4165-4253-7.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis, available in hardcover, has an ISBN number of 978-1-4165-4253-7 and was written by Eric Flint.</lex>
+      <lex comment="good" lid="Id3">1634: The Bavarian Crisis, written by Eric Flint, has the ISBN number 978-1-4165-4253-7 and is available in hardcover.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | language | English_language</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_III</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | language | English_language</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_III</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis was written by Eric Flint in English and was preceded by Grantville Gazette III.</lex>
+      <lex comment="good" lid="Id2">Eric Flint wrote the book 1634: The Bavarian Crisis. It is the sequel to Grantville Gazette III.</lex>
+      <lex comment="good" lid="Id3">1634: The Bavarian Crisis is written in English and the sequel to Grantville Gazette III written by Eric Flint.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | Hardcover</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | numberOfPages | "448"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | Hardcover</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | numberOfPages | "448"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis, written by Eric Flint, has 448 pages and is available in hardcover.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis by Eric Flint is a hardcover publication with 448 pages.</lex>
+      <lex comment="good" lid="Id3">1634: The Bavarian Crisis by Eric Flint comes in hardcover and has 448 pages.</lex>
+    </entry>
+    </entries>
+</benchmark>

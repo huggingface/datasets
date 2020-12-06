@@ -1,0 +1,128 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | New_York_City</otriple>
+        <otriple>New_York_City | subdivisionName | Manhattan</otriple>
+        <otriple>New_York_City | isPartOf | New_Netherland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | New_York_City</mtriple>
+        <mtriple>New_York_City | isPartOf | Manhattan</mtriple>
+        <mtriple>New_York_City | isPartOf | New_Netherland</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Manhattan is part of New York City, which was part of New Netherland, and is the location of Asser Levy Public Baths.</lex>
+      <lex lang="ru" lid="Id1">Манхэттен входит в состав Нью-Йорка, который входил в состав Новых Нидерландов, и является местом расположения Общественных бань Ашера Леви.</lex>
+      <lex lang="en" lid="Id2">The Asser Levy Public Baths are in New York City, Manhattan ( a part of New Netherland).</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви находятся в Нью-Йорке, на Манхэттене (часть Новых Нидерландов).</lex>
+      <lex lang="en" lid="Id3">The Asser Levy Public Baths in Manhattan, New York City are part of New Netherland.</lex>
+      <lex lang="ru" lid="Id3">Общественные бани Ашера Леви на Манхэттене, штат Нью-Йорк, входят в состав Новых Нидерландов.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York_City | sameAs | Нью-Йорк</dbpedialink>
+        <dbpedialink direction="en2ru">New_Netherland | sameAs | Новые_Нидерланды</dbpedialink>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | New_York_City</otriple>
+        <otriple>New_York_City | isPartOf | New_York</otriple>
+        <otriple>New_York_City | subdivisionName | Brooklyn</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | New_York_City</mtriple>
+        <mtriple>New_York_City | isPartOf | New_York</mtriple>
+        <mtriple>New_York_City | isPartOf | Brooklyn</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Asser Levy Public Baths are located in New York City, New York. Brooklyn is a part of New York City.</lex>
+      <lex lang="ru" lid="Id1">Общественные бани Ашера Леви находятся в Нью-Йорке, Нью-Йорк. Бруклин - часть Нью-Йорка.</lex>
+      <lex lang="en" lid="Id2">The Asser Levy Public Baths are located in New York City which is part of New York and also incorporates Brooklyn.</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви находятся в Нью-Йорке, который является частью Нью-Йорка, а также включает в себя Бруклин.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York_City | sameAs | Нью-Йорк</dbpedialink>
+        <dbpedialink direction="en2ru">Brooklyn | sameAs | Бруклин</dbpedialink>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Asser_Levy_Public_Baths | location | New_York_City</otriple>
+        <otriple>New_York_City | isPartOf | New_York</otriple>
+        <otriple>New_York_City | subdivisionName | Manhattan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asser_Levy_Public_Baths | location | New_York_City</mtriple>
+        <mtriple>New_York_City | isPartOf | New_York</mtriple>
+        <mtriple>New_York_City | isPartOf | Manhattan</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">New York City, New York, Manhattan is the location of the Asser Levy Public Baths.</lex>
+      <lex lang="ru" lid="Id1">Нью-Йорк, Манхэттен - местонахождение Общественных бань Ашера Леви.</lex>
+      <lex lang="en" lid="Id2">Asser Levy Public baths are in Manhattan, New York City, New York.</lex>
+      <lex lang="ru" lid="Id2">Общественные бани Ашера Леви находятся на Манхэттене, город Нью-Йорк, Нью-Йорк.</lex>
+      <lex lang="en" lid="Id3">Asser Levy Public baths are located in New York City, New York, Manhattan.</lex>
+      <lex lang="ru" lid="Id3">Общественные бани Ашера Леви расположены в Нью-Йорке, на Манхэттене.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">New_York_City | sameAs | Нью-Йорк</dbpedialink>
+        <dbpedialink direction="en2ru">Manhattan | sameAs | Манхэттен</dbpedialink>
+        <dbpedialink direction="en2ru">New_York | sameAs | Нью-Йорк_(штат)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asser Levy Public Baths | sameAs | Общественные бани Ашера Леви</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Birmingham | leaderName | Conservative_Party_(UK)</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | birthPlace | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Birmingham | leader | Conservative_Party_(UK)</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | birthPlace | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">103 Colmore Row was designed by the architect Jhon Madin who was born in birgmingham where the leader is the conservative party (UK).</lex>
+      <lex lang="ru" lid="Id1">Колмор-роу 103 был спроектирован архитектором Джоном Мадином, который родился в Бирмингеме, где лидер - консервативная партия (Великобритания).</lex>
+      <lex lang="en" lid="Id2">Birmingham, led by the Conservative Party, was the birthplace of John Madin who designed 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id2">Бирмингем во главе с Консервативной партией Великобритании стал местом рождения Джона Мадина, который спроектировал Колмор-роу 103.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Birmingham | sameAs | Бирмингем</dbpedialink>
+        <dbpedialink direction="en2ru">Conservative_Party_(UK) | sameAs | Консервативная_партия_Великобритании</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Birmingham | leaderName | Liberal_Democrats</otriple>
+        <otriple>103_Colmore_Row | architect | John_Madin</otriple>
+        <otriple>John_Madin | hometown | Birmingham</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Birmingham | leader | Liberal_Democrats</mtriple>
+        <mtriple>103_Colmore_Row | architect | John_Madin</mtriple>
+        <mtriple>John_Madin | origin | Birmingham</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Liberal Democrats lead Birmingham, home town of architect John Madin, who designed 103 Colmore Row.</lex>
+      <lex lang="ru" lid="Id1">Либеральные демократы возглавляют Бирмингем, родной город архитектора Джона Мадина, который спроектировал Колмор-роу 103.</lex>
+      <lex lang="en" lid="Id2">John Madin, who designed 103 Colmore Row, comes from Birmingham, which is run by the Liberal Democrats.</lex>
+      <lex lang="ru" lid="Id2">Джон Мадин, который спроектировал Колмор-роу 103, родом из Бирмингема, которым руководят либеральные демократы.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Birmingham | sameAs | Бирмингем</dbpedialink>
+        <dbpedialink direction="en2ru">Liberal_Democrats | sameAs | Либеральные_демократы_(Великобритания)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">John Madin | sameAs | Джон Мадин (муж)</link>
+        <link direction="en2ru">103 Colmore Row | sameAs | Колмор-роу 103</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

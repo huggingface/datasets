@@ -1,0 +1,59 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States Navy awarded the Distinguished Service Medal to Alan Shepard.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was awarded the Distinguished Service Medal by the United States Navy.</lex>
+      <lex comment="good" lid="Id3">Alan Shepard was awarded the Distinguished Service Medal in the United States Navy.</lex>
+      <lex comment="good" lid="Id4">Alan Shepard was awarded the Distinguished Service Medal by the US Navy.</lex>
+      <lex comment="good" lid="Id5">Alan Shepard was awarded the United States Navy Distinguished Service Medal.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard died in California.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Apollo_11 | crew2Up | William_Anders</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Apollo_11 | backup pilot | William_Anders</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">William Anders was the backup pilot on Apollo 11.</lex>
+      <lex comment="good" lid="Id2">William Anders was a backup pilot on the Apollo 11 mission.</lex>
+      <lex comment="good" lid="Id3">Apollo 11's backup pilot was William Anders.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Apollo_14 | operator | NASA</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Apollo_14 | operator | NASA</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Apollo 14 was operated by NASA.</lex>
+      <lex comment="good" lid="Id2">NASA operated the Apollo 14.</lex>
+      <lex comment="good" lid="Id3">Apollo 14 was operated by NASA.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Apollo_8 | operator | NASA</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Apollo_8 | operator | NASA</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Apollo 8 operator is NASA.</lex>
+      <lex comment="good" lid="Id2">Apollo 8 is operated by Nasa.</lex>
+      <lex comment="good" lid="Id3">Apollo 8 was operated by NASA.</lex>
+    </entry>
+    </entries>
+</benchmark>

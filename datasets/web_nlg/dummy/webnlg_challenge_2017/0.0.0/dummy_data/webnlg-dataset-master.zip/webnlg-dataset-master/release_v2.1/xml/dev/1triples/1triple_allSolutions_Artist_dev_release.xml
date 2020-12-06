@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | activeYearsStartYear | 1998</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram started performing in 1998.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Deer | associatedBand | The_Horns_of_Happiness</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | associatedBand/associatedMusicalArtist | The_Horns_of_Happiness</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Deer collaborates with The Horns of Happiness.</lex>
+      <lex comment="good" lid="Id2">Aaron Deer plays with The Horns of Happiness.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Turner | genre | Avant-garde_metal</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | genre | Avant-garde_metal</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner falls in the genre of avant-garde metal music.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner performs avant-garde metal music.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner also uses the musical genre Avant-garde metal.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Turner | genre | Black_metal</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | genre | Black_metal</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner performs black metal music.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner is a Black metal musician.</lex>
+      <lex comment="good" lid="Id3">Black Metal is a genre of Aaron Turner's music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Turner | hometown | Boston</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | origin | Boston</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner originates from Boston.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner was born in Boston.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner is originally from Boston.</lex>
+    </entry>
+    </entries>
+</benchmark>

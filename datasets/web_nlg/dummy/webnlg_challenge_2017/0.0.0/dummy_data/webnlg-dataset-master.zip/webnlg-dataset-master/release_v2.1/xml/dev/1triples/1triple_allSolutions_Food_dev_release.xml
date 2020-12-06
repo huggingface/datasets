@@ -1,0 +1,58 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The alternative name for Ajoblanco is "Ajo blanco".</lex>
+      <lex comment="good" lid="Id2">Ajo blanco is an alternative name to Ajoblanco.</lex>
+      <lex comment="good" lid="Id3">Ajo blanco is an alternative name of Ajoblanco.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | mainIngredient | "Bread, almonds, garlic, water, olive oil"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | mainIngredients | "Bread, almonds, garlic, water, olive oil"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The main ingredients in ajoblanco are bread, almonds, garlic, water and olive oil.</lex>
+      <lex comment="good" lid="Id2">Bread, almonds, garlic, water, and olive oil are the main ingredients in Ajoblanco.</lex>
+      <lex comment="good" lid="Id3">The main ingredients of Ajoblanco are bread, almonds, garlic, water, olive oil.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem is found nationwide in Indonesia, but is more specific to Java.</lex>
+      <lex comment="good" lid="Id2">Arem-arem is nationwide in Indonesia, but more specific to Java.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arem-arem | region | Indonesia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | region | Indonesia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem arem comes from Indonesia.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | ingredientName | "Tomatoes,red chili,garlic,olive oil"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arrabbiata_sauce | mainIngredient | "Tomatoes, red chili, garlic, olive oil"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arrabbiata_sauce | mainIngredients | "Tomatoes, red chili, garlic, olive oil"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arrabbiata sauce is made with tomatoes, red chili, garlic and olive oil.</lex>
+      <lex comment="good" lid="Id2">The main ingredients in Arrabbiata sauce are Tomatoes, red chili, garlic and olive oil.</lex>
+    </entry>
+    </entries>
+</benchmark>

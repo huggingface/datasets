@@ -1,0 +1,72 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | runwayLength | "2777.0"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | runwayLength | 2777.0</mtriple>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aarhus Airport, operated by Aarhus Lufthavn A/S, has a runway length of 2777.0.</lex>
+      <lex comment="good" lid="Id2">Aarhus Lufthavn A/S is the operation organisation of Aarhus Airport which has a runway length of 2777.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevation | "609.6"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | elevationAboveTheSeaLevel_(in_metres) | 610.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suarez Madrid-Barajas Airport at Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas is 610 metres above sea level.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas Airport is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas and lies 610 metres above sea level.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suarez Madrid-Barajas airport is located at Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas and is elevated 610 metres above sea level.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "3499.71"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 3500.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | "Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suarez Madrid-Barajas Airport is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas and has a runway length of 3500.</lex>
+      <lex comment="good" lid="Id2">The runway length at Adolfo Suarez Madrid-Barajas airport is 3500. It is located in Madrid, Paracuellos de Jarama, San Sebastian de los Reyes and Alcobendas.</lex>
+      <lex comment="good" lid="Id3">Adolfo Suarez Madrid-Barajas airport is located at Madrid, Paracuellos de Jarama, San Sebastián de los Reyes and Alcobendas and the runway length is 3500.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | isPartOf | Awadh</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Uttar_Pradesh | subdivisionName | Awadh</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Uttar_Pradesh | isPartOf | Awadh</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra Airport is in Uttar Pradesh, Awadh.</lex>
+      <lex comment="good" lid="Id2">Agra Airport is located in Uttar Pradesh, which is part of Awadh.</lex>
+      <lex comment="good" lid="Id3">Agra airport is located in Uttar Pradesh, Awadh.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"@en</otriple>
+        <otriple>Al_Asad_Airbase | runwayLength | "3090.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Al_Asad_Airbase | location | "Al Anbar Province, Iraq"</mtriple>
+        <mtriple>Al_Asad_Airbase | runwayLength | 3090.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Al Asad Airbase is situated in the Al Anbar Province, Iraq and has a runway length of 3090.0.</lex>
+      <lex comment="good" lid="Id2">Al Asad Airbase is located in Al Anbar Province, Iraq and has a runway length of 3090.0.</lex>
+      <lex comment="good" lid="Id3">Al Asad airbase is located at Al Anbar Province, Iraq and has a runway length is 3090.0.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,118 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X (X) (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</otriple>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</mtriple>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The official title of the Turkish leader is President of Turkey. Ahmet Davutoglu is Turkeys leader. The largest city in Turkey is Istanbul. Lira is the currency used in Turkey. In Izmir is the Ataturk Monument, which was designed by Pietro Canonica and is made of Bronze.</lex>
+      <lex lang="ru" lid="Id1">Официальный пост лидера Турции занимает президент. Ахмет Давутоглу является лидером Турции. Самый крупный город в Турции - Стамбул. Лира - это валюта, используемая в Турции. В Измире находится памятник Ататюрку, который был спроектирован Пьетро Каноника и изготовлен из бронзы.</lex>
+      <lex lang="en" lid="Id2">The Atatürk Monument is a bronze structure located in Izmir, and designed by Pietro Canonica. It is found in Turkey, where the largest city is Istanbul, the currency is the Turkish Lira, and the leader, the President of Turkey, is named Ahmet Davutoglu.</lex>
+      <lex lang="ru" lid="Id2">Памятник Ататюрку - бронзовый монумент, расположенный в Измире и спроектированный Пьетро Каноника. Монумент находится в Турции, где самый крупный город - Стамбул, валюта - турецкая Лира, а лидером, Президентом Турции, является Ахмет Давутоглу.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+        <dbpedialink direction="en2ru">Turkish_lira | sameAs | Турецкая_лира</dbpedialink>
+        <dbpedialink direction="en2ru">Istanbul | sameAs | Стамбул</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Canonica | sameAs | Каноника,_Пьетро</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bronze | sameAs | бронза</link>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X) (X (X) (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</otriple>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | open | "1932-07-27"^^xsd:date</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</mtriple>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | inaugurationDate | "1932-07-27"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Atatürk Monument in İzmir was designed by Pietro Canonica and was inaugurated on 27th July, 1932. It can be found in Turkey, a country with Istanbul as its largest city and the lira as its currency, and led by the President of Turkey, Ahmet Davutoglu.</lex>
+      <lex lang="ru" lid="Id1">Памятник Ататюрку в Измире был создан Пьетро Каноникой и открыт 27 июля 1932 года. Его можно увидеть в Турции, стране, где Стамбул - крупнейший город, и лира является валютой, и которую возглавляет Президент Турции Ахмет Давутоглу.</lex>
+      <lex lang="en" lid="Id2">The Leader Of Turkey (official title President of Turkey) is Ahmet Davutoğlu. Ataturk Monument, located in İzmir was designed by Pietro Canonica and was inaugurated on 27th of July, 1932. Turkey's largest city is Istanbul and their currency is the Turkish lira.</lex>
+      <lex lang="ru" lid="Id2">Лидер Турции (официальный титул президента Турции) - Ахмет Давутоглу. Памятник Ататюрку, расположенный в Измире, был спроектирован Пьетро Каноника и был открыт 27 июля 1932 года. Крупнейшим городом Турции является Стамбул, а их валюта - Турецкая лира.</lex>
+      <lex lang="en" lid="Id3">The Turkish leader (official title President of Turkey) is Ahmet Davutoglu. Pietro Canonica designed the Ataturk Monument in Izmir and it was inaugurated on 27th of July, 1932. Turkey's largest City is Istanbul and the currency is the Turkish lira.</lex>
+      <lex lang="ru" lid="Id3">Турецкий лидер (официальный титул президента Турции) - Ахмет Давутоглу. Пьетро Каноника спроектировал памятник Ататюрку в Измире, и он был открыт 27 июля 1932 года. Крупнейший город Турции - Стамбул и валюта - турецкая лира.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+        <dbpedialink direction="en2ru">Turkish_lira | sameAs | Турецкая_лира</dbpedialink>
+        <dbpedialink direction="en2ru">Istanbul | sameAs | Стамбул</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Canonica | sameAs | Каноника,_Пьетро</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X (X) (X) (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Turkey's leader is Ahmet Davutoglu, who is the President of Turkey. Its capital is Ankara and the largest city is Istanbul. The currency used in Turkey is Turkish Lira. The ataturk Monument (Izmir), that is located in Turkey, is made of bronze.</lex>
+      <lex lang="ru" lid="Id1">Лидером Турции является Ахмет Давутоглу, который является президентом Турции. Её столицей является Анкара, а крупнейшим городом - Стамбул. Валюта, используемая в Турции, - турецкая лира. Памятник Ататюрку (в Измире), который находится в Турции, выполнен из бронзы.</lex>
+      <lex lang="en" lid="Id2">The bronze Ataturk monument is located in Turkey where President Ahmet Davutoglu is the leader. The capital city is Ankara, although the largest city is Istanbul and the local currency is the Turkish lira.</lex>
+      <lex lang="ru" lid="Id2">Бронзовый памятник Ататюрку расположен в Турции, где лидер -президент Ахмет Давутоглу. Столица - Анкара, хотя крупнейшим городом является Стамбул и местная валюта - Турецкая лира.</lex>
+      <lex lang="en" lid="Id3">President Ahmet Davutoglu is the leader of Turkey which has the capital city of Ankara, although the largest city is Istanbul. The currency of the country is the Turkish lira and the country is the location of the bronze Ataturk monument.</lex>
+      <lex lang="ru" lid="Id3">Президент Ахмет Давутоглу - лидер Турции, столица которой - Анкара, хотя крупнейший город - Стамбул. Валюта страны - Турецкая лира, и в стране находится бронзовый памятник Ататюрку.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Ahmet_Davutoğlu | sameAs | Давутоглу,_Ахмет</dbpedialink>
+        <dbpedialink direction="en2ru">Turkish_lira | sameAs | Турецкая_лира</dbpedialink>
+        <dbpedialink direction="en2ru">Istanbul | sameAs | Стамбул</dbpedialink>
+        <dbpedialink direction="en2ru">Ankara | sameAs | Анкара</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Bronze | sameAs | бронза</link>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+  </entries>
+</benchmark>

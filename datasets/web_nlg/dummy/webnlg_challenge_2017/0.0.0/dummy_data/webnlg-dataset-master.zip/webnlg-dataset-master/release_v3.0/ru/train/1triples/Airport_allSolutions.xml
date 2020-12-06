@@ -1,0 +1,85 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | cityServed | "Aarhus, Denmark"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Aarhus is the airport of Aarhus, Denmark.</lex>
+      <lex lang="ru" lid="Id1">Орхус - аэропорт города Орхус, Дания.</lex>
+      <lex lang="en" lid="Id2">Aarhus Airport serves the city of Aarhus, Denmark.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус обслуживает город Орхус, Дания.</lex>
+      <links>
+        <link direction="en2ru">Aarhus, Denmark | includes | Орхус</link>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | city | Aarhus</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | cityServed | Aarhus</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus airport serves the city of Aarhus.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус обслуживает город Орхус.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Aarhus | sameAs | Орхус</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | elevation | "25.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | elevationAboveTheSeaLevel | 25.0</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus Airport is 25 metres above sea level.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт «Орхус» находится на высоте 25 метров над уровнем моря.</lex>
+      <lex lang="en" lid="Id2">Aarhus airport is at an elevation of 25 metres above seal level.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус находится на высоте 25 м над уровнем моря.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airport is 25.0 metres above the sea level.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус находится на высоте 25,0 м над уровнем моря.</lex>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus Airport is located in Tirstrup.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус расположен в городе Тирструп.</lex>
+      <lex lang="en" lid="Id2">The location of Aarhus Airport is Tirstrup.</lex>
+      <lex lang="ru" lid="Id2">Местонахождение аэропорта Орхус - Тирструп.</lex>
+      <links>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus Airport is operated by Aarhus Lufthavn A/S.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус обслуживается компанией "Аэропорт Орхус".</lex>
+      <lex lang="en" lid="Id2">Aarhus Lufthavn A/S is the operation organisation of Aarhus Airport.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус представляет собой управляющую организацию аэропорта "Орхус".</lex>
+      <links>
+        <link direction="en2ru">Aarhus Lufthavn A/S | sameAs | аэропорт Орхус</link>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,80 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco originates from the country of Spain.</lex>
+      <lex lang="ru" lid="Id1">Ахобланко происходит из страны Испании.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco is from Spain.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко – из Испании.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Almond</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Almond</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco has almond as one of its ingredients.</lex>
+      <lex lang="ru" lid="Id1">В ахобланко содержится миндаль как один из ингредиентов.</lex>
+      <lex lang="en" lid="Id2">Almond is an ingredient in ajoblanco.</lex>
+      <lex lang="ru" lid="Id2">Миндаль – это ингредиент в ахобланко.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Almond | sameAs | Миндаль</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Bread is an ingredient of Ajoblanco.</lex>
+      <lex lang="ru" lid="Id1">Хлеб – это ингредиент ахобланко.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Bread | sameAs | Хлеб</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">An ingredient of Ajoblanco is garlic.</lex>
+      <lex lang="ru" lid="Id1">Ингредиент ахобланко – чеснок.</lex>
+      <lex lang="en" lid="Id2">Garlic is an ingredient used in Ajoblanco.</lex>
+      <lex lang="ru" lid="Id2">Чеснок – это ингредиент, входящий в состав ахобланко.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Garlic | sameAs | Чеснок</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ajoblanco | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Olive oil is an ingredient in Ajoblanco.</lex>
+      <lex lang="ru" lid="Id1">Оливковое масло – это ингредиент в ахобланко.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Olive_oil | sameAs | Оливковое_масло</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | isbn | "978-1-4165-4253-7"</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | mediaType | "Print"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | isbnNumber | "978-1-4165-4253-7"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | mediaType | "Print"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis can be located by its ISBN number "978-1-4165-4253-7". It is written by Virginia DeMarce and Eric Flint and was put in print.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis was authored by Virginia DeMarce and Eric Flint and has an ISBN number of 978-1-4165-4253-7. The book is available in the shops.</lex>
+      <lex comment="good" lid="Id3">The ISBN number of 1634: The Bavarian Crisis is 978-1-4165-4253-7, it is written by Virginia DeMarce and Eric Flint and is available in print form.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | 1634:_The_Baltic_War</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | 1634:_The_Baltic_War</mtriple>
+        <mtriple>Eric_Flint | birthPlace | Burbank,_California</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Born in Burbank, California, Eric Flint wrote 1634: The Bavarian Crisis which was preceded by 1634: The Baltic War.</lex>
+      <lex comment="good" lid="Id2">1634: The Bavarian Crisis and its predecessor, 1634: The Baltic War, was written by Eric Flint who was born in Burbank California.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | E-book</otriple>
+        <otriple>1634:_The_Ram_Rebellion | numberOfPages | "512"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | E-book</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | numberOfPages | "512"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Eric Flint is the author of 1634: The Ram Rebellion which has 512 pages and is available as an E-Book.</lex>
+      <lex comment="good" lid="Id2">During 1634, Eric Flint wrote the RAM Rebellion which is 512 pages long and is of the media type E book.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | Hardcover</otriple>
+        <otriple>1634:_The_Ram_Rebellion | isbn | "1-4165-2060-0"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | Hardcover</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | isbnNumber | "1-4165-2060-0"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The hardcover book 1634: The Ram Rebellion was written by Eric Flint and has the ISBN number 1-4165-2060-0.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion, ISBN number 1-4165-2060-0, was written by Eric Flint and is available in hardcover.</lex>
+      <lex comment="good" lid="Id3">Eric Flint wrote 1634: The Ram Rebellion found in hardcover with an ISBN of 1-4165-2060-0.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | E-book</otriple>
+        <otriple>1634:_The_Ram_Rebellion | numberOfPages | "512"^^xsd:positiveInteger</otriple>
+        <otriple>1634:_The_Ram_Rebellion | author | "Eric Flint, Virginia DeMarce, et al."@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | E-book</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | numberOfPages | "512"</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | author | "Eric Flint, Virginia DeMarce, et al."</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion, written by Eric Flint, Virginia DeMarce, et al., is 512 pages long and can be found as an E book.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion was written by Eric Flint, Virginia DeMarce, et al. It has 512 pages and is available as an E-Book.</lex>
+      <lex comment="good" lid="Id3">1634: The Ram Rebellion has 512 pages and was written by Eric Flint, Virginia DeMarce, et al. It can be found as an E book.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,159 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X) (X (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | capital | Copenhagen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | capital | Copenhagen</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus airport is located in Tirstrup, part of the Central Region of Denmark which has the capital city of Copenhagen.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус расположен в Тирструпе, части Центральной Ютландии королевства Дания со столицей в Копенгагене.</lex>
+      <lex lang="en" lid="Id2">Copenhagen is the capital of Denmark where Aarhus airport is located in Tirstrup which is part of the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id2">Копенгаген - столица Дании, здесь находится аэропорт Орхус в Тирструпе, входящем в регион Центральная Ютландия.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airport is located in Tirstrup, part of the Central Denmark region. The capital of the country is Copenhagen.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус расположен в Тирструпе, части региона Центральной Ютландии. Столица страны - Копенгаген.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">Copenhagen | sameAs | Копенгаген</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X (X) (X (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | demonym | Danes</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | demonym | Danes</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus airport is located in Tirstrup which is part of the Central Denmark region. The demonym for the people of Denmark is Danes.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус расположен в городе Тирструп, входящем в регион Центральная Ютландия. Демоним для народа Ютландии - датчане.</lex>
+      <lex lang="en" lid="Id2">The location of Aarhus Airport is Tirstrup in Denmark. Tirstrup is part of Central Denmark. The people of that country are Danes.</lex>
+      <lex lang="ru" lid="Id2">Расположение аэропорта Орхус - город Тирструп в Дании. Тирструп - часть Центральной Ютландии. Народ этой страны - датчане.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airport is located in Tirstrup, which is part of the Central Denmark region. Danes is the name given to the people who live in Denmark.</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус расположен в Тирструпе, входящем в регион Центральной Ютландии. Датчане - название народа, населяющего Данию.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Danes | sameAs | Датчане</dbpedialink>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X (X) (X (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | German_language</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | German_language</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Aarhus Airport is in Tirstrup, Denmark, which is in the Central Denmark region . Th language of Denmark is German.</lex>
+      <lex lang="ru" lid="Id1">Аэропорт Орхус расположен в городе Тирструп, Дания, который находится в регионе Центральная Ютландия. Язык Дании - немецкий.</lex>
+      <lex lang="en" lid="Id2">Denmark uses the German language and is the location of Aarhus Airport in Tirstrup in the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id2">Дания использует немецкий язык и является местом расположения аэропорта Орхус в городе Тирструп в регионе Центральная Ютландия.</lex>
+      <lex lang="en" lid="Id3">The German language is spoken in Denmark where Aarhus Airport is located in Tirstrup in the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id3">В Дании говорят на немецком языке, тут находится аэропорт Орхус в Тирструпе, в регионе Центральная Ютландия.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">German_language | sameAs | Немецкий_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X (X) (X (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | language | Greenlandic_language</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | language | Greenlandic_language</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The Greenlandic language is spoken in Denmark where Aarhus airport is located in Tirstrup, part of the Central Denmark region.</lex>
+      <lex lang="ru" lid="Id1">На гренландском языке говорят в Дании, где аэропорт Орхус расположен в городе Тирструп, часть региона Центральная Ютландия.</lex>
+      <lex lang="en" lid="Id2">Aarhus Airport is located in Tristrup, Denmark, where they speak the Greenlandic language.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус расположен в городе Тирструп, Дания, где говорят на гренландском языке.</lex>
+      <lex lang="en" lid="Id3">Aarhus Airport is located in the Central Denmark region of Tirstrup, Denmark where the Greenlandic language is spoken?</lex>
+      <lex lang="ru" lid="Id3">Аэропорт Орхус расположен в районе Центральная Ютландия в Тирструпе, Дания, где говорят на гренландском языке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Greenlandic_language | sameAs | Гренландский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X (X) (X (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | isPartOf | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aarhus_Airport | location | Tirstrup</otriple>
+        <otriple>Tirstrup | country | Denmark</otriple>
+        <otriple>Denmark | leader | Lars_Løkke_Rasmussen</otriple>
+        <otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+        <mtriple>Tirstrup | country | Denmark</mtriple>
+        <mtriple>Denmark | leader | Lars_Løkke_Rasmussen</mtriple>
+        <mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Tirstrup is located in part of the Central Denmark region. Tirstrup is home to Aarhus Airport; its leader is Lars Løkke Rasmussen.</lex>
+      <lex lang="ru" lid="Id1">Тирструп находится в части области Центральная Ютландия. В городе Тирструп находится аэропорт Орхус; его лидером является Ларс Лёкке Расмуссен.</lex>
+      <lex lang="en" lid="Id2">Aarhus Airport is located in the city of Tirstrup. Within the central region of Denmark. The leader of Denmark is named Lars Løkke Rasmussen.</lex>
+      <lex lang="ru" lid="Id2">Аэропорт Орхус расположен в городе Тирструп в области Центральная Ютландия. Глава Дании - Ларс Лёкке Расмуссен.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Lars_Løkke_Rasmussen | sameAs | Расмуссен,_Ларс_Лёкке</dbpedialink>
+        <dbpedialink direction="en2ru">Central_Denmark_Region | sameAs | Центральная_Ютландия_(область)</dbpedialink>
+        <dbpedialink direction="en2ru">Denmark | sameAs | Дания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Aarhus Airport | includes | Орхус</link>
+        <link direction="en2ru">Tirstrup | sameAs | Тирструп</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

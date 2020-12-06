@@ -1,0 +1,106 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>AIDAstella | shipOperator | AIDA_Cruises</otriple>
+        <otriple>AIDAstella | shipBeam | "32.2"^^xsd:double</otriple>
+        <otriple>AIDAstella | topSpeed | "38.892"^^xsd:double</otriple>
+        <otriple>AIDAstella | builder | Meyer_Werft</otriple>
+        <otriple>AIDAstella | MeanOfTransportation/length | "253260.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIDAstella | operator | AIDA_Cruises</mtriple>
+        <mtriple>AIDAstella | shipBeam | 32.2</mtriple>
+        <mtriple>AIDAstella | topSpeed | 38.892</mtriple>
+        <mtriple>AIDAstella | builder | Meyer_Werft</mtriple>
+        <mtriple>AIDAstella | length | 253260.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIDAstella was built by Meyer Werft and is operated by AIDA Cruise Line. The AIDAstella has a beam of 32.2 m, is 253260.0 millimetres in length and has a top speed of 38.892.</lex>
+      <lex comment="good" lid="Id2">The AIDAstella was built by Meyer Werft and operated by the AIDA Cruise Line. It is 253260.0 millimetres long with a beam of 32.2 metres and a top speed of 38.892 km/h.</lex>
+      <lex comment="good" lid="Id3">The AIDAstella is operated by AIDA Cruise Line and was built by Meyer Werft. It is 253260.0 millimetres in length, has a beam of 32.2m and a top speed of 38.892 km/h.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | builder | American_Locomotive_Company</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+        <otriple>ALCO_RS-3 | cylindercount | 12</otriple>
+        <otriple>ALCO_RS-3 | enginetype | V12_engine</otriple>
+        <otriple>ALCO_RS-3 | builddate | "May 1950 &amp;ndash; August 1956"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | builder | American_Locomotive_Company</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+        <mtriple>ALCO_RS-3 | cylinderCount | 12</mtriple>
+        <mtriple>ALCO_RS-3 | engine | V12_engine</mtriple>
+        <mtriple>ALCO_RS-3 | buildDate | "May 1950 - August 1956"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The ALCO RS-3, produced between May 1950 and August 1956 by the American Locomotive Company, has 12 cylinders and a V12 engine and its length is 17068.8 millimetres.</lex>
+      <lex comment="good" lid="Id2">The ALCO RS-3, built by the American Locomotive Company, has a V12 cylinder engine and is 17068.8mm long. It was produced from May 1950 to August 1956.</lex>
+      <lex comment="good" lid="Id3">The ALCO RS-3 was produced from May 1950 to August 1956 by the American Locomotive Company. It has a V12, 12 cylinder engine and is 17068.8mm long.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>AMC_Matador | aka | "American Motors Matador"@en</otriple>
+        <otriple>AMC_Matador | assembly | Thames,_New_Zealand</otriple>
+        <otriple>AMC_Matador | bodyStyle | Station_wagon</otriple>
+        <otriple>AMC_Matador | class | Mid-size_car</otriple>
+        <otriple>AMC_Matador | engine | "V8"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AMC_Matador | alternativeName | "American Motors Matador"</mtriple>
+        <mtriple>AMC_Matador | assembly | Thames,_New_Zealand</mtriple>
+        <mtriple>AMC_Matador | bodyStyle | Station_wagon</mtriple>
+        <mtriple>AMC_Matador | class | Mid-size_car</mtriple>
+        <mtriple>AMC_Matador | engine | AMC_V8_engine</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The AMC Matador (also known as the American Motors Matador) is assembled in Thames, New Zealand. Classified as a mid-size car, it features a wagon style body and an AMC V8 engine.</lex>
+      <lex comment="good" lid="Id2">The AMC Matador, also known as American Motors Matador, was assembled in Thames, New Zealand. The AMC Matador is a mid-size station wagon with a V8 engine type.</lex>
+      <lex comment="good" lid="Id3">The AMC Matador aka the American Motors Matador, is assembled in Thames, New Zealand, has a v8 engine, and is classified as a mid-size station wagon.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Alhambra_(1855) | shipOwner | P&amp;O_(company)</otriple>
+        <otriple>Alhambra_(1855) | powerType | Humphrys,_Tennant_and_Dykes</otriple>
+        <otriple>Humphrys,_Tennant_and_Dykes | location | Deptford</otriple>
+        <otriple>Alhambra_(1855) | builder | Samuda_Brothers</otriple>
+        <otriple>Alhambra_(1855) | length | "63.8"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alhambra_(1855) | shipOwner | P&amp;O_(company)</otriple>
+        <otriple>Alhambra_(1855) | powerType | Humphrys,_Tennant_and_Dykes</otriple>
+        <otriple>Humphrys,_Tennant_and_Dykes | location | Deptford</otriple>
+        <otriple>Alhambra_(1855) | builder | Samuda_Brothers</otriple>
+        <otriple>Alhambra_(1855) | MeanOfTransportation/length | "63800.0"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alhambra | owner | P&amp;O_(company)</mtriple>
+        <mtriple>Alhambra | powerType | Humphrys,_Tennant_and_Dykes</mtriple>
+        <mtriple>Humphrys,_Tennant_and_Dykes | location | Deptford</mtriple>
+        <mtriple>Alhambra | builder | Samuda_Brothers</mtriple>
+        <mtriple>Alhambra | length | 63800.0 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">P&amp;O owns the Alhambra which has a Humphrys, Tennant and Dykes engine and is 63800.0 millimetres long. The Alhambra was made by the Samuda Brothers. Humphrys, Tennant and Dykes are located in Deptford.</lex>
+      <lex comment="good" lid="Id2">The Alhambra was built by the Samuda Brothers is owned by the P &amp; O company. It was 63800.0 millimetres long and has a Humphrys, Tennant and Dykes power type. Humphrys, Tennant and Dykes are located in Deptford.</lex>
+      <lex comment="good" lid="Id3">The Alhambra was built by the Samuda Brothers and is owned by P&amp;O. It was 63800.0 millimetres long and has a Humphrys, Tennant and Dykes power type. Humphrys, Tennant and Dykes is located in Deptford.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Antares_(rocket) | manufacturer | Yuzhnoye_Design_Office</otriple>
+        <otriple>Antares_(rocket) | maidenFlight | "2014-10-28"^^xsd:date</otriple>
+        <otriple>Antares_(rocket) | sites | Mid-Atlantic_Regional_Spaceport_Launch_Pad_0</otriple>
+        <otriple>Antares_(rocket) | MeanOfTransportation/diameter | "3.9"^^&lt;http://dbpedia.org/datatype/metre&gt;</otriple>
+        <otriple>Antares_(rocket) | finalFlight | "2013-09-18"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Antares_(rocket) | manufacturer | Yuzhnoye_Design_Office</mtriple>
+        <mtriple>Antares_(rocket) | maidenFlight | 2014-10-28</mtriple>
+        <mtriple>Antares_(rocket) | launchSite | Mid-Atlantic_Regional_Spaceport_Launch_Pad_0</mtriple>
+        <mtriple>Antares_(rocket) | diameter | 3.9 (metres)</mtriple>
+        <mtriple>Antares_(rocket) | finalFlight | 2013-09-18</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Antares rocket is 3.9 metres in diametre and is manufactured by the Yuzhnoye Design Office. Its launch site was the Mid-Atlantic Regional Spaceport Launch Pad 0. The Antares rocket made its first flight on October 28th, 2014 and its final flight on September 18th, 2013.</lex>
+      <lex comment="good" lid="Id2">The Antares rocket, manufactured by the Yuzhnoye Design Office, was launched from the Mid-Atlantic Regional Spaceport Launch Pad 0. At 3.9m in diameter, the Antares rocket had its maiden flight on the 28th October, 2014 and final flight on the 18th of September, 2013.</lex>
+      <lex comment="good" lid="Id3">The Antares rocket, which was manufactured at the Yuzhnoye Design Office, made its first flight on October 28, 2014 and had its final flight on the 18th of September 2013. It is 3.9 m in diameter, and was launched from the Mid-Atlantic Regional Spaceport Launch Pad 0.</lex>
+    </entry>
+    </entries>
+</benchmark>

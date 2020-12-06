@@ -1,0 +1,107 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Suburban_Legends | bandMember | Brian_Robertson_(trombonist)</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Suburban_Legends | bandMember | Brian_Robertson_(trombonist)</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Suburban_Legends | bandMember | Brian_Robertson_(trombonist)</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Suburban_Legends | bandMember | Brian_Robertson_(trombonist)</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram performs ska punk music and is an artist with the band Kids Imagine Nation and also the Suburban Legends band where Brian Robertson is the trombonist.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram plays for the Kids Imagine Nation band and his musical genre is Ska punk. He also plays for the Suburban Legends band in which Brian Robertson plays the trombone.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram plays for the Kids Imagine Nation band, as well as the Ska Suburban Legends band where trombonist Brian Robertson plays.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Deer | background | "solo_singer"</otriple>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | hometown | Indianapolis</otriple>
+        <otriple>Aaron_Deer | origin | Indiana</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | hometown | Indianapolis</otriple>
+        <otriple>Aaron_Deer | background | "solo_singer"@en</otriple>
+        <otriple>Aaron_Deer | origin | Indiana</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | background | "solo_singer"</mtriple>
+        <mtriple>Aaron_Deer | genre | Psychedelia</mtriple>
+        <mtriple>Aaron_Deer | origin | Indianapolis</mtriple>
+        <mtriple>Aaron_Deer | origin | Indiana</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Psychedelia solo singer Aaron Deer is from Indianapolis, Indiana.</lex>
+      <lex comment="good" lid="Id2">Coming from Indianapolis, Indiana, Aaron Deer, has a background as a solo singer and performs Psychedelia music.</lex>
+      <lex comment="good" lid="Id3">Solo singerAaron Deer, performs Psychedelia music and is from Indianapolis, Indiana.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedBand | Old_Man_Gloom</otriple>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Lotus_Eaters_(band)</otriple>
+        <otriple>Aaron_Turner | genre | Electroacoustic_music</otriple>
+        <otriple>Aaron_Turner | activeYearsStartYear | "1995"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Old_Man_Gloom</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Lotus_Eaters_(band)</mtriple>
+        <mtriple>Aaron_Turner | genre | Electroacoustic_music</mtriple>
+        <mtriple>Aaron_Turner | activeYearsStartYear | 1995</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Electroacoustic musician Aaron Turner is in the Lotus Eaters and was with Old Man Gloom. He began his career in 1995.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner started performing in 1995. He is an electroacoustic musician and played in the Lotus Eaters and Old Man Gloom bands.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner began his career in 1995 and plays electroacoustic music in Lotus Eaters band and the Old Man Gloom band.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedBand | Twilight_(band)</otriple>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Lotus_Eaters_(band)</otriple>
+        <otriple>Aaron_Turner | genre | Post-metal</otriple>
+        <otriple>Aaron_Turner | activeYearsStartYear | "1995"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Twilight_(band)</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Lotus_Eaters_(band)</mtriple>
+        <mtriple>Aaron_Turner | genre | Post-metal</mtriple>
+        <mtriple>Aaron_Turner | activeYearsStartYear | 1995</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner played with the band Twilight and now in the Lotus Eaters. He started performing in 1995 in the post-metal genre.</lex>
+      <lex comment="good" lid="Id2">Post Metal musician, Aaron Turner, began performing in 1995 and has played with such bands as Twilight and The Lotus Eaters.</lex>
+      <lex comment="good" lid="Id3">Post-metal musician Aaron Turner, who began performing in 1995, has played with the bands Twilight and the Lotus Eaters.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Twilight_(band)</otriple>
+        <otriple>Aaron_Turner | associatedBand | Old_Man_Gloom</otriple>
+        <otriple>Aaron_Turner | genre | Post-metal</otriple>
+        <otriple>Aaron_Turner | activeYearsStartYear | "1995"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Twilight_(band)</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Old_Man_Gloom</mtriple>
+        <mtriple>Aaron_Turner | genre | Post-metal</mtriple>
+        <mtriple>Aaron_Turner | activeYearsStartYear | 1995</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner started performing post-metal music in 1995. He played with Twilight and Old Man Gloom bands.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner played with Twilight and Old Man Gloom bands. He started performing Post metal in 1995.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner is post-metal musician who started performing in 1995. He has played with the bands Twilight and Old Man Gloom.</lex>
+    </entry>
+    </entries>
+</benchmark>

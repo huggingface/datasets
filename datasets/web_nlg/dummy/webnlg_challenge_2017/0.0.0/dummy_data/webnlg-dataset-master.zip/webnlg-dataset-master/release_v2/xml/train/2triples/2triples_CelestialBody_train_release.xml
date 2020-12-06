@@ -1,0 +1,104 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Donal_O'Ceallaigh</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Donal O'Ceallaigh discovered 15788 1993 SB which has an epoch date of March 6th 2006.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB's epoch is 6th March 2006 and it was discovered by Donal O Ceallaigh.</lex>
+      <lex comment="good" lid="Id3">(15788) 1993 SB has an epoch date of March 6th 2006 and it was discovered by Donal O'Ceallaigh.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | discoverer | Iwan_P._Williams</mtriple>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(15788) 1993 SB's epoch is March 5, 2006 and it was discovered by Iwan P Williams.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB, with an epoch date of 6th March 2006, was discovered by Iwan P Williams.</lex>
+      <lex comment="good" lid="Id3">(15788) 1993 SB has an epoch date of March 6th 2006 and was discovered by Iwan P Williams.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "Alan Fitzsimmons, and"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</otriple>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "La Palma"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+        <otriple>(15788)_1993_SB | discoverer | "Alan Fitzsimmons, and"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | discoverer | Alan_Fitzsimmons</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Ftizsimmons discovered 1993 SB which has an epoch of 6th March 2006.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB has an epoch date of March 6th 2006 and was discovered by Alan Fitzsimmons.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+        <otriple>(15788)_1993_SB | epoch | "2006-03-06"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(15788)_1993_SB | epoch | "March 6, 2006 (JD2453800.5)"</otriple>
+        <otriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(15788)_1993_SB | epoch | 2006-03-06</mtriple>
+        <mtriple>(15788)_1993_SB | discoverer | Roque_de_los_Muchachos_Observatory</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(15788) 1993 SB was discovered by Roque de los Muchachos Observatory and its epoch is 6th March 2006.</lex>
+      <lex comment="good" lid="Id2">(15788) 1993 SB has an epoch date of March 6th 2006 and it was discovered by Roque de los Muchachos Observatory.</lex>
+      <lex comment="good" lid="Id3">15788 1993 SB was discovered by Roque de los Muchachos Observatory and its epoch is 6th March 2006.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | Planet/averageSpeed | "4.56"^^&lt;http://dbpedia.org/datatype/kilometrePerSecond&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>(19255)_1994_VK8 | Planet/apoapsis | "6.603633E9"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+        <otriple>(19255)_1994_VK8 | averageSpeed | "16416.0"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(19255)_1994_VK8 | apoapsis | 6603633000.0 (kilometres)</mtriple>
+        <mtriple>(19255)_1994_VK8 | averageSpeed | 4.56 (kilometrePerSeconds)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The apoapsis of (19255) 1994 VK8 is 6603633000.0 km and it has an average speed of 4.56 km/s.</lex>
+      <lex comment="good" lid="Id2">(19255) 1994 VK8 has an apoapsis of 6603633000.0 kilometres and an average speed of 4.56 km/s.</lex>
+      <lex comment="good" lid="Id3">The apoapsis of (19255) 1994 VK8 is 6603633000.0 km and its average speed is 4.56 km/s.</lex>
+    </entry>
+    </entries>
+</benchmark>

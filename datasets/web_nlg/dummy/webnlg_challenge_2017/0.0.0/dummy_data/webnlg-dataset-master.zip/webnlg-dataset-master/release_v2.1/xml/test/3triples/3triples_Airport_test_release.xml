@@ -1,0 +1,102 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aarhus_Airport | runwayLength | "2776.73"^^xsd:double</otriple>
+        <otriple>Aarhus_Airport | operator | "Aarhus Lufthavn A/S"@en</otriple>
+        <otriple>Aarhus_Airport | runwayDesignation | "10R/28L"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aarhus_Airport | runwayLength | 2776.0</mtriple>
+        <mtriple>Aarhus_Airport | operatingOrganisation | "Aarhus Lufthavn A/S"</mtriple>
+        <mtriple>Aarhus_Airport | runwayName | "10R/28L"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Operated by Aarhus Lufthavn A/S, Aarhus Airport has a runway length of 2776.0 metres and a runway name 10R/28L.</lex>
+      <lex comment="good" lid="Id2">Aarhus Airport is operated by Aarhus Lufthavn A/S and its 2776 meters long runway is called 10R/28L.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.0"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.45"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.0"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "2003.45"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | runwayLength | 2003.0</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adirondack regional airport serves both Lake Placid and Saranac Lake, New York. The length of the runway at Asirondack regional airport is 2003.</lex>
+      <lex comment="good" lid="Id2">Adirondack Regional Airport serves the city of Lake Placid, New York and Saranac Lake, New York. The runway is 2003 feet long.</lex>
+      <lex comment="good" lid="Id3">Lake Placid, N.Y. is served by the Adirondack Regional Airport, where the length of the runway is 2003.0. and serves the city of Saranac Lake, New York.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Paracuellos_de_Jarama</otriple>
+        <otriple>Paracuellos_de_Jarama | country | Spain</otriple>
+        <otriple>Paracuellos_de_Jarama | isPartOf | Community_of_Madrid</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Paracuellos_de_Jarama</mtriple>
+        <mtriple>Paracuellos_de_Jarama | country | Spain</mtriple>
+        <mtriple>Paracuellos_de_Jarama | isPartOf | Community_of_Madrid</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adolfo Suarez Madrid-Barajas Airport is in Paracuellos de Jarama, which is located in the community of Madrid, Spain.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas airport is located at Paracuellos de Jarama which is part of the community of Madrid, Spain.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | Uttar_Pradesh</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | Uttar_Pradesh</mtriple>
+        <mtriple>Agra_Airport | operatingOrganisation | Indian_Air_Force</mtriple>
+        <mtriple>Agra_Airport | ICAO_Location_Identifier | "VIAG"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Agra Airport (ICAO Location Identifier - VIAG) is located in Uttar Pradesh and operated by the Indian Air Force.</lex>
+      <lex comment="good" lid="Id2">The Agra Airport (VIAG) in Uttar Pradesh is operated by the Indian Air Force.</lex>
+      <lex comment="good" lid="Id3">The Indian Air Force operates Agra Airport which is located in Uttar Pradesh and has the ICAO location identifier VIAG.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Al_Asad_Airbase | operator | United_States_Air_Force</otriple>
+        <otriple>Al_Asad_Airbase | location | Iraq</otriple>
+        <otriple>Al_Asad_Airbase | runwayLength | "3992.88"^^xsd:double</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Al_Asad_Airbase | location | Iraq</otriple>
+        <otriple>Al_Asad_Airbase | runwayLength | "3992.88"^^xsd:double</otriple>
+        <otriple>Al_Asad_Airbase | operator | "United States Air Force"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</mtriple>
+        <mtriple>Al_Asad_Airbase | location | Iraq</mtriple>
+        <mtriple>Al_Asad_Airbase | runwayLength | 3992.88</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Operated by the United States Air Force, Al Asad Airbase is in Iraq and has a runway length of 3992.88 metres.</lex>
+      <lex comment="good" lid="Id2">The United States Air Force is the operating organisation for Al Asad airbase in Iraq where the length of the runway is 3992.88.</lex>
+      <lex comment="good" lid="Id3">Al Asad Airbase, found in Iraq, is operated by the United States Air Force. The runway is 3992.88 feet long.</lex>
+    </entry>
+    </entries>
+</benchmark>

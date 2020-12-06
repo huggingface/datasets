@@ -1,0 +1,103 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | George_Kapitan</otriple>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+        <otriple>Airman_(comics) | creators | Harry_Sahle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | Harry_Sahle</otriple>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+        <otriple>Airman_(comics) | creators | George_Kapitan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | creator | Harry_Sahle</mtriple>
+        <mtriple>Airman_(comicsCharacter) | alternativeName | "Drake Stevens"</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | George_Kapitan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Airman, AKA Drake Stevens was created by Harry Sahle and George Kapitan.</lex>
+      <lex comment="good" lid="Id2">The alternative name of the comic character Airman is "Drake Stevens". He was created by Harry Sahle and George Kapitan.</lex>
+      <lex comment="good" lid="Id3">The comic character Airman, AKA Drake Stevens was created by Harry Sahle and George Kapitan.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Arion_(comics) | creator | Jan_Duursema</otriple>
+        <otriple>Arion_(comics) | alterEgo | "Ahri'ahn"@en</otriple>
+        <otriple>Arion_(comics) | creators | Paul_Kupperberg</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arion_(comics) | creators | Jan_Duursema</otriple>
+        <otriple>Arion_(comics) | creator | Paul_Kupperberg</otriple>
+        <otriple>Arion_(comics) | alterEgo | "Ahri'ahn"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arion_(comicsCharacter) | creator | Jan_Duursema</mtriple>
+        <mtriple>Arion_(comicsCharacter) | alternativeName | "Ahri'ahn"</mtriple>
+        <mtriple>Arion_(comicsCharacter) | creator | Paul_Kupperberg</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jan Duursema and Paul Kupperberg created the comic book character of Arion who is also known as Ahri'ahn.</lex>
+      <lex comment="good" lid="Id2">The comic book character Arion, aka Ahri'ahn, was created by Jan Duursema and Paul Kupperberg.</lex>
+      <lex comment="good" lid="Id3">The comic character Arion is also known as Ahri'ahn and was created by Jan Duursema and Paul Kupperberg.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Arion_(comics) | creators | Jan_Duursema</otriple>
+        <otriple>Jan_Duursema | awards | Eisner_Award</otriple>
+        <otriple>Arion_(comics) | creator | Paul_Kupperberg</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Arion_(comics) | creator | Jan_Duursema</otriple>
+        <otriple>Jan_Duursema | awards | Eisner_Award</otriple>
+        <otriple>Arion_(comics) | creators | Paul_Kupperberg</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arion_(comicsCharacter) | creator | Jan_Duursema</mtriple>
+        <mtriple>Jan_Duursema | award | Eisner_Award</mtriple>
+        <mtriple>Arion_(comicsCharacter) | creator | Paul_Kupperberg</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic book character Arion was created by Paul Kupperberg and Jan Duursema, a winner of the Eisner Award.</lex>
+      <lex comment="good" lid="Id2">Jan Duursema won the Eisner Award and is the creator of the comic book character Arion along with Paul Kupperberg.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Asterix_(character) | creators | René_Goscinny</otriple>
+        <otriple>Asterix_(character) | creator | Albert_Uderzo</otriple>
+        <otriple>Asterix_(character) | alterEgo | "Astérix"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Asterix_(character) | creator | René_Goscinny</otriple>
+        <otriple>Asterix_(character) | alterEgo | "Astérix"@en</otriple>
+        <otriple>Asterix_(character) | creators | Albert_Uderzo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asterix_(comicsCharacter) | creator | René_Goscinny</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | alternativeName | "Astérix"</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | creator | Albert_Uderzo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic character Asterix, was created by René Goscinny and Albert Uderzo.</lex>
+      <lex comment="good" lid="Id2">Asterix the comic character whose alternative name is Asterix was created by Albert Uderzo and Rene Goscinny.</lex>
+      <lex comment="good" lid="Id3">Asterix, alternatively "Astérix", is a comic book character created by René Goscinny and Albert Uderzo.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Asterix_(character) | creators | René_Goscinny</otriple>
+        <otriple>René_Goscinny | nationality | French_people</otriple>
+        <otriple>Asterix_(character) | alterEgo | "Astérix"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>René_Goscinny | nationality | French_people</otriple>
+        <otriple>Asterix_(character) | creator | René_Goscinny</otriple>
+        <otriple>Asterix_(character) | alterEgo | "Astérix"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asterix_(comicsCharacter) | creator | René_Goscinny</mtriple>
+        <mtriple>René_Goscinny | nationality | French_people</mtriple>
+        <mtriple>Asterix_(comicsCharacter) | alternativeName | "Astérix"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Frenchman, Rene Goscinny created Asterix, the comic character who is sometimes called "Astérix".</lex>
+      <lex comment="good" lid="Id2">The comic character Asterix (also known as Astérix), was created by René Goscinny, who is French.</lex>
+      <lex comment="good" lid="Id3">The comic character Asterix, also know as Astérix, was created by the Frenchman René Goscinny.</lex>
+    </entry>
+    </entries>
+</benchmark>

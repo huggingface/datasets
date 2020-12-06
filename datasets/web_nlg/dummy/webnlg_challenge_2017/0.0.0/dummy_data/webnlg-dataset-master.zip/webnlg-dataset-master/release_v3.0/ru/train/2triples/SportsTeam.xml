@@ -1,0 +1,115 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | Austria_national_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | Austria_national_football_team</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Pete Stoger is manager of 1. FC Koln and plays for the Austria national football team.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер - менеджер ФК "Кёльн" и играет за сборную Австрии по футболу.</lex>
+      <lex lang="en" lid="Id2">Peter Stoger is the manager of FC Kolin and plays for the Austria national football team.</lex>
+      <lex lang="ru" lid="Id2">Петер Штёгер является менеджером ФК "Кёльн" и играет за сборную Австрии по футболу.</lex>
+      <lex lang="en" lid="Id3">Peter Stöger is manager of 1. FC Köln and plays for the Austria National Football team.</lex>
+      <lex lang="ru" lid="Id3">Петер Штёгер является менеджером ФК Кёльн и играет за сборную Австрии по футболу.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Austria_national_football_team | sameAs | Сборная_Австрии_по_футболу</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | FK_Austria_Wien</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | FK_Austria_Wien</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger is at the FK Austria Wien club and manages 1 FC Koln.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер находится в ФК "Аустрия" и управляет ФК "Кёльн".</lex>
+      <lex lang="en" lid="Id2">The manager of 1. FC Koln is Peter Stoger who plays for FK Austria Wien.</lex>
+      <lex lang="ru" lid="Id2">Менеджер ФК Кёльн - Петер Штёгер, который играет за ФК Аустрия.</lex>
+      <lex lang="en" lid="Id3">Peter Stoger is the manager of FC Kolin as well as being a member of the FK Austria Wien soccer club.</lex>
+      <lex lang="ru" lid="Id3">Петер Штёгер является менеджером ФК Кёльн, а также является членом ФК Аустрия.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">FK_Austria_Wien | sameAs | Аустрия_(футбольный_клуб,_Вена)</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | manager | Peter_Stöger</otriple>
+        <otriple>Peter_Stöger | team | LASK_Linz</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | manager | Peter_Stöger</mtriple>
+        <mtriple>Peter_Stöger | club | LASK_Linz</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Peter Stöger is manager of 1. FC Köln and plays for LASK Linz.</lex>
+      <lex lang="ru" lid="Id1">Петер Штёгер является менеджером ФК Кёльн и играет за ЛАСК.</lex>
+      <lex lang="en" lid="Id2">The manager of 1. FC Koln is Peter Stoger, who plays for LASK Linz.</lex>
+      <lex lang="ru" lid="Id2">Менеджер ФК "Кёльн" - Петер Штёгер, который играет за ЛАСК.</lex>
+      <lex lang="en" lid="Id3">Peter Stoger is the manager of FC Kolin and played for the club LASK Linz.</lex>
+      <lex lang="ru" lid="Id3">Петер Штёгер является менеджером ФК Кёльн и играл за клуб ЛАСК.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">LASK_Linz | sameAs | ЛАСК_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Peter_Stöger | sameAs | Штёгер,_Петер</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | capacity | "50000"^^xsd:nonNegativeInteger</otriple>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014–15_Bundesliga</otriple>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+        <mtriple>1._FC_Köln | season | 2014–15_Bundesliga</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">FC Köln played the 2014-15 season in the Bundesliga, the team has 50000 members.</lex>
+      <lex lang="ru" lid="Id1">ФК Кёльн играл в Чемпионате Германии по футболу 2014-15 годов, команда насчитывает 50000 членов.</lex>
+      <lex lang="en" lid="Id2">1. FC Köln has 50000 members and played the 2014-15 season in the Bundesliga.</lex>
+      <lex lang="ru" lid="Id2">ФК "Кёльн" насчитывает 50000 членов и играл в сезоне Чемпионата Германии по футболу 2014/2015.</lex>
+      <lex lang="en" lid="Id3">1. FC Köln has 50000 members and were in the 2014–15 Bundesliga season.</lex>
+      <lex lang="ru" lid="Id3">ФК « Кёльн » насчитывает 50 000 членов и в период 2014-2015 годов находился в Бундеслиге.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">2014–15_Bundesliga | sameAs | Чемпионат_Германии_по_футболу_2014/2015</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+        <otriple>1._FC_Köln | capacity | "50000"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1._FC_Köln | season | 2014</otriple>
+        <otriple>1._FC_Köln | capacity | 50000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Köln | season | 2014</mtriple>
+        <mtriple>1._FC_Köln | numberOfMembers | 50000</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1. FC Köln has 50000 members and played in the 2014 season.</lex>
+      <lex lang="ru" lid="Id1">ФК "Кёльн" насчитывает 50 000 членов и играл в сезоне 2014 года.</lex>
+      <lex lang="en" lid="Id2">2014 saw 1. FC Koln participating, and they have 50000 members.</lex>
+      <lex lang="ru" lid="Id2">ФК "Кёльн" играл в 2014 году, и их клуб насчитывает 50000 членов.</lex>
+      <lex lang="en" lid="Id3">2014 saw 1. FC Koln, with 50000 members, participating.</lex>
+      <lex lang="ru" lid="Id3">В 2014 году победу одержал ФК Кёльн, в котором 50 000 членов.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Köln | sameAs | Кёльн_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">2014 | sameAs | 2014_год</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajoblanco, also known as "Ajo blanco", is made with garlic and comes from Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco (alternatively known as Ajo blanco) comes from Spain and has garlic as an ingredient.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco originates from Spain, is also called "Ajo blanco" and has garlic as one of its ingredients.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">An ingredient of ajoblanco (alternative name ajo blanco) is olive oil, the dish originates from Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco (also know as Ajo Blanco) is a dish that originates from the country of Spain and includes the ingredient olive oil.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco (or Ajo blanco) contains the ingredient of olive oil and originates from Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | alias | "Ajo blanco"@en</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | alternativeName | "Ajo blanco"</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ajo Blanco (sometimes called Ajoblanco) is a dish from Spain that contains water.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco (or Ajo blanco) is from Spain and contains water.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco (or Ajo blanco) contains water and is found in Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Bread</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Bread</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bread is an ingredient of Ajoblanco which is a food found in Andalusia, in Spain.</lex>
+      <lex comment="good" lid="Id2">Bread is an ingredient of Ajoblanco, which comes from the Andalusia region, in Spain.</lex>
+      <lex comment="good" lid="Id3">Bread is an ingredient in Ajoblanco which is found in Andalusia and originates from Spain.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | region | Andalusia</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | region | Andalusia</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Garlic is and ingredient of Ajoblanco, a food found in Andalusia, in Spain.</lex>
+      <lex comment="good" lid="Id2">Ajoblanco is a dish from the Andalusian region of Spain and includes the ingredient garlic.</lex>
+      <lex comment="good" lid="Id3">Ajoblanco originates from Andalusia in Spain and uses garlic as an ingredient.</lex>
+    </entry>
+    </entries>
+</benchmark>

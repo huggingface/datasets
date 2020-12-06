@@ -1,0 +1,93 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Deer | hometown | United_States</otriple>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | origin | Indiana</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | hometown | Indiana</otriple>
+        <otriple>Aaron_Deer | origin | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | origin | United_States</mtriple>
+        <mtriple>Aaron_Deer | genre | Psychedelia</mtriple>
+        <mtriple>Aaron_Deer | origin | Indiana</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Deer is an American from Indiana who performs Psychedelia music.</lex>
+      <lex comment="good" lid="Id2">American, Aaron Deer, whose genre is Psychedelia, is from Indiana.</lex>
+      <lex comment="good" lid="Id3">American Aaron Deer, comes from Indiana and performs Psychedelia music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Turner | associatedMusicalArtist | Twilight_(band)</otriple>
+        <otriple>Aaron_Turner | associatedBand | Mamiffer</otriple>
+        <otriple>Aaron_Turner | genre | Ambient_music</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Twilight_(band)</mtriple>
+        <mtriple>Aaron_Turner | associatedBand/associatedMusicalArtist | Mamiffer</mtriple>
+        <mtriple>Aaron_Turner | genre | Ambient_music</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Turner played with the bands Twilight and Mamiffer. His genre is Ambient music.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner performs ambient music, played with the band Twilight and performs for Mamiffer.</lex>
+      <lex comment="good" lid="Id3">Aaron Turner played with the band Twilight and performed for Mamiffer. Mr. Turner plays Ambient type music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Aaron_Turner | genre | Black_metal</otriple>
+        <otriple>Aaron_Turner | instrument | Singing</otriple>
+        <otriple>Black_metal | musicFusionGenre | Death_metal</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Turner | genre | Black_metal</mtriple>
+        <mtriple>Aaron_Turner | instrument | Singing</mtriple>
+        <mtriple>Black_metal | musicFusionGenre | Death_metal</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Black Metal is a genre of Aaron Turner's music and Death metal is a musical fusion of black metal.</lex>
+      <lex comment="good" lid="Id2">Aaron Turner is a singer and Black metal musician. Death metal is a musical fusion of black metal.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abradab | associatedBand | Magik_(rapper)</otriple>
+        <otriple>Abradab | associatedMusicalArtist | Kaliber_44</otriple>
+        <otriple>Abradab | dateOfBirth | "1978-11-12"^^xsd:date</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abradab | associatedBand | Kaliber_44</otriple>
+        <otriple>Abradab | associatedMusicalArtist | Magik_(rapper)</otriple>
+        <otriple>Abradab | dateOfBirth | "1978-11-12"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | associatedBand/associatedMusicalArtist | Magik_(rapper)</mtriple>
+        <mtriple>Abradab | associatedBand/associatedMusicalArtist | Kaliber_44</mtriple>
+        <mtriple>Abradab | birthDate | 1978-11-12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abradab who was born on November 12th 1978 is an artist for the band Kaliber 44 and he is associated with rapper Magik.</lex>
+      <lex comment="good" lid="Id2">Born on 12th November, 1978, Abradab, played with the band Kaliber 44 and is associated with the rapper, Magik.</lex>
+      <lex comment="good" lid="Id3">Abradab, born 11/12/1978, is a member of Kaliber 44 and is associated with rap artist, Magik.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Abradab | associatedBand | Kaliber_44</otriple>
+        <otriple>Abradab | hometown | Katowice</otriple>
+        <otriple>Abradab | associatedMusicalArtist | Magik_(rapper)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abradab | associatedBand | Magik_(rapper)</otriple>
+        <otriple>Abradab | associatedMusicalArtist | Kaliber_44</otriple>
+        <otriple>Abradab | hometown | Katowice</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abradab | associatedBand/associatedMusicalArtist | Magik_(rapper)</mtriple>
+        <mtriple>Abradab | associatedBand/associatedMusicalArtist | Kaliber_44</mtriple>
+        <mtriple>Abradab | origin | Katowice</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Katowice born Abradab has been with the band Kaliber 44 and associated with rapper, Magik.</lex>
+      <lex comment="good" lid="Id2">Abradab comes from Katowice and plays for the Kaliber 44 band. He plays with rapper, Magik.</lex>
+      <lex comment="good" lid="Id3">Born in Katowice, Abradab, an artist for the band Kaliber 44, is musically associated with the rapper Magik.</lex>
+    </entry>
+    </entries>
+</benchmark>

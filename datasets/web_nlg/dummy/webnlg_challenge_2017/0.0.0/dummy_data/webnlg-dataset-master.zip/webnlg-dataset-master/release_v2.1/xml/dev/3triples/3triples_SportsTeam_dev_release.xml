@@ -1,0 +1,99 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A.C._Cesena | ground | Cesena</otriple>
+        <otriple>A.C._Cesena | league | Serie_B</otriple>
+        <otriple>A.C._Cesena | capacity | 23900</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Cesena | ground | Cesena</otriple>
+        <otriple>A.C._Cesena | league | Serie_B</otriple>
+        <otriple>A.C._Cesena | capacity | "23900"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Cesena | ground | Cesena</mtriple>
+        <mtriple>A.C._Cesena | league | Serie_B</mtriple>
+        <mtriple>A.C._Cesena | numberOfMembers | 23900</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.C. Cesena, in the Serie B League, has 23900 members and is located is Cesena.</lex>
+      <lex comment="good" lid="Id2">AC Cesena's ground is in Cesena and they have 23900 members. The club plays in Serie B.</lex>
+      <lex comment="good" lid="Id3">A.C. Cesena, with 23900 members, is in the Serie B league and has a ground in Cesena.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>A.C._Cesena | manager | Massimo_Drago</otriple>
+        <otriple>Massimo_Drago | clubs | S.S.D._Potenza_Calcio</otriple>
+        <otriple>Massimo_Drago | team | Calcio_Catania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Cesena | manager | Massimo_Drago</mtriple>
+        <mtriple>Massimo_Drago | club | S.S.D._Potenza_Calcio</mtriple>
+        <mtriple>Massimo_Drago | club | Calcio_Catania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Massimo Drago played for the club SSD Potenza Calcio and his own club was Calcio Catania. He is currently managing AC Cesena.</lex>
+      <lex comment="good" lid="Id2">Massimo Drago manages A.C. Cesena and played for the club SSD Potenza Calcio. He is also in club Calcio Catania.</lex>
+      <lex comment="good" lid="Id3">Massimo Drago played for S.S.D. Potenza Calcio and now plays for Calcio Catania while managing A.C. Cesena.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | league | "Lega Pro/A"@en</otriple>
+        <otriple>A.C._Lumezzane | season | 2014</otriple>
+        <otriple>A.C._Lumezzane | capacity | 4150</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.C._Lumezzane | league | "Lega Pro/A"@en</otriple>
+        <otriple>A.C._Lumezzane | season | 2014</otriple>
+        <otriple>A.C._Lumezzane | capacity | "4150"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Lumezzane | league | "Lega Pro/A"</mtriple>
+        <mtriple>A.C._Lumezzane | season | 2014</mtriple>
+        <mtriple>A.C._Lumezzane | numberOfMembers | 4150</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AC Lumezzane has 4150 members and is in the Lega Pro/A league where they played in the 2014 season.</lex>
+      <lex comment="good" lid="Id2">I am interested in the 2014 A.C. Lumezzane season. It plays in Lega Pro/A. and has 4150 members.</lex>
+      <lex comment="good" lid="Id3">A.C Lumezzane, with 4150 members, play in the Lega Pro/A, participating in the 2014 season.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | ground | Estadio_Jorge_Calero_Suárez</otriple>
+        <otriple>A.D._Isidro_Metapán | fullname | "Isidro Metapán"@en</otriple>
+        <otriple>A.D._Isidro_Metapán | capacity | 10000</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.D._Isidro_Metapán | ground | Estadio_Jorge_Calero_Suárez</otriple>
+        <otriple>A.D._Isidro_Metapán | fullname | "Isidro Metapán"@en</otriple>
+        <otriple>A.D._Isidro_Metapán | capacity | "10000"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.D._Isidro_Metapán | ground | Estadio_Jorge_Calero_Suárez</mtriple>
+        <mtriple>A.D._Isidro_Metapán | fullname | "Isidro Metapán"</mtriple>
+        <mtriple>A.D._Isidro_Metapán | numberOfMembers | 10000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A.D. Isidro Metapán are based at the Estadio Jorge Calero Suárez ground. Its full name is Isidro Metapan and it has 10000 members.</lex>
+      <lex comment="good" lid="Id2">A.D. Isidro Metapan (full name, Isidro Metapan) has 10000 members and play their home games at the Estadio Jorge Calero Suarez stadium.</lex>
+      <lex comment="good" lid="Id3">Isidro Metapan (A.D. Isidro Metapan) has 10000 members and are at Estadio Jorge Calero Suarez.</lex>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | leaderName | Nikos_Voutsis</otriple>
+        <otriple>Greece | leader | Prokopis_Pavlopoulos</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>A.E_Dimitra_Efxeinoupolis | location | Greece</otriple>
+        <otriple>Greece | leader | Nikos_Voutsis</otriple>
+        <otriple>Greece | leaderName | Prokopis_Pavlopoulos</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.E_Dimitra_Efxeinoupolis | location | Greece</mtriple>
+        <mtriple>Greece | leader | Nikos_Voutsis</mtriple>
+        <mtriple>Greece | leader | Prokopis_Pavlopoulos</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The A.E Dimitra Efxeinoupolis club is located in Greece, where there are leaders called Nikos Voutsis and Prokopis Pavlopoulos.</lex>
+      <lex comment="good" lid="Id2">There are two prominent leaders in Greece: Nikos Voutsis and Prokopis Pavlopoulos as well the A.E. Dimitra Efxeinoupolis is located there.</lex>
+      <lex comment="good" lid="Id3">A.E Dimitra Efxeinoupolis is located in Greece, the leader of the country is Nikos Voutsis and/or Prokopis Pavlopoulos.</lex>
+    </entry>
+    </entries>
+</benchmark>

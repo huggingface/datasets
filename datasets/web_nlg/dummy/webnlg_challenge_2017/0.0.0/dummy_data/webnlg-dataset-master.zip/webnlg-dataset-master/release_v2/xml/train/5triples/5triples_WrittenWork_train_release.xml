@@ -1,0 +1,109 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | influencedBy | Robert_A._Heinlein</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | 1634:_The_Baltic_War</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | "DeMarce short stories in the"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | influencedBy | Robert_A._Heinlein</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | 1634:_The_Baltic_War</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | "issues II, III, IV, V and VI"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | influencedBy | Robert_A._Heinlein</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | 1634:_The_Baltic_War</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | "and"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>Eric_Flint | influencedBy | Robert_A._Heinlein</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | 1634:_The_Baltic_War</mtriple>
+        <mtriple>Eric_Flint | birthPlace | Burbank,_California</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | "DeMarce short stories in the The Grantville Gazettes"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Eric Flint was born in Burbank, California and came under the influence of Robert A Heinlein. He is the author of 1634: The Bavarian Crisis which is preceded by 1634: The Baltic War. Also preceding the book are the DeMarce short stories in the Grantville Gazettes.</lex>
+      <lex comment="good" lid="Id2">Eric Flint, born in Burbank California, is the author of 1634: The Bavarian Crisis, which was preceded by 1634: The Baltic War. These books were preceded by DeMarce short stories in the Grantville Gazettes. He was influenced by Robert A. Heinlein.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | influencedBy | Robert_A._Heinlein</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | The_Grantville_Gazettes</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | "DeMarce short stories in the"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>Eric_Flint | influencedBy | Robert_A._Heinlein</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</mtriple>
+        <mtriple>Eric_Flint | birthPlace | Burbank,_California</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | "DeMarce short stories in the The Grantville Gazettes"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Eric Flint, born in Burbank, California, and influenced by Robert A. Heinlein, is the author of 1634: The Bavarian Crisis. DeMarce short stories in the Grantville Gazettes and Grantville Gazette III preceded 1634: The Bavarian Crisis.</lex>
+      <lex comment="good" lid="Id2">Eric Flint, who was born in Burbank, California was influenced by Robert A Heinlein. He wrote 1634: The Bavarian crisis (the sequel to The Grantville Gazettes). The book was also preceded by the DeMarce short stories in The Grantville Gazettes.</lex>
+      <lex comment="good" lid="Id3">Iinfluenced by Robert A Heinlein, Eric Flint (born in Burbank California) is the author of 1634: The Bavarian Crisis and it's prequel The Grantville Gazettes, a collection of DeMarce short stories.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | influencedBy | Robert_A._Heinlein</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_III</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | "and"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>Eric_Flint | influencedBy | Robert_A._Heinlein</mtriple>
+        <mtriple>Eric_Flint | birthPlace | Burbank,_California</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_III</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | "DeMarce short stories in the The Grantville Gazettes"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">After DeMarce short stories were published in the Grantville Gazettes, there came 1634: The Bavarian Crisis written by Eric Flint of Burbank California, who was influenced by Robert A, Heinlein, as a sequel to Grantville Gazette III.</lex>
+      <lex comment="good" lid="Id2">Eric Flint was born in Burbank, California and is the author of 1634: The Bavarian Crisis. He was influenced by Robert A. Heinlein and has also written DeMarce short stories in the The Grantville Gazettes and Grantville Gazette III.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>Eric_Flint | influencedBy | Robert_A._Heinlein</otriple>
+        <otriple>Eric_Flint | birthPlace | Burbank,_California</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_III</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>Eric_Flint | influencedBy | Robert_A._Heinlein</mtriple>
+        <mtriple>Eric_Flint | birthPlace | Burbank,_California</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_III</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis was the sequel to The Grantville Gazettes. It was written by Eric Flint from Burbank California and influenced by Robert A. Heinlein.</lex>
+      <lex comment="good" lid="Id2">Influenced by Robert A Heinlein, 1634: The Bavarian Crisis was written by Eric Flint who was born in Burbank California. The book was preceded by Grantville Gazette III and The Grantville Gazettes.</lex>
+      </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</otriple>
+        <otriple>Ring_of_Fire_II | language | English_language</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | Grantville_Gazette_II</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and"@en</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | followedBy | Ring_of_Fire_II</mtriple>
+        <mtriple>Ring_of_Fire_II | language | English_language</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | Grantville_Gazette_II</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | author | "Virginia DeMarce and Eric Flint"</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The authors of 1634: The Bavarian Crisis are Virginia DeMarce and Eric Flint and was preceded by The Grantville Gazettes and followed by Ring of Fire II which is written in English.</lex>
+      <lex comment="good" lid="Id2">The novel 1634: The Bavarian Crisis (authored by Virginia DeMarce and Eric Flint) is followed by Ring of Fire II, which was written in English. This book was preceded by The Grantville Gazettes and Grantville Gazette II.</lex>
+    </entry>
+    </entries>
+</benchmark>

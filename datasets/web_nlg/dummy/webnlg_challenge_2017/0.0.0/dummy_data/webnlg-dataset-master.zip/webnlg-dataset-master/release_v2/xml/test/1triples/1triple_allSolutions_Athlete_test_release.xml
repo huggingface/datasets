@@ -1,0 +1,63 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_Hunt | clubs | SV_Werder_Bremen</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Hunt | team | SV_Werder_Bremen</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Hunt played for the club SV Werder Bremen.</lex>
+      <lex comment="good" lid="Id2">Aaron Hunt plays for SV Werder Bremen.</lex>
+      <lex comment="good" lid="Id3">Aaron Hunt played for SV Werder Bremen.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Abner_(footballer) | birthPlace | Brazil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abner_(footballer) | birthPlace | Brazil</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The footballer Abner was born in Brazil.</lex>
+      <lex comment="good" lid="Id2">Abner (a footballer) was born in Brazil.</lex>
+      <lex comment="good" lid="Id3">Football player, Abner, was born in Brazil.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adam_Maher | placeOfBirth | Netherlands</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adam_Maher | birthPlace | Netherlands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Maher | birthPlace | Netherlands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Maher was born in the Netherlands.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adam_Maher | team | Netherlands_national_under-17_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Maher | club | Netherlands_national_under-17_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Maher played for the Netherlands national under-17 football team.</lex>
+      <lex comment="good" lid="Id2">Adam Maher plays for the Netherlands National club for players under 17.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Adam_Maher | clubs | PSV_Eindhoven</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adam_Maher | team | PSV_Eindhoven</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Maher | club | PSV_Eindhoven</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Maher's club is PSV Eindhoven.</lex>
+    </entry>
+    </entries>
+</benchmark>

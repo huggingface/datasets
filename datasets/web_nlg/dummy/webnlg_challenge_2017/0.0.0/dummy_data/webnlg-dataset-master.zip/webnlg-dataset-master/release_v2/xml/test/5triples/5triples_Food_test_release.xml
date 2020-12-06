@@ -1,0 +1,99 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Arem-arem | country | Indonesia</otriple>
+        <otriple>Indonesia | leaderName | Jusuf_Kalla</otriple>
+        <otriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"@en</otriple>
+        <otriple>Indonesia | currency | Indonesian_rupiah</otriple>
+        <otriple>Indonesia | language | Indonesian_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Arem-arem | country | Indonesia</mtriple>
+        <mtriple>Indonesia | leaderName | Jusuf_Kalla</mtriple>
+        <mtriple>Arem-arem | region | "Nationwide in Indonesia, but more specific to Java"</mtriple>
+        <mtriple>Indonesia | currency | Indonesian_rupiah</mtriple>
+        <mtriple>Indonesia | language | Indonesian_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Arem-arem while more specific to java, is found nationwide in Indonesia, where the language is Indonesian. It is also where the currency is the Indonesian rupiah and Jusuf Kalla is a leader.</lex>
+      <lex comment="good" lid="Id2">Arem-arem is a food usually served in Indonesia which has the rupiah as its currency and the people speak Indonesian. Its leader is Jusuf Kalla and although arem-arem- is found nationwide, it's more specific to Java.</lex>
+      <lex comment="good" lid="Id3">Arem-arem is nationwide dish in Indonesia where Indonesian is the spoken language, but originates from the Island of Java.The country's vice-president is Jusuf Kalla and the local currency is Indonesian rupiah.</lex>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Asam_pedas | country | Malaysia</otriple>
+        <otriple>Malaysia | ethnicGroup | Malaysian_Chinese</otriple>
+        <otriple>Malaysia | ethnicGroups | Malaysian_Malay</otriple>
+        <otriple>Malaysia | capital | Kuala_Lumpur</otriple>
+        <otriple>Asam_pedas | region | "Sumatra and Malay Peninsula"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asam_pedas | country | Malaysia</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Chinese</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Malay</mtriple>
+        <mtriple>Malaysia | capital | Kuala_Lumpur</mtriple>
+        <mtriple>Asam_pedas | region | "Sumatra and Malay Peninsula"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Malaysian Chinese and Malay are ethnic groups in Malaysia where the capital is Kuala Lumpur. It is also where the food dish Asam pedas, which come from the region of Sumatra and the Malay Peninsula, is found.</lex>
+      <lex comment="good" lid="Id2">From the Sumatra and Malay Peninsula regions, Asam pedas, is a food found in Malaysia. The country where the capital is Kuala Lumpur and where the Malay and Malaysian Chinese are two of the ethnic groups.</lex>
+      <lex comment="good" lid="Id3">Asam pedas is from the Sumatra and Malay Peninsula regions of Malaysia. Malaysia, with its capital city of Kuala Lumpur, is the home to both Malay and Malaysian Chinese people.</lex>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Asam_pedas | country | Malaysia</otriple>
+        <otriple>Malaysia | ethnicGroups | Malaysian_Malay</otriple>
+        <otriple>Malaysia | capital | Kuala_Lumpur</otriple>
+        <otriple>Malaysia | ethnicGroup | Malaysian_Indian</otriple>
+        <otriple>Asam_pedas | region | "Sumatra and Malay Peninsula"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asam_pedas | country | Malaysia</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Malay</mtriple>
+        <mtriple>Malaysia | capital | Kuala_Lumpur</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Indian</mtriple>
+        <mtriple>Asam_pedas | region | "Sumatra and Malay Peninsula"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Malays and Malaysian Indians are both ethnic groups in Malaysia, the capital city of which is Kuala Lumpur. Asam pedas is a food found in Malaysia. It comes from the Sumatra and Malay Peninsula regions.</lex>
+      <lex comment="good" lid="Id2">Asam pedas is a food found in Malaysia, where the capital is Kuala Lumpur and ethnic groups include Malay and Malaysian Indian. The dish is also found in the regions of Sumatra and the Malay Peninsula.</lex>
+      <lex comment="good" lid="Id3">The dish Asam pedas comes from the region of Sumatra and the Malay Peninsula, Malaysia (capital Kuala Lumpur). Ethnic groups of the region include Malaysian Indian and Malaysian Malay.</lex>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Asam_pedas | country | Malaysia</otriple>
+        <otriple>Malaysia | ethnicGroups | Malaysian_Malay</otriple>
+        <otriple>Malaysia | capital | Kuala_Lumpur</otriple>
+        <otriple>Malaysia | ethnicGroup | Malaysian_Indian</otriple>
+        <otriple>Asam_pedas | region | Sumatra</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asam_pedas | country | Malaysia</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Malay</mtriple>
+        <mtriple>Malaysia | capital | Kuala_Lumpur</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Indian</mtriple>
+        <mtriple>Asam_pedas | region | Sumatra</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Asam pedas is a dish from Sumatra in Malaysia, The capital of Malaysia is Kuala Lumpur and two of the ethnic group found here are the Malay and Malaysian Indian.</lex>
+      <lex comment="good" lid="Id2">Asam Pedas, a dish from Sumatra, is found in Malaysia, where the capital if Kuala Lumpur and the Malaysian Malay is an ethnic group along with the Malaysian Indian.</lex>
+      <lex comment="good" lid="Id3">Asam pedas is a dish found in Sumatra and Malaysia. Malaysian Indians and Malay are ethnic groups of Malaysia, where the capital is Kuala Lumpur.</lex>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Asam_pedas | country | Malaysia</otriple>
+        <otriple>Malaysia | ethnicGroups | Malaysian_Malay</otriple>
+        <otriple>Malaysia | leader | Abu_Zahar_Ujang</otriple>
+        <otriple>Malaysia | ethnicGroup | Malaysian_Indian</otriple>
+        <otriple>Asam_pedas | region | Malay_Peninsula</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asam_pedas | country | Malaysia</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Malay</mtriple>
+        <mtriple>Malaysia | leaderName | Abu_Zahar_Ujang</mtriple>
+        <mtriple>Malaysia | ethnicGroup | Malaysian_Indian</mtriple>
+        <mtriple>Asam_pedas | region | Malay_Peninsula</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Asam pedas is a food from the Malay Peninsula region of Malaysia. Abu Zahar is a leader in Malaysia, where there are ethnic groups called the Malays and the Malaysian Indians.</lex>
+      <lex comment="good" lid="Id2">Asam pedas is from the Malay Peninsula region of Malaysia, the country where Abu Zahar Ujang is leader and where Malaysian Malay and Malaysian Indian are ethnic groups.</lex>
+      <lex comment="good" lid="Id3">Asam pedas is a food from Malaysia and can be found throughout the Malaysian peninsula region.The country's leader is Abu Zahar Ujang and among its ethnic groups are the Malay and Malaysian Indians.</lex>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,73 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Atatürk Monument in Izmir was designed by Pietro Canonica.</lex>
+      <lex comment="good" lid="Id2">Pietro Canonica designed the Atatürk Monument in Izmir.</lex>
+      <lex comment="good" lid="Id3">Pietro Canonica is the designer of the Ataturk Monument (Izmir).</lex>
+      <lex comment="good" lid="Id4">The Ataturk Monument was designed by Pietro Canonica.</lex>
+      <lex comment="good" lid="Id5">Ataturk Monument was designed by Pietro Canonica.</lex>
+      <lex comment="good" lid="Id6">The Atatürk Monument (İzmir) was designed by Pietro Canonica.</lex>
+      <lex comment="good" lid="Id7">The designer of the Atatürk_Monument (İzmir) is Pietro Canonica.</lex>
+      <lex comment="good" lid="Id8">Pietro Canonica is the designer of the Ataturk Monument in Izmir.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Atatürk Monument in Izmir is made of bronze.</lex>
+      <lex comment="good" lid="Id2">The material of the Ataturk Monument (Izmir) is bronze.</lex>
+      <lex comment="good" lid="Id3">The Ataturk Monument is made from Bronze.</lex>
+      <lex comment="good" lid="Id4">The Atatürk Monument (İzmir) is made of Bronze.</lex>
+      <lex comment="good" lid="Id5">Ataturk Monument is made of Bronze.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Azerbaijan | leaderName | Artur_Rasizade</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Azerbaijan | leaderName | Artur_Rasizade</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Azerbaijan leader's name is Artur Rasizade.</lex>
+      <lex comment="good" lid="Id2">The name of the leader of Azerbaijan is Artur Rasizade.</lex>
+    </entry>
+    <entry category="Monument" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | location | Azerbaijan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Baku Turkish Martyrs' Memorial is located in Azerbaijan.</lex>
+      <lex comment="good" lid="Id2">The Baku Turkish Martyr's Memorial is in Azerbaijan.</lex>
+      <lex comment="good" lid="Id3">The Turkish martyrs memorial is located in Baku, Azerbaijan.</lex>
+      <lex comment="good" lid="Id4">Baku Turkish Martyrs' Memorial is located in Azerbaijan.</lex>
+      <lex comment="good" lid="Id5">The Baku Turkish Martyrs' Memorial can be found is Azerbaijan.</lex>
+      <lex comment="good" lid="Id6">The Baku Turkish Martyrs' Memorial is in Azerbaijan.</lex>
+      <lex comment="good" lid="Id7">The Baku Turkish Martyrs' Memorial is found in Azerbaijan.</lex>
+    </entry>
+    <entry category="Monument" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Baku_Turkish_Martyrs'_Memorial | material | "Red granite and white marble"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baku_Turkish_Martyrs'_Memorial | material | "Red granite and white marble"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The materials used for the Baku Turkish Martyrs' Memorial is red granite and white marble.</lex>
+      <lex comment="good" lid="Id2">The Baku Turkish Martyrs' Memorial is created in red granite and white marble.</lex>
+      <lex comment="good" lid="Id3">The material of the Baku Turkish Martyrs' Memorial is Red granite and white marble.</lex>
+      <lex comment="good" lid="Id4">The Baku Turkish Martyrs' Memorial is made from red granite and white marble.</lex>
+      <lex comment="good" lid="Id5">Baku Turkish Martyrs' Memorial is made of red granite and white marble.</lex>
+      <lex comment="good" lid="Id6">Baku Turkish Martyrs' Memorial is made from red granite and white marble.</lex>
+      <lex comment="good" lid="Id7">The Baku Turkish Martyrs' Memorial is made with red granite and white marble.</lex>
+    </entry>
+    </entries>
+</benchmark>

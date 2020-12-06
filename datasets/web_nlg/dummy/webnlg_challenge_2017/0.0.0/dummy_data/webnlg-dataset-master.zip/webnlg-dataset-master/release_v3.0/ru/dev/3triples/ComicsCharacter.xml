@@ -1,0 +1,153 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Paris_Cullins | nationality | United_States</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Paris_Cullins</otriple>
+        <otriple>Bolt_(DC_Comics) | creators | Ernie_Colón</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Bolt_(DC_Comics) | creators | Paris_Cullins</otriple>
+        <otriple>Paris_Cullins | nationality | United_States</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Ernie_Colón</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bolt_(comicsCharacter) | creator | Paris_Cullins</mtriple>
+        <mtriple>Paris_Cullins | nationality | United_States</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | creator | Ernie_Colón</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ernie Colton and Paris Cullins created the comic character Bolt. Cullins is from the US.</lex>
+      <lex lang="ru" lid="Id1">Эрни Колон и Пэрис Каллинс создали персонажа комиксов Болта. Каллинс - из США.</lex>
+      <lex lang="en" lid="Id2">Bolt was created by Ernie Colon and Paris Cullins who is an American.</lex>
+      <lex lang="ru" lid="Id2">Болт был создан Эрни Колоном и Пэрисом Каллинсом, который является американцем.</lex>
+      <lex lang="en" lid="Id3">The comic character of Bolt is created by Ernie Colon and the US National, Paris Cullins.</lex>
+      <lex lang="ru" lid="Id3">Персонаж комиксов Болт создан Эрни Колоном и гражданином США Пэрисом Каллинсом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Paris Cullins | sameAs | Пэрис Каллинс</link>
+        <link direction="en2ru">Ernie Colón | sameAs | Эрни Колон</link>
+        <link direction="en2ru">Bolt (comicsCharacter) | includes | Болт</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Bolt_(DC_Comics) | creators | Paris_Cullins</otriple>
+        <otriple>Paris_Cullins | nationality | United_States</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Gary_Cohn_(comics)</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Paris_Cullins | nationality | United_States</otriple>
+        <otriple>Bolt_(DC_Comics) | creators | Gary_Cohn_(comics)</otriple>
+        <otriple>Bolt_(DC_Comics) | creator | Paris_Cullins</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bolt_(comicsCharacter) | creator | Paris_Cullins</mtriple>
+        <mtriple>Paris_Cullins | nationality | United_States</mtriple>
+        <mtriple>Bolt_(comicsCharacter) | creator | Gary_Cohn_(comics)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic book writer Gary Cohn and US National Paris Cullins created the comic character of Bolt.</lex>
+      <lex lang="ru" lid="Id1">Автор комиксов Гэри Кон и гражданин США Пэрис Каллинс создали персонажа комиксов Болта.</lex>
+      <lex lang="en" lid="Id2">The comic character Bolt was created by Paris Cullins and Gary Cohn, the former being a United States national.</lex>
+      <lex lang="ru" lid="Id2">Персонаж комиксов Болт был создан Пэрисом Каллинсом и Гэри Коном, первый из них является гражданином США.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Gary Cohn (comics) | includes | Гэри Кон</link>
+        <link direction="en2ru">Paris Cullins | sameAs | Пэрис Каллинс</link>
+        <link direction="en2ru">Bolt (comicsCharacter) | includes | Болт</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | John_Buscema</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | Roy_Thomas</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | alterEgo | "Dane Whitman"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | John_Buscema</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | Roy_Thomas</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | alterEgo | "Dane Whitman"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | John_Buscema</mtriple>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | Roy_Thomas</mtriple>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | alternativeName | "Dane Whitman"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic character Dane Whitman Black Knight, created by Roy Thomas and John Buscema, is also known as simply Dane Whitman.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Дейн Уитмен, Черный рыцарь, созданный Роем Томасом и Джоном Буссемой, также известен как просто Дейн Уитмен.</lex>
+      <lex lang="en" lid="Id2">Dane Whitman, aka Black Knight, was created by John Buschema and Roy Thomas.</lex>
+      <lex lang="ru" lid="Id2">Дейн Уитмен, также известный как Черный рыцарь, был создан Джоном Буссемой и Роем Томасом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Roy_Thomas | sameAs | Томас,_Рой</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Дейн Уитмен</link>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Черный рыцарь</link>
+        <link direction="en2ru">John Buscema | sameAs | Джон Буссема</link>
+        <link direction="en2ru">Dane Whitman | sameAs | Дейн Уитмен</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>John_Buscema | nationality | Americans</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | John_Buscema</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | Roy_Thomas</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Black_Knight_(Dane_Whitman) | creators | John_Buscema</otriple>
+        <otriple>John_Buscema | nationality | Americans</otriple>
+        <otriple>Black_Knight_(Dane_Whitman) | creator | Roy_Thomas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | John_Buscema</mtriple>
+        <mtriple>John_Buscema | nationality | Americans</mtriple>
+        <mtriple>Dane_Whitman_Black_Knight_(comicsCharacter) | creator | Roy_Thomas</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The comic character, Dane Whitman Black Knight was created by Roy Thomas and the American, John Buscema.</lex>
+      <lex lang="ru" lid="Id1">Персонаж комиксов Дейн Уитмен Черный рыцарь был создан Роем Томасом и американцем Джоном Буссемой.</lex>
+      <lex lang="en" lid="Id2">The comic book character Dane Whitman, also known as the Black Knight, was created by Roy Thomas and the American, John Buscema in the comics genre.</lex>
+      <lex lang="ru" lid="Id2">Персонаж комиксов Дейн Уитмен, также известный как Черный рыцарь, был создан Роем Томасом и американцем Джоном Буссемой.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Roy_Thomas | sameAs | Томас,_Рой</dbpedialink>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Дейн Уитмен</link>
+        <link direction="en2ru">Dane Whitman Black Knight (comicsCharacter) | includes | Черный рыцарь</link>
+        <link direction="en2ru">John Buscema | sameAs | Джон Буссема</link>
+      </links>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Baymax | creator | Duncan_Rouleau</otriple>
+        <otriple>Duncan_Rouleau | nationality | Americans</otriple>
+        <otriple>Baymax | creators | Steven_T._Seagle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Duncan_Rouleau | nationality | Americans</otriple>
+        <otriple>Baymax | creators | Duncan_Rouleau</otriple>
+        <otriple>Baymax | creator | Steven_T._Seagle</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Duncan_Rouleau | nationality | Americans</mtriple>
+        <mtriple>Baymax | creator | Duncan_Rouleau</mtriple>
+        <mtriple>Baymax | creator | Steven_T._Seagle</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Baymax was created by Steven T Seagle and the American, Duncan Rouleau.</lex>
+      <lex lang="ru" lid="Id1">Баймакс был создан Стивеном Ти Сигалом и американцем Дунканом Руло.</lex>
+      <lex lang="en" lid="Id2">Baymax was created by Steven T. Seagle and Duncan Rouleau who is an American.</lex>
+      <lex lang="ru" lid="Id2">Баймакс был создан Стивеном Ти Сигалом и Дунканом Руло, который является американцем.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Americans | sameAs | Американцы_США</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Steven T. Seagle | sameAs | Стивен Ти Сигал</link>
+        <link direction="en2ru">Baymax | sameAs | Баймакс</link>
+        <link direction="en2ru">Duncan Rouleau | sameAs | Дункан Руло</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

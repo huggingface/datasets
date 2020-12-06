@@ -1,0 +1,108 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+        <otriple>Romania | anthem | Deșteaptă-te,_române!</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+        <mtriple>Romania | anthem | Deșteaptă-te,_române!</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">1 Decembrie 1918 University is located in Romania where the anthem is Deșteaptă-te, române!</lex>
+      <lex lang="ru" lid="Id1">Университет "1 декабря 1918" находится в Румынии, где гимном является “Deșteaptă-te române!”.</lex>
+      <lex lang="en" lid="Id2">The 1 Decembrie 1918 University is in Romania whose national anthem is Deșteaptă-te, române!</lex>
+      <lex lang="ru" lid="Id2">Университет "1 декабря 1918" расположен в Румынии, чей национальный гимн - "Проснись, румын!".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Deșteaptă-te,_române! | sameAs | Гимн_Румынии</dbpedialink>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 1 Decembrie 1918 University of Romania has the latin name Universitas Apulensis.</lex>
+      <lex lang="ru" lid="Id1">У университета «1 декабря 1918» в Румынии есть латинское название Universitas Apulensis.</lex>
+      <lex lang="en" lid="Id2">1 Decembrie 1918 University 's latin name is Universitas Apulensis and is located in Romania.</lex>
+      <lex lang="ru" lid="Id2">Латинское название находящегося в Румынии Университета "1 декабря 1918" - Universitas Apulensis.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Universitas Apulensis | sameAs | Universitas Apulensis</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Breaz Valer Daniel is the rector of the 1 Decembrie 1918 University in the city of Alba Iulia.</lex>
+      <lex lang="ru" lid="Id1">Бреаз Валер Даниэль - ректор университета «1 декабря 1918» в городе Алба-Юлия.</lex>
+      <lex lang="en" lid="Id2">The 1 Decembrie 1918 University is situated in the city of Alba lulia and the rector is Breaz Valer Daniel.</lex>
+      <lex lang="ru" lid="Id2">Университет "1 декабря 1918" находится в городе Алба-Юлия, а ректор - Бреаз Валер Даниэль.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Alba_Iulia | sameAs | Алба-Юлия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Breaz Valer Daniel | sameAs | Бреаз Валер Даниэль</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The 1 Decembrie 1918 University is situated in the state of Alba, Romania.</lex>
+      <lex lang="ru" lid="Id1">Университет «1 декабря 1918» находится в уезде Альба, Румыния.</lex>
+      <lex lang="en" lid="Id2">1 Decembrie 1918 University is in the state of Alba, Romania.</lex>
+      <lex lang="ru" lid="Id2">Университет "1 декабря 1918" находится в уезде Алба, Румыния.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Romania | sameAs | Румыния</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Alba | sameAs | Алба</link>
+        <link direction="en2ru">1 Decembrie 1918 University | sameAs | Университет «1 декабря 1918»</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">There are 250 academic staff at the AWH Engineering College in the city of Kuttikkattoor.</lex>
+      <lex lang="ru" lid="Id1">В инженерном колледже «AWH» в городе Куттиккаттоор работают 250 научных сотрудников.</lex>
+      <lex lang="en" lid="Id2">AWH Engineering College in Kuttikkattoor has an academic staff size of 250 people.</lex>
+      <lex lang="ru" lid="Id2">Академический штат инженерного колледжа « AWH » Куттиккаттоора насчитывает 250 человек.</lex>
+      <lex lang="en" lid="Id3">AWH Engineering College has a staff size of 250 and is in the city of Kuttikkattoor.</lex>
+      <lex lang="ru" lid="Id3">Штат Инженерного колледжа «AWH» в городе Куттиккаттоор составляет 250 человек.</lex>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

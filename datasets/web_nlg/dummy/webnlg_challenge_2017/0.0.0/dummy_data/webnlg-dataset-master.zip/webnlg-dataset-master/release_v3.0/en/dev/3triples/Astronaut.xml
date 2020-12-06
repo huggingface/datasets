@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Apollo_12 | operator | NASA</otriple>
+        <otriple>Apollo_12 | crew1Up | David_Scott</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Apollo_12 | operator | NASA</mtriple>
+        <mtriple>Apollo_12 | commander | David_Scott</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was under commander David Scott on Nasa's Apollo 12 mission.</lex>
+      <lex comment="good" lid="Id2">Alan Bean was a member of the NASA operated Apollo 12 crew commanded by David Scott.</lex>
+      <lex comment="good" lid="Id3">David Scott was the commander of the NASA operated Apollo 12 flight mission on which the crew included Alan Bean.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Alan_Shepard | deathDate | "1998-07-21"^^xsd:date</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>California | senators | Dianne_Feinstein</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | deathDate | "1998-07-21"</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>California | senators | Dianne_Feinstein</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Dianne Feinstein is a senator in California where Alan Shepard died on July 21 1998.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard died on the 21st of July, 1998 in California (whose Senator was Dianne Feinstein).</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | alternativeNames | "Edwin E. Aldrin, Jr."@en</otriple>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+        <otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | alternativeName | "Edwin E. Aldrin, Jr."</mtriple>
+        <mtriple>Buzz_Aldrin | mission | Apollo_11</mtriple>
+        <mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin, also called Edwin E. Aldrin Jr., graduated in 1963 from MIT with a Sc.D. and was a crew member on Apollo 11.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin, whose real name was Edwin E. Aldrin, Jr., graduated from Massachusetts Institute of Technology in 1963 with a doctorate in Science and later became a crew member of Apollo 11.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin (AKA Edwin E Aldrin Jr) graduated in 1963 from MIT with a Sc.D. was a crew member of Apollo 11.</lex>
+      <lex comment="good" lid="Id4">Buzz Aldrin, whose real name is Edwin E. Aldrin Jr., was a member of Apollo 11 who in 1963 graduated with a Sc. D. from MIT.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | timeInSpace | "52.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | timeInSpace | "52.0"(minutes)</mtriple>
+        <mtriple>Buzz_Aldrin | mission | Apollo_11</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin, who was a member of the Apollo 11 crew and spent 52 minutes in space, was born in Glen Ridge New Jersey.</lex>
+      <lex comment="good" lid="Id2">Born in Glen Ridge New Jersey, Apollo 11 crewman Buzz Aldrin spent 52 minutes in space.</lex>
+      <lex comment="good" lid="Id3">Born in Glen Ridge, NJ, Buzz Aldrin spent 52 minutes in space as part of Apollo 11's crew.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>California | fossil | Smilodon</otriple>
+        <otriple>Alan_Shepard | deathPlace | California</otriple>
+        <otriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>California | fossil | Smilodon</mtriple>
+        <mtriple>Alan_Shepard | deathPlace | California</mtriple>
+        <mtriple>Alan_Shepard | award | Distinguished_Service_Medal_(United_States_Navy)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard, who was awarded the US Navy Distinguished Service Medal died in California, incidentally a Smilodon is a fossil from California.</lex>
+      <lex comment="good" lid="Id2">Alan Shepard was awarded the Distinguished Service Medal by United States Navy and died in California (where a Smilodon fossil was found).</lex>
+      <lex comment="good" lid="Id3">Alan Shepard, who was awarded the Distinguished Service Medal by the US Navy, died in California where the Smilodon fossil was found.</lex>
+    </entry>
+    </entries>
+</benchmark>

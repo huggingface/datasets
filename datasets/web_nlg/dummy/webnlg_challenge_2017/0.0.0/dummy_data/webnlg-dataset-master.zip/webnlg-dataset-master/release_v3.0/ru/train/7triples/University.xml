@@ -1,0 +1,191 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X) (X) (X (X)) (X (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | established | 2001</mtriple>
+        <mtriple>Kerala | leader | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The River Ganges flows through India which is the location of the AWH Engineering College which has 250 academic staff and was established in 2001 in the city of Kuttikkattoor in the state of Kerala. which is led by Kochi.</lex>
+      <lex lang="ru" lid="Id1">Река Ганг протекает через Индию, где находится Инженерный колледж "AWH", который насчитывает 250 научных сотрудников и был создан в 2001 году в городе Куттиккаттоор в штате Керала, который возглавляется Коччи.</lex>
+      <lex lang="en" lid="Id2">The AWH Engineering College is located in Kuttikkattoor, Kerala, India. It was established in 2001 and it has 250 academic staff. The leader of Kerala is Kochi. The Ganges is a river in India.</lex>
+      <lex lang="ru" lid="Id2">Инженерный колледж «AWH» расположен в Куттиккаттооре, штат Керала, Индия. Он был основан в 2001 году и имеет 250 человек профессорско-преподавательского состава. Лидер Кералы - Коччи. Ганг - река в Индии.</lex>
+      <lex lang="en" lid="Id3">The AWH Engineering College, Kuttikkattoor, Kerala, India, was established in 2001 and has 250 academic staff. A river in India is the Ganges, and Kerala state's leader is Kochi and.</lex>
+      <lex lang="ru" lid="Id3">Инженерный колледж «AWH», Куттиккаттоор, Индия, был создан в 2001 году. Река в Индии - Ганг, а лидер штата Керала - Коччи.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kochi | sameAs | Коччи</dbpedialink>
+        <dbpedialink direction="en2ru">Ganges | sameAs | Ганг</dbpedialink>
+        <dbpedialink direction="en2ru">2001 | sameAs | 2001_год</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X) (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>AWH_Engineering_College | established | 2001</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | facultySize | "250"^^xsd:nonNegativeInteger</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>AWH_Engineering_College | established | 2001</mtriple>
+        <mtriple>Kerala | leader | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | hasToItsNorthwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The leader of Kerala is Kochi and the state lies southeast of Mahe in India. It is the location of the AWH Engineering College which was established in 2001 in the city of Kuttikkattoor in the state of Kerala and has an academic staff of 250.</lex>
+      <lex lang="ru" lid="Id1">Лидер Кералы - Коччи, этот штат расположен в Индии, к юго-востоку от Маэ. Здесь находится Инженерный колледж «AWH» , созданный в 2001 году в городе Куттиккаттоор в штате Керала и насчитывающий преподавательский штат в 250 человек.</lex>
+      <lex lang="en" lid="Id2">The AWH Engineering College is located in Kuttikkattoor, Kerala, India. It was established in 2001 and it has 250 academic staff. Kerala's leader is Kochi and it has Mahe, India to its northwest.</lex>
+      <lex lang="ru" lid="Id2">Инженерный колледж "AWH" расположен в Куттиккаттооре, штат Керала, Индия. Он был создан в 2001 году и насчитывает 250 научных сотрудников. Лидер Кералы - Коччи, на северо-западе от него находится Маэ, Индия.</lex>
+      <lex lang="en" lid="Id3">AWH Engineering College in Kuttikkattoor, India was created in 2001 and has 250 employees. The college is found in the state of Kerala which has Mahe to its northwest. The country is led by Kochi.</lex>
+      <lex lang="ru" lid="Id3">Инженерный колледж «AWH» в Куттиккаттооре, Индия, был создан в 2001 году и насчитывает 250 сотрудников. Колледж находится в штате Керала, к северо-западу от которого лежит Маэ. Страну возглавляет Коччи.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kochi | sameAs | Коччи</dbpedialink>
+        <dbpedialink direction="en2ru">2001 | sameAs | 2001_год</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Mahé, India | includes | Индия</link>
+        <link direction="en2ru">Mahé, India | includes | Маэ</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X) (X (X)) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>AWH_Engineering_College | country | India</otriple>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | faculty | 250</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+        <otriple>Kerala | northwest | Mahé,_India</otriple>
+        <otriple>AWH_Engineering_College | city | "Kuttikkattoor"@en</otriple>
+        <otriple>India | river | Ganges</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AWH_Engineering_College | country | India</mtriple>
+        <mtriple>Kerala | leader | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | academicStaffSize | 250</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+        <mtriple>Kerala | hasToItsNorthwest | Mahé,_India</mtriple>
+        <mtriple>AWH_Engineering_College | city | "Kuttikkattoor"</mtriple>
+        <mtriple>India | river | Ganges</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">India is the location of the River Ganges and the state of Kerala which is northwest of Mahe India and is led by Kochi. The city of Kuttikkattoor in Kerala is the location of the AWH Engineering College which has 250 academic staff.</lex>
+      <lex lang="ru" lid="Id1">В Индии находится река Ганг и штат Керала, расположенный к северо-западу от Маэ, Индия, и возглавляемый Коччи. В городе Куттиккаттоор в штате Керала расположен Инженерный колледж «AWH», насчитывающий 250 научных сотрудников.</lex>
+      <lex lang="en" lid="Id2">The AWH Engineering College is located in the city of Kuttittattoor, Kerala, India. The AWH Engineering College has 250 academic staff. The leader of Kerala is Kochi. The Ganges is a river in India.</lex>
+      <lex lang="ru" lid="Id2">Инженерный колледж "AWH" расположен в городе Куттиккаттоор, штат Керала, Индия. Инженерный колледж "AWH" насчитывает 250 научных сотрудников. Лидер Кералы - Коччи. Ганг - река в Индии.</lex>
+      <lex lang="en" lid="Id3">India which is known for the river Ganges is also home to the state of Kerala which is positioned with Mahe to it's northeast and is governed by Kochi. Kerala is also where the AWH Engineering College is located in the city of Kuttikkattoor. The college currently has 250 members of staff.</lex>
+      <lex lang="ru" lid="Id3">Индия, известная по реке Ганг, также является родиной штата Керала, к северо-востоку от которого находится Маэ и который находится под управлением Коччи. Керала также является расположением Инженерного колледжа «AWH», в городе Куттиккаттоор. Колледж на данный момент насчитывает 250 человек профессорско-преподавательского состава.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Kochi | sameAs | Коччи</dbpedialink>
+        <dbpedialink direction="en2ru">Ganges | sameAs | Ганг</dbpedialink>
+        <dbpedialink direction="en2ru">Kerala | sameAs | Керала</dbpedialink>
+        <dbpedialink direction="en2ru">India | sameAs | Индия</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">AWH Engineering College | sameAs | Инженерный колледж «AWH»</link>
+        <link direction="en2ru">Mahé, India | includes | Индия</link>
+        <link direction="en2ru">Mahé, India | includes | Маэ</link>
+        <link direction="en2ru">Kuttikkattoor | sameAs | Куттиккаттоор</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X) (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | established | 1996</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | city | Mendrisio</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | numberOfStudents | "600"^^xsd:nonNegativeInteger</otriple>
+        <otriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</otriple>
+        <otriple>Switzerland | leader | Johann_Schneider-Ammann</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | established | 1996</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | city | Mendrisio</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | numberOfStudents | 600</mtriple>
+        <mtriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</mtriple>
+        <mtriple>Switzerland | leader | Johann_Schneider-Ammann</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The leader of Switzerland is Federal Chancellor Johann Schneider-Ammann. The country is the location of the Accademia di Architettura di Mendrisio which was established in the city of Mendrisio in 1996. The Accademia is led by Dean Mario Botta and there are 600 students.</lex>
+      <lex lang="ru" lid="Id1">Лидером Швейцарии является Федеральный канцлер Йоханн Шнайдер-Амманн. Страна является местом расположения Академии архитектуры Мендризио, которая была создана в городе Мендризио в 1996 году. Академию возглавляет Дина Марио Ботта, в ней числится 600 студентов.</lex>
+      <lex lang="en" lid="Id2">The Accademia di Architettura di Mendrisio is located in Mendrisio, Switzerland. It was established in 1996 and its dean is Mario Botta. It has 600 students. The leader of Switzerland is Federal Chancellor Johann Schneider-Ammann.</lex>
+      <lex lang="ru" lid="Id2">Академия архитектуры Мендризио находится в Мендризио, Швейцария. Она была создана в 1996 году, а ее декан - Марио Ботта. В ней учатся 600 студентов. Лидером Швейцарии является федеральный канцлер Йоханн Шнайдер-Амманн.</lex>
+      <lex lang="en" lid="Id3">Accademia di Architettura di Mendrisio in Mendrisio, Switzerland was created in 1996, has 600 students and its dean is Mario Botta. Switzerland is led by Federal Chancellor Johann Schneider-Ammann.</lex>
+      <lex lang="ru" lid="Id3">Академия архитектуры Мендризио в Мендризио, Швейцария, была создана в 1996 году, насчитывает 600 студентов, а ее декан - Марио Ботта. Швейцарию возглавляет федеральный канцлер Йоханн Шнайдер-Амманн.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1996 | sameAs | 1996_год</dbpedialink>
+        <dbpedialink direction="en2ru">Federal_Chancellor_of_Switzerland | sameAs | Федеральный_канцлер_Швейцарии</dbpedialink>
+        <dbpedialink direction="en2ru">Mario_Botta | sameAs | Ботта,_Марио</dbpedialink>
+        <dbpedialink direction="en2ru">Johann_Schneider-Ammann | sameAs | Шнайдер-Амманн,_Йоханн</dbpedialink>
+        <dbpedialink direction="en2ru">Switzerland | sameAs | Швейцария</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Accademia di Architettura di Mendrisio | sameAs | Академия архитектуры Мендризио</link>
+        <link direction="en2ru">Mendrisio | sameAs | Мендризио</link>
+      </links>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X) (X) (X) (X) (X (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | established | 1996</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | city | Mendrisio</otriple>
+        <otriple>Switzerland | leaderName | Johann_Schneider-Ammann</otriple>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | faculty | 100</otriple>
+        <otriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | country | Switzerland</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | dean | Mario_Botta</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | established | 1996</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | city | Mendrisio</mtriple>
+        <mtriple>Switzerland | leader | Johann_Schneider-Ammann</mtriple>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | academicStaffSize | 100</mtriple>
+        <mtriple>Switzerland | leaderTitle | Federal_Chancellor_of_Switzerland</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Federal Chancellor Johann Schneider-Ammann is the leader of Switzerland which is the location of the Accademia di Architettura di Mendrisio in the city of Mendrisio. The Accademia was established in 1996 and has 100 academic staff led by Dean Mario Botta.</lex>
+      <lex lang="ru" lid="Id1">Федеральный канцлер Йоханн Шнайдер-Амманн является лидером Швейцарии, в которой расположена Академия архитектуры Мендризио в городе Мендризио. Академия была создана в 1996 году и насчитывает 100 научных сотрудников во главе с деканом Марио Ботта.</lex>
+      <lex lang="en" lid="Id2">The Accademia di Architettura di Mendrisio is located in Mendrisio, Switzerland. It was established in 1996 and its dean is Mario Botta. It has 100 academic staff. The leader of Switzerland is Federal Chancellor Johann Schneider-Ammann.</lex>
+      <lex lang="ru" lid="Id2">Академия архитектуры Мендризио находится в Мендризио, Швейцария. Она была создана в 1996 году, а ее декан - Марио Ботта. В ее штат входят 100 научных сотрудников. Лидером Швейцарии является федеральный канцлер Йоханн Шнайдер-Амманн.</lex>
+      <lex lang="en" lid="Id3">The Accademia di Architettura di Mendrisio (dean Mario Botta) is located in the city of Mendrisio, Switzerland , was established in 1996 and has an academic staff of 100. Johann Schneider-Ammann is the country's leader and his title is the Federal Chancellor of Switzerland.</lex>
+      <lex lang="ru" lid="Id3">Академия архитектуры Мендризио (декан Марио Ботта) находится в городе Мендризио, Швейцария, была создана в 1996 году и имеет преподавательский состав из 100 человек. Йоханн Шнайдер-Амманн - лидер страны и его титул - Федеральный канцлер Швейцарии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1996 | sameAs | 1996_год</dbpedialink>
+        <dbpedialink direction="en2ru">Federal_Chancellor_of_Switzerland | sameAs | Федеральный_канцлер_Швейцарии</dbpedialink>
+        <dbpedialink direction="en2ru">Mario_Botta | sameAs | Ботта,_Марио</dbpedialink>
+        <dbpedialink direction="en2ru">Johann_Schneider-Ammann | sameAs | Шнайдер-Амманн,_Йоханн</dbpedialink>
+        <dbpedialink direction="en2ru">Switzerland | sameAs | Швейцария</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Accademia di Architettura di Mendrisio | sameAs | Академия архитектуры Мендризио</link>
+        <link direction="en2ru">Mendrisio | sameAs | Мендризио</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,72 @@
+<benchmark>
+  <entries>
+    <entry category="WrittenWork" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</otriple>
+        <otriple>1634:_The_Bavarian_Crisis | previousWork | The_Grantville_Gazettes</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Bavarian_Crisis | author | Eric_Flint</mtriple>
+        <mtriple>1634:_The_Bavarian_Crisis | precededBy | The_Grantville_Gazettes</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Bavarian Crisis was written by Eric Flint and preceded by The Grantville Gazettes.</lex>
+      <lex comment="good" lid="Id2">Eric Flint is the author of 1634: The Bavarian Crisis which is preceded by The Grantville Gazettes.</lex>
+      <lex comment="good" lid="Id3">'1634: The Bavarian crisis', which was written by Eric Flint, is the sequel to The Grantville Gazettes.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1634:_The_Ram_Rebellion | mediaType | E-book</otriple>
+        <otriple>1634:_The_Ram_Rebellion | author | Virginia_DeMarce</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1634:_The_Ram_Rebellion | mediaType | E-book</mtriple>
+        <mtriple>1634:_The_Ram_Rebellion | author | Virginia_DeMarce</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">1634: The Ram Rebellion, available in ebook is authored by Virginia DeMarce.</lex>
+      <lex comment="good" lid="Id2">1634: The Ram Rebellion was written by Virginia DeMarce and can be found as an Ebook.</lex>
+      <lex comment="good" lid="Id3">Virginia DeMarce is the author of 1634: The Ram Rebellion, which can be found as an e-book.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AIP_Advances | abbreviation | "AIP Adv."@en</otriple>
+        <otriple>AIP_Advances | eissn | 2158</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>AIP_Advances | eissn | 2158</otriple>
+        <otriple>AIP_Advances | abbreviation | "AIP Adv."</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AIP_Advances | EISSN_number | 2158</mtriple>
+        <mtriple>AIP_Advances | abbreviation | "AIP Adv."</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AIP Advances (abbreviated to "AIP Adv.") had the EISSN number 2158.</lex>
+      <lex comment="good" lid="Id2">The EISSN number of AIP Advances (abbreviated to "AIP Adv.") is 2158.</lex>
+      <lex comment="good" lid="Id3">The EISSN number of AIP Advances is 2158 and it is abbreviated to AIP Adv.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | mediaType | "Print"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Fortress_of_Grey_Ice | author | J._V._Jones</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | mediaType | "Print"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Fortress of Grey Ice is available in print and was written by J. V. Jones.</lex>
+      <lex comment="good" lid="Id2">A Fortress of Grey Ice was written by J. V. Jones and is available in print.</lex>
+      <lex comment="good" lid="Id3">The author of A Fortress of Grey Ice is J.V. Jones and it is available in print.</lex>
+    </entry>
+    <entry category="WrittenWork" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>A_Fortress_of_Grey_Ice | numberOfPages | "672"^^xsd:positiveInteger</otriple>
+        <otriple>A_Fortress_of_Grey_Ice | isbn | "0-7653-0633-6"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A_Fortress_of_Grey_Ice | numberOfPages | "672"</mtriple>
+        <mtriple>A_Fortress_of_Grey_Ice | ISBN_number | "0-7653-0633-6"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">A Fortress of Grey Ice has 672 pages, and has the ISBN number 0-7653-0633-6.</lex>
+      <lex comment="good" lid="Id2">A Fortress of Grey Ice with ISBM 0-7653-0633-6 has 672 pages.</lex>
+    </entry>
+    </entries>
+</benchmark>

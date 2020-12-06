@@ -1,0 +1,82 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="5">
+			<originaltripleset>
+				<otriple>Aarhus_Airport | location | Tirstrup</otriple>
+				<otriple>Tirstrup | country | Denmark</otriple>
+				<otriple>Denmark | language | Greenlandic_language</otriple>
+				<otriple>Denmark | leaderName | Lars_Løkke_Rasmussen</otriple>
+				<otriple>Tirstrup | subdivisionName | Central_Denmark_Region</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus_Airport | location | Tirstrup</mtriple>
+				<mtriple>Tirstrup | country | Denmark</mtriple>
+				<mtriple>Denmark | language | Greenlandic_language</mtriple>
+				<mtriple>Denmark | leaderName | Lars_Løkke_Rasmussen</mtriple>
+				<mtriple>Tirstrup | isPartOf | Central_Denmark_Region</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Denmark | leaderName | Lars_Løkke_Rasmussen</striple>
+						<striple>Denmark | language | Greenlandic_language</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Tirstrup | country | Denmark</striple>
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | isPartOf | Central_Denmark_Region</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Lars_Løkke_Rasmussen" number="1" tag="PATIENT-2" type="name">Lars Lokke Rasmussen</reference>
+					<reference entity="Denmark" number="2" tag="BRIDGE-2" type="name">Denmark</reference>
+					<reference entity="Greenlandic_language" number="3" tag="PATIENT-1" type="description">the Greenlandic language</reference>
+					<reference entity="Denmark" number="4" tag="BRIDGE-2" type="description">The country</reference>
+					<reference entity="Aarhus_Airport" number="5" tag="AGENT-1" type="name">Aarhus airport</reference>
+					<reference entity="Tirstrup" number="6" tag="BRIDGE-1" type="name">Tirstrup</reference>
+					<reference entity="Central_Denmark_Region" number="7" tag="PATIENT-3" type="description">the Central Denmark region</reference>
+				</references>
+				<text>Lars Lokke Rasmussen is the leader of Denmark where the Greenlandic language is spoken. The country is the location of Aarhus airport in Tirstrup, part of the Central Denmark region.</text>
+				<template>PATIENT-2 is the leader of BRIDGE-2 where PATIENT-1 is spoken . BRIDGE-2 is the location of AGENT-1 in BRIDGE-1 , part of PATIENT-3 .</template>
+				<lexicalization>PATIENT-2 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be DT[form=defined] the leader of BRIDGE-2 where PATIENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] speak . BRIDGE-2 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be DT[form=defined] the location of AGENT-1 in BRIDGE-1 , part of PATIENT-3 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus_Airport | location | Tirstrup</striple>
+						<striple>Tirstrup | country | Denmark</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Tirstrup | isPartOf | Central_Denmark_Region</striple>
+						<striple>Denmark | leaderName | Lars_Løkke_Rasmussen</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Denmark | language | Greenlandic_language</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Aarhus_Airport" number="1" tag="AGENT-1" type="name">Aarhus Airport</reference>
+					<reference entity="Tirstrup" number="2" tag="BRIDGE-1" type="name">Tirstrup</reference>
+					<reference entity="Denmark" number="3" tag="BRIDGE-2" type="name">Denmark</reference>
+					<reference entity="Tirstrup" number="4" tag="BRIDGE-1" type="name">Tirstrup</reference>
+					<reference entity="Central_Denmark_Region" number="5" tag="PATIENT-3" type="description">the Central Denmark region</reference>
+					<reference entity="Denmark" number="6" tag="BRIDGE-2" type="description">the country</reference>
+					<reference entity="Lars_Løkke_Rasmussen" number="7" tag="PATIENT-2" type="name">Lars Løkke Rasmussen</reference>
+					<reference entity="Greenlandic_language" number="8" tag="PATIENT-1" type="name">Greenlandic</reference>
+					<reference entity="Denmark" number="9" tag="BRIDGE-2" type="demonstrative">that country</reference>
+				</references>
+				<text>The location of Aarhus Airport is Tirstrup, Denmark. Tirstrup is part of the Central Denmark region and the country is lead by Lars Løkke Rasmussen. Greenlandic is spoken in that country.</text>
+				<template>The location of AGENT-1 is BRIDGE-1 , BRIDGE-2 . BRIDGE-1 is part of PATIENT-3 and BRIDGE-2 is lead by PATIENT-2 . PATIENT-1 is spoken in BRIDGE-2 .</template>
+				<lexicalization>DT[form=defined] the location of AGENT-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be BRIDGE-1 , BRIDGE-2 . BRIDGE-1 VP[aspect=simple,tense=present,voice=active,person=3rd,number=singular] be part of PATIENT-3 and BRIDGE-2 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] lead by PATIENT-2 . PATIENT-1 VP[aspect=simple,tense=present,voice=passive,person=3rd,number=singular] speak in BRIDGE-2 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus_Airport</entity>
+				<entity>BRIDGE-1 | Tirstrup</entity>
+				<entity>BRIDGE-2 | Denmark</entity>
+				<entity>PATIENT-1 | Greenlandic_language</entity>
+				<entity>PATIENT-2 | Lars_Løkke_Rasmussen</entity>
+				<entity>PATIENT-3 | Central_Denmark_Region</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

@@ -1,0 +1,111 @@
+<benchmark>
+  <entries>
+    <entry category="Airport" eid="Id1" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Taylor_County,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | city | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Taylor_County,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | city | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | subdivisionName | Taylor_County,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</otriple>
+        <otriple>Abilene,_Texas | subdivisionName | Taylor_County,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene_Regional_Airport | cityServed | Abilene,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | isPartOf | Taylor_County,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene Regional Airport serves the city of Abilene which is part of Taylor County, Texas, in the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene Regional Airport serves the city of Abilene which is part of Taylor County, Texas, United States.</lex>
+      <lex comment="good" lid="Id3">The Abilene regional airport serves Abilene, Texas, which is a part of Taylor County, Texas in the United States.</lex>
+    </entry>
+    <entry category="Airport" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "1219.0"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "1219.0"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "1218.59"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</otriple>
+        <otriple>Adirondack_Regional_Airport | runwayLength | "1218.59"^^xsd:double</otriple>
+        <otriple>Adirondack_Regional_Airport | city | Saranac_Lake,_New_York</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adirondack_Regional_Airport | runwayLength | 1219.0</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Lake_Placid,_New_York</mtriple>
+        <mtriple>Adirondack_Regional_Airport | cityServed | Saranac_Lake,_New_York</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adirondack Regional Airport has a runway length of 1219.0 and serves the cities of Saranac Lake and Lake Placid, New York.</lex>
+      <lex comment="good" lid="Id2">Adirondack Regional Airport serves the city of Saranac Lake, New York and the residents of Lake Placid and has a runway that's 1,219 long.</lex>
+    </entry>
+    <entry category="Airport" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | "4099.86"^^xsd:double</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Madrid</otriple>
+        <otriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayDesignation | "14L/32R"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayLength | 4100.0</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | location | Madrid</mtriple>
+        <mtriple>Adolfo_Suárez_Madrid–Barajas_Airport | runwayName | "14L/32R"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 14L/32R runway of the Adolfo Suarez Madrid-Barajas Airport in Madrid has a length of 4100.0.</lex>
+      <lex comment="good" lid="Id2">Adolfo Suarez Madrid-Barajas Airport is in Madrid; its runway name is 14L/32R and its runway length is 4100.</lex>
+      <lex comment="good" lid="Id3">The Adolfo Suarez Madrid-Barajas Airport is in Madrid. Its runway, called 14L/32R has length of 4100.</lex>
+    </entry>
+    <entry category="Airport" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Agra_Airport | location | India</otriple>
+        <otriple>Agra_Airport | operator | Indian_Air_Force</otriple>
+        <otriple>Agra_Airport | icaoLocationIdentifier | "(Location of airport in India)"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Agra_Airport | location | India</mtriple>
+        <mtriple>Agra_Airport | operatingOrganisation | Indian_Air_Force</mtriple>
+        <mtriple>Agra_Airport | icaoLocationIdentifier | "VIAG"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Indian Air Force in India, operates Agra Airport which uses VIAG as its ICAO location identifier.</lex>
+      <lex comment="good" lid="Id2">Agra Airport, located in India, is operated by the Indian Air Force, and has an ICAO identifier is VIAG.</lex>
+    </entry>
+    <entry category="Airport" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Al_Asad_Airbase | operator | United_States_Air_Force</otriple>
+        <otriple>Al_Asad_Airbase | location | Iraq</otriple>
+        <otriple>Al_Asad_Airbase | runwayLength | "3078.48"^^xsd:double</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Al_Asad_Airbase | operatingOrganisation | United_States_Air_Force</mtriple>
+        <mtriple>Al_Asad_Airbase | location | Iraq</mtriple>
+        <mtriple>Al_Asad_Airbase | runwayLength | 3078.48</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Operated by the United States Air Force, Al Asad Airbase, in Iraq, has a runway length of 3078.48 metres.</lex>
+      <lex comment="good" lid="Id2">The USAF operated the Al Asad Airbase, located in iraq, with a length of 3078.48.</lex>
+    </entry>
+    </entries>
+</benchmark>

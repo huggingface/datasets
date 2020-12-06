@@ -1,0 +1,123 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | timeInSpace | "100305.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+        <mtriple>Alan_Bean | selectedByNasa | 1963</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, who graduated in 1955 from UT Austin with a B.S. and was selected by NASA in 1963, spent 100305.0 minutes in space.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, который окончил в 1955 году Университет Техаса в Остине со степенью бакалавра технических наук и был выбран НАСА в 1963 году, провел в космосе 100305,0 минуты.</lex>
+      <lex lang="en" lid="Id2">Alan Bean went to UT Austin, B.S. 1955. He was selected by NASA in 1963 and spent 100305.0"(minutes) in space.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин учился в Университете Техаса в Остине, бакалавр технических наук, 1955. Он был выбран НАСА в 1963 году и провел 100305,0 "(минуты) в космосе.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | dateOfRet | "June 1981"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | dateOfRetirement | "June 1981"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, who received a Bachelor of Science degree at the University of Texas at Austin in 1955 and was a crew member on the Apollo 12 flight mission, retired in June 1981.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, получивший степень бакалавра наук в Техасском университете в Остине в 1955 году и являвшийся членом экипажа во время полета на Аполлон-12, вышел на пенсию в июне 1981 года.</lex>
+      <lex lang="en" lid="Id2">Alan Bean received a Bachelor of Science degree at the University of Texas at Austin in 1955 was a crew member on the Apollo 12 flight mission and retired in June of 1981.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, получивший степень бакалавра технических наук в университете Техаса в Остине в 1955 году, был членом экипажа в космической миссии "Аполлона-12" и вышел в отставку в июне 1981 года.</lex>
+      <lex lang="en" lid="Id3">Alan Bean graduated from UT Austin, B.S. 1955 and was a crew member of Apollo 12 before retiring on June 1981.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин окончил Университет Техаса в Остине, бакалавром технических наук в 1955 г., и был членом экипажа "Аполлон-12" перед выходом в отставку в 1981 году.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | mission | Apollo_12</otriple>
+        <otriple>Alan_Bean | timeInSpace | "100305.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | mission | Apollo_12</mtriple>
+        <mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, born March 15, 1932, spent over 69 days (or 100305 minutes!) in space as a member of the Apollo 12 crew.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, родившийся 15 марта 1932 года, провел в космосе более 69 дней (или 100305 минут!) в составе команды "Аполлон-12".</lex>
+      <lex lang="en" lid="Id2">Alan Bean, born on the 15th of March 1932, was in space for 100305 minutes as part of the crew of Apollo 12.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, родившийся 15 марта 1932 года, находился в космосе 100305 минут в составе экипажа Аполлон-12.</lex>
+      <lex lang="en" lid="Id3">Alan Bean (born on 1932-03-15) was a crew member of Apollo 12 and spent 100305.0"(minutes) in space!</lex>
+      <lex lang="ru" lid="Id3">Алан Бин (родился 15.03.1932) был членом экипажа "Аполлон-12" и провел 100303.0" (минуты) в космосе!</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Apollo_12 | sameAs | Аполлон-12</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | birthDate | "1932-03-15"^^xsd:date</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | birthDate | "1932-03-15"</mtriple>
+        <mtriple>Alan_Bean | selectedByNasa | 1963</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Now retired, Alan Bean was born on Mar 15, 1932 and hired by NASA in 1963.</lex>
+      <lex lang="ru" lid="Id1">Ныне вышедший в отставку Алан Бин, родился 15 марта 1932 года. В 1963 был нанят на службу в НАСА.</lex>
+      <lex lang="en" lid="Id2">Alan Bean, who was born on 15th of March 1932 and selected by NASA in 1963, is now retired.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, который родился 15 марта 1932 года и был выбран НАСА в 1963 году, сейчас на пенсии.</lex>
+      <lex lang="en" lid="Id3">Alan Bean (born on 1932-03-15) was selected by NASA in 1963 and is now retired.</lex>
+      <lex lang="ru" lid="Id3">Алан Бин (родился 15.03.1932) был отобран НАСА в 1963 году и сейчас в отставке.</lex>
+      <lex lang="en" lid="Id4">Alan Bean(born on 1932-03-15) was selected by NASA in 1963 and now is retired.</lex>
+      <lex lang="ru" lid="Id4">Алан Бин (родился 15.03.1932) был выбран НАСА в 1963 году и сейчас ушел в отставку.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1963 | sameAs | 1963_год</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"@en</otriple>
+        <otriple>Alan_Bean | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | almaMater | "UT Austin, B.S. 1955"</mtriple>
+        <mtriple>Alan_Bean | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Alan Bean, a US National who graduated from UT Austin in 1955 with a B.S., is now retired.</lex>
+      <lex lang="ru" lid="Id1">Алан Бин, гражданин США, который окончил Университет Техаса в Остине в 1955 году со степенью бакалавра технических наук, сейчас в отставке.</lex>
+      <lex lang="en" lid="Id2">Alan Bean who was born in the USA and graduated from UT Austin in 1955 with a BS degree, is now retired.</lex>
+      <lex lang="ru" lid="Id2">Алан Бин, который родился в США и окончил Университет Техаса в Остине со степенью бакалавра технических наук, в настоящее время вышел на пенсию.</lex>
+      <lex lang="en" lid="Id3">United States citizen Alan Bean graduated from UT Austin, B.S. in 1955 and is now retired.</lex>
+      <lex lang="ru" lid="Id3">Гражданин Соединенных Штатов Алан Бин окончил Университет Техаса в Остине со степенью бакалавр технических наук в 1955 году и сейчас в отставке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Alan_Bean | sameAs | Бин,_Алан</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">UT Austin, B.S. 1955 | includes | Университет Техаса в Остине</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,75 @@
+<benchmark>
+  <entries>
+    <entry category="MusicalWork" eid="Id1" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Turn_Me_On_(album) | runtime | 35.1</otriple>
+        <otriple>Turn_Me_On_(album) | producer | Wharton_Tiers</otriple>
+        <otriple>Turn_Me_On_(album) | subsequentWork | Take_It_Off!</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turn_Me_On_(album) | runtime | 35.1</mtriple>
+        <mtriple>Turn_Me_On_(album) | producer | Wharton_Tiers</mtriple>
+        <mtriple>Turn_Me_On_(album) | followedBy | Take_It_Off!</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="1">Turn Me On is a 35.1 minute long album produced by Wharton Tiers that was followed by the album entitled Take it Off.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Trane | location | Swords,_Dublin</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Trane | location | Swords,_Dublin</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="1">The location of Trane is Swords, Dublin.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X) (X) (X) (X) (X) (X))" shape_type="sibling" size="7">
+      <originaltripleset>
+        <otriple>Ciudad_Ayala | populationMetro | 1777539</otriple>
+        <otriple>Ciudad_Ayala | leaderTitle | City Manager</otriple>
+        <otriple>Ciudad_Ayala | type | City</otriple>
+        <otriple>Ciudad_Ayala | populationDensity | 1604.0</otriple>
+        <otriple>Ciudad_Ayala | governmentType | Council-manager_government</otriple>
+        <otriple>Ciudad_Ayala | utcOffset | −6</otriple>
+        <otriple>Ciudad_Ayala | isPartOf | Morelos</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ciudad_Ayala | populationMetro | 1777539</mtriple>
+        <mtriple>Ciudad_Ayala | leaderTitle | "City Manager"</mtriple>
+        <mtriple>Ciudad_Ayala | type | City</mtriple>
+        <mtriple>Ciudad_Ayala | populationDensity | 1604.0</mtriple>
+        <mtriple>Ciudad_Ayala | governmentType | Council-manager_government</mtriple>
+        <mtriple>Ciudad_Ayala | utcOffset | −6</mtriple>
+        <mtriple>Ciudad_Ayala | isPartOf | Morelos</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="1">The Ciudad Ayala city, a part of Morelos with population density and population of 1604.0 and 1,777,539 respectively, has a UTC offset of -6. The government type of Ciudad Ayala is council-manager government and City Manager is one of the leaders.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>ALCO_RS-3 | powertype | Diesel-electric_transmission</otriple>
+        <otriple>ALCO_RS-3 | MeanOfTransportation/length | "17068.8"^^&lt;http://dbpedia.org/datatype/millimetre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ALCO_RS-3 | powerType | Diesel-electric_transmission</mtriple>
+        <mtriple>ALCO_RS-3 | length | 17068.8 (millimetres)</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="1">The 17068.8 millimeter long ALCO RS-3 has a diesel-electric transmission.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Alan_B._Miller_Hall | architect | Robert_A._M._Stern</otriple>
+        <otriple>Alan_B._Miller_Hall | address | "101 Ukrop Way"@en</otriple>
+        <otriple>Alan_B._Miller_Hall | currentTenants | Mason_School_of_Business</otriple>
+        <otriple>Alan_B._Miller_Hall | location | Virginia</otriple>
+        <otriple>Mason_School_of_Business | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_B._Miller_Hall | architect | Robert_A._M._Stern</mtriple>
+        <mtriple>Alan_B._Miller_Hall | address | "101 Ukrop Way"</mtriple>
+        <mtriple>Alan_B._Miller_Hall | currentTenants | Mason_School_of_Business</mtriple>
+        <mtriple>Alan_B._Miller_Hall | location | Virginia</mtriple>
+        <mtriple>Mason_School_of_Business | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="1">Alan B. Miller Hall, in Virginia, USA, was designed by Robert A.M. Stern. The address of the hall is "101 Ukrop Way" and the current tenants are the Mason School of Business.</lex>
+    </entry>
+    </entries>
+</benchmark>

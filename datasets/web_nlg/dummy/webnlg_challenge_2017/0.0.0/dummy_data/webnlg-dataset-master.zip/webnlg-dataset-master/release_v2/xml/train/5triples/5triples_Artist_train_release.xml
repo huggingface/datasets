@@ -1,0 +1,183 @@
+<benchmark>
+  <entries>
+    <entry category="Artist" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | dateOfBirth | "1981-04-03"^^xsd:date</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | dateOfBirth | "1981-04-03"^^xsd:date</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | birthDate | 1981-04-03</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+        <mtriple>Aaron_Bertram | activeYearsStartYear | 1998</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram was born April 3, 1981 and started performing in 1998. A performer of ska punk music, Aaron Bertram is an artist with the band Kids Imagine Nation and plays for the Suburban Legends band.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram was born April 3, 1981 and started performing in 1998. Aaron Bertram's musical genre is Ska punk and he plays for the Suburban Legends band. Aaron Bertram is an artist with the band Kids Imagine Nation.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram was born on April 3, 1981. He started performing in 1998 and plays for the bands Suburban Legends and Kids Imagine Nation. His musical genre is Ska punk.</lex>
+    </entry>
+    <entry category="Artist" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"@en</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"@en</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"@en</otriple>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedActs | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"@en</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Aaron_Bertram | activeYearsStartYear | "1998"^^xsd:gYear</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+        <mtriple>Aaron_Bertram | activeYearsStartYear | 1998</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+        <mtriple>Aaron_Bertram | background | "non_vocal_instrumentalist"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram started performing in 1998 and performs ska punk music. Aaron Bertram; plays for the Suburban Legends band, is an artist with the band Kids Imagine Nation and has a background with a non vocal instrument.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram started performing in 1998. He plays for the bands Suburban Legends and Kids Imagine Nation with a background with a non vocal instrument. His musical genre is Ska punk.</lex>
+      <lex comment="good" lid="Id3">Aaron Bertram started performing in 1998. He is a non vocal instrumentalist who plays for the bands Suburban Legends and Kids Imagine Nation. His genre is ska punk music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id3" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Ska_punk | stylisticOrigins | Ska</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Punk_rock</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Suburban_Legends</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Ska</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigins | Punk_rock</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ska_punk | stylisticOrigins | Ska</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigin | Punk_rock</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ska_punk | stylisticOrigin | Ska</otriple>
+        <otriple>Aaron_Bertram | associatedMusicalArtist | Kids_Imagine_Nation</otriple>
+        <otriple>Aaron_Bertram | associatedBand | Suburban_Legends</otriple>
+        <otriple>Aaron_Bertram | genre | Ska_punk</otriple>
+        <otriple>Ska_punk | stylisticOrigins | Punk_rock</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Suburban_Legends</mtriple>
+        <mtriple>Ska_punk | stylisticOrigin | Ska</mtriple>
+        <mtriple>Aaron_Bertram | associatedBand/associatedMusicalArtist | Kids_Imagine_Nation</mtriple>
+        <mtriple>Aaron_Bertram | genre | Ska_punk</mtriple>
+        <mtriple>Ska_punk | stylisticOrigin | Punk_rock</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Bertram played Ska Punk music for the Suburban Legends Band and the Kids Imagine Nation Band. Ska punk comes from Ska which originates from Punk rock.</lex>
+      <lex comment="good" lid="Id2">Aaron Bertram plays ska punk,which has its origins in ska music and punk rock.He played in the Suburban Legends and Kids Imagine Nation bands.</lex>
+      <lex comment="good" lid="Id3">Aarom Bertram is a musician who plays for the Suburban Legends and the Kids Imagine Nation bands. He plays Ska Punk which has its origins in Ska and Punk Rock music.</lex>
+    </entry>
+    <entry category="Artist" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aaron_Deer | hometown | United_States</otriple>
+        <otriple>Aaron_Deer | associatedBand | Wee_Giant</otriple>
+        <otriple>Aaron_Deer | background | "solo_singer"</otriple>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | origin | Indiana</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_Deer | associatedBand | Wee_Giant</otriple>
+        <otriple>Aaron_Deer | background | "solo_singer"</otriple>
+        <otriple>Aaron_Deer | genre | Psychedelia</otriple>
+        <otriple>Aaron_Deer | hometown | Indiana</otriple>
+        <otriple>Aaron_Deer | origin | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | associatedBand/associatedMusicalArtist | Wee_Giant</mtriple>
+        <mtriple>Aaron_Deer | background | "solo_singer"</mtriple>
+        <mtriple>Aaron_Deer | genre | Psychedelia</mtriple>
+        <mtriple>Aaron_Deer | origin | Indiana</mtriple>
+        <mtriple>Aaron_Deer | origin | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Deer is a solo singer and Psychedelia music artist from Indiana, USA, who is in the band Wee Giant.</lex>
+      <lex comment="good" lid="Id2">Aaron Deer is an American from Indiana who is a solo singer. He was part of the band Wee Giant and his genre is Psychedelia.</lex>
+      <lex comment="good" lid="Id3">American Psychedelia singer Aaron Deer , from Indiana, is a member of Wee Giant.</lex>
+    </entry>
+    <entry category="Artist" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Aaron_Deer | genre | Indie_rock</otriple>
+        <otriple>Aaron_Deer | associatedBand | Wee_Giant</otriple>
+        <otriple>Aaron_Deer | background | "solo_singer"</otriple>
+        <otriple>Aaron_Deer | hometown | Indianapolis</otriple>
+        <otriple>Aaron_Deer | origin | Indiana</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Deer | genre | Indie_rock</mtriple>
+        <mtriple>Aaron_Deer | associatedBand/associatedMusicalArtist | Wee_Giant</mtriple>
+        <mtriple>Aaron_Deer | background | "solo_singer"</mtriple>
+        <mtriple>Aaron_Deer | origin | Indianapolis</mtriple>
+        <mtriple>Aaron_Deer | origin | Indiana</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Deer is an indie rock performer who was part of the band Wee Giant. His origin is Indianapolis, Indiana and he has a background as a solo singer.</lex>
+      <lex comment="good" lid="Id2">Aaron Deer is an Indie rock musician from Indianapolis, Indiana. He has a background as a solo singer and was part of the band Wee Giant.</lex>
+      <lex comment="good" lid="Id3">Aaron Deer comes from Indianapolis, India and plays Indie Rock with Wee Giant. He was also a solo singer.</lex>
+    </entry>
+    </entries>
+</benchmark>

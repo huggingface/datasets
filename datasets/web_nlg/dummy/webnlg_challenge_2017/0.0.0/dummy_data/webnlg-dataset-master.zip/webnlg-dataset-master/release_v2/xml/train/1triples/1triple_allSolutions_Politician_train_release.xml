@@ -1,0 +1,66 @@
+<benchmark>
+  <entries>
+    <entry category="Politician" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battle | American_Civil_War</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | American_Civil_War</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | American_Civil_War</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in battles in the American Civil War.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in the American Civil War.</lex>
+    </entry>
+    <entry category="Politician" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Antietam</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Antietam</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett was in the Battle of Antietam.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in the Battle of Antietam.</lex>
+    </entry>
+    <entry category="Politician" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battle | Battle_of_Cold_Harbor</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Cold_Harbor</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Cold_Harbor</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S Daggett took part on the Battle of Cold Harbor.</lex>
+      <lex comment="good" lid="Id2">Aaron S. Daggett fought in the Battle of Cold Harbor.</lex>
+      <lex comment="good" lid="Id3">Aaron S. Daggett battled in the Battle of Cold Harbour.</lex>
+    </entry>
+    <entry category="Politician" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Fredericksburg</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battle | Battle_of_Fredericksburg</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Fredericksburg</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought in the Battle of Fredericksburg.</lex>
+      <lex comment="good" lid="Id2">Aaron S Daggett has fought in battles, the most notable being the Battle of Fredericksburg.</lex>
+    </entry>
+    <entry category="Politician" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battles | Battle_of_Garnett's_&amp;_Golding's_Farm</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Aaron_S._Daggett | battle | Battle_of_Garnett's_&amp;_Golding's_Farm</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_S._Daggett | battles | Battle_of_Garnett's_&amp;_Golding's_Farm</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron S. Daggett fought during the Battle of Garnett's &amp; Golding's Farm.</lex>
+    </entry>
+    </entries>
+</benchmark>

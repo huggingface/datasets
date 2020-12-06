@@ -1,0 +1,25 @@
+<benchmark>
+	<entries>
+		<entry category="Airport" eid="Id1" size="1">
+			<originaltripleset>
+				<otriple>Aarhus | leaderName | Jacob_Bundsgaard</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Aarhus | leaderName | Jacob_Bundsgaard</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Aarhus | leaderName | Jacob_Bundsgaard</striple>
+					</sentence>
+				</sortedtripleset>
+				<text>Der Anführer von Aarhus ist Jacob Bundsgaard. </text>
+				<template>Der Führer von AGENT-1 ist PATIENT-1.</template>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Aarhus</entity>
+				<entity>PATIENT-1 | Jacob_Bundsgaard</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

@@ -1,0 +1,69 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | locationCity | King_of_Prussia,_Pennsylvania</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | city | King_of_Prussia,_Pennsylvania</mtriple>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Located in King of Prussia, Pennsylvania; Amerigas is in the energy industry.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is an energy company in King of Prussia, Pennsylvania.</lex>
+      <lex comment="good" lid="Id3">AmeriGas is an energy company and is located in King of Prussia, Pennsylvania.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>AmeriGas | regionServed | United_States</otriple>
+        <otriple>AmeriGas | industry | Energy_industry</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AmeriGas | regionServed | United_States</mtriple>
+        <mtriple>AmeriGas | industry | Energy_industry</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AmeriGas is a company in the energy industry, and they serve all regions of the United States.</lex>
+      <lex comment="good" lid="Id2">AmeriGas is in the energy business and is located in the United States where its services are provided.</lex>
+      <lex comment="good" lid="Id3">AmeriGas's industry is classified as the energy industry. They serve the United States.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Chinabank | service | Banking</otriple>
+        <otriple>Chinabank | netIncome | 1.51E10</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Chinabank | service | Banking</mtriple>
+        <mtriple>Chinabank | netIncome | 15100000000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Chinabank currently pulls in 15100000000 in net income for its banking services.</lex>
+      <lex comment="good" lid="Id2">Chinabank provides banking services to customers, earning a net income of 15,100,000,000.</lex>
+      <lex comment="good" lid="Id3">Chinabank offers banking services to make a net income of 15,100,000,000.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Chinabank | type | Public_company</otriple>
+        <otriple>Chinabank | foundationPlace | Insular_Government_of_the_Philippine_Islands</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Chinabank | type | Public_company</mtriple>
+        <mtriple>Chinabank | foundationPlace | Insular_Government_of_the_Philippine_Islands</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Chinabank, a publicly traded company, was founded in the Insular Government of the Philippine Islands.</lex>
+      <lex comment="good" lid="Id2">Chinabank is a publicly traded company that was founded in the Insular Government of the Philippine Islands.</lex>
+      <lex comment="good" lid="Id3">Chinabank is a public company with the Insular Government of the Philippine Islands being its foundation place.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>GMA_New_Media | product | Mobile_Applications</otriple>
+        <otriple>GMA_New_Media | industry | Mass_Media</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | product | Mobile_Applications</mtriple>
+        <mtriple>GMA_New_Media | industry | Mass_Media</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA new media is a mass media industry that makes mobile applications.</lex>
+      <lex comment="good" lid="Id2">GMA New Media is a company in the mass media industry that offers products such as mobile applications.</lex>
+      <lex comment="good" lid="Id3">GMA New Media makes mobile apps and is in the mass media industry.</lex>
+    </entry>
+    </entries>
+</benchmark>

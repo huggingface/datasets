@@ -1,0 +1,62 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>April_O'Neil | creator | Kevin_Eastman</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>April_O'Neil | creators | Kevin_Eastman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>April_O'Neil | creator | Kevin_Eastman</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">April O'Neil was created by Kevin Eastman.</lex>
+      <lex comment="good" lid="Id2">Kevin Eastman is the creator of April O'Neil.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman is broadcast by the BBC.</lex>
+      <lex comment="good" lid="Id2">Bananaman the TV series was shown on the BBC.</lex>
+      <lex comment="good" lid="Id3">The BBC broadcasted Bananaman.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Ben_Urich | fullName | "Benjamin Urich"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ben_Urich | fullName | "Benjamin Urich"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ben Urich's full name is actually Benjamin Urich.</lex>
+      <lex comment="good" lid="Id2">Ben Urich's full name is Benjamin Urich.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Bibbo_Bibbowski | creators | Jerry_Ordway</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Bibbo_Bibbowski | creator | Jerry_Ordway</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bibbo_Bibbowski | creator | Jerry_Ordway</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Jerry Ordway is the creator of Bibbo Bibbowski.</lex>
+      <lex comment="good" lid="Id2">The creator of Bibbo Bibbowski is Jerry Ordway.</lex>
+      <lex comment="good" lid="Id3">Bibbo Bibbowski was created by Jerry Ordway.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Bibbo_Bibbowski | fullName | "Bo Bibbowski"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bibbo_Bibbowski | fullName | "Bo Bibbowski"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bo Bibbowski is the full name of Bibbo Bibbowski.</lex>
+      <lex comment="good" lid="Id2">Bo Bibbowski is often called Bibbo.</lex>
+    </entry>
+    </entries>
+</benchmark>

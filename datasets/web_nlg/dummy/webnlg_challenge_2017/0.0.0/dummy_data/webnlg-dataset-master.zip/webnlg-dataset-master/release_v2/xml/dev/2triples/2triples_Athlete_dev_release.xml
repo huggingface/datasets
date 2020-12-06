@@ -1,0 +1,77 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Aaron_Hunt | team | VfL_Wolfsburg</otriple>
+        <otriple>Aaron_Hunt | clubs | SV_Werder_Bremen_II</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Aaron_Hunt | club | VfL_Wolfsburg</mtriple>
+        <mtriple>Aaron_Hunt | club | SV_Werder_Bremen_II</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Aaron Hunt plays for Vfl Wolfsburg and used to play for SV Werder Bremen II.</lex>
+      <lex comment="good" lid="Id2">Aaron Hunt's club is VfL Wolfsburg and he plays for SV Werder Bremen II.</lex>
+      <lex comment="good" lid="Id3">Aaron Hunt plays for Vfl Wolfsburg and SV Werder Bremen II.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abel_Hernández | team | U.S._Città_di_Palermo</otriple>
+        <otriple>Abel_Hernández | clubs | Peñarol</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+        <mtriple>Abel_Hernández | club | Peñarol</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez plays for the US Citta de Palermo club and also played for Penarol.</lex>
+      <lex comment="good" lid="Id2">Abel Hernandez's club is US Citta di Palermo and Penarol.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández has played for the clubs US Città di Palermo and Penarol.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Adam_Maher | clubs | PSV_Eindhoven</otriple>
+        <otriple>Adam_Maher | team | Netherlands_national_under-17_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adam_Maher | club | PSV_Eindhoven</mtriple>
+        <mtriple>Adam_Maher | club | Netherlands_national_under-17_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Adam Maher's club is PSV Eindhoven and he played for the Netherlands national under-17 football team.</lex>
+      <lex comment="good" lid="Id2">Adam Maher played for PSV Eindhoven and represented the Netherlands under 17 football team.</lex>
+      <lex comment="good" lid="Id3">Adam Maher, whose club is PSV Eindhoven, plays for Netherlands National under 17 club.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ahmad_Kadhim_Assad | team | Steel_Azin_F.C.</otriple>
+        <otriple>Ahmad_Kadhim_Assad | clubs | Al-Naft</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ahmad_Kadhim_Assad | clubs | Steel_Azin_F.C.</otriple>
+        <otriple>Ahmad_Kadhim_Assad | team | Al-Naft</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ahmad_Kadhim_Assad | club | Steel_Azin_F.C.</mtriple>
+        <mtriple>Ahmad_Kadhim_Assad | club | Al-Naft</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Ahmad Kadhim Assad in the Al-Naft club, plays for Steel Azin F.C.</lex>
+      <lex comment="good" lid="Id2">Ahmad Kadhim Assad plays for Al-Naft and formerly for Steel Azin FC.</lex>
+      <lex comment="good" lid="Id3">Ahmad Kadhim Assad of Al-Naft plays for Steel Azin F.C.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Akeem_Adams | clubs | Ferencvárosi_TC</otriple>
+        <otriple>Ferencvárosi_TC | manager | Thomas_Doll</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Ferencvárosi_TC | manager | Thomas_Doll</otriple>
+        <otriple>Akeem_Adams | team | Ferencvárosi_TC</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akeem_Adams | club | Ferencvárosi_TC</mtriple>
+        <mtriple>Ferencvárosi_TC | manager | Thomas_Doll</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Akeem Adams played for Ferencvarosi TC, where the manager is Thomas Doll.</lex>
+      <lex comment="good" lid="Id2">Akeem Adams club is Ferencvarosi TC, where the manager is Thomas Doll.</lex>
+      <lex comment="good" lid="Id3">Ferencvarosi TC is managed by Thomas Doll and is the club of Akeem Adams.</lex>
+    </entry>
+    </entries>
+</benchmark>

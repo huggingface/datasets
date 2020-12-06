@@ -1,0 +1,66 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | state | Alba</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+        <mtriple>1_Decembrie_1918_University | state | Alba</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Uab is the nickname of the 1 1918 Decembrie University in the state of Alba.</lex>
+      <lex comment="good" lid="Id2">1 Decembrie 1918 University's nickname is Uab and is located in Alba.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | affiliation | Visvesvaraya_Technological_University</otriple>
+        <otriple>Visvesvaraya_Technological_University | city | Belgaum</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | affiliation | Visvesvaraya_Technological_University</mtriple>
+        <mtriple>Visvesvaraya_Technological_University | city | Belgaum</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Acharya Institute of Technology is affiliated with the Visvesvaraya Technological University in the city of Belgaum.</lex>
+      <lex comment="good" lid="Id2">Acharya Institute of Technology in Belgaum is affiliated with Visvesvaraya Technological University.</lex>
+      <lex comment="good" lid="Id3">Acharya Institute of Technology is affiliated with the Visvesvaraya Technological University in Belgaum.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"@en</otriple>
+        <otriple>Acharya_Institute_of_Technology | city | Bangalore</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | president | "B.M. Reddy"</mtriple>
+        <mtriple>Acharya_Institute_of_Technology | city | Bangalore</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">B M Reddy is president of the Acharya Institute of Technology in Bangalore.</lex>
+      <lex comment="good" lid="Id2">The president of Acharya Institute of Technology in Bangalore is B.M. Reddy.</lex>
+      </entry>
+    <entry category="University" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | free | All_India_Council_for_Technical_Education</otriple>
+        <otriple>All_India_Council_for_Technical_Education | location | Mumbai</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | was given the 'Technical Campus' status by | All_India_Council_for_Technical_Education</mtriple>
+        <mtriple>All_India_Council_for_Technical_Education | location | Mumbai</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The All India Council for Technical Education which is located in Mumbai, gave the status of "Technical Campus" to the Acharya Institute of Technology.</lex>
+      <lex comment="good" lid="Id2">It was the All India Council for Technical Education in Mumbai that gave Acharya Institute of Technology its Technical Campus status.</lex>
+      <lex comment="good" lid="Id3">Acharya Institute of Technology was given the 'Technical Campus' status by the All India Council for Technical Education who are based in Mumbai.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Kerala | leaderName | Kochi</otriple>
+        <otriple>AWH_Engineering_College | state | Kerala</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Kerala | leaderName | Kochi</mtriple>
+        <mtriple>AWH_Engineering_College | state | Kerala</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AWH Engineering College is located in Kerala whose leader is Kochi.</lex>
+      <lex comment="good" lid="Id2">AWH Engineering College is in the state of Kerala, whose leader is Kochi.</lex>
+    </entry>
+    </entries>
+</benchmark>

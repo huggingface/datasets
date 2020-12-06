@@ -1,0 +1,73 @@
+<benchmark>
+  <entries>
+    <entry category="Monument" eid="Id1" shape="(X (X) (X) (X (X) (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | open | "1932-07-27"^^xsd:date</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderName | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | inaugurationDate | "1932-07-27"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The lira is the official currency of Turkey where Ahmet Davutoglu is the leader. Although the largest city is Istanbul the capital city is Ankara. The country is the location of the bronze Ataturk in Izmir which was inaugurated on 27 July 1932.</lex>
+      <lex comment="good" lid="Id2">The Atatürk Monument is a bronze monument inaugurated on 27th July, 1932, in Izmir. It is found in Turkey, a country which has Ankara as its capital and Istanbul as its largest city. The leader of Turkey is called Ahmet Davutoğlu, and the currency is the Turkish lira.</lex>
+      <lex comment="good" lid="Id3">The leader of Turkey is Ahmet Davutoglu and although Istanbul is the largest city in Turkey the capital is Ankara. The country's currency is the Turkish lira. The country is the location of the bronze Ataturk monument at Izmir which was inaugurated on 27 July 1932.</lex>
+    </entry>
+    <entry category="Monument" eid="Id2" shape="(X (X) (X) (X) (X (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Turkey | leader | Ahmet_Davutoğlu</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</otriple>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | material | "Bronze"@en</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | open | "1932-07-27"^^xsd:date</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Turkey | leader | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</mtriple>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | material | "Bronze"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | inaugurationDate | "1932-07-27"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Ataturk Monument is a bronze monument designed by Pietro Canonica, and inaugurated on July 27th, 1932. It is located in Izmir, in Turkey, a country where the capital is Ankara, and the leader is the President of Turkey, Ahmet Davutoglu.</lex>
+      <lex comment="good" lid="Id2">President Ahmet Davutoglu is the Turkish leader where the capital city is Ankara. The bronze Ataturk Monument which was designed by Pietro Canonica is located in Izmir and was inaugurated on 27 July 1932.</lex>
+      <lex comment="good" lid="Id3">The Ataturk Monument (Izmir) was designed by Pietro Canonica, made of bronze, and was inaugurated on July 27, 1932. It is located in Turkey, who's capital city is Ankara, and official leader is President Ahmet Davutoglu,.</lex>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X (X) (X) (X) (X) (X)))" shape_type="mixed" size="7">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Turkey | leaderName | Ahmet_Davutoğlu</otriple>
+        <otriple>Turkey | capital | Ankara</otriple>
+        <otriple>Turkey | largestCity | Istanbul</otriple>
+        <otriple>Turkey | currency | Turkish_lira</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | open | "1932-07-27"^^xsd:date</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Turkey | leaderName | Ahmet_Davutoğlu</mtriple>
+        <mtriple>Turkey | capital | Ankara</mtriple>
+        <mtriple>Turkey | largestCity | Istanbul</mtriple>
+        <mtriple>Turkey | currency | Turkish_lira</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | inaugurationDate | "1932-07-27"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Inaugurated on the 27th of July, 1932, The Ataturk Monument (Izmir) is located in Turkey. The largest city is Istanbul, and the capital is Ankara. The country's president is Ahmet Davutoglu, and the currency is the Turkish Lira.</lex>
+      <lex comment="good" lid="Id2">President Ahmet Davutoglu is the leader of Turkey which has the currency of the Turkish lira. The capital city is Ankara although the largest city is Istanbul. The Ataturk monument was inaugurated on 27 July 1932 and is located in Izmir.</lex>
+      <lex comment="good" lid="Id3">President Ahmet Davutoglu is the leader of Turkey which has the currency of the Turkish lira. Although the largest city is Istanbul, the capital city is Ankara. The Ataturk monument is located in Izmir where it was inaugurated on 27 July 1932.</lex>
+    </entry>
+  </entries>
+</benchmark>

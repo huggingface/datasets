@@ -1,0 +1,61 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | facultySize | "100"^^xsd:nonNegativeInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Accademia_di_Architettura_di_Mendrisio | faculty | 100</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Accademia_di_Architettura_di_Mendrisio | academicStaffSize | 100</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The academic staff size of Accademia di Architettura di Mendrisio is 100.</lex>
+      <lex comment="good" lid="Id2">The academic staff number 100 at the Accademia di Architettura di Mendrisio.</lex>
+      <lex comment="good" lid="Id3">The Accademia di Architettura di Mendrisio has an academic staff of 100.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Acharya_Institute_of_Technology | campus | "Urban, ,\nIn Soldevanahalli, Acharya Dr. Sarvapalli Radhakrishnan Road, Hessarghatta Main Road, Bangalore – 560090."@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Acharya_Institute_of_Technology | campus | "In Soldevanahalli, Acharya Dr. Sarvapalli Radhakrishnan Road, Hessarghatta Main Road, Bangalore – 560090."</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The campus address for the Acharya Institute of Technology is: Soldenvanahalli, Acharya Dr. Sarvapalli Radhakrishnan Road, Hessarghatta Main Road, Bangalore - 560090.</lex>
+      <lex comment="good" lid="Id2">The Acharya Institute of Technology campus is located in Soldevanahalli, Acharya Dr. Sarvapalli Radhakrishnan Road, Hessarghatta Main Road, Bangalore – 560090.</lex>
+      <lex comment="good" lid="Id3">The campus of the Acharya Institute of Technology is located at Soldevanahalli, Acharya Dr. Sarvapalli Radhakrishnan Road, Hessarghatta Main Road, Bangalore – 560090.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alba_Iulia | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alba Iulia is located in Romania.</lex>
+      <lex comment="good" lid="Id2">Alba Iulia is in the country of Romania.</lex>
+      <lex comment="good" lid="Id3">Alba Iulia is in Romania.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Alba_Iulia | isPartOf | Alba_County</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alba_Iulia | isPartOf | Alba_County</mtriple>
+      </modifiedtripleset>
+      <lex comment="toFix" lid="Id1">Alba Iulia os part of the county of Alba.</lex>
+      <lex comment="good" lid="Id2">Alba lulia is part of Alba County.</lex>
+      <lex comment="good" lid="Id3">Alba Iulia is part of Alba County.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Romania | patronSaint | Andrew_the_Apostle</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Romania | patronSaint | Andrew_the_Apostle</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The patron Saint of Romania is Andrew the Apostle.</lex>
+      <lex comment="good" lid="Id2">Andrew the Apostle is the patron saint of Romania.</lex>
+    </entry>
+    </entries>
+</benchmark>

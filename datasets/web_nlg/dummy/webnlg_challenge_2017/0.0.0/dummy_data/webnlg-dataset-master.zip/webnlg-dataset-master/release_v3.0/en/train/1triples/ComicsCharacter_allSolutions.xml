@@ -1,0 +1,68 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | alternativeName | "Drake Stevens"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">"Drake Stevens" is known as the comic character Airman.</lex>
+      <lex comment="good" lid="Id2">Airman's alternative name is Drake Stevens.</lex>
+      <lex comment="good" lid="Id3">The alternative name of Airman (comics character) is "Drake Stevens".</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creators | George_Kapitan</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | George_Kapitan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | creator | George_Kapitan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The creator of Airman, (comics character) is George Kapitan.</lex>
+      <lex comment="good" lid="Id2">The creator of Airman (comics character) is George Kapitan.</lex>
+      <lex comment="good" lid="Id3">George Kapitan created the comic character Airman.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creators | Harry_Sahle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | Harry_Sahle</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | creator | Harry_Sahle</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic character, Airman, was created by Harry Sahle.</lex>
+      <lex comment="good" lid="Id2">The creator of Airman (comics character) is Harry Sahle.</lex>
+      <lex comment="good" lid="Id3">The comic book character Airman was created by Harry Sahle.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | alterEgo | "John Aman"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amazing-Man_(comicsCharacter) | alternativeName | "John Aman"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Aman, is the alternative name for the comic character, Amazing-Man.</lex>
+      <lex comment="good" lid="Id2">The comic book character Amazing-Man's alter ego is John Aman.</lex>
+      <lex comment="good" lid="Id3">John Aman is also known as Amazing-Man in the comics genre.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | creators | Bill_Everett</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | creator | Bill_Everett</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amazing-Man_(comicsCharacter) | creator | Bill_Everett</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bill Everett is the creator of the comic character, Amazing-Man.</lex>
+      <lex comment="good" lid="Id2">The comic book character Amazing-Man was created by Bill Everett.</lex>
+      <lex comment="good" lid="Id3">The comic character Amazing Man was created by Bill Everett.</lex>
+    </entry>
+    </entries>
+</benchmark>

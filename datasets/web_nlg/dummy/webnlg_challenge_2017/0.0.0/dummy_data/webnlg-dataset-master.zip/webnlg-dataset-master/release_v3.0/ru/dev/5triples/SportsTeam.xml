@@ -1,0 +1,150 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ground of A.S. Gubbio 1910 is located in Italy, where Italians live. The capital is Rome and two of the leaders are Pietro Grasso, and Sergio Mattarella.</lex>
+      <lex lang="ru" lid="Id1">Площадка ФК "Губбио" расположена в Италии, где живут итальянцы. Столицей является Рим, есть два лидера - Пьетро Грассо, а также Серджо Маттарелла.</lex>
+      <lex lang="en" lid="Id2">Italy is the location of the home ground of AS Gubbio 1910. The country's leaders are Sergio Mattarella and Pietro Grasso. The inhabitants are known as Italian and the capital city is Rome.</lex>
+      <lex lang="ru" lid="Id2">Италия является местоположением домашней площадки «Губбио». Лидерами страны являются Серджо Маттарелла и Пьетро Грассо. Жители известны как итальянцы, а столица - Рим.</lex>
+      <lex lang="en" lid="Id3">Pietro Grasso and Sergio Mattarella are Italian leaders in Italy. The ground of A.S. Gubbio 1910 is located in Italy where Rome is the capital.</lex>
+      <lex lang="ru" lid="Id3">Пьетро Грассо и Серджо Маттарелла - итальянские лидеры в Италии. Площадка "Губбио" расположена в Италии, где Рим - столица.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">Italians | sameAs | Итальянцы</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+        <otriple>Italy | language | Italian_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+        <mtriple>Italy | language | Italian_language</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Italians are the people who live in Italy, where Italian is the language. Two of the leaders there are Pietro Grasso and Sergio Mattarella. Also in Italy, is the ground of A.S. Gubbio 1910.</lex>
+      <lex lang="ru" lid="Id1">Итальянцы - это люди, которые живут в Италии, где итальянский - язык, на котором говорят. Двое из лидеров там - Пьетро Грассо и Серджо Маттарелла. Также в Италии - площадка ФК "Губбио".</lex>
+      <lex lang="en" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy, where Italians live and where the language spoken is Italian. Pietro Grasso and Sergio Mattarella are leaders in Italy.</lex>
+      <lex lang="ru" lid="Id2">Площадка "Губбио" находится в Италии, где живут итальянцы, и разговорный язык - итальянский. Пьетро Грассо и Серджо Маттарелла - лидеры в Италии.</lex>
+      <lex lang="en" lid="Id3">The ground of A.S. Gubbio 1910 is located in Italy where Pietro Grasso and Sergio Mattarella lead the Italian people and the Italian language is spoken.</lex>
+      <lex lang="ru" lid="Id3">Площадка ФК "Губбио" расположена в Италии, где Пьетро Грассо и Серджо Маттарелла возглавляют итальянский народ, который говорит на итальянском языке.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italian_language | sameAs | Итальянский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">Italians | sameAs | Итальянцы</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | officialLanguage | Italian_language</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | officialLanguage | Italian_language</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ground of A.S. Gubbio 1910 is located in Italy, where Rome is the capital, Italian is the official language and where there are leaders called Pietro Grasso and Sergio Mattarella.</lex>
+      <lex lang="ru" lid="Id1">Площадка "Губбио" расположена в Италии, где Рим - столица, итальянский - официальный язык, и где есть лидеры, которых зовут Пьетро Грассо и Серджо Маттарелла.</lex>
+      <lex lang="en" lid="Id2">Pietro Grasso and Sergio Mattarella are both leaders of Italy where Rome is the capital city and the language spoken is Italian. In this country the ground of A.S. Gubbio 1910 is also located.</lex>
+      <lex lang="ru" lid="Id2">Пьетро Грассо и Серджо Маттарелла - оба лидеры Италии, где Рим - столица, и разговорный язык - итальянский. В этой стране также находится площадка "Губбио".</lex>
+      <lex lang="en" lid="Id3">The ground of A.S. Gubbio 1910 is located in Italy, where Pietro Grasso and Sergio Mattarella are leaders. Italy's capital is Rome, and Italian is the official language.</lex>
+      <lex lang="ru" lid="Id3">Площадка ФК "Губбио" расположена в Италии, где лидеры - Пьетро Грассо и Серджо Маттарелла. Столица Италии - Рим, а итальянский - официальный язык.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italian_language | sameAs | Итальянский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Italy | leader | Pietro_Grasso</otriple>
+        <otriple>Italy | officialLanguage | Italian_language</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | capital | Rome</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | officialLanguage | Italian_language</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>Italy | capital | Rome</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The ground of A.S. Gubbio 1910 is located in Italy, the country which is inhabited by Italians. The capital of Italy is Rome, the official language is Italian and the leader is Pietro Grasso.</lex>
+      <lex lang="ru" lid="Id1">Площадка ФК "Губбио" расположена в Италии, в стране, где живут итальянцы. Столица Италии - Рим, официальным языком является итальянский, а лидером - Пьетро Грассо.</lex>
+      <lex lang="en" lid="Id2">The ground of A.S. Gubbio 1910 is located in Italy, where the people who live there are called Italians. The official language is Italian and the country's leader is Pietro Grasso.</lex>
+      <lex lang="ru" lid="Id2">Площадка «Губбио» находится в Италии, где живущие там люди называются итальянцами. Официальным языком является итальянский, а лидер страны - Пьетро Грассо.</lex>
+      <lex lang="en" lid="Id3">Italians inhabit Italy, where the capital is Rome. It is also where Italian is the official language and Pietro Grasso is the leader. The ground of A.S. Gubbio 1910 is located in Italy.</lex>
+      <lex lang="ru" lid="Id3">Итальянцы населяют Италию, где столица - Рим. Именно там итальянский - официальный язык и Пьетро Грассо является лидером. Площадка ФК "Губбио" находится в Италии.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italian_language | sameAs | Итальянский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Rome | sameAs | Рим</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">Italians | sameAs | Итальянцы</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Italy | leaderName | Pietro_Grasso</otriple>
+        <otriple>Italy | officialLanguage | Italian_language</otriple>
+        <otriple>Italy | demonym | Italians</otriple>
+        <otriple>Italy | leader | Sergio_Mattarella</otriple>
+        <otriple>A.S._Gubbio_1910 | ground | Italy</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Italy | leader | Pietro_Grasso</mtriple>
+        <mtriple>Italy | officialLanguage | Italian_language</mtriple>
+        <mtriple>Italy | demonym | Italians</mtriple>
+        <mtriple>Italy | leader | Sergio_Mattarella</mtriple>
+        <mtriple>A.S._Gubbio_1910 | ground | Italy</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">AS Gubbio have their home ground in Italy where Pietro Grasso and Sergio Mattarella are leaders. The official language of the Italian people is Italian.</lex>
+      <lex lang="ru" lid="Id1">У ФК "Губбио" есть домашняя площадка в Италии, где Пьетро Грассо и Серджо Маттарелла - лидеры. Официальный язык итальянцев - итальянский.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Italian_language | sameAs | Итальянский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">A.S._Gubbio_1910 | sameAs | Губбио_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">Sergio_Mattarella | sameAs | Маттарелла,_Серджо</dbpedialink>
+        <dbpedialink direction="en2ru">Italy | sameAs | Италия</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Grasso | sameAs | Грассо,_Пьетро</dbpedialink>
+        <dbpedialink direction="en2ru">Italians | sameAs | Итальянцы</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>

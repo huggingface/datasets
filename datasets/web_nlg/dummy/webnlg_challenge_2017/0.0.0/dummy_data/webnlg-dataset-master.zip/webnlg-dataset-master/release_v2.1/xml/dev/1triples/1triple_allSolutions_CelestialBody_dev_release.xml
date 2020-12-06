@@ -1,0 +1,56 @@
+<benchmark>
+  <entries>
+    <entry category="CelestialBody" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(29075)_1950_DA | discoverer | Carl_A._Wirtanen</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(29075)_1950_DA | discoverer | Carl_A._Wirtanen</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(29075) 1950 DA was discovered by Carl A Wirtanen.</lex>
+      <lex comment="good" lid="Id2">Carl A Wirtanen discovered (29075) 1950 DA.</lex>
+      <lex comment="good" lid="Id3">Carl A Wirtanen was the discoverer of 29075 1950 DA.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(410777)_2009_FD | Planet/apoapsis | "2.5977670247055E8"^^&lt;http://dbpedia.org/datatype/kilometre&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(410777)_2009_FD | apoapsis | 259776702.47055 (kilometres)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(410777) 2009 FD has an apoapsis of 259776702.47055 kilometres.</lex>
+      <lex comment="good" lid="Id2">The apoapsis of (410777) 2009 FD is 259776702.47055 kilometers.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(66063)_1998_RO1 | epoch | "November 4, 2013"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66063)_1998_RO1 | epoch | 2013-11-04</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">66063 1998 RO1 has an epoch date of 4 November 2013.</lex>
+      <lex comment="good" lid="Id2">(66063) 1998 RO1 has an epoch date of 2013-11-04.</lex>
+      <lex comment="good" lid="Id3">The epoch of (66063) 1998 RO1 is on the 13th of January 2016.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>(66391)_1999_KW4 | periapsis | 2.99196e+10</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>(66391)_1999_KW4 | periapsis | 29919600000.0</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">(66391) 1999 KW4 has a periapsis of 29919600000.0.</lex>
+      <lex comment="good" lid="Id2">The apoapsis of (66391) 1999 KW4 is 29919600000.0.</lex>
+    </entry>
+    <entry category="CelestialBody" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>101_Helena | mass | "3.0"^^&lt;http://dbpedia.org/datatype/kilogram&gt;</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>101_Helena | mass | 3.0 (kilograms)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">101 Helena has a mass of 3.0 kgs.</lex>
+      <lex comment="good" lid="Id2">101 Helena has a mass of 3.0 kilograms.</lex>
+    </entry>
+    </entries>
+</benchmark>

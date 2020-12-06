@@ -1,0 +1,139 @@
+<benchmark>
+  <entries>
+    <entry category="SportsTeam" eid="Id1" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | Berliner_AK_07</otriple>
+        <otriple>Jens_Härtel | clubs | FC_Sachsen_Leipzig</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | Berliner_AK_07</mtriple>
+        <mtriple>Jens_Härtel | club | FC_Sachsen_Leipzig</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Jens Härtel has been the manager of 1 FC Magdeburg, has played for 1. FC Lokomotive Leipzig and Berliner AK 07 as well as representing the club FC Sachsen Leipzig.</lex>
+      <lex lang="ru" lid="Id1">Йенс Хертель был менеджером Магдебурга, играл за Локомотив и Берлинер АК 07, а также представлял клуб Заксен.</lex>
+      <lex lang="en" lid="Id2">Jens Hartel has played for 1. FC Lokomotive Leipzig, Berliner AK 07, FC Sachsen Leipzig and is manager of FC Magdeburg.</lex>
+      <lex lang="ru" lid="Id2">Йенс Хертель сыграл за ФК Локомотив, Берлинер АК 07, ФК Заксен и является менеджером ФК Магдебург.</lex>
+      <lex lang="en" lid="Id3">Jens Härtel, previously of Berliner AK 07 and FC Sachsen Leipzig, is now a player for 1. FC Lokomotive Leipzig whilst managing 1 FC Magdeburg.</lex>
+      <lex lang="ru" lid="Id3">Йенс Хертель, ранее входивший в состав Берлинера АК 07 и Заксена, теперь является игроком Локомотива, одновременно управляя Магдебургом.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Lokomotive_Leipzig | sameAs | Локомотив_(футбольный_клуб,_Лейпциг)</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">FC_Sachsen_Leipzig | sameAs | Заксен_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jens Härtel | sameAs | Йенс Хертель</link>
+        <link direction="en2ru">Berliner AK 07 | sameAs | Берлинер АК 07</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id2" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | Berliner_AK_07</otriple>
+        <otriple>Jens_Härtel | clubs | SV_Babelsberg_03</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | Berliner_AK_07</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Jens Härtel first club was FC Lokomotive Leipzig. He has been involved in SV Babelsberg 03 and Berliner AK 07.</lex>
+      <lex lang="ru" lid="Id1">Первым клубом Йенса Хертеля был Лейпциг. Он принимал участие в Бабельсберге 03 и Берлинере АК 07.</lex>
+      <lex lang="en" lid="Id2">The first club Jens Hartel played for was FC Lokomotive Leipzig and he currently plays for SV Babelsberg 03. His club is Berliner AK 07 and he is manager of 1 FC Magdeburg.</lex>
+      <lex lang="ru" lid="Id2">Первым клубом, за который играл Йенс Хертель, был ФК "Локомотив" и в настоящее время играет за ФК "Бабельсберг 03". Его клуб - ФК "Берлинер АК 07", и он тренирует ФК "Магдебург".</lex>
+      <lex lang="en" lid="Id3">The manager of FC Magdeburg is Jens Härtel. He also plays for 1. FC Lokomotive Leipzig and SV Babelsberg 03, and his club is Berliner AK 07.</lex>
+      <lex lang="ru" lid="Id3">Тренером ФК "Магдебург" является Йенс Хертель. Он также играл за ФК "Локомотив" и ФК "Бабельсберг 03", а его клуб - "Берлинер АК 07".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Lokomotive_Leipzig | sameAs | Локомотив_(футбольный_клуб,_Лейпциг)</dbpedialink>
+        <dbpedialink direction="en2ru">SV_Babelsberg_03 | sameAs | Бабельсберг_03</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jens Härtel | sameAs | Йенс Хертель</link>
+        <link direction="en2ru">Berliner AK 07 | sameAs | Берлинер АК 07</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id3" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | RB_Leipzig</otriple>
+        <otriple>Jens_Härtel | clubs | SV_Germania_Schöneiche</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | RB_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Germania_Schöneiche</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Jens Hartel is in the RB Leipzig club and plays for both SV Germania Schoneiche and 1 FC Lokomotive Leipzig. He has also been the manager of 1FC Magdeburg.</lex>
+      <lex lang="ru" lid="Id1">Йенс Хертель находится в клубе РБ Лейпциг и играет как за СК “Германия Шёнайхе”, так и за Локомотив. Он также был менеджером Магдебурга.</lex>
+      <lex lang="en" lid="Id2">Jens Härtel started his career playing for FC Lokomotive Leipzig. Since then he has been the manager of 1 FC Magdeburg and is currently in the RB Leipzig club and playing for SV Germania Schoneiche.</lex>
+      <lex lang="ru" lid="Id2">Йенс Хертель начал свою карьеру играя за ФК "Локомотив". С тех пор он был тренером в ФК "Магдебург" и в настоящее время находится в клубе "РБ Лейпциг" и играет за СК "Германия Шёнайхе".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Lokomotive_Leipzig | sameAs | Локомотив_(футбольный_клуб,_Лейпциг)</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">RB_Leipzig | sameAs | РБ_Лейпциг</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jens Härtel | sameAs | Йенс Хертель</link>
+        <link direction="en2ru">SV Germania Schöneiche | sameAs | СК “Германия Шёнайхе”</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | SV_Babelsberg_03</otriple>
+        <otriple>Jens_Härtel | clubs | FC_Sachsen_Leipzig</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+        <mtriple>Jens_Härtel | club | FC_Sachsen_Leipzig</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Jens Härtel, the manager of FC Magdeburg also plays for 1. FC Lokomotive Leipzig, SV Babelsberg 03 and he has played for FC Sachsen Leipzig.</lex>
+      <lex lang="ru" lid="Id1">Йенс Хертель, тренер ФК "Магдебург", также играл за ФК "Локомотив", ФК "Бабельсберг 03" и ФК "Заксен".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">1._FC_Lokomotive_Leipzig | sameAs | Локомотив_(футбольный_клуб,_Лейпциг)</dbpedialink>
+        <dbpedialink direction="en2ru">SV_Babelsberg_03 | sameAs | Бабельсберг_03</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">FC_Sachsen_Leipzig | sameAs | Заксен_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jens Härtel | sameAs | Йенс Хертель</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id5" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>1._FC_Magdeburg | manager | Jens_Härtel</otriple>
+        <otriple>Jens_Härtel | team | 1._FC_Lokomotive_Leipzig</otriple>
+        <otriple>Jens_Härtel | managerClub | SV_Babelsberg_03</otriple>
+        <otriple>Jens_Härtel | clubs | FSV_Zwickau</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1._FC_Magdeburg | manager | Jens_Härtel</mtriple>
+        <mtriple>Jens_Härtel | club | 1._FC_Lokomotive_Leipzig</mtriple>
+        <mtriple>Jens_Härtel | club | SV_Babelsberg_03</mtriple>
+        <mtriple>Jens_Härtel | club | FSV_Zwickau</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Jens Hartel plays for 1.FC Lokomotive Leipzig and for SV Babelsberg 03. He is a member of the FSV Zwickau club and the manager of FC MAgdeburg.</lex>
+      <lex lang="ru" lid="Id1">Йенс Хертель играет за «Локомотив» и за "Бабельсберг 03". Он является членом клуба Цвиккау и менеджером "Магдебурга".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">FSV_Zwickau | sameAs | Цвиккау_(футбольный_клуб)</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Lokomotive_Leipzig | sameAs | Локомотив_(футбольный_клуб,_Лейпциг)</dbpedialink>
+        <dbpedialink direction="en2ru">SV_Babelsberg_03 | sameAs | Бабельсберг_03</dbpedialink>
+        <dbpedialink direction="en2ru">1._FC_Magdeburg | sameAs | Магдебург_(футбольный_клуб)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Jens Härtel | sameAs | Йенс Хертель</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

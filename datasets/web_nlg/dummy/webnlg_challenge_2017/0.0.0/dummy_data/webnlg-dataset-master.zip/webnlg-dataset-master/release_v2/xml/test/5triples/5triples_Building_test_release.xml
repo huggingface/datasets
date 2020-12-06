@@ -1,0 +1,109 @@
+<benchmark>
+  <entries>
+    <entry category="Building" eid="Id1" shape="(X (X) (X (X) (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>200_Public_Square | buildingEndDate | "1985"</otriple>
+        <otriple>Cleveland | subdivisionName | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | isPartOf | Ohio</otriple>
+        <otriple>Cleveland | country | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>200_Public_Square | location | Cleveland</otriple>
+        <otriple>200_Public_Square | completionDate | 1985</otriple>
+        <otriple>Cleveland | subdivisionName | Cuyahoga_County,_Ohio</otriple>
+        <otriple>Cleveland | isPartOf | Ohio</otriple>
+        <otriple>Cleveland | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>200_Public_Square | location | Cleveland</mtriple>
+        <mtriple>200_Public_Square | completionDate | 1985</mtriple>
+        <mtriple>Cleveland | isPartOf | Cuyahoga_County,_Ohio</mtriple>
+        <mtriple>Cleveland | isPartOf | Ohio</mtriple>
+        <mtriple>Cleveland | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 200 Public Square was completed in 1985 in Cuyahoga County, Cleveland, Ohio, United States.</lex>
+      <lex comment="good" lid="Id2">200 Public Square completed in 1985 is in Cleveland (part of Cuyahoga County) in Ohio, U.S.</lex>
+      <lex comment="good" lid="Id3">200 Public Square was completed in 1985, and is located in Cleveland, Cuyahoga County, Ohio, United States.</lex>
+    </entry>
+    <entry category="Building" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | Buffalo,_New_York</otriple>
+        <otriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</otriple>
+        <otriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | "12"^^xsd:positiveInteger</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>250_Delaware_Avenue | location | Buffalo,_New_York</otriple>
+        <otriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</otriple>
+        <otriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</otriple>
+        <otriple>250_Delaware_Avenue | floorArea | "30843.8"^^xsd:double</otriple>
+        <otriple>250_Delaware_Avenue | floorCount | 12</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>250_Delaware_Avenue | location | Buffalo,_New_York</mtriple>
+        <mtriple>250_Delaware_Avenue | architecturalStyle | Postmodern_architecture</mtriple>
+        <mtriple>250_Delaware_Avenue | buildingStartDate | "January, 2014"</mtriple>
+        <mtriple>250_Delaware_Avenue | floorArea | 30843.8 (square metres)</mtriple>
+        <mtriple>250_Delaware_Avenue | floorCount | 12</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Construction of 250 Delaware Avenue, Buffalo, New York, began in January 2014 in the postmodernist style of architecture. The building has 12 floors with a total area of 30843.8 square metres.</lex>
+      </entry>
+    <entry category="Building" eid="Id3" shape="(X (X (X) (X) (X (X))))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>300_North_LaSalle | location | Chicago</otriple>
+        <otriple>Chicago | leaderName | Rahm_Emanuel</otriple>
+        <otriple>Chicago | country | United_States</otriple>
+        <otriple>Illinois | capital | Springfield,_Illinois</otriple>
+        <otriple>Chicago | isPartOf | Illinois</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>300_North_LaSalle | location | Chicago</mtriple>
+        <mtriple>Chicago | leaderName | Rahm_Emanuel</mtriple>
+        <mtriple>Chicago | country | United_States</mtriple>
+        <mtriple>Illinois | capital | Springfield,_Illinois</mtriple>
+        <mtriple>Chicago | isPartOf | Illinois</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">300 North LaSalle is located in Chicago, Illinois, United States. The leader of Chicago is Rahm Emanuel and the capital of the state of Illinois is Springfield.</lex>
+      <lex comment="good" lid="Id2">300 North LaSalle is located in Chicago (leader: Rahm Emanuel), which is part of Illinois, United States. The capital of Illinois is Springfield.</lex>
+      <lex comment="good" lid="Id3">300 North LaSalle is located in Chicago, Illinois, in the US. Rahm Emanuel is the leader of Chicago but the capital of the state of Illinois is Springfield.</lex>
+    </entry>
+    <entry category="Building" eid="Id4" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>AC_Hotel_Bella_Sky_Copenhagen | location | Denmark</otriple>
+        <otriple>Denmark | language | Faroese_language</otriple>
+        <otriple>Denmark | leaderName | Margrethe_II_of_Denmark</otriple>
+        <otriple>Marriott_International | foundationPlace | Washington,_D.C.</otriple>
+        <otriple>AC_Hotel_Bella_Sky_Copenhagen | operator | Marriott_International</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AC_Hotel_Bella_Sky_Copenhagen | location | Denmark</mtriple>
+        <mtriple>Denmark | language | Faroese_language</mtriple>
+        <mtriple>Denmark | leaderName | Margrethe_II_of_Denmark</mtriple>
+        <mtriple>Marriott_International | foundationPlace | Washington,_D.C.</mtriple>
+        <mtriple>AC_Hotel_Bella_Sky_Copenhagen | tenant | Marriott_International</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AC Hotel Bella Sky Copenhagen is located in Denmark, where Faroese is spoken, and the leader is Margrethe II of Denmark. The hotel's current tenant is the Marriott International Hotel, which was founded in Washington, D.C.</lex>
+      <lex comment="good" lid="Id2">Margrethe II of Denmark leads the country where the Faroese language is spoken. The Marriott International, founded in Washington DC, are the current tenants of the AC Hotel Bella Sky in Copenhagen.</lex>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X (X)) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>AC_Hotel_Bella_Sky_Copenhagen | location | Denmark</otriple>
+        <otriple>Marriott_International | foundationPlace | Washington,_D.C.</otriple>
+        <otriple>AC_Hotel_Bella_Sky_Copenhagen | operator | Marriott_International</otriple>
+        <otriple>Marriott_International | keyPerson | Bill_Marriott</otriple>
+        <otriple>Denmark | language | Greenlandic_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>AC_Hotel_Bella_Sky_Copenhagen | location | Denmark</mtriple>
+        <mtriple>Marriott_International | foundationPlace | Washington,_D.C.</mtriple>
+        <mtriple>AC_Hotel_Bella_Sky_Copenhagen | tenant | Marriott_International</mtriple>
+        <mtriple>Marriott_International | keyPerson | Bill_Marriott</mtriple>
+        <mtriple>Denmark | language | Greenlandic_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Marriott International was founded in Washington, D.C. and is the tenant of AC Hotel Bella Sky Copenhagen which is in Denmark where Greenlandic is one of the languages spoken there. Bill Marriott is one of the key employees of Marriott International.</lex>
+      <lex comment="good" lid="Id2">Bill Marriott is the key person of Marriott International which was founded in Washington DC and is the tenant of the AC Hotel Bella Sky in Copenhagen, Denmark. One of the languages spoken in the country is Greenlandic.</lex>
+    </entry>
+    </entries>
+</benchmark>

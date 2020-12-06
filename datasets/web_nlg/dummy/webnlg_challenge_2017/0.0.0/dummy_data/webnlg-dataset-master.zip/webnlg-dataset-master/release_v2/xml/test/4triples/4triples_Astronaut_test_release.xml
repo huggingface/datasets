@@ -1,0 +1,84 @@
+<benchmark>
+  <entries>
+    <entry category="Astronaut" eid="Id1" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Alan_Bean | nationality | United_States</otriple>
+        <otriple>Alan_Bean | birthPlace | Wheeler,_Texas</otriple>
+        <otriple>Alan_Bean | timeInSpace | "100305.0"^^&lt;http://dbpedia.org/datatype/minute&gt;</otriple>
+        <otriple>Alan_Bean | selection | 1963</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Bean | nationality | United_States</mtriple>
+        <mtriple>Alan_Bean | birthPlace | Wheeler,_Texas</mtriple>
+        <mtriple>Alan_Bean | timeInSpace | "100305.0"(minutes)</mtriple>
+        <mtriple>Alan_Bean | was selected by NASA | 1963</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Bean was born in Wheeler, Texas in the United States. He was selected by NASA in 1963, and spent 100305.0 minutes in space.</lex>
+      </entry>
+    <entry category="Astronaut" eid="Id2" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Alan_Shepard | mission | Apollo_14</otriple>
+        <otriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</otriple>
+        <otriple>Apollo_14 | operator | NASA</otriple>
+        <otriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alan_Shepard | was a crew member of | Apollo_14</mtriple>
+        <mtriple>Distinguished_Service_Medal_(United_States_Navy) | higher | Department_of_Commerce_Gold_Medal</mtriple>
+        <mtriple>Apollo_14 | operator | NASA</mtriple>
+        <mtriple>Alan_Shepard | awards | Distinguished_Service_Medal_(United_States_Navy)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alan Shepard was awarded the Distinguished Service Medal (United States Navy and the Department of Commerce Gold Medal. He was a crew member of the NASA operated Apollo 14 mission.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id3" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>British_Hong_Kong | representative | Chris_Patten</otriple>
+        <otriple>William_Anders | mission | Apollo_8</otriple>
+        <otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+        <otriple>Apollo_8 | crewMembers | Frank_Borman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>British_Hong_Kong | representative | Chris_Patten</mtriple>
+        <mtriple>William_Anders | was a crew member of | Apollo_8</mtriple>
+        <mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+        <mtriple>Apollo_8 | crewMembers | Frank_Borman</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">William Anders was born in British Hong Kong, where Chris Patten is a representative. William was a crew member of Apollo 8, and served along Frank Borman.</lex>
+      <lex comment="good" lid="Id2">Born in Hong Kong, William Anders was a crew member of Apollo 8 with representative Chris Patten and Apollo 8 member Frank Borman.</lex>
+      </entry>
+    <entry category="Astronaut" eid="Id4" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+        <otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+        <otriple>Buzz_Aldrin | status | "Retired"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | was a crew member of | Apollo_11</mtriple>
+        <mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+        <mtriple>Buzz_Aldrin | status | "Retired"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was born in Glen Ridge, New Jersey, was part of Apollo 11 and in 1963 graduated with a Sc. D. from MIT and is now retired.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was born in Glen Ridge, New Jersey. He obtained an Sc.D in 1963 from Massachusetts Institute of Technology. He was a crew member of Apollo 11 and has retired.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin, now retired, was born in Glen Ridge, New Jersey and graduated from MIT ScD in 1963. He was a crew member of Apollo 11.</lex>
+    </entry>
+    <entry category="Astronaut" eid="Id5" shape="(X (X) (X) (X) (X))" shape_type="sibling" size="4">
+      <originaltripleset>
+        <otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+        <otriple>Buzz_Aldrin | selection | 1963</otriple>
+        <otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+        <otriple>Buzz_Aldrin | occupation | Fighter_pilot</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+        <mtriple>Buzz_Aldrin | was selected by NASA | 1963</mtriple>
+        <mtriple>Buzz_Aldrin | was a crew member of | Apollo_11</mtriple>
+        <mtriple>Buzz_Aldrin | occupation | Fighter_pilot</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Buzz Aldrin was born in Glen Ridge, New Jersey. He Joined NASA in 1963 where he became a crew member of Apollo 11 as a Fighter pilot.</lex>
+      <lex comment="good" lid="Id2">Buzz Aldrin was born in Glen Ridge, New Jersey. He was a fighter pilot before being selected by NASA as a crew member of Apollo 11 in 1963.</lex>
+      <lex comment="good" lid="Id3">Buzz Aldrin was born in Glen Ridge New Jersey. He was a fighter pilot who was selected by NASA in 1963 to be a crew member of Apollo 11.</lex>
+    </entry>
+    </entries>
+</benchmark>

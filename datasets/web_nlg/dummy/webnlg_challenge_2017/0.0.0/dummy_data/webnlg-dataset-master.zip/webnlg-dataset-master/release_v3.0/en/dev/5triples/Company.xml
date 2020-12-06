@@ -1,0 +1,106 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Chinabank | foundingDate | 1920-08-16</otriple>
+        <otriple>Chinabank | netIncome | 1.51E10</otriple>
+        <otriple>Chinabank | numberOfLocations | 295</otriple>
+        <otriple>Chinabank | foundationPlace | Manila</otriple>
+        <otriple>Chinabank | type | Public_company</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Chinabank | foundingYear | 1920-01-01</otriple>
+        <otriple>Chinabank | netIncome | 1.51E10</otriple>
+        <otriple>Chinabank | numberOfLocations | 295</otriple>
+        <otriple>Chinabank | foundationPlace | Manila</otriple>
+        <otriple>Chinabank | type | Public_company</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Chinabank | foundingDate | 1920-08-16</mtriple>
+        <mtriple>Chinabank | netIncome | 15100000000</mtriple>
+        <mtriple>Chinabank | numberOfLocations | 295</mtriple>
+        <mtriple>Chinabank | foundationPlace | Manila</mtriple>
+        <mtriple>Chinabank | type | Public_company</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Chinabank, a publicly traded company with 295 banking centers, was founded in Manila on the 16th of August, 1920. The net income of Chinabank is $15,100,000,000.</lex>
+      <lex comment="good" lid="Id2">Chinabank, a publicly traded company with 295 locations, was founded on 08-16-1920. Chinabank was founded in Manila and has a net income of $15,100,000,000.</lex>
+      <lex comment="good" lid="Id3">Chinabank, a public company with 295 branches, currently has a net income of $15,100,000,000. Chinabank was founded in Manila on 1920-08-16.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>GMA_New_Media | foundingYear | 2000-01-01</otriple>
+        <otriple>GMA_New_Media | product | Mobile_Applications</otriple>
+        <otriple>GMA_New_Media | industry | Mass_Media</otriple>
+        <otriple>GMA_New_Media | keyPerson | Felipe_Gozon</otriple>
+        <otriple>GMA_New_Media | location | GMA_Network_Center</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | foundingDate | 2000-01-01</mtriple>
+        <mtriple>GMA_New_Media | product | Mobile_Applications</mtriple>
+        <mtriple>GMA_New_Media | industry | Mass_Media</mtriple>
+        <mtriple>GMA_New_Media | keyPerson | Felipe_Gozon</mtriple>
+        <mtriple>GMA_New_Media | location | GMA_Network_Center</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA New Media, a maker of mobile applications founded on 01-01-2000, is a mass media industry with headquarters in the GMA Network Center. Felipe Gozon is a key person in GMA New Media.</lex>
+      <lex comment="good" lid="Id2">GMA New Media (founded on January 01, 2000) is a company in mass media industry that offers products such as mobile applications. Felipe Gozon is the key person on GMA New Media, which is located inside the GMA Network Center.</lex>
+      <lex comment="good" lid="Id3">GMA New Media founded on January 01,2000 is located in the GMA Network Center. This company is in the mass media industry, makes mobile apps and Felipe Gozon is the key person on board.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Hypermarcas | foundingYear | 2001-01-01</otriple>
+        <otriple>Hypermarcas | product | Cosmetics</otriple>
+        <otriple>Hypermarcas | industry | Pharmaceuticals</otriple>
+        <otriple>Hypermarcas | location | Brazil</otriple>
+        <otriple>Brazil | populationDensity | 23.8</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Hypermarcas | foundingDate | 2001-01-01</mtriple>
+        <mtriple>Hypermarcas | product | Cosmetics</mtriple>
+        <mtriple>Hypermarcas | industry | Pharmaceuticals</mtriple>
+        <mtriple>Hypermarcas | location | Brazil</mtriple>
+        <mtriple>Brazil | populationDensity | 23.8</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Hypermarcas was founded January 1, 2001 as a pharmaceutical company primarily focusing on cosmetics. It's located in Brazil, which has as population density of 23.8.</lex>
+      <lex comment="good" lid="Id2">Hypermarcas is a pharmaceutical company founded on January 1, 2001, that also sells cosmetics. It is located in Brazil which has a population density of 23.8 per square kilometer.</lex>
+      <lex comment="good" lid="Id3">Hypermarcas, founded on January 1, 2001, is a pharmaceutical company and a maker of cosmetics products. The company is located in Brazil, which has a population density of 23.8.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X) (X) (X) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Trane | location | Ireland</otriple>
+        <otriple>Trane | foundationPlace | La_Crosse,_Wisconsin</otriple>
+        <otriple>Ireland | location | Europe</otriple>
+        <otriple>Trane | type | Subsidiary</otriple>
+        <otriple>Trane | numberOfEmployees | 29000</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Trane | location | Ireland</mtriple>
+        <mtriple>Trane | foundationPlace | La_Crosse,_Wisconsin</mtriple>
+        <mtriple>Ireland | location | Europe</mtriple>
+        <mtriple>Trane | type | Subsidiary</mtriple>
+        <mtriple>Trane | numberOfEmployees | 29000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Trane is a European subsidiary company located in Ireland that employs 29,000 people. The company was founded in La Crosse, Wisconsin.</lex>
+      <lex comment="good" lid="Id2">Founded in La Crosse, Wisconsin, Trane is located in the European country of Ireland. Trane is a subsidiary company with 29000 employees.</lex>
+      <lex comment="good" lid="Id3">Trane, a subsidiary company founded in La Crosse, Wisconsin, has 29,000 employees and operates in Ireland, which is located in Europe.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Trane | product | Building_Management_System</otriple>
+        <otriple>Trane | revenue | 1.0264E10</otriple>
+        <otriple>Trane | netIncome | 5.563E8</otriple>
+        <otriple>Trane | location | Swords,_Dublin</otriple>
+        <otriple>Trane | type | Subsidiary</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Trane | product | Building_Management_System</mtriple>
+        <mtriple>Trane | revenue | 10264000000</mtriple>
+        <mtriple>Trane | netIncome | 556300000</mtriple>
+        <mtriple>Trane | location | Swords,_Dublin</mtriple>
+        <mtriple>Trane | type | Subsidiary</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Trane is subsidiary in Swords, Dublin who produces building management systems, they have a net income of $556 million and a total revenue of $10,264,000,000.</lex>
+      <lex comment="good" lid="Id2">Trane, a maker of building management systems with net income of $556,300,000 from revenue of 10,264,000,000, is a subsidiary company located in Swords, Dublin.</lex>
+      <lex comment="good" lid="Id3">Trane, a subsidiary located in Swords, Dublin, manufactures building management systems. Trane has net income of $556,300,000 from revenue of $10,264,000,000.</lex>
+    </entry>
+  </entries>
+</benchmark>

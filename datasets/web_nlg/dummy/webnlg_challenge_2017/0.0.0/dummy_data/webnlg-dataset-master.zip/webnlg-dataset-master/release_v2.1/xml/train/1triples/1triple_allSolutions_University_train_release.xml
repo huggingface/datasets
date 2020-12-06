@@ -1,0 +1,55 @@
+<benchmark>
+  <entries>
+    <entry category="University" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | city | Alba_Iulia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | city | Alba_Iulia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The "1 Decembrie 1918 University" is in the city Alba Iulia.</lex>
+      <lex comment="good" lid="Id2">The city of Alba Iulia has a University called "1 Decembrie 1918 University".</lex>
+      <lex comment="good" lid="Id3">The 1 Decembrie 1918 University is located in the city of Alba Iulia.</lex>
+    </entry>
+    <entry category="University" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | country | Romania</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | country | Romania</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University is located in the country of Romania.</lex>
+      <lex comment="good" lid="Id2">The 1 Decembrie 1918 University is located in Romania.</lex>
+    </entry>
+    <entry category="University" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | latinName | "Universitas Apulensis"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | latinName | "Universitas Apulensis"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The Latin name of the 1 Decembrie 1918 University is "Universitas Apulensis".</lex>
+      <lex comment="good" lid="Id2">The Latin name of 1 Decembrie 1918 University is Universitas Apulensis.</lex>
+      <lex comment="good" lid="Id3">The latin name for 1 Decembrie 1918 University is Universitas Apulensis.</lex>
+    </entry>
+    <entry category="University" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | nickname | Uab</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | nickname | Uab</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1 Decembrie 1918 University has the nickname Uab.</lex>
+    </entry>
+    <entry category="University" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1_Decembrie_1918_University,_Alba_Iulia | rector | "Breaz Valer Daniel"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1_Decembrie_1918_University | rector | "Breaz Valer Daniel"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Breaz Valer Daniel is rector of the 1 Decembrie 1918 University.</lex>
+      <lex comment="good" lid="Id2">The rector of the 1 Decembrie 1918 University is Breaz Valer Daniel.</lex>
+    </entry>
+    </entries>
+</benchmark>

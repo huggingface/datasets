@@ -1,0 +1,79 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Jones County, Texas in the United States and English is the language of the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene is part of Jones County in Texas, in the United States, where English is spoken.</lex>
+      <lex comment="good" lid="Id3">Abilene is part of Jones County, Texas, in the United States, where English is spoken.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X (X (X))))" shape_type="chain" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</otriple>
+        <otriple>Jones_County,_Texas | country | United_States</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</mtriple>
+        <mtriple>Jones_County,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is in Jones County, Texas, U.S. The language spoken in the U.S. is English.</lex>
+      <lex comment="good" lid="Id2">The United States uses the English language and is the location of Abilene, part of Jones County, Texas.</lex>
+      <lex comment="good" lid="Id3">Abilene is part of Jones County, Texas and is located in the United States where the English language is spoken.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>United_States | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Texas in the United States, where English is the language spoken.</lex>
+      <lex comment="good" lid="Id2">Abilene is part of Texas in the United States, where English is the language used.</lex>
+      <lex comment="good" lid="Id3">English is the language spoken in the United States where Abilene is located in Texas.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X) (X (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene, Texas(capital:Austin) is located within the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene is located in the United States state of Texas, where the capital is Austin.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas are both part of the U.S. and the state's capital is Austin.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X (X) (X)))" shape_type="mixed" size="3">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Texas</otriple>
+        <otriple>Texas | capital | Austin,_Texas</otriple>
+        <otriple>Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Texas | capital | Austin,_Texas</mtriple>
+        <mtriple>Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Texas state-whose capital is Austin,in the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene is a part of Texas in the U.S. Austin is the capital of Texas.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas, is part of Texas (United States), where the capital city is Austin.</lex>
+    </entry>
+    </entries>
+</benchmark>

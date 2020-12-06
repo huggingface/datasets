@@ -1,0 +1,53 @@
+<benchmark>
+  <entries>
+    <entry category="MeanOfTransportation" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | aka | "Dodge Custom Royal"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Custom Royal"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge is also known as the Dodge Custom Royal.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge had another name and was called the Dodge Custom Royal.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | aka | "Dodge Suburban"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | alternativeName | "Dodge Suburban"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Doge is also called the Dodge Suburban.</lex>
+      <lex comment="good" lid="Id2">The alternative name of the 1955 Dodge is "Dodge Suburban".</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | bodyStyle | Convertible</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | bodyStyle | Convertible</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge is a convertible.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | bodyStyle | Hardtop</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | bodyStyle | Hardtop</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a hardtop.</lex>
+    </entry>
+    <entry category="MeanOfTransportation" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>1955_Dodge | bodyStyle | Sedan_(automobile)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>1955_Dodge | bodyStyle | Sedan_(automobile)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The 1955 Dodge has a sedan style body.</lex>
+      <lex comment="good" lid="Id2">The 1955 Dodge is a sedan type vehicle.</lex>
+      <lex comment="good" lid="Id3">The body style of the 1955 Dodge automobile is sedan.</lex>
+    </entry>
+    </entries>
+</benchmark>

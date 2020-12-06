@@ -62,7 +62,7 @@ _FILE_PATHS = {
     "de": {
         "train": [f"data/v1.5/de/train/{i}triples/" for i in
                   range(1, 8)],
-        "test": [f"data/v1.5/de/test/{i}triples/" for i in
+        "dev": [f"data/v1.5/de/dev/{i}triples/" for i in
                  range(1, 8)],
     },
 }
@@ -188,6 +188,9 @@ class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
         id_ = 0
         print(filedirs)
         for xml_location in filedirs:
+            print(os.path.isdir(xml_location))
+            print(os.listdir(xml_location))
+            print(sorted(glob(pjoin(xml_location, "*.xml"))))
             for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
                 for exple_dict in xml_file_to_examples(xml_file):
                     id_ += 1

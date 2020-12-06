@@ -1,0 +1,94 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Albany,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>United_States | language | English_language</otriple>
+        <otriple>Albany,_Georgia | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>United_States | language | English_language</mtriple>
+        <mtriple>Albany,_Georgia | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany, Georgia, is located within the United States, where English is one of the spoken languages. Native Americans are one of the ethnic groups in the United States of America.</lex>
+      <lex comment="good" lid="Id2">Albany, Georgia, is in the United States, where English is spoken, and, where Native Americans are one of the ethnic groups.</lex>
+      <lex comment="good" lid="Id3">Albany is part of the state of Georgia in the United States. The country uses the English language and includes the ethnic group of Native Americans.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>Alpharetta,_Georgia | subdivisionName | Georgia_(U.S._state)</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Fulton_County,_Georgia</otriple>
+        <otriple>Fulton_County,_Georgia | countySeat | Atlanta</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Alpharetta,_Georgia | country | United_States</otriple>
+        <otriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</otriple>
+        <otriple>Fulton_County,_Georgia | countySeat | Atlanta</otriple>
+        <otriple>Alpharetta,_Georgia | subdivisionName | Fulton_County,_Georgia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Alpharetta,_Georgia | country | United_States</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Georgia_(U.S._state)</mtriple>
+        <mtriple>Alpharetta,_Georgia | isPartOf | Fulton_County,_Georgia</mtriple>
+        <mtriple>Fulton_County,_Georgia | countySeat | Atlanta</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alpharetta, Fulton County, Georgia is located within the United States. Atlanta is the county seat of Fulton County.</lex>
+      <lex comment="good" lid="Id2">Alpharetta is part of Fulton County in Georgia (United States), where Atlanta is the county seat.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X (X (X) (X))))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</otriple>
+        <otriple>Potter_County,_Texas | country | United_States</otriple>
+        <otriple>United_States | capital | Washington,_D.C.</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amarillo,_Texas | isPartOf | Potter_County,_Texas</mtriple>
+        <mtriple>Potter_County,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | capital | Washington,_D.C.</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Washington DC is the capital of the United States, where African Americans are an ethnic group. The US is also where you will find Amarillo, which is part of Potter County in Texas.</lex>
+      <lex comment="good" lid="Id2">Amarillo is part of Potter County, Texas in the United States. African Americans are an ethnic group in the United States whose capital is Washington, D.C.</lex>
+      <lex comment="good" lid="Id3">Amarillo is part of Potter County in Texas in the U.S. Washington, D.C. is the U.S. capital and African Americans are an ethnic group in that country.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X (X)) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Anaheim,_California | leaderTitle | California_State_Assembly</otriple>
+        <otriple>Anaheim,_California | isPartOf | California</otriple>
+        <otriple>California_State_Assembly | location | California_State_Capitol</otriple>
+        <otriple>California | language | Spanish_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Anaheim,_California | leaderTitle | California_State_Assembly</mtriple>
+        <mtriple>Anaheim,_California | isPartOf | California</mtriple>
+        <mtriple>California_State_Assembly | location | California_State_Capitol</mtriple>
+        <mtriple>California | language | Spanish_language</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Anaheim is in California which is led by the California State Assembly found in the California State Capitol. Spanish is spoken in that state.</lex>
+      <lex comment="good" lid="Id2">California is led by the California State Assembly (location: State Capitol), is Spanish speaking and is a location of Anaheim.</lex>
+      <lex comment="good" lid="Id3">Part of California (where Spanish is spoken), Anaheim, is led by the California State Assembly, in the California State Capitol.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Angola,_Indiana | subdivisionName | Indiana</otriple>
+        <otriple>United_States | demonym | Americans</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+        <otriple>Angola,_Indiana | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Angola,_Indiana | isPartOf | Indiana</mtriple>
+        <mtriple>United_States | demonym | Americans</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+        <mtriple>Angola,_Indiana | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Angola, Indiana is in the U.S. where Native Americans are an ethnic group, and the inhabitants are called Americans.</lex>
+      <lex comment="good" lid="Id2">In the U.S. where the people are known as Americans, there are also Native Americans and a city known as Angola in Indiana.</lex>
+      <lex comment="good" lid="Id3">Angola is a city in Indiana, United States. The country's inhabitants are called Americans and Native Americans are an ethnic group.</lex>
+    </entry>
+    </entries>
+</benchmark>

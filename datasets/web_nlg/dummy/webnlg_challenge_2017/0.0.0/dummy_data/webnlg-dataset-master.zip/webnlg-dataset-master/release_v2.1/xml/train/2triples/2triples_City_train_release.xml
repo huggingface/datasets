@@ -1,0 +1,68 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>Abilene,_Texas | isPartOf | Taylor_County,_Texas</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>Abilene,_Texas | isPartOf | Taylor_County,_Texas</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Taylor County in Texas, in the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene is located in Taylor County, Texas, United States.</lex>
+      <lex comment="good" lid="Id3">Abilene is located in Taylor County, Texas in the United States.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene, Texas is part of the United States of America where African Americans are one of the ethnic groups.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas is located in the United States where African Americans are one of the ethnic groups.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Asian_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Asian_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The United States is home to an ethnic group called Asian Americans and is also where you will find Abilene, Texas.</lex>
+      <lex comment="good" lid="Id2">Abilene, Texas is in the United States, where Asian Americans are an ethnic group.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas is located in the United States, a country which has many ethnic groups, such as Asian Americans.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | Native_Americans_in_the_United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is located in Texas, United States and one of the country's ethnic groups are the Native Americans.</lex>
+      <lex comment="good" lid="Id2">Abilene is part of Texas in the United States where one of the ethnic groups are Native Americans.</lex>
+      <lex comment="good" lid="Id3">Abilene, Texas, is located in the United States, where one of the ethnic groups are the Native Americans.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</otriple>
+        <otriple>Abilene,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abilene,_Texas | isPartOf | Jones_County,_Texas</mtriple>
+        <mtriple>Abilene,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abilene is part of Jones County, Texas, which is located within the United States.</lex>
+      <lex comment="good" lid="Id2">Abilene is located in Jones County, Texas, United States.</lex>
+      <lex comment="good" lid="Id3">Abilene is part of Jones County, Texas, United States.</lex>
+    </entry>
+    </entries>
+</benchmark>

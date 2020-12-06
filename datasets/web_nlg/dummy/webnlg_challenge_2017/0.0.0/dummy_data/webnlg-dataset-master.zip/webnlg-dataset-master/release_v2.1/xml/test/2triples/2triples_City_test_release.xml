@@ -1,0 +1,66 @@
+<benchmark>
+  <entries>
+    <entry category="City" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Akron,_Ohio | country | United_States</otriple>
+        <otriple>United_States | ethnicGroup | African_Americans</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Akron,_Ohio | country | United_States</mtriple>
+        <mtriple>United_States | ethnicGroup | African_Americans</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">African Americans are an ethnic group in the US, where Akron, Ohio is located.</lex>
+      <lex comment="good" lid="Id2">An ethnic group in the United States are African Americans. Akron, Ohio is located in the U.S.</lex>
+      <lex comment="good" lid="Id3">Akron, Ohio is located within the United States, of which African Americans are an ethnic group.</lex>
+    </entry>
+    <entry category="City" eid="Id2" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Albany,_Oregon | subdivisionName | Oregon</otriple>
+        <otriple>Oregon | capital | Salem,_Oregon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albany,_Oregon | isPartOf | Oregon</mtriple>
+        <mtriple>Oregon | capital | Salem,_Oregon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Albany is part of Oregon where Salem is the capital.</lex>
+      <lex comment="good" lid="Id2">Albany is a city in Oregon whose capital is Salem.</lex>
+    </entry>
+    <entry category="City" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Albuquerque,_New_Mexico | leaderTitle | United_States_House_of_Representatives</otriple>
+        <otriple>Albuquerque,_New_Mexico | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Albuquerque,_New_Mexico | leaderTitle | United_States_House_of_Representatives</mtriple>
+        <mtriple>Albuquerque,_New_Mexico | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The leader for Albuquerque, New Mexico in the United States is the United States House of Representatives.</lex>
+      <lex comment="good" lid="Id2">New Mexico in the United States is home to Albuquerque, where the leader is the United States House of Representatives.</lex>
+      <lex comment="good" lid="Id3">Albuquerque, New Mexico is located in the U.S. and has the United States House of Representatives as a leader.</lex>
+    </entry>
+    <entry category="City" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Amarillo,_Texas | isPartOf | Texas</otriple>
+        <otriple>Amarillo,_Texas | country | United_States</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amarillo,_Texas | isPartOf | Texas</mtriple>
+        <mtriple>Amarillo,_Texas | country | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Amarillo is part of Texas in the United States.</lex>
+      <lex comment="good" lid="Id2">Amarillo is part of Texas and is located in the United States.</lex>
+    </entry>
+    <entry category="City" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Anaheim,_California | isPartOf | California</otriple>
+        <otriple>Anaheim,_California | leaderTitle | United_States_House_of_Representatives</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Anaheim,_California | isPartOf | California</mtriple>
+        <mtriple>Anaheim,_California | leaderTitle | United_States_House_of_Representatives</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">California is home to Anaheim, which is led by the United States House of Representatives.</lex>
+      <lex comment="good" lid="Id2">The United States House of Representatives leads Anaheim, which is part of California.</lex>
+    </entry>
+    </entries>
+</benchmark>

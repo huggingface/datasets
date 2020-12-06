@@ -1,0 +1,113 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Garlic</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Garlic</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Garlic is an ingredient used in Ajoblanco which originates from the country of Spain.</lex>
+      <lex lang="ru" lid="Id1">В испанском соусе ахобланко используется чеснок.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco, containing the ingredient garlic, is from Spain.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко, одним из ингредиентов которого является чеснок, происходит из Испании.</lex>
+      <lex lang="en" lid="Id3">Garlic is an ingredient in the regional dish of Spain's Ajoblanco.</lex>
+      <lex lang="ru" lid="Id3">Чеснок - ингредиент в блюде Испании Ахобланко.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Garlic | sameAs | Чеснок</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Olive_oil</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Olive_oil</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco is a dish from Spain that contains olive oil.</lex>
+      <lex lang="ru" lid="Id1">Ахобланко – блюдо из Испании, содержащее оливковое масло.</lex>
+      <lex lang="en" lid="Id2">Olive oil is an ingredient in Ajoblanco, a dish from Spain.</lex>
+      <lex lang="ru" lid="Id2">Оливковое масло является ингредиентом ахобланко, блюда из Испании.</lex>
+      <lex lang="en" lid="Id3">Ajoblanco, which contains olive oil, originates from Spain.</lex>
+      <lex lang="ru" lid="Id3">Ахобланко, содержащее оливковое масло, родом из Испании.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Olive_oil | sameAs | Оливковое_масло</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Ajoblanco | ingredient | Water</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Ajoblanco | ingredient | Water</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco contains water and is from Spain.</lex>
+      <lex lang="ru" lid="Id1">Ахобланко содержит воду и родом из Испании.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco has water as an ingredient and comes from Spain.</lex>
+      <lex lang="ru" lid="Id2">Одним из ингредиентов Ахобланко, происходящего из Испании, является вода.</lex>
+      <lex lang="en" lid="Id3">The dish of ajoblanco contains water it originates in Spain.</lex>
+      <lex lang="ru" lid="Id3">Блюдо ахобланко содержит воду и происходит из Испании.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+        <dbpedialink direction="en2ru">Water | sameAs | Вода</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Spain | demonym | Spaniards</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Spain | demonym | Spaniards</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Ajoblanco originates from the country of Spain where the name for the people there are Spaniards.</lex>
+      <lex lang="ru" lid="Id1">Ахобланко происходит из Испании, население которой называют испанцами.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco is from spain as are Spaniards.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко - из Испании, как и испанцы.</lex>
+      <lex lang="en" lid="Id3">Ajoblanco originates from the country of Spain, where Spaniards are from.</lex>
+      <lex lang="ru" lid="Id3">Ахобланко происходит из Испании, родины испанцев.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Spaniards | sameAs | испанцы</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Ajoblanco | country | Spain</otriple>
+        <otriple>Spain | ethnicGroup | Spaniards</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Ajoblanco | country | Spain</mtriple>
+        <mtriple>Spain | ethnicGroup | Spaniards</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Spaniards of Spain boasts the origins of the dish, ajoblanco.</lex>
+      <lex lang="ru" lid="Id1">Жители Испании могут похвастаться тем, что в их стране впервые приготовили блюдо Ахобланко.</lex>
+      <lex lang="en" lid="Id2">Ajoblanco is from Spain where Spaniards are an ethnic group.</lex>
+      <lex lang="ru" lid="Id2">Ахобланко происходит из Испании, где испанцы - этническая группа.</lex>
+      <lex lang="en" lid="Id3">Ajoblanco originates from the country of Spain where Spaniards are an ethnic group.</lex>
+      <lex lang="ru" lid="Id3">Ахобланко происходит из Испании, где испанцы - этническая группа.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Ajoblanco | sameAs | Ахобланко</dbpedialink>
+        <dbpedialink direction="en2ru">Spain | sameAs | Испания</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Spaniards | sameAs | испанцы</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

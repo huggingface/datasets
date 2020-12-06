@@ -1,0 +1,65 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Asterix_(character) | creator | René_Goscinny</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Asterix_(character) | creators | René_Goscinny</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asterix_(comicsCharacter) | creator | René_Goscinny</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Asterix was created by Rene Goscinny.</lex>
+      <lex comment="good" lid="Id2">The creator of Asterix (comics character) is René Goscinny.</lex>
+      <lex comment="good" lid="Id3">The comic character Asterix, was created by René Goscinny.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Auron_(comics) | creators | "Marv Wolfman"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Auron_(comics) | creator | Marv_Wolfman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Auron_(comicsCharacter) | creator | Marv_Wolfman</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic character Auron was created by Marv Wolfman.</lex>
+      <lex comment="good" lid="Id2">Auron was created by Marv Wolfman.</lex>
+      <lex comment="good" lid="Id3">The comic book character Auron was created by Marv Wolfman.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Balder_(comics) | creators | Jack_Kirby</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Balder_(comicsCharacter) | creator | Jack_Kirby</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic character, Balder, was created by Jack Kirby.</lex>
+      <lex comment="good" lid="Id2">The comic character Balder was created by Jack Kirby.</lex>
+      <lex comment="good" lid="Id3">Jack Kirby created the comic character Balder.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Bananaman | network | "STV"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | "STV"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman is broadcast by STV.</lex>
+      <lex comment="good" lid="Id2">Bananaman is broadcasted by "STV".</lex>
+      <lex comment="good" lid="Id3">Bananaman was broadcasted by STV.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman first aired on 3rd October 1983.</lex>
+      <lex comment="good" lid="Id2">Bananaman first aired on the 3rd of October, 1983.</lex>
+      <lex comment="good" lid="Id3">Bananaman was first aired on 10/03/1983.</lex>
+    </entry>
+    </entries>
+</benchmark>

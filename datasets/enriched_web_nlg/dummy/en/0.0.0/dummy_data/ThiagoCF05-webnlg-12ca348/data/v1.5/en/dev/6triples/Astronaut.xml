@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<benchmark>
+	<entries>
+		<entry category="Astronaut" eid="Id1" size="6">
+			<originaltripleset>
+				<otriple>William_Anders | dateOfRet | &quot;1969-09-01&quot;^^xsd:date</otriple>
+				<otriple>William_Anders | birthDate | &quot;1933-10-17&quot;^^xsd:date</otriple>
+				<otriple>William_Anders | occupation | Fighter_pilot</otriple>
+				<otriple>William_Anders | birthPlace | British_Hong_Kong</otriple>
+				<otriple>William_Anders | mission | Apollo_8</otriple>
+				<otriple>William_Anders | almaMater | &quot;AFIT, M.S. 1962&quot;@en</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>William_Anders | dateOfRetirement | &quot;1969-09-01&quot;</mtriple>
+				<mtriple>William_Anders | birthDate | &quot;1933-10-17&quot;</mtriple>
+				<mtriple>William_Anders | occupation | Fighter_pilot</mtriple>
+				<mtriple>William_Anders | birthPlace | British_Hong_Kong</mtriple>
+				<mtriple>William_Anders | was a crew member of | Apollo_8</mtriple>
+				<mtriple>William_Anders | almaMater | &quot;AFIT, M.S. 1962&quot;</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>William_Anders | birthDate | &quot;1933-10-17&quot;</striple>
+						<striple>William_Anders | birthPlace | British_Hong_Kong</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>William_Anders | almaMater | &quot;AFIT, M.S. 1962&quot;</striple>
+						<striple>William_Anders | occupation | Fighter_pilot</striple>
+						<striple>William_Anders | was a crew member of | Apollo_8</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>William_Anders | dateOfRetirement | &quot;1969-09-01&quot;</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="William_Anders" number="1" tag="AGENT-1" type="name">William Anders</reference>
+					<reference entity="&quot;1933-10-17&quot;" number="2" tag="PATIENT-2" type="name">October 17 , 1933</reference>
+					<reference entity="British_Hong_Kong" number="3" tag="PATIENT-4" type="name">British Hong Kong</reference>
+					<reference entity="William_Anders" number="4" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="&quot;AFIT, M.S. 1962&quot;" number="5" tag="PATIENT-6" type="name">AFIT in 1962 with an M.S.</reference>
+					<reference entity="Fighter_pilot" number="6" tag="PATIENT-3" type="description">a fighter pilot</reference>
+					<reference entity="Apollo_8" number="7" tag="PATIENT-5" type="name">Apollo 8</reference>
+					<reference entity="William_Anders" number="8" tag="AGENT-1" type="name">Anders</reference>
+					<reference entity="&quot;1969-09-01&quot;" number="9" tag="PATIENT-1" type="name">September 1 , 1969</reference>
+				</references>
+				<text>William Anders was born on October 17, 1933, in British Hong Kong. He graduated from AFIT in 1962 with an M.S., and would go on to serve as a fighter pilot, and as a crew member on Apollo 8. Anders retired on September 1, 1969.</text>
+				<template>AGENT-1 was born on PATIENT-2 , in PATIENT-4 . AGENT-1 graduated from PATIENT-6 , and would go on to serve as PATIENT-3 , and as a crew member on PATIENT-5 . AGENT-1 retired on PATIENT-1 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear on PATIENT-2 , in PATIENT-4 . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] graduate from PATIENT-6 , and would VP[aspect=simple,tense=infinitive,voice=active,person=null,number=null] go on to VP[aspect=simple,tense=infinitive,voice=active,person=null,number=null] serve as PATIENT-3 , and as DT[form=undefined] a crew member on PATIENT-5 . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] retire on PATIENT-1 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>William_Anders | birthDate | &quot;1933-10-17&quot;</striple>
+						<striple>William_Anders | birthPlace | British_Hong_Kong</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>William_Anders | almaMater | &quot;AFIT, M.S. 1962&quot;</striple>
+						<striple>William_Anders | occupation | Fighter_pilot</striple>
+						<striple>William_Anders | was a crew member of | Apollo_8</striple>
+						<striple>William_Anders | dateOfRetirement | &quot;1969-09-01&quot;</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="William_Anders" number="1" tag="AGENT-1" type="name">William Anders</reference>
+					<reference entity="&quot;1933-10-17&quot;" number="2" tag="PATIENT-2" type="description">the 17th of October 1933</reference>
+					<reference entity="British_Hong_Kong" number="3" tag="PATIENT-4" type="name">British Hong Kong</reference>
+					<reference entity="William_Anders" number="4" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="&quot;AFIT, M.S. 1962&quot;" number="5" tag="PATIENT-6" type="name">in 1962 from AFIT with a M.S .</reference>
+					<reference entity="Fighter_pilot" number="6" tag="PATIENT-3" type="description">a fighter pilot</reference>
+					<reference entity="Apollo_8" number="7" tag="PATIENT-5" type="name">Apollo 8</reference>
+					<reference entity="William_Anders" number="8" tag="AGENT-1" type="pronoun">he</reference>
+					<reference entity="&quot;1969-09-01&quot;" number="9" tag="PATIENT-1" type="name">1969</reference>
+				</references>
+				<text>William Anders was born on the 17th of October 1933 in British Hong Kong. He graduated in 1962 from AFIT with a M.S. and went on to become a fighter pilot and a crew member on Apollo 8 before he retired in 1969.</text>
+				<template>AGENT-1 was born on PATIENT-2 in PATIENT-4 . AGENT-1 graduated PATIENT-6 and went on to become PATIENT-3 and a crew member on PATIENT-5 before AGENT-1 retired in PATIENT-1 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear on PATIENT-2 in PATIENT-4 . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] graduate PATIENT-6 and VP[aspect=simple,tense=past,voice=active,person=null,number=null] go on to VP[aspect=simple,tense=infinitive,voice=active,person=null,number=null] become PATIENT-3 and DT[form=undefined] a crew member on PATIENT-5 before AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] retire in PATIENT-1 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id3">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>William_Anders | birthDate | &quot;1933-10-17&quot;</striple>
+						<striple>William_Anders | birthPlace | British_Hong_Kong</striple>
+						<striple>William_Anders | almaMater | &quot;AFIT, M.S. 1962&quot;</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>William_Anders | was a crew member of | Apollo_8</striple>
+						<striple>William_Anders | dateOfRetirement | &quot;1969-09-01&quot;</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="William_Anders" number="1" tag="AGENT-1" type="name">William Anders</reference>
+					<reference entity="&quot;1933-10-17&quot;" number="2" tag="PATIENT-2" type="name">1933</reference>
+					<reference entity="British_Hong_Kong" number="3" tag="PATIENT-4" type="name">British Hong Kong</reference>
+					<reference entity="&quot;AFIT, M.S. 1962&quot;" number="4" tag="PATIENT-6" type="name">in 1962 from AFIT with a M.S</reference>
+					<reference entity="William_Anders" number="5" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="Apollo_8" number="6" tag="PATIENT-5" type="description">the Apollo 8</reference>
+					<reference entity="William_Anders" number="7" tag="AGENT-1" type="pronoun">he</reference>
+					<reference entity="&quot;1969-09-01&quot;" number="8" tag="PATIENT-1" type="name">1969</reference>
+				</references>
+				<text>William Anders was born in 1933 in British Hong Kong and graduated in 1962 from AFIT with a M.S. He then went on to become a test pilot and joined the Apollo 8 crew before he retired in 1969.</text>
+				<template>AGENT-1 was born in PATIENT-2 in PATIENT-4 and graduated PATIENT-6 . AGENT-1 then went on to become a test pilot and joined PATIENT-5 crew before AGENT-1 retired in PATIENT-1 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear in PATIENT-2 in PATIENT-4 and VP[aspect=simple,tense=past,voice=active,person=null,number=null] graduate PATIENT-6 . AGENT-1 then VP[aspect=simple,tense=past,voice=active,person=null,number=null] go on to VP[aspect=simple,tense=infinitive,voice=active,person=null,number=null] become DT[form=undefined] a test pilot and VP[aspect=simple,tense=past,voice=active,person=null,number=null] join PATIENT-5 crew before AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] retire in PATIENT-1 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | William_Anders</entity>
+				<entity>PATIENT-1 | &quot;1969-09-01&quot;</entity>
+				<entity>PATIENT-2 | &quot;1933-10-17&quot;</entity>
+				<entity>PATIENT-3 | Fighter_pilot</entity>
+				<entity>PATIENT-4 | British_Hong_Kong</entity>
+				<entity>PATIENT-5 | Apollo_8</entity>
+				<entity>PATIENT-6 | &quot;AFIT, M.S. 1962&quot;</entity>
+			</entitymap>
+		</entry>
+	</entries>
+</benchmark>

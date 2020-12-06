@@ -1,0 +1,60 @@
+<benchmark>
+  <entries>
+    <entry category="Company" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Brazil | leader | Cármen_Lúcia</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Brazil | leader | Cármen_Lúcia</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Cármen Lúcia is the leader of Brazil.</lex>
+      <lex comment="good" lid="Id2">The leader of Brazil is Cármen Lúcia.</lex>
+      <lex comment="good" lid="Id3">The name of the leader of Brazil is Cármen Lúcia.</lex>
+    </entry>
+    <entry category="Company" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Chinabank | netIncome | 1.51E10</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Chinabank | netIncome | 15100000000</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Chinabank has a net income of 15,100,000,000.</lex>
+      <lex comment="good" lid="Id2">Chinabank’s net income has been 15100000000 currently.</lex>
+      <lex comment="good" lid="Id3">The net income of Chinabank is 15,100,000,000.</lex>
+    </entry>
+    <entry category="Company" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>GMA_New_Media | keyPerson | Felipe_Gozon</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | keyPerson | Felipe_Gozon</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Felipe Gozon is the key person of GMA New Media.</lex>
+      <lex comment="good" lid="Id2">Felipe Gozon is a key person in GMA New Media.</lex>
+      <lex comment="good" lid="Id3">The key person on GMA New Media is Felipe Gozon.</lex>
+    </entry>
+    <entry category="Company" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>GMA_New_Media | product | World_Wide_Web</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | product | World_Wide_Web</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA New Media produces web services.</lex>
+      <lex comment="good" lid="Id2">GMA New Media offers services concerning the World Wide Web.</lex>
+      <lex comment="good" lid="Id3">GMA New Media makes web sites.</lex>
+      <lex comment="good" lid="Id4">GMA New Media is a company that offers products related to the World Wide Web.</lex>
+      <lex comment="good" lid="Id5">GMA New Media produces websites.</lex>
+    </entry>
+    <entry category="Company" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>GMA_New_Media | type | Media_company</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>GMA_New_Media | type | Media_company</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">GMA New Media, Inc. is a media company.</lex>
+      <lex comment="good" lid="Id2">GMA New Media is a media company.</lex>
+    </entry>
+    </entries>
+</benchmark>

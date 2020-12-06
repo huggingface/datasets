@@ -1,0 +1,130 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Bacon_Explosion | country | United_States</otriple>
+        <otriple>Bacon_Explosion | ingredientName | "Bacon,sausage"</otriple>
+        <otriple>Bacon_Explosion | ingredient | Bacon</otriple>
+        <otriple>Bacon_Explosion | region | Kansas_City_metropolitan_area</otriple>
+        <otriple>Bacon_Explosion | mainIngredient | Sausage</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bacon_Explosion | country | United_States</mtriple>
+        <mtriple>Bacon_Explosion | mainIngredient | "Bacon,sausage"</mtriple>
+        <mtriple>Bacon_Explosion | ingredient | Bacon</mtriple>
+        <mtriple>Bacon_Explosion | region | Kansas_City_metropolitan_area</mtriple>
+        <mtriple>Bacon_Explosion | mainIngredient | Sausage</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="1">“Беконный взрыв” родом из столичного региона города Канзаса в США. Его основные ингредиенты - бекон и колбаса.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Sausage | sameAs | Колбаса</dbpedialink>
+        <dbpedialink direction="en2ru">United_States | sameAs | Соединённые_Штаты_Америки</dbpedialink>
+        <dbpedialink direction="en2ru">Bacon | sameAs | Бекон</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Kansas City metropolitan area | includes | столичный район / черта города</link>
+        <link direction="en2ru">Kansas City metropolitan area | includes | город Канзас</link>
+        <link direction="en2ru">Bacon Explosion | sameAs | “Беконный взрыв” / Bacon Explosion</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X) (X (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Asam_pedas | country | Malaysia</otriple>
+        <otriple>Sumatra | ethnicGroups | Minangkabau_people</otriple>
+        <otriple>Asam_pedas | region | Sumatra</otriple>
+        <otriple>Sumatra | ethnicGroup | Malays_(ethnic_group)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Asam_pedas | country | Malaysia</mtriple>
+        <mtriple>Sumatra | ethnicGroup | Minangkabau_people</mtriple>
+        <mtriple>Asam_pedas | region | Sumatra</mtriple>
+        <mtriple>Sumatra | ethnicGroup | Malays_(ethnic_group)</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="1">Асам педас – блюдо, созданное в Малайзии и на Суматре. Малайцы и минангкабау - это этнические группы на Суматре.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Malays_(ethnic_group) | sameAs | Малайцы</dbpedialink>
+        <dbpedialink direction="en2ru">Malaysia | sameAs | Малайзия</dbpedialink>
+        <dbpedialink direction="en2ru">Sumatra | sameAs | Суматра</dbpedialink>
+        <dbpedialink direction="en2ru">Minangkabau_people | sameAs | Минангкабау_(народ)</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Asam pedas | sameAs | асам педас</link>
+      </links>
+    </entry>
+    <entry category="Monument" eid="Id3" shape="(X (X) (X) (X (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>Turkey | leaderTitle | President_of_Turkey</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | open | "1932-07-27"^^xsd:date</otriple>
+        <otriple>Atatürk_Monument_(İzmir) | location | Turkey</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Turkey | leaderTitle | President_of_Turkey</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | designer | Pietro_Canonica</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | inaugurationDate | "1932-07-27"</mtriple>
+        <mtriple>Atatürk_Monument_(İzmir) | location | Turkey</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="1">Памятник Ататюрку в Измире, в Турции, управляемой президентом, был спроектирован Пьетро Каноника и был открыт 27 июля 1932 года.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Turkey | sameAs | Турция</dbpedialink>
+        <dbpedialink direction="en2ru">Pietro_Canonica | sameAs | Каноника,_Пьетро</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">President of Turkey | sameAs | Президент Турции</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | памятник Ататюрку</link>
+        <link direction="en2ru">Atatürk Monument (İzmir) | includes | Измир</link>
+      </links>
+    </entry>
+    <entry category="SportsTeam" eid="Id4" shape="(X (X (X) (X) (X)))" shape_type="mixed" size="4">
+      <originaltripleset>
+        <otriple>ACF_Fiorentina | manager | Paulo_Sousa</otriple>
+        <otriple>Paulo_Sousa | clubs | Juventus_F.C.</otriple>
+        <otriple>Paulo_Sousa | managerClub | Maccabi_Tel_Aviv_F.C.</otriple>
+        <otriple>Paulo_Sousa | team | Inter_Milan</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>ACF_Fiorentina | manager | Paulo_Sousa</otriple>
+        <otriple>Paulo_Sousa | team | Juventus_F.C.</otriple>
+        <otriple>Paulo_Sousa | managerClub | Maccabi_Tel_Aviv_F.C.</otriple>
+        <otriple>Paulo_Sousa | clubs | Inter_Milan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>ACF_Fiorentina | manager | Paulo_Sousa</mtriple>
+        <mtriple>Paulo_Sousa | club | Juventus_F.C.</mtriple>
+        <mtriple>Paulo_Sousa | club | Maccabi_Tel_Aviv_F.C.</mtriple>
+        <mtriple>Paulo_Sousa | club | Inter_Milan</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="1">Паулу Соуза - менеджер ФК “Фиорентина”, и его клуб - "Ювентус". Он играет за ФК “Маккаби Тель-Авив” и клуб "Интернационале".</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Inter_Milan | sameAs | Интернационале</dbpedialink>
+        <dbpedialink direction="en2ru">ACF_Fiorentina | sameAs | Фиорентина</dbpedialink>
+        <dbpedialink direction="en2ru">Juventus_F.C. | sameAs | Ювентус</dbpedialink>
+        <dbpedialink direction="en2ru">Paulo_Sousa | sameAs | Соуза,_Паулу</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Maccabi Tel Aviv F.C. | sameAs | ФК “Маккаби Тель-Авив”</link>
+      </links>
+    </entry>
+    <entry category="Building" eid="Id5" shape="(X (X) (X) (X))" shape_type="sibling" size="3">
+      <originaltripleset>
+        <otriple>Adisham_Hall | location | Sri_Lanka</otriple>
+        <otriple>Adisham_Hall | architecturalStyle | Tudor_Revival_architecture</otriple>
+        <otriple>Adisham_Hall | buildingEndDate | "1931"</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Adisham_Hall | location | Sri_Lanka</mtriple>
+        <mtriple>Adisham_Hall | architecturalStyle | Tudor_Revival_architecture</mtriple>
+        <mtriple>Adisham_Hall | completionDate | 1931</mtriple>
+      </modifiedtripleset>
+      <lex lang="ru" lid="1">Адишам Холл, который находится в Шри-Ланке, был завершен в 1931 году, а его архитектурный стиль - Возрождение Тюдоров.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Sri_Lanka | sameAs | Шри-Ланка</dbpedialink>
+        <dbpedialink direction="en2ru">1931 | sameAs | 1931_год</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Adisham Hall | sameAs | Адишам Холл</link>
+        <link direction="en2ru">Tudor Revival architecture | sameAs | Архитектура Возрождения Тюдоров / архитектура Tudor Revival</link>
+      </links>
+    </entry>
+    </entries>
+</benchmark>

@@ -1,0 +1,88 @@
+<benchmark>
+	<entries>
+		<entry category="Astronaut" eid="Id932" size="6">
+			<originaltripleset>
+				<otriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</otriple>
+				<otriple>Buzz_Aldrin | mission | Apollo_11</otriple>
+				<otriple>Buzz_Aldrin | birthDate | "1930-01-20"^^xsd:date</otriple>
+				<otriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"@en</otriple>
+				<otriple>Apollo_11 | crew2Up | William_Anders</otriple>
+				<otriple>Apollo_11 | operator | NASA</otriple>
+			</originaltripleset>
+			<modifiedtripleset>
+				<mtriple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</mtriple>
+				<mtriple>Buzz_Aldrin | was a crew member of | Apollo_11</mtriple>
+				<mtriple>Buzz_Aldrin | birthDate | "1930-01-20"</mtriple>
+				<mtriple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</mtriple>
+				<mtriple>Apollo_11 | backup pilot | William_Anders</mtriple>
+				<mtriple>Apollo_11 | operator | NASA</mtriple>
+			</modifiedtripleset>
+			<lex comment="good" lid="Id1">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Buzz_Aldrin | birthDate | "1930-01-20"</striple>
+						<striple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</striple>
+						<striple>Buzz_Aldrin | was a crew member of | Apollo_11</striple>
+						<striple>Apollo_11 | operator | NASA</striple>
+					</sentence>
+					<sentence ID="3">
+						<striple>Apollo_11 | backup pilot | William_Anders</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Buzz_Aldrin" number="1" tag="AGENT-1" type="name">Buzz Aldrin</reference>
+					<reference entity="&quot;1930-01-20&quot;" number="2" tag="PATIENT-2" type="name">20th January 1930</reference>
+					<reference entity="Glen_Ridge,_New_Jersey" number="3" tag="PATIENT-1" type="name">Glen Ridge New Jersey</reference>
+					<reference entity="Buzz_Aldrin" number="4" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="&quot;Massachusetts Institute of Technology, Sc.D. 1963&quot;" number="5" tag="PATIENT-3" type="name">MIT in 1963</reference>
+					<reference entity="Apollo_11" number="6" tag="BRIDGE-1" type="name">Apollo 11</reference>
+					<reference entity="NASA" number="7" tag="PATIENT-5" type="name">NASA</reference>
+					<reference entity="William_Anders" number="8" tag="PATIENT-4" type="name">William Anders</reference>
+				</references>
+				<text>Buzz Aldrin was born on 20th January 1930 in Glen Ridge New Jersey. He graduated from MIT in 1963 and was a member of the Apollo 11 crew, operated by NASA. The back up pilot was William Anders.</text>
+				<template>AGENT-1 was born on PATIENT-2 in PATIENT-1 . AGENT-1 graduated from PATIENT-3 and was a member of the BRIDGE-1 crew , operated by PATIENT-5 . The back up pilot was PATIENT-4 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear on PATIENT-2 in PATIENT-1 . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] graduate from PATIENT-3 and VP[aspect=simple,tense=past,voice=active,person=null,number=singular] be DT[form=undefined] a member of DT[form=defined] the BRIDGE-1 crew , VP[aspect=simple,tense=past,voice=active,person=null,number=null] operate by PATIENT-5 . DT[form=defined] the back up pilot VP[aspect=simple,tense=past,voice=active,person=null,number=singular] be PATIENT-4 .</lexicalization>
+			</lex>
+			<lex comment="good" lid="Id2">
+				<sortedtripleset>
+					<sentence ID="1">
+						<striple>Buzz_Aldrin | birthDate | "1930-01-20"</striple>
+						<striple>Buzz_Aldrin | birthPlace | Glen_Ridge,_New_Jersey</striple>
+					</sentence>
+					<sentence ID="2">
+						<striple>Buzz_Aldrin | almaMater | "Massachusetts Institute of Technology, Sc.D. 1963"</striple>
+						<striple>Buzz_Aldrin | was a crew member of | Apollo_11</striple>
+						<striple>Apollo_11 | operator | NASA</striple>
+						<striple>Apollo_11 | backup pilot | William_Anders</striple>
+					</sentence>
+				</sortedtripleset>
+				<references>
+					<reference entity="Buzz_Aldrin" number="1" tag="AGENT-1" type="name">Buzz Aldrin</reference>
+					<reference entity="&quot;1930-01-20&quot;" number="2" tag="PATIENT-2" type="name">January 20 , 1930</reference>
+					<reference entity="Glen_Ridge,_New_Jersey" number="3" tag="PATIENT-1" type="name">Glen Ridge , New Jersey</reference>
+					<reference entity="Buzz_Aldrin" number="4" tag="AGENT-1" type="pronoun">He</reference>
+					<reference entity="&quot;Massachusetts Institute of Technology, Sc.D. 1963&quot;" number="5" tag="PATIENT-3" type="name">M.I.T . with a Sc.D in 1963</reference>
+					<reference entity="NASA" number="6" tag="PATIENT-5" type="name">NASA 's</reference>
+					<reference entity="Apollo_11" number="7" tag="BRIDGE-1" type="name">Apollo 11</reference>
+					<reference entity="William_Anders" number="8" tag="PATIENT-4" type="name">William Anders</reference>
+					<reference entity="Apollo_11" number="9" tag="BRIDGE-1" type="description">the same mission</reference>
+				</references>
+				<text>Buzz Aldrin was born January 20, 1930 in Glen Ridge, New Jersey. He graduated from M.I.T. with a Sc.D in 1963, and served as a crew member aboard NASA's @ Apollo 11, William Anders was a backup pilot on the same mission.</text>
+				<template>AGENT-1 was born PATIENT-2 in PATIENT-1 . AGENT-1 graduated from PATIENT-3 , and served as a crew member aboard PATIENT-5 @ BRIDGE-1 , PATIENT-4 was a backup pilot on BRIDGE-1 .</template>
+				<lexicalization>AGENT-1 VP[aspect=simple,tense=past,voice=passive,person=null,number=singular] bear PATIENT-2 in PATIENT-1 . AGENT-1 VP[aspect=simple,tense=past,voice=active,person=null,number=null] graduate from PATIENT-3 , and VP[aspect=simple,tense=past,voice=active,person=null,number=null] serve as DT[form=undefined] a crew member aboard PATIENT-5 BRIDGE-1 , PATIENT-4 VP[aspect=simple,tense=past,voice=active,person=null,number=singular] be DT[form=undefined] a backup pilot on BRIDGE-1 .</lexicalization>
+			</lex>
+			<entitymap>
+				<entity>AGENT-1 | Buzz_Aldrin</entity>
+				<entity>BRIDGE-1 | Apollo_11</entity>
+				<entity>PATIENT-1 | Glen_Ridge,_New_Jersey</entity>
+				<entity>PATIENT-2 | "1930-01-20"</entity>
+				<entity>PATIENT-3 | "Massachusetts Institute of Technology, Sc.D. 1963"</entity>
+				<entity>PATIENT-4 | William_Anders</entity>
+				<entity>PATIENT-5 | NASA</entity>
+			</entitymap>
+		</entry>
+		</entries>
+</benchmark>

@@ -1,0 +1,70 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>April_O'Neil | creators | Peter_Laird</otriple>
+        <otriple>Peter_Laird | nationality | United_States</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Peter_Laird | nationality | United_States</otriple>
+        <otriple>April_O'Neil | creator | Peter_Laird</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>April_O'Neil | creator | Peter_Laird</mtriple>
+        <mtriple>Peter_Laird | nationality | United_States</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">April O'Neil was created by Peter Laird, from the US.</lex>
+      <lex comment="good" lid="Id2">The character, April O'Neil, was created by Peter Laird, a United States national.</lex>
+      <lex comment="good" lid="Id3">April O'Neil was created by the American Peter Laird.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>Bananaman | starring | Jill_Shilling</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>Bananaman | starring | Jill_Shilling</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman, starring Jill Shilling, is broadcasted by the BBC.</lex>
+      <lex comment="good" lid="Id2">Bananaman was broadcast by the BBC and starred Jill Shilling.</lex>
+      </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Bananaman | starring | Graeme_Garden</otriple>
+        <otriple>Bananaman | network | "STV"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | starring | Graeme_Garden</mtriple>
+        <mtriple>Bananaman | broadcastedBy | "STV"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Graeme Garden stars in Bananaman, which is broadcast by STV.</lex>
+      <lex comment="good" lid="Id2">Bananaman stars Graeme Garden, and is broadcasted by STV.</lex>
+      <lex comment="good" lid="Id3">Graeme Garden stars in Bananaman which is broadcasted by STV.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Bananaman | starring | Tim_Brooke-Taylor</otriple>
+        <otriple>Tim_Brooke-Taylor | birthPlace | Derbyshire</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | starring | Tim_Brooke-Taylor</mtriple>
+        <mtriple>Tim_Brooke-Taylor | birthPlace | Derbyshire</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Tim Brooke-Taylor, star of Bananaman was born in Derbyshire.</lex>
+      <lex comment="good" lid="Id2">Tim Brooke Taylor, was born in Derbyshire, and starred in Bananaman.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X (X)))" shape_type="chain" size="2">
+      <originaltripleset>
+        <otriple>Baymax | first | Big_Hero_6_(film)</otriple>
+        <otriple>Big_Hero_6_(film) | starring | Alan_Tudyk</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Baymax | firstAppearanceInFilm | Big_Hero_6_(film)</mtriple>
+        <mtriple>Big_Hero_6_(film) | starring | Alan_Tudyk</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Big Hero 6, starring Alan Tudyk, was Baymax's first film appearance.</lex>
+      <lex comment="good" lid="Id2">Baymax first appeared in the film Big Hero 6, starring Alan Tudyk.</lex>
+    </entry>
+    </entries>
+</benchmark>

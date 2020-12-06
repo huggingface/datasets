@@ -1,0 +1,89 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | George_Kapitan</otriple>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+        <otriple>Airman_(comics) | creators | George_Kapitan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | alternativeName | "Drake Stevens"</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | George_Kapitan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">George Kapitan created the comic character Airman whose alter ego is Drake Stevens.</lex>
+      <lex comment="good" lid="Id2">"Drake Stevens, known as Airman, was created by George Kapitan.</lex>
+      <lex comment="good" lid="Id3">George Kapitan is the creator of the comic character "Airman" or otherwise known as "Drake Stevens".</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+        <otriple>Airman_(comics) | creators | Harry_Sahle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | Harry_Sahle</otriple>
+        <otriple>Airman_(comics) | alterEgo | "Drake Stevens"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | alternativeName | "Drake Stevens"</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | Harry_Sahle</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The comic book character Airman, AKA Drake Stephens, was created by Harry Sahle.</lex>
+      <lex comment="good" lid="Id2">Drake Stevens is known as the comic character Airman, which was created by Harry Sahle.</lex>
+      <lex comment="good" lid="Id3">The comic character Airman, who has the alternative name Drake Stevens, was created by Harry Sahle.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | George_Kapitan</otriple>
+        <otriple>Airman_(comics) | creators | Harry_Sahle</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Airman_(comics) | creator | Harry_Sahle</otriple>
+        <otriple>Airman_(comics) | creators | George_Kapitan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Airman_(comicsCharacter) | creator | Harry_Sahle</mtriple>
+        <mtriple>Airman_(comicsCharacter) | creator | George_Kapitan</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The creators of the comic character Airman were Harry Sahle and George Kapitan.</lex>
+      <lex comment="good" lid="Id2">The comic book character Airman was created by both Harry Sahle and George Kapitan.</lex>
+      <lex comment="good" lid="Id3">The creators of the comic book character Airman were Harry Sahle and George Kapitan.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | creators | Bill_Everett</otriple>
+        <otriple>Amazing-Man_(Centaur_Publications) | alterEgo | "John Aman"@en</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Amazing-Man_(Centaur_Publications) | creator | Bill_Everett</otriple>
+        <otriple>Amazing-Man_(Centaur_Publications) | alterEgo | "John Aman"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Amazing-Man_(comicsCharacter) | creator | Bill_Everett</mtriple>
+        <mtriple>Amazing-Man_(comicsCharacter) | alternativeName | "John Aman"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">John Aman (created by Bill Everett) is also known as Amazing-Man in the comics genre.</lex>
+      <lex comment="good" lid="Id2">Bill Everett is the creator of the comic character, Amazing-Man who has the alternative name, John Aman.</lex>
+      <lex comment="good" lid="Id3">The comic book character Amazing-Man's alter ego is John Aman and it was created by Bill Everett.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X) (X))" shape_type="sibling" size="2">
+      <originaltripleset>
+        <otriple>April_O'Neil | creators | Peter_Laird</otriple>
+        <otriple>April_O'Neil | creator | Kevin_Eastman</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>April_O'Neil | creator | Peter_Laird</otriple>
+        <otriple>April_O'Neil | creators | Kevin_Eastman</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>April_O'Neil | creator | Peter_Laird</mtriple>
+        <mtriple>April_O'Neil | creator | Kevin_Eastman</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The character April O'Neil was created by Peter Laird and Kevin Eastman.</lex>
+      <lex comment="good" lid="Id2">April O'Neil was created by Kevin Eastman and Peter Laird.</lex>
+      <lex comment="good" lid="Id3">Peter Laird and Kevin Eastman, created the character, April O'Neil.</lex>
+    </entry>
+    </entries>
+</benchmark>

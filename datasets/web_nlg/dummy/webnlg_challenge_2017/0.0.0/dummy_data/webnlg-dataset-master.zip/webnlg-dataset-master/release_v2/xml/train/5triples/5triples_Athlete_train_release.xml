@@ -1,0 +1,99 @@
+<benchmark>
+  <entries>
+    <entry category="Athlete" eid="Id1" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | team | Italy_national_under-16_football_team</otriple>
+        <otriple>Alessio_Romagnoli | position | Defender_(association_football)</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | club | Italy_national_under-16_football_team</mtriple>
+        <mtriple>Alessio_Romagnoli | position | Defender_(football)</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Defender and under 16 Italy international footballer Alessio Romagnoli plays for the Serie A side AC Milan, which is managed by Siniša Mihajlović.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli previously played for the Italian national under 16 football team where he was one of the defenders. He now plays for in Serie A for A C Milan who are managed by Sinisa Mihajlovic.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is a defender and played in the Italy national under 16's football team. He also in the Serie A league for AC Milan who are managed by Sinisa Mihajlovic.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id2" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | position | Defender_(association_football)</otriple>
+        <otriple>Alessio_Romagnoli | team | Italy_national_under-17_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | position | Defender_(football)</mtriple>
+        <mtriple>Alessio_Romagnoli | club | Italy_national_under-17_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">AC Milan, playing in Seria A, is managed by Sinisa Mihajlovic, and has players like Alessio Ramgnoli, who also plays as a defender for the italian national under 17 team.</lex>
+      <lex comment="good" lid="Id2">Alessio Romagnoli is a defender in the Italy national under-17 football team. He also plays in Serie A with AC Milan who are managed by Sinisa Mihajlovic.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli is a member of the Italian national under 17 football team. He also plays as a defender in the Serie A League with AC Milan who are managed by Sinisa Mihajlovic.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id3" shape="(X (X) (X) (X (X) (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>A.C._Milan | league | Serie_A</otriple>
+        <otriple>Alessio_Romagnoli | clubs | A.C._Milan</otriple>
+        <otriple>A.C._Milan | manager | Siniša_Mihajlović</otriple>
+        <otriple>Alessio_Romagnoli | position | Defender_(association_football)</otriple>
+        <otriple>Alessio_Romagnoli | team | Italy_national_under-19_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>A.C._Milan | league | Serie_A</mtriple>
+        <mtriple>Alessio_Romagnoli | club | A.C._Milan</mtriple>
+        <mtriple>A.C._Milan | manager | Siniša_Mihajlović</mtriple>
+        <mtriple>Alessio_Romagnoli | position | Defender_(football)</mtriple>
+        <mtriple>Alessio_Romagnoli | club | Italy_national_under-19_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Alessio Romagnoli is a defence player in the A.C. Milan club Serie A. whose manager is Siniša Mihajlović. Mr. Romagnoli also played for the Italy national under 19 football team.</lex>
+      <lex comment="good" lid="Id2">Defender Alessio Romagnoli, who has represented the Italy national football team at Under 19 level, plays for the Serie A side A.C. Milan, which is managed by Siniša Mihajlović.</lex>
+      <lex comment="good" lid="Id3">Alessio Romagnoli who used to play for the Italy national under - 19 football team, is currently a defender for the A.C. Milan football club which plays in Serie A. Sinisa Mihajlovic is the manager of A.C. Milan.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id4" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abel_Hernández | team | Peñarol</otriple>
+        <otriple>Central_Español | league | Uruguayan_Segunda_División</otriple>
+        <otriple>Abel_Hernández | youthclubs | Central_Español</otriple>
+        <otriple>Peñarol | manager | Jorge_Orosmán_da_Silva</otriple>
+        <otriple>Abel_Hernández | clubs | U.S._Città_di_Palermo</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | club | Peñarol</mtriple>
+        <mtriple>Central_Español | league | Uruguayan_Segunda_División</mtriple>
+        <mtriple>Abel_Hernández | youthclub | Central_Español</mtriple>
+        <mtriple>Peñarol | manager | Jorge_Orosmán_da_Silva</mtriple>
+        <mtriple>Abel_Hernández | club | U.S._Città_di_Palermo</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez plays for U.S. Città di Palermo and belongs to the Central Espanol youth team. He has played for Penarol, managed by Jorge Orosmán da Silva.</lex>
+      <lex comment="good" lid="Id2">Abel Hernández has played for Central Español (in the Uruguayan Segunda División) and Penarol (managed by Jorge Orosmán da Silva). Hernandez plays for U.S. Città di Palermo.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández played youth football for Central Español, whose main team play in the Uruguayan Segunda Division. His current clubs are Penarol, managed by Jorge Orosman da Silva, and US Citta di Palermo.</lex>
+    </entry>
+    <entry category="Athlete" eid="Id5" shape="(X (X) (X (X)) (X (X)))" shape_type="mixed" size="5">
+      <originaltripleset>
+        <otriple>Abel_Hernández | youthclubs | Peñarol</otriple>
+        <otriple>Abel_Hernández | clubs | Central_Español</otriple>
+        <otriple>Central_Español | league | Uruguayan_Segunda_División</otriple>
+        <otriple>Peñarol | manager | Jorge_Orosmán_da_Silva</otriple>
+        <otriple>Abel_Hernández | team | Uruguay_Olympic_football_team</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Abel_Hernández | youthclub | Peñarol</mtriple>
+        <mtriple>Abel_Hernández | club | Central_Español</mtriple>
+        <mtriple>Central_Español | league | Uruguayan_Segunda_División</mtriple>
+        <mtriple>Peñarol | manager | Jorge_Orosmán_da_Silva</mtriple>
+        <mtriple>Abel_Hernández | club | Uruguay_Olympic_football_team</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Abel Hernandez, who is in the Uruguay Olympic football team, played for Penarol (managed by Jorge Orosman da Silva) in his youth. His current club is Central Espanol who play in the Uruguayan Segunda División league.</lex>
+      <lex comment="good" lid="Id2">Penarol are managed by Jorge Orosman da Silva and Abel Hernandez is a member of their youth team. He also plays for the Uruguay Olympic football team and he plays in the Uruguayan Segunda Division with Central Espanol.</lex>
+      <lex comment="good" lid="Id3">Abel Hernández was a member of youth club Peñarol that saw Jorge Orosmán da Silva as its manager. Abel Hernandez is in the Uruguay Olympic football team and played for Central Español part of the Uruguayan Segunda División league.</lex>
+    </entry>
+    </entries>
+</benchmark>

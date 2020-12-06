@@ -1,0 +1,98 @@
+<benchmark>
+  <entries>
+    <entry category="ComicsCharacter" eid="Id1" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>Bananaman | creator | John_Geering</otriple>
+        <otriple>Bananaman | starring | Graeme_Garden</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | lastAired | "1986-04-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>Bananaman | creator | John_Geering</mtriple>
+        <mtriple>Bananaman | starring | Graeme_Garden</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | lastAired | "1986-04-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman first aired on the BBC on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. Bananaman last aired on 15th April 1986. Graeme Garden is one of the stars of the series which was created by John Geering.</lex>
+      <lex comment="good" lid="Id2">Bananaman first aired on the BBC on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. The fictional comic superhero Bananaman was created by John Geering and stars Graeme Garden.</lex>
+      <lex comment="good" lid="Id3">Bananaman first aired on the BBC on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. Graeme Garden was one of the stars on the series which was created by John Geering.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id2" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>Bananaman | creator | "Steve Bright"@en</otriple>
+        <otriple>Bananaman | starring | Bill_Oddie</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | lastAired | "1986-04-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>Bananaman | creator | Steve_Bright</mtriple>
+        <mtriple>Bananaman | starring | Bill_Oddie</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | lastAired | "1986-04-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman first aired on the BBC on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. Steve Bright created the series which starred Bill Oddie.</lex>
+      <lex comment="good" lid="Id2">Bananaman was shown by the BBC and aired between 3 October 1985 and 15 April 1986. It was created by Steve Bright and starred Bill Oddie.</lex>
+      <lex comment="good" lid="Id3">Bananaman was the TV series shown by the BBC between 3 October 1983 and 15 April 1986. It was created by Steve Bright and starred Bill Oddie.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id3" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>Bananaman | creator | "Steve Bright"@en</otriple>
+        <otriple>Bananaman | starring | Graeme_Garden</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | lastAired | "1986-04-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>Bananaman | creator | Steve_Bright</mtriple>
+        <mtriple>Bananaman | starring | Graeme_Garden</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | lastAired | "1986-04-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman first aired on the BBC 10/03/1983 and its last broadcast was 15th April 1986. The creator of Bananaman is Steve Bright and the show stars Graeme Garden.</lex>
+      <lex comment="good" lid="Id2">Bananaman first aired on the BBC on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. It was created by Steve Bright and stars Graeme Garden.</lex>
+      </entry>
+    <entry category="ComicsCharacter" eid="Id4" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Bananaman | network | BBC</otriple>
+        <otriple>Bananaman | starring | Jill_Shilling</otriple>
+        <otriple>Bananaman | creator | "Steve Bright"@en</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | lastAired | "1986-04-15"^^xsd:date</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | broadcastedBy | BBC</mtriple>
+        <mtriple>Bananaman | starring | Jill_Shilling</mtriple>
+        <mtriple>Bananaman | creator | Steve_Bright</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | lastAired | "1986-04-15"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">The BBC aired the TV series of Bananaman between 3 October 1983 and 15 April 1986. It was created by Steve Bright and starred Jill Shilling.</lex>
+      <lex comment="good" lid="Id2">Bananaman began airing on the BBC on 10/03/1983 and its last broadcast was April 15th, 1986. The creator of Bananaman is Steve Bright and among its stars are Jill Shilling.</lex>
+      <lex comment="good" lid="Id3">Bananaman was broadcast by the BBC, airing between 3 October 1983 and 15 April 1986. It was created by Steve Bright and starred Jill Shilling.</lex>
+    </entry>
+    <entry category="ComicsCharacter" eid="Id5" shape="(X (X) (X) (X) (X) (X))" shape_type="sibling" size="5">
+      <originaltripleset>
+        <otriple>Bananaman | creator | John_Geering</otriple>
+        <otriple>Bananaman | starring | Graeme_Garden</otriple>
+        <otriple>Bananaman | firstAired | "1983-10-03"^^xsd:date</otriple>
+        <otriple>Bananaman | lastAired | "1986-04-15"^^xsd:date</otriple>
+        <otriple>Bananaman | network | "STV"@en</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Bananaman | creator | John_Geering</mtriple>
+        <mtriple>Bananaman | starring | Graeme_Garden</mtriple>
+        <mtriple>Bananaman | firstAired | "1983-10-03"</mtriple>
+        <mtriple>Bananaman | lastAired | "1986-04-15"</mtriple>
+        <mtriple>Bananaman | broadcastedBy | "STV"</mtriple>
+      </modifiedtripleset>
+      <lex comment="good" lid="Id1">Bananaman first aired on STV on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. The series, which was created by John Geering, stars Graeme Garden.</lex>
+      <lex comment="good" lid="Id2">The TV character Bananaman was created by John Geering. The programme was broadcast by STV and starred Graeme Garden. Bananaman was first shown on 10th March 1983 and last aired on 15th April 1986.</lex>
+      <lex comment="good" lid="Id3">Bananaman first aired on STV on October 3rd, 1983 and broadcast its last episode on April 15th, 1986. John Geering created the series which stars Graeme Garden.</lex>
+    </entry>
+    </entries>
+</benchmark>

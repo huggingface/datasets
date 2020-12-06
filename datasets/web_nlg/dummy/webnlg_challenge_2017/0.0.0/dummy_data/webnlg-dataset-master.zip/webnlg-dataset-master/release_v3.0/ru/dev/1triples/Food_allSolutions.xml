@@ -1,0 +1,98 @@
+<benchmark>
+  <entries>
+    <entry category="Food" eid="Id1" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Singapore | currency | Singapore_dollar</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Singapore | currency | Singapore_dollar</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The currency of Singapore is the Singapore dollar.</lex>
+      <lex lang="ru" lid="Id1">Валютой Сингапура является Сингапурский доллар.</lex>
+      <lex lang="en" lid="Id2">Singapore dollar is the currency in Singapore.</lex>
+      <lex lang="ru" lid="Id2">Сингапурский доллар - это валюта в Сингапуре.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Singapore_dollar | sameAs | Сингапурский_доллар</dbpedialink>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id2" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Singapore | language | English_language</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Singapore | language | English_language</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The English language is spoken in Singapore.</lex>
+      <lex lang="ru" lid="Id1">В Сингапуре говорят на английском языке.</lex>
+      <lex lang="en" lid="Id2">One of the languages spoken in Singapore is English.</lex>
+      <lex lang="ru" lid="Id2">Одним из языков, на которых говорят в Сингапуре, является английский.</lex>
+      <lex lang="en" lid="Id3">English is spoken in Singapore.</lex>
+      <lex lang="ru" lid="Id3">В Сингапуре говорят по-английски.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">English_language | sameAs | Английский_язык</dbpedialink>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id3" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Singapore | language | Standard_Chinese</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Singapore | language | Standard_Chinese</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Standard Chinese is a language spoken in Singapore.</lex>
+      <lex lang="ru" lid="Id1">Путунхуа — это язык, на котором говорят в Сингапуре.</lex>
+      <lex lang="en" lid="Id2">Standard Chinese is spoken in Singapore.</lex>
+      <lex lang="ru" lid="Id2">В Сингапуре говорят на путунхуа.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+        <dbpedialink direction="en2ru">Standard_Chinese | sameAs | Путунхуа</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    <entry category="Food" eid="Id4" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Singapore | leader | Halimah_Yacob</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Singapore | leaderName | Halimah_Yacob</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Singapore | leader | Halimah_Yacob</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">Halimah Yacob is a leader of Singapore.</lex>
+      <lex lang="ru" lid="Id1">Якоб Халима – лидер Сингапура.</lex>
+      <lex lang="en" lid="Id2">Halimah Yacob is the name of Singapore's leader.</lex>
+      <lex lang="ru" lid="Id2">Якоб Халима - имя лидера Сингапура.</lex>
+      <lex lang="en" lid="Id3">Halimah Yacob leads Singapore.</lex>
+      <lex lang="ru" lid="Id3">Якоб Халима возглавляет Сингапур.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+      </dbpedialinks>
+      <links>
+        <link direction="en2ru">Halimah Yacob | sameAs | Якоб Халима</link>
+      </links>
+    </entry>
+    <entry category="Food" eid="Id5" shape="(X (X))" shape_type="NA" size="1">
+      <originaltripleset>
+        <otriple>Singapore | leader | Tony_Tan</otriple>
+      </originaltripleset>
+      <originaltripleset>
+        <otriple>Singapore | leaderName | Tony_Tan</otriple>
+      </originaltripleset>
+      <modifiedtripleset>
+        <mtriple>Singapore | leader | Tony_Tan</mtriple>
+      </modifiedtripleset>
+      <lex lang="en" lid="Id1">The leader of Singapore is Tony Tan.</lex>
+      <lex lang="ru" lid="Id1">Лидером Сингапура является Тони Тан.</lex>
+      <lex lang="en" lid="Id2">Tony Tan is a leader in Singapore.</lex>
+      <lex lang="ru" lid="Id2">Тони Тан - лидер в Сингапуре.</lex>
+      <lex lang="en" lid="Id3">Tony Tan is the leader of Singapore.</lex>
+      <lex lang="ru" lid="Id3">Тони Тан - лидер Сингапура.</lex>
+      <dbpedialinks>
+        <dbpedialink direction="en2ru">Tony_Tan | sameAs | Тони_Тан</dbpedialink>
+        <dbpedialink direction="en2ru">Singapore | sameAs | Сингапур</dbpedialink>
+      </dbpedialinks>
+    </entry>
+    </entries>
+</benchmark>
