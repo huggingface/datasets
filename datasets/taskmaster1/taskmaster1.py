@@ -30,11 +30,11 @@ year	= {2019}
 """
 
 _DESCRIPTION = """\
-Taskmaster-1:Toward a Realistic and Diverse Dialog Dataset) is an evaluation set for commonsense \
-question-answering in the sentence completion style of SWAG. As opposed to other automatically \
-generated NLI datasets, CODAH is adversarially constructed by humans who can view feedback \
-from a pre-trained model and use this information to design challenging commonsense questions. \
-Our experimental results show that CODAH questions present a complementary extension to the SWAG dataset, testing additional modes of common sense.
+Taskmaster-1 is a  goal-oriented conversational dataset. It includes 13,215 task-based \
+dialogs comprising six domains. Two procedures were used to create this collection, \
+each with unique advantages. The first involves a two-person, spoken "Wizard of Oz" (WOz) approach \
+in which trained agents and crowdsourced workers interact to complete the task while the second is \
+"self-dialog" in which crowdsourced workers write the entire dialog themselves.
 """
 
 _HOMEPAGE = "https://github.com/google-research-datasets/Taskmaster"
