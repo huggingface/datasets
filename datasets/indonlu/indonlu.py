@@ -26,8 +26,6 @@ import six
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _INDONLU_CITATION = """\
 @inproceedings{wilie2020indonlu,
 title = {{IndoNLU}: Benchmark and Resources for Evaluating Indonesian Natural Language Understanding},
@@ -37,25 +35,14 @@ year={2020}
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _INDONLU_DESCRIPTION = """\
 The IndoNLU benchmark is a collection of resources for training, evaluating, \
 and analyzing natural language understanding systems for Bahasa Indonesia.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _INDONLU_HOMEPAGE = "https://www.indobenchmark.com/"
 
-# TODO: Add the licence for the dataset here if you can find it
 _INDONLU_LICENSE = "https://raw.githubusercontent.com/indobenchmark/indonlu/master/LICENSE"
-
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS = {
-
-}
 
 
 class IndoNluConfig(datasets.BuilderConfig):
@@ -72,10 +59,19 @@ class IndoNluConfig(datasets.BuilderConfig):
         citation,
         **kwargs,
     ):
-        """BuilderConfig for IndoNLU
+        """BuilderConfig for IndoNLU.
 
         Args:
+          text_features: `dict[string, string]`, map from the name of the feature 
+            dict for each text field to the name of the column in the txt/csv/tsv file
+          label_column: `string`, name of the column in the txt/csv/tsv file corresponding
+            to the label
+          label_classes: `list[string]`, the list of classes if the label is categorical
+          train_url: `string`, url to train file from
+          valid_url: `string`, url to valid file from
+          test_url: `string`, url to test file from
           citation: `string`, citation for the data set
+          **kwargs: keyword arguments forwarded to super.
         """
         super(IndoNluConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
@@ -161,7 +157,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["negative", "neutral", "positive"],
-            label_column=['fuel', 'machine', 'others', 'part', 'price', 'service'],
+            label_column=["fuel", "machine", "others", "part", "price", "service"],
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/train_preprocess.csv",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/valid_preprocess.csv",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/test_preprocess_masked_label.csv",
@@ -191,7 +187,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["neg", "neut", "pos", "neg_pos"],
-            label_column=['ac', 'air_panas', 'bau', 'general', 'kebersihan', 'linen', 'service', 'sunrise_meal', 'tv', 'wifi'],
+            label_column=["ac", "air_panas", "bau", "general", "kebersihan", "linen", "service", "sunrise_meal", "tv", "wifi"],
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/train_preprocess.csv",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/valid_preprocess.csv",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/test_preprocess_masked_label.csv",
@@ -273,7 +269,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=['B-PR', 'B-CD', 'I-PR', 'B-SYM', 'B-JJ', 'B-DT', 'I-UH', 'I-NND', 'B-SC', 'I-WH', 'I-IN', 'I-NNP', 'I-VB', 'B-IN', 'B-NND', 'I-CD', 'I-JJ', 'I-X', 'B-OD', 'B-RP', 'B-RB', 'B-NNP', 'I-RB', 'I-Z', 'B-CC', 'B-NEG', 'B-VB', 'B-NN', 'B-MD', 'B-UH', 'I-NN', 'B-PRP', 'I-SC', 'B-Z', 'I-PRP', 'I-OD', 'I-SYM', 'B-WH', 'B-FW', 'I-CC', 'B-X'],
+            label_classes=["B-PR", "B-CD", "I-PR", "B-SYM", "B-JJ", "B-DT", "I-UH", "I-NND", "B-SC", "I-WH", "I-IN", "I-NNP", "I-VB", "B-IN", "B-NND", "I-CD", "I-JJ", "I-X", "B-OD", "B-RP", "B-RB", "B-NNP", "I-RB", "I-Z", "B-CC", "B-NEG", "B-VB", "B-NN", "B-MD", "B-UH", "I-NN", "B-PRP", "I-SC", "B-Z", "I-PRP", "I-OD", "I-SYM", "B-WH", "B-FW", "I-CC", "B-X"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/valid_preprocess.txt",
@@ -369,7 +365,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=['I-PERSON', 'B-ORGANISATION', 'I-ORGANISATION', 'B-PLACE', 'I-PLACE', 'O', 'B-PERSON'],
+            label_classes=["I-PERSON", "B-ORGANISATION", "I-ORGANISATION", "B-PLACE", "I-PLACE", "O", "B-PERSON"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nergrit_ner-grit/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nergrit_ner-grit/valid_preprocess.txt",
@@ -394,7 +390,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=['I-PPL', 'B-EVT', 'B-PLC', 'I-IND', 'B-IND', 'B-FNB', 'I-EVT', 'B-PPL', 'I-PLC', 'O', 'I-FNB'],
+            label_classes=["I-PPL", "B-EVT", "B-PLC", "I-IND", "B-IND", "B-FNB", "I-EVT", "B-PPL", "I-PLC", "O", "I-FNB"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/valid_preprocess.txt",
@@ -444,7 +440,6 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp", "facqa"]
         
         if self.config.name in sentence_features:
@@ -470,12 +465,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
+        
         train_path = dl_manager.download_and_extract(self.config.train_url)
         valid_path = dl_manager.download_and_extract(self.config.valid_url)
         test_path = dl_manager.download_and_extract(self.config.test_url)
