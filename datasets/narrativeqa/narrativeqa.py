@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
 import os
 
 import datasets
@@ -58,8 +57,16 @@ class NarrativeQa(datasets.GeneratorBasedBuilder):
                         },
                         "text": datasets.Value("string"),
                     },
-                    "question": {"text": datasets.Value("string"), "tokens": datasets.features.Sequence(datasets.Value("string"))},
-                    "answers": [{"text": datasets.Value("string"), "tokens": datasets.features.Sequence(datasets.Value("string"))}],
+                    "question": {
+                        "text": datasets.Value("string"),
+                        "tokens": datasets.features.Sequence(datasets.Value("string")),
+                    },
+                    "answers": [
+                        {
+                            "text": datasets.Value("string"),
+                            "tokens": datasets.features.Sequence(datasets.Value("string")),
+                        }
+                    ],
                 }
             ),
             homepage="https://github.com/deepmind/narrativeqa",
@@ -83,7 +90,7 @@ class NarrativeQa(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={"repo_dir": dl_dir["repo"], "full_text_dir": dl_dir["full_text"], "split": "valid"},
-            )
+            ),
         ]
 
     def _generate_examples(self, repo_dir, full_text_dir, split):
