@@ -209,7 +209,7 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
             total_words = open_and_read(os.path.join(folder, "total_words"))[0]
 
             if split in ["train", "dev"]:
-                with open(os.path.join(folder, "annotations.tsv")) as f:
+                with open(os.path.join(folder, "annotations.tsv"), encoding="utf-8") as f:
                     reader = csv.DictReader(f, delimiter="\t")
                     annotations = [
                         {
@@ -222,7 +222,7 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
                         }
                         for row in reader
                     ]
-                with open(os.path.join(folder, "token_annotations.tsv")) as f:
+                with open(os.path.join(folder, "token_annotations.tsv"), encoding="utf-8") as f:
                     reader = csv.DictReader(f, delimiter="\t")
                     token_annotations = [
                         {
