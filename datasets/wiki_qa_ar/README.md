@@ -72,7 +72,12 @@ Each data point contains the question and whether the answer is a valid or not.
 
 ### Data Fields
 
-[More Information Needed]
+- `question_id`: the question id.
+- `question`: the question text.
+- `document_id`: the wikipedia document id.
+- `answer_id` : the answer id.
+- `answer` : a candidate answer to the question. 
+- `label` : 1 if the `answer` is correct or 0 otherwise. 
 
 ### Data Splits
 
