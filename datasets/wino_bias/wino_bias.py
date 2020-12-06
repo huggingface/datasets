@@ -16,6 +16,11 @@
 
 from __future__ import absolute_import, division, print_function
 
+<<<<<<< HEAD
+=======
+import csv
+import json
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
 import os
 
 import datasets
@@ -42,7 +47,11 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
+<<<<<<< HEAD
 WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.
+=======
+WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias. 
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
 The corpus contains Winograd-schema style sentences with entities corresponding to people
 referred by their occupation (e.g. the nurse, the doctor, the carpenter).
 """
@@ -53,7 +62,10 @@ _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENS
 
 _URL = "https://drive.google.com/uc?export=download&confirm=yLNb&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0"
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
 class WinoBias(datasets.GeneratorBasedBuilder):
     """WinoBias: Winograd-schema dataset for detecting gender bias"""
 
@@ -71,11 +83,15 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
+<<<<<<< HEAD
         datasets.BuilderConfig(
             name="wino_bias",
             version=VERSION,
             description="WinoBias: Winograd-schema dataset for detecting gender bias",
         ),
+=======
+        datasets.BuilderConfig(name="wino_bias", version=VERSION, description="WinoBias: Winograd-schema dataset for detecting gender bias"),
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
     ]
 
     @property
@@ -86,13 +102,23 @@ class WinoBias(datasets.GeneratorBasedBuilder):
              can be used to load the dataset via `datasets.load_dataset("wino_bias", data_dir="<path/to/folder>").
             """
 
+<<<<<<< HEAD
     def _info(self):
+=======
+
+    def _info(self):
+        
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
             # Info about features for this: http://cemantix.org/data/ontonotes.html
+<<<<<<< HEAD
             features=datasets.Features(
+=======
+            features= datasets.Features(
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
                 {
                     "document_id": datasets.Value("string"),
                     "part_number": datasets.Value("string"),
@@ -154,7 +180,11 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "AFX",
                                 "ADD",
                                 "-LRB-",
+<<<<<<< HEAD
                                 "-RRB-",
+=======
+                                "-RRB-"
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
                             ]
                         )
                     ),
@@ -203,11 +233,19 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "B-CARDINAL",
                                 "I-CARDINAL",
                                 "*",
+<<<<<<< HEAD
                                 "0",
                             ]
                         )
                     ),
                     "verbal_predicates": datasets.Sequence(datasets.Value("string")),
+=======
+                                "0"
+                            ]
+                        )
+                    ),
+                    "verbal_predicates": datasets.Sequence(datasets.Value("string"))
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
                 }
             ),
             supervised_keys=None,
@@ -232,7 +270,13 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
+<<<<<<< HEAD
                 gen_kwargs={"filepath": os.path.join(data_dir, "anonymized.augmented.train.english.v4_auto_conll")},
+=======
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "anonymized.augmented.train.english.v4_auto_conll")
+                },
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
             )
         ]
 
@@ -254,9 +298,15 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             ner_start = False
             verbal_predicates = []
             for line in f:
+<<<<<<< HEAD
                 if line.startswith("#begin") or line.startswith("#end"):
                     continue
                 elif line == "" or line == "\n":
+=======
+                if line.startswith("#begin") or line.startswith("#end"): 
+                    continue
+                elif line == "" or line == "\n":  
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
                     id_ += 1
                     yield str(id_), {
                         "document_id": document_id,
@@ -270,7 +320,11 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         "word_sense": word_sense,
                         "speaker": speaker,
                         "ner_tags": ner_tags,
+<<<<<<< HEAD
                         "verbal_predicates": verbal_predicates,
+=======
+                        "verbal_predicates": verbal_predicates
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
                     }
                     word_num = []
                     tokens = []
@@ -296,6 +350,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         word_sense.append(splits[8])
                         speaker.append(splits[9])
                         ner_word = splits[10]
+<<<<<<< HEAD
                         if ")" in ner_word and ner_start:
                             ner_start = False
                             ner_word = "0"
@@ -306,7 +361,23 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         if ner_start:
                             if ner_word.strip(" ") == "*":
                                 ner_word = "I-" + start_word
+=======
+                        if ')' in ner_word and ner_start:
+                            ner_start = False
+                            ner_word = '0'
+                        if '(' in ner_word:
+                            ner_start = True
+                            ner_word = ner_word.strip(' ').replace('(', 'B-').replace('*', '').replace(')', '')
+                            start_word = ner_word.strip(' ').replace('B-', '')
+                        if ner_start:
+                            if ner_word.strip(' ') == '*':
+                                ner_word = 'I-' + start_word
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
                         ner_tags.append(ner_word)
                         word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
                         if word_is_verbal_predicate:
                             verbal_predicates.append(splits[3])
+<<<<<<< HEAD
+=======
+                
+>>>>>>> 5223ce0cd63ee1a7e46cb67b1013764e78768748
