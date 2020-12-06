@@ -17,6 +17,8 @@
 from __future__ import absolute_import, division, print_function
 
 import glob
+import csv
+import json
 import os
 
 import datasets
@@ -40,12 +42,21 @@ data      = {https://jkk.name/irc-disentanglement},
 """
 
 _DESCRIPTION = """\
+<<<<<<< HEAD
 Disentangling conversations mixed together in a single stream of messages is
 a difficult task, made harder by the lack of large manually annotated
 datasets. This new dataset of 77,563 messages manually annotated with
 reply-structure graphs that both disentangle conversations and define
 internal conversation structure. The dataset is 16 times larger than all
 previously released datasets combined, the first to include adjudication of
+=======
+Disentangling conversations mixed together in a single stream of messages is 
+a difficult task, made harder by the lack of large manually annotated 
+datasets. This new dataset of 77,563 messages manually annotated with 
+reply-structure graphs that both disentangle conversations and define 
+internal conversation structure. The dataset is 16 times larger than all 
+previously released datasets combined, the first to include adjudication of 
+>>>>>>> added irc_disentangle.py, dummy data, and dataset_infos.json
 annotation disagreements, and the first to include context.
 """
 
@@ -235,11 +246,12 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                     annotation_pairs.append((int(line[0]), int(line[1])))
 
             annotations = dict()
+
             for row in range(last_id, last_id + len(raw_sentences)):
                 annotations[row] = set()
 
             for (a, b) in annotation_pairs:
-                # required for dummy data creation
+                # required for building dummy
                 if last_id + a not in annotations:
                     annotations[last_id + a] = set()
                 if last_id + b not in annotations:
@@ -249,6 +261,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                 annotations[last_id + b].add(last_id + a)
 
             for i in range(len(raw_sentences)):
+                id_ += 1
                 if self.config.name == "ubuntu":
                     yield id_, {
                         "raw": raw_sentences[i],
@@ -264,7 +277,6 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                         "tokenized": tok_sentences[i],
                         "connections": annotations[i],
                     }
-                id_ += 1
 
-            # start counting from position last left off
+            # continue counting from position last left off
             last_id = id_
