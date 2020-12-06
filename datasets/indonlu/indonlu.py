@@ -101,7 +101,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             different emotion labels: sadness, anger, love, fear, and happy."""
             ),
             text_features={"tweet": "tweet"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["sadness", "anger", "love", "fear", "happy"],
             label_column="label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/emot_emotion-twitter/train_preprocess.csv",
@@ -130,7 +130,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             dataset: positive, negative, and neutral."""
             ),
             text_features={"text": "text"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["positive", "neutral", "negative"],
             label_column="label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/smsa_doc-sentiment-prosa/train_preprocess.tsv",
@@ -159,7 +159,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         #     negative, and neutral."""
         #     ),
         #     text_features="",
-        #     # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+        #     # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
         #     label_classes=["negative", "neutral", "positive"],
         #     label_column="",
         #     train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/train_preprocess.csv",
@@ -189,7 +189,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         #     of the same aspect but for different objects (e.g., cleanliness of bed and toilet)."""
         #     ),
         #     text_features="",
-        #     # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+        #     # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
         #     label_classes=["neg", "neut", "pos", "neg_pos"],
         #     label_column="",
         #     train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/train_preprocess.csv",
@@ -220,7 +220,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                 "sent_B": "sent_B",
                 "category": "category",
             },
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["NotEntail", "Entail_or_Paraphrase"],
             label_column="label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/wrete_entailment-ui/train_preprocess.csv",
@@ -245,7 +245,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             Indonesian Association of Computational Linguistics (INACL) POS Tagging Convention."""
             ),
             text_features={"sentence": "sentence"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["B-PPO", "B-KUA", "B-ADV", "B-PRN", "B-VBI", "B-PAR", "B-VBP", "B-NNP", "B-UNS", "B-VBT", "B-VBL", "B-NNO", "B-ADJ", "B-PRR", "B-PRK", "B-CCN", "B-$$$", "B-ADK", "B-ART", "B-CSN", "B-NUM", "B-SYM", "B-INT", "B-NEG", "B-PRI", "B-VBE"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/train_preprocess.txt",
@@ -272,7 +272,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             the experimental setting used by Kurniawan and Aji (2018)"""
             ),
             text_features={"sentence": "sentence"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=['B-PR', 'B-CD', 'I-PR', 'B-SYM', 'B-JJ', 'B-DT', 'I-UH', 'I-NND', 'B-SC', 'I-WH', 'I-IN', 'I-NNP', 'I-VB', 'B-IN', 'B-NND', 'I-CD', 'I-JJ', 'I-X', 'B-OD', 'B-RP', 'B-RB', 'B-NNP', 'I-RB', 'I-Z', 'B-CC', 'B-NEG', 'B-VB', 'B-NN', 'B-MD', 'B-UH', 'I-NN', 'B-PRP', 'I-SC', 'B-Z', 'I-PRP', 'I-OD', 'I-SYM', 'B-WH', 'B-FW', 'I-CC', 'B-X'],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/train_preprocess.txt",
@@ -308,7 +308,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             Inside-Outside-Beginning (IOB) tagging representation with two kinds of tags, aspect and sentiment."""
             ),
             text_features={"sentence": "sentece"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=['I-SENTIMENT', 'O', 'I-ASPECT', 'B-SENTIMENT', 'B-ASPECT'],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/train_preprocess.txt",
@@ -341,7 +341,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             which represents the position of the keyphrase."""
             ),
             text_features={"sentence": "sentence"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["O", "B", "I"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/keps_keyword-extraction-prosa/train_preprocess.txt",
@@ -368,7 +368,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ORGANIZATION (name of organization)."""
             ),
             text_features={"sentence": "sentence"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=['I-PERSON', 'B-ORGANISATION', 'I-ORGANISATION', 'B-PLACE', 'I-PLACE', 'O', 'B-PERSON'],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nergrit_ner-grit/train_preprocess.txt",
@@ -393,7 +393,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             EVT (name of the event), and FNB (name of food and beverage). The NERP dataset uses the IOB chunking format."""
             ),
             text_features={"sentence": "sentence"},
-            # class label order refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=['I-PPL', 'B-EVT', 'B-PLC', 'I-IND', 'B-IND', 'B-FNB', 'I-EVT', 'B-PPL', 'I-PLC', 'O', 'I-FNB'],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/train_preprocess.txt",
@@ -411,56 +411,50 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             )
         ),
-        # IndoNluConfig(
-        #     name="facqa",
-        #     description=textwrap.dedent(
-        #         """\
-        #     The goal of the FacQA dataset is to find the answer to a question from a provided short passage from 
-        #     a news article (Purwarianti et al., 2007). Each row in the FacQA dataset consists of a question, 
-        #     a short passage, and a label phrase, which can be found inside the corresponding short passage. 
-        #     There are six categories of questions: date, location, name, organization, person, and quantitative."""
-        #     ),
-        #     text_features={
-        #         "question": "question",
-        #         "passage": "passage"
-        #     },
-        #     label_classes=["O", "B", "I"],
-        #     label_column="seq_label",
-        #     train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/facqa_qa-factoid-itb/train_preprocess.csv",
-        #     valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/facqa_qa-factoid-itb/valid_preprocess.csv",
-        #     test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/facqa_qa-factoid-itb/test_preprocess_masked_label.csv",
-        #     citation=textwrap.dedent(
-        #         """\
-        #     @inproceedings{purwarianti2007machine,
-        #       title={A Machine Learning Approach for Indonesian Question Answering System},
-        #       author={Ayu Purwarianti, Masatoshi Tsuchiya, and Seiichi Nakagawa},
-        #       booktitle={Proceedings of Artificial Intelligence and Applications },
-        #       pages={573--578},
-        #       year={2007}
-        #     }"""
-        #     )
-        # ),
+        IndoNluConfig(
+            name="facqa",
+            description=textwrap.dedent(
+                """\
+            The goal of the FacQA dataset is to find the answer to a question from a provided short passage from 
+            a news article (Purwarianti et al., 2007). Each row in the FacQA dataset consists of a question, 
+            a short passage, and a label phrase, which can be found inside the corresponding short passage. 
+            There are six categories of questions: date, location, name, organization, person, and quantitative."""
+            ),
+            text_features={
+                "question": "question",
+                "passage": "passage"
+            },
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            label_classes=["O", "B", "I"],
+            label_column="seq_label",
+            train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/facqa_qa-factoid-itb/train_preprocess.csv",
+            valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/facqa_qa-factoid-itb/valid_preprocess.csv",
+            test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/facqa_qa-factoid-itb/test_preprocess_masked_label.csv",
+            citation=textwrap.dedent(
+                """\
+            @inproceedings{purwarianti2007machine,
+              title={A Machine Learning Approach for Indonesian Question Answering System},
+              author={Ayu Purwarianti, Masatoshi Tsuchiya, and Seiichi Nakagawa},
+              booktitle={Proceedings of Artificial Intelligence and Applications },
+              pages={573--578},
+              year={2007}
+            }"""
+            )
+        ),
     ]
 
     def _info(self):
         # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
+        sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp", "facqa"]
         
         if self.config.name in sentence_features:
             features = {text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in six.iterkeys(self.config.text_features)}
-        # elif self.config.name == "facqa":
-        #     features = {
-        #         "question": datasets.features.List(datasets.Value("string")),
-        #         "passage": datasets.features.List(datasets.Value("string"))
-        #     }
         else:
             features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
 
         if self.config.label_classes:
             if self.config.name in sentence_features:
                 features["seq_label"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
-            # elif self.config.name == "facqa":
-            #     features["seq_label"] = datasets.features.List(datasets.features.ClassLabel(names=self.config.label_classes))
             else:
                 features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         
@@ -490,7 +484,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        csv_file = ["emot", "wrete"]
+        csv_file = ["emot", "wrete", "facqa"]
         tsv_file = ["smsa"]
         txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
         
@@ -507,7 +501,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                     elif self.config.name == "wrete":
                         sent_A, sent_B, category, label = row
                         yield id_, { "sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
-
+                    elif self.config.name == "facqa":
+                         question, passage, seq_label = row
+                         yield id_, { "question": eval(question), "passage": eval(passage), "seq_label": eval(seq_label)}
             elif self.config.name in tsv_file:
                 reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
 
@@ -515,7 +511,6 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                     if self.config.name == "smsa":
                         text, label = row
                         yield id_, { "text": text, "label": label}
-
             elif self.config.name in txt_file:
                 id_ = 0
                 sentence = []
@@ -530,12 +525,3 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                         id_ += 1
                         sentence = []
                         seq_label = []
-
-        # elif self.config.name == "facqa":
-        #     with open(filepath, encoding="utf-8") as f:
-        #         reader = csv.reader(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
-        #         next(reader) # skip first row which is header
-        #         for id_, row in enumerate(reader):
-        #             question, passage, seq_label = row
-        #             yield id_, { "question": eval(question), "passage": eval(passage), "seq_label": eval(seq_label)}
-
