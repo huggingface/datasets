@@ -1,0 +1,136 @@
+---
+YAML tags:
+{"task_categories": ["structure-prediction", "sequence-modeling"], "task_ids": ["coreference-resolution", "dialogue-modeling"], "multilinguality": ["monolingual"], "languages": ["en"], "language_creators": ["crowdsourced"], "annotations_creators": ["expert-generated"], "source_datasets": ["original"], "size_categories": ["100K<n<1M"], "licenses": ["cc-by-4.0"]}
+
+
+---
+
+# Dataset Card for [Dataset Name]
+
+## Table of Contents
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+
+## Dataset Description
+
+- **Homepage:** https://jkk.name/irc-disentanglement/
+- **Repository:** https://github.com/jkkummerfeld/irc-disentanglement/tree/master/data
+- **Paper:** https://aclweb.org/anthology/papers/P/P19/P19-1374/
+- **Leaderboard:** NA
+- **Point of Contact:** jkummerf@umich.edu
+
+### Dataset Summary
+
+Disentangling conversations mixed together in a single stream of messages is a difficult task, made harder by the lack of large manually annotated datasets. This new dataset of 77,563 messages manually annotated with reply-structure graphs that both disentangle conversations and define internal conversation structure. The dataset is 16 times larger than all previously released datasets combined, the first to include adjudication of annotation disagreements, and the first to include context.
+
+### Supported Tasks and Leaderboards
+
+Conversational Disentanglement, Coreference Resolution, Dialogue Modeling
+
+### Languages
+
+English (en)
+
+## Dataset Structure
+
+### Data Instances
+
+[More Information Needed]
+
+### Data Fields
+
+[More Information Needed]
+
+### Data Splits
+
+[More Information Needed]
+
+## Dataset Creation
+
+### Curation Rationale
+
+[More Information Needed]
+
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
+
+Jonathan K. Kummerfeld, Sai R. Gouravajhala, Joseph Peper, Vignesh Athreya, Chulaka Gunasekara, Jatin Ganhotra, Siva Sankalp Patel, Lazaros Polymenakos, and Walter S. Lasecki
+
+### Licensing Information
+
+Creative Commons Attribution 4.0
+
+### Citation Information
+
+@InProceedings{acl19disentangle,
+  author    = {Jonathan K. Kummerfeld and Sai R. Gouravajhala and Joseph Peper and Vignesh Athreya and Chulaka Gunasekara and Jatin Ganhotra and Siva Sankalp Patel and Lazaros Polymenakos and Walter S. Lasecki},
+  title     = {A Large-Scale Corpus for Conversation Disentanglement},
+  booktitle = {Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics},
+  location  = {Florence, Italy},
+  month     = {July},
+  year      = {2019},
+  doi       = {10.18653/v1/P19-1374},
+  pages     = {3846--3856},
+  url       = {https://aclweb.org/anthology/papers/P/P19/P19-1374/},
+  arxiv     = {https://arxiv.org/abs/1810.11118},
+  software  = {https://jkk.name/irc-disentanglement},
+  data      = {https://jkk.name/irc-disentanglement},
+}
