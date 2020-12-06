@@ -85,19 +85,11 @@ class AquaRat(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage="https://github.com/deepmind/AQuA",
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
