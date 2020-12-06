@@ -444,10 +444,10 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        sentence_seq = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
+        sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
         
-        if self.config.name in sentence_seq:
-            features = {"sentence": datasets.Sequence(datasets.Value("string"))}
+        if self.config.name in sentence_features:
+            features = {text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in six.iterkeys(self.config.text_features)}
         # elif self.config.name == "facqa":
         #     features = {
         #         "question": datasets.features.List(datasets.Value("string")),
@@ -457,7 +457,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
 
         if self.config.label_classes:
-            if self.config.name in sentence_seq:
+            if self.config.name in sentence_features:
                 features["seq_label"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
             # elif self.config.name == "facqa":
             #     features["seq_label"] = datasets.features.List(datasets.features.ClassLabel(names=self.config.label_classes))
@@ -479,162 +479,44 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        # bisa disederhanakan
-        if self.config.name == "emot":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-
-        if self.config.name == "smsa":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-        # casa
-        # hoasa
-        if self.config.name == "wrete":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-
-        if self.config.name == "posp":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-
-        if self.config.name == "bapos":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-        
-        if self.config.name == "terma":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-        if self.config.name == "keps":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-        if self.config.name == "nergrit":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-        if self.config.name == "nerp":
-            train_path = dl_manager.download_and_extract(self.config.train_url)
-            valid_path = dl_manager.download_and_extract(self.config.valid_url)
-            test_path = dl_manager.download_and_extract(self.config.test_url)
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-            ]
-        # if self.config.name == "facqa":
-        #     train_path = dl_manager.download_and_extract(self.config.train_url)
-        #     valid_path = dl_manager.download_and_extract(self.config.valid_url)
-        #     test_path = dl_manager.download_and_extract(self.config.test_url)
-        #     return [
-        #         datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-        #         datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-        #         datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
-        #     ]
+        train_path = dl_manager.download_and_extract(self.config.train_url)
+        valid_path = dl_manager.download_and_extract(self.config.valid_url)
+        test_path = dl_manager.download_and_extract(self.config.test_url)
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
+        ]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        # emot, wrete cara load sama
+        csv_file = ["emot", "wrete"]
+        tsv_file = ["smsa"]
+        txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
+        
+        with open(filepath, encoding="utf-8") as f:
 
-        if self.config.name == "emot":
-            with open(filepath, encoding="utf-8") as f:
+            if self.config.name in csv_file:
                 reader = csv.reader(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
                 next(reader) # skip first row which is header
+                
                 for id_, row in enumerate(reader):
-                    label, tweet = row
-                    yield id_, { "tweet": tweet, "label": label}
-        elif self.config.name == "smsa":
-             with open(filepath, encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter="\t", quotechar='"', quoting=csv.QUOTE_ALL)
+                    if self.config.name == "emot":
+                        label, tweet = row
+                        yield id_, { "tweet": tweet, "label": label}   
+                    elif self.config.name == "wrete":
+                        sent_A, sent_B, category, label = row
+                        yield id_, { "sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
+
+            elif self.config.name in tsv_file:
+                reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+
                 for id_, row in enumerate(reader):
-                    text, label = row
-                    yield id_, { "text": text, "label": label}
-        # casa
-        # hoasa
-        elif self.config.name == "wrete":
-             with open(filepath, encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
-                next(reader) # skip first row which is header
-                for id_, row in enumerate(reader):
-                    sent_A, sent_B, category, label = row
-                    yield id_, { "sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
-        elif self.config.name == "posp":
-            with open(filepath, encoding="utf-8") as f:
-                id_ = 0
-                sentence = []
-                seq_label = []
-                for line in f:
-                    if len(line.strip()) > 0:
-                        token, label = line[:-1].split("\t")
-                        sentence.append(token)
-                        seq_label.append(label)
-                    else:
-                        yield id_, {"sentence": sentence, "seq_label": seq_label}
-                        id_ += 1
-                        sentence = []
-                        seq_label = []
-        elif self.config.name == "bapos":
-            with open(filepath, encoding="utf-8") as f:
-                id_ = 0
-                sentence = []
-                seq_label = []
-                for line in f:
-                    if len(line.strip()) > 0:
-                        token, label = line[:-1].split("\t")
-                        sentence.append(token)
-                        seq_label.append(label)
-                    else:
-                        yield id_, {"sentence": sentence, "seq_label": seq_label}
-                        id_ += 1
-                        sentence = []
-                        seq_label = []
-        elif self.config.name == "terma":
-            with open(filepath, encoding="utf-8") as f:
+                    if self.config.name == "smsa":
+                        text, label = row
+                        yield id_, { "text": text, "label": label}
+
+            elif self.config.name in txt_file:
                 id_ = 0
                 sentence = []
                 seq_label = []
@@ -649,51 +531,6 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                         sentence = []
                         seq_label = []
 
-        elif self.config.name == "keps":
-            with open(filepath, encoding="utf-8") as f:
-                id_ = 0
-                sentence = []
-                seq_label = []
-                for line in f:
-                    if len(line.strip()) > 0:
-                        token, label = line[:-1].split("\t")
-                        sentence.append(token)
-                        seq_label.append(label)
-                    else:
-                        yield id_, {"sentence": sentence, "seq_label": seq_label}
-                        id_ += 1
-                        sentence = []
-                        seq_label = []
-        elif self.config.name == "nergrit":
-            with open(filepath, encoding="utf-8") as f:
-                id_ = 0
-                sentence = []
-                seq_label = []
-                for line in f:
-                    if len(line.strip()) > 0:
-                        token, label = line[:-1].split("\t")
-                        sentence.append(token)
-                        seq_label.append(label)
-                    else:
-                        yield id_, {"sentence": sentence, "seq_label": seq_label}
-                        id_ += 1
-                        sentence = []
-                        seq_label = []
-        elif self.config.name == "nerp":
-            with open(filepath, encoding="utf-8") as f:
-                id_ = 0
-                sentence = []
-                seq_label = []
-                for line in f:
-                    if len(line.strip()) > 0:
-                        token, label = line[:-1].split("\t")
-                        sentence.append(token)
-                        seq_label.append(label)
-                    else:
-                        yield id_, {"sentence": sentence, "seq_label": seq_label}
-                        id_ += 1
-                        sentence = []
-                        seq_label = []
         # elif self.config.name == "facqa":
         #     with open(filepath, encoding="utf-8") as f:
         #         reader = csv.reader(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
