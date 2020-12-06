@@ -15,8 +15,11 @@
 """Medical Question Pairs (MQP) Dataset"""
 
 from __future__ import absolute_import, division, print_function
+
 import csv
+
 import datasets
+
 
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -32,18 +35,19 @@ _LICENSE = ""
 
 _URL = "https://raw.githubusercontent.com/curai/medical-question-pair-dataset/master/mqp.csv"
 
+
 class MedicalQuestionPairs(datasets.GeneratorBasedBuilder):
     """Medical Question Pairs (MQP) Dataset"""
 
     def _info(self):
         features = datasets.Features(
-                {
-                    "dr_id": datasets.Value("int32"),
-                    "question_1": datasets.Value("string"),
-                    "question_2": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(num_classes=2, names=[0, 1])
-                }
-            )
+            {
+                "dr_id": datasets.Value("int32"),
+                "question_1": datasets.Value("string"),
+                "question_2": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(num_classes=2, names=[0, 1]),
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -56,14 +60,14 @@ class MedicalQuestionPairs(datasets.GeneratorBasedBuilder):
         data_file = dl_manager.download_and_extract({"data_file": _URL})
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=data_file)]
 
-    def _generate_examples(self,data_file):
+    def _generate_examples(self, data_file):
         """ Yields examples. """
         with open(data_file, encoding="utf-8") as f:
             data = csv.reader(f)
             for id_, row in enumerate(data):
                 yield id_, {
-                        "dr_id": row[0],
-                        "question_1": row[1],
-                        "question_2" : row[2],
-                        "label": row[3],
-                    }
+                    "dr_id": row[0],
+                    "question_1": row[1],
+                    "question_2": row[2],
+                    "label": row[3],
+                }
