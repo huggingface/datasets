@@ -36,9 +36,9 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The Rationalized English-French Semantic Divergences (REFreSD) dataset consists of 1,039 
-English-French sentence-pairs annotated with sentence-level divergence judgments and token-level 
-rationales. For any questions, write to ebriakou@cs.umd.edu.
+The Rationalized English-French Semantic Divergences (REFreSD) dataset consists of 1,039
+ English-French sentence-pairs annotated with sentence-level divergence judgments and token-level 
+ rationales. For any questions, write to ebriakou@cs.umd.edu.
 """
 
 _HOMEPAGE = "https://github.com/Elbria/xling-SemDiv/tree/master/REFreSD"
