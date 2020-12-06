@@ -1,4 +1,4 @@
-"""NarrativeQA Redimg Comprehension Challenge"""
+"""NarrativeQA Reading Comprehension Challenge"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -6,13 +6,13 @@ import csv
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
 @article{narrativeqa,
-author = {Tom\'a\v s Ko\v cisk\'y and Jonathan Schwarz and Phil Blunsom and
-          Chris Dyer and Karl Moritz Hermann and G\'abor Melis and
+author = {Tom\\'a\\v s Ko\\v cisk\\'y and Jonathan Schwarz and Phil Blunsom and
+          Chris Dyer and Karl Moritz Hermann and G\\'abor Melis and
           Edward Grefenstette},
 title = {The {NarrativeQA} Reading Comprehension Challenge},
 journal = {Transactions of the Association for Computational Linguistics},
@@ -33,36 +33,36 @@ _URLS = {
 }
 
 
-class NarrativeQa(nlp.GeneratorBasedBuilder):
+class NarrativeQa(datasets.GeneratorBasedBuilder):
     """NarrativeQA: Question answering on long-documents"""
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
                     "document": {
-                        "id": nlp.Value("string"),
-                        "kind": nlp.Value("string"),
-                        "url": nlp.Value("string"),
-                        "file_size": nlp.Value("int32"),
-                        "word_count": nlp.Value("int32"),
-                        "start": nlp.Value("string"),
-                        "end": nlp.Value("string"),
+                        "id": datasets.Value("string"),
+                        "kind": datasets.Value("string"),
+                        "url": datasets.Value("string"),
+                        "file_size": datasets.Value("int32"),
+                        "word_count": datasets.Value("int32"),
+                        "start": datasets.Value("string"),
+                        "end": datasets.Value("string"),
                         "summary": {
-                            "text": nlp.Value("string"),
-                            "tokens": nlp.features.Sequence(nlp.Value("string")),
-                            "url": nlp.Value("string"),
-                            "title": nlp.Value("string"),
+                            "text": datasets.Value("string"),
+                            "tokens": datasets.features.Sequence(datasets.Value("string")),
+                            "url": datasets.Value("string"),
+                            "title": datasets.Value("string"),
                         },
-                        "text": nlp.Value("string"),
+                        "text": datasets.Value("string"),
                     },
-                    "question": {"text": nlp.Value("string"), "tokens": nlp.features.Sequence(nlp.Value("string"))},
-                    "answers": [{"text": nlp.Value("string"), "tokens": nlp.features.Sequence(nlp.Value("string"))}],
+                    "question": {"text": datasets.Value("string"), "tokens": datasets.features.Sequence(datasets.Value("string"))},
+                    "answers": [{"text": datasets.Value("string"), "tokens": datasets.features.Sequence(datasets.Value("string"))}],
                 }
             ),
-            homepage="https://raw.githubusercontent.com/deepmind/narrativeqa/master/",
+            homepage="https://github.com/deepmind/narrativeqa",
         )
 
     def _split_generators(self, dl_manager):
@@ -72,16 +72,16 @@ class NarrativeQa(nlp.GeneratorBasedBuilder):
         dl_dir["repo"] = os.path.join(dl_dir["repo"], "narrativeqa-master")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"repo_dir": dl_dir["repo"], "full_text_dir": dl_dir["full_text"], "split": "train"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"repo_dir": dl_dir["repo"], "full_text_dir": dl_dir["full_text"], "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"repo_dir": dl_dir["repo"], "full_text_dir": dl_dir["full_text"], "split": "valid"},
             )
         ]
