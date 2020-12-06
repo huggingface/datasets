@@ -7,6 +7,7 @@ import os
 
 import datasets
 
+<<<<<<< HEAD
 
 _CITATION = """
 @article{MaazUrdufake2020,
@@ -21,6 +22,21 @@ year={2020},
 publisher={IOS Press}
 }
 """
+=======
+_CITATION = "@article{MaazUrdufake2020,\n"
+_CITATION += "  author = {Amjad, Maaz and Sidorov, Grigori and Zhila, Alisa and "
+_CITATION += "  G’{o}mez-Adorno, Helena and Voronkov, Ilia  and Gelbukh, Alexander},\n"
+_CITATION += "  title = {Bend the Truth: A Benchmark Dataset for Fake News "
+_CITATION += "  Detection in Urdu and Its Evaluation},\n"
+_CITATION += "  journal={Journal of Intelligent & Fuzzy Systems},\n"
+_CITATION += "  volume={39},\n"
+_CITATION += "  number={2},\n"
+_CITATION += "  pages={2457-2469},\n"
+_CITATION += "  doi = {10.3233/JIFS-179905},\n"
+_CITATION += "  year={2020},\n"
+_CITATION += "  publisher={IOS Press}\n"
+_CITATION += "}"
+>>>>>>> c1e5923f05af449ac54e8c2d74aabcf98a0e0ed5
 
 _DESCRIPTION = """
 Urdu fake news datasets that contain news of 5 different news domains.
@@ -31,7 +47,10 @@ The real news are collected by combining manual approaches.
 _URL = "https://github.com/MaazAmjad/Datasets-for-Urdu-news/blob/master/"
 _URL += "Urdu%20Fake%20News%20Dataset.zip?raw=true"
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> c1e5923f05af449ac54e8c2d74aabcf98a0e0ed5
 class UrduFakeNews(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
