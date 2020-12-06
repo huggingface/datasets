@@ -43,7 +43,7 @@ _URL = "https://raw.githubusercontent.com/kmounlp/NER/master/2016klp/ner."
 _URLs = {key: _URL + key for key in ("train", "test", "dev")}
 
 
-class KoNER(datasets.GeneratorBasedBuilder):
+class KorNER(datasets.GeneratorBasedBuilder):
     """Korean Named entity recognition dataset"""
 
     VERSION = datasets.Version("1.1.0")
