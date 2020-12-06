@@ -90,9 +90,8 @@ class UrduFakeNews(datasets.GeneratorBasedBuilder):
 
             _class = 1 if ("Real" in filename) else 0
             category = "".join([i for i in key if not i.isdigit()])
-            if category != "":
-                category = self.category_list.index(category)
-            else:
-                category = 0
+            if category == "":
+                continue
+            category = self.category_list.index(category)
 
             yield key, {"news": news, "label": _class, "category": category}
