@@ -95,20 +95,35 @@ Each line is a json dictionary, in which:<br>
 **answerstrings** contains the original answers provided by survey respondents (when available), along with the counts for each string. Because the FamilyFeud data has only cluster names rather than strings, those cluster names are included with 0 weight.<br>
 **answer-clusters** list of clusters, with the count of each cluster and the strings included in that cluster. Each cluster is given a unique ID that can be linked to in the assessment files.
 
+The simplified configuration includes:
+- `question`: contains the original question
+- `normalized-question`: contains the question in normalized form
+- `totalcount`: unique identifier of the comment (can be used to look up the entry in the raw dataset)
+- `id`: unique identifier of the commen
+- `source`: unique identifier of the commen
+- `answerstrings`: unique identifier of the commen
+- `answer-clusters | answers-cleaned`: list clusters of:
+    * `clusterid`: Each cluster is given a unique ID that can be linked to in the assessment files
+    * `count`: the count of each cluster
+    * `answers`: the strings included in that cluster
+    
+
+In addition to the above, there is crowdsourced assessments file. The config "proto_qa_cs_assessments" provides mappings from additional human and model answers to clusters, to evaluate different assessment methods.
+
 
 **Assessment files**<br>
 
 The file **data/dev/crowdsource_dev.assessments.jsonl** contains mappings from additional human and model answers to clusters, to evaluate different assessment methods.
 Each line contains:<br>
-**question**: contains the ID of the question<br>
-**assessments**: maps individual strings to one of three options, either the answer cluster id, "invalid" if the answer is judged to be bad, or "valid_new_cluster" if the answer is valid but does not match any existing clusters.
+* `question`: contains the ID of the question
+* `assessments`: maps individual strings to one of three options, either the answer cluster id, "invalid" if the answer is judged to be bad, or "valid_new_cluster" if the answer is valid but does not match any existing clusters.
 
 ### Data Splits
 
-**data/train/protoqa_train.jsonl**: 8781 instances for training or fine-tuning scraped from Family Feud fan sites (see paper). Scraped data has answer clusters with sizes, but only has a single string per cluster (corresponding to the original cluster name
-<br>**data/dev/protoqa_scraped_dev.jsonl**: 979 instances sampled from the same Family Feud data, for use in model validation and development.
+* proto_qa `Train` : 8781 instances for training or fine-tuning scraped from Family Feud fan sites (see paper). Scraped data has answer clusters with sizes, but only has a single string per cluster (corresponding to the original cluster name
+* proto_qa `Validation` : 979 instances sampled from the same Family Feud data, for use in model validation and development.
 
-**data/dev/crowdsource_dev.jsonl**: 51 questions collected with exhaustive answer collection and manual clustering, matching the details of the eval test set (roughly 100 human answers per question)
+* proto_qa_cs `Validation` :: 51 questions collected with exhaustive answer collection and manual clustering, matching the details of the eval test set (roughly 100 human answers per question)
 
 **data/dev/crowdsource_dev.assessments.jsonl**: assessment file (format described above) for study of assessment methods.
 
