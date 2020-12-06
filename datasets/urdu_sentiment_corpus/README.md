@@ -5,7 +5,8 @@ language_creators:
   - crowdsourced
 languages:
   - ur
-licenses: []
+licenses:
+  - unknown
 multilinguality:
   - monolingual
 size_categories:
@@ -73,7 +74,7 @@ task_ids:
 ### Data Fields
 
 - sentences: The Urdu tweet
-- sentiment: The sentiment that was exhibited in the tweet.
+- sentiment: The sentiment that was exhibited in the tweet, which can be Positive(P) or Negative(N) or Objective(O).
 
 ### Data Splits
 

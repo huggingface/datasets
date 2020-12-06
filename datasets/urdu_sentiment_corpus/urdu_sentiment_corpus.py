@@ -45,7 +45,7 @@ class UrduSentimentCorpus(datasets.GeneratorBasedBuilder):
                     "sentiment": datasets.ClassLabel(names=list(self.labels_dic.keys())),
                 }
             ),
-            homepage="https://github.com/MaazAmjad/Datasets-for-Urdu-news",
+            homepage="https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus",
             citation=_CITATION,
         )
 
