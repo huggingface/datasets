@@ -61,7 +61,6 @@ _CORPORA = [
     "DGT",
 ]
 
-# the untarred archive has the structure spanish-corpora/raw/{corpus_name}.txt
 _CORPORA_FILEPATHS = {corpus: os.path.join("spanish-corpora/raw", f"{corpus}.txt") for corpus in _CORPORA}
 
 _VERSION = "1.1.0"
@@ -103,11 +102,8 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -117,7 +113,6 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_dir):
         _id = 0
-        print(self.config.filepaths)
         for filepath, corpus in zip(self.config.filepaths, self.config.corpora):
             filepath = os.path.join(data_dir, filepath)
             with open(filepath, mode="r", encoding="utf-8") as f:
