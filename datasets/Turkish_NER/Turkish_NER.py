@@ -198,4 +198,4 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
 if __name__=="__main__":
     from datasets import load_dataset
 
-    data = load_dataset('/Users/mervenoyan/Desktop/hf-sprint/datasets/datasets/Turkish_NER')
+    data = load_dataset('./hf-sprint/datasets/datasets/Turkish_NER')
