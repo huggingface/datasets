@@ -30,42 +30,24 @@
 ## Dataset Description
 
 - **Homepage:** [WebNLG challenge website](https://webnlg-challenge.loria.fr/)
-- **Repository:** [WebNLG GitLab repository](https://gitlab.com/shimorina/webnlg-dataset/-/tree/master/)
-- **Paper:** [Creating Training Corpora for NLG Micro-Planning](https://www.aclweb.org/anthology/P17-1017.pdf)
-- **Leaderboard:** [WebNLG leaderboards](https://gerbil-nlg.dice-research.org/gerbil/webnlg2020results)
-- **Point of Contact:** [anastasia.shimorina@loria.fr](anastasia.shimorina@loria.fr)
+- **Repository:** [Enriched WebNLG Github repository](https://github.com/ThiagoCF05/webnlg)
+- **Paper:** [Enriching the WebNLG corpus](https://www.aclweb.org/anthology/W18-6521/)
 
 ### Dataset Summary
 
 The WebNLG challenge consists in mapping data to text. The training data consists of Data/Text pairs where the data is a
 set of triples extracted from DBpedia and the text is a verbalisation of these triples. For instance, given the 3
-DBpedia triples shown in (a), the aim is to generate a text such as (b).
-
-```
-a. (John_E_Blaha birthDate 1942_08_26) (John_E_Blaha birthPlace San_Antonio) (John_E_Blaha occupation Fighter_pilot)
-b. John E Blaha, born in San Antonio on 1942-08-26, worked as a fighter pilot
-```
-
-As the example illustrates, the task involves specific NLG subtasks such as sentence segmentation
-(how to chunk the input data into sentences), lexicalisation (of the DBpedia properties), aggregation (how to avoid
-repetitions) and surface realisation
-(how to build a syntactically correct and natural sounding text).
+DBpedia triples shown in (a), the aim is to generate a text such as (b). It is a valuable resource and benchmark for the Natural Language Generation (NLG) community. However, as other NLG benchmarks, it only consists of a collection of parallel raw representations and their corresponding textual realizations. This work aimed to provide intermediate representations of the data for the development and evaluation of popular tasks in the NLG pipeline architecture, such as Discourse Ordering, Lexicalization, Aggregation and Referring Expression Generation.
 
 ### Supported Tasks and Leaderboards
 
 The dataset supports a `other-structured-to-text` task which requires a model takes a set of RDF (Resource Description
 Format) triples from a database (DBpedia) of the form (subject, property, object) as input and write out a natural
-language sentence expressing the information contained in the triples. The dataset has supportd two challenges:
-the [WebNLG2017](https://www.aclweb.org/anthology/W17-3518/)
-and [WebNLG2020](https://gerbil-nlg.dice-research.org/gerbil/webnlg2020results) challenge. Results were ordered by
-their [METEOR](https://huggingface.co/metrics/meteor) to the reference, but the leaderboards report a range of other
-metrics including [BLEU](https://huggingface.co/metrics/bleu), [BERTscore](https://huggingface.co/metrics/bertscore),
-and [BLEURT](https://huggingface.co/metrics/bleurt). The v3 release (`release_v3.0_en`, `release_v3.0_ru`) for the
-WebNLG2020 challenge also supports a semantic `parsing` task.
+language sentence expressing the information contained in the triples.
 
 ### Languages
 
-All releases contain English (`en`) data. The v3 release (`release_v3.0_ru`) also contains Russian (`ru`) examples.
+The dataset is presented in two versions: English (config `en`) and German (config `de`)
 
 ## Dataset Structure
 
@@ -75,8 +57,7 @@ A typical example contains the original RDF triples in the set, a modified versi
 a set of possible verbalizations for this set of triples:
 
 ```
-{'2017_test_category': '',
- 'category': 'Politician',
+{ 'category': 'Politician',
  'eid': 'Id10',
  'lex': {'comment': ['good', 'good', 'good'],
          'lid': ['Id1', 'Id2', 'Id3'],
@@ -116,13 +97,14 @@ The following fields can be found in the instances:
 
 ### Data Splits
 
-[More Information Needed]
+The `en` version has `train`, `test` and `dev` splits; the `de` version, only `train` and `dev`.
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+Natural  Language  Generation  (NLG)  is  the  process  of  automatically  converting  non-linguistic data  into  a  linguistic  output  format  (Reiter  andDale,   2000;   Gatt   and   Krahmer,   2018). Recently,   the  field  has  seen  an  increase  in  the number  of  available  focused  data  resources  as E2E (Novikova et al., 2017), ROTOWIRE(Wise-man  et  al.,  2017)  and  WebNLG  (Gardent  et  al.,2017a,b) corpora. Although theses recent releases are highly valuable resources for the NLG community in general,nall  of  them  were  designed  to  work  with  end-to-end NLG models.   Hence,  they consist of a collection  of  parallel  raw  representations  and  their corresponding  textual  realizations.   No  intermediate representations are available so researchersncan straight-forwardly use them to develop or evaluate  popular tasks  in NLG  pipelines (Reiter  and Dale, 2000), such as Discourse Ordering, Lexicalization,  Aggregation,  Referring Expression Generation, among others.  Moreover, these new corpora, like many other resources in Computational Linguistics  more  in  general,  are  only  available in  English,  limiting  the  development  of  NLG-applications  to  other  languages.
+
 
 ### Source Data
 
@@ -175,9 +157,22 @@ licenses.
 
 ### Citation Information
 
-- If you use the WebNLG corpus, cite:
+- If you use the Enriched WebNLG corpus, cite:
 
 ```
+@InProceedings{ferreiraetal2018,
+  author = 	"Castro Ferreira, Thiago
+		and Moussallem, Diego
+		and Wubben, Sander
+		and Krahmer, Emiel",
+  title = 	"Enriching the WebNLG corpus",
+  booktitle = 	"Proceedings of the 11th International Conference on Natural Language Generation",
+  year = 	"2018",
+  series = {INLG'18},
+  publisher = 	"Association for Computational Linguistics",
+  address = 	"Tilburg, The Netherlands",
+}
+
 @inproceedings{web_nlg,
   author    = {Claire Gardent and
                Anastasia Shimorina and
@@ -194,21 +189,5 @@ licenses.
   year      = {2017},
   url       = {https://doi.org/10.18653/v1/P17-1017},
   doi       = {10.18653/v1/P17-1017}
-}
-```
-
-- If you use `release_v2_constrained` in particular, cite:
-
-```
-@InProceedings{shimorina2018handling,
-  author = 	"Shimorina, Anastasia
-		and Gardent, Claire",
-  title = 	"Handling Rare Items in Data-to-Text Generation",
-  booktitle = 	"Proceedings of the 11th International Conference on Natural Language Generation",
-  year = 	"2018",
-  publisher = 	"Association for Computational Linguistics",
-  pages = 	"360--370",
-  location = 	"Tilburg University, The Netherlands",
-  url = 	"http://aclweb.org/anthology/W18-6543"
 }
 ```
