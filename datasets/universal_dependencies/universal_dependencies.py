@@ -209,7 +209,7 @@ _NAMES = [
 ]
 
 _DESCRIPTIONS = {
-    "af_afribooms": "UD Afrikaans-AfriBooms is a conversion of the AfriBooms Dependency Treebank, originally annotated with a simplified PoS set and dependency relations according to a subset of the Stanford tag set. The corpus consists of public government documents.",
+    "af_afribooms": "UD Afrikaans-AfriBooms is a conversion of the AfriBooms Dependency Treebank, originally annotated with a simplified PoS set and dependency relations according to a subset of the Stanford tag set. The corpus consists of public government documents. The dataset was proposed in 'AfriBooms: An Online Treebank for Afrikaans' by Augustinus et al. (2016); https://www.aclweb.org/anthology/L16-1107.pdf.",
     "akk_pisandub": "A small set of sentences from Babylonian royal inscriptions.",
     "akk_riao": "UD_Akkadian-RIAO is a small treebank which consists of 22 277 words and 1845 sentences. This represents an intact subset of a total of 2211 sentences from the early Neo-Assyrian royal inscriptions  of the tenth and ninth centuries BCE. These royal inscriptions were extracted from Oracc (Open Richly Annotated Cuneiform Corpus; http://oracc.museum.upenn.edu/riao/), where all Neo-Assyrian royal inscriptions are lemmatized word-for-word. The language of the corpus is Standard Babylonian, with occasional Assyrianisms, whereas “Akkadian” is the umbrella term for both Assyrian and Babylonian. The treebank was manually annotated following the UD annotation guidelines.",
     "aqz_tudet": "UD_Akuntsu-TuDeT is a collection of annotated texts in Akuntsú. Together with UD_Tupinamba-TuDeT and UD_Munduruku-TuDeT, UD_Akuntsu-TuDeT is part of the TuLaR project.  The sentences are being annotated by Carolina Aragon and Fabrício Ferraz Gerardi.",
