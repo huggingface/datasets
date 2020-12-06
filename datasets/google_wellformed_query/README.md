@@ -62,7 +62,7 @@ Google's query wellformedness dataset was created by crowdsourcing well-formedne
 
 ### Supported Tasks and Leaderboards
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Languages
 
@@ -72,7 +72,7 @@ English
 
 ### Data Instances
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Data Fields
 
@@ -101,7 +101,7 @@ Selected 25,100 queries from the unique list of queries extracted from the corpu
 
 #### Who are the source language producers?
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Annotations
 
@@ -119,27 +119,27 @@ Every query was labeled by five different crowdworkers with a binary label indic
 
 ### Personal and Sensitive Information
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Licensing Information
 
