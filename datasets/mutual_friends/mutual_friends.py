@@ -51,9 +51,13 @@ to find their unique mutual friend."""
 
 _HOMEPAGE = "https://stanfordnlp.github.io/cocoa/"
 
-_LICENSE = "https://stanfordnlp.github.io/cocoa/"
+_LICENSE = "Unknown"
 
-_URL = "https://worksheets.codalab.org/rest/bundles/0x09c73c9db1134621bcc827689c6c3c61/contents/blob/"
+_URLs = {
+    "train": "https://worksheets.codalab.org/rest/bundles/0x09c73c9db1134621bcc827689c6c3c61/contents/blob/train.json",
+    "dev": "https://worksheets.codalab.org/rest/bundles/0x09c73c9db1134621bcc827689c6c3c61/contents/blob/dev.json",
+    "test": "https://worksheets.codalab.org/rest/bundles/0x09c73c9db1134621bcc827689c6c3c61/contents/blob/test.json",
+}
 
 
 class MutualFriends(datasets.GeneratorBasedBuilder):
@@ -84,14 +88,13 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                             "name": datasets.Value("string"),
                         }
                     ),
-                    # "scenario_kbs": datasets.Sequence(
-                    #     datasets.Sequence(
-                    #         {
-                    #             "keys": datasets.Sequence(datasets.Value("string")),
-                    #             "values": datasets.Sequence(datasets.Value("string")),
-                    #         }
-                    #     )
-                    # ),
+                    "scenario_kbs": datasets.Sequence(
+                        datasets.Sequence(
+                            datasets.Sequence(
+                                datasets.Sequence(datasets.Value("string")),
+                            )
+                        )
+                    ),
                     "agents": {
                         "1": datasets.Value("string"),
                         "0": datasets.Value("string"),
@@ -120,54 +123,51 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.json"),
+                    "filepath": data_dir["train"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.json"),
+                    "filepath": data_dir["test"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.json"),
+                    "filepath": data_dir["dev"],
                 },
             ),
         ]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        import os
-
-        print(os.path.realpath(__file__))
         with open(filepath, encoding="utf-8") as f:
             mutualfriends = json.load(f)
-            # import pdb; pdb.set_trace()
+
             for id_, dialogue in enumerate(mutualfriends):
                 uuid = dialogue["uuid"]
                 scenario_uuid = dialogue["scenario_uuid"]
 
                 scenario = dialogue["scenario"]
-                assert scenario["uuid"] == scenario_uuid  #
+                # Note that scenario["uuid"] == scenario_uuid all the time in the data
                 scenario_alphas = scenario["alphas"]
                 scenario_attributes = scenario["attributes"]
                 scenario_kbs = [
                     [
-                        {
-                            "keys": list(person.keys()),
-                            "values": list(person.values()),
-                        }
+                        [
+                            list(person.keys()),  # scenario_kbs_keys
+                            list(person.values()),  # scenario_kbs_values
+                        ]
                         for person in kb
                     ]
                     for kb in scenario["kbs"]
-                ]
+                ]  # The keys are not fixed, so "linearizing" the dictionaries
 
                 agents = dialogue["agents"]
                 outcome_reward = dialogue["outcome"]["reward"]
@@ -181,9 +181,8 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                 for turn in dialogue["events"]:
                     act = turn["action"]
                     events_actions.append(act)
-                    if turn["start_time"] is not None:
-                        print(turn)
                     events_start_times.append(-1 if turn["start_time"] is None else turn["start_time"])
+                    # Note that turn["start_time"] == None in the data
                     if act == "message":
                         events_data_messages.append(turn["data"])
                         events_data_selects.append({"attributes": [], "values": []})
@@ -211,7 +210,7 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                     "scenario_uuid": scenario_uuid,
                     "scenario_alphas": scenario_alphas,
                     "scenario_attributes": scenario_attributes,
-                    # "scenario_kbs": scenario_kbs,
+                    "scenario_kbs": scenario_kbs,
                     "agents": agents,
                     "outcome_reward": outcome_reward,
                     "events": events,

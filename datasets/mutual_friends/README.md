@@ -1,5 +1,22 @@
 ---
-TODO
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- dialogue-modeling
 ---
 
 # Dataset Card Creation Guide
@@ -29,9 +46,10 @@ TODO
 
 ## Dataset Description
 
-- **Homepage:** [)](https://stanfordnlp.github.io/cocoa/)
+- **Homepage:** [COCOA](https://stanfordnlp.github.io/cocoa/)
 - **Repository:** [Github repository](https://github.com/stanfordnlp/cocoa)
 - **Paper:** [Learning Symmetric Collaborative Dialogue Agents with Dynamic Knowledge Graph Embeddings (ACL 2017)](https://arxiv.org/abs/1704.07130)
+- **Codalab**: [Codalab](https://worksheets.codalab.org/worksheets/0xc757f29f5c794e5eb7bfa8ca9c945573/)
 
 ### Dataset Summary
 
@@ -49,41 +67,92 @@ The text in the dataset is in English. The associated BCP-47 code is `en`.
 
 ### Data Instances
 
-TODO
-
-Provide an JSON-formatted example and brief description of a typical instance in the dataset. If available, provide a link to further examples.
+An example looks like this.
 
 ```
 {
-  'example_field': ...,
-  ...
+  'uuid': 'C_423324a5fff045d78bef75a6f295a3f4'
+
+  'scenario_uuid': 'S_hvmRM4YNJd55ecT5',
+  'scenario_alphas': [0.30000001192092896, 1.0, 1.0],
+  'scenario_attributes': {
+    'name': ['School', 'Company', 'Location Preference'],
+    'unique': [False, False, False],
+    'value_type': ['school', 'company', 'loc_pref']
+  },
+  'scenario_kbs': [
+    [
+      [['School', 'Company', 'Location Preference'], ['Longwood College', 'Alton Steel', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Salisbury State University', 'Leonard Green & Partners', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['New Mexico Highlands University', 'Crazy Eddie', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Rhodes College', "Tully's Coffee", 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Sacred Heart University', 'AMR Corporation', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Salisbury State University', 'Molycorp', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['New Mexico Highlands University', 'The Hartford Financial Services Group', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Sacred Heart University', 'Molycorp', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Babson College', 'The Hartford Financial Services Group', 'indoor']]
+    ],
+    [
+      [['School', 'Company', 'Location Preference'], ['National Technological University', 'Molycorp', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Fairmont State College', 'Leonard Green & Partners', 'outdoor']],
+      [['School', 'Company', 'Location Preference'], ['Johnson C. Smith University', 'Data Resources Inc.', 'outdoor']],
+      [['School', 'Company', 'Location Preference'], ['Salisbury State University', 'Molycorp', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['Fairmont State College', 'Molycorp', 'outdoor']],
+      [['School', 'Company', 'Location Preference'], ['University of South Carolina - Aiken', 'Molycorp', 'indoor']],
+      [['School', 'Company', 'Location Preference'], ['University of South Carolina - Aiken', 'STX', 'outdoor']],
+      [['School', 'Company', 'Location Preference'], ['National Technological University', 'STX', 'outdoor']],
+      [['School', 'Company', 'Location Preference'], ['Johnson C. Smith University', 'Rockstar Games', 'indoor']]
+    ]
+  ],
+
+  'agents': {
+    '0': 'human',
+    '1': 'human'
+  },
+
+  'outcome_reward': 1,
+
+  'events': {
+    'actions': ['message', 'message', 'message', 'message', 'select', 'select'],
+    'agents': [1, 1, 0, 0, 1, 0],
+    'data_messages': ['Hello', 'Do you know anyone who works at Molycorp?', 'Hi. All of my friends like the indoors.', 'Ihave two friends that work at Molycorp. They went to Salisbury and Sacred Heart.', '', ''],
+    'data_selects': {
+      'attributes': [
+        [], [], [], [], ['School', 'Company', 'Location Preference'], ['School', 'Company', 'Location Preference']
+      ],
+      'values': [
+        [], [], [], [], ['Salisbury State University', 'Molycorp', 'indoor'], ['Salisbury State University', 'Molycorp', 'indoor']
+      ]
+    },
+    'start_times': [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
+    'times': [1480737280.0, 1480737280.0, 1480737280.0, 1480737280.0, 1480737280.0, 1480737280.0]
+  },
 }
 ```
 
-Provide any additional information that is not covered in the other sections about the data here. In particular describe any relationships between data points and if these relationships are made explicit.
-
 ### Data Fields
 
-TODO
-
-List and describe the fields present in the dataset. Mention their data type, and whether they are used as input or output in any of the tasks the dataset currently supports. If the data has span indices, describe their attributes, such as whether they are at the character level or word level, whether they are contiguous or not, etc. If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
-
-- `example_field`: description of `example_field`
+- `uuid`: example id.
+- `scenario_uuid`: scenario id.
+- `scenario_alphas`: scenario alphas.
+- `scenario_attributes`: all the attributes considered in the scenario. The dictionaries are liniearized: to reconstruct the dictionary of attribute i-th, one should extract the i-th elements of `unique`, `value_type` and `name`.
+  - `unique`: bool.
+  - `value_type`: code/type of the attribute.
+  - `name`: name of the attribute.
+- `scenario_kbs`: descriptions of the persons present in the two users' databases. List of two (one for each user in the dialogue). `scenario_kbs[i]` is a list of persons. Each person is represented as two lists (one for attribute names and the other for attribute values). The j-th element of attribute names corresponds to the j-th element of attribute values (linearized dictionary).
+- `agents`: the two users engaged in the dialogue.
+- `outcome_reward`: reward of the present dialogue.
+- `events`: dictionary describing the dialogue. The j-th element of each sub-element of the dictionary describes the turn along the axis of the sub-element.
+  - `actions`: type of turn (either `message` or `select`).
+  - `agents`: who is talking? Agent 1 or 0?
+  - `data_messages`: the string exchanged if `action==message`. Otherwise, empty string.
+  - `data_selects`: selection of the user if `action==select`. Otherwise, empty selection/dictionary.
+  - `start_times`: always -1 in these data.
+  - `times`: sending time.
 
 ### Data Splits
 
-TODO
-
-Describe and name the splits in the dataset if there are more than one.
-
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
-
-Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
-
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Input Sentences            |        |       |      |
-| Average Sentence Length    |        |       |      |
+There are 8967 dialogues for training, 1083 for validation and 1107 for testing.
 
 ## Dataset Creation
 
