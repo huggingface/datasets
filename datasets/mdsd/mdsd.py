@@ -125,7 +125,6 @@ class MDSDataset(datasets.GeneratorBasedBuilder):
                 reviews = html.fromstring(xml_string)
                 for review in reviews:
                     try:
-                        print(xmltodict.parse(html.tostring(review)), dp, datatype)
                         review = dict(xmltodict.parse(html.tostring(review))["review"])
                         review["rating"] = float(review["rating"])
                         review["id"] = sentence_counter
