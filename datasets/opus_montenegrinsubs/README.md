@@ -55,7 +55,7 @@ task_ids:
 
 ### Dataset Summary
 
-Opus MontenegrinSubs dataset for machine translation task, for language pair en-me.
+Opus MontenegrinSubs dataset for machine translation task, for language pair en-me: english and montenegrin
 
 ### Supported Tasks and Leaderboards
 
