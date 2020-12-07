@@ -1,0 +1,35 @@
+<review>
+<unique_id>
+B00006HYUB:power_ups!_everything_you_need_to_know.:404knowmore
+</unique_id>
+<asin>
+B00006HYUB
+</asin>
+<product_name>
+APC Back-UPS ES 500 Backup Battery and Surge Protector: Electronics
+</product_name>
+<product_type>
+electronics
+</product_type>
+<helpful>
+19 of 24
+</helpful>
+<rating>
+5.0
+</rating>
+<title>
+Power UPS! Everything you need to know.
+</title>
+<date>
+April 11, 2006
+</date>
+<reviewer>
+404knowmore
+</reviewer>
+<reviewer_location>
+California
+</reviewer_location>
+<review_text>
+First of all why do you want a power UPS? There are some very good reasons. (1) You never want your machine to go down incorrectly because of a blackout. (2) You want to work with clean power only. (3) You want to monitor your PC power. (4) You want to prevent your PC from being damaged due to a power problem like a lighting strike and want surge protection. The first rule about UPS is to never trust the insurance claim. Get your PC insured elsewhere. These companies have a tendency not to support their insurance claims. I have a PC running some very high specifications with over six USB devices, LCD monitor, printer and Ethernet equipment, with everything on at the same time. I have never gone above 325W of usage and average between 250W and 300W when managing a high spec game and doing lots of background tasks. Even though I have a 400W Power Supply Unit (PSU) I will be upgrading to a 500W PSU because it is better quality model. The way I can monitor how many Watts I use is with UPS software and hardware. So the question you need to ask is how many watts you will be using. The short answer to this is you don't know until you install the UPS and software that tells you how many watts you use because that appears to be the only way you can monitor your wattage at this time. You need to estimate what it is. I would say a high-end domestic PC (not a server) would use 300W max if it has one of every device you can think off turned on. As soon as we add things like another PC, or several printers, or several monitors, then we can start to overload a 325W UPS. This brings us to the first thing we need to learn about any UPS - Overloading and balancing. The overload feature is a warning system that turns on when you have overloaded the UPS capacity. Overloading does two things. It can in theory eventually damage the UPS and it voids the warranty. Most UPS are 325W but there are 800W - 1000W and even greater models out there for home networks that use more than one PC setup but to be honest you are probably going to get a UPS per PC setup rather than expensive bigger UPS for a network. So check the UPS rating. What UPS you choose depends on how much you want to load on it. Next thing you need to check with the UPS is if it comes with a USB connection. If it does this is a big plus because it means you can control it from your PC and the UPS comes with software. Now if the UPS has this feature then you can do loads of stuff like turning off UPS sound alarms, controlling how your UPS handles a blackout, how long it uses the battery before shutdown or hibernation, if it sounds an alarm or not, if it run self tests, data collection and monitoring, notifications and sensitivity settings. If the UPS does not come with a USB connection and software then you probably should be looking for an UPS designed for computer use rather than a UPS for non-computer equipment. Most UPS have LED indicators that tell you the status of the unit. The next thing to understand is that testing your UPS is not done by breaking it out of the box, connecting it to the mains, plugging your PC in and then turning off the house's power with the circuit breaker. You must charge the UPS first! So read the instructions. Usually you must attach the battery to the UPS (plug it in firmly!) and wait before using it. Then perform the test using the software first! Then you can consider trying to simulate a blackout in your home to see if the PC stays up. Usually a UPS is programmed to shutdown your PC if the blackout lasts for a few seconds. Nearly all UPS models with a USB connection can be customized for the shutdown event or how long the PC should hold for on the UPS battery. Most UPS devices allow you to connect a modem phone line into the device and then run a phone line into your modem. This is important because power surges on a UPS that do not have this protection can damage a PC through the unprotected phone line running into the modem that usually runs to the PC somehow. This is nasty problem with the degree of security that a UPS can provide. If it doesn't have this function then it is not going to provide 100% surge protection with a PC that is on-line. Networking a UPS PC to another PC without UPS can also increase the risk of surge protection problems. It is not recommend that you network a UPS PC to a non-UPS PC unless surge protection and the warranty are not an issue. One last thing is that some UPS have input regions on the UPS for surge protection and other input regions are not surge protected. Also with some models the batteries need to be replaced after a few years if you end up using them a lot. This is everything you need to know about an UPS before you choose one. It is basically now about downloading the technical specs of the UPS and making sure it provides you with what you need. The two top brands are APC and Belkin
+</review_text>
+</review>
