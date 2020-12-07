@@ -45,68 +45,76 @@ _SPLIT = {
 _WIKI_URL = "https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/ALT-Parallel-Corpus-20191206/URL.txt"
 
 
-class AltConfig(datasets.BuilderConfig):
+class AltParallelConfig(datasets.BuilderConfig):
     """BuilderConfig for ALT."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, language_pair=(None, None), **kwargs):
         """BuilderConfig for ALT.
 
         Args:
-          **kwargs: keyword arguments forwarded to super.
+            for the `datasets.features.text.TextEncoder` used for the features feature.
+
+            language_pair: pair of languages that will be used for translation. Should contain 2-letter coded strings. First will be used at source and second as target in supervised mode. For example: ("se", "en").
+            **kwargs: keyword arguments forwarded to super.
         """
-        super(AltConfig, self).__init__(**kwargs)
+
+        name = "alt-parallel-%s-%s" % (language_pair[0], language_pair[1])
+
+        description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
+        super(AltParallelConfig, self).__init__(
+            name=name,
+            description=description,
+            version=datasets.Version("1.0.0", ""),
+            **kwargs,
+        )
+
+        self.language_pair = language_pair
 
 
 class Alt(datasets.GeneratorBasedBuilder):
     """Asian Language Treebank (ALT) Project"""
 
     BUILDER_CONFIGS = [
+        AltParallelConfig(language_pair=("en", "bg")),
+        AltParallelConfig(language_pair=("en", "en")),
+        AltParallelConfig(language_pair=("en", "en_tok")),
+        AltParallelConfig(language_pair=("en", "fil")),
+        AltParallelConfig(language_pair=("en", "hi")),
+        AltParallelConfig(language_pair=("en", "id")),
+        AltParallelConfig(language_pair=("en", "ja")),
+        AltParallelConfig(language_pair=("en", "khm")),
+        AltParallelConfig(language_pair=("en", "lo")),
+        AltParallelConfig(language_pair=("en", "ms")),
+        AltParallelConfig(language_pair=("en", "my")),
+        AltParallelConfig(language_pair=("en", "th")),
+        AltParallelConfig(language_pair=("en", "vi")),
+        AltParallelConfig(language_pair=("en", "zh")),
+        datasets.BuilderConfig(name="alt-en", version=datasets.Version("1.0.0"), description="English ALT"),
+        datasets.BuilderConfig(name="alt-jp", version=datasets.Version("1.0.0"), description="Japanese ALT"),
+        datasets.BuilderConfig(name="alt-my", version=datasets.Version("1.0.0"), description="Myanmar ALT"),
+        datasets.BuilderConfig(name="alt-km", version=datasets.Version("1.0.0"), description="Khmer ALT"),
         datasets.BuilderConfig(
-            name="alt", version=datasets.Version("1.0.0"), description="Asian Language Treebank Parallel Corpus"
+            name="alt-my-transliteration",
+            version=datasets.Version("1.0.0"),
+            description="Myanmar-English Transliteration Dataset",
         ),
-        # datasets.BuilderConfig(
-        #     name="alt-en", version=datasets.Version("1.0.0"), description="English ALT"
-        # ),
-        # datasets.BuilderConfig(
-        #     name="alt-jp", version=datasets.Version("1.0.0"), description="Japanese ALT"
-        # ),
-        # datasets.BuilderConfig(
-        #     name="alt-my", version=datasets.Version("1.0.0"), description="Myanmar ALT"
-        # ),
-        # datasets.BuilderConfig(
-        #     name="alt-km", version=datasets.Version("1.0.0"), description="Khmer ALT"
-        # ),
-        # datasets.BuilderConfig(
-        #     name="alt-my-transliteration", version=datasets.Version("1.0.0"), description="Myanmar-English Transliteration Data Set"
-        # ),
-        # datasets.BuilderConfig(
-        #     name="alt-my-west-transliteration", version=datasets.Version("1.0.0"), description="Latin-Myanmar Transliteration Dataset"
-        # )
+        datasets.BuilderConfig(
+            name="alt-my-west-transliteration",
+            version=datasets.Version("1.0.0"),
+            description="Latin-Myanmar Transliteration Dataset",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "alt"
 
     def _info(self):
-        if self.config.name == "alt":
+        if self.config.name.startswith("alt-parallel"):
             features = datasets.Features(
                 {
                     "SNT.URLID": datasets.Value("string"),
                     "SNT.URLID.SNTID": datasets.Value("string"),
                     "url": datasets.Value("string"),
-                    "bg": datasets.Value("string"),
-                    "en": datasets.Value("string"),
-                    "en_tok": datasets.Value("string"),
-                    "fil": datasets.Value("string"),
-                    "hi": datasets.Value("string"),
-                    "id": datasets.Value("string"),
-                    "ja": datasets.Value("string"),
-                    "khm": datasets.Value("string"),
-                    "lo": datasets.Value("string"),
-                    "ms": datasets.Value("string"),
-                    "my": datasets.Value("string"),
-                    "th": datasets.Value("string"),
-                    "vi": datasets.Value("string"),
-                    "zh": datasets.Value("string"),
+                    "translation": datasets.features.Translation(languages=self.config.language_pair),
                 }
             )
         elif self.config.name == "alt-en":
@@ -177,7 +185,11 @@ class Alt(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_path = dl_manager.download_and_extract(_URLs[self.config.name])
+        if self.config.name.startswith("alt-parallel"):
+            data_path = dl_manager.download_and_extract(_URLs["alt"])
+        else:
+            data_path = dl_manager.download_and_extract(_URLs[self.config.name])
+
         if self.config.name == "alt-my-transliteration" or self.config.name == "alt-my-west-transliteration":
             return [
                 datasets.SplitGenerator(
@@ -215,20 +227,21 @@ class Alt(datasets.GeneratorBasedBuilder):
                     allow_urls[urlid] = {"SNT.URLID": urlid, "url": sp[1]}
 
         data = {}
-        if self.config.name == "alt":
-            files = ["bg", "en", "en_tok", "fil", "hi", "id", "ja", "khm", "lo", "ms", "my", "th", "vi", "zh"]
+        if self.config.name.startswith("alt-parallel"):
+
+            source, target = self.config.language_pair
+            files = [source, target]
+
             template = {
                 "SNT.URLID": None,
                 "SNT.URLID.SNTID": None,
                 "url": None,
+                "translation": {source: None, target: None},
             }
-
-            for lang in files:
-                template[lang] = None
 
             data = {}
             for lang in files:
-                file_path = os.path.join(basepath, f"ALT-Parallel-Corpus-20191206/data_{lang}.txt")
+                file_path = os.path.join(basepath, "ALT-Parallel-Corpus-20191206", f"data_{lang}.txt")
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -245,16 +258,14 @@ class Alt(datasets.GeneratorBasedBuilder):
                         data[sntid]["url"] = allow_urls[urlid]["url"]
 
                     # Note that Japanese and Myanmar texts have empty sentence fields in this release.
-                    if len(sp) < 2:
-                        data[sntid][lang] = None
-                    else:
-                        data[sntid][lang] = sp[1]
+                    if len(sp) >= 2:
+                        data[sntid]["translation"][lang] = sp[1]
                 fin.close()
 
         elif self.config.name == "alt-en":
             data = {}
             for fname in ["English-ALT-Draft.txt", "English-ALT-Reviewed.txt"]:
-                file_path = os.path.join(basepath, f"English-ALT-20170107/{fname}")
+                file_path = os.path.join(basepath, f"English-ALT-20170107", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -283,7 +294,7 @@ class Alt(datasets.GeneratorBasedBuilder):
         elif self.config.name == "alt-jp":
             data = {}
             for fname in ["Japanese-ALT-Draft.txt", "Japanese-ALT-Reviewed.txt"]:
-                file_path = os.path.join(basepath, f"Japanese-ALT-20170330/{fname}")
+                file_path = os.path.join(basepath, f"Japanese-ALT-20170330", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -293,6 +304,9 @@ class Alt(datasets.GeneratorBasedBuilder):
                         continue
 
                     d = {
+                        "SNT.URLID": urlid,
+                        "SNT.URLID.SNTID": sntid,
+                        "url": allow_urls[urlid]["url"],
                         "value": None,
                         "status": None,
                         "word_alignment": None,
@@ -314,22 +328,29 @@ class Alt(datasets.GeneratorBasedBuilder):
                 "jp_tokenized": "word-alignment/data_ja.ja-tok",
             }
             for k in keys:
-                file_path = os.path.join(basepath, f"Japanese-ALT-20170330/{keys[k]}")
+                file_path = os.path.join(basepath, f"Japanese-ALT-20170330", keys[k])
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
                     sp = line.split("\t")
+
+                    # Note that Japanese and Myanmar texts have empty sentence fields in this release.
+                    if len(sp) < 2:
+                        continue
+
                     _, urlid, sntid = sp[0].split(".")
                     if urlid not in allow_urls:
                         continue
 
-                    data[sntid][k] = sp[1]
+                    if sntid in data:
+
+                        data[sntid][k] = sp[1]
                 fin.close()
 
         elif self.config.name == "alt-my":
             data = {}
             for fname in ["data"]:
-                file_path = os.path.join(basepath, f"my-alt-190530/{fname}")
+                file_path = os.path.join(basepath, f"my-alt-190530", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -338,13 +359,18 @@ class Alt(datasets.GeneratorBasedBuilder):
                     if urlid not in allow_urls:
                         continue
 
-                    data[sntid] = {"value": sp[1]}
+                    data[sntid] = {
+                        "SNT.URLID": urlid,
+                        "SNT.URLID.SNTID": sntid,
+                        "url": allow_urls[urlid]["url"],
+                        "value": sp[1],
+                    }
                 fin.close()
 
         elif self.config.name == "alt-km":
             data = {}
             for fname in ["data_km.km-tag.nova", "data_km.km-tok.nova"]:
-                file_path = os.path.join(basepath, f"km-nova-181101/{fname}")
+                file_path = os.path.join(basepath, f"km-nova-181101", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -358,6 +384,9 @@ class Alt(datasets.GeneratorBasedBuilder):
                         data[sntid][k] = sp[1]
                     else:
                         data[sntid] = {
+                            "SNT.URLID": urlid,
+                            "SNT.URLID.SNTID": sntid,
+                            "url": allow_urls[urlid]["url"],
                             "km_pos_tag": None,
                             "km_tokenized": None,
                         }
@@ -365,7 +394,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                 fin.close()
 
         elif self.config.name == "alt-my-transliteration":
-            file_path = os.path.join(basepath, f"my-en-transliteration/data.txt")
+            file_path = os.path.join(basepath, f"my-en-transliteration", "data.txt")
             # Need to set errors='ignore' because of the unknown error
             # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
             # It might due to some issues related to Myanmar alphabets
@@ -382,11 +411,11 @@ class Alt(datasets.GeneratorBasedBuilder):
                 if len(sp) < 2:
                     continue
 
-                allow_urls[_id] = {"en": sp[0].strip(), "my": [sp[1].strip()]}
+                data[_id] = {"en": sp[0].strip(), "my": [sp[1].strip()]}
                 _id += 1
             fin.close()
         elif self.config.name == "alt-my-west-transliteration":
-            file_path = os.path.join(basepath, f"western-myanmar-transliteration/321.txt")
+            file_path = os.path.join(basepath, f"western-myanmar-transliteration", "321.txt")
             # Need to set errors='ignore' because of the unknown error
             # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
             # It might due to some issues related to Myanmar alphabets
@@ -397,7 +426,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                 line = line.replace("\x00", "")
                 sp = line.split("|||")
 
-                allow_urls[_id] = {"en": sp[0].strip(), "my": [l.strip() for l in sp[1].split("|")]}
+                data[_id] = {"en": sp[0].strip(), "my": [l.strip() for l in sp[1].split("|")]}
                 _id += 1
             fin.close()
 
