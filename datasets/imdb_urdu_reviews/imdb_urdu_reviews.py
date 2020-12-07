@@ -64,7 +64,6 @@ class ImdbUrduReviews(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        print(filepath)
         with open(filepath, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
             for id_, row in enumerate(reader):
