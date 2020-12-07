@@ -32,8 +32,9 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Nergrit Corpus is a dataset collection for Indonesian Named Entity Recognition, Statement Extraction, and Sentiment Analysis. 
-id_nergrit_ner is the Named Entity Recognition of this dataset collection which contains 18 entities as follow:
+Nergrit Corpus is a dataset collection for Indonesian Named Entity Recognition, Statement Extraction, and Sentiment
+Analysis. id_nergrit_ner is the Named Entity Recognition of this dataset collection which contains 18 entities as
+follow:
     'CRD': Cardinal
     'DAT': Date
     'EVT': Event
