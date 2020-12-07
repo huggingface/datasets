@@ -148,7 +148,7 @@ For conceptnet5 configurations:
 * arg2: the second argument to the binary relationship. e.g., /c/en/cane      
 * lang: the language code. e.g., en, fr, etc. If the arg1 and arg2 are two different languages, then the form os lang1/lang2.
 * extra_info: a string that includes json data that has the dataset name, license type (mostly cc-4.0), contributor, etc. e.g., : {"dataset": "/d/verbosity", "license": "cc:by/4.0", "sources": [{"contributor": "/s/resource/verbosity"}], "surfaceEnd": "cane", "surfaceStart": "able", "surfaceText": "[[able]] is the opposite of [[cane]]", "weight": 0.299}
-* sentence: the sentence from which the relationship was extracted, if one exists. e.g., [[able]] is the opposite of [[cane]]
+* sentence: the sentence from which the relationship was extracted, if one exists, with brackets around the arg1 and arg2. e.g., [[able]] is the opposite of [[cane]]
 * weight: the weight assigned by the curators or automatically to the relationship, between 1.0-0.0, higher being more certain. 
 
 For the omcs text configurations:

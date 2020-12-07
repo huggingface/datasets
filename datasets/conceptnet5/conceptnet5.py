@@ -56,9 +56,7 @@ https://github.com/commonsense/conceptnet5/wiki/Downloads. For more
 information, see: https://github.com/commonsense/conceptnet5/wiki
 
 The omcsnet data comes with the following warning from the authors of
-the above site: 
-
-Remember: this data comes from various forms of
+the above site: Remember: this data comes from various forms of
 crowdsourcing. Sentences in these files are not necessarily true,
 useful, or appropriate.
 
@@ -80,9 +78,6 @@ There are various othe licenses. See:
 https://github.com/commonsense/conceptnet5/wiki/Copying-and-sharing-ConceptNet
 """
 
-
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
     'conceptnet5': "https://s3.amazonaws.com/conceptnet/downloads/2019/edges/conceptnet-assertions-5.7.0.csv.gz",
     'omcs_sentences_free': "https://s3.amazonaws.com/conceptnet/downloads/2018/omcs-sentences-free.txt",
@@ -90,85 +85,57 @@ _URLs = {
 }
 
 
-
 class Conceptnet5(datasets.GeneratorBasedBuilder):
     """Conceptnet5 dataset for common sense graphs and underlying sentences."""
 
     VERSION = datasets.Version("0.1.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),#
+        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),
         datasets.BuilderConfig(name="omcs_sentences_free", description="OMCSNet free form text", version="5.7.0"),
         datasets.BuilderConfig(name="omcs_sentences_more", description="OMCSNet free form text, and text from templates, games, responses to questions, and so on", version="5.7.0"),
     ]
 
-    DEFAULT_CONFIG_NAME = "conceptnet5"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = "conceptnet5"
 
     def _info(self):
-        # This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "conceptnet5":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
+        if self.config.name == "conceptnet5":
             features = datasets.Features(
                 {
-                    "sentence": datasets.Value("string"), # the surface text if available, with brackets ([[ ]]) around the arg1 and arg2 words. 
+                    "sentence": datasets.Value("string"),
                     "full_rel": datasets.Value("string"),
                     "rel": datasets.Value("string"),
                     "arg1": datasets.Value("string"),
                     "arg2": datasets.Value("string"),
-                    "lang": datasets.Value("string"), # if the arg1 and arg2 are the same language, then there is one code, otherwise there are two comma separated codes
-                    "extra_info": datasets.Value("string"), # in json format
+                    "lang": datasets.Value("string"),
+                    "extra_info": datasets.Value("string"),
                     "weight": datasets.Value("float"),
                 }
             )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        else:
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
                     "raw_data": datasets.Value("string"),
-                    "lang": datasets.Value("string"), 
+                    "lang": datasets.Value("string"),
                 }
             )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage="https://github.com/commonsense/conceptnet5/wiki",
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": data_dir,
                     "split": "train",
@@ -177,10 +144,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
-        # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
+        """ Yields examples from the conceptnet5 graph if the config is 'conceptnet5', otherwise yields the sentences for omcs. """
 
         with open(filepath, "rb") as f:
             for id_, row in enumerate(f):
