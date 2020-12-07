@@ -118,7 +118,7 @@ class NarrativeQa(datasets.GeneratorBasedBuilder):
                 documents[row["document_id"]] = row
 
         summaries = {}
-        with open(os.path.join(repo_dir, "third_party", "wikipedia", "summaries.csv")) as f:
+        with open(os.path.join(repo_dir, "third_party", "wikipedia", "summaries.csv"), encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if row["set"] != split:
