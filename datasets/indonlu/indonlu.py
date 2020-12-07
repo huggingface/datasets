@@ -559,7 +559,6 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-
         train_path = dl_manager.download_and_extract(self.config.train_url)
         valid_path = dl_manager.download_and_extract(self.config.valid_url)
         test_path = dl_manager.download_and_extract(self.config.test_url)
