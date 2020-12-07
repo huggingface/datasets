@@ -52,7 +52,7 @@ task_ids:
 
 ### Dataset Summary
 
-MetaLWOz: A Dataset of Multi-Domain Dialogues for the Fast Adaptation of Conversation Models. \
+MetaLWOz: A Dataset of Multi-Domain Dialogues for the Fast Adaptation of Conversation Models. 
 We introduce the Meta-Learning Wizard of Oz (MetaLWOz) dialogue dataset for developing fast adaptation methods for 
 conversation models. This data can be used to train task-oriented dialogue models, specifically to develop methods to 
 quickly simulate user responses with a small amount of data. Such fast-adaptation models fall into the research areas 
@@ -67,8 +67,9 @@ Dialogues are a minimum of 10 turns long.
 This dataset supports a range of task.
 - **Generative dialogue modeling** or `dialogue-modeling`: This data can be used to train task-oriented dialogue
  models, specifically to develop methods to quickly simulate user responses with a small amount of data. Such fast
- -adaptation models fall into the research areas of transfer learning and meta learning. The text of the dialogues
-  can be used to train a sequence model on the utterances. Example of sample input/output is given in section [Data Instances](#data-instances)
+-adaptation models fall into the research areas of transfer learning and meta learning. The text of the dialogues
+  can be used to train a sequence model on the utterances. 
+  Example of sample input/output is given in section [Data Instances](#data-instances)
  
   
 

@@ -102,8 +102,7 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download(_URLs)
-        data_dir = dl_manager.extract(data_dir)
+        data_dir = dl_manager.download_and_extract(_URLs)
         data_dir["test"] = dl_manager.extract(os.path.join(data_dir["test"], "dstc8_metalwoz_heldout.zip"))
 
         return [
@@ -137,7 +136,9 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
         else:
             id_ = -1
             base_path = os.path.join(data_dir, "dialogues")
-            file_list = [os.path.join(base_path, file) for file in os.listdir(base_path)]
+            file_list = sorted(
+                [os.path.join(base_path, file) for file in os.listdir(base_path) if file.endswith(".txt")]
+            )
             for filepath in file_list:
                 with open(filepath, encoding="utf-8") as f:
                     for row in f:
