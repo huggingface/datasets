@@ -17,6 +17,7 @@
 from __future__ import absolute_import, division, print_function
 
 import json
+import os
 
 import datasets
 
@@ -46,17 +47,9 @@ TABFACT is challenging since it involves both soft linguistic reasoning and hard
 
 _HOMEPAGE = "https://tabfact.github.io/"
 
-_CSV_BASE_URL = "https://raw.githubusercontent.com/wenhuchen/Table-Fact-Checking/master/data"
-_ALL_CSV_IDS_URL = _CSV_BASE_URL + "/all_csv_ids.json"
-
-_STATEMENTS_BASE_URL = "https://raw.githubusercontent.com/wenhuchen/Table-Fact-Checking/master/tokenized_data/"
-_URLS = {
-    "train": _STATEMENTS_BASE_URL + "train_examples.json",
-    "dev": _STATEMENTS_BASE_URL + "val_examples.json",
-    "test": _STATEMENTS_BASE_URL + "test_examples.json",
-}
-
-_BLIND_TEST_URL = "https://raw.githubusercontent.com/wenhuchen/Table-Fact-Checking/master/challenge/blind_test.json"
+_GIT_ARCHIVE_URL = (
+    "https://github.com/wenhuchen/Table-Fact-Checking/archive/948b5560e2f7f8c9139bd91c7f093346a2bb56a8.zip"
+)
 
 
 class TabFact(datasets.GeneratorBasedBuilder):
@@ -97,68 +90,70 @@ class TabFact(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        ids_file = dl_manager.download(_ALL_CSV_IDS_URL)
-        ids = json.load(open(ids_file))
+        extracted_path = dl_manager.download_and_extract(_GIT_ARCHIVE_URL)
 
-        csv_urls = {id_: f"{_CSV_BASE_URL}/all_csv/{id_}" for id_ in ids}
-        csv_files = dl_manager.download(csv_urls)
+        repo_path = os.path.join(extracted_path, "Table-Fact-Checking-948b5560e2f7f8c9139bd91c7f093346a2bb56a8")
+        all_csv_path = os.path.join(repo_path, "data", "all_csv")
 
         if self.config.name == "blind_test":
-            test_file = dl_manager.download(_BLIND_TEST_URL)
+            test_file_path = os.path.join(repo_path, "challenge", "blind_test.json")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"statements_file": test_file, "csv_files": csv_files, "split": "test"},
+                    gen_kwargs={"statements_file": test_file_path, "all_csv_path": all_csv_path},
                 ),
             ]
 
-        statements_files = dl_manager.download(_URLS)
+        train_statements_file = os.path.join(repo_path, "tokenized_data", "train_examples.json")
+        val_statements_file = os.path.join(repo_path, "tokenized_data", "val_examples.json")
+        test_statements_file = os.path.join(repo_path, "tokenized_data", "test_examples.json")
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"statements_file": statements_files["train"], "csv_files": csv_files, "split": "train"},
+                gen_kwargs={"statements_file": train_statements_file, "all_csv_path": all_csv_path},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"statements_file": statements_files["dev"], "csv_files": csv_files, "split": "dev"},
+                gen_kwargs={"statements_file": val_statements_file, "all_csv_path": all_csv_path},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"statements_file": statements_files["test"], "csv_files": csv_files, "split": "test"},
+                gen_kwargs={"statements_file": test_statements_file, "all_csv_path": all_csv_path},
             ),
         ]
 
-    def _generate_examples(self, statements_file, csv_files, split):
+    def _generate_examples(self, statements_file, all_csv_path):
         with open(statements_file, encoding="utf-8") as f:
             examples = json.load(f)
 
         if self.config.name == "blind_test":
-            test_examples = self._generate_blind_test_examples(examples, csv_files)
+            test_examples = self._generate_blind_test_examples(examples, all_csv_path)
             for idx, example in test_examples:
                 yield idx, example
         else:
-            counter = 0
-            for table_id, example in examples.items():
-                with open(csv_files[table_id], encoding="utf-8") as f:
+            for i, (table_id, example) in enumerate(examples.items()):
+                table_file_path = os.path.join(all_csv_path, table_id)
+                with open(table_file_path, encoding="utf-8") as f:
                     tabel_text = f.read()
 
                 statements, labels, caption = example
 
                 for statement, label in zip(statements, labels):
-                    yield counter, {
-                        "id": counter,
+                    yield i, {
+                        "id": i,
                         "table_id": table_id,
                         "table_text": tabel_text,
                         "table_caption": caption,
                         "statement": statement,
                         "label": label,
                     }
-                    counter += 1
 
-    def _generate_blind_test_examples(self, examples, csv_files):
+    def _generate_blind_test_examples(self, examples, all_csv_path):
         for i, (test_id, example) in enumerate(examples.items()):
             statement, table_id, caption = example
-            with open(csv_files[table_id], encoding="utf-8") as f:
+            table_file_path = os.path.join(all_csv_path, table_id)
+            with open(table_file_path, encoding="utf-8") as f:
                 tabel_text = f.read()
 
             yield i, {
