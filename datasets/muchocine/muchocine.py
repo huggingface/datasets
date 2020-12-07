@@ -72,7 +72,7 @@ class Muchocine(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, split):
         for filepath in filepaths:
             with open(filepath, encoding="latin-1") as f:
-                id = re.search("\d+\.xml", filepath)[0][:-4]
+                id = re.search(r"\d+\.xml", filepath)[0][:-4]
 
                 txt = f.read()
                 txt = txt.replace("&ldquo;", '"').replace("&rdquo;", '"').replace("&hellip;", "")
@@ -81,8 +81,9 @@ class Muchocine(datasets.GeneratorBasedBuilder):
                 txt = txt.replace("&ouml;", "ö").replace("&ccedil;", "ç").replace("&", "and")
                 try:
                     doc = parseString(txt)
-                except:
+                except Exception as e:
                     # skip 6 malformed xml files, for example unescaped < and >
+                    _ = e
                     continue
 
                 btxt = ""
