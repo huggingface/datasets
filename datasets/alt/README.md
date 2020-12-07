@@ -156,7 +156,7 @@ and bg, en, fil, hi, id, ja, khm, lo, ms, my, th, vi, zh correspond to the targe
 #### ALT Treebank
 - status: it indicates how a sentence is annotated; `draft` sentences are annotated by one annotater and `reviewed` sentences are annotated by two annotater 
 
-The annotatation is different from language to language, please see [their guildline](https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/) for more detail.
+The annotatation is different from language to language, please see [their guildlines](https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/) for more detail.
 
 ### Data Splits
 
