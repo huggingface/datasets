@@ -110,7 +110,7 @@ class NarrativeQa(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, repo_dir, full_text_dir, split):
         """Yields examples."""
         documents = {}
-        with open(os.path.join(repo_dir, "documents.csv")) as f:
+        with open(os.path.join(repo_dir, "documents.csv"), encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if row["set"] != split:
@@ -125,7 +125,7 @@ class NarrativeQa(datasets.GeneratorBasedBuilder):
                     continue
                 summaries[row["document_id"]] = row
 
-        with open(os.path.join(repo_dir, "qaps.csv")) as f:
+        with open(os.path.join(repo_dir, "qaps.csv"), encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for id_, row in enumerate(reader):
                 if row["set"] != split:
