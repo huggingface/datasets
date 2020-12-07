@@ -58,7 +58,7 @@ class DengueFilipino(datasets.GeneratorBasedBuilder):
                 "dengue": datasets.features.ClassLabel(names=["0", "1"]),
                 "health": datasets.features.ClassLabel(names=["0", "1"]),
                 "mosquito": datasets.features.ClassLabel(names=["0", "1"]),
-                "sick": datasets.features.ClassLabel(names=["0", "1"])
+                "sick": datasets.features.ClassLabel(names=["0", "1"]),
             }
         )
         return datasets.DatasetInfo(
