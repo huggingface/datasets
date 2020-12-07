@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - sentiment-classification
 - text-classification-other-dialogue-sentiment-classification
-
 ---
 
 # Dataset Card Creation Guide
