@@ -117,7 +117,7 @@ The IDs in the original dataset correspond to identifiers from Flickr30k or (the
 
 ### Free text description for context (e.g. describe difference between title / selftext / body in Reddit data) and example
 
-For each ID, there is a string for the premise, a string for the hypothesis, and an integer for the label. Note that each premise may appear three times with a different hypothesis and label. See the [SNLI corpus viewer](https://huggingface.co/nlp/viewer/?dataset=snli) to explore more examples.
+For each ID, there is a string for the premise, a string for the hypothesis, and an integer for the label. Note that each premise may appear three times with a different hypothesis and label. See the [SNLI corpus viewer](https://huggingface.co/datasets/viewer/?dataset=snli) to explore more examples.
 
 ID | Premise | Hypothesis | Label
 ---|---------|------------|-------

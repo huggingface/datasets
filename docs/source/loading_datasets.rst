@@ -12,7 +12,7 @@ In this section we study each option.
 From the HuggingFace Hub
 -------------------------------------------------
 
-Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/nlp/viewer>`__.
+Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 .. note::
 
@@ -42,7 +42,7 @@ All the datasets currently available on the `Hub <https://huggingface.co/dataset
 
 To load a dataset from the Hub we use the :func:`datasets.load_dataset` command and give it the short name of the dataset you would like to load as listed above or on the `Hub <https://huggingface.co/datasets>`__.
 
-Let's load the **SQuAD dataset for Question Answering**. You can explore this dataset and find more details about it `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=squad>`__ (which is actually just a wrapper on top of the :class:`datasets.Dataset` we will now create):
+Let's load the **SQuAD dataset for Question Answering**. You can explore this dataset and find more details about it `on the online viewer here <https://huggingface.co/datasets/viewer/?dataset=squad>`__ (which is actually just a wrapper on top of the :class:`datasets.Dataset` we will now create):
 
 .. code-block::
 

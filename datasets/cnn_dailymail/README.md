@@ -107,7 +107,7 @@ An example ID is '0001d1afc246a7964130f43ae940af6bc6c57f01'. These are heximal f
 
 ### Free text description for context (e.g. describe difference between title / selftext / body in Reddit data) and example
 
-For each ID, there is a string for the article, a string for the highlights, and a string for the id. See the [CNN / Daily Mail dataset viewer](https://huggingface.co/nlp/viewer/?dataset=cnn_dailymail&config=3.0.0) to explore more examples.
+For each ID, there is a string for the article, a string for the highlights, and a string for the id. See the [CNN / Daily Mail dataset viewer](https://huggingface.co/datasets/viewer/?dataset=cnn_dailymail&config=3.0.0) to explore more examples.
 
 ID | Article | Hightlights 
 ---|---------|------------

@@ -28,12 +28,12 @@ Let's have a quick look at the 🤗datasets library. This library has three main
     wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli, 
     xquad, xsum, xtreme, yelp_polarity
 
-All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/nlp/viewer/>`__.
+All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/datasets/viewer/>`__.
 
 Loading a dataset
 --------------------
 
-Now let's load a simple dataset for classification, we'll use the MRPC dataset provided in the GLUE banchmark which is small enough for quick prototyping. You can explore this dataset and read more details `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=glue&config=mrpc>`__:
+Now let's load a simple dataset for classification, we'll use the MRPC dataset provided in the GLUE banchmark which is small enough for quick prototyping. You can explore this dataset and read more details `on the online viewer here <https://huggingface.co/datasets/viewer/?dataset=glue&config=mrpc>`__:
 
 .. code-block::
 

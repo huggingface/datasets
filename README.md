@@ -30,7 +30,7 @@
 
 🕹 **Colab demo**: https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb
 
-🔎 **Online dataset explorer**: https://huggingface.co/nlp/viewer
+🔎 **Online dataset explorer**: https://huggingface.co/datasets/viewer
 
 `🤗Datasets` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP) and more.
 
@@ -41,7 +41,7 @@
 - Strive on large datasets: `🤗Datasets` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
 - Smart caching: never wait for your data to process several times
 
-`🤗Datasets` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/nlp/viewer).
+`🤗Datasets` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/datasets/viewer).
 
 `🤗Datasets` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `datasets` and `tfds` can be found in the section [Main differences between `🤗Datasets` and `tfds`](#main-differences-between-🤗Datasets-and-tfds).
 

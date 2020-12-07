@@ -43,7 +43,7 @@ All the metrics currently available on the `Hub <https://huggingface.co/metrics>
 
 To load a metric from the Hub we use the :func:`datasets.load_metric` command and give it the short name of the metric you would like to load as listed above.
 
-Let's load the metric associated to the **MRPC subset of the GLUE benchmark for Natural Language Understanding**. You can explore this dataset and find more details about it `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=glue&config=mrpc>`__ :
+Let's load the metric associated to the **MRPC subset of the GLUE benchmark for Natural Language Understanding**. You can explore this dataset and find more details about it `on the online viewer here <https://huggingface.co/datasets/viewer/?dataset=glue&config=mrpc>`__ :
 
 .. code-block::
 
