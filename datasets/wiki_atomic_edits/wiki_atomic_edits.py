@@ -108,7 +108,6 @@ class WikiAtomicEdits(datasets.GeneratorBasedBuilder):
         for lang, edit_type in _LANG_EDITS
     ]
     BUILDER_CONFIG_CLASS = WikiAtomicEditsConfig
-    DEFAULT_CONFIG_NAME = "english_insertions"
 
     def _info(self):
         return datasets.DatasetInfo(
