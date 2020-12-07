@@ -151,7 +151,7 @@ It supports 13 languages:
 - SNT.URLID: URL link to the source article listed in [URL.txt](https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/ALT-Parallel-Corpus-20191206/URL.txt)
 - SNT.URLID.SNTID: index number from 1 to 20000. It is a seletected sentence from `SNT.URLID`
 
-and bg, en, fil, hi, id, ja, khm, lo, ms, my, th, vi, zh correspond to the target langauge
+and bg, en, fil, hi, id, ja, khm, lo, ms, my, th, vi, zh correspond to the target language
 
 #### ALT Treebank
 - status: it indicates how a sentence is annotated; `draft` sentences are annotated by one annotater and `reviewed` sentences are annotated by two annotater 
