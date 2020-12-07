@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - expert-generated
   language_creators:
@@ -73,11 +72,13 @@ Polish
 
 ### Data Fields
 
-[More Information Needed]
+- extract_text: text to summarise
+- summary_text: summary of extracted text 
+- label: 1 indicates summary is similar, 0 means that a summary is not similar
 
 ### Data Splits
 
-[More Information Needed]
+Data is splitted in train and test dataset. Test dataset doesn't have label column, so -1 is set instead.
 
 ## Dataset Creation
 
@@ -135,4 +136,9 @@ CC BY-SA 3.0
 
 ### Citation Information
 
-[More Information Needed]
+@inproceedings{ogro:kop:14:lrec,
+title={The {P}olish {S}ummaries {C}orpus},
+author={Ogrodniczuk, Maciej and Kope{\'c}, Mateusz},
+booktitle = "Proceedings of the Ninth International {C}onference on {L}anguage {R}esources and {E}valuation, {LREC}~2014",
+year = "2014",
+}
