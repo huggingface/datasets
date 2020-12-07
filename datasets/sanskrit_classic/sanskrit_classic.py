@@ -58,12 +58,11 @@ class SanskritClassic(datasets.GeneratorBasedBuilder):
 
 
     def _info(self):
-        if self.config.name == "combined":  # This is the name of the configuration selected in BUILDER_CONFIGS above
-            features = datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                }
-            )
+        features = datasets.Features(
+            {
+                "text": datasets.Value("string"),
+            }
+        )
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
