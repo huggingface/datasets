@@ -41,7 +41,7 @@ _HOMEPAGE = "http://covidqa.ai"
 _LICENSE = "Apache License 2.0"
 
 _URL = "https://raw.githubusercontent.com/castorini/pygaggle/master/data/"
-_URLs = {"covidqa": _URL + "kaggle-lit-review-0.2.json"}
+_URLs = {"covid_qa_castorini": _URL + "kaggle-lit-review-0.2.json"}
 
 
 class CovidQA(datasets.GeneratorBasedBuilder):
@@ -49,7 +49,7 @@ class CovidQA(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="covidqa", version=VERSION, description="CovidQA, a question answering dataset specifically designed for COVID-19"
+            name="covid_qa_castorini", version=VERSION, description="CovidQA, a question answering dataset specifically designed for COVID-19"
         ),
     ]
 

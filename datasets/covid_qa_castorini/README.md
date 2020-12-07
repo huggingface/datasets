@@ -21,7 +21,7 @@ task_ids:
 ---
 
 
-# Dataset Card for [CovidQA]
+# Dataset Card for [covid_qa_castorini]
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
