@@ -65,13 +65,22 @@ Python
 ## Dataset Structure  
 
 ### Data Instances
-A typical datapoint contains an AST of a python program, parsed.
-
-### Data Fields
-A datapoint has an ast key which branches to a flatenned tree version of first level children nodes. An example would be,     
+A typical datapoint contains an AST of a python program, parsed.   
+The main key is `ast` wherein every program's AST is stored.  
+ Each children would have,  
+`type` which will formulate the type of the node.   
+ `children` which enumerates if a given node has children(non-empty list). 
+ `value`, if the given node has any hardcoded value(else "N/A").
+ An example would be,     
 '''
 [ {"type":"Module","children":[1,4]},{"type":"Assign","children":[2,3]},{"type":"NameStore","value":"x"},{"type":"Num","value":"7"},    {"type":"Print","children":[5]},      {"type":"BinOpAdd","children":[6,7]},        {"type":"NameLoad","value":"x"},        {"type":"Num","value":"1"} ]
 '''
+### Data Fields
+- `ast`: a list of dictionaries, wherein every dictionary is a node in the Abstract Syntax Tree.
+- `type`: explains the type of the node.
+- `children`: list of nodes which are children under the given
+- `value`: hardcoded value, if the node holds an hardcoded value.
+
 ### Data Splits
 
 The data is split into a training and test set.   
