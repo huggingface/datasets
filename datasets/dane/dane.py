@@ -63,7 +63,7 @@ _LICENSE = "CC BY-SA 4.0"
 _URL = "https://danlp.alexandra.dk/304bd159d5de/datasets/ddt.zip"
 
 
-class DaNE(datasets.GeneratorBasedBuilder):
+class Dane(datasets.GeneratorBasedBuilder):
     """DaNE dataset"""
 
     def _info(self):
