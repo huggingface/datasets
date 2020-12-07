@@ -58,7 +58,7 @@ https://github.com/commonsense/conceptnet5/wiki/Downloads. For more
 information, see: https://github.com/commonsense/conceptnet5/wiki
 
 The omcsnet data comes with the following warning from the authors of
-the above site: 
+the above site:
 
 Remember: this data comes from various forms of
 crowdsourcing. Sentences in these files are not necessarily true,
@@ -110,7 +110,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),#
+        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),
         datasets.BuilderConfig(name="omcs_sentences_free", description="OMCSNet free form text", version="5.7.0"),
         datasets.BuilderConfig(name="omcs_sentences_more", description="OMCSNet free form text, and text from templates, games, responses to questions, and so on", version="5.7.0"),
     ]
@@ -119,7 +119,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "conceptnet5":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
+        if self.config.name == "conceptnet5":
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"), # the surface text if available, with brackets ([[ ]]) around the arg1 and arg2 words. 
@@ -128,7 +128,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
                     "arg1": datasets.Value("string"),
                     "arg2": datasets.Value("string"),
                     "lang": datasets.Value("string"), # if the arg1 and arg2 are the same language, then there is one code, otherwise there are two comma separated codes
-                    "extra_info": datasets.Value("string"), # in json format
+                    "extra_info": datasets.Value("string"),
                     "weight": datasets.Value("float"),
                 }
             )
