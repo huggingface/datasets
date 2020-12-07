@@ -51,7 +51,7 @@ _URL = "https://raw.githubusercontent.com/google-research-datasets/eth_py150_ope
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class Ethpy150open(datasets.GeneratorBasedBuilder):
+class EthPy150Open(datasets.GeneratorBasedBuilder):
     """A redistributable subset of the ETH Py150 corpus"""
 
     VERSION = datasets.Version("1.1.0")
