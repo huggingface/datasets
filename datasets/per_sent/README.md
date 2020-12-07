@@ -110,6 +110,8 @@ English
 - TRUE_SENTIMENT: Label for entire article
 - Paragraph{0..15}: Label for each paragraph in the article
 
+**Note**: Labels are one of `[Negative, Neutral, Positive]`.  Missing labels were replaced with `-1`.
+
 ### Data Splits
 
 To split the dataset, entities were split into 4 mutually exclusive sets. Due to the nature of news collections, some entities tend to dominate the collection. In the collection, there were four entities which were the main entity in nearly 800 articles. To avoid these entities from dominating the train or test splits, these were moved them to a separate test collection. The remaining was split into a training, dev, and test sets at random. Thus the collection includes one standard test set consisting of articles drawn at random (Test Standard), while the other is a test set which contains multiple articles about a small number of popular entities (Test Frequent).
