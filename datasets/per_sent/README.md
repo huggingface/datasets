@@ -76,199 +76,39 @@ English
 ### Data Instances
 
 ```json
-  {
-    "DOCUMENT_INDEX": {
-      "feature_type": "Value",
-      "dtype": "int64"
-    },
-    "TITLE": {
-      "feature_type": "Value",
-      "dtype": "string"
-    },
-    "TARGET_ENTITY": {
-      "feature_type": "Value",
-      "dtype": "string"
-    },
-    "DOCUMENT": {
-      "feature_type": "Value",
-      "dtype": "string"
-    },
-    "MASKED_DOCUMENT": {
-      "feature_type": "Value",
-      "dtype": "string"
-    },
-    "TRUE_SENTIMENT": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph0": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph1": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph2": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph3": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph4": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph5": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph6": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph7": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph8": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph9": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph10": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph11": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph12": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph13": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph14": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    },
-    "Paragraph15": {
-      "feature_type": "ClassLabel",
-      "dtype": "int32",
-      "class_names": [
-        "",
-        "Negative",
-        "Neutral",
-        "Positive"
-      ]
-    }
-  }
+{'DOCUMENT': "Germany's Landesbank Baden Wuertemberg won EU approval Tuesday for a state bailout after it promised to shrink its balance sheet by 40 percent and refocus on lending to companies.\n The bank was several state-owned German institutions to run into trouble last year after it ran up more huge losses from investing in high-risk proprietary trading and capital market activities -- a business the EU has now told it to shun.\n Seven current and former managers of the bank are also being investigated by German authorities for risking or damaging the bank's capital by carrying out or failing to block investments in high-risk deals worth hundreds of millions from 2006.\n The European Commission said its Tuesday approval for the state rescue of the bank and its new restructuring plan would allow it become a viable business again -- and that the cutbacks would help limit the unfair advantage over rivals that the bank would get from the state aid.\n Stuttgart-based LBBW earlier this year received a capital injection of (EURO)5 billion from the bank's shareholders  all of them public authorities or state-owned  including the state of Baden-Wuerttemberg  the region's savings bank association and the city of Stuttgart.",
+ 'DOCUMENT_INDEX': 1,
+ 'MASKED_DOCUMENT': "[TGT] won EU approval Tuesday for a state bailout after it promised to shrink its balance sheet by 40 percent and refocus on lending to companies.\n [TGT] was several state-owned German institutions to run into trouble last year after [TGT] ran up more huge losses from investing in high-risk proprietary trading and capital market activities -- a business the EU has now told it to shun.\n Seven current and former managers of [TGT] are also being investigated by German authorities for risking or damaging [TGT]'s capital by carrying out or failing to block investments in high-risk deals worth hundreds of millions from 2006.\n The European Commission said its Tuesday approval for the state rescue of [TGT] and its new restructuring plan would allow it become a viable business again -- and that the cutbacks would help limit the unfair advantage over rivals that [TGT] would get from the state aid.\n Stuttgart-based LBBW earlier this year received a capital injection of (EURO)5 billion from [TGT]'s shareholders  all of them public authorities or state-owned  including the state of Baden-Wuerttemberg  the region's savings bank association and the city of Stuttgart.",
+ 'Paragraph0': 2,
+ 'Paragraph1': 0,
+ 'Paragraph10': -1,
+ 'Paragraph11': -1,
+ 'Paragraph12': -1,
+ 'Paragraph13': -1,
+ 'Paragraph14': -1,
+ 'Paragraph15': -1,
+ 'Paragraph2': 0,
+ 'Paragraph3': 1,
+ 'Paragraph4': 1,
+ 'Paragraph5': -1,
+ 'Paragraph6': -1,
+ 'Paragraph7': -1,
+ 'Paragraph8': -1,
+ 'Paragraph9': -1,
+ 'TARGET_ENTITY': 'Landesbank Baden Wuertemberg',
+ 'TITLE': 'German bank LBBW wins EU bailout approval',
+ 'TRUE_SENTIMENT': 0}
 ```
+
+### Data Fields
+
+- DOCUMENT_INDEX: ID of the document per original dataset
+- TITLE: Title of the article
+- DOCUMENT: Text of the article
+- MASKED_DOCUMENT: Text of the article with the target entity masked with `[TGT]` token
+- TARGET_ENTITY: The entity that the author is expressing opinion about
+- TRUE_SENTIMENT: Label for entire article
+- Paragraph{0..15}: Label for each paragraph in the article
 
 ### Data Splits
 
