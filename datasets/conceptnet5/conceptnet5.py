@@ -16,9 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 import json
-
 
 import datasets
 
@@ -79,9 +77,9 @@ https://github.com/commonsense/conceptnet5/wiki/Copying-and-sharing-ConceptNet
 """
 
 _URLs = {
-    'conceptnet5': "https://s3.amazonaws.com/conceptnet/downloads/2019/edges/conceptnet-assertions-5.7.0.csv.gz",
-    'omcs_sentences_free': "https://s3.amazonaws.com/conceptnet/downloads/2018/omcs-sentences-free.txt",
-    'omcs_sentences_more': "https://s3.amazonaws.com/conceptnet/downloads/2018/omcs-sentences-more.txt",
+    "conceptnet5": "https://s3.amazonaws.com/conceptnet/downloads/2019/edges/conceptnet-assertions-5.7.0.csv.gz",
+    "omcs_sentences_free": "https://s3.amazonaws.com/conceptnet/downloads/2018/omcs-sentences-free.txt",
+    "omcs_sentences_more": "https://s3.amazonaws.com/conceptnet/downloads/2018/omcs-sentences-more.txt",
 }
 
 
@@ -91,9 +89,15 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),
+        datasets.BuilderConfig(
+            name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"
+        ),
         datasets.BuilderConfig(name="omcs_sentences_free", description="OMCSNet free form text", version="5.7.0"),
-        datasets.BuilderConfig(name="omcs_sentences_more", description="OMCSNet free form text, and text from templates, games, responses to questions, and so on", version="5.7.0"),
+        datasets.BuilderConfig(
+            name="omcs_sentences_more",
+            description="OMCSNet free form text, and text from templates, games, responses to questions, and so on",
+            version="5.7.0",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "conceptnet5"
@@ -152,8 +156,8 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
                     row = row.split(b"\t")
                     s = row[4]
                     data = json.loads(s)
-                    lang1 = row[2].split(b"/")[2].decode('utf-8')
-                    lang2 = row[3].split(b"/")[2].decode('utf-8')
+                    lang1 = row[2].split(b"/")[2].decode("utf-8")
+                    lang2 = row[3].split(b"/")[2].decode("utf-8")
                     if lang1 == lang2:
                         lang = lang1
                     else:
@@ -168,16 +172,16 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
                         weight = 1.0
                     yield id_, {
                         "sentence": sentence,
-                        "full_rel": row[0].decode('utf-8'),
-                        "rel": row[1].decode('utf-8'),
-                        "arg1": row[2].decode('utf-8'),
-                        "arg2": row[3].decode('utf-8'),
+                        "full_rel": row[0].decode("utf-8"),
+                        "rel": row[1].decode("utf-8"),
+                        "arg1": row[2].decode("utf-8"),
+                        "arg2": row[3].decode("utf-8"),
                         "lang": lang,
-                        "extra_info": row[4].decode('utf-8'),
-                        "weight": weight
+                        "extra_info": row[4].decode("utf-8"),
+                        "weight": weight,
                     }
                 else:
-                    row = row.decode('utf-8').strip()
+                    row = row.decode("utf-8").strip()
                     data = row.split("\t")
                     if len(data) > 1:
                         sentence = data[1]
