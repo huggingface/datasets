@@ -60,7 +60,7 @@ class IndoNluConfig(datasets.BuilderConfig):
         """BuilderConfig for IndoNLU.
 
         Args:
-          text_features: `dict[string, string]`, map from the name of the feature 
+          text_features: `dict[string, string]`, map from the name of the feature
             dict for each text field to the name of the column in the txt/csv/tsv file
           label_column: `string`, name of the column in the txt/csv/tsv file corresponding
             to the label
@@ -111,7 +111,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="smsa",
@@ -140,7 +140,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2019},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="casa",
@@ -169,7 +169,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="hoasa",
@@ -185,7 +185,18 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["neg", "neut", "pos", "neg_pos"],
-            label_column=["ac", "air_panas", "bau", "general", "kebersihan", "linen", "service", "sunrise_meal", "tv", "wifi"],
+            label_column=[
+                "ac",
+                "air_panas",
+                "bau",
+                "general",
+                "kebersihan",
+                "linen",
+                "service",
+                "sunrise_meal",
+                "tv",
+                "wifi",
+            ],
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/train_preprocess.csv",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/valid_preprocess.csv",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/test_preprocess_masked_label.csv",
@@ -198,7 +209,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               pages={35--40},
               year={2019}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="wrete",
@@ -228,7 +239,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               booktitle={Proceedings of the 2018 International Conference on Computational Linguistics and Intelligent Text Processing (CICLing)},
               year={2018}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="posp",
@@ -240,7 +251,34 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=["B-PPO", "B-KUA", "B-ADV", "B-PRN", "B-VBI", "B-PAR", "B-VBP", "B-NNP", "B-UNS", "B-VBT", "B-VBL", "B-NNO", "B-ADJ", "B-PRR", "B-PRK", "B-CCN", "B-$$$", "B-ADK", "B-ART", "B-CSN", "B-NUM", "B-SYM", "B-INT", "B-NEG", "B-PRI", "B-VBE"],
+            label_classes=[
+                "B-PPO",
+                "B-KUA",
+                "B-ADV",
+                "B-PRN",
+                "B-VBI",
+                "B-PAR",
+                "B-VBP",
+                "B-NNP",
+                "B-UNS",
+                "B-VBT",
+                "B-VBL",
+                "B-NNO",
+                "B-ADJ",
+                "B-PRR",
+                "B-PRK",
+                "B-CCN",
+                "B-$$$",
+                "B-ADK",
+                "B-ART",
+                "B-CSN",
+                "B-NUM",
+                "B-SYM",
+                "B-INT",
+                "B-NEG",
+                "B-PRI",
+                "B-VBE",
+            ],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/valid_preprocess.txt",
@@ -255,7 +293,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="bapos",
@@ -267,7 +305,49 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=["B-PR", "B-CD", "I-PR", "B-SYM", "B-JJ", "B-DT", "I-UH", "I-NND", "B-SC", "I-WH", "I-IN", "I-NNP", "I-VB", "B-IN", "B-NND", "I-CD", "I-JJ", "I-X", "B-OD", "B-RP", "B-RB", "B-NNP", "I-RB", "I-Z", "B-CC", "B-NEG", "B-VB", "B-NN", "B-MD", "B-UH", "I-NN", "B-PRP", "I-SC", "B-Z", "I-PRP", "I-OD", "I-SYM", "B-WH", "B-FW", "I-CC", "B-X"],
+            label_classes=[
+                "B-PR",
+                "B-CD",
+                "I-PR",
+                "B-SYM",
+                "B-JJ",
+                "B-DT",
+                "I-UH",
+                "I-NND",
+                "B-SC",
+                "I-WH",
+                "I-IN",
+                "I-NNP",
+                "I-VB",
+                "B-IN",
+                "B-NND",
+                "I-CD",
+                "I-JJ",
+                "I-X",
+                "B-OD",
+                "B-RP",
+                "B-RB",
+                "B-NNP",
+                "I-RB",
+                "I-Z",
+                "B-CC",
+                "B-NEG",
+                "B-VB",
+                "B-NN",
+                "B-MD",
+                "B-UH",
+                "I-NN",
+                "B-PRP",
+                "I-SC",
+                "B-Z",
+                "I-PRP",
+                "I-OD",
+                "I-SYM",
+                "B-WH",
+                "B-FW",
+                "I-CC",
+                "B-X",
+            ],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/valid_preprocess.txt",
@@ -290,7 +370,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="terma",
@@ -303,7 +383,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentece"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=['I-SENTIMENT', 'O', 'I-ASPECT', 'B-SENTIMENT', 'B-ASPECT'],
+            label_classes=["I-SENTIMENT", "O", "I-ASPECT", "B-SENTIMENT", "B-ASPECT"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/valid_preprocess.txt",
@@ -322,7 +402,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               journal={arXiv preprint arXiv:1908.04899},
               year={2019}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="keps",
@@ -351,7 +431,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2019},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="nergrit",
@@ -376,7 +456,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2019},
               url={https://github.com/grit-id/nergrit-corpus}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="nerp",
@@ -388,7 +468,19 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=["I-PPL", "B-EVT", "B-PLC", "I-IND", "B-IND", "B-FNB", "I-EVT", "B-PPL", "I-PLC", "O", "I-FNB"],
+            label_classes=[
+                "I-PPL",
+                "B-EVT",
+                "B-PLC",
+                "I-IND",
+                "B-IND",
+                "B-FNB",
+                "I-EVT",
+                "B-PPL",
+                "I-PLC",
+                "O",
+                "I-FNB",
+            ],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/valid_preprocess.txt",
@@ -403,7 +495,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="facqa",
@@ -414,10 +506,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             a short passage, and a label phrase, which can be found inside the corresponding short passage. 
             There are six categories of questions: date, location, name, organization, person, and quantitative."""
             ),
-            text_features={
-                "question": "question",
-                "passage": "passage"
-            },
+            text_features={"question": "question", "passage": "passage"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["O", "B", "I"],
             label_column="seq_label",
@@ -433,27 +522,34 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               pages={573--578},
               year={2007}
             }"""
-            )
+            ),
         ),
     ]
 
     def _info(self):
         sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp", "facqa"]
-        
+
         if self.config.name in sentence_features:
-            features = {text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Sequence(datasets.Value("string"))
+                for text_feature in six.iterkeys(self.config.text_features)
+            }
         else:
-            features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
+            }
 
         if self.config.label_classes:
             if self.config.name in sentence_features:
-                features["seq_label"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
+                features["seq_label"] = datasets.Sequence(
+                    datasets.features.ClassLabel(names=self.config.label_classes)
+                )
             elif self.config.name == "casa" or self.config.name == "hoasa":
                 for label in self.config.label_column:
                     features[label] = datasets.features.ClassLabel(names=self.config.label_classes)
             else:
                 features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
-        
+
         return datasets.DatasetInfo(
             description=self.config.description,
             features=datasets.Features(features),
@@ -470,7 +566,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
             datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
     def _generate_examples(self, filepath):
@@ -478,17 +574,17 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         csv_file = ["emot", "wrete", "facqa", "casa", "hoasa"]
         tsv_file = ["smsa"]
         txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
-        
+
         with open(filepath, encoding="utf-8") as f:
 
             if self.config.name in csv_file:
                 reader = csv.reader(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
-                next(reader) # skip first row which is header
-                
+                next(reader)  # skip first row which is header
+
                 for id_, row in enumerate(reader):
                     if self.config.name == "emot":
                         label, tweet = row
-                        yield id_, {"tweet": tweet, "label": label}   
+                        yield id_, {"tweet": tweet, "label": label}
                     elif self.config.name == "wrete":
                         sent_A, sent_B, category, label = row
                         yield id_, {"sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
@@ -498,7 +594,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                     elif self.config.name == "casa" or self.config.name == "hoasa":
                         sentence, *labels = row
                         sentence = {"sentence": sentence}
-                        label = {l:labels[idx] for idx,l in enumerate(self.config.label_column)}
+                        label = {l: labels[idx] for idx, l in enumerate(self.config.label_column)}
                         yield id_, {**sentence, **label}
             elif self.config.name in tsv_file:
                 reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
