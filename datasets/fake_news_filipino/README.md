@@ -69,10 +69,12 @@ The dataset is primarily in Filipino, with the addition of some English words co
 ### Data Instances
 
 Sample data:
+```
 {
   "label": "0",
   "article": "Sa 8-pahinang desisyon, pinaboran ng Sandiganbayan First Division ang petition for Writ of Preliminary Attachment/Garnishment na inihain ng prosekusyon laban sa mambabatas."
 }
+```
 
 
 ### Data Fields
