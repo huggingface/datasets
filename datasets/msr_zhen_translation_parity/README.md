@@ -16,8 +16,9 @@ size_categories:
 source_datasets:
 - extended|other-newstest2017
 task_categories:
-- other
-task_ids: []
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for [msr_zhen_translation_parity]
