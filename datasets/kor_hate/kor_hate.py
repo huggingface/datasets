@@ -17,8 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
-import os
 
 import datasets
 
@@ -42,7 +40,7 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 Human-annotated Korean corpus collected from a popular domestic entertainment news aggregation platform
-for toxic speech detection. Comments are annotated for gender bias, social bias and hate speech. 
+for toxic speech detection. Comments are annotated for gender bias, social bias and hate speech.
 """
 
 _HOMEPAGE = "https://github.com/kocohub/korean-hate-speech"
