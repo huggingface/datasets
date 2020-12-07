@@ -13,8 +13,10 @@ size_categories:
 - 100K<n<1M
 source_datasets:
 - original
-task_categories: []
-task_ids: []
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 ---
 
 # Dataset Card for [Dataset Name]
