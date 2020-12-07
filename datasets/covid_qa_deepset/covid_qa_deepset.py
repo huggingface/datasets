@@ -49,9 +49,7 @@ class CovidQADeepset(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="covid_qa_deepset", version=VERSION, description="This part of my dataset covers a first domain"
-        ),
+        datasets.BuilderConfig(name="covid_qa_deepset", version=VERSION, description="COVID-QA deepset"),
     ]
 
     def _info(self):
