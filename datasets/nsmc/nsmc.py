@@ -59,7 +59,7 @@ class NSMC(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "document": datasets.Value("string"),
-                    "label": datasets.Value("int32"),
+                    "label": datasets.ClassLabel(names=["negative", "positive"]),
                 }
             ),
             supervised_keys=None,
