@@ -40,9 +40,7 @@ class OpusMemat(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="xh-en", version=VERSION, description="Xhosa-English parallel corpora"
-        )
+        datasets.BuilderConfig(name="xh-en", version=VERSION, description="Xhosa-English parallel corpora")
     ]
 
     def _info(self):
