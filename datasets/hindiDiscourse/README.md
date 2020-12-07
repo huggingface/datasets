@@ -1,15 +1,55 @@
-# hindi-discourse
-A repository for the hindi discourse analysis dataset and its related experiments.
+---
+annotations_creators:
+- other
+language_creators:
+- found
+languages:
+- hi
+licenses:
+- other-MIDAS-LAB-IIITD-Delhi
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- sequence-modeling-other-discourse-analysis
+---
 
-<br>
-<p align="center">
-  <img src="MIDAS-logo.jpg" alt="MIDAS lab at IIIT-Delhi"  width="60%"/>
-  <br>
-</p>
-<br>
+# Dataset Card for Discourse Analysis dataset
 
-The Hindi Discourse Analysis dataset is a corpus for analyzing discourse modes present in its sentences. It contains sentences from stories written by 11 famous authors from the 20th Century. 4-5 stories by each author have been selected which were available in the public domain resulting in a collection of 53 stories. Most of these short stories were originally written in Hindi but some of them were written in other Indian languages and later translated to Hindi.
+## Table of Contents
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
+- [Dataset Creation](#dataset-creation)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
 
+## Dataset Description
+
+- **Homepage:** https://github.com/midas-research/hindi-discourse
+- **Paper:** https://www.aclweb.org/anthology/2020.lrec-1.149/
+- **Point of Contact:** https://github.com/midas-research/MeTooMA
+
+
+### Dataset Summary
+
+- The Hindi Discourse Analysis dataset is a corpus for analyzing discourse modes present in its sentences.
+- It contains sentences from stories written by 11 famous authors from the 20th Century.
+- 4-5 stories by each author have been selected which were available in the public domain resulting in a collection of 53 stories.
+- Most of these short stories were originally written in Hindi but some of them were written in other Indian languages and later translated to Hindi.
 The corpus contains a total of 10472 sentences belonging to the following categories:
 - Argumentative
 - Descriptive
@@ -17,82 +57,110 @@ The corpus contains a total of 10472 sentences belonging to the following catego
 - Informative
 - Narrative
 
-## Dataset Overview
 
-The labeled data could be downloaded from [here](https://github.com/midas-research/hindi-discourse/blob/master/discourse_dataset.json).
+### Languages
 
-The data is shared in a json format. Each entry is a sentence along with it's annotated majority label:
+Hindi
 
+## Dataset Structure
+- The dataset is structured into JSON format.
+
+### Data Instances
 {'Story_no': 15, 'Sentence': ' गाँठ से साढ़े तीन रुपये लग गये, जो अब पेट में जाकर खनकते भी नहीं! जो तेरी करनी मालिक! ” “इसमें मालिक की क्या करनी है? ”', 'Discourse Mode': 'Dialogue'}
 
+### Data Fields
 
-#### Distribution of sentences in different discourse modes
+Sentence number, story number, sentence and discourse mode
 
-<br>
-<p align="center">
-  <img src="train-test-distribution.png" alt="MIDAS lab at IIIT-Delhi"  width="40%"/>
-  <br>
-</p>
-<br>
+### Data Splits
 
-#### Inter-annotator agreements each discourse mode and for the entire dataset as measured using Fleiss‘s Kappa
+- Train: 9983
 
-<br>
-<p align="center">
-  <img src="inter-annotator-score.png" alt="MIDAS lab at IIIT-Delhi"  width="40%"/>
-  <br>
-</p>
-<br>
+## Dataset Creation
 
-#### Sample sentences from Hindi Discourse Analysis Dataset for each discourse mode
+### Source Data
+- Source of all the data points in this dataset is Hindi stories written by famous authors of Hindi literature.
 
-<br>
-<p align="center">
-  <img src="discourse-examples.png" alt="MIDAS lab at IIIT-Delhi"  width="70%"/>
-  <br>
-</p>
-<br>
+#### Initial Data Collection and Normalization
 
-#### Most common stop-words for each discourse mode
+- All the data was collected from various Hindi websites.
+- We chose against crowd-sourcing the annotation pro- cess because we wanted to directly work with the an- notators for qualitative feedback and to also ensure high quality annotations. 
+- We employed three native Hindi speakers with college level education for the an- notation task. 
+- We first selected two random stories from our corpus and had the three annotators work on them independently and classify each sentence based on the discourse mode.
+- Please refer to this paper for detailed information: https://www.aclweb.org/anthology/2020.lrec-1.149/
 
-<br>
-<p align="center">
-  <img src="most-common-stopwords.png" alt="MIDAS lab at IIIT-Delhi"  width="40%"/>
-  <br>
-</p>
-<br>
+#### Who are the source language producers?
 
-#### Part-of-speech analysis for each discourse mode
+Please refer to this paper for detailed information: https://www.aclweb.org/anthology/2020.lrec-1.149/
 
-Each entry in the table is the average number of words tagged as the column label. ADJ: Adjective, ADP: Adposition, ADV: adverb, AUX: auxiliary, CCONJ: Coordinating Conjunction, DET: Determiner, INTJ: Interjection, NOUN: Noun, NUM: Numeral, PART: Particle, PRON: Pronoun, PROPN: Proper Noun, PUNCT: Punctuation, SCONJ: Subordinating Conjunction, SYM: Symbol, VERB: verb
+### Annotations
 
-<br>
-<p align="center">
-  <img src="pos-analysis.png" alt="MIDAS lab at IIIT-Delhi"  width="80%"/>
-  <br>
-</p>
-<br>
+#### Annotation process
 
-## Terms of Use
+- The authors chose against crowd sourcing for labeling this dataset due to its highly sensitive nature.
+- The annotators are domain experts having degress in advanced clinical psychology and gender studies.
+- They were provided a guidelines document with instructions about each task and its definitions, labels and examples.
+- They studied the document, worked a few examples to get used to this annotation task.
+- They also provided feedback for improving the class definitions.
+- The annotation process is not mutually exclusive, implying that presence of one label does not mean the
+absence of the other one.
 
-1. This corpus can be used freely for research purposes.
-2. The paper listed below provide details of the creation and use of the corpus. If you use the corpus, then please cite the     paper.
-3. If interested in commercial use of the corpus, send email to midas@iiitd.ac.in.
-4. If you use the corpus in a product or application, then please credit the authors and [Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi](http://midas.iiitd.edu.in) appropriately. Also, if you send us an email, we will be thrilled to know about how you have used the corpus.
-5. Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi, India disclaims any responsibility for the use of the corpus and does not provide technical support. However, the contact listed above will be happy to respond to queries and clarifications.
-6. Rather than redistributing the corpus, please direct interested parties to this [page](https://github.com/midas-research/hindi-discourse)
+#### Who are the annotators?
 
-Please feel free to send us an email:
-- with feedback regarding the corpus.
-- with information on how you have used the corpus.
-- if interested in a collaborative research project.
+- The annotators were three native Hindi speakers with college level education.
+- Please refer to the accompnaying paper for a detailed annotation process.
 
-Copyright (C) 2019 Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi (MIDAS, IIIT-Delhi)
+## Additional Information
 
-## References
-Paper accepted at LREC 2020. Please check back soon.
+Please refer to this link: https://github.com/midas-research/hindi-discourse
 
+### Dataset Curators
+
+- If you use the corpus in a product or application, then please credit the authors
+and [Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi]
+(http://midas.iiitd.edu.in) appropriately.
+Also, if you send us an email, we will be thrilled to know about how you have used the corpus.
+- If interested in commercial use of the corpus, send email to midas@iiitd.ac.in.
+- Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi, India
+disclaims any responsibility for the use of the corpus and does not provide technical support.
+However, the contact listed above will be happy to respond to queries and clarifications
+- Please feel free to send us an email:
+  - with feedback regarding the corpus.
+  - with information on how you have used the corpus.
+  - if interested in having us analyze your social media data.
+  - if interested in a collaborative research project.
+
+### Licensing Information
+
+[More Information Needed]
+
+### Citation Information
+
+Please cite the following publication if you make use of the dataset: https://www.aclweb.org/anthology/2020.lrec-1.149/
 
 ```
-
+@inproceedings{dhanwal-etal-2020-annotated,
+    title = "An Annotated Dataset of Discourse Modes in {H}indi Stories",
+    author = "Dhanwal, Swapnil  and
+      Dutta, Hritwik  and
+      Nankani, Hitesh  and
+      Shrivastava, Nilay  and
+      Kumar, Yaman  and
+      Li, Junyi Jessy  and
+      Mahata, Debanjan  and
+      Gosangi, Rakesh  and
+      Zhang, Haimin  and
+      Shah, Rajiv Ratn  and
+      Stent, Amanda",
+    booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources Association",
+    url = "https://www.aclweb.org/anthology/2020.lrec-1.149",
+    pages = "1191--1196",
+    abstract = "In this paper, we present a new corpus consisting of sentences from Hindi short stories annotated for five different discourse modes argumentative, narrative, descriptive, dialogic and informative. We present a detailed account of the entire data collection and annotation processes. The annotations have a very high inter-annotator agreement (0.87 k-alpha). We analyze the data in terms of label distributions, part of speech tags, and sentence lengths. We characterize the performance of various classification algorithms on this dataset and perform ablation studies to understand the nature of the linguistic models suitable for capturing the nuances of the embedded discourse structures in the presented corpus.",
+    language = "English",
+    ISBN = "979-10-95546-34-4",
+}
 ```
