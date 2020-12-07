@@ -30,7 +30,7 @@ _CITATION = """\
 
 
 _DESCRIPTION = """\
-This is a Korean paired question dateset containing labels indicating whether two questions in a given pair are semantically identical. This dataset was used to evaluate the performance of [KoGPT2](https://github.com/SKT-AI/KoGPT2#subtask-evaluations) on a phrase detection downstream task. 
+This is a Korean paired question dataset containing labels indicating whether two questions in a given pair are semantically identical. This dataset was used to evaluate the performance of [KoGPT2](https://github.com/SKT-AI/KoGPT2#subtask-evaluations) on a phrase detection downstream task.
 """
 
 
@@ -70,11 +70,17 @@ class KorQPair(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["train"], "split": "train",},
+                gen_kwargs={
+                    "filepath": downloaded_files["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"], "split": "test",},
+                gen_kwargs={
+                    "filepath": downloaded_files["test"],
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
