@@ -68,10 +68,12 @@ The dataset is primarily in Filipino, with the addition of some English words co
 ### Data Instances
 
 Sample data:
+```
 {
   "text": "Taas ni Mar Roxas ah. KULTONG DILAW NGA NAMAN",
   "label": 1
 }
+```
 
 ### Data Fields
 
