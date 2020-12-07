@@ -31,9 +31,9 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-This dataset is a compilation of the OneStopEnglish corpus of texts written at three reading levels into one file. 
+This dataset is a compilation of the OneStopEnglish corpus of texts written at three reading levels into one file.
 Text documents are classified into three reading levels - ele, int, adv (Elementary, Intermediate and Advance).
-This dataset demonstrates its usefulness for through two applica-tions - automatic  readability  assessment  and automatic text simplification. 
+This dataset demonstrates its usefulness for through two applica-tions - automatic  readability  assessment  and automatic text simplification.
 The corpus consists of 189 texts, each in three versions/reading levels (567 in total).
 """
 
