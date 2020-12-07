@@ -213,7 +213,7 @@ class Opus100(datasets.GeneratorBasedBuilder):
         elif domain == "zero-shot":
             dl_dir = dl_manager.download_and_extract(_URL["zero-shot"])
 
-        data_dir = os.path.join(dl_dir, f"opus-100-corpus/v1.0/{domain}/{lang_pair}")
+        data_dir = os.path.join(dl_dir, os.path.join("opus-100-corpus", "v1.0", domain, lang_pair))
         output = []
 
         test = datasets.SplitGenerator(
