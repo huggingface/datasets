@@ -54,7 +54,6 @@ class SanskritClassic(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-
     def _info(self):
         features = datasets.Features(
             {
