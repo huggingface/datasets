@@ -60,6 +60,7 @@ _URL = "http://parl.ai/downloads/babi/babi.tar.gz"
 @dataclass
 class bAbIConfig(datasets.BuilderConfig):
     """ We add the task and number of examples to the standard builder for easy access in the creation method"""
+
     task: int = 1
     examples: int = 1
     replace_comma: bool = False
