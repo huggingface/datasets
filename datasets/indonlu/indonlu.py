@@ -17,8 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
-import os
 import textwrap
 
 import six
@@ -62,7 +60,7 @@ class IndoNluConfig(datasets.BuilderConfig):
         """BuilderConfig for IndoNLU.
 
         Args:
-          text_features: `dict[string, string]`, map from the name of the feature 
+          text_features: `dict[string, string]`, map from the name of the feature
             dict for each text field to the name of the column in the txt/csv/tsv file
           label_column: `string`, name of the column in the txt/csv/tsv file corresponding
             to the label
@@ -91,9 +89,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="emot",
             description=textwrap.dedent(
                 """\
-            An emotion classification dataset collected from the social media 
-            platform Twitter (Saputri et al., 2018). The dataset consists of 
-            around 4000 Indonesian colloquial language tweets, covering five 
+            An emotion classification dataset collected from the social media
+            platform Twitter (Saputri et al., 2018). The dataset consists of
+            around 4000 Indonesian colloquial language tweets, covering five
             different emotion labels: sadness, anger, love, fear, and happy."""
             ),
             text_features={"tweet": "tweet"},
@@ -113,16 +111,16 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="smsa",
             description=textwrap.dedent(
                 """\
-            This sentence-level sentiment analysis dataset (Purwarianti and Crisdayanti, 2019) 
-            is a collection of comments and reviews in Indonesian obtained from multiple online 
-            platforms. The text was crawled and then annotated by several Indonesian linguists 
-            to construct this dataset. There are three possible sentiments on the SmSA 
+            This sentence-level sentiment analysis dataset (Purwarianti and Crisdayanti, 2019)
+            is a collection of comments and reviews in Indonesian obtained from multiple online
+            platforms. The text was crawled and then annotated by several Indonesian linguists
+            to construct this dataset. There are three possible sentiments on the SmSA
             dataset: positive, negative, and neutral."""
             ),
             text_features={"text": "text"},
@@ -142,16 +140,16 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2019},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="casa",
             description=textwrap.dedent(
                 """\
             An aspect-based sentiment analysis dataset consisting of around a thousand car reviews collected
-            from multiple Indonesian online automobile platforms (Ilmania et al., 2018). The dataset covers 
-            six aspects of car quality. We define the task to be a multi-label classification task, where 
-            each label represents a sentiment for a single aspect with three possible values: positive, 
+            from multiple Indonesian online automobile platforms (Ilmania et al., 2018). The dataset covers
+            six aspects of car quality. We define the task to be a multi-label classification task, where
+            each label represents a sentiment for a single aspect with three possible values: positive,
             negative, and neutral."""
             ),
             text_features={"sentence": "sentence"},
@@ -171,23 +169,34 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="hoasa",
             description=textwrap.dedent(
                 """\
-            An aspect-based sentiment analysis dataset consisting of hotel reviews collected from the hotel 
-            aggregator platform, AiryRooms (Azhar et al., 2019). The dataset covers ten different aspects of 
-            hotel quality. Each review is labeled with a single sentiment label for each aspect. There are 
-            four possible sentiment classes for each sentiment label: positive, negative, neutral, and 
-            positive-negative. The positivenegative label is given to a review that contains multiple sentiments 
+            An aspect-based sentiment analysis dataset consisting of hotel reviews collected from the hotel
+            aggregator platform, AiryRooms (Azhar et al., 2019). The dataset covers ten different aspects of
+            hotel quality. Each review is labeled with a single sentiment label for each aspect. There are
+            four possible sentiment classes for each sentiment label: positive, negative, neutral, and
+            positive-negative. The positivenegative label is given to a review that contains multiple sentiments
             of the same aspect but for different objects (e.g., cleanliness of bed and toilet)."""
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["neg", "neut", "pos", "neg_pos"],
-            label_column=["ac", "air_panas", "bau", "general", "kebersihan", "linen", "service", "sunrise_meal", "tv", "wifi"],
+            label_column=[
+                "ac",
+                "air_panas",
+                "bau",
+                "general",
+                "kebersihan",
+                "linen",
+                "service",
+                "sunrise_meal",
+                "tv",
+                "wifi",
+            ],
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/train_preprocess.csv",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/valid_preprocess.csv",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/test_preprocess_masked_label.csv",
@@ -200,15 +209,15 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               pages={35--40},
               year={2019}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="wrete",
             description=textwrap.dedent(
                 """\
-            The Wiki Revision Edits Textual Entailment dataset (Setya and Mahendra, 2018) consists of 450 sentence pairs 
-            constructed from Wikipedia revision history. The dataset contains pairs of sentences and binary semantic 
-            relations between the pairs. The data are labeled as entailed when the meaning of the second sentence can be 
+            The Wiki Revision Edits Textual Entailment dataset (Setya and Mahendra, 2018) consists of 450 sentence pairs
+            constructed from Wikipedia revision history. The dataset contains pairs of sentences and binary semantic
+            relations between the pairs. The data are labeled as entailed when the meaning of the second sentence can be
             derived from the first one, and not entailed otherwise."""
             ),
             text_features={
@@ -230,19 +239,46 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               booktitle={Proceedings of the 2018 International Conference on Computational Linguistics and Intelligent Text Processing (CICLing)},
               year={2018}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="posp",
             description=textwrap.dedent(
                 """\
-            This Indonesian part-of-speech tagging (POS) dataset (Hoesen and Purwarianti, 2018) is collected from Indonesian 
-            news websites. The dataset consists of around 8000 sentences with 26 POS tags. The POS tag labels follow the 
+            This Indonesian part-of-speech tagging (POS) dataset (Hoesen and Purwarianti, 2018) is collected from Indonesian
+            news websites. The dataset consists of around 8000 sentences with 26 POS tags. The POS tag labels follow the
             Indonesian Association of Computational Linguistics (INACL) POS Tagging Convention."""
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=["B-PPO", "B-KUA", "B-ADV", "B-PRN", "B-VBI", "B-PAR", "B-VBP", "B-NNP", "B-UNS", "B-VBT", "B-VBL", "B-NNO", "B-ADJ", "B-PRR", "B-PRK", "B-CCN", "B-$$$", "B-ADK", "B-ART", "B-CSN", "B-NUM", "B-SYM", "B-INT", "B-NEG", "B-PRI", "B-VBE"],
+            label_classes=[
+                "B-PPO",
+                "B-KUA",
+                "B-ADV",
+                "B-PRN",
+                "B-VBI",
+                "B-PAR",
+                "B-VBP",
+                "B-NNP",
+                "B-UNS",
+                "B-VBT",
+                "B-VBL",
+                "B-NNO",
+                "B-ADJ",
+                "B-PRR",
+                "B-PRK",
+                "B-CCN",
+                "B-$$$",
+                "B-ADK",
+                "B-ART",
+                "B-CSN",
+                "B-NUM",
+                "B-SYM",
+                "B-INT",
+                "B-NEG",
+                "B-PRI",
+                "B-VBE",
+            ],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/valid_preprocess.txt",
@@ -257,19 +293,61 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="bapos",
             description=textwrap.dedent(
                 """\
-            This POS tagging dataset (Dinakaramani et al., 2014) contains about 1000 sentences, collected from the PAN Localization 
-            Project. In this dataset, each word is tagged by one of 23 POS tag classes. Data splitting used in this benchmark follows 
+            This POS tagging dataset (Dinakaramani et al., 2014) contains about 1000 sentences, collected from the PAN Localization
+            Project. In this dataset, each word is tagged by one of 23 POS tag classes. Data splitting used in this benchmark follows
             the experimental setting used by Kurniawan and Aji (2018)"""
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=["B-PR", "B-CD", "I-PR", "B-SYM", "B-JJ", "B-DT", "I-UH", "I-NND", "B-SC", "I-WH", "I-IN", "I-NNP", "I-VB", "B-IN", "B-NND", "I-CD", "I-JJ", "I-X", "B-OD", "B-RP", "B-RB", "B-NNP", "I-RB", "I-Z", "B-CC", "B-NEG", "B-VB", "B-NN", "B-MD", "B-UH", "I-NN", "B-PRP", "I-SC", "B-Z", "I-PRP", "I-OD", "I-SYM", "B-WH", "B-FW", "I-CC", "B-X"],
+            label_classes=[
+                "B-PR",
+                "B-CD",
+                "I-PR",
+                "B-SYM",
+                "B-JJ",
+                "B-DT",
+                "I-UH",
+                "I-NND",
+                "B-SC",
+                "I-WH",
+                "I-IN",
+                "I-NNP",
+                "I-VB",
+                "B-IN",
+                "B-NND",
+                "I-CD",
+                "I-JJ",
+                "I-X",
+                "B-OD",
+                "B-RP",
+                "B-RB",
+                "B-NNP",
+                "I-RB",
+                "I-Z",
+                "B-CC",
+                "B-NEG",
+                "B-VB",
+                "B-NN",
+                "B-MD",
+                "B-UH",
+                "I-NN",
+                "B-PRP",
+                "I-SC",
+                "B-Z",
+                "I-PRP",
+                "I-OD",
+                "I-SYM",
+                "B-WH",
+                "B-FW",
+                "I-CC",
+                "B-X",
+            ],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/valid_preprocess.txt",
@@ -292,20 +370,20 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="terma",
             description=textwrap.dedent(
                 """\
-            This span-extraction dataset is collected from the hotel aggregator platform, AiryRooms (Septiandri and Sutiono, 2019; 
-            Fernando et al., 2019). The dataset consists of thousands of hotel reviews, which each contain a span label for aspect 
-            and sentiment words representing the opinion of the reviewer on the corresponding aspect. The labels use 
+            This span-extraction dataset is collected from the hotel aggregator platform, AiryRooms (Septiandri and Sutiono, 2019;
+            Fernando et al., 2019). The dataset consists of thousands of hotel reviews, which each contain a span label for aspect
+            and sentiment words representing the opinion of the reviewer on the corresponding aspect. The labels use
             Inside-Outside-Beginning (IOB) tagging representation with two kinds of tags, aspect and sentiment."""
             ),
             text_features={"sentence": "sentece"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=['I-SENTIMENT', 'O', 'I-ASPECT', 'B-SENTIMENT', 'B-ASPECT'],
+            label_classes=["I-SENTIMENT", "O", "I-ASPECT", "B-SENTIMENT", "B-ASPECT"],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/valid_preprocess.txt",
@@ -324,16 +402,16 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               journal={arXiv preprint arXiv:1908.04899},
               year={2019}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="keps",
             description=textwrap.dedent(
                 """\
-            This keyphrase extraction dataset (Mahfuzh et al., 2019) consists of text from Twitter discussing 
-            banking products and services and is written in the Indonesian language. A phrase containing 
-            important information is considered a keyphrase. Text may contain one or more keyphrases since 
-            important phrases can be located at different positions. The dataset follows the IOB chunking format, 
+            This keyphrase extraction dataset (Mahfuzh et al., 2019) consists of text from Twitter discussing
+            banking products and services and is written in the Indonesian language. A phrase containing
+            important information is considered a keyphrase. Text may contain one or more keyphrases since
+            important phrases can be located at different positions. The dataset follows the IOB chunking format,
             which represents the position of the keyphrase."""
             ),
             text_features={"sentence": "sentence"},
@@ -353,14 +431,14 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2019},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="nergrit",
             description=textwrap.dedent(
                 """\
-            This NER dataset is taken from the Grit-ID repository, and the labels are spans in IOB chunking representation. 
-            The dataset consists of three kinds of named entity tags, PERSON (name of person), PLACE (name of location), and 
+            This NER dataset is taken from the Grit-ID repository, and the labels are spans in IOB chunking representation.
+            The dataset consists of three kinds of named entity tags, PERSON (name of person), PLACE (name of location), and
             ORGANIZATION (name of organization)."""
             ),
             text_features={"sentence": "sentence"},
@@ -378,19 +456,31 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2019},
               url={https://github.com/grit-id/nergrit-corpus}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="nerp",
             description=textwrap.dedent(
                 """\
-            This NER dataset (Hoesen and Purwarianti, 2018) contains texts collected from several Indonesian news websites. 
-            There are five labels available in this dataset, PER (name of person), LOC (name of location), IND (name of product or brand), 
+            This NER dataset (Hoesen and Purwarianti, 2018) contains texts collected from several Indonesian news websites.
+            There are five labels available in this dataset, PER (name of person), LOC (name of location), IND (name of product or brand),
             EVT (name of the event), and FNB (name of food and beverage). The NERP dataset uses the IOB chunking format."""
             ),
             text_features={"sentence": "sentence"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-            label_classes=["I-PPL", "B-EVT", "B-PLC", "I-IND", "B-IND", "B-FNB", "I-EVT", "B-PPL", "I-PLC", "O", "I-FNB"],
+            label_classes=[
+                "I-PPL",
+                "B-EVT",
+                "B-PLC",
+                "I-IND",
+                "B-IND",
+                "B-FNB",
+                "I-EVT",
+                "B-PPL",
+                "I-PLC",
+                "O",
+                "I-FNB",
+            ],
             label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/valid_preprocess.txt",
@@ -405,21 +495,18 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2018},
               organization={IEEE}
             }"""
-            )
+            ),
         ),
         IndoNluConfig(
             name="facqa",
             description=textwrap.dedent(
                 """\
-            The goal of the FacQA dataset is to find the answer to a question from a provided short passage from 
-            a news article (Purwarianti et al., 2007). Each row in the FacQA dataset consists of a question, 
-            a short passage, and a label phrase, which can be found inside the corresponding short passage. 
+            The goal of the FacQA dataset is to find the answer to a question from a provided short passage from
+            a news article (Purwarianti et al., 2007). Each row in the FacQA dataset consists of a question,
+            a short passage, and a label phrase, which can be found inside the corresponding short passage.
             There are six categories of questions: date, location, name, organization, person, and quantitative."""
             ),
-            text_features={
-                "question": "question",
-                "passage": "passage"
-            },
+            text_features={"question": "question", "passage": "passage"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["O", "B", "I"],
             label_column="seq_label",
@@ -435,27 +522,34 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               pages={573--578},
               year={2007}
             }"""
-            )
+            ),
         ),
     ]
 
     def _info(self):
         sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp", "facqa"]
-        
+
         if self.config.name in sentence_features:
-            features = {text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Sequence(datasets.Value("string"))
+                for text_feature in six.iterkeys(self.config.text_features)
+            }
         else:
-            features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
+            }
 
         if self.config.label_classes:
             if self.config.name in sentence_features:
-                features["seq_label"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
+                features["seq_label"] = datasets.Sequence(
+                    datasets.features.ClassLabel(names=self.config.label_classes)
+                )
             elif self.config.name == "casa" or self.config.name == "hoasa":
                 for label in self.config.label_column:
                     features[label] = datasets.features.ClassLabel(names=self.config.label_classes)
             else:
                 features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
-        
+
         return datasets.DatasetInfo(
             description=self.config.description,
             features=datasets.Features(features),
@@ -465,14 +559,14 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        
+
         train_path = dl_manager.download_and_extract(self.config.train_url)
         valid_path = dl_manager.download_and_extract(self.config.valid_url)
         test_path = dl_manager.download_and_extract(self.config.test_url)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
             datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path})
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
     def _generate_examples(self, filepath):
@@ -480,17 +574,17 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         csv_file = ["emot", "wrete", "facqa", "casa"]
         tsv_file = ["smsa"]
         txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
-        
+
         with open(filepath, encoding="utf-8") as f:
 
             if self.config.name in csv_file:
                 reader = csv.reader(f, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
-                next(reader) # skip first row which is header
-                
+                next(reader)  # skip first row which is header
+
                 for id_, row in enumerate(reader):
                     if self.config.name == "emot":
                         label, tweet = row
-                        yield id_, {"tweet": tweet, "label": label}   
+                        yield id_, {"tweet": tweet, "label": label}
                     elif self.config.name == "wrete":
                         sent_A, sent_B, category, label = row
                         yield id_, {"sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
@@ -500,7 +594,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                     elif self.config.name == "casa" or self.config.name == "hoasa":
                         sentence, *labels = row
                         sentence = {"sentence": sentence}
-                        label = {l:labels[idx] for idx,l in enumerate(self.config.label_column)}
+                        label = {l: labels[idx] for idx, l in enumerate(self.config.label_column)}
                         yield id_, {**sentence, **label}
             elif self.config.name in tsv_file:
                 reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
