@@ -71,7 +71,7 @@ class FakeNewsFilipino(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": train_path,
                     "split": "train",
-                }
+                },
             )
         ]
 
