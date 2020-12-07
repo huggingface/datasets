@@ -171,17 +171,17 @@ This dataset was gathered and created over many years for research in common sen
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Started as the Open Mind Common Sense project at MIT Media Lab in 1999. See https://en.wikipedia.org/wiki/Open_Mind_Common_Sense
 
 #### Who are the source language producers?
 
-[More Information Needed]
+Crowd Sourced
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+Crowd Source template text, games, etc. 
 
 #### Who are the annotators?
 
