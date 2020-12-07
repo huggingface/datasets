@@ -1,7 +1,6 @@
 import fnmatch
 import json
 import os
-from re import split
 import shutil
 import tempfile
 import xml.etree.ElementTree as ET
@@ -77,7 +76,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
         encoding: Optional[str] = None,
-        split_generators: Optional[dict] = None
+        split_generators: Optional[dict] = None,
     ) -> bool:
         os.makedirs(
             os.path.join(
@@ -129,7 +128,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
         encoding: Optional[str] = None,
-        file_paths: Optional[set] = None
+        file_paths: Optional[set] = None,
     ) -> int:
         encoding = encoding or DEFAULT_ENCODING
         if os.path.isfile(src_path):
@@ -369,7 +368,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 else:
                     print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
-    def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed, no_filter_with_gen_kwargs) -> Optional[bool]:
+    def _autogenerate_dummy_data(
+        self, dataset_builder, mock_dl_manager, keep_uncompressed, no_filter_with_gen_kwargs
+    ) -> Optional[bool]:
         dl_cache_dir = os.path.join(self._cache_dir or HF_DATASETS_CACHE, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
