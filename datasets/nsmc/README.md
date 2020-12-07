@@ -19,7 +19,7 @@ task_ids:
 - sentiment-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Naver sentiment movie corpus
 
 ## Table of Contents
 
