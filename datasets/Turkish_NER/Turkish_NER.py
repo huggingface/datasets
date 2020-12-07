@@ -15,9 +15,6 @@
 """TODO: Add a description here."""
 
 from __future__ import absolute_import, division, print_function
-
-import csv
-import json
 import os
 from os import sys
 import logging
@@ -50,12 +47,15 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-Turkish Wikipedia Named-Entity Recognition and Text Categorization (TWNERTC) dataset is 
-a collection of automatically categorized and annotated sentences obtained from Wikipedia. 
-The authors constructed large-scale gazetteers by using a graph crawler algorithm to extract 
-relevant entity and domain information from a semantic knowledge base, Freebase. T
-he constructed gazetteers contains approximately 300K entities with thousands of 
-fine-grained entity types under 77 different domains. 
+Turkish Wikipedia Named-Entity Recognition and Text Categorization
+(TWNERTC) dataset is a collection of automatically categorized and annotated
+sentences obtained from Wikipedia. The authors constructed large-scale
+gazetteers by using a graph crawler algorithm to extract
+relevant entity and domain information
+from a semantic knowledge base, Freebase.
+The constructed gazetteers contains approximately
+300K entities with thousands of fine-grained entity types
+under 77 different domains. 
 """
 
 # TODO: Add a link to an official homepage for the dataset here
@@ -137,13 +137,12 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        global data_dir
-        data_dir = dl_manager.download_and_extract(_URL)
+        data_dir = dl_manager.extract(os.path.join(dl_manager.download_and_extract(_URL), _FILE_NAME_ZIP))
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, _FILE_NAME_ZIP),
+                    "filepath": os.path.join(data_dir, _FILE_NAME),
                     "split": "train",
                 },
             ),
@@ -151,11 +150,8 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        global data_dir
         logging.info("⏳ Generating examples from = %s", filepath)
-        os.system(f"""unzip "{filepath}" -d {data_dir}""")
-        os.system("echo file unzipped")
-        filepath = os.path.join(data_dir, _FILE_NAME)
+        #filepath = os.path.join(data_dir, _FILE_NAME)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []
@@ -188,9 +184,3 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
                 "tokens": tokens,
                 "ner_tags": ner_tags,
             }
-
-
-if __name__=="__main__":
-    from datasets import load_dataset
-
-    data = load_dataset('./hf-sprint/datasets/datasets/Turkish_NER')
