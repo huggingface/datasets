@@ -4,8 +4,8 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- en
-- sc
+- fi
+- sv
 licenses:
 - unknown
 multilinguality:
@@ -136,4 +136,3 @@ The underlying task is machine translation for language pair Finnish and Swedish
 ### Citation Information
 
 J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
-
