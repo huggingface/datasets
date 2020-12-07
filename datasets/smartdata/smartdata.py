@@ -19,7 +19,6 @@ stops and routes, as well as standard named entity types."""
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import re
 from json import JSONDecodeError, JSONDecoder
 
@@ -55,7 +54,6 @@ as n-ary relation extraction systems."""
 
 _HOMEPAGE = "https://www.dfki.de/web/forschung/projekte-publikationen/publikationen-uebersicht/publikation/9427/"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = "CC-BY 4.0"
 
 _URLs = {
@@ -65,7 +63,6 @@ _URLs = {
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class SmartData(datasets.GeneratorBasedBuilder):
     """DFKI SmartData Corpus is a dataset of 2598 German-language documents
 which has been annotated with fine-grained geo-entities, such as streets,
@@ -87,8 +84,6 @@ stops and routes, as well as standard named entity types."""
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="smartdata-v3_20200302", version=VERSION, description="SmartData v3"),
     ]
-
-    # DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         features = datasets.Features(
@@ -156,8 +151,6 @@ stops and routes, as well as standard named entity types."""
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
@@ -168,7 +161,7 @@ stops and routes, as well as standard named entity types."""
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["train"], "split": "train",},
+                gen_kwargs={"filepath": data_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -178,7 +171,7 @@ stops and routes, as well as standard named entity types."""
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["dev"], "split": "dev",},
+                gen_kwargs={"filepath": data_dir["dev"], "split": "dev"},
             ),
         ]
 
