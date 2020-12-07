@@ -83,7 +83,7 @@ class WinogradWSC(datasets.GeneratorBasedBuilder):
                     "quote": datasets.Value("string"),
                     "quote_loc": datasets.Value("int32"),
                     "options": datasets.Sequence(datasets.Value("string")),
-                    "label": datasets.Value("int32"),
+                    "label": datasets.ClassLabel(num_classes=2),
                     "source": datasets.Value("string"),
                 }
             ),
