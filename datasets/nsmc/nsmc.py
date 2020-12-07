@@ -74,11 +74,17 @@ class NSMCDataset(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["train"], "split": "train",},
+                gen_kwargs={
+                    "filepath": downloaded_files["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"], "split": "test",},
+                gen_kwargs={
+                    "filepath": downloaded_files["test"],
+                    "split": "test",
+                },
             ),
         ]
 
@@ -92,4 +98,3 @@ class NSMCDataset(datasets.GeneratorBasedBuilder):
                     "sentence": row[1],
                     "label": int(row[2]),
                 }
-
