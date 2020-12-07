@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""This dataset is a new knowledge-base (KB) of hasPart relationships, extracted from a large corpus of generic statements. Complementary to other resources available, it is the first which is all three of: accurate (90% precision), salient (covers relationships a person may mention), and has high coverage of common terms (approximated as within a 10 year old’s vocabulary), as well as having several times more hasPart entries than in the popular ontologies ConceptNet and WordNet. In addition, it contains information about quantifiers, argument modifiers, and links the entities to appropriate concepts in Wikipedia and WordNet."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -23,8 +23,6 @@ from collections import defaultdict
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @misc{bhakthavatsalam2020dogs,
       title={Do Dogs have Whiskers? A New Knowledge Base of hasPart Relations},
@@ -36,8 +34,6 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
 This dataset is a new knowledge-base (KB) of hasPart relationships, extracted from a large corpus of generic statements. Complementary to other resources available, it is the first which is all three of: accurate (90% precision), salient (covers relationships a person may mention), and has high coverage of common terms (approximated as within a 10 year old’s vocabulary), as well as having several times more hasPart entries than in the popular ontologies ConceptNet and WordNet. In addition, it contains information about quantifiers, argument modifiers, and links the entities to appropriate concepts in Wikipedia and WordNet.
 """
@@ -66,9 +62,7 @@ class HasPart(datasets.GeneratorBasedBuilder):
                 "arg1": datasets.features.Value("string"),
                 "arg2": datasets.features.Value("string"),
                 "score": datasets.features.Value("float64"),
-                "wikipedia_primary_page": datasets.features.Sequence(
-                    datasets.features.Value("string")
-                ),
+                "wikipedia_primary_page": datasets.features.Sequence(datasets.features.Value("string")),
                 "synset": datasets.features.Sequence(datasets.features.Value("string")),
             }
         )

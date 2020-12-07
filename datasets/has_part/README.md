@@ -1,6 +1,23 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|other-Generics-KB
+task_categories:
+- text-scoring
+task_ids:
+- text-scoring-other-Meronym-Prediction
 ---
 
 # Dataset Card for [HasPart]
@@ -52,7 +69,7 @@ This dataset is a new knowledge-base (KB) of hasPart relationships, extracted fr
 
 ### Languages
 
-[More Information Needed]
+English
 
 ## Dataset Structure
 
@@ -62,27 +79,51 @@ This dataset is a new knowledge-base (KB) of hasPart relationships, extracted fr
 
 ### Data Fields
 
-[More Information Needed]
+```json
+{
+  "arg1": {
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "arg2": {
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "score": {
+    "feature_type": "Value",
+    "dtype": "float64"
+  },
+  "wikipedia_primary_page": {
+    "feature_type": "Sequence",
+    "feature": {
+      "feature_type": "Value",
+      "dtype": "string"
+    }
+  },
+  "synset": {
+    "feature_type": "Sequence",
+    "feature": {
+      "feature_type": "Value",
+      "dtype": "string"
+    }
+  }
+}
+```
 
 ### Data Splits
 
-[More Information Needed]
 
 ## Dataset Creation
 
-### Curation Rationale
+Our approach to hasPart extraction has five steps:
 
-[More Information Needed]
+1. Collect generic sentences from a large corpus
+2. Train and apply a RoBERTa model to identify hasPart relations in those sentences
+3. Normalize the entity names
+4. Aggregate and filter the entries
+5. Link the hasPart arguments to Wikipedia pages and WordNet senses
 
-### Source Data
-
-#### Initial Data Collection and Normalization
-
-[More Information Needed]
-
-#### Who are the source language producers?
-
-[More Information Needed]
+Rather than extract knowledge from arbitrary text, we extract hasPart relations from generic sentences, e.g., “Dogs have tails.”, in order to bias the process towards extractions that are general (apply to most members of a category) and salient (notable enough to write down). As a source of generic sentences, we use **GenericsKB**, a large repository of 3.4M standalone generics previously harvested from a Webcrawl of 1.7B sentences.
 
 ### Annotations
 
