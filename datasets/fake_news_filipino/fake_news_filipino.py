@@ -49,10 +49,7 @@ class FakeNewsFilipino(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {
-                "label": datasets.features.ClassLabel(names=["0", "1"]),
-                "article": datasets.Value("string")
-            }
+            {"label": datasets.features.ClassLabel(names=["0", "1"]), "article": datasets.Value("string")}
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
