@@ -13,13 +13,16 @@ This creates a copy of the code under your GitHub user account.
 	git remote add upstream https://github.com/huggingface/datasets.git
 	```
 
-3. Set up a development environment, for instance by running the following command:
+3. (**For Windows**) You will need to install [the right version](https://pytorch.org/get-started/locally/) of PyTorch before continuing because `pip install torch` may not work well for PyTorch on Windows.
+
+4. Set up a development environment, for instance by running the following command:
 
 	```bash
 	conda create -n env python=3.7 --y
 	conda activate env
 	pip install -e ".[dev]"
 	```
+
 
 Now you are ready, each time you want to add a new dataset, follow the steps in the following section:
 
