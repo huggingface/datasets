@@ -54,10 +54,10 @@ task_ids:
 
 ### Dataset Summary
 
-Taskmaster-1 is a  goal-oriented conversational dataset. It includes 13,215 task-based \
-dialogs comprising six domains. Two procedures were used to create this collection, \
-each with unique advantages. The first involves a two-person, spoken "Wizard of Oz" (WOz) approach \
-in which trained agents and crowdsourced workers interact to complete the task while the second is \
+Taskmaster-1 is a  goal-oriented conversational dataset. It includes 13,215 task-based
+dialogs comprising six domains. Two procedures were used to create this collection,
+each with unique advantages. The first involves a two-person, spoken "Wizard of Oz" (WOz) approach
+in which trained agents and crowdsourced workers interact to complete the task while the second is
 "self-dialog" in which crowdsourced workers write the entire dialog themselves.
 
 ### Supported Tasks and Leaderboards
