@@ -41,7 +41,7 @@ _HOMEPAGE = "https://github.com/nishkalavallabhi/OneStopEnglishCorpus"
 
 _LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International License"
 
-_URL = "https://zenodo.org/record/1219041/files/nishkalavallabhi/OneStopEnglishCorpus-bea2018.zip"
+_URL = "https://github.com/nishkalavallabhi/OneStopEnglishCorpus/archive/master.zip"
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
@@ -89,41 +89,41 @@ class OneStopEnglish(datasets.GeneratorBasedBuilder):
         """ Reads the downloaded and extracted files and combines the individual text files to one dataset and split it into 80% train, 
         10% validation and 10% test data. """
 
-        # print(data_dir)
-        data_dir = os.path.join(data_dir, "Texts-SeparatedByReadingLevel")
+        print('HELL))))))))))O',data_dir)
+        data_dir = os.path.join(data_dir, "OneStopEnglishCorpus-master/Texts-SeparatedByReadingLevel")
 
         ele_samples = []
         dir_path = data_dir + '/Ele-Txt/'
         files = os.listdir(dir_path)
         for f in files:
             try:
-                with open(path+f, encoding='utf-8-sig') as myfile:
+                with open(dir_path+f, encoding='utf-8-sig') as myfile:
                     text = myfile.read().strip()
                     ele_samples.append(text)
             except Exception as e:
-                print("Error with:", path+f, e)
+                print("Error with:", dir_path+f, e)
 
         int_samples = []
         dir_path = data_dir + '/Int-Txt/'
         files = os.listdir(dir_path)
         for f in files:
             try:
-                with open(path+f, encoding='utf-8-sig') as myfile:
+                with open(dir_path+f, encoding='utf-8-sig') as myfile:
                     text = myfile.read().strip()
                     int_samples.append(text)
             except Exception as e:
-                print("Error with:", path+f, e)
+                print("Error with:", dir_path+f, e)
 
         adv_samples = []
         dir_path = data_dir + '/Adv-Txt/'
         files = os.listdir(dir_path)
         for f in files:
             try:
-                with open(path+f, encoding='utf-8-sig') as myfile:
+                with open(dir_path+f, encoding='utf-8-sig') as myfile:
                     text = myfile.read().strip()
                     adv_samples.append(text)
             except Exception as e:
-                print("Error with:", path+f, e)    
+                print("Error with:", dir_path+f, e)    
 
         # 80/ 10/ 10 split of dataset 
         i1 = int(len(ele_samples)*0.8 + 0.5)
