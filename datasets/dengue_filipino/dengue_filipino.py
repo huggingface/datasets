@@ -117,7 +117,7 @@ class DengueFilipino(datasets.GeneratorBasedBuilder):
                         "dengue": dengue,
                         "health": health,
                         "mosquito": mosquito,
-                        "sick": sick
+                        "sick": sick,
                     }
                     yield id_, payload
                 except ValueError:
