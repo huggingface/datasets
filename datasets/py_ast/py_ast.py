@@ -85,15 +85,20 @@ class PyAst(datasets.GeneratorBasedBuilder):
                 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "ast": datasets.Sequence(
 =======
                      "ast": datasets.Sequence(
 >>>>>>> Update py_ast.py
+=======
+                    "ast": datasets.Sequence(
+>>>>>>> 6da3c8921adfe7f9852985557f37917bce5c2442
                         {
                             "type": datasets.Value("string"),
                             "value": datasets.Value("string"),
                             "children": datasets.Sequence(datasets.Value("int32")),
                         },
+<<<<<<< HEAD
 <<<<<<< HEAD
                     )
 =======
@@ -102,6 +107,9 @@ class PyAst(datasets.GeneratorBasedBuilder):
 =======
                     "ast": datasets.Value("string"),
 >>>>>>> Update py_ast.py
+=======
+                    )
+>>>>>>> 6da3c8921adfe7f9852985557f37917bce5c2442
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -165,6 +173,7 @@ class PyAst(datasets.GeneratorBasedBuilder):
                 yield id_, {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "ast": row_data,
 =======
                     "ast": json.loads(row),
@@ -172,4 +181,7 @@ class PyAst(datasets.GeneratorBasedBuilder):
 =======
                     "ast": row,
 >>>>>>> Update py_ast.py
+=======
+                    "ast": row_data,
+>>>>>>> 6da3c8921adfe7f9852985557f37917bce5c2442
                 }
