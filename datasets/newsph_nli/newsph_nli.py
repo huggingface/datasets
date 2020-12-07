@@ -51,7 +51,7 @@ class NewsphNli(datasets.GeneratorBasedBuilder):
             {
                 "premise": datasets.Value("string"),
                 "hypothesis": datasets.Value("string"),
-                "label": datasets.features.ClassLabel(names=["0", "1"])
+                "label": datasets.features.ClassLabel(names=["0", "1"]),
             }
         )
         return datasets.DatasetInfo(
