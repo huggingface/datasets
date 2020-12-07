@@ -17,7 +17,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -84,21 +83,18 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features({k: datasets.Value("string") for k in feature_names}),
             supervised_keys=None,
-            homepage= _HOMEPAGE,
-            citation= _CITATION,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
-
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         path_to_manual_file = os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _FILENAME)
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('arxiv_dataset', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(path_to_manual_file, _FILENAME, self.manual_download_instructions
-                )
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('arxiv_dataset', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(path_to_manual_file, _FILENAME, self.manual_download_instructions)
             )
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
-
 
     def _generate_examples(self, path=None, title_set=None):
         """ Yields examples. """
@@ -108,19 +104,18 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
             data.append(json.loads(line))
         for i, entry in enumerate(data):
             yield i, {
-                    _ID:'id',
-                    _SUBMITTER:'submitter',
-                    _AUTHORS:'authors',
-                    _TITLE:'title',
-                    _COMMENTS:'comments',
-                    _JOURNAL_REF:'journal-ref',
-                    _DOI:'doi',
-                    _REPORT_NO:'report-no',
-                    _CATEGORIES:'categories',
-                    _LICENSE:'license',
-                    _ABSTRACT:'abstract',
-                    _VERSIONS:'versions',
-                    _UPDATE_DATE:'update_date',
-                    _AUTHORS_PARSED:'authors_parsed'
+                _ID: 'id',
+                _SUBMITTER: 'submitter',
+                _AUTHORS: 'authors',
+                _TITLE: 'title',
+                _COMMENTS: 'comments',
+                _JOURNAL_REF: 'journal-ref',
+                _DOI: 'doi',
+                _REPORT_NO: 'report-no',
+                _CATEGORIES: 'categories',
+                _LICENSE: 'license',
+                _ABSTRACT: 'abstract',
+                _VERSIONS: 'versions',
+                _UPDATE_DATE: 'update_date',
+                _AUTHORS_PARSED: 'authors_parsed'
             }
-
