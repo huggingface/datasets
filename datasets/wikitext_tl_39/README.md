@@ -47,11 +47,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
-- **Repository: 
-- **Paper: [Evaluating language model finetuning techniques for low-resource languages](https://arxiv.org/abs/1907.00409)
+- **Homepage:** [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository: **
+- **Paper:** [Evaluating language model finetuning techniques for low-resource languages](https://arxiv.org/abs/1907.00409)
 - **Leaderboard:**
-- **Point of Contact: Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
+- **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 
