@@ -30,7 +30,7 @@ _CITATION = """\
 
 
 _DESCRIPTION = """\
-This is a Korean paired question dateset containing labels that denote whether two questions in a given pair are semantically identical.
+This is a Korean paired question dateset containing labels indicating whether two questions in a given pair are semantically identical. This dataset was used to evaluate the performance of [KoGPT2](https://github.com/SKT-AI/KoGPT2#subtask-evaluations) on a phrase detection downstream task. 
 """
 
 
@@ -39,11 +39,7 @@ _HOMEPAGE = "https://github.com/songys/Question_pair"
 _LICENSE = "The MIT License (MIT)"
 
 _URL = "https://raw.githubusercontent.com/songys/Question_pair/master/"
-_URLs = {
-    "train": _URL + "train.txt",
-    "test": _URL + "test.txt",
-    "validation": _URL + "validation.txt",
-}
+_URLs = {key: f"{_URL}{key}.txt" for key in ("train", "test", "validation")}
 
 
 class KorQPair(datasets.GeneratorBasedBuilder):
