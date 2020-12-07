@@ -153,7 +153,7 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
                             "examples_url": row["examples_url"],
                         }
             else:
-                for dirpath, _, fnames in os.walk(dp):
+                for dirpath, _, fnames in sorted(os.walk(dp)):
                     for fname in sorted(fnames):
                         with open(os.path.join(dirpath, fname), encoding="utf-8") as f:
                             for id_, row in enumerate(f):
