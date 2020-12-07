@@ -78,7 +78,7 @@ _URLs = {
 }
 
 
-class Bsd(datasets.GeneratorBasedBuilder):
+class BsdJaEn(datasets.GeneratorBasedBuilder):
     """Japanese-English Business Scene Dialogue (BSD) dataset. """
 
     VERSION = datasets.Version("1.0.0")
