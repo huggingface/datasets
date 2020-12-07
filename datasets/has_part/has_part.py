@@ -17,8 +17,8 @@
 from __future__ import absolute_import, division, print_function
 
 import ast
-from collections import defaultdict
 import os
+from collections import defaultdict
 
 import datasets
 
@@ -27,7 +27,7 @@ import datasets
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @misc{bhakthavatsalam2020dogs,
-      title={Do Dogs have Whiskers? A New Knowledge Base of hasPart Relations}, 
+      title={Do Dogs have Whiskers? A New Knowledge Base of hasPart Relations},
       author={Sumithra Bhakthavatsalam and Kyle Richardson and Niket Tandon and Peter Clark},
       year={2020},
       eprint={2006.07510},
@@ -125,7 +125,7 @@ class HasPart(datasets.GeneratorBasedBuilder):
             try:
                 for k, v in entry.items():
                     dd[k].append(v)
-            except:
+            except AttributeError:
                 continue
         return dd
 
