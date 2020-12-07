@@ -20,7 +20,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for WikiText-TL-39
+# Dataset Card for NewsPH
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -49,13 +49,13 @@ task_ids:
 
 - **Homepage:** [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
 - **Repository: **
-- **Paper:** [Evaluating language model finetuning techniques for low-resource languages](https://arxiv.org/abs/1907.00409)
+- **Paper:** [Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation](https://arxiv.org/abs/2010.11574)
 - **Leaderboard:**
 - **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 
-Large scale, unlabeled text dataset with 39 Million tokens in the training set. Inspired by the original WikiText Long Term Dependency dataset (Merity et al., 2016). TL means "Tagalog." Published in Cruz & Cheng (2019).
+Raw collection of news articles in Filipino. Used to produce the NewsPH-NLI dataset in Cruz et al. (2020)
 
 ### Supported Tasks and Leaderboards
 
@@ -63,7 +63,7 @@ Large scale, unlabeled text dataset with 39 Million tokens in the training set. 
 
 ### Languages
 
-Filipino/Tagalog
+Tagalog/Filipino
 
 ## Dataset Structure
 
@@ -75,17 +75,11 @@ Filipino/Tagalog
 
 - `text` (`str`)
 
-The dataset is in plaintext and only has one field ("text") as it is compiled for language modeling.
+The dataset is in plaintext and only has one field ("text"). It can be used for language modeling.
 
 ### Data Splits
 
-Split | Documents | Tokens
-------|-----------|-------
-Train | 120,975   | 39M
-Valid | 25,919    | 8M
-Test  | 25,921    | 8M
-
-Please see the paper for more details on the dataset splits
+[More Information Needed]
 
 ## Dataset Creation
 
@@ -94,8 +88,6 @@ Please see the paper for more details on the dataset splits
 [More Information Needed]
 
 ### Source Data
-
-Tagalog Wikipedia
 
 #### Initial Data Collection and Normalization
 
