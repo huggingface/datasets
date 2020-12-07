@@ -19,7 +19,7 @@ task_ids:
 - topic-classification
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for kannada_news dataset 
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
