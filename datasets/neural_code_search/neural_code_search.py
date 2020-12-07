@@ -154,7 +154,7 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
                         }
             else:
                 for dirpath, _, fnames in os.walk(dp):
-                    for fname in fnames:
+                    for fname in sorted(fnames):
                         with open(os.path.join(dirpath, fname), encoding="utf-8") as f:
                             for id_, row in enumerate(f):
                                 data_dict = json.loads(row)
