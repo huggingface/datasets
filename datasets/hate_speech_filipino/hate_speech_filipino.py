@@ -52,10 +52,7 @@ class HateSpeechFilipino(datasets.GeneratorBasedBuilder):
     def _info(self):
         # Labels: 0="Non-hate Speech", 1="Hate Speech"
         features = datasets.Features(
-            {
-                "text": datasets.Value("string"),
-                "label": datasets.features.ClassLabel(names=["0", "1"])
-            }
+            {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["0", "1"])}
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
