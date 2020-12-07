@@ -24,7 +24,7 @@ task_ids:
   - text-scoring-other-simplification-evaluation
   simplification:
   - text-simplification
-  ---
+---
 
 # Dataset Card for ASSET
 
