@@ -1,0 +1,190 @@
+# language = nb
+# rating = 4
+# newdoc id = 103740
+# text = Lyle Lovett:
+# header
+# newpar id = 103740-01
+# sent_id = 103740-01-01
+1	Lyle	Lyle	PROPN	_	_	0	root	_	_
+2	Lovett	Lovett	PROPN	_	_	1	flat:name	_	SpaceAfter=No
+3	:	$:	PUNCT	_	_	1	punct	_	_
+
+# text = «My Baby Don't Tolerate»
+# header
+# sent_id = 103740-01-02
+1	«	$"	PUNCT	_	_	3	punct	_	SpaceAfter=No
+2	My	My	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	3	nmod	_	_
+3	Baby	baby	PROPN	_	_	0	root	_	_
+4	Don't	Don'	PROPN	_	_	3	flat:name	_	_
+5	Tolerate	Tolerate	PROPN	_	_	3	flat:name	_	SpaceAfter=No
+6	»	$"	PUNCT	_	_	3	punct	_	SpacesAfter=\n\n
+
+# text = Mannen med det smaleste trynet i show-biz går noe på tomgang.
+# newpar id = 103740-02
+# sent_id = 103740-02-01
+1	Mannen	mann	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	8	nsubj	_	_
+2	med	med	ADP	_	_	5	case	_	_
+3	det	det	DET	_	Gender=Neut|Number=Sing|PronType=Dem	5	det	_	_
+4	smaleste	smal	ADJ	_	Definite=Def|Degree=Sup	5	amod	_	_
+5	trynet	tryn	NOUN	_	Definite=Def|Gender=Neut|Number=Sing	1	nmod	_	_
+6	i	i	ADP	_	_	7	case	_	_
+7	show-biz	show-biz	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	5	nmod	_	_
+8	går	gå	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	0	root	_	_
+9	noe	noe	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Ind,Prs	8	obj	_	_
+10	på	på	ADP	_	_	11	case	_	_
+11	tomgang	tomgang	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	8	obl	_	SpaceAfter=No
+12	.	$.	PUNCT	_	_	8	punct	_	SpacesAfter=\n\n
+
+# text = Lyle Lovett er kanskje mest kjent for å ha vært Julia Roberts rare ektemann en gang på 90-tallet, men mannen med det noe karakteristiske utseendet har etter hvert skapt sin egen «western jazz»-genre med en produksjon det står stor respekt av.
+# newpar id = 103740-03
+# sent_id = 103740-03-01
+1	Lyle	Lyle	PROPN	_	_	6	nsubj	_	_
+2	Lovett	Lovett	PROPN	_	_	1	flat:name	_	_
+3	er	være	AUX	_	Mood=Ind|Tense=Pres|VerbForm=Fin	6	aux	_	_
+4	kanskje	kanskje	ADV	_	_	6	advmod	_	_
+5	mest	mye	ADJ	_	Definite=Ind|Degree=Sup	6	advmod	_	_
+6	kjent	kjenne	VERB	_	VerbForm=Part	0	root	_	_
+7	for	for	ADP	_	_	14	mark	_	_
+8	å	å	PART	_	_	14	mark	_	_
+9	ha	ha	AUX	_	VerbForm=Inf	14	aux	_	_
+10	vært	være	AUX	_	VerbForm=Part	14	cop	_	_
+11	Julia	Julia	PROPN	_	Gender=Fem	14	nmod	_	_
+12	Roberts	Robert	PROPN	_	Case=Gen|Gender=Masc	11	flat:name	_	_
+13	rare	rar	ADJ	_	Definite=Def|Degree=Pos|Number=Sing	14	amod	_	_
+14	ektemann	ektemann	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	6	advcl	_	_
+15	en	en	DET	_	Gender=Masc|Number=Sing|PronType=Art	16	det	_	_
+16	gang	gang	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	14	obl	_	_
+17	på	på	ADP	_	_	18	case	_	_
+18	90-tallet	90-tall	NOUN	_	Definite=Def|Gender=Neut|Number=Sing	16	nmod	_	SpaceAfter=No
+19	,	$,	PUNCT	_	_	6	punct	_	_
+20	men	men	CCONJ	_	_	30	cc	_	_
+21	mannen	mann	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	30	nsubj	_	_
+22	med	med	ADP	_	_	23	case	_	_
+23	det	det	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Prs	21	nmod	_	_
+24	noe	noe	DET	_	Gender=Neut|Number=Sing|PronType=Ind	26	det	_	_
+25	karakteristiske	karakteristisk	ADJ	_	Definite=Def|Degree=Pos|Number=Sing	26	amod	_	_
+26	utseendet	utseend	NOUN	_	Definite=Def|Gender=Neut|Number=Sing	23	appos	_	_
+27	har	ha	AUX	_	Mood=Ind|Tense=Pres|VerbForm=Fin	30	aux	_	_
+28	etter	etter	ADP	_	_	29	case	_	_
+29	hvert	hver	DET	_	Gender=Neut|Number=Sing|PronType=Tot	30	obl	_	_
+30	skapt	skape	VERB	_	VerbForm=Part	6	conj	_	_
+31	sin	sin	DET	_	Gender=Masc|Number=Sing|Poss=Yes|PronType=Prs	37	nmod	_	_
+32	egen	egen	DET	_	Definite=Ind|Gender=Masc|Number=Sing|PronType=Prs	35	det	_	_
+33	«	$"	PUNCT	_	_	35	punct	_	SpaceAfter=No
+34	western	western	ADJ	_	Definite=Ind|Degree=Pos|Number=Sing	35	amod	_	_
+35	jazz	jazz	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	37	compound	_	SpaceAfter=No
+36	»	$"	PUNCT	_	_	37	punct	_	SpaceAfter=No
+37	-genre	-genre	NOUN	_	Definite=Ind|Gender=Masc|Number=Plur	30	obj	_	_
+38	med	med	ADP	_	_	40	case	_	_
+39	en	en	DET	_	Gender=Masc|Number=Sing|PronType=Art	40	det	_	_
+40	produksjon	produksjon	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	30	obl	_	_
+41	det	det	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Prs	42	expl	_	_
+42	står	stå	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	40	acl:relcl	_	_
+43	stor	stor	ADJ	_	Definite=Ind|Degree=Pos|Number=Sing	44	amod	_	_
+44	respekt	respekt	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	42	nsubj	_	_
+45	av	av	ADP	_	_	44	nmod	_	SpaceAfter=No
+46	.	$.	PUNCT	_	_	6	punct	_	_
+
+# text = Likevel har han ikke klart å matche genialiteten fra hans to første plater, «Lyle Lovett» og «Pontiac» fra slutten av 80-tallet.
+# sent_id = 103740-03-02
+1	Likevel	likevel	ADV	_	_	5	advmod	_	_
+2	har	ha	AUX	_	Mood=Ind|Tense=Pres|VerbForm=Fin	5	aux	_	_
+3	han	han	PRON	_	Animacy=Hum|Case=Nom|Gender=Masc|Number=Sing|Person=3|PronType=Prs	5	nsubj	_	_
+4	ikke	ikke	ADV	_	Polarity=Neg	5	advmod	_	_
+5	klart	klare	VERB	_	Mood=Ind|Tense=Past|VerbForm=Fin	0	root	_	_
+6	å	å	PART	_	_	7	mark	_	_
+7	matche	matche	VERB	_	VerbForm=Inf	5	xcomp	_	_
+8	genialiteten	genialitet	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	7	obj	_	_
+9	fra	fra	ADP	_	_	13	case	_	_
+10	hans	hans	DET	_	Number=Plur|Poss=Yes|PronType=Prs	13	nmod	_	_
+11	to	to	NUM	_	Number=Plur|NumType=Card	13	nummod	_	_
+12	første	første	ADJ	_	Degree=Pos|Number=Plur	13	amod	_	_
+13	plater	plate	NOUN	_	Definite=Ind|Gender=Fem|Number=Plur	7	obl	_	SpaceAfter=No
+14	,	$,	PUNCT	_	_	13	punct	_	_
+15	«	$"	PUNCT	_	_	16	punct	_	SpaceAfter=No
+16	Lyle	Lyle	PROPN	_	_	13	conj	_	_
+17	Lovett	Lovett	PROPN	_	_	16	flat:name	_	SpaceAfter=No
+18	»	$"	PUNCT	_	_	16	punct	_	_
+19	og	og	CCONJ	_	_	21	cc	_	_
+20	«	$"	PUNCT	_	_	21	punct	_	SpaceAfter=No
+21	Pontiac	Pontiac	PROPN	_	_	13	conj	_	SpaceAfter=No
+22	»	$"	PUNCT	_	_	21	punct	_	_
+23	fra	fra	ADP	_	_	24	case	_	_
+24	slutten	slutt	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	21	nmod	_	_
+25	av	av	ADP	_	_	26	case	_	_
+26	80-tallet	80-tall	NOUN	_	Definite=Def|Gender=Neut|Number=Sing	24	nmod	_	SpaceAfter=No
+27	.	$.	PUNCT	_	_	5	punct	_	_
+
+# text = Han makter ikke det denne gangen heller - det tar faktisk litt lang tid før platen kommer ordentlig i gang.
+# sent_id = 103740-03-03
+1	Han	han	PRON	_	Animacy=Hum|Case=Nom|Gender=Masc|Number=Sing|Person=3|PronType=Prs	2	nsubj	_	_
+2	makter	makte	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	0	root	_	_
+3	ikke	ikke	ADV	_	Polarity=Neg	2	advmod	_	_
+4	det	det	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Prs	2	obj	_	_
+5	denne	denne	DET	_	Gender=Masc|Number=Sing|PronType=Dem	6	det	_	_
+6	gangen	gang	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	2	obl	_	_
+7	heller	heller	ADV	_	_	2	advmod	_	_
+8	-	$-	PUNCT	_	_	2	punct	_	_
+9	det	det	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Prs	10	expl	_	_
+10	tar	ta	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	2	conj	_	_
+11	faktisk	faktisk	ADJ	_	Definite=Ind|Degree=Pos|Gender=Neut|Number=Sing	10	advmod	_	_
+12	litt	litt	ADJ	_	Definite=Ind|Degree=Pos|Gender=Neut|Number=Sing	13	advmod	_	_
+13	lang	lang	ADJ	_	Definite=Ind|Degree=Pos|Number=Sing	14	amod	_	_
+14	tid	tid	NOUN	_	Definite=Ind|Gender=Fem|Number=Sing	10	obj	_	_
+15	før	før	SCONJ	_	_	17	mark	_	_
+16	platen	plate	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	17	nsubj	_	_
+17	kommer	komme	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	10	advcl	_	_
+18	ordentlig	ordentlig	ADJ	_	Definite=Ind|Degree=Pos|Gender=Neut|Number=Sing	17	advmod	_	_
+19	i	i	ADP	_	_	20	case	_	_
+20	gang	gang	NOUN	_	Definite=Ind|Gender=Masc|Number=Sing	17	obl	_	SpaceAfter=No
+21	.	$.	PUNCT	_	_	2	punct	_	_
+
+# text = Men bevares:
+# sent_id = 103740-03-04
+1	Men	men	CCONJ	_	_	2	cc	_	_
+2	bevares	bevare	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin|Voice=Pass	0	root	_	SpaceAfter=No
+3	:	$:	PUNCT	_	_	2	punct	_	_
+
+# text = Låter som «On Saturday Night» og country-gospelen «I'm Going to Wait» går milevis utenpå det aller, aller meste av det som kommer fra Nashville og strøkene deromkring.
+# sent_id = 103740-03-05
+1	Låter	låt	NOUN	_	Definite=Ind|Gender=Masc|Number=Plur	16	nsubj	_	_
+2	som	som	ADP	_	_	4	case	_	_
+3	«	$"	PUNCT	_	_	4	punct	_	SpaceAfter=No
+4	On	On	PROPN	_	_	1	nmod	_	_
+5	Saturday	Saturday	PROPN	_	_	4	flat:name	_	_
+6	Night	night	PROPN	_	_	4	flat:name	_	SpaceAfter=No
+7	»	$"	PUNCT	_	_	4	punct	_	_
+8	og	og	CCONJ	_	_	11	cc	_	_
+9	country-gospelen	country-gospel	NOUN	_	Definite=Def|Gender=Masc|Number=Sing	11	nmod	_	_
+10	«	$"	PUNCT	_	_	11	punct	_	SpaceAfter=No
+11	I'm	i'm	PROPN	_	_	4	conj	_	_
+12	Going	Going	PROPN	_	_	11	flat:name	_	_
+13	to	to	X	_	_	11	flat:name	_	_
+14	Wait	Wait	PROPN	_	_	11	flat:name	_	SpaceAfter=No
+15	»	$"	PUNCT	_	_	4	punct	_	_
+16	går	gå	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	0	root	_	_
+17	milevis	milevis	ADV	_	_	16	advmod	_	_
+18	utenpå	utenpå	ADP	_	_	19	case	_	_
+19	det	det	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Prs	16	obl	_	_
+20	aller	aller	ADV	_	_	19	advmod	_	SpaceAfter=No
+21	,	$,	PUNCT	_	_	19	punct	_	_
+22	aller	aller	ADV	_	_	23	advmod	_	_
+23	meste	mye	ADJ	_	Definite=Def|Degree=Sup	19	appos	_	_
+24	av	av	ADP	_	_	25	case	_	_
+25	det	det	PRON	_	Gender=Neut|Number=Sing|Person=3|PronType=Prs	23	obl	_	_
+26	som	som	PRON	_	PronType=Rel	27	nsubj	_	_
+27	kommer	komme	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin	25	acl:relcl	_	_
+28	fra	fra	ADP	_	_	29	case	_	_
+29	Nashville	Nashville	PROPN	_	_	32	compound	_	_
+30	og	og	CCONJ	_	_	31	cc	_	_
+31	strøkene	strøk	NOUN	_	Definite=Def|Gender=Fem|Number=Plur	29	conj	_	_
+32	deromkring	deromkring	NOUN	_	Definite=Ind|Gender=Fem|Number=Sing	27	obl	_	SpaceAfter=No
+33	.	$.	PUNCT	_	_	16	punct	_	SpacesAfter=\n\n
+
+# text = ESPEN OLSEN LANGFELDT
+# newpar id = 103740-04
+# sent_id = 103740-04-01
+1	ESPEN	Espen	PROPN	_	Gender=Masc	0	root	_	_
+2	OLSEN	Olsen	PROPN	_	_	1	flat:name	_	_
+3	LANGFELDT	LANGFELDT	PROPN	_	_	1	flat:name	_	SpacesAfter=\n
+

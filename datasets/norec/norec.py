@@ -94,7 +94,7 @@ class NoReC(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, path):
-        conllu_files = glob.glob(os.path.join(datapath, "*.conllu"))
+        conllu_files = sorted(glob.glob(os.path.join(datapath, "*.conllu")))
         counter = 0
         for cf in conllu_files:
             with open(cf, "r", encoding="utf-8") as data_file:
