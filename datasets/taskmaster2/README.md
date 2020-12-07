@@ -54,7 +54,7 @@ task_ids:
 
 ### Dataset Summary
 
-Taskmaster is dataset for goal oriented conversationas. The Taskmaster-2 dataset consists of 17,289 dialogs
+Taskmaster is dataset for goal oriented conversations. The Taskmaster-2 dataset consists of 17,289 dialogs
 in the seven domains which include restaurants, food ordering, movies, hotels, flights, music and sports. 
 Unlike Taskmaster-1, which includes both written "self-dialogs" and spoken two-person dialogs,
 Taskmaster-2 consists entirely of spoken two-person dialogs. In addition, while Taskmaster-1 is

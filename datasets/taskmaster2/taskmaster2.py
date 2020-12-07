@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Taskmaster-2:Toward a Realistic and Diverse Dialog Dataset"""
+"""Taskmaster: A dataset for goal oriented conversations."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -30,7 +30,7 @@ year	= {2019}
 """
 
 _DESCRIPTION = """\
-Taskmaster is dataset for goal oriented conversationas. The Taskmaster-2 dataset consists of 17,289 dialogs \
+Taskmaster is dataset for goal oriented conversations. The Taskmaster-2 dataset consists of 17,289 dialogs \
 in the seven domains which include restaurants, food ordering, movies, hotels, flights, music and sports. \
 Unlike Taskmaster-1, which includes both written "self-dialogs" and spoken two-person dialogs, \
 Taskmaster-2 consists entirely of spoken two-person dialogs. In addition, while Taskmaster-1 is \
@@ -48,7 +48,7 @@ _BASE_URL = "https://raw.githubusercontent.com/google-research-datasets/Taskmast
 
 
 class Taskmaster2(datasets.GeneratorBasedBuilder):
-    """Taskmaster-2:Toward a Realistic and Diverse Dialog Dataset"""
+    """Taskmaster: A dataset for goal oriented conversations."""
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
