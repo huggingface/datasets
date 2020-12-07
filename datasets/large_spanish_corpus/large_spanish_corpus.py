@@ -64,7 +64,7 @@ _CORPORA = [
     "DGT",
 ]
 
-_CORPORA_FILEPATHS = {corpus: os.path.join("spanish-corpora/raw", f"{corpus}.txt") for corpus in _CORPORA}
+_CORPORA_FILEPATHS = {corpus: os.path.join("spanish-corpora", "raw", f"{corpus}.txt") for corpus in _CORPORA}
 
 _VERSION = "1.1.0"
 
