@@ -17,6 +17,7 @@
 """Mock download manager interface."""
 
 import os
+import re
 import urllib.parse
 from pathlib import Path
 from typing import Callable, List, Optional, Union
@@ -169,6 +170,9 @@ class MockDownloadManager(object):
 
     def create_dummy_data_list(self, path_to_dummy_data, data_url):
         dummy_data_list = []
+        # trick: if there are many shards named like `data.txt-000001-of-00300`, only use the first one
+        if all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url):
+            data_url = [data_url[0]] * len(data_url)
         for single_url in data_url:
             for download_callback in self.download_callbacks:
                 download_callback(single_url)
