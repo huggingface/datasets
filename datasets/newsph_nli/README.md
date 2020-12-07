@@ -98,7 +98,7 @@ To create the dataset, we scrape news articles from all major Philippine news si
 
 #### Who are the source language producers?
 
-Jan Christian Blaise Cruz and Jose Kristian Resabal and James Lin and Dan John Velasco and Charibeth Cheng
+The dataset was created by Jan Christian, Blaise Cruz, Jose Kristian Resabal, James Lin, Dan John Velasco, and Charibeth Cheng from De La Salle University and the University of the Philippines
 
 ### Annotations
 
@@ -146,4 +146,3 @@ Jan Christian Blaise Cruz, Jose Kristian Resabal, James Lin, Dan John Velasco an
   journal={arXiv preprint arXiv:2010.11574},
   year={2020}
 }
-
