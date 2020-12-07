@@ -559,10 +559,6 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-<<<<<<< HEAD
-=======
-
->>>>>>> 6c3d7af922f2425c4e3aaeaec876b524fdcd2a01
         train_path = dl_manager.download_and_extract(self.config.train_url)
         valid_path = dl_manager.download_and_extract(self.config.valid_url)
         test_path = dl_manager.download_and_extract(self.config.test_url)
@@ -574,11 +570,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-<<<<<<< HEAD
         csv_file = ["emot", "wrete", "facqa", "casa"]
-=======
-        csv_file = ["emot", "wrete", "facqa", "casa", "hoasa"]
->>>>>>> 6c3d7af922f2425c4e3aaeaec876b524fdcd2a01
         tsv_file = ["smsa"]
         txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
 
