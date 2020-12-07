@@ -76,13 +76,7 @@ task_ids:
 
 - news: a string in urdu
 - label: the label indicating whethere the provided news is real or fake.
-  <<<<<<< HEAD
-  <<<<<<< HEAD
-- # category: The intent of the news being presented. The available 5 classes are Sports, Health, Technology, Entertainment, and Business.
-- category: The intent of the news being presented. The available 5 classes are Sports, Health, Technology, Entertainment, and Business
-  > > > > > > > # c1e5923f05af449ac54e8c2d74aabcf98a0e0ed5
 - category: The intent of the news being presented. The available 5 classes are Sports, Health, Technology, Entertainment, and Business.
-  > > > > > > > 7ad71507e8a4a95f52000e1d65602872cf36ebed
 
 ### Data Splits
 
