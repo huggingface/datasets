@@ -18,7 +18,11 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-task_ids: []
+task_ids:
+  evaluation_dataset:
+  - extractive-qa
+  search_corpus:
+  - extractive-qa
 ---
 
 # Dataset Card for [Dataset Name]
