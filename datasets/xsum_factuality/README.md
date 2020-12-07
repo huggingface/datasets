@@ -11,7 +11,8 @@ multilinguality:
 - monolingual
 size_categories:
 - 1K<n<10K
-source_datasets: []
+source_datasets:
+- extended|other-xsum
 task_categories:
 - conditional-text-generation
 task_ids:
