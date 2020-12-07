@@ -6,7 +6,106 @@ multilinguality:
 task_ids:
 - language-modeling
 languages:
-- 99 languages
+- ar
+- af
+- an
+- am
+- as
+- az
+- be
+- bg
+- bn
+- br
+- bs
+- ca
+- cs
+- cy
+- da
+- de
+- dz
+- en
+- el
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fr
+- fy
+- ga
+- gd
+- gl
+- gu
+- ha
+- he
+- hi
+- hr
+- hu
+- hy
+- id
+- ig
+- is
+- it
+- ja
+- ka
+- kk
+- km
+- ko
+- kn
+- ku
+- ky
+- li
+- lt
+- lv
+- mg
+- mk
+- ml
+- mn
+- mr
+- ms
+- mt
+- my
+- nb
+- ne
+- nl
+- nn
+- no
+- oc
+- or
+- pa
+- pl
+- ps
+- pt
+- ro
+- ru
+- rw
+- se
+- sh
+- si
+- sk
+- sl
+- sq
+- sr
+- sv
+- ta
+- tg
+- te
+- th
+- tk
+- tr
+- tt
+- ug
+- uk
+- ur
+- uz
+- vi
+- wa
+- xh
+- yi
+- yo
+- zh
+- zu
 annotations_creators:
 - no-annotation
 source_datasets:
@@ -61,20 +160,17 @@ OPUS-100 is English-centric, meaning that all training pairs include English on 
 
 ### Supported Tasks and Leaderboards
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Languages
 
 OPUS-100 contains approximately 55M sentence pairs. Of the 99 language pairs, 44 have 1M sentence pairs of training data, 73 have at least 100k, and 95 have at least 10k.
 
-Following language pairs are available:
-['ar-de', 'ar-fr', 'ar-nl', 'ar-ru', 'ar-zh', 'de-fr', 'de-nl', 'de-ru', 'de-zh', 'fr-nl', 'fr-ru', 'fr-zh', 'nl-ru', 'nl-zh', 'ru-zh', 'af-en', 'am-en', 'an-en', 'ar-en', 'as-en', 'az-en', 'be-en', 'bg-en', 'bn-en', 'br-en', 'bs-en', 'ca-en', 'cs-en', 'cy-en', 'da-en', 'de-en', 'dz-en', 'el-en', 'en-eo', 'en-es', 'en-et', 'en-eu', 'en-fa', 'en-fi', 'en-fr', 'en-fy', 'en-ga', 'en-gd', 'en-gl', 'en-gu', 'en-ha', 'en-he', 'en-hi', 'en-hr', 'en-hu', 'en-hy', 'en-id', 'en-ig', 'en-is', 'en-it', 'en-ja', 'en-ka', 'en-kk', 'en-km', 'en-ko', 'en-kn', 'en-ku', 'en-ky', 'en-li', 'en-lt', 'en-lv', 'en-mg', 'en-mk', 'en-ml', 'en-mn', 'en-mr', 'en-ms', 'en-mt', 'en-my', 'en-nb', 'en-ne', 'en-nl', 'en-nn', 'en-no', 'en-oc', 'en-or', 'en-pa', 'en-pl', 'en-ps', 'en-pt', 'en-ro', 'en-ru', 'en-rw', 'en-se', 'en-sh', 'en-si', 'en-sk', 'en-sl', 'en-sq', 'en-sr', 'en-sv', 'en-ta', 'en-te', 'en-tg', 'en-th', 'en-tk', 'en-tr', 'en-tt', 'en-ug', 'en-uk', 'en-ur', 'en-uz', 'en-vi', 'en-wa', 'en-xh', 'en-yi', 'en-yo', 'en-zh', 'en-zu']
-
 ## Dataset Structure
 
 ### Data Instances
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Data Fields
 
@@ -89,57 +185,57 @@ The dataset is split into training, development, and test portions. Data was pre
 
 ### Curation Rationale
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Source Data
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Licensing Information
 
-[MORE INFORMATION NEEDED]
+[More Information Needed]
 
 ### Citation Information
 
