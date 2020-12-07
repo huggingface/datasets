@@ -94,7 +94,6 @@ class SanskritClassic(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
-                if self.config.name == "combined":
-                    yield id_, {
-                        "text": row,
-                    }
+                yield id_, {
+                    "text": row,
+                }
