@@ -30,14 +30,7 @@ Now you are ready, each time you want to add a new dataset, follow the steps in 
 
 ### Understand the structure of the dataset
 
-1. Start by preparing the field and understanding how the dataset look like:
-
-	- Find the research paper or description presenting the dataset you want to add (if there is an associated research paper)
-	- Find the location of the data for you dataset
-	- Read the relevant part of the paper or description presenting the dataset
-	- Open the data to see how they look
-
-2. Find a short-name for the dataset:
+1. Find a short-name for the dataset:
 
 	- Select a `short name` for the dataset which is unique but not too long and is easy to guess for users, e.g. `squad`, `natural_questions`
 	- Sometimes the short-list name is already given/proposed (e.g. in the spreadsheet of the data sprint to reach v2.0 if you are participating in the effort)
@@ -49,7 +42,7 @@ You are now ready to start the process of adding the dataset. We will create the
 - a **metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json` 
 - a **dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip` 
 
-4. Let's start by creating a new branch to hold your development changes with the name of your dataset:
+2. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
 	```bash
 	git fetch upstream
@@ -59,11 +52,32 @@ You are now ready to start the process of adding the dataset. We will create the
 
 	**Do not** work on the `master` branch.
 
-5. Create your dataset folder under `datasets/<your_dataset_name>`:
+3. Create your dataset folder under `datasets/<your_dataset_name>`:
 
 	```bash
 	mkdir ./datasets/<your_dataset_name>
 	```
+
+4. Create an empty dataset card in the folder by copying the template:
+
+	```bash
+	cp ./templates/README.md ./datasets/<your_dataset_name>/README.md
+	```
+
+5. Now explore a bit the dataset you have selected while completing some fields of the **dataset card** by the same occasion:
+
+	- Find the research paper or description presenting the dataset you want to add
+	- Read the relevant part of the paper/description presenting the dataset
+	- Find the location of the data for your dataset
+	- Download/open the data to see how it looks like
+	- While you explore and read about the dataset, you can complete some sections of the dataset card (the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in you readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
+
+		If you need more informations on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+
+		There is a also a (very detailed) example here: https://github.com/huggingface/datasets/tree/master/datasets/eli5.
+
+		Don't spend too much time completing the dataset card, just copy what you find when exploring the dataset documentation. If you can't find all the information it's ok. You can always spend more time completing the dataset card while we are reviewing your PR (see below) and the dataset card will be open for everybody to complete them afterwards. If you don't know what to write in a section, just leave the `[More Information Needed]` text.
+
 
 ### Write the loading/processing code
 
