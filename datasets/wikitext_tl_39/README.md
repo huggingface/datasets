@@ -1,9 +1,26 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- fil
+- tl
+licenses:
+- gpl-3.0
+multilinguality:
+- monolingual
+size_categories:
+- n>1M
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for WikiText-TL-39
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -30,15 +47,15 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage: [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository: 
+- **Paper: [Evaluating language model finetuning techniques for low-resource languages](https://arxiv.org/abs/1907.00409)
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact: Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 
-[More Information Needed]
+Large scale, unlabeled text dataset with 39 Million tokens in the training set. Inspired by the original WikiText Long Term Dependency dataset (Merity et al., 2016). TL means "Tagalog." Published in Cruz & Cheng (2019).
 
 ### Supported Tasks and Leaderboards
 
@@ -46,9 +63,13 @@ YAML tags:
 
 ### Languages
 
-[More Information Needed]
+Filipino/Tagalog
 
 ## Dataset Structure
+
+- train.txt
+- valid.txt
+- test.txt
 
 ### Data Instances
 
@@ -56,11 +77,19 @@ YAML tags:
 
 ### Data Fields
 
-[More Information Needed]
+- `text` (`str`)
+
+The dataset is in plaintext and only has one field ("text") as it is compiled for language modeling.
 
 ### Data Splits
 
-[More Information Needed]
+Split | Documents | Tokens
+------|-----------|-------
+Train | 120,975   | 39M
+Valid | 25,919    | 8M
+Test  | 25,921    | 8M
+
+Please see the paper for more details on the dataset splits
 
 ## Dataset Creation
 
@@ -69,6 +98,8 @@ YAML tags:
 [More Information Needed]
 
 ### Source Data
+
+Tagalog Wikipedia
 
 #### Initial Data Collection and Normalization
 
