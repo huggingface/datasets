@@ -14,9 +14,6 @@
 # limitations under the License.
 
 # Lint as: python3
-import glob
-import os
-
 import conllu
 
 import datasets
