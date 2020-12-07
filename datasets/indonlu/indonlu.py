@@ -89,9 +89,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="emot",
             description=textwrap.dedent(
                 """\
-            An emotion classification dataset collected from the social media 
-            platform Twitter (Saputri et al., 2018). The dataset consists of 
-            around 4000 Indonesian colloquial language tweets, covering five 
+            An emotion classification dataset collected from the social media
+            platform Twitter (Saputri et al., 2018). The dataset consists of
+            around 4000 Indonesian colloquial language tweets, covering five
             different emotion labels: sadness, anger, love, fear, and happy."""
             ),
             text_features={"tweet": "tweet"},
@@ -117,10 +117,10 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="smsa",
             description=textwrap.dedent(
                 """\
-            This sentence-level sentiment analysis dataset (Purwarianti and Crisdayanti, 2019) 
-            is a collection of comments and reviews in Indonesian obtained from multiple online 
-            platforms. The text was crawled and then annotated by several Indonesian linguists 
-            to construct this dataset. There are three possible sentiments on the SmSA 
+            This sentence-level sentiment analysis dataset (Purwarianti and Crisdayanti, 2019)
+            is a collection of comments and reviews in Indonesian obtained from multiple online
+            platforms. The text was crawled and then annotated by several Indonesian linguists
+            to construct this dataset. There are three possible sentiments on the SmSA
             dataset: positive, negative, and neutral."""
             ),
             text_features={"text": "text"},
@@ -147,9 +147,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             description=textwrap.dedent(
                 """\
             An aspect-based sentiment analysis dataset consisting of around a thousand car reviews collected
-            from multiple Indonesian online automobile platforms (Ilmania et al., 2018). The dataset covers 
-            six aspects of car quality. We define the task to be a multi-label classification task, where 
-            each label represents a sentiment for a single aspect with three possible values: positive, 
+            from multiple Indonesian online automobile platforms (Ilmania et al., 2018). The dataset covers
+            six aspects of car quality. We define the task to be a multi-label classification task, where
+            each label represents a sentiment for a single aspect with three possible values: positive,
             negative, and neutral."""
             ),
             text_features={"sentence": "sentence"},
@@ -175,11 +175,11 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="hoasa",
             description=textwrap.dedent(
                 """\
-            An aspect-based sentiment analysis dataset consisting of hotel reviews collected from the hotel 
-            aggregator platform, AiryRooms (Azhar et al., 2019). The dataset covers ten different aspects of 
-            hotel quality. Each review is labeled with a single sentiment label for each aspect. There are 
-            four possible sentiment classes for each sentiment label: positive, negative, neutral, and 
-            positive-negative. The positivenegative label is given to a review that contains multiple sentiments 
+            An aspect-based sentiment analysis dataset consisting of hotel reviews collected from the hotel
+            aggregator platform, AiryRooms (Azhar et al., 2019). The dataset covers ten different aspects of
+            hotel quality. Each review is labeled with a single sentiment label for each aspect. There are
+            four possible sentiment classes for each sentiment label: positive, negative, neutral, and
+            positive-negative. The positivenegative label is given to a review that contains multiple sentiments
             of the same aspect but for different objects (e.g., cleanliness of bed and toilet)."""
             ),
             text_features={"sentence": "sentence"},
@@ -215,9 +215,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="wrete",
             description=textwrap.dedent(
                 """\
-            The Wiki Revision Edits Textual Entailment dataset (Setya and Mahendra, 2018) consists of 450 sentence pairs 
-            constructed from Wikipedia revision history. The dataset contains pairs of sentences and binary semantic 
-            relations between the pairs. The data are labeled as entailed when the meaning of the second sentence can be 
+            The Wiki Revision Edits Textual Entailment dataset (Setya and Mahendra, 2018) consists of 450 sentence pairs
+            constructed from Wikipedia revision history. The dataset contains pairs of sentences and binary semantic
+            relations between the pairs. The data are labeled as entailed when the meaning of the second sentence can be
             derived from the first one, and not entailed otherwise."""
             ),
             text_features={
@@ -245,8 +245,8 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="posp",
             description=textwrap.dedent(
                 """\
-            This Indonesian part-of-speech tagging (POS) dataset (Hoesen and Purwarianti, 2018) is collected from Indonesian 
-            news websites. The dataset consists of around 8000 sentences with 26 POS tags. The POS tag labels follow the 
+            This Indonesian part-of-speech tagging (POS) dataset (Hoesen and Purwarianti, 2018) is collected from Indonesian
+            news websites. The dataset consists of around 8000 sentences with 26 POS tags. The POS tag labels follow the
             Indonesian Association of Computational Linguistics (INACL) POS Tagging Convention."""
             ),
             text_features={"sentence": "sentence"},
@@ -299,8 +299,8 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="bapos",
             description=textwrap.dedent(
                 """\
-            This POS tagging dataset (Dinakaramani et al., 2014) contains about 1000 sentences, collected from the PAN Localization 
-            Project. In this dataset, each word is tagged by one of 23 POS tag classes. Data splitting used in this benchmark follows 
+            This POS tagging dataset (Dinakaramani et al., 2014) contains about 1000 sentences, collected from the PAN Localization
+            Project. In this dataset, each word is tagged by one of 23 POS tag classes. Data splitting used in this benchmark follows
             the experimental setting used by Kurniawan and Aji (2018)"""
             ),
             text_features={"sentence": "sentence"},
@@ -376,9 +376,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="terma",
             description=textwrap.dedent(
                 """\
-            This span-extraction dataset is collected from the hotel aggregator platform, AiryRooms (Septiandri and Sutiono, 2019; 
-            Fernando et al., 2019). The dataset consists of thousands of hotel reviews, which each contain a span label for aspect 
-            and sentiment words representing the opinion of the reviewer on the corresponding aspect. The labels use 
+            This span-extraction dataset is collected from the hotel aggregator platform, AiryRooms (Septiandri and Sutiono, 2019;
+            Fernando et al., 2019). The dataset consists of thousands of hotel reviews, which each contain a span label for aspect
+            and sentiment words representing the opinion of the reviewer on the corresponding aspect. The labels use
             Inside-Outside-Beginning (IOB) tagging representation with two kinds of tags, aspect and sentiment."""
             ),
             text_features={"sentence": "sentece"},
@@ -408,10 +408,10 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="keps",
             description=textwrap.dedent(
                 """\
-            This keyphrase extraction dataset (Mahfuzh et al., 2019) consists of text from Twitter discussing 
-            banking products and services and is written in the Indonesian language. A phrase containing 
-            important information is considered a keyphrase. Text may contain one or more keyphrases since 
-            important phrases can be located at different positions. The dataset follows the IOB chunking format, 
+            This keyphrase extraction dataset (Mahfuzh et al., 2019) consists of text from Twitter discussing
+            banking products and services and is written in the Indonesian language. A phrase containing
+            important information is considered a keyphrase. Text may contain one or more keyphrases since
+            important phrases can be located at different positions. The dataset follows the IOB chunking format,
             which represents the position of the keyphrase."""
             ),
             text_features={"sentence": "sentence"},
@@ -437,8 +437,8 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="nergrit",
             description=textwrap.dedent(
                 """\
-            This NER dataset is taken from the Grit-ID repository, and the labels are spans in IOB chunking representation. 
-            The dataset consists of three kinds of named entity tags, PERSON (name of person), PLACE (name of location), and 
+            This NER dataset is taken from the Grit-ID repository, and the labels are spans in IOB chunking representation.
+            The dataset consists of three kinds of named entity tags, PERSON (name of person), PLACE (name of location), and
             ORGANIZATION (name of organization)."""
             ),
             text_features={"sentence": "sentence"},
@@ -462,8 +462,8 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="nerp",
             description=textwrap.dedent(
                 """\
-            This NER dataset (Hoesen and Purwarianti, 2018) contains texts collected from several Indonesian news websites. 
-            There are five labels available in this dataset, PER (name of person), LOC (name of location), IND (name of product or brand), 
+            This NER dataset (Hoesen and Purwarianti, 2018) contains texts collected from several Indonesian news websites.
+            There are five labels available in this dataset, PER (name of person), LOC (name of location), IND (name of product or brand),
             EVT (name of the event), and FNB (name of food and beverage). The NERP dataset uses the IOB chunking format."""
             ),
             text_features={"sentence": "sentence"},
@@ -501,9 +501,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             name="facqa",
             description=textwrap.dedent(
                 """\
-            The goal of the FacQA dataset is to find the answer to a question from a provided short passage from 
-            a news article (Purwarianti et al., 2007). Each row in the FacQA dataset consists of a question, 
-            a short passage, and a label phrase, which can be found inside the corresponding short passage. 
+            The goal of the FacQA dataset is to find the answer to a question from a provided short passage from
+            a news article (Purwarianti et al., 2007). Each row in the FacQA dataset consists of a question,
+            a short passage, and a label phrase, which can be found inside the corresponding short passage.
             There are six categories of questions: date, location, name, organization, person, and quantitative."""
             ),
             text_features={"question": "question", "passage": "passage"},
