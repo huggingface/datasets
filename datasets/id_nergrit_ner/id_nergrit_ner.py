@@ -16,9 +16,11 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import logging
+import os
+
 import datasets
+
 
 _CITATION = """\
 @inproceedings{id_nergrit_ner,
@@ -59,8 +61,9 @@ _LICENSE = ""
 
 _URLs = [
     "https://github.com/cahya-wirawan/indonesian-language-models/raw/master/data/nergrit-corpus_20190726_corrected.tgz",
-    "https://cloud.uncool.ai/index.php/s/2QEcMrgwkjMAo4o/download"
+    "https://cloud.uncool.ai/index.php/s/2QEcMrgwkjMAo4o/download",
 ]
+
 
 class IdNergritNerConfig(datasets.BuilderConfig):
     """BuilderConfig for IdNergritNer"""
@@ -71,6 +74,7 @@ class IdNergritNerConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(IdNergritNerConfig, self).__init__(**kwargs)
+
 
 class IdNergritNer(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
@@ -91,45 +95,45 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
                 "ner_tags": datasets.Sequence(
                     datasets.features.ClassLabel(
                         names=[
-                            'B-CRD',
-                            'B-DAT',
-                            'B-EVT',
-                            'B-FAC',
-                            'B-GPE',
-                            'B-LAN',
-                            'B-LAW',
-                            'B-LOC',
-                            'B-MON',
-                            'B-NOR',
-                            'B-ORD',
-                            'B-ORG',
-                            'B-PER',
-                            'B-PRC',
-                            'B-PRD',
-                            'B-QTY',
-                            'B-REG',
-                            'B-TIM',
-                            'B-WOA',
-                            'I-CRD',
-                            'I-DAT',
-                            'I-EVT',
-                            'I-FAC',
-                            'I-GPE',
-                            'I-LAN',
-                            'I-LAW',
-                            'I-LOC',
-                            'I-MON',
-                            'I-NOR',
-                            'I-ORD',
-                            'I-ORG',
-                            'I-PER',
-                            'I-PRC',
-                            'I-PRD',
-                            'I-QTY',
-                            'I-REG',
-                            'I-TIM',
-                            'I-WOA',
-                            'O'
+                            "B-CRD",
+                            "B-DAT",
+                            "B-EVT",
+                            "B-FAC",
+                            "B-GPE",
+                            "B-LAN",
+                            "B-LAW",
+                            "B-LOC",
+                            "B-MON",
+                            "B-NOR",
+                            "B-ORD",
+                            "B-ORG",
+                            "B-PER",
+                            "B-PRC",
+                            "B-PRD",
+                            "B-QTY",
+                            "B-REG",
+                            "B-TIM",
+                            "B-WOA",
+                            "I-CRD",
+                            "I-DAT",
+                            "I-EVT",
+                            "I-FAC",
+                            "I-GPE",
+                            "I-LAN",
+                            "I-LAW",
+                            "I-LOC",
+                            "I-MON",
+                            "I-NOR",
+                            "I-ORD",
+                            "I-ORG",
+                            "I-PER",
+                            "I-PRC",
+                            "I-PRD",
+                            "I-QTY",
+                            "I-REG",
+                            "I-TIM",
+                            "I-WOA",
+                            "O",
                         ]
                     )
                 ),
@@ -159,7 +163,7 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "nergrit-corpus/ner/data/test_corrected.txt"),
-                    "split": "test"
+                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
@@ -180,7 +184,7 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
             ner_tags = []
             for line in f:
                 splits = line.split()
-                if(len(splits) != 2):
+                if len(splits) != 2:
                     if tokens:
                         assert len(tokens) == len(ner_tags), "word len doesn't match label length"
                         yield guid, {
