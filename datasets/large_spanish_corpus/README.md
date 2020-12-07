@@ -15,7 +15,7 @@ licenses:
   EMEA:
   - mit
   EUBookShop:
-  - unknown
+  - mit
   Europarl:
   - mit
   GlobalVoices:
