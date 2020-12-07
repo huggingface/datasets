@@ -44,7 +44,7 @@ _Discovery_CITATION = """@inproceedings{sileo-etal-2019-mining,
 }
 """
 
-_Discovery_DESCRIPTION = """\
+_Discovery_DESCRIPTION = r"""\
 Discourse marker prediction with 174 different markers
 https://github.com/synapse-developpement/Discovery
 """
