@@ -89,7 +89,6 @@ class OneStopEnglish(datasets.GeneratorBasedBuilder):
         """ Reads the downloaded and extracted files and combines the individual text files to one dataset and split it into 80% train, 
         10% validation and 10% test data. """
 
-        print('HELL))))))))))O',data_dir)
         data_dir = os.path.join(data_dir, "OneStopEnglishCorpus-master/Texts-SeparatedByReadingLevel")
 
         ele_samples = []
