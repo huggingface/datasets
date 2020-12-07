@@ -10,7 +10,7 @@ import datasets
 # TODO(wikitext): BibTeX citation
 _CITATION = """\
 @article{cruz2020investigating,
-  title={Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation}, 
+  title={Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation},
   author={Jan Christian Blaise Cruz and Jose Kristian Resabal and James Lin and Dan John Velasco and Charibeth Cheng},
   journal={arXiv preprint arXiv:2010.11574},
   year={2020}
