@@ -1,22 +1,23 @@
+---
 annotations_creators:
-
 - crowdsourced
-  language_creators:
+language_creators:
 - found
-  languages:
+languages:
 - ko
-  licenses:
+licenses:
 - cc-by-1.0
-  multilinguality:
+multilinguality:
 - monolingual
-  size_categories:
+size_categories:
 - 100K<n<1M
-  source_datasets:
+source_datasets:
 - original
-  task_categories:
+task_categories:
 - text-classification
-  task_ids:
+task_ids:
 - sentiment-classification
+---
 
 # Dataset Card for [Dataset Name]
 
