@@ -2,6 +2,7 @@
 annotations_creators:
   identification:
   - expert-generated
+  - machine-generated
   resolution:
   - crowdsourced
 language_creators:
@@ -55,7 +56,7 @@ task_ids:
 - **Homepage:** [The Numeric Fused-Head demo](https://nlp.biu.ac.il/~lazary/fh/)
 - **Repository:** [Github Repo](https://github.com/yanaiela/num_fh)
 - **Paper:** [Where’s My Head? Definition, Dataset and Models for Numeric Fused-Heads Identification and Resolution](https://www.mitpressjournals.org/doi/full/10.1162/tacl_a_00280)
-- **Leaderboard:**
+- **Leaderboard:** [NLP Progress](http://nlpprogress.com/english/missing_elements.html)
 - **Point of Contact:** [Yanai Elazar](https://yanaiela.github.io), [Yoav Goldberg](https://www.cs.bgu.ac.il/~yoavg/uni/)
 
 ### Dataset Summary
