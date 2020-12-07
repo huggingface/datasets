@@ -70,6 +70,7 @@ Text Summarization
 ### Languages
 
 English
+
 ## Dataset Structure
 
 ### Data Instances
@@ -92,45 +93,28 @@ into the impact of multi-sentence operations on human compression quality.
 
 ### Data Fields
 ```json
-{
-  "source_id": {
-    "feature_type": "Value",
-    "dtype": "string"
-  },
-  "domain": {
-    "feature_type": "Value",
-    "dtype": "string"
-  },
-  "source_text": {
-    "feature_type": "Value",
-    "dtype": "string"
-  },
-  "targets": {
-    "feature_type": "Sequence",
-    "compressed_text": {
-      "feature_type": "Value",
-      "dtype": "string"
-    },
-    "judge_id": {
-      "feature_type": "Value",
-      "dtype": "string"
-    },
-    "num_ratings": {
-      "feature_type": "Value",
-      "dtype": "int64"
-    },
-    "ratings": {
-      "feature_type": "Sequence",
-      "feature": {
-        "feature_type": "Value",
-        "dtype": "int64"
-      }
-    }
-  }
-}
+{'domain': 'Newswire',
+ 'source_id': '106',
+ 'source_text': '" Except for this small vocal minority, we have just not gotten a lot of groundswell against this from members, " says APA president Philip G. Zimbardo of Stanford University.',
+ 'targets': {'compressed_text': ['"Except for this small vocal minority, we have not gotten a lot of groundswell against this," says APA president Zimbardo.',
+   '"Except for a vocal minority, we haven\'t gotten much groundswell from members, " says Philip G. Zimbardo of Stanford University.',
+   'APA president of Stanford has stated that except for a vocal minority they have not gotten a lot of pushback from members.',
+   'APA president Philip G. Zimbardo of Stanford says they have not had much opposition against this.'],
+  'judge_id': ['2', '22', '10', '0'],
+  'num_ratings': [3, 3, 3, 3],
+  'ratings': [[6, 6, 6], [11, 6, 6], [6, 11, 6], [6, 11, 11]]}}
 ```
 
-Ratings system:
+- source_id: index of article per original dataset
+- source_text: uncompressed original text
+- domain: source of the article
+- targets:
+  - compressed_text: compressed version of `source_text`
+  - judge_id: anonymized ids of crowdworkers who proposed compression
+  - num_ratings: number of ratings available for each proposed compression
+  - ratings: see table below
+
+Ratings system (excerpted from authors' README):
 
 - 6 =	Most important meaning Flawless language      (3 on meaning and 3 on grammar as per the paper's terminology)
 - 7	= Most important meaning Minor errors           (3 on meaning and 2 on grammar)
@@ -143,6 +127,7 @@ Ratings system:
 - 24 = Little or none meaning Disfluent or incomprehensible (1 on meaning and 1 on grammar)
 
 See **README.txt** from data archive for additional details.
+
 ### Data Splits
 
 There are 4,936 source texts in the training, 448 in the development, and 785 in the test set.
