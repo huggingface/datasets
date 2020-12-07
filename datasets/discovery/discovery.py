@@ -46,6 +46,7 @@ _Discovery_CITATION = """@inproceedings{sileo-etal-2019-mining,
 
 _Discovery_DESCRIPTION = """\
 Discourse marker prediction with 174 different markers
+https://github.com/synapse-developpement/Discovery
 """
 
 DATA_URL = "https://www.dropbox.com/s/aox84z90nyyuikz/discovery.zip?dl=1"
