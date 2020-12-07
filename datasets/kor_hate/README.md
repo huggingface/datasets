@@ -153,7 +153,8 @@ This dataset is curated by Jihyung Moon, Won Ik Cho and Junbum Lee.
 ### Citation Information
 
 ```python
-@inproceedings{moon-etal-2020-beep,
+@inproceedings{
+    moon-etal-2020-beep,
     title = "{BEEP}! {K}orean Corpus of Online News Comments for Toxic Speech Detection",
     author = "Moon, Jihyung  and
       Cho, Won Ik  and
