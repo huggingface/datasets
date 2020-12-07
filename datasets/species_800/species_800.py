@@ -104,13 +104,13 @@ class Species800(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": f"{dataset_directory}/{_TRAINING_FILE}"}
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dataset_directory, _TRAINING_FILE)}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": f"{dataset_directory}/{_DEV_FILE}"}
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dataset_directory, _DEV_FILE)}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": f"{dataset_directory}/{_TEST_FILE}"}
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dataset_directory, _TEST_FILE)}
             ),
         ]
 
