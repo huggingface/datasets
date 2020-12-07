@@ -1,6 +1,7 @@
 import fnmatch
 import json
 import os
+from re import split
 import shutil
 import tempfile
 import xml.etree.ElementTree as ET
@@ -33,7 +34,19 @@ def test_command_factory(args):
         args.keep_uncompressed,
         args.cache_dir,
         args.encoding,
+        args.no_filter_with_gen_kwargs,
     )
+
+
+def extract_file_paths_from_obj(obj: Optional[dict] = None):
+    if isinstance(obj, (str, Path)) and os.path.isfile(str(obj)):
+        return set([os.path.abspath(str(obj))])
+    elif isinstance(obj, (list, tuple)):
+        return set.union(*[extract_file_paths_from_obj(o) for o in obj])
+    elif isinstance(obj, dict):
+        return set.union(*[extract_file_paths_from_obj(o) for o in obj.values()])
+    else:
+        return set()
 
 
 class DummyDataGeneratorDownloadManager(DownloadManager):
@@ -64,6 +77,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
         encoding: Optional[str] = None,
+        split_generators: Optional[dict] = None
     ) -> bool:
         os.makedirs(
             os.path.join(
@@ -74,6 +88,12 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
             ),
             exist_ok=True,
         )
+        if split_generators:
+            gen_kwargs = [s.gen_kwargs for s in split_generators]
+            file_paths = extract_file_paths_from_obj(gen_kwargs)
+        else:
+            file_paths = set()
+
         total = 0
         self.mock_download_manager.load_existing_dummy_data = False
         for src_path, relative_dst_path in zip(self.downloaded_paths, self.expected_dummy_paths):
@@ -91,6 +111,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 xml_tag=xml_tag,
                 match_text_files=match_text_files,
                 encoding=encoding,
+                file_paths=file_paths,
             )
         if total == 0:
             logger.error(
@@ -108,9 +129,17 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
         encoding: Optional[str] = None,
+        file_paths: Optional[set] = None
     ) -> int:
         encoding = encoding or DEFAULT_ENCODING
         if os.path.isfile(src_path):
+            if file_paths:
+                if os.path.abspath(src_path) not in file_paths:
+                    logger.debug(f"Skipping dummy data for file {dst_path} which is not used in gen_kwargs")
+                    return 0
+                else:
+                    logger.debug(f"Using dummy data for file {dst_path} which is in gen_kwargs")
+
             logger.debug(f"Trying to generate dummy data file {dst_path}")
             line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
             is_line_by_line_text_file = any(dst_path.endswith(extension) for extension in line_by_line_extensions)
@@ -202,6 +231,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                             xml_tag=xml_tag,
                             match_text_files=match_text_files,
                             encoding=encoding,
+                            file_paths=file_paths,
                         )
             return total
 
@@ -257,6 +287,11 @@ class DummyDataCommand(BaseTransformersCLICommand):
             default=None,
             help=f"Encoding to use when auto-generating dummy data. Defaults to {DEFAULT_ENCODING}",
         )
+        test_parser.add_argument(
+            "--no_filter_with_gen_kwargs",
+            action="store_true",
+            help="If set, will disable filtering the files to use for auto-generating dummy data by inspecting the file names passed in gen_kwargs. Useful if you pass directories in gen_kwargs which are further processed in _generate_examples for instance.",
+        )
         test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
         test_parser.set_defaults(func=test_command_factory)
 
@@ -271,6 +306,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         keep_uncompressed: bool,
         cache_dir: Optional[str],
         encoding: Optional[str],
+        no_filter_with_gen_kwargs: bool,
     ):
         self._path_to_dataset = path_to_dataset
         if os.path.isdir(path_to_dataset):
@@ -286,6 +322,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         self._keep_uncompressed = keep_uncompressed
         self._cache_dir = cache_dir
         self._encoding = encoding
+        self._no_filter_with_gen_kwargs = no_filter_with_gen_kwargs
 
     def run(self):
         set_verbosity_warning()
@@ -319,6 +356,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                             dataset_builder=dataset_builder,
                             mock_dl_manager=mock_dl_manager,
                             keep_uncompressed=self._keep_uncompressed,
+                            no_filter_with_gen_kwargs=self._no_filter_with_gen_kwargs,
                         )
                     )
                 else:
@@ -331,13 +369,13 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 else:
                     print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
-    def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
+    def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed, no_filter_with_gen_kwargs) -> Optional[bool]:
         dl_cache_dir = os.path.join(self._cache_dir or HF_DATASETS_CACHE, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
         )
-        dataset_builder._split_generators(dl_manager)
+        split_generators = dataset_builder._split_generators(dl_manager)
         mock_dl_manager.load_existing_dummy_data = False  # don't use real dummy data
         dl_manager.auto_generate_dummy_data_folder(
             n_lines=self._n_lines,
@@ -345,6 +383,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             xml_tag=self._xml_tag,
             match_text_files=self._match_text_files,
             encoding=self._encoding,
+            split_generators=None if no_filter_with_gen_kwargs else split_generators,
         )
         if not keep_uncompressed:
             path_do_dataset = os.path.join(mock_dl_manager.datasets_scripts_dir, mock_dl_manager.dataset_name)
