@@ -4,71 +4,20 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-  release_v1:
-  - en
-  release_v2:
-  - en
-  release_v2.1:
-  - en
-  release_v2.1_constrained:
-  - en
-  release_v2_constrained:
-  - en
-  release_v3.0_en:
-  - en
-  release_v3.0_ru:
-  - ru
-  webnlg_challenge_2017:
-  - en
+- de
+- en
 licenses:
-- cc-by-sa-3.0
-- cc-by-nc-sa-4.0
-- gfdl-1.1
+- cc-by-sa-4.0
 multilinguality:
-- monolingual
+- multilingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
-- extended|other-db_pedia
-- original
+- extended|other-db-pedia
 task_categories:
-  release_v1:
-  - conditional-text-generation
-  release_v2:
-  - conditional-text-generation
-  release_v2.1:
-  - conditional-text-generation
-  release_v2.1_constrained:
-  - conditional-text-generation
-  release_v2_constrained:
-  - conditional-text-generation
-  release_v3.0_en:
-  - conditional-text-generation
-  - structure-prediction
-  release_v3.0_ru:
-  - conditional-text-generation
-  - structure-prediction
-  webnlg_challenge_2017:
-  - conditional-text-generation
+- conditional-text-generation
 task_ids:
-  release_v1:
-  - other-stuctured-to-text
-  release_v2:
-  - other-stuctured-to-text
-  release_v2.1:
-  - other-stuctured-to-text
-  release_v2.1_constrained:
-  - other-stuctured-to-text
-  release_v2_constrained:
-  - other-stuctured-to-text
-  release_v3.0_en:
-  - conditional-text-generation
-  - parsing
-  release_v3.0_ru:
-  - conditional-text-generation
-  - parsing
-  webnlg_challenge_2017:
-  - other-stuctured-to-text
+- other-stuctured-to-text
 ---
 
 # Dataset Card for WebNLG
