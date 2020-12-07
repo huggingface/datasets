@@ -73,10 +73,6 @@ class EthPy150Open(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = (
-        "eth_py150_open"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
-
     def _info(self):
         features = datasets.Features({"filepath": datasets.Value("string"), "license": datasets.Value("string")})
         return datasets.DatasetInfo(
