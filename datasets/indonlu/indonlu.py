@@ -362,7 +362,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
               year={2014},
               organization={IEEE}
             }
-            @inproceedings{
+            @inproceedings{kurniawan2019toward,
               title={Toward a Standardized and More Accurate Indonesian Part-of-Speech Tagging},
               author={Kemal Kurniawan and Alham Fikri Aji},
               booktitle={Proceedings of the 2018 International Conference on Asian Language Processing (IALP)},
