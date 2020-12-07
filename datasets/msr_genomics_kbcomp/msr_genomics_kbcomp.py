@@ -46,7 +46,7 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-The database is derived from the NCI PID Pathway Interaction Database, and the textual mentions are extracted from cooccurring pairs of genes in PubMed abstracts, processed and annotated by Literome (Poon et al. 2014). This dataset was used in the paper “Compositional Learning of Embeddings for Relation Paths in Knowledge Bases and Text” (Toutanova, Lin, Yih, Poon, and Quirk, 2016). 
+The database is derived from the NCI PID Pathway Interaction Database, and the textual mentions are extracted from cooccurring pairs of genes in PubMed abstracts, processed and annotated by Literome (Poon et al. 2014). This dataset was used in the paper “Compositional Learning of Embeddings for Relation Paths in Knowledge Bases and Text” (Toutanova, Lin, Yih, Poon, and Quirk, 2016).
 """
 
 # TODO: Add a link to an official homepage for the dataset here
