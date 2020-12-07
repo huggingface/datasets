@@ -112,9 +112,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
-            datasets.SplitGenerator(
-                name=corpus, gen_kwargs={"filepath": os.path.join(data_dir, filepath)}
-            )
+            datasets.SplitGenerator(name=corpus, gen_kwargs={"filepath": os.path.join(data_dir, filepath)})
             for corpus, filepath in zip(self.config.corpora, self.config.filepaths)
         ]
 
