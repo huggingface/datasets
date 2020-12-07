@@ -6,17 +6,17 @@ multilinguality:
 task_ids:
 - language-modeling
 languages:
-- Hindi
-- Telugu
-- Tamil
-- Malayalam
-- Gujarati
-- Urdu
-- Bengali
-- Oriya
-- Marathi
-- Punjabi
-- English
+- hi
+- te
+- ta
+- ml
+- gu
+- ur
+- bn
+- or
+- mr
+- pa
+- en
 annotations_creators:
 - no-annotation
 source_datasets:
