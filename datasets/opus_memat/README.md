@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - en
-- sc
+- xh
 licenses:
 - unknown
 multilinguality:
