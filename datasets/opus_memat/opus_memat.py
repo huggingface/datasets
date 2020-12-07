@@ -41,7 +41,7 @@ class OpusMemat(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="xh-en", version=VERSION, description="This part of my dataset covers a first domain"
+            name="xh-en", version=VERSION, description="Xhosa-English parallel corpora"
         )
     ]
 
