@@ -122,7 +122,7 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, dirpath):
-        for filepath in Path(dirpath).iterdir():
+        for filepath in sorted(Path(dirpath).iterdir()):
             with open(filepath, encoding="latin-1") as f:
                 example = {}
                 # raw
