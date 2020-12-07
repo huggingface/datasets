@@ -1,9 +1,22 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- other
+language_creators:
+- other
+languages: [py]
+licenses:
+- 0bsd
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories: []
+task_ids: []
 ---
-
-# Dataset Card for [Dataset Name]
+# Dataset Card for [py_ast]
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
