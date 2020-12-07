@@ -27,7 +27,8 @@ on Language Resources and Evaluation (LREC 2012)"""
 
 
 _DESCRIPTION = """\
-Opus MontenegrinSubs dataset for machine translation task, for language pair en-me."""
+Opus MontenegrinSubs dataset for machine translation task, for language pair en-me: english and montenegrin
+"""
 
 
 _HOMEPAGE = "http://opus.nlpl.eu/MontenegrinSubs.php"
