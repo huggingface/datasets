@@ -6,9 +6,25 @@ language_creators:
 languages:
 - en
 licenses:
-- 'other-multiple licenses: ''cc0'', ''hybrid-oa'', ''els-covid'', ''no-cc'', ''cc-by-nc-sa'',
-  ''cc-by'', ''gold-oa'', ''biorxiv'', ''green-oa'', ''bronze-oa'', ''cc-by-nc'',
-  ''medrxiv'', ''cc-by-nd'', ''arxiv'', ''unk'', ''cc-by-sa'', ''cc-by-nc-nd'''
+[
+  "cc-by-nc-sa-2.0",
+  "cc-by-nc-2.0",
+  "cc-by-nd-2.0",
+  "cc-by-sa-2.0",
+  "cc-by-nc-nd-2.0",
+  "cc-by-nc-1.0",
+  "other-cc0",
+  "other-hybrid-oa",
+  "other-els-covid",
+  "other-no-cc",
+  "other-gold-oa",
+  "other-green-oa",
+  "other-bronze-oa",
+  "other-biorxiv",
+  "other-arxiv",
+  "other-medrxiv",
+  "other-unk"
+]
 multilinguality:
 - monolingual
 size_categories:
