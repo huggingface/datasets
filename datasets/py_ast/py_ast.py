@@ -83,33 +83,13 @@ class PyAst(datasets.GeneratorBasedBuilder):
         if self.config.name == "ast":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                     "ast": datasets.Sequence(
-=======
-                     "ast": datasets.Sequence(
->>>>>>> Update py_ast.py
-=======
-                    "ast": datasets.Sequence(
->>>>>>> 6da3c8921adfe7f9852985557f37917bce5c2442
                         {
                             "type": datasets.Value("string"),
                             "value": datasets.Value("string"),
                             "children": datasets.Sequence(datasets.Value("int32")),
                         },
-<<<<<<< HEAD
-<<<<<<< HEAD
                     )
-=======
-                        )   
->>>>>>> Update py_ast.py
-=======
-                    "ast": datasets.Value("string"),
->>>>>>> Update py_ast.py
-=======
-                    )
->>>>>>> 6da3c8921adfe7f9852985557f37917bce5c2442
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -171,17 +151,5 @@ class PyAst(datasets.GeneratorBasedBuilder):
                     if "children" not in node:
                         node["children"] = []
                 yield id_, {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                     "ast": row_data,
-=======
-                    "ast": json.loads(row),
->>>>>>> Update py_ast.py
-=======
-                    "ast": row,
->>>>>>> Update py_ast.py
-=======
-                    "ast": row_data,
->>>>>>> 6da3c8921adfe7f9852985557f37917bce5c2442
                 }
