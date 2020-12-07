@@ -18,9 +18,10 @@
 from __future__ import absolute_import, division, print_function
 
 import json
+import os
 
 import datasets
-import os
+
 
 _CITATION = """\
 @inproceedings{ min2020ambigqa,
@@ -65,48 +66,44 @@ class AmbigQa(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "full"
 
     def _info(self):
-        features_dict={
-                "id": datasets.Value("string"),
-                "question": datasets.Value("string"),
-                "annotations": datasets.features.Sequence(
-                    {
-                         "type": datasets.Value("string"),#datasets.ClassLabel(names = ["singleAnswer","multipleQAs"])
-                        "answer": datasets.features.Sequence(datasets.Value("string")),
-                        "qaPairs":datasets.features.Sequence(
-                            {
-                                 "question": datasets.Value("string"),
-                                 "answer": datasets.features.Sequence(datasets.Value("string")),
-                            }
-
-                        )
-                    }
-
-                )
-            }
-        if self.config.name == "full":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
-           
-                detail_features={
-                    "viewed_doc_titles": datasets.features.Sequence(datasets.Value("string")),
-                    "used_queries": datasets.features.Sequence(
-                    {
-                          "query": datasets.Value("string"),
-                          "results": datasets.features.Sequence(
-                          { 
-                              "title": datasets.Value("string"),
-                            "snippet": datasets.Value("string"),
-                              
-                          }),
-                    }
+        features_dict = {
+            "id": datasets.Value("string"),
+            "question": datasets.Value("string"),
+            "annotations": datasets.features.Sequence(
+                {
+                    "type": datasets.Value("string"),  # datasets.ClassLabel(names = ["singleAnswer","multipleQAs"])
+                    "answer": datasets.features.Sequence(datasets.Value("string")),
+                    "qaPairs": datasets.features.Sequence(
+                        {
+                            "question": datasets.Value("string"),
+                            "answer": datasets.features.Sequence(datasets.Value("string")),
+                        }
                     ),
-                    "nq_answer": datasets.features.Sequence(datasets.Value("string")),
-                    "nq_doc_title": datasets.Value("string"),
                 }
-                features_dict.update(detail_features) 
-            
-               
+            ),
+        }
+        if self.config.name == "full":
+
+            detail_features = {
+                "viewed_doc_titles": datasets.features.Sequence(datasets.Value("string")),
+                "used_queries": datasets.features.Sequence(
+                    {
+                        "query": datasets.Value("string"),
+                        "results": datasets.features.Sequence(
+                            {
+                                "title": datasets.Value("string"),
+                                "snippet": datasets.Value("string"),
+                            }
+                        ),
+                    }
+                ),
+                "nq_answer": datasets.features.Sequence(datasets.Value("string")),
+                "nq_doc_title": datasets.Value("string"),
+            }
+            features_dict.update(detail_features)
+
         features = datasets.Features(features_dict)
-            
-            
+
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -121,29 +118,34 @@ class AmbigQa(datasets.GeneratorBasedBuilder):
         # download and extract URLs
         urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
-        
+
         train_file_name = "train.json" if self.config.name == "full" else "train_light.json"
         dev_file_name = "dev.json" if self.config.name == "full" else "dev_light.json"
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(downloaded_files[self.config.name],train_file_name)}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(downloaded_files[self.config.name],dev_file_name)}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(downloaded_files[self.config.name], train_file_name)},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(downloaded_files[self.config.name], dev_file_name)},
+            ),
         ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-                    
+
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data:
-                id_= example["id"]
+                id_ = example["id"]
                 annotations = example["annotations"]
                 # Add this because we cannot have None values (all keys in the schema should be present)
-                for an in annotations: 
+                for an in annotations:
                     if "qaPairs" not in an:
-                        an["qaPairs"]=[]
+                        an["qaPairs"] = []
                     if "answer" not in an:
-                        an["answer"]=[]
+                        an["answer"] = []
 
                 yield id_, example
-            
