@@ -156,7 +156,6 @@ stops and routes, as well as standard named entity types."""
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         data_dir = dl_manager.download_and_extract(_URLs)
-        print(data_dir)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
