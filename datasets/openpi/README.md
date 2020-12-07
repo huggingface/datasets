@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- named-entity-recognition
-task_ids:
 - structure-prediction
+task_ids:
+- named-entity-recognition
 ---
 
 # Dataset Card for [Dataset Name]
@@ -233,7 +233,10 @@ English
     - `attr`: Attribute/Status identified,
     - `modality`: With or without image
  }
-
+All the Configurations (Questions, Answers, Question-Metadata and Answer-Metadata) are related via the
+ID of the WikiHow question (the `id` field)
+If any of the strings are missing, we will output empty strings.
+If any of the lists are missing, we will output empty lists.
 ### Data Splits
 
 |                            | Train  | Valid  | Test  |
@@ -251,7 +254,8 @@ English
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+If any of the strings are missing, we will output empty strings.
+If any of the lists are missing, we will output empty lists.
 
 #### Who are the source language producers?
 
