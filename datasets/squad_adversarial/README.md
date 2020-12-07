@@ -81,11 +81,13 @@ An example from the data set looks as follows:
 
 ### Data Fields
 ```py
-{'id': Value(dtype='string', id=None),
- 'title': Value(dtype='string', id=None),
- 'context': Value(dtype='string', id=None),
- 'question': Value(dtype='string', id=None),
- 'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None)}
+{'id': Value(dtype='string', id=None), # id of example (same as SQuAD) OR SQuAD-id-[annotator_id] for adversarially modified examples
+ 'title': Value(dtype='string', id=None), # title of document the context is from (same as SQuAD)
+ 'context': Value(dtype='string', id=None), # the context (same as SQuAD) +adversarially added sentence
+ 'question': Value(dtype='string', id=None), # the question (same as SQuAD)
+ 'answers': Sequence(feature={'text': Value(dtype='string', id=None), # the answer (same as SQuAD)
+ 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None) # the answer_start index (same as SQuAD)
+ }
 ```
 ### Data Splits
 
