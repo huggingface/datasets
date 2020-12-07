@@ -24,7 +24,6 @@ import re
 import numpy as np
 
 import datasets
-from datasets.features import Features
 
 
 _CITATION = """\
