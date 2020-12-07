@@ -16,8 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
 import gzip
+import json
 
 import datasets
 
@@ -45,7 +45,9 @@ _HOMEPAGE = "https://github.com/google-research-datasets/sentence-compression"
 
 
 _URLs = {
-    datasets.Split.VALIDATION: ["https://github.com/google-research-datasets/sentence-compression/raw/master/data/comp-data.eval.json.gz"],
+    datasets.Split.VALIDATION: [
+        "https://github.com/google-research-datasets/sentence-compression/raw/master/data/comp-data.eval.json.gz"
+    ],
     datasets.Split.TRAIN: [
         f"https://github.com/google-research-datasets/sentence-compression/raw/master/data/sent-comp.train{str(i).zfill(2)}.json.gz"
         for i in range(1, 11)
@@ -66,20 +68,17 @@ class SentenceCompression(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("int32"),
                     "form": datasets.Value("string"),
                     "stem": datasets.Value("string"),
-                    "tag": datasets.Value("string")
+                    "tag": datasets.Value("string"),
                 }
             ),
             "gender": datasets.Value("int32"),
-            "head_word_index": datasets.Value("int32")
+            "head_word_index": datasets.Value("int32"),
         }
         compression_edge_features = {
             "parent_id": datasets.Value("int32"),
             "child_id": datasets.Value("int32"),
         }
-        edge_features = {
-            **compression_edge_features,
-            "label": datasets.Value("string")
-        }
+        edge_features = {**compression_edge_features, "label": datasets.Value("string")}
         entity_features = {
             "start": datasets.Value("int32"),
             "end": datasets.Value("int32"),
@@ -88,7 +87,7 @@ class SentenceCompression(datasets.GeneratorBasedBuilder):
             "type": datasets.Value("string"),
             "mid": datasets.Value("string"),
             "is_proper_name_entity": datasets.Value("bool"),
-            "gender": datasets.Value("int32")
+            "gender": datasets.Value("int32"),
         }
         tree_features = {
             "id": datasets.Value("string"),
@@ -96,11 +95,10 @@ class SentenceCompression(datasets.GeneratorBasedBuilder):
             "node": datasets.features.Sequence(node_features),
             "edge": datasets.features.Sequence(edge_features),
             "entity_mention": datasets.features.Sequence(entity_features),
-
         }
         compression_features = {
             "text": datasets.Value("string"),
-            "edge": datasets.features.Sequence(compression_edge_features)
+            "edge": datasets.features.Sequence(compression_edge_features),
         }
 
         return datasets.DatasetInfo(
@@ -113,7 +111,7 @@ class SentenceCompression(datasets.GeneratorBasedBuilder):
                     "compression_ratio": datasets.Value("float"),
                     "doc_id": datasets.Value("string"),
                     "source_tree": tree_features,
-                    "compression_untransformed": compression_features
+                    "compression_untransformed": compression_features,
                 }
             ),
             supervised_keys=None,
@@ -127,9 +125,7 @@ class SentenceCompression(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=split,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepaths": dl_manager.download(_URLs[split])
-                },
+                gen_kwargs={"filepaths": dl_manager.download(_URLs[split])},
             )
             for split in _URLs
         ]
