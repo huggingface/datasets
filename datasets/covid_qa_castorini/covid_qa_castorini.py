@@ -49,7 +49,9 @@ class CovidQA(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="covid_qa_castorini", version=VERSION, description="CovidQA, a question answering dataset specifically designed for COVID-19"
+            name="covid_qa_castorini",
+            version=VERSION,
+            description="CovidQA, a question answering dataset specifically designed for COVID-19",
         ),
     ]
 
