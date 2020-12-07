@@ -124,7 +124,7 @@ class Mkb(datasets.GeneratorBasedBuilder):
         src_tag, tgt_tag = lang_pair.split("-")
 
         dl_dir = dl_manager.download_and_extract(_URL)
-        data_dir = os.path.join(dl_dir, f"mkb/{lang_pair}")
+        data_dir = os.path.join(dl_dir, "mkb", lang_pair)
 
         return [
             datasets.SplitGenerator(
