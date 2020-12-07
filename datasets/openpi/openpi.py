@@ -93,7 +93,11 @@ class Openpi(datasets.GeneratorBasedBuilder):
             description="Provides the question metadata",
         ),
         OpenpiConfig(
-            name="answers", mode="answers", type_="data", version=VERSION, description="Provides the answer sentences",
+            name="answers",
+            mode="answers",
+            type_="data",
+            version=VERSION,
+            description="Provides the answer sentences",
         ),
         OpenpiConfig(
             name="answers-metadata",
