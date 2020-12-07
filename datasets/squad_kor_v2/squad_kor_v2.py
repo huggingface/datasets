@@ -116,7 +116,7 @@ class SquadKorV2(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         for d in dirs:
-            filepaths = os.scandir(d)
+            filepaths = sorted(os.scandir(d), key=lambda x: x.name)
             for filepath in filepaths:
                 with open(filepath, encoding="utf-8") as f:
                     squad = json.load(f)
