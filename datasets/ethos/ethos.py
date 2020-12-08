@@ -139,7 +139,6 @@ class Ethos(datasets.GeneratorBasedBuilder):
                 y.append(yi)
             for i in range(len(x)):
                 _id = i
-                print(x[i], y[i])
                 yield _id, {"text": x[i],
                             "violence": y[i][0],
                             "directed_vs_generalized": y[i][1],
