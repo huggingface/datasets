@@ -2,7 +2,7 @@
 {"multilinguality": [multilingual], "languages": [multiple], "language_creators": [Unknown], "annotations_creators": [Unknown], "source_datasets": [Original], "size_categories": ["10K<n<100K"], "licenses": [Unknown]}
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Disaster Response Messages 
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -57,57 +57,59 @@ Example of a Disaster Response : { 'split': 'train', 'message': 'Weather update 
 
 ### Data Fields
 
-split: Train, Test split</br>
-message: English text of actual messages related to disaster </br>
-original: Text of column 3 in native language as originally written</br>
-genre: Type of message, including direct messages, social posting, and news stories or bulletins</br>
-related: Is the message disaster related? 1= yes, 0=no, 2=maybe</br>
-PII: Does the message contain PII? 1= yes, 0=no </br>
-request: Does the message contain a request? 1= yes, 0=no </br>
-offer: Does the message contain an offer? 1= yes, 0=no </br>
-aid_related: Is the message aid related? 1= yes, 0=no </br>
-medical_help: Does the message concern medical help? 1= yes, 0=no </br>
-medical_products: Does the message concern medical products? 1= yes, 0=no </br>
-search_and_rescue: Does the message concern search and rescue? 1= yes, 0=no </br>
-security: Does the message concern security? 1= yes, 0=no </br>
-military: Does the message concern military? 1= yes, 0=no </br>
-child_alone: Does the message mention a child alone? 1= yes, 0=no</br>
-water: Does the message concern water? 1= yes, 0=no</br>
-food: Does the message concern food? 1= yes, 0=no </br>
-shelter: Does the message concern shelter? 1= yes, 0=no </br>
-clothing: Does the message concern clothing? 1= yes, 0=no </br>
-money: Does the message concern money? 1= yes, 0=no </br>
-missing_people: Does the message indicate missing people? 1= yes, 0=no</br>
-refugees: Does the message concern refugess? 1= yes, 0=no</br>
-death: Does the message imply death? 1= yes, 0=no </br>
-other_aid: Is there any other aid needed? 1=yes, 0=no </br>
-infrastructure_related: Does the message concern infrastructure? 1= yes, 0=no </br>
-transport: Does the message concern transport? 1= yes, 0=no </br>
-buildings: Does the message concern buildings? 1= yes, 0=no </br>
-electricity: Does the message concern electricity? 1= yes, 0=no </br>
-tools: Does the message concern tools? 1= yes, 0=no </br>
-hospitals: Does the message concern clothing? 1= yes, 0=no </br>
-shops: Does the message concern clothing? 1= yes, 0=no </br>
-aid_centers:Does the message concern clothing? 1= yes, 0=no </br>
-other_infrastructure:Does the message concern clothing? 1= yes, 0=no </br>
-weather_related: Does the message concern weather? 1= yes, 0=no</br>
-floods: Does the message indicate there was a flood? 1= yes, 0=no</br>
-storm: Does the message indicate there was a storm? 1= yes, 0=no </br>
-fire: Does the message indicate there was a fire? 1= yes, 0=no</br>
-earthquake: Does the message indicate there was an earthquake? 1= yes, 0=no</br>
-cold: Does the message indicate there was a cold? 1= yes, 0=no</br>
-other_weather: Does the message indicate there was other weather issues? 1= yes, 0=no</br>
-direct_report: Does the show a direct report? 1= yes, 0=no
+*split: Train, Test split</br>
+*message: English text of actual messages related to disaster </br>
+*original: Text of column 3 in native language as originally written</br>
+*genre: Type of message, including direct messages, social posting, and news stories or bulletins</br>
+*related: Is the message disaster related? 1= yes, 0=no, 2=maybe</br>
+*PII: Does the message contain PII? 1= yes, 0=no </br>
+*request: Does the message contain a request? 1= yes, 0=no </br>
+*offer: Does the message contain an offer? 1= yes, 0=no </br>
+*aid_related: Is the message aid related? 1= yes, 0=no </br>
+*medical_help: Does the message concern medical help? 1= yes, 0=no </br>
+*medical_products: Does the message concern medical products? 1= yes, 0=no </br>
+*search_and_rescue: Does the message concern search and rescue? 1= yes, 0=no </br>
+*security: Does the message concern security? 1= yes, 0=no </br>
+*military: Does the message concern military? 1= yes, 0=no </br>
+*child_alone: Does the message mention a child alone? 1= yes, 0=no</br>
+*water: Does the message concern water? 1= yes, 0=no</br>
+*food: Does the message concern food? 1= yes, 0=no </br>
+*shelter: Does the message concern shelter? 1= yes, 0=no </br>
+*clothing: Does the message concern clothing? 1= yes, 0=no </br>
+*money: Does the message concern money? 1= yes, 0=no </br>
+*missing_people: Does the message indicate missing people? 1= yes, 0=no</br>
+*refugees: Does the message concern refugess? 1= yes, 0=no</br>
+*death: Does the message imply death? 1= yes, 0=no </br>
+*other_aid: Is there any other aid needed? 1=yes, 0=no </br>
+*infrastructure_related: Does the message concern infrastructure? 1= yes, 0=no </br>
+*transport: Does the message concern transport? 1= yes, 0=no </br>
+*buildings: Does the message concern buildings? 1= yes, 0=no </br>
+*electricity: Does the message concern electricity? 1= yes, 0=no </br>
+*tools: Does the message concern tools? 1= yes, 0=no </br>
+*hospitals: Does the message concern clothing? 1= yes, 0=no </br>
+*shops: Does the message concern clothing? 1= yes, 0=no </br>
+*aid_centers:Does the message concern clothing? 1= yes, 0=no </br>
+*other_infrastructure:Does the message concern clothing? 1= yes, 0=no </br>
+*weather_related: Does the message concern weather? 1= yes, 0=no</br>
+*floods: Does the message indicate there was a flood? 1= yes, 0=no</br>
+*storm: Does the message indicate there was a storm? 1= yes, 0=no </br>
+*fire: Does the message indicate there was a fire? 1= yes, 0=no</br>
+*earthquake: Does the message indicate there was an earthquake? 1= yes, 0=no</br>
+*cold: Does the message indicate there was a cold? 1= yes, 0=no</br>
+*other_weather: Does the message indicate there was other weather issues? 1= yes, 0=no</br>
+*direct_report: Does the show a direct report? 1= yes, 0=no
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into train, test :
+
+Train Count : 21046 Test Count : 2629
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+The dataset was built to understand about the sentiments of the citizens and also more about want was the emergency about and what kind of help they were seeking
 
 ### Source Data
 
@@ -137,11 +139,11 @@ direct_report: Does the show a direct report? 1= yes, 0=no
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+The dataset has a great usecase of understand more about the sentiments of the citizens around the globe during a disaster and how their responses are. Also, it helps the government to understand their citizens better and would eventually help to draft better policies accordingly.
 
 ### Discussion of Biases
 
-[More Information Needed]
+The messages since have been translated in English may not be able to judically imply the exact significance of the individual when they would have posted the message
 
 ### Other Known Limitations
 
@@ -151,11 +153,13 @@ direct_report: Does the show a direct report? 1= yes, 0=no
 
 ### Dataset Curators
 
-[More Information Needed]
+The dataset was initially created by [Appen](https://appen.com/)
 
 ### Licensing Information
 
 [More Information Needed]
 
 ### Citation Information
+
+[Multilingual Disaster Response Messages](https://appen.com/datasets/combined-disaster-response-data/)
 
