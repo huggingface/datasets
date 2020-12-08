@@ -24,6 +24,14 @@ import datasets
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
+@misc{mccreery2020effective,
+      title={Effective Transfer Learning for Identifying Similar Questions: Matching User Questions to COVID-19 FAQs}, 
+      author={Clara H. McCreery and Namit Katariya and Anitha Kannan and Manish Chablani and Xavier Amatriain},
+      year={2020},
+      eprint={2008.13546},
+      archivePrefix={arXiv},
+      primaryClass={cs.IR}
+}
 """
 
 
@@ -39,7 +47,7 @@ _LICENSE = ""
 _URL = "https://raw.githubusercontent.com/curai/medical-question-pair-dataset/master/mqp.csv"
 
 
-class MedicalQuestionPairs(datasets.GeneratorBasedBuilder):
+class MedicalQuestionsPairs(datasets.GeneratorBasedBuilder):
     """Medical Question Pairs (MQP) Dataset"""
 
     def _info(self):
@@ -60,12 +68,12 @@ class MedicalQuestionPairs(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_file = dl_manager.download_and_extract({"data_file": _URL})
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=data_file)]
+        data_file = dl_manager.download_and_extract(_URL)
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file})]
 
-    def _generate_examples(self, data_file):
+    def _generate_examples(self, filepath):
         """ Yields examples. """
-        with open(data_file, encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = csv.reader(f)
             for id_, row in enumerate(data):
                 yield id_, {
