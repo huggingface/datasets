@@ -65,7 +65,7 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
     """POS-tagged Arabic tweets in four major dialects."""
 
     VERSION = datasets.Version("1.1.0")
-
+    BUILDER_CONFIG_CLASS = ArabicPosDialectConfig
     BUILDER_CONFIGS = [
         ArabicPosDialectConfig(
             name=dialect,
