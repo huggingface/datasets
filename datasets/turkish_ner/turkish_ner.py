@@ -66,10 +66,8 @@ _HOMEPAGE = "https://data.mendeley.com/datasets/cdcztymf4k/1"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-_URL = (
-    "https://data.mendeley.com/public-files/datasets/cdcztymf4k/files/5557ef78-7d53-4a01-"
-    "8241-3173c47bbe10/file_downloaded"
-)
+_URL = "https://data.mendeley.com/public-files/datasets/cdcztymf4k/files/5557ef78-7d53-4a01-8241-3173c47bbe10/file_downloaded"
+
 
 _FILE_NAME_ZIP = "TWNERTC_TC_Coarse Grained NER_DomainIndependent_NoiseReduction.zip"
 _FILE_NAME = "TWNERTC_TC_Coarse Grained NER_DomainIndependent_NoiseReduction.DUMP"
@@ -142,7 +140,7 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, _FILE_NAME),
+                    "filepath": (os.path.join(data_dir, _FILE_NAME)),
                     "split": "train",
                 },
             ),
@@ -151,7 +149,7 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
         logging.info("⏳ Generating examples from = %s", filepath)
-        # filepath = os.path.join(data_dir, _FILE_NAME)
+
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []
@@ -184,3 +182,13 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
                 "tokens": tokens,
                 "ner_tags": ner_tags,
             }
+
+
+if __name__=="__main__":
+    import datasets
+    from datasets import load_dataset
+    data = load_dataset("./datasets/turkish_ner")
+    #from datasets import DownloadManager
+    #dl_manager = DownloadManager()
+    #data_dir = dl_manager.extract(os.path.join(dl_manager.download_and_extract(_URL), _FILE_NAME_ZIP))
+    #print(os.path.join(data_dir, _FILE_NAME))
