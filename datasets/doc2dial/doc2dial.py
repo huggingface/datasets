@@ -101,8 +101,8 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "da": datasets.Value("string"),
                             "reference": datasets.features.Sequence(
                                 {
-                                    "Key" : datasets.Value("string"),
-                                    "Values": datasets.Value("string"),   
+                                    "keys" : datasets.Value("string"),
+                                    "values": datasets.Value("string"),   
                                 }
  
                             ),
