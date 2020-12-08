@@ -42,7 +42,7 @@ class ThaiNerConfig(datasets.BuilderConfig):
         super(ThaiNerConfig, self).__init__(**kwargs)
 
 
-class ThaiNer(datasets.GeneratorBasedBuilder):
+class Thainer(datasets.GeneratorBasedBuilder):
 
     _DOWNLOAD_URL = "https://github.com/wannaphong/thai-ner/raw/master/model/1.3/data-pos.conll"
     _SENTENCE_SPLITTERS = ["", " ", "\n"]
