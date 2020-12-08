@@ -23,13 +23,11 @@ import datasets
 
 
 _CITATION = """\
-@inproceedings{2019TabFactA,
-  title={TabFact : A Large-scale Dataset for Table-based Fact Verification},
-  author={Wenhu Chen, Hongmin Wang, Jianshu Chen, Yunkai Zhang, Hong Wang, Shiyang Li, Xiyou Zhou and William Yang Wang},
-  booktitle = {International Conference on Learning Representations (ICLR)},
-  address = {Addis Ababa, Ethiopia},
-  month = {April},
-  year = {2020}
+@article{chen2020hybridqa,
+  title={HybridQA: A Dataset of Multi-Hop Question Answering over Tabular and Textual Data},
+  author={Chen, Wenhu and Zha, Hanwen and Chen, Zhiyu and Xiong, Wenhan and Wang, Hong and Wang, William},
+  journal={Findings of EMNLP 2020},
+  year={2020}
 }
 """
 
@@ -44,7 +42,7 @@ to aggregate both tabular information and text information, i.e., \
 lack of either form would render the question unanswerable.
 """
 
-_HOMEPAGE = "https://tabfact.github.io/"
+_HOMEPAGE = "https://github.com/wenhuchen/HybridQA"
 
 _WIKI_TABLES_GIT_ARCHIVE_URL = (
     "https://github.com/wenhuchen/WikiTables-WithLinks/archive/f4ed68e54e25c495f63d309de0b89c0f97b3c508.zip"
@@ -71,29 +69,26 @@ class HybridQa(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = {
-            "question_id": datasets.Value("int32"),
+            "question_id": datasets.Value("string"),
             "question": datasets.Value("string"),
             "table_id": datasets.Value("string"),
-            "answer-text": datasets.Value("string"),
+            "answer_text": datasets.Value("string"),
             "question_postag": datasets.Value("string"),
             "table": {
                 "url": datasets.Value("string"),
                 "title": datasets.Value("string"),
-                "headers": datasets.Sequence(datasets.Value("string")),
+                "header": datasets.Sequence(datasets.Value("string")),
                 "data": [
                     {
                         "value": datasets.Value("string"),
-                        "urls": [
-                            "url": datasets.Value("string"),
-                            "summary": datasets.Value("string")
-                        ]
+                        "urls": [{"url": datasets.Value("string"), "summary": datasets.Value("string")}],
                     }
                 ],
                 "section_title": datasets.Value("string"),
                 "section_text": datasets.Value("string"),
                 "uid": datasets.Value("string"),
-                "intro": datasets.Value("string")
-            }
+                "intro": datasets.Value("string"),
+            },
         }
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -104,62 +99,68 @@ class HybridQa(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        extracted_path = dl_manager.download_and_extract(_GIT_ARCHIVE_URL)
+        extracted_path = dl_manager.download_and_extract(_WIKI_TABLES_GIT_ARCHIVE_URL)
         downloaded_files = dl_manager.download(_URLS)
 
         repo_path = os.path.join(extracted_path, "WikiTables-WithLinks-f4ed68e54e25c495f63d309de0b89c0f97b3c508")
         tables_path = os.path.join(repo_path, "tables_tok")
-        requests_paths = os.path.join(repo_path, "requests_tok")
+        requests_path = os.path.join(repo_path, "request_tok")
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"qa_filepath": downloaded_files["train"], "tables_path": requests_paths, "tables_path": tables_path},
+                gen_kwargs={
+                    "qa_filepath": downloaded_files["train"],
+                    "tables_path": tables_path,
+                    "requests_path": requests_path,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"qa_filepath": downloaded_files["dev"], "tables_path": requests_paths, "tables_path": tables_path},
+                gen_kwargs={
+                    "qa_filepath": downloaded_files["dev"],
+                    "tables_path": tables_path,
+                    "requests_path": requests_path,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"qa_filepath": downloaded_files["test"], "tables_path": requests_paths, "tables_path": tables_path},
+                gen_kwargs={
+                    "qa_filepath": downloaded_files["test"],
+                    "tables_path": tables_path,
+                    "requests_path": requests_path,
+                },
             ),
         ]
 
-    def _generate_examples(self, qa_filepath, tables_path, tables_path):
+    def _generate_examples(self, qa_filepath, tables_path, requests_path):
         with open(qa_filepath, encoding="utf-8") as f:
             examples = json.load(f)
 
-        
-        for i, (table_id, example) in enumerate(examples.items()):
+        for example in examples:
+            table_id = example["table_id"]
             table_file_path = os.path.join(tables_path, f"{table_id}.json")
+            url_data_path = os.path.join(requests_path, f"{table_id}.json")
+
             with open(table_file_path, encoding="utf-8") as f:
-                tabel_text = f.read()
+                table = json.load(f)
+            with open(url_data_path, encoding="utf-8") as f:
+                url_data = json.load(f)
 
-            statements, labels, caption = example
+            table["header"] = [header[0] for header in table["header"]]
 
-            for statement, label in zip(statements, labels):
-                yield i, {
-                    "id": i,
-                    "table_id": table_id,
-                    "table_text": tabel_text,
-                    "table_caption": caption,
-                    "statement": statement,
-                    "label": label,
-                }
+            # here each row is a list with two elemets, the row value and list of urls for that row
+            # convert it to list of dict with keys value and urls
+            rows = []
+            for row in table["data"]:
+                for col in row:
+                    new_row = {"value": col[0]}
+                    urls = col[1]
+                    new_row["urls"] = [{"url": url, "summary": url_data[url]} for url in urls]
+                    rows.append(new_row)
+            table["data"] = rows
 
-    def _generate_blind_test_examples(self, examples, all_csv_path):
-        for i, (test_id, example) in enumerate(examples.items()):
-            statement, table_id, caption = example
-            table_file_path = os.path.join(all_csv_path, table_id)
-            with open(table_file_path, encoding="utf-8") as f:
-                tabel_text = f.read()
+            example["answer_text"] = example.pop("answer-text") if "answer-text" in example else ""
+            example["table"] = table
 
-            yield i, {
-                "id": i,
-                "test_id": test_id,
-                "table_id": table_id,
-                "table_text": tabel_text,
-                "table_caption": caption,
-                "statement": statement,
-            }
+            yield example["question_id"], example
