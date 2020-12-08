@@ -1,32 +1,6 @@
 ---
 YAML tags:
-
-annotations_creators:
-- expert-generated
-
-language_creators:
-- expert-generated
-
-languages:
-- en
-
-licenses:
-- cc0-1.0
-
-multilinguality:
-- monolingual
-
-size_categories:
-- n<1K
-
-source_datasets:
-- original
-
-task_categories:
-- text-classification
-
-task_ids:
-- intent-classification
+- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
 ---
 
 # Dataset Card for Snips Built In Intents
@@ -64,8 +38,8 @@ task_ids:
 ### Dataset Summary
 
 Snips' built in intents dataset was initially used to compare different voice assistants and released as a public dataset hosted at 
-https://github.com/sonos/nlu-benchmark in folder 2016-12-built-in-intents. The dataset contains 328 utterances over 10 intent classes. 
-A related Medium post is https://medium.com/snips-ai/benchmarking-natural-language-understanding-systems-d35be6ce568d.
+https://github.com/sonos/nlu-benchmark in 2016-12-built-in-intents. The dataset contains 328 utterances over 10 intent classes. A related Medium post is
+https://medium.com/snips-ai/benchmarking-natural-language-understanding-systems-d35be6ce568d.
 
 ### Supported Tasks and Leaderboards
 
@@ -79,13 +53,11 @@ English
 
 ### Data Instances
 
-The dataset contains 328 utterances over 10 intent classes. Each sample looks like:
-`{'label': 8, 'text': 'Transit directions to Barcelona Pizza.'}`
+The dataset contains 328 utterances over 10 intent classes. 
 
 ### Data Fields
 
-- `text`: The text utterance expressing some user intent.
-- `label`: The intent label of the piece of text utterance.
+Each sample has `label` and text `fields`.
 
 ### Data Splits
 
@@ -117,6 +89,7 @@ access is now managed by the Sonos Voice Experience Team. Please email sve-resea
 It is not clear how the data was collected. From the Medium post: `The benchmark relies on a set of 328 queries built by the business team 
 at Snips, and kept secret from data scientists and engineers throughout the development of the solution.`
 
+
 #### Who are the annotators?
 
 [More Information Needed]
@@ -143,8 +116,7 @@ at Snips, and kept secret from data scientists and engineers throughout the deve
 
 ### Dataset Curators
 
-Originally prepared by snips.ai. The Snips team has since joined Sonos in November 2019. These open datasets remain available and their 
-access is now managed by the Sonos Voice Experience Team. Please email sve-research@sonos.com with any question.
+[More Information Needed]
 
 ### Licensing Information
 
