@@ -18,11 +18,18 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
+<<<<<<< HEAD
 import json
 import os
 
 import pandas as pd
 
+=======
+import pandas as pd
+import json
+import os
+
+>>>>>>> adding wili-2018 language identification dataset
 import datasets
 
 
@@ -53,6 +60,7 @@ _LICENSE = "ODC Open Database License v1.0"
 
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _TRAIN_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1ZzlIQvw1KNBG97QQCfdatvVrrbeLaM1u"
+<<<<<<< HEAD
 _TEST_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1Xx4kFc1Xdzz8AhDasxZ0cSa-a35EQSDZ"
 
 _CLASSES = [
@@ -292,6 +300,19 @@ _CLASSES = [
     "kan",
     "ltg",
 ]
+=======
+_TEST_DOWNLOAD_URL =  "https://drive.google.com/uc?export=download&id=1Xx4kFc1Xdzz8AhDasxZ0cSa-a35EQSDZ"
+
+_CLASSES = ['cdo', 'glk', 'jam', 'lug', 'san', 'rue', 'wol', 'new', 
+            'mwl', 'bre', 'ara', 'hye', 'xmf', 'ext', 'cor', 'yor', 'div', 
+            'asm', 'lat', 'cym', 'hif', 'ace', 'kbd', 'tgk', 'rus', 'nso', 'mya', 'msa', 'ava', 'cbk', 'urd', 'deu', 'swa', 'pus', 'bxr', 'udm', 'csb', 'yid', 'vro', 'por', 'pdc', 'eng', 'tha', 'hat', 'lmo', 'pag', 'jav', 'chv', 'nan',
+            'sco', 'kat', 'bho', 'bos', 'kok', 'oss', 'mri', 'fry', 'cat', 'azb', 'kin', 'hin', 'sna', 'dan', 'egl', 'mkd', 'ron', 'bul', 'hrv', 'som', 'pam', 'nav', 'ksh', 'nci', 'khm', 'sgs', 'srn', 'bar', 'cos', 'ckb', 'pfl', 'arz', 'roa-tara', 'fra', 'mai', 'zh-yue', 
+            'guj', 'fin', 'kir', 'vol', 'hau', 'afr', 'uig', 'lao', 'swe', 'slv', 'kor', 'szl', 'srp', 'dty', 'nrm', 'dsb', 'ind', 'wln', 'pnb', 'ukr', 'bpy', 'vie', 'tur', 'aym', 'lit', 'zea', 'pol', 'est', 'scn', 'vls', 'stq', 'gag', 'grn', 'kaz', 'ben', 'pcd', 'bjn', 'krc', 
+            'amh', 'diq', 'ltz', 'ita', 'kab', 'bel', 'ang', 'mhr', 'che', 'koi', 'glv', 'ido', 'fao', 'bak', 'isl', 'bcl', 'tet', 'jpn', 'kur', 'map-bms', 'tyv', 'olo', 'arg', 'ori', 'lim', 'tel', 'lin', 'roh', 'sqi', 'xho', 'mlg', 
+            'fas', 'hbs', 'tam', 'aze', 'lad', 'nob', 'sin', 'gla', 'nap', 'snd', 'ast', 'mal', 'mdf', 'tsn', 'nds', 'tgl', 'nno', 'sun', 'lzh', 'jbo', 'crh', 'pap', 'oci', 'hak', 'uzb', 'zho', 'hsb', 'sme', 'mlt', 'vep', 'lez', 'nld', 
+            'nds-nl', 'mrj', 'spa', 'ceb', 'ina', 'heb', 'hun', 'que', 'kaa', 'mar', 'vec', 'frp', 'ell', 'sah', 'eus', 'ces', 'slk', 'chr', 'lij', 'nep', 'srd', 'ilo', 'be-tarask', 'bod', 'orm', 'war', 'glg', 'mon', 'gle', 'min', 'ibo', 'ile', 'epo', 'lav', 'lrc', 'als', 'mzn', 
+            'rup', 'fur', 'tat', 'myv', 'pan', 'ton', 'kom', 'wuu', 'tcy', 'tuk', 'kan', 'ltg']
+>>>>>>> adding wili-2018 language identification dataset
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Wili2018(datasets.GeneratorBasedBuilder):
@@ -301,11 +322,19 @@ class Wili2018(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
+<<<<<<< HEAD
             name="WiLI-2018 dataset",
             version=VERSION,
             description="Plain text of import of WiLI-2018",
         )
     ]
+=======
+            name="WiLI-2018 dataset", 
+            version=VERSION, 
+            description="Plain text of import of WiLI-2018",
+            )
+                        ]
+>>>>>>> adding wili-2018 language identification dataset
 
     def _info(self):
 
@@ -313,9 +342,20 @@ class Wili2018(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
+<<<<<<< HEAD
             features=datasets.Features(
                 {"sentence": datasets.Value("string"), "label": datasets.features.ClassLabel(names=_CLASSES)}
             ),
+=======
+            features= datasets.Features(
+                    {
+                        "sentence" : datasets.Value("string"),
+                        "label" : datasets.features.ClassLabel(names=_CLASSES)
+                
+                    }
+
+                ),
+>>>>>>> adding wili-2018 language identification dataset
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
@@ -333,11 +373,20 @@ class Wili2018(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
 
         df = pd.read_csv(filepath, header=0)
+<<<<<<< HEAD
         sentences = df.iloc[:, 0].tolist()
         labels = df.iloc[:, 1].tolist()
+=======
+        sentences = df.iloc[:,0].tolist()
+        labels = df.iloc[:,1].tolist()
+>>>>>>> adding wili-2018 language identification dataset
 
         ids = [i for i in range(len(labels))]
 
         for id_, sentence, label in zip(ids, sentences, labels):
 
+<<<<<<< HEAD
             yield id_, {"sentence": sentence, "label": label - 1}
+=======
+            yield id_, {"sentence": sentence, "label": label-1}
+>>>>>>> adding wili-2018 language identification dataset
