@@ -56,9 +56,13 @@ class ThaiQaSquad(datasets.GeneratorBasedBuilder):
                     "article_id": datasets.Value("int32"),
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
-                    "answer": datasets.Value("string"),
-                    "answer_begin_position": datasets.Value("int32"),
-                    "answer_end_position": datasets.Value("int32"),
+                    "answers": datasets.features.Sequence(
+                        {
+                            "answer": datasets.Value("string"),
+                            "answer_begin_position": datasets.Value("int32"),
+                            "answer_end_position": datasets.Value("int32"),
+                        }
+                    ),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -89,12 +93,18 @@ class ThaiQaSquad(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
+                if not isinstance(data["answer"], list):
+                    answer = [data["answer"]]
+                    answer_begin_position = [data["answer_begin_position"]]
+                    answer_end_position = [data["answer_end_position"]]
                 yield id_, {
                     "question_id": data["question_id"],
                     "article_id": data["article_id"],
                     "context": data["context"],
                     "question": data["question"],
-                    "answer": data["answer"],
-                    "answer_begin_position": data["answer_begin_position"],
-                    "answer_end_position": data["answer_end_position"],
+                    "answers": {
+                        "answer": answer,
+                        "answer_begin_position": answer_begin_position,
+                        "answer_end_position": answer_end_position,
+                    },
                 }
