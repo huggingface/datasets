@@ -43,7 +43,7 @@ The Rationalized English-French Semantic Divergences (REFreSD) dataset consists 
 
 _HOMEPAGE = "https://github.com/Elbria/xling-SemDiv/tree/master/REFreSD"
 
-_LICENSE = ""
+_LICENSE = "MIT"
 
 _URL = "https://raw.githubusercontent.com/Elbria/xling-SemDiv/master/REFreSD/REFreSD_rationale"
 
