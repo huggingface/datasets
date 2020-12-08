@@ -122,21 +122,14 @@ task_ids:
 
 ### Dataset Summary
 
-The Large Spanish Corpus is a compilation of 15 unlabelled Spanish corpora spanning Wikipedia to European parliament notes. Each config contains the data corresponding to a different corpus. For example, "all_wiki" only includes examples from Spanish Wikipedia:
+The Large Spanish Corpus is a compilation of 15 unlabelled Spanish corpora spanning Wikipedia to European parliament notes. Each config contains the data corresponding to a different corpus. For example, `all_wiki` only includes examples from Spanish Wikipedia:
 
 ```python
 from datasets import load_dataset
 all_wiki = load_dataset('large_spanish_corpus', name='all_wiki')
 ```
 
-By default, the config is set to "combined" which loads all the corpora; with this setting you can also specify the number of samples to return per corpus by configuring the "split" argument.
-
-```python
-# preprocess and load whole corpus - 17GB!
-complete_corpus = load_dataset('large_spanish_corpus')
-# preprocess whole corpus, but only load a single split
-all_wiki = load_dataset('large_spanish_corpus', split='all_wiki')
-```
+By default, the config is set to "combined" which loads all the corpora.
 
 
 
