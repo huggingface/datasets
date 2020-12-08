@@ -111,9 +111,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URL)
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir})
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir})]
 
     def _generate_examples(self, data_dir):
         for filepath in self.config.filepaths:
