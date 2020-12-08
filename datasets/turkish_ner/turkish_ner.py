@@ -88,6 +88,7 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
                             names=[
                                 "location",
                                 "geography",
+                                "architecture",
                                 "government",
                                 "law",
                                 "soccer",
@@ -104,6 +105,7 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
                                 "tv",
                                 "organization",
                                 "education",
+                                "travel"
                             ]
                         )
                     ),
@@ -154,10 +156,9 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
             guid = 0
             tokens = []
             ner_tags = []
-            domains = []
+            domains = [] 
             for line in f:
-                line_stripped = line.strip()
-                if line_stripped == "":
+                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
                     if tokens:
                         yield guid, {
                             "id": str(guid),
@@ -168,13 +169,12 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
                         guid += 1
                         tokens = []
                         ner_tags = []
+                        domains = []
                 else:
-                    splits = line_stripped.split("\t")
-                    if len(splits) == 1:
-                        splits = line.split("\t")
-                        domains.append(splits[0])
-                        ner_tags.append(splits[1]).rstrip()
-                        tokens.append(splits[2])
+                    splits = line.split("\t")
+                    domains.append(splits[0])
+                    ner_tags.append(splits[1].split(" "))
+                    tokens.append(splits[2].split(" "))
             # last example
             yield guid, {
                 "id": str(guid),
@@ -182,13 +182,3 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
                 "tokens": tokens,
                 "ner_tags": ner_tags,
             }
-
-
-if __name__=="__main__":
-    import datasets
-    from datasets import load_dataset
-    data = load_dataset("./datasets/turkish_ner")
-    #from datasets import DownloadManager
-    #dl_manager = DownloadManager()
-    #data_dir = dl_manager.extract(os.path.join(dl_manager.download_and_extract(_URL), _FILE_NAME_ZIP))
-    #print(os.path.join(data_dir, _FILE_NAME))
