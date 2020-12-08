@@ -327,7 +327,7 @@ class Wili2018(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
 
-        df = pd.read_csv(filepath, header=0)
+        df = pd.read_csv(filepath, lineterminator="\n")
         sentences = df.iloc[:, 0].tolist()
         labels = df.iloc[:, 1].tolist()
 
