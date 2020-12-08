@@ -109,7 +109,7 @@ class YelpReviewFull(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "yelp_review_full_csv/test.csv"), "split": "test"},
+                gen_kwargs={"filepath": os.path.join(data_dir, "yelp_review_full_csv", "test.csv"), "split": "test"},
             ),
         ]
 
