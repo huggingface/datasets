@@ -116,72 +116,82 @@ _URLs = {
 
 class Omp(datasets.GeneratorBasedBuilder):
     """The “One Million Posts” corpus is an annotated data set consisting of user comments
-posted to an Austrian newspaper website (in German language). Annotated categories include:
-sentiment (negative/neutral/positive), off-topic (yes/no), inappropriate (yes/no),
-discriminating (yes/no), feedback (yes/no), personal story (yes/no), arguments used (yes/no)."""
+    posted to an Austrian newspaper website (in German language). Annotated categories include:
+    sentiment (negative/neutral/positive), off-topic (yes/no), inappropriate (yes/no),
+    discriminating (yes/no), feedback (yes/no), personal story (yes/no), arguments used (yes/no)."""
 
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="posts_labeled", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="posts_unlabeled", version=VERSION, description="This part of my dataset covers a second domain"),
-        datasets.BuilderConfig(name="articles", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="posts_labeled", version=VERSION, description="This part of my dataset covers a first domain"
+        ),
+        datasets.BuilderConfig(
+            name="posts_unlabeled", version=VERSION, description="This part of my dataset covers a second domain"
+        ),
+        datasets.BuilderConfig(
+            name="articles", version=VERSION, description="This part of my dataset covers a second domain"
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "posts_labeled"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "posts_labeled"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
     def _info(self):
         if self.config.name == "posts_labeled":
             features = datasets.Features(
                 {
-                    'ID_Post': datasets.Value("string"),
-                    'ID_Parent_Post': datasets.Value("string"),
-                    'ID_Article': datasets.Value("string"),
-                    'ID_User': datasets.Value("string"),
-                    'CreatedAt': datasets.Value("string"),
-                    'Status': datasets.Value("string"),
-                    'Headline': datasets.Value("string"),
-                    'Body': datasets.Value("string"),
-                    'PositiveVotes': datasets.Value("int32"),
-                    'NegativeVotes': datasets.Value("int32"),
-                    'Category': datasets.features.ClassLabel(names=[
-                        'ArgumentsUsed',
-                        'Discriminating',
-                        'Inappropriate',
-                        'OffTopic',
-                        'PersonalStories',
-                        'PossiblyFeedback',
-                        'SentimentNegative',
-                        'SentimentNeutral',
-                        'SentimentPositive'
-                    ]),
-                    'Value': datasets.Value("int32"),
-                    'Fold': datasets.Value("int32"),
+                    "ID_Post": datasets.Value("string"),
+                    "ID_Parent_Post": datasets.Value("string"),
+                    "ID_Article": datasets.Value("string"),
+                    "ID_User": datasets.Value("string"),
+                    "CreatedAt": datasets.Value("string"),
+                    "Status": datasets.Value("string"),
+                    "Headline": datasets.Value("string"),
+                    "Body": datasets.Value("string"),
+                    "PositiveVotes": datasets.Value("int32"),
+                    "NegativeVotes": datasets.Value("int32"),
+                    "Category": datasets.features.ClassLabel(
+                        names=[
+                            "ArgumentsUsed",
+                            "Discriminating",
+                            "Inappropriate",
+                            "OffTopic",
+                            "PersonalStories",
+                            "PossiblyFeedback",
+                            "SentimentNegative",
+                            "SentimentNeutral",
+                            "SentimentPositive",
+                        ]
+                    ),
+                    "Value": datasets.Value("int32"),
+                    "Fold": datasets.Value("int32"),
                 }
             )
         elif self.config.name == "posts_unlabeled":
             features = datasets.Features(
                 {
-                    'ID_Post': datasets.Value("string"),
-                    'ID_Parent_Post': datasets.Value("string"),
-                    'ID_Article': datasets.Value("string"),
-                    'ID_User': datasets.Value("string"),
-                    'CreatedAt': datasets.Value("string"),
-                    'Status': datasets.Value("string"),
-                    'Headline': datasets.Value("string"),
-                    'Body': datasets.Value("string"),
-                    'PositiveVotes': datasets.Value("int32"),
-                    'NegativeVotes': datasets.Value("int32"),
+                    "ID_Post": datasets.Value("string"),
+                    "ID_Parent_Post": datasets.Value("string"),
+                    "ID_Article": datasets.Value("string"),
+                    "ID_User": datasets.Value("string"),
+                    "CreatedAt": datasets.Value("string"),
+                    "Status": datasets.Value("string"),
+                    "Headline": datasets.Value("string"),
+                    "Body": datasets.Value("string"),
+                    "PositiveVotes": datasets.Value("int32"),
+                    "NegativeVotes": datasets.Value("int32"),
                 }
             )
         elif self.config.name == "articles":
             features = datasets.Features(
                 {
-                    'ID_Article': datasets.Value("string"),
-                    'Path': datasets.Value("string"),
-                    'publishingDate': datasets.Value("string"),
-                    'Title': datasets.Value("string"),
-                    'Body': datasets.Value("string"),
+                    "ID_Article": datasets.Value("string"),
+                    "Path": datasets.Value("string"),
+                    "publishingDate": datasets.Value("string"),
+                    "Title": datasets.Value("string"),
+                    "Body": datasets.Value("string"),
                 }
             )
         else:
@@ -233,12 +243,20 @@ discriminating (yes/no), feedback (yes/no), personal story (yes/no), arguments u
         """ Yields examples. """
 
         if self.config.name in ["posts_labeled", "posts_unlabeled"]:
-            posts_labeled = pd.read_csv(filepath, compression=None, dtype={"ID_Post": str, "ID_Parent_Post": str, "ID_Article": str, "ID_User": str})
+            posts_labeled = pd.read_csv(
+                filepath,
+                compression=None,
+                dtype={"ID_Post": str, "ID_Parent_Post": str, "ID_Article": str, "ID_User": str},
+            )
             posts_labeled.fillna("", inplace=True)
             for i, row in posts_labeled.iterrows():
                 yield row["ID_Post"], row.to_dict()
         elif self.config.name == "articles":
-            posts_labeled = pd.read_csv(filepath, compression=None, dtype={"ID_Article": str, "Path": str, "publishingDate": str, "ID_User": str})
+            posts_labeled = pd.read_csv(
+                filepath,
+                compression=None,
+                dtype={"ID_Article": str, "Path": str, "publishingDate": str, "ID_User": str},
+            )
             posts_labeled.fillna("", inplace=True)
             for i, row in posts_labeled.iterrows():
                 yield row["ID_Article"], row.to_dict()
