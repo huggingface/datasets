@@ -4,8 +4,8 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- en
-- sc
+- fi
+- sv
 licenses:
 - unknown
 multilinguality:
