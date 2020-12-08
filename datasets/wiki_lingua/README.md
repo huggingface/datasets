@@ -2,23 +2,72 @@
 annotations_creators:
 - crowdsourced
 language_creators:
-- expert-generated
+- crowdsourced
 languages:
-- en
+- ar
+- cs
+- de
+- es
+- fr
+- hi
+- id
+- it
+- ja
+- ko
+- nl
+- pt
+- th
+- tr
+- vi
+- zh
 licenses:
-- cc-by-sa-3.0
+- cc-by-3.0
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  arabic:
+  - 10K<n<100K
+  chinese:
+  - 10K<n<100K
+  czech:
+  - 1K<n<10K
+  dutch:
+  - 10K<n<100K
+  english:
+  - 100K<n<500K
+  french:
+  - 10K<n<100K
+  german:
+  - 10K<n<100K
+  hindi:
+  - 1K<n<10K
+  indonesian:
+  - 10K<n<100K
+  italian:
+  - 10K<n<100K
+  japanese:
+  - 10K<n<100K
+  korean:
+  - 10K<n<100K
+  portuguese:
+  - 10K<n<100K
+  russian:
+  - 10K<n<100K
+  spanish:
+  - 100K<n<500K
+  thai:
+  - 10K<n<100K
+  turkish:
+  - 1K<n<10K
+  vietnamese:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- summarization
+- conditional-text-generation
 task_ids:
 - summarization
 ---
-
 # Dataset Card Creation Guide
 
 ## Table of Contents
