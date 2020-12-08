@@ -1,5 +1,5 @@
 ---
-{"multilinguality": [multilingual], "languages": [multiple], "language_creators": [Unknown], "annotations_creators": [Unknown], "source_datasets": [Original], "size_categories": ["10K<n<100K"], "licenses": [Unknown]}
+{"task_categories": [intent-classification, sentiment-analysis],"multilinguality": [multilingual], "languages": [multiple], "language_creators": [Unknown], "annotations_creators": [Unknown], "source_datasets": [Original], "size_categories": ["10K<n<100K"], "licenses": [Unknown]}
 ---
 
 # Dataset Card for Disaster Response Messages 
