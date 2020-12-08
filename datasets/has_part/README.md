@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - machine-generated
 language_creators:
@@ -80,38 +79,23 @@ English
 ### Data Fields
 
 ```json
-{
-  "arg1": {
-    "feature_type": "Value",
-    "dtype": "string"
-  },
-  "arg2": {
-    "feature_type": "Value",
-    "dtype": "string"
-  },
-  "score": {
-    "feature_type": "Value",
-    "dtype": "float64"
-  },
-  "wikipedia_primary_page": {
-    "feature_type": "Sequence",
-    "feature": {
-      "feature_type": "Value",
-      "dtype": "string"
-    }
-  },
-  "synset": {
-    "feature_type": "Sequence",
-    "feature": {
-      "feature_type": "Value",
-      "dtype": "string"
-    }
-  }
-}
+{'arg1': 'plant',
+ 'arg2': 'stem',
+ 'score': 0.9991798414303377,
+ 'synset': ['wn.plant.n.02', 'wn.stalk.n.02'],
+ 'wikipedia_primary_page': ['Plant']}
+
 ```
+- `arg1`, `arg2`: These are the entities of the meronym, i.e., `arg1` _has\_part_ `arg2`
+- `score`: Meronymic score per the procedure described below
+- `synset`: Ontological classification from WordNet for the two entities
+- `wikipedia_primary_page`: Wikipedia page of the entities
+
+**Note**: some examples contain synset / wikipedia info for only one of the entities.
 
 ### Data Splits
 
+Single training file
 
 ## Dataset Creation
 
@@ -129,7 +113,13 @@ Rather than extract knowledge from arbitrary text, we extract hasPart relations 
 
 #### Annotation process
 
-[More Information Needed]
+For each sentence _S_ in GenericsKB, we identify all noun chunks in the sentence using a noun chunker (spaCy's Doc.noun chunks). Each chunk is a candidate whole or part. Then, for each possible pair, we use a RoBERTa model to classify whether a hasPart relationship exists between them. The input sentence is presented to RoBERTa as a sequence of wordpiece tokens, with the start and end of the candidate hasPart arguments identified using special tokens, e.g.:
+
+> `[CLS] [ARG1-B]Some pond snails[ARG1-E] have [ARG2-B]gills[ARG2-E] to
+breathe in water.`
+
+where `[ARG1/2-B/E]` are special tokens denoting the argument boundaries. The `[CLS]` token is projected to two class labels (hasPart/notHasPart), and a softmax layer is then applied, resulting in output probabilities for the class labels. We train with cross-entropy loss. We use RoBERTa-large (24 layers), each with a hidden size of 1024, and 16 attention heads, and a total of 355M parameters. We use the pre-trained weights available with the
+model and further fine-tune the model parameters by training on our labeled data for 15 epochs. To train the model, we use a hand-annotated set of ∼2k examples.
 
 #### Who are the annotators?
 

@@ -38,69 +38,49 @@ _DESCRIPTION = """\
 This dataset is a new knowledge-base (KB) of hasPart relationships, extracted from a large corpus of generic statements. Complementary to other resources available, it is the first which is all three of: accurate (90% precision), salient (covers relationships a person may mention), and has high coverage of common terms (approximated as within a 10 year old’s vocabulary), as well as having several times more hasPart entries than in the popular ontologies ConceptNet and WordNet. In addition, it contains information about quantifiers, argument modifiers, and links the entities to appropriate concepts in Wikipedia and WordNet.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://allenai.org/data/haspartkb"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
 
-class HasPart(datasets.GeneratorBasedBuilder):
-    @property
-    def manual_download_instructions(self):
-        return """\
-  You should download the dataset from https://allenai.org/data/haspartkb
-  Download hasPartKB.tsv to a dir of your choice,
-  which will be used as a manual_dir, e.g. `~/.manual_dir/has_part`
-  The data can then be loaded via:
-  `datasets.load_dataset("has_part", data_dir="~/.manual_dir/has_part")`.
-  """
+_URL = (
+    "https://drive.google.com/uc?export=download&id=1Ev4RqWcPsLI9rgOGAKh-_dFKqcEZ1u-G"
+)
 
+
+class HasPart(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
                 "arg1": datasets.features.Value("string"),
                 "arg2": datasets.features.Value("string"),
                 "score": datasets.features.Value("float64"),
-                "wikipedia_primary_page": datasets.features.Sequence(datasets.features.Value("string")),
+                "wikipedia_primary_page": datasets.features.Sequence(
+                    datasets.features.Value("string")
+                ),
                 "synset": datasets.features.Sequence(datasets.features.Value("string")),
             }
         )
 
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+        input_file = dl_manager.download_and_extract(_URL)
 
-        if not os.path.exists(data_dir):
-            raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('has_part', data_dir=...)` per the manual download instructions: {}".format(
-                    data_dir, self.manual_download_instructions
-                )
-            )
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "input_file": os.path.join(data_dir, "hasPartKB.tsv"),
+                    "input_file": input_file,
                     "split": "train",
                 },
             ),
