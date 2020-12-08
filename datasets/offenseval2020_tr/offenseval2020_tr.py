@@ -10,6 +10,7 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 @InProceedings{coltekin2020lrec,
  author  = {Cagri Coltekin},
@@ -46,6 +47,7 @@ class OffensEval2020TRConfig(datasets.BuilderConfig):
 
 class OffensEval2020TR(datasets.GeneratorBasedBuilder):
     """OffensEval-TR 2020: A Corpus of Turkish Offensive Language on Social Media"""
+
     BUILDER_CONFIGS = [
         OffensEval2020TRConfig(
             name="offenseval2020-turkish",
