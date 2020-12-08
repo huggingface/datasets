@@ -1,0 +1,5 @@
+people	O O B-MISC O O B-LOCATION O B-PERSON O O O O O B-MISC O O O O O	24 yaşındaki 1.86 metre boyundaki Senegalli golcü Dabo , daha önce Ugs , Sion , Servette , St .
+sports	B-LOCATION B-MISC B-ORGANIZATION O B-MISC B-MISC O O B-MISC O O O O O O O O O O O O O O O O B-MISC O O O B-MISC O O O O	Senegalli forvet Sion takımıyla 2009 2010 sezonunda UEFA Avrupa Ligi , play off turu rövanş maçında Fenerbahçe'ye karşı mücadele etmiş , ilk yarıdaki bir pozisyonda kaleci Volkan tarafından düşürülünce hakem penaltı kararı vermişti .
+sports	O O O O O B-ORGANIZATION O O O O	Sahadan 2 2'lik skorla ayrılan Sion , Fenerbahçe'ye elenmişti .
+business	B-ORGANIZATION O O O O B-MISC O O B-MISC O O B-LOCATION O O O O O	IP2Location kullanıcılara aynı adla bir yazılım da sunan 2002 yılında kurulmuş Malezya merkezli bir internet şirketidir .
+business	B-ORGANIZATION O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O	IP2Location ziyaretçilerin IP adresi ( ülke , bölge , şehir , enlem , boylam , ZIP kodu , ) , bağlantı hızı , Internet Servis Sağlayıcı ve domain ismi ni , ip adresini kullanarak tanımlayabilen bir yazılımdır .
