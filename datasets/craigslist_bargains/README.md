@@ -1,5 +1,22 @@
 ---
-- YAML tags: copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/ or https://github.com/huggingface/datasets-tagging for local tagging
+annotations_creators:
+- machine-generated
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- dialogue-modeling
 ---
 
 # Dataset Card Creation Guide
