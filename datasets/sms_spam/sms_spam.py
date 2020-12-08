@@ -18,8 +18,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import datasets
 import os
+
+import datasets
+
 
 _CITATION = """\
 @inproceedings{Almeida2011SpamFiltering,
@@ -76,7 +78,7 @@ class SmsSpam(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
 
-        with open(filepath,  encoding="utf-8") as sms_file:
+        with open(filepath, encoding="utf-8") as sms_file:
             for idx, line in enumerate(sms_file):
                 fields = line.split("\t")
 
