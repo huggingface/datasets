@@ -66,8 +66,6 @@ The original dataset is provided as an export of MySQL tables, what makes it har
 
 ### Supported Tasks and Leaderboards
 
-For each of the tasks tagged for this dataset, give a brief description of the tag, metrics, and suggested models (with a link to their HuggingFace implementation if available). Give a similar description of tasks that were not covered by the structured tag set (repace the `task-category-tag` with an appropriate `other:other-task-name`).
-
 - `text-classification`: The dataset might be used to perform the text classification on different target fields, like the presence of irony/sarcasm, minority it describes or a topic. 
 - `text-scoring`: The sentiment analysis is another task which might be solved on a dataset.
 
