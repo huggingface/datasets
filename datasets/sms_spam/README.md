@@ -1,7 +1,22 @@
----
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
----
+annotations_creators:
+- crowdsourced
+- found
+language_creators:
+- crowdsourced
+- found
+languages:
+- en
+licenses: []
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|other-nus-sms-corpus
+task_categories:
+- text-classification
+task_ids:
+- intent-classification
 
 # Dataset Card for [Dataset Name]
 
@@ -57,7 +72,8 @@ English
 
 ### Data Fields
 
-[More Information Needed]
+- sms: the sms message
+- label: indicating if the sms message is ham or spam, ham means it is not spam
 
 ### Data Splits
 

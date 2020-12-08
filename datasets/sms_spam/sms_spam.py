@@ -21,7 +21,6 @@ from __future__ import absolute_import, division, print_function
 import os
 import datasets
 
-
 _CITATION = """\
 @inproceedings{Almeida2011SpamFiltering,
   title={Contributions to the Study of SMS Spam Filtering: New Collection and Results},
