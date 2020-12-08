@@ -18,8 +18,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import datasets
+import os
 
 _CITATION = """\
 @inproceedings{Almeida2011SpamFiltering,
