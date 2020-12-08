@@ -1,6 +1,22 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- en
+licenses:
+- cc-by-nc-nd-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- summarization
 ---
 
 # Dataset Card for [Dataset Name]
@@ -58,7 +74,10 @@ The SAMSum dataset was prepared by Samsung R&D Institute Poland and is distribut
 
 ### Data Fields
 
-[More Information Needed]
+- dialogue: text of dialogue.
+- summary: human written summary of the dialogue.
+- id: unique id of an example.
+
 
 ### Data Splits
 
