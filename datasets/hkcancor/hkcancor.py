@@ -54,7 +54,7 @@ _LICENSE = "CC BY 4.0"
 _URL = "http://compling.hss.ntu.edu.sg/hkcancor/data/hkcancor-utf8.zip"
 
 
-class HkCanCor(datasets.GeneratorBasedBuilder):
+class Hkcancor(datasets.GeneratorBasedBuilder):
     """Hong Kong Cantonese Corpus (HKCanCor)."""
 
     VERSION = datasets.Version("1.0.0")
