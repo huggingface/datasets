@@ -55,7 +55,7 @@ _URLs = {
 }
 
 
-class SentenceCompression(datasets.GeneratorBasedBuilder):
+class SentComp(datasets.GeneratorBasedBuilder):
     """Google Setence Compression dataset"""
 
     def _info(self):
