@@ -88,24 +88,8 @@ class MultiBooked(datasets.GeneratorBasedBuilder):
                     "opinions": datasets.features.Sequence(
                         {
                             "oid": datasets.Value("string"),
-                            # "opinion_holder": datasets.features.Sequence(
-                            #     {
-                            #         "target": datasets.features.Sequence(datasets.Value("string")),
-                            #     }
-                            # ),
                             "opinion_holder_target": datasets.features.Sequence(datasets.Value("string")),
-                            # "opinion_target": datasets.features.Sequence(
-                            #     {
-                            #         "target": datasets.features.Sequence(datasets.Value("string")),
-                            #     }
-                            # ),
                             "opinion_target_target": datasets.features.Sequence(datasets.Value("string")),
-                            # "opinion_expression": datasets.features.Sequence(
-                            #     {
-                            #         "polarity": datasets.Value("string"),
-                            #         "target": datasets.features.Sequence(datasets.Value("string")),
-                            #     }
-                            # ),
                             "opinion_expression_polarity": datasets.Value("string"),
                             "opinion_expression_target": datasets.features.Sequence(datasets.Value("string")),
                         }
@@ -156,45 +140,25 @@ class MultiBooked(datasets.GeneratorBasedBuilder):
                                 example["opinions"]["oid"].append(child.attrib.get("oid", ""))
                                 # Opinion holder
                                 opinion_holder = child.find("opinion_holder")
-                                # example["opinions"]["opinion_holder"] = defaultdict(list)
                                 targets = []
                                 for target in opinion_holder.findall("span/target"):
                                     targets.append(target.get("id", ""))
-                                # example["opinions"]["opinion_holder"]["target"].append(targets)
-
                                 example["opinions"]["opinion_holder_target"].append(targets)
-
                                 # Opinion target
                                 opinion_target = child.find("opinion_target")
-                                # example["opinions"]["opinion_target"] = defaultdict(list)
                                 targets = []
                                 for target in opinion_target.findall("span/target"):
                                     targets.append(target.get("id", ""))
-                                # example["opinions"]["opinion_target"]["target"].append(targets)
-
                                 example["opinions"]["opinion_target_target"].append(targets)
-
                                 # Opinion expression
                                 opinion_expression = child.find("opinion_expression")
-                                # example["opinions"]["opinion_expression"] = defaultdict(list)
-                                # example["opinions"]["opinion_expression"]["polarity"].append(
-                                #     opinion_expression.attrib.get("polarity", "")
-                                # )
                                 example["opinions"]["opinion_expression_polarity"].append(
                                     opinion_expression.attrib.get("polarity", "")
                                 )
                                 targets = []
                                 for target in opinion_expression.findall("span/target"):
                                     targets.append(target.get("id", ""))
-                                # example["opinions"]["opinion_expression"]["target"].append(targets)
-
                                 example["opinions"]["opinion_expression_target"].append(targets)
                 except Exception as e:
-                    print()
-                    print(f"filepath: {filepath}")
-                    print(e)
-                    # raise e
                     pass
-
-
             yield id_, example
