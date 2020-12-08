@@ -19,7 +19,6 @@ from __future__ import absolute_import, division, print_function
 import csv
 import datasets
 
-
 _CITATION = """\
 @InProceedings{DARWISH18.562,  author = {Kareem Darwish ,Hamdy Mubarak ,Ahmed Abdelali ,Mohamed Eldesouki ,Younes Samih ,Randah Alharbi ,Mohammed Attia ,Walid Magdy and Laura Kallmeyer},
 title = {Multi-Dialect Arabic POS Tagging: A CRF Approach},
