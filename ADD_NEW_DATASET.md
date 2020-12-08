@@ -181,6 +181,14 @@ Go to the next step (open a Pull Request) and we'll help you cross the finish li
 	```bash
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
+	
+	On **Windows**, you may need to run:
+	```
+	$Env:RUN_SLOW = "1"
+	pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
+	pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+	```
+	to enable the slow tests, instead of `RUN_SLOW=1`.
 
 3. If all tests pass, your dataset works correctly. You can finally create the metadata JSON by running the command:
 
