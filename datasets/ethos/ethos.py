@@ -18,7 +18,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
 import os
 import logging
 import pandas as pd
@@ -126,8 +125,6 @@ class Ethos(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         data = pd.read_csv(filepath, delimiter=';')
-        print("WHAT IS GOING ON?")
-        print(self.config.variation)
         if self.config.variation == 'binary':
 
             X = data['comment'].values
