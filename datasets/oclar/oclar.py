@@ -37,10 +37,11 @@ year={2019}
 """
 
 _DESCRIPTION = """\
-The researchers of OCLAR Marwan et al. (2019), they gathered Arabic costumer reviews from Google reviewsa and Zomato website 
-(https://www.zomato.com/lebanon) on wide scope of domain, including restaurants, hotels, hospitals, local shops, etc.
-The corpus finally contains 3916 reviews in 5-rating scale. For this research purpose, the positive class considers
-rating stars from 5 to 3 of 3465 reviews, and the negative class is represented from values of 1 and 2 of about 451 texts.
+The researchers of OCLAR Marwan et al. (2019), they gathered Arabic costumer reviews from Google reviewsa and Zomato
+website (https://www.zomato.com/lebanon) on wide scope of domain, including restaurants, hotels, hospitals, local shops,
+etc.The corpus finally contains 3916 reviews in 5-rating scale. For this research purpose, the positive class considers
+rating stars from 5 to 3 of 3465 reviews, and the negative class is represented from values of 1 and 2 of about
+451 texts.
 """
 
 _HOMEPAGE = "http://archive.ics.uci.edu/ml/datasets/Opinion+Corpus+for+Lebanese+Arabic+Reviews+%28OCLAR%29#"
@@ -95,7 +96,4 @@ class Oclar(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(csv_reader):
                 pagename, review, rating = row
                 rating = int(rating)
-                print(f"pagename : {pagename}\n")
-                print(f"review : {review}\n")
-                print(f"rating : {rating}\n")
                 yield id_, {"pagename": pagename, "review": review, "rating": rating}
