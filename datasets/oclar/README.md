@@ -1,18 +1,24 @@
 ---
 annotations_creators:
-
-- crowdsourced language_creators:
-- crowdsourced languages:
-- ar licenses:
-- unknown multilinguality:
-- monolingual size_categories:
-- 1K<n<10K source_datasets:
-- original task_categories:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- ar
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
 - text-classification
-- text-scoring task_ids:
+- text-scoring
+task_ids:
 - sentiment-classification
 - sentiment-scoring
-
 ---
 
 # Dataset Card for OCLAR
@@ -119,11 +125,11 @@ The dataset does not contain any additional annotations
 
 #### Who are the annotators?
 
-[N/A]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[N/A]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
@@ -141,7 +147,7 @@ context on 3916 reviews’ services from Google and Zomato. Experiments show thr
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
@@ -154,7 +160,7 @@ Beirut, Lebanon.
 
 ### Licensing Information
 
-[N/A]
+[More Information Needed]
 
 ### Citation Information
 - Marwan Al Omari, Centre for Language Sciences and Communication, Lebanese University, Beirut, Lebanon, marwanalomari '@' yahoo.com
