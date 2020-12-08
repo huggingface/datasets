@@ -119,7 +119,7 @@ The dataset contributed by journalists, translators, bloggers, and human rights 
 
 #### Who are the annotators?
 
-The data was annotated by Jesujoba Alabi and David Adelani for the papaer: 
+The data was annotated by Jesujoba Alabi and David Adelani for the paper: 
 [Massive vs. Curated Embeddings for Low-Resourced Languages: the case of Yorùbá and Twi](https://www.aclweb.org/anthology/2020.lrec-1.335/).
 
 [More Information Needed]
