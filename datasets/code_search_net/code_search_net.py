@@ -23,7 +23,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -53,9 +52,9 @@ _LICENSE = "Various"
 
 _S3_BUCKET_URL = "https://s3.amazonaws.com/code-search-net/CodeSearchNet/v2/"
 _AVAILABLE_LANGUAGES = ["python", "java", "javascript", "go", "ruby", "php"]
-_URLs = {language: [(language, _S3_BUCKET_URL + f"{language}.zip")] for language in _AVAILABLE_LANGUAGES}
-# URLs for "all" are juste the concatenation of URLs for all languages
-_URLs["all"] = sum(_URLs.values(), [])
+_URLs = {language: _S3_BUCKET_URL + f"{language}.zip" for language in _AVAILABLE_LANGUAGES}
+# URLs for "all" are just the concatenation of URLs for all languages
+_URLs["all"] = _URLs.copy()
 
 
 class CodeSearchNet(datasets.GeneratorBasedBuilder):
@@ -151,43 +150,47 @@ class CodeSearchNet(datasets.GeneratorBasedBuilder):
             ```
         """
         data_urls = _URLs[self.config.name]
-        # Extracts the language archives
-        lang_names_and_dirs = [(language, dl_manager.download_and_extract(url)) for language, url in data_urls]
+        if isinstance(data_urls, str):
+            data_urls = {self.config.name: data_urls}
+        # Download & extract the language archives
         data_dirs = [
-            os.path.join(lang_dir, lang_name, "final", "jsonl") for lang_name, lang_dir in lang_names_and_dirs
+            os.path.join(directory, lang, "final", "jsonl")
+            for lang, directory in dl_manager.download_and_extract(data_urls).items()
         ]
-        split_dirs = {
-            split_name: [os.path.join(data_dir, split_name) for data_dir in data_dirs]
+
+        split2dirs = {
+            split_name: [os.path.join(directory, split_name) for directory in data_dirs]
             for split_name in ["train", "test", "valid"]
         }
 
-        split_paths = {
-            split_name: [
-                dl_manager.extract(entry.path)
-                for split_dir in split_dirs[split_name]
-                for entry in os.scandir(split_dir)
-                if entry.is_file() and entry.name.endswith(".jsonl.gz")
-            ]
-            for split_name in ["train", "test", "valid"]
-        }
+        split2paths = dl_manager.extract(
+            {
+                split_name: [
+                    os.path.join(directory, entry_name)
+                    for directory in split_dirs
+                    for entry_name in os.listdir(directory)
+                ]
+                for split_name, split_dirs in split2dirs.items()
+            }
+        )
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepaths": split_paths["train"],
+                    "filepaths": split2paths["train"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepaths": split_paths["test"],
+                    "filepaths": split2paths["test"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepaths": split_paths["valid"],
+                    "filepaths": split2paths["valid"],
                 },
             ),
         ]
