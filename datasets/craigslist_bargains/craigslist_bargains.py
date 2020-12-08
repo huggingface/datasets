@@ -46,8 +46,8 @@ _HOMEPAGE = "https://stanfordnlp.github.io/cocoa/"
 _LICENSE = ""
 
 _URLs = {
-    "train": "https://worksheets.codalab.org/rest/bundles/0xd34bbbc5fb3b4fccbd19e10756ca8dd7/contents/blob/",
-    "validation": "https://worksheets.codalab.org/rest/bundles/0x15c4160b43d44ee3a8386cca98da138c/contents/blob/",
+    "train": "https://worksheets.codalab.org/rest/bundles/0xd34bbbc5fb3b4fccbd19e10756ca8dd7/contents/blob/parsed.json",
+    "validation": "https://worksheets.codalab.org/rest/bundles/0x15c4160b43d44ee3a8386cca98da138c/contents/blob/parsed.json",
     "test": "https://worksheets.codalab.org/rest/bundles/0x54d325bbcfb2463583995725ed8ca42b/contents/blob/",
 }
 
@@ -115,7 +115,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train"], "parsed.json"),
+                    "filepath": data_dir["train"],
                     "split": "train",
                 },
             ),
@@ -128,7 +128,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["validation"], "parsed.json"),
+                    "filepath": data_dir["validation"],
                     "split": "validation",
                 },
             ),
