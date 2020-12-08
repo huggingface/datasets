@@ -57,6 +57,7 @@ class EthosConfig(datasets.BuilderConfig):
             self.variation = "binary"
         super(EthosConfig, self).__init__(**kwargs)
 
+
 class Ethos(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = EthosConfig
 
