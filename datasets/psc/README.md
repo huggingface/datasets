@@ -74,7 +74,7 @@ Polish
 
 - extract_text: text to summarise
 - summary_text: summary of extracted text 
-- label: 1 indicates summary is similar, 0 means that a summary is not similar
+- label: 1 indicates summary is similar, 0 means that it is not similar
 
 ### Data Splits
 
