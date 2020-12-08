@@ -1,6 +1,29 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- crowdsourced
+- expert-generated
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+  subtask-1:
+  - text-scoring
+  subtask-2:
+  - text-classification
+task_ids:
+  subtask-1:
+  - text-scoring-other-funniness-score-prediction
+  subtask-2:
+  - text-classification-other-funnier-headline-identification
 ---
 
 # Dataset Card for [Dataset Name]
