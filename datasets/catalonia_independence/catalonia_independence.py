@@ -21,6 +21,7 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 @inproceedings{zotova-etal-2020-multilingual,
     title = "Multilingual Stance Detection in Tweets: The {C}atalonia Independence Corpus",
