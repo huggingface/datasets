@@ -63,7 +63,7 @@ _URLs = {
 }
 
 
-class SmartData(datasets.GeneratorBasedBuilder):
+class Smartdata(datasets.GeneratorBasedBuilder):
     """DFKI SmartData Corpus is a dataset of 2598 German-language documents
     which has been annotated with fine-grained geo-entities, such as streets,
     stops and routes, as well as standard named entity types."""
