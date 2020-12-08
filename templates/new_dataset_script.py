@@ -80,7 +80,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
+        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
             features = datasets.Features(
                 {
