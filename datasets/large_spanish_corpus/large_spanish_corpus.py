@@ -92,7 +92,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
             name=_COMBINED, corpora=_CORPORA, description=f"Complete Spanish dataset with all corpora."
         )
     ]
-
+    BUILDER_CONFIG_CLASS = LargeSpanishCorpusConfig
     DEFAULT_CONFIG_NAME = _COMBINED
 
     def _info(self):
