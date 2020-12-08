@@ -60,9 +60,7 @@ class SmsSpam(datasets.GeneratorBasedBuilder):
                     "label": datasets.features.ClassLabel(names=["ham", "spam"]),
                 }
             ),
-            # No default supervised_keys (as we have to pass both premise
-            # and hypothesis as input).
-            supervised_keys=None,
+            supervised_keys=("sms", "label"),
             homepage="http://archive.ics.uci.edu/ml/datasets/SMS+Spam+Collection",
             citation=_CITATION,
         )
