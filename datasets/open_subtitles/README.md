@@ -119,7 +119,7 @@ To load a language pair which isn't part of the config, all you need to do is sp
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/OpenSubtitles.php
 E.g.
 
-`dataset = load_dataset("bible_para", lang1="fi", lang2="hi")`
+`dataset = load_dataset("open_subtitles", lang1="fi", lang2="hi")`
 
 
 ### Supported Tasks and Leaderboards
