@@ -22,7 +22,7 @@ import datasets
 
 
 # Find for instance the citation on arxiv or on the dataset repo/website
-_CITATION = """\
+_CITATION = r"""\
 @article{troszynski2017czy,
   title={Czy komputer rozpozna hejtera? Wykorzystanie uczenia maszynowego (ML) w jako{\'s}ciowej analizie danych},
   author={Troszy{\'n}ski, Marek and Wawer, Aleksandra},
