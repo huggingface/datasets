@@ -24,19 +24,32 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-instances)
   - [Data Splits](#data-instances)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
   - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
 
 ## Dataset Description
 
 - **Homepage:** [Kaggle link](https://www.kaggle.com/disisbig/kannada-news-dataset) for kannada news headlines dataset
+- **Repository:**
+- **Paper:**
+- **Leaderboard:**
 - **Point of Contact:** More information about the dataset and the models can be found [here](https://github.com/goru001/nlp-for-kannada)
 
 ### Dataset Summary
@@ -47,6 +60,9 @@ Entertainment, Tech, and Sports.
 The data set contains around 6300 news article headlines which are collected from Kannada news websites.
 The data set has been cleaned and contains train and test set using which can be used to benchmark topic classification models in Kannada.
 
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -64,8 +80,7 @@ The data has two files. A train.csv and valid.csv. An example row of the dataset
   'label':'sports'
 }
 ```
-NOTE: The data has very few examples on the technology (class label: 'tech') topic. 
-
+NOTE: The data has very few examples on the technology (class label: 'tech') topic. [More Information Needed]
 
 ### Data Fields
 
@@ -73,19 +88,42 @@ Data has two fields:
 - headline: text headline in kannada (string)
 - label : corresponding class label which the headlines pertains to in english (string)
 
-
 ### Data Splits
 
-Describe and name the splits in the dataset if there are more than one.
-
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
-
-Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
-
+The dataset is divided into two splits. All the headlines are scraped from news websites on the internet.
 |                            | Tain   | Valid | 
 | -----                      | ------ | ----- |
 | Input Sentences            |  5167  | 1293  |
 
+## Dataset Creation
+
+### Curation Rationale
+
+[More Information Needed]
+
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
 
 ## Considerations for Using the Data
 
@@ -96,9 +134,24 @@ Though having roughly 38 million native speakers, it is a little under-represent
 
 This dataset, however, can just help people get exposed to Kannada and help proceed further active participation for enabling continuous progress and development.
 
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Gaurav Arora] (https://github.com/goru001/nlp-for-kannada) has also got some starter models an embeddings to help get started.
+[Gaurav Arora] (https://github.com/goru001/nlp-for-kannada). Has also got some starter models an embeddings to help get started.
+
+### Licensing Information
+
+cc-by-sa-4.0
+
+### Citation Information
+
+[More Information Needed]
