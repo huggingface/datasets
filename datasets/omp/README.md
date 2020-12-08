@@ -122,7 +122,32 @@ Austrian German
 
 ### Data Fields
 
-[More Information Needed]
+The data set contains the following data for each post:
+
+* **ID_Post**: Post ID
+* **ID_Parent_Post**: Parent post (replies give rise to tree-like discussion thread structures)
+* **ID_Article**: Article ID
+* **ID_User**: User ID (the user names used by the website have been re-mapped to new numeric IDs)
+* **Headline**: Headline (max. 250 characters)
+* **Body**: Main Body (max. 750 characters)
+* **CreatedAt**: Time stamp
+* **Status**: Status (online or deleted by a moderator)
+* **PositiveVotes**: Number of positive votes by other community members
+* **NegativeVotes**: Number of negative votes by other community members
+
+Labeled posts also contain:
+
+* **Category**: The category of the annotation, one of: ArgumentsUsed, Discriminating, Inappropriate, OffTopic, PersonalStories, PossiblyFeedback, SentimentNegative, SentimentNeutral, SentimentPositive
+* **Value**: either 0 or 1, explicitly indicating whether or not the post has the specified category as a label (i.e. a category of `ArgumentsUsed` with value of `0` means that an annotator explicitly labeled that this post doesn't use arguments, as opposed to the mere absence of a positive label).
+* **Fold**: a number between [0-9] from a 10-fold split by the authors
+
+For each article, the data set contains the following data:
+
+* **ID_Article**: Article ID
+* **publishingDate**: Publishing date
+* **Path**: Topic Path (e.g.: Newsroom / Sports / Motorsports / Formula 1)
+* **Title**: Title
+* **Body**: Body
 
 ### Data Splits
 
