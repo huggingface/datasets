@@ -95,7 +95,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
-            supervised_keys={},
+            supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available

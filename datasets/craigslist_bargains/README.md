@@ -68,8 +68,6 @@ This dataset is English
 
 ### Data Instances
 
-Provide an JSON-formatted example and brief description of a typical instance in the dataset. If available, provide a link to further examples.
-
 ```
 {
   'agent_info': {
@@ -224,17 +222,31 @@ Annotations for the `dialogue_acts` in `train` and `test` were generated via a r
 
 #### Who are the annotators?
 
+`[More Information Needed]`
+
 ### Personal and Sensitive Information
+
+`[More Information Needed]`
 
 ## Considerations for Using the Data
 
+`[More Information Needed]`
+
 ### Social Impact of Dataset
+
+`[More Information Needed]`
 
 ### Discussion of Biases
 
+`[More Information Needed]`
+
 ### Other Known Limitations
 
+`[More Information Needed]`
+
 ## Additional Information
+
+`[More Information Needed]`
 
 ### Dataset Curators
 
@@ -247,6 +259,8 @@ DARPA Communicating with Computers (CwC)
 program under ARO prime contract no. W911NF15-1-0462
 
 ### Licensing Information
+
+`[More Information Needed]`
 
 ### Citation Information
 
