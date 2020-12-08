@@ -123,7 +123,6 @@ class GrailQA(datasets.GeneratorBasedBuilder):
         logging.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             samples = json.load(f)
-            print("len samples: ", len(samples))
             for sample in samples:
                 features = {
                     "qid": str(sample["qid"]),
