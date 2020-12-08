@@ -214,7 +214,8 @@ Here are the step to open the Pull-Request on the main repo.
 	```
 
 2. Make sure that you have a dataset card (more information in the [next section](#tag-the-dataset-and-write-the-dataset-card)) with:
-  1. **Required:** The YAML tags obtained with the [tagging app](https://github.com/huggingface/datasets-tagging) and a description of the various fields in your dataset.
+
+	1. **Required:** The YAML tags obtained with the [tagging app](https://github.com/huggingface/datasets-tagging) and a description of the various fields in your dataset.
 	2. Any relevant information you would like to share with users of your dataset in the appropriate paragraphs.
 
 3. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
