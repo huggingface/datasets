@@ -67,7 +67,7 @@ _URLs = {
 }
 
 
-class NumericFusedHeads(datasets.GeneratorBasedBuilder):
+class NumericFusedHead(datasets.GeneratorBasedBuilder):
     """NFH: Numeric Fused-Heads"""
 
     VERSION = datasets.Version("1.0.0")
