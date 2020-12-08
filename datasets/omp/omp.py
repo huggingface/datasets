@@ -17,6 +17,8 @@ user comments posted to an Austrian newspaper website (in German language)."""
 
 from __future__ import absolute_import, division, print_function
 
+from pathlib import Path
+
 import pandas as pd
 
 import datasets
@@ -209,12 +211,21 @@ discriminating (yes/no), feedback (yes/no), personal story (yes/no), arguments u
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
-        data_path = dl_manager.download_and_extract(my_urls)
+        data_path = Path(dl_manager.download_and_extract(my_urls))
+        if data_path.is_dir():
+            if self.config.name == "posts_labeled":
+                fname = "posts_labeled.csv.gz"
+            elif self.config.name == "posts_unlabeled":
+                fname = "posts_unlabeled.csv.gz"
+            elif self.config.name == "articles":
+                fname = "articles.csv.gz"
+            data_path = data_path / fname
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_path, "split": "train"},
+                gen_kwargs={"filepath": str(data_path), "split": "train"},
             ),
         ]
 
@@ -222,12 +233,12 @@ discriminating (yes/no), feedback (yes/no), personal story (yes/no), arguments u
         """ Yields examples. """
 
         if self.config.name in ["posts_labeled", "posts_unlabeled"]:
-            posts_labeled = pd.read_csv(filepath, dtype={"ID_Post": str, "ID_Parent_Post": str, "ID_Article": str, "ID_User": str})
+            posts_labeled = pd.read_csv(filepath, compression=None, dtype={"ID_Post": str, "ID_Parent_Post": str, "ID_Article": str, "ID_User": str})
             posts_labeled.fillna("", inplace=True)
             for i, row in posts_labeled.iterrows():
                 yield row["ID_Post"], row.to_dict()
         elif self.config.name == "articles":
-            posts_labeled = pd.read_csv(filepath, dtype={"ID_Article": str, "Path": str, "publishingDate": str, "ID_User": str})
+            posts_labeled = pd.read_csv(filepath, compression=None, dtype={"ID_Article": str, "Path": str, "publishingDate": str, "ID_User": str})
             posts_labeled.fillna("", inplace=True)
             for i, row in posts_labeled.iterrows():
                 yield row["ID_Article"], row.to_dict()
