@@ -7,6 +7,7 @@ Copyright by the AllenNLP authors.
 import copy
 import gzip
 import json
+import lzma
 import os
 import shutil
 import sys
@@ -318,7 +319,12 @@ def cached_path(
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
     if download_config.extract_compressed_file and output_path is not None:
-        if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
+        if (
+            not is_zipfile(output_path)
+            and not tarfile.is_tarfile(output_path)
+            and not is_gzip(output_path)
+            and not is_xz(output_path)
+        ):
             return output_path
 
         # Path where we extract compressed archives
@@ -351,6 +357,11 @@ def cached_path(
                 with ZipFile(output_path, "r") as zip_file:
                     zip_file.extractall(output_path_extracted)
                     zip_file.close()
+            elif is_xz(output_path):
+                os.rmdir(output_path_extracted)
+                with lzma.open(output_path) as compressed_file:
+                    with open(output_path_extracted, "wb") as extracted_file:
+                        shutil.copyfileobj(compressed_file, extracted_file)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
@@ -542,4 +553,17 @@ def is_gzip(path: str) -> bool:
             fh.read(1)
             return True
         except OSError:
+            return False
+
+
+def is_xz(path: str) -> bool:
+    """https://tukaani.org/xz/xz-file-format-1.0.4.txt"""
+    with open(path, "rb") as f:
+        try:
+            header_magic_bytes = f.read(6)
+        except OSError:
+            return False
+        if header_magic_bytes == b"\xfd7zXZ\x00":
+            return True
+        else:
             return False

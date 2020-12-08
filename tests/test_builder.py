@@ -76,6 +76,17 @@ class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
             yield i, {"text": self.config.content * self.config.times}
 
 
+class DummyBuilderWithMultipleConfigs(DummyBuilder):
+    BUILDER_CONFIGS = [
+        DummyGeneratorBasedBuilderWithConfigConfig(name="a"),
+        DummyGeneratorBasedBuilderWithConfigConfig(name="b"),
+    ]
+
+
+class DummyBuilderWithDefaultConfig(DummyBuilderWithMultipleConfigs):
+    DEFAULT_CONFIG_NAME = "a"
+
+
 class BuilderTest(TestCase):
     def test_as_dataset(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -573,3 +584,17 @@ class BuilderTest(TestCase):
             dataset3 = dummy_builder3.as_dataset("train")
             self.assertEqual(len(dataset3._data[0].chunks), 10)
             del dataset1, dataset2, dataset3
+
+    def test_config_names(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir, name="a")
+            self.assertEqual(dummy_builder.config.name, "a")
+
+            dummy_builder = DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir, name="b")
+            self.assertEqual(dummy_builder.config.name, "b")
+
+            with self.assertRaises(ValueError):
+                DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir)
+
+            dummy_builder = DummyBuilderWithDefaultConfig(cache_dir=tmp_dir)
+            self.assertEqual(dummy_builder.config.name, "a")

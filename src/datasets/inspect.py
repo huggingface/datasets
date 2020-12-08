@@ -19,7 +19,7 @@
 from typing import Optional
 
 from .hf_api import HfApi
-from .load import prepare_module
+from .load import import_main_class, prepare_module
 from .utils import DownloadConfig
 from .utils.logging import get_logger
 
@@ -95,3 +95,33 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         f"The main class is in {module_path}. "
         f"You can modify this processing scripts and use it with `datasets.load_metric({local_path})`."
     )
+
+
+def get_dataset_infos(path: str):
+    """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
+
+    Args:
+        path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
+            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+    """
+    module_path, _ = prepare_module(path)
+    builder_cls = import_main_class(module_path, dataset=True)
+    return builder_cls.get_all_exported_dataset_infos()
+
+
+def get_dataset_config_names(path: str):
+    """Get the list of available config names for a particular dataset.
+
+    Args:
+        path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
+            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+    """
+    module_path, _ = prepare_module(path)
+    builder_cls = import_main_class(module_path, dataset=True)
+    return list(builder_cls.builder_configs.keys())

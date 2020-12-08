@@ -1,5 +1,5 @@
 ---
-- YAML tags: copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+- YAML tags: copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/ or https://github.com/huggingface/datasets-tagging for local tagging
 ---
 
 # Dataset Card Creation Guide

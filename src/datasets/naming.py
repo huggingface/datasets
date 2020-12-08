@@ -23,7 +23,7 @@ import re
 _first_cap_re = re.compile("(.)([A-Z][a-z0-9]+)")
 _all_cap_re = re.compile("([a-z0-9])([A-Z])")
 
-_split_re = r"^\w+$"
+_split_re = r"^\w+(\.\w+)*$"
 
 
 def camelcase_to_snakecase(name):
