@@ -45,22 +45,25 @@ _HOMEPAGE = "https://github.com/ThiagoCF05/webnlg"
 
 _LICENSE = "CC Attribution-Noncommercial-Share Alike 4.0 International"
 
-_URL = "https://github.com/ThiagoCF05/webnlg/zipball/master/"
+_SHA = "12ca34880b225ebd1eb9db07c64e8dd76f7e5784"
+
+_URL = f"https://github.com/ThiagoCF05/webnlg/archive/{_SHA}.zip"
 
 _FILE_PATHS = {
     "en": {
-        "train": [f"data/v1.5/en/train/{i}triples/" for i in range(1, 8)],
-        "dev": [f"data/v1.5/en/dev/{i}triples/" for i in range(1, 8)],
-        "test": [f"data/v1.5/en/test/{i}triples/" for i in range(1, 8)],
+        "train": [f"webnlg-{_SHA}/data/v1.5/en/train/{i}triples/" for i in range(1, 8)],
+        "dev": [f"webnlg-{_SHA}/data/v1.5/en/dev/{i}triples/" for i in range(1, 8)],
+        "test": [f"webnlg-{_SHA}/data/v1.5/en/test/{i}triples/" for i in range(1, 8)],
     },
     "de": {
-        "train": [f"data/v1.5/de/train/{i}triples/" for i in range(1, 8)],
-        "dev": [f"data/v1.5/de/dev/{i}triples/" for i in range(1, 8)],
+        "train": [f"webnlg-{_SHA}/data/v1.5/de/train/{i}triples/" for i in range(1, 8)],
+        "dev": [f"webnlg-{_SHA}/data/v1.5/de/dev/{i}triples/" for i in range(1, 8)],
     },
 }
 
 
 def et_to_dict(tree):
+    """Takes the xml tree within a dataset file and returns a dictionary with entry data"""
     dct = {tree.tag: {} if tree.attrib else None}
     children = list(tree)
     if children:
@@ -82,6 +85,10 @@ def et_to_dict(tree):
 
 
 def parse_entry(entry):
+    """Takes the dictionary corresponding to an entry and returns a dictionary with:
+    - Proper feature naming
+    - Default values
+    - Proper typing"""
     res = {}
     otriple_set_list = entry["originaltripleset"]
     res["original_triple_sets"] = [{"otriple_set": otriple_set["otriple"]} for otriple_set in otriple_set_list]
@@ -160,9 +167,8 @@ class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         # Downloading the repo adds the current commit sha to the directory, so we can't specify the directory
         # name in advance.
-        revision_name = os.listdir(data_dir)[0]
         split_files = {
-            split: [os.path.join(data_dir, revision_name, dir_suf) for dir_suf in dir_suffix_list]
+            split: [os.path.join(data_dir, dir_suf) for dir_suf in dir_suffix_list]
             for split, dir_suffix_list in _FILE_PATHS[self.config.name].items()
         }
         return [
@@ -178,11 +184,7 @@ class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         id_ = 0
-        print(filedirs)
         for xml_location in filedirs:
-            print(os.path.isdir(xml_location))
-            print(os.listdir(xml_location))
-            print(sorted(glob(pjoin(xml_location, "*.xml"))))
             for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
                 for exple_dict in xml_file_to_examples(xml_file):
                     id_ += 1

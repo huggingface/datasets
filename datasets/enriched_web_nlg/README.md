@@ -1,4 +1,25 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- crowdsourced
+languages:
+  de:
+  - de
+  en:
+  - en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|other-web-nlg
+task_categories:
+- conditional-text-generation
+task_ids:
+- other-stuctured-to-text
 ---
 
 # Dataset Card for WebNLG
