@@ -30,7 +30,7 @@ _CITATION = """\
       Barrett, Maria  and
       Rosted, Christina  and
       Lidegaard, Lasse Malm  and
-      S{\o}gaard, Anders",
+      Søgaard, Anders",
     booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
     month = may,
     year = "2020",
