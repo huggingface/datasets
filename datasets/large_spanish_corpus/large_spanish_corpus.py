@@ -42,7 +42,7 @@ setting you can also specify the number of samples to return per corpus by confi
 
 _HOMEPAGE = "https://github.com/josecannete/spanish-corpora"
 
-_LICENSE = ""
+_LICENSE = "MIT"
 
 _URL = "https://zenodo.org/record/3247731/files/raw.tar.bz2"
 
