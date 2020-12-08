@@ -96,7 +96,7 @@ class GrailQA(datasets.GeneratorBasedBuilder):
             # No default supervised_keys (as we have to pass both question
             # and context as input).
             supervised_keys=None,
-            homepage="https://rajpurkar.github.io/SQuAD-explorer/",
+            homepage="https://dki-lab.github.io/GrailQA/",
             citation=_CITATION,
         )
 
