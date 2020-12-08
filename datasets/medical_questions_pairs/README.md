@@ -1,5 +1,22 @@
 ---
-{"task_categories": ["text-classification"], "task_ids": ["semantic-similarity-classification"], "multilinguality": ["monolingual"], "languages": ["en"], "language_creators": ["other"], "annotations_creators": ["expert-generated"], "source_datasets": ["original"], "size_categories": ["1K<n<10K"], "licenses": ["unknown"]}
+annotations_creators:
+- expert-generated
+language_creators:
+- other
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- semantic-similarity-classification
 ---
 
 # Dataset Card for [medical_questions_pairs]
@@ -29,7 +46,7 @@
 
 ## Dataset Description
 - **Repository:** [Medical questions pairs repository](https://github.com/curai/medical-question-pair-dataset)
-- **Paper:** [Effective Transfer Learning for Identifying Similar Questions:Matching User Questions to COVID-19 FAQs](https://drive.google.com/file/d/1CHPGBXkvZuZc8hpr46HeHU6U6jnVze-s/view)
+- **Paper:** [Effective Transfer Learning for Identifying Similar Questions:Matching User Questions to COVID-19 FAQs](https://arxiv.org/abs/2008.13546)
 
 ### Dataset Summary
 
@@ -132,4 +149,13 @@ The first instruction generates a positive question pair (similar) and the secon
 [More Information Needed]
 
 ### Citation Information
-[More Information Needed]
+```
+@misc{mccreery2020effective,
+      title={Effective Transfer Learning for Identifying Similar Questions: Matching User Questions to COVID-19 FAQs}, 
+      author={Clara H. McCreery and Namit Katariya and Anitha Kannan and Manish Chablani and Xavier Amatriain},
+      year={2020},
+      eprint={2008.13546},
+      archivePrefix={arXiv},
+      primaryClass={cs.IR}
+}
+```
