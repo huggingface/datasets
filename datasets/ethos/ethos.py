@@ -12,8 +12,7 @@ import datasets
 _CITATION = """
 @misc{mollas2020ethos,
       title={ETHOS: an Online Hate Speech Detection Dataset},
-      author={Ioannis Mollas and Zoe Chrysopoulou and 
-              Stamatis Karlos and Grigorios Tsoumakas},
+      author={Ioannis Mollas and Zoe Chrysopoulou and Stamatis Karlos and Grigorios Tsoumakas},
       year={2020},
       eprint={2006.08328},
       archivePrefix={arXiv},
@@ -23,16 +22,16 @@ _CITATION = """
 
 _DESCRIPTION = """
 
-ETHOS: onlinE haTe speecH detectiOn dataSet. This repository contains a dataset for hate speech 
+ETHOS: onlinE haTe speecH detectiOn dataSet. This repository contains a dataset for hate speech
 detection on social media platforms, called Ethos. There are two variations of the dataset:
 
-Ethos_Dataset_Binary: contains 998 comments in the dataset alongside with a label 
-about hate speech presence or absence. 565 of them do not contain hate speech, 
+Ethos_Dataset_Binary: contains 998 comments in the dataset alongside with a label
+about hate speech presence or absence. 565 of them do not contain hate speech,
 while the rest of them, 433, contain.
 
 Ethos_Dataset_Multi_Label: which contains 8 labels for the 433 comments with hate speech content.
-These labels are violence (if it incites (1) or not (0) violence), directed_vs_general (if it is 
-directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like, 
+These labels are violence (if it incites (1) or not (0) violence), directed_vs_general (if it is
+directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like,
 gender, race, national_origin, disability, religion and sexual_orientation.
 """
 
@@ -57,7 +56,6 @@ class EthosConfig(datasets.BuilderConfig):
             logging.warning("Wrong variation. Could be either 'binary' or 'multilabel', using 'binary' instead.")
             self.variation = "binary"
         super(EthosConfig, self).__init__(**kwargs)
-
 
 class Ethos(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = EthosConfig
