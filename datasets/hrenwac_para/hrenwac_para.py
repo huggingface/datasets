@@ -17,10 +17,11 @@ import logging
 
 import datasets
 
+
 _CITATION = """
   @misc{11356/1058,
  title = {Croatian-English parallel corpus {hrenWaC} 2.0},
- author = {Ljube{\v s}i{\'c}, Nikola and Espl{\`a}-Gomis, Miquel and Ortiz Rojas, Sergio and Klubi{\v c}ka, Filip and Toral, Antonio},
+ author = {Ljube{\v s}i{\'c}, Nikola and Espl{\'a}-Gomis, Miquel and Ortiz Rojas, Sergio and Klubi{\v c}ka, Filip and Toral, Antonio},
  url = {http://hdl.handle.net/11356/1058},
  note = {Slovenian language resource repository {CLARIN}.{SI}},
  copyright = {{CLARIN}.{SI} User Licence for Internet Corpora},
@@ -47,9 +48,9 @@ class HrEnWaCConfig(datasets.BuilderConfig):
         """
         super(HrEnWaCConfig, self).__init__(**kwargs)
 
+
 class HrEnWaC(datasets.GeneratorBasedBuilder):
     """Croatian-English parallel corpus hrenWaC"""
-
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
@@ -60,7 +61,7 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
         ),
     ]
     BUILDER_CONFIG_CLASS = HrEnWaCConfig
-    
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -77,10 +78,10 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        downloaded_file = dl_manager.download_and_extract({"train":_URLS})
-        #print(os.listdir(downloaded_file))
-        #print("------------")
-        #print(downloaded_file)
+        downloaded_file = dl_manager.download_and_extract({"train": _URLS})
+        # print(os.listdir(downloaded_file))
+        # print("------------")
+        # print(downloaded_file)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -97,12 +98,12 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
             en = ""
             hr = ""
             for id_, row in enumerate(f):
-                
-                if id_%3==0:
-                    en = (row.strip())
-                if id_%3==1:
-                    hr = (row.strip())
-                if id_%3==2:
+
+                if id_ % 3 == 0:
+                    en = row.strip()
+                if id_ % 3 == 1:
+                    hr = row.strip()
+                if id_ % 3 == 2:
                     yield id_, {
                         "en": en,
                         "hr": hr,
