@@ -42,7 +42,7 @@ _URL = "https://raw.githubusercontent.com/songys/Question_pair/master/"
 _URLs = {key: f"{_URL}{key}.txt" for key in ("train", "test", "validation")}
 
 
-class KorQPair(datasets.GeneratorBasedBuilder):
+class KorQpair(datasets.GeneratorBasedBuilder):
     """Korean pairwise question classification dataset"""
 
     VERSION = datasets.Version("1.1.0")
