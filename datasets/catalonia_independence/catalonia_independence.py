@@ -27,7 +27,7 @@ _CITATION = """\
     title = "Multilingual Stance Detection in Tweets: The {C}atalonia Independence Corpus",
     author = "Zotova, Elena  and
       Agerri, Rodrigo  and
-      Nu{\~n}ez, Manuel  and
+      Nunez, Manuel  and
       Rigau, German",
     booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
     month = may,
