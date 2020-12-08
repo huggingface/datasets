@@ -4,16 +4,16 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- en:
+  en:
   - en
-- de:
+  de:
   - de
-- it:
+  it:
   - it
-- de_en:
+  de_en:
   - en
   - de
-- it_en:
+  it_en:
   - en
   - it
 licenses:
