@@ -52,13 +52,7 @@ _REPORT_NO = "report-no"
 _CATEGORIES = "categories"
 _LICENSE = "license"
 _ABSTRACT = "abstract"
-<<<<<<< HEAD
 _UPDATE_DATE = "update_date"
-=======
-_VERSIONS = "versions"
-_UPDATE_DATE = "update_date"
-_AUTHORS_PARSED = "authors_parsed"
->>>>>>> 9fee46f262267db4255f6e45dae5a445c41f777c
 
 _FILENAME = "arxiv-metadata-oai-snapshot.json"
 
@@ -94,13 +88,7 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
             _CATEGORIES,
             _LICENSE,
             _ABSTRACT,
-<<<<<<< HEAD
             _UPDATE_DATE,
-=======
-            _VERSIONS,
-            _UPDATE_DATE,
-            _AUTHORS_PARSED,
->>>>>>> 9fee46f262267db4255f6e45dae5a445c41f777c
         ]
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -123,7 +111,6 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None, title_set=None):
         """ Yields examples. """
-<<<<<<< HEAD
         with open(path, encoding="utf8") as f:
             for i, entry in enumerate(f):
                 data = dict(json.loads(entry))
@@ -141,26 +128,3 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
                     _ABSTRACT: data["abstract"],
                     _UPDATE_DATE: data["update_date"],
                 }
-=======
-
-        data = []
-        for line in open(path, "r"):
-            data.append(json.loads(line))
-        for i, entry in enumerate(data):
-            yield i, {
-                _ID: "id",
-                _SUBMITTER: "submitter",
-                _AUTHORS: "authors",
-                _TITLE: "title",
-                _COMMENTS: "comments",
-                _JOURNAL_REF: "journal-ref",
-                _DOI: "doi",
-                _REPORT_NO: "report-no",
-                _CATEGORIES: "categories",
-                _LICENSE: "license",
-                _ABSTRACT: "abstract",
-                _VERSIONS: "versions",
-                _UPDATE_DATE: "update_date",
-                _AUTHORS_PARSED: "authors_parsed",
-            }
->>>>>>> 9fee46f262267db4255f6e45dae5a445c41f777c
