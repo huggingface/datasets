@@ -194,7 +194,6 @@ class PubMedQA(datasets.GeneratorBasedBuilder):
                 )
             ]
         elif self.config.name == "pqa_unlabeled":
-            print(downloaded_files["ori_pqau"])
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["ori_pqau"]}
@@ -202,7 +201,6 @@ class PubMedQA(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath):
-        # print(os.path.join(filepath,"ori_pqaa.json"))
         """Yields examples."""
         with open(filepath) as f:
             data = json.load(f)
