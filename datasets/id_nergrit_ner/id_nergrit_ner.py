@@ -179,7 +179,6 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         logging.info("⏳ Generating %s examples from = %s", split, filepath)
         with open(filepath, encoding="utf-8") as f:
-            print("filepath:", filepath)
             guid = 0
             tokens = []
             ner_tags = []
