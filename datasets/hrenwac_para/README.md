@@ -4,19 +4,20 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ca
+- en
+- hr
 licenses:
 - cc-by-sa-3.0
 multilinguality:
-- monolingual
+- multilingual
 size_categories:
-- n>1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- conditional-text-generation
 task_ids:
-- language-modeling
+- machine-translation
 ---
 
 # Dataset Card for caWaC

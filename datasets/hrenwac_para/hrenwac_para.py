@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Croatian-English parallel corpus hrenWaC"""
-import logging
 
 import datasets
 
@@ -34,19 +33,8 @@ The hrenWaC corpus version 2.0 consists of parallel Croatian-English texts crawl
 
 _LICENSE = "CC BY-SA 3.0"
 
-_URL = "http://nlp.ffzg.hr/resources/corpora/hrenwac/"
+_HOMEPAGE = "http://nlp.ffzg.hr/resources/corpora/hrenwac/"
 _URLS = "http://nlp.ffzg.hr/data/corpora/hrenwac/hrenwac.en-hr.txt.gz"
-
-
-class HrEnWaCConfig(datasets.BuilderConfig):
-    """BuilderConfig for hrenWaC."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for MedHop.
-        Args:
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(HrEnWaCConfig, self).__init__(**kwargs)
 
 
 class HrEnWaC(datasets.GeneratorBasedBuilder):
@@ -54,13 +42,12 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        HrEnWaCConfig(
+        datasets.BuilderConfig(
             name="hrenWaC",
             version=VERSION,
             description="The hrenWaC dataset.",
         ),
     ]
-    BUILDER_CONFIG_CLASS = HrEnWaCConfig
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -72,16 +59,13 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage=_URL,
+            homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         downloaded_file = dl_manager.download_and_extract({"train": _URLS})
-        # print(os.listdir(downloaded_file))
-        # print("------------")
-        # print(downloaded_file)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -92,13 +76,10 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating examples from = %s", filepath)
-
         with open(filepath, encoding="utf8") as f:
             en = ""
             hr = ""
             for id_, row in enumerate(f):
-
                 if id_ % 3 == 0:
                     en = row.strip()
                 if id_ % 3 == 1:
