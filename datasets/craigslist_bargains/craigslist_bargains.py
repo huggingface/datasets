@@ -115,7 +115,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train"], 'parsed.json'),
+                    "filepath": os.path.join(data_dir["train"], "parsed.json"),
                     "split": "train",
                 },
             ),
@@ -128,7 +128,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["validation"], 'parsed.json'),
+                    "filepath": os.path.join(data_dir["validation"], "parsed.json"),
                     "split": "validation",
                 },
             ),
