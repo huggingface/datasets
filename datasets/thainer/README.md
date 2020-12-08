@@ -19,7 +19,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- structure-prediction-other-pos-tagging
+- parsing
 ---
 
 # Dataset Card for `thainer`

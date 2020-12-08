@@ -30,19 +30,19 @@ The POS tags are done by [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp)'s `
 """
 
 
-class ThaiNERConfig(datasets.BuilderConfig):
-    """BuilderConfig for ThaiNER."""
+class ThaiNerConfig(datasets.BuilderConfig):
+    """BuilderConfig for ThaiNer."""
 
     def __init__(self, **kwargs):
-        """BuilderConfig for ThaiNER.
+        """BuilderConfig for ThaiNer.
 
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ThaiNERConfig, self).__init__(**kwargs)
+        super(ThaiNerConfig, self).__init__(**kwargs)
 
 
-class ThaiNER(datasets.GeneratorBasedBuilder):
+class ThaiNer(datasets.GeneratorBasedBuilder):
 
     _DOWNLOAD_URL = "https://github.com/wannaphong/thai-ner/raw/master/model/1.3/data-pos.conll"
     _SENTENCE_SPLITTERS = ["", " ", "\n"]
@@ -94,7 +94,7 @@ class ThaiNER(datasets.GeneratorBasedBuilder):
     ]
 
     BUILDER_CONFIGS = [
-        ThaiNERConfig(
+        ThaiNerConfig(
             name="thainer",
             version=datasets.Version("1.3.0"),
             description="Thai Named Entity Recognition for PyThaiNLP (6,456 sentences)",
