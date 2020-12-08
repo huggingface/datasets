@@ -102,7 +102,6 @@ class GrailQA(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         dl_path = os.path.join(dl_manager.download_and_extract(_URL), "GrailQA_v1.0")
-        print(dl_path)
 
         return [
             datasets.SplitGenerator(
