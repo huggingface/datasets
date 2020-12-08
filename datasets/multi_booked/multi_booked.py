@@ -159,6 +159,6 @@ class MultiBooked(datasets.GeneratorBasedBuilder):
                                 for target in opinion_expression.findall("span/target"):
                                     targets.append(target.get("id", ""))
                                 example["opinions"]["opinion_expression_target"].append(targets)
-                except Exception as e:
+                except Exception:
                     pass
             yield id_, example
