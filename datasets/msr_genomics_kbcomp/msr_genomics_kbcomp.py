@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -23,7 +22,6 @@ import os
 import datasets
 
 
-# TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{toutanova-etal-2016-compositional,
@@ -44,19 +42,14 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
-The database is derived from the NCI PID Pathway Interaction Database, and the textual mentions are extracted from cooccurring pairs of genes in PubMed abstracts, processed and annotated by Literome (Poon et al. 2014). This dataset was used in the paper “Compositional Learning of Embeddings for Relation Paths in Knowledge Bases and Text” (Toutanova, Lin, Yih, Poon, and Quirk, 2016). 
+The database is derived from the NCI PID Pathway Interaction Database, and the textual mentions are extracted from cooccurring pairs of genes in PubMed abstracts, processed and annotated by Literome (Poon et al. 2014). This dataset was used in the paper “Compositional Learning of Embeddings for Relation Paths in Knowledge Bases and Text” (Toutanova, Lin, Yih, Poon, and Quirk, 2016).
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://msropendata.com/datasets/80b4f6e8-5d7c-4abc-9c79-2e51dfedd791"
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class MsrGenomicsKbcomp(datasets.GeneratorBasedBuilder):
-    """TODO(msr_genomics_kbcomp): Short description of my dataset."""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -67,7 +60,6 @@ class MsrGenomicsKbcomp(datasets.GeneratorBasedBuilder):
   """
 
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -76,7 +68,9 @@ class MsrGenomicsKbcomp(datasets.GeneratorBasedBuilder):
                 {
                     # These are the features of your dataset like images, labels ...
                     "GENE1": datasets.Value("string"),
-                    "relation": datasets.Value("string"),
+                    "relation": datasets.features.ClassLabel(
+                        names=["Positive_regulation", "Negative_regulation", "Family"]
+                    ),
                     "GENE2": datasets.Value("string"),
                 }
             ),
@@ -91,7 +85,6 @@ class MsrGenomicsKbcomp(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(msr_genomics_kbcomp): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
@@ -122,7 +115,6 @@ class MsrGenomicsKbcomp(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        # TODO(msr_genomics_kbcomp): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for id_, row in enumerate(data):
