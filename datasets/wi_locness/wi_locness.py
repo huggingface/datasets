@@ -37,7 +37,7 @@ _CITATION = """\
     title = "The {BEA}-2019 Shared Task on Grammatical Error Correction",
     author = "Bryant, Christopher  and
         Felice, Mariano  and
-        Andersen, {\O}istein E.  and
+        Andersen, {\\O}istein E.  and
         Briscoe, Ted",
     booktitle = "Proceedings of the Fourteenth Workshop on Innovative Use of NLP for Building Educational Applications",
     month = aug,
@@ -47,7 +47,7 @@ _CITATION = """\
     url = "https://www.aclweb.org/anthology/W19-4406",
     doi = "10.18653/v1/W19-4406",
     pages = "52--75",
-    abstract = "This paper reports on the BEA-2019 Shared Task on Grammatical Error Correction (GEC). As with the CoNLL-2014 shared task, participants are required to correct all types of errors in test data. One of the main contributions of the BEA-2019 shared task is the introduction of a new dataset, the Write{\&}Improve+LOCNESS corpus, which represents a wider range of native and learner English levels and abilities. Another contribution is the introduction of tracks, which control the amount of annotated data available to participants. Systems are evaluated in terms of ERRANT F{\_}0.5, which allows us to report a much wider range of performance statistics. The competition was hosted on Codalab and remains open for further submissions on the blind test set.",
+    abstract = "This paper reports on the BEA-2019 Shared Task on Grammatical Error Correction (GEC). As with the CoNLL-2014 shared task, participants are required to correct all types of errors in test data. One of the main contributions of the BEA-2019 shared task is the introduction of a new dataset, the Write{\\&}Improve+LOCNESS corpus, which represents a wider range of native and learner English levels and abilities. Another contribution is the introduction of tracks, which control the amount of annotated data available to participants. Systems are evaluated in terms of ERRANT F{\\_}0.5, which allows us to report a much wider range of performance statistics. The competition was hosted on Codalab and remains open for further submissions on the blind test set.",
 }
 """
 
