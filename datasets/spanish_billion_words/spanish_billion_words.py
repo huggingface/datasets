@@ -53,8 +53,9 @@ class SpanishBillionWords(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="corpus", version=VERSION,
-            description="100 text files where each line represents a sentence from the corpus"
+            name="corpus",
+            version=VERSION,
+            description="100 text files where each line represents a sentence from the corpus",
         ),
     ]
 
@@ -77,10 +78,7 @@ class SpanishBillionWords(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "directory": os.path.join(data_dir, 'spanish_billion_words')
-                }
+                name=datasets.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "spanish_billion_words")}
             )
         ]
 
