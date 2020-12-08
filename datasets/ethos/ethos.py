@@ -1,25 +1,9 @@
-# coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-3.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Lint as: python3
 """Ethos  dataset"""
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import logging
+
 import pandas as pd
 
 import datasets
@@ -28,7 +12,8 @@ import datasets
 _CITATION = """
 @misc{mollas2020ethos,
       title={ETHOS: an Online Hate Speech Detection Dataset},
-      author={Ioannis Mollas and Zoe Chrysopoulou and Stamatis Karlos and Grigorios Tsoumakas},
+      author={Ioannis Mollas and Zoe Chrysopoulou and 
+              Stamatis Karlos and Grigorios Tsoumakas},
       year={2020},
       eprint={2006.08328},
       archivePrefix={arXiv},
@@ -38,11 +23,17 @@ _CITATION = """
 
 _DESCRIPTION = """
 
-ETHOS: onlinE haTe speecH detectiOn dataSet. This repository contains a dataset for hate speech detection on social media platforms, called Ethos. There are two variations of the dataset:
+ETHOS: onlinE haTe speecH detectiOn dataSet. This repository contains a dataset for hate speech 
+detection on social media platforms, called Ethos. There are two variations of the dataset:
 
-Ethos_Dataset_Binary.csv[Ethos_Dataset_Binary.csv] contains 998 comments in the dataset alongside with a label about hate speech presence or absence. 565 of them do not contain hate speech, while the rest of them, 433, contain.
+Ethos_Dataset_Binary: contains 998 comments in the dataset alongside with a label 
+about hate speech presence or absence. 565 of them do not contain hate speech, 
+while the rest of them, 433, contain.
 
-Ethos_Dataset_Multi_Label.csv [Ethos_Dataset_Multi_Label.csv] which contains 8 labels for the 433 comments with hate speech content. These labels are violence (if it incites (1) or not (0) violence), directed_vs_general (if it is directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like, gender, race, national_origin, disability, religion and sexual_orientation.
+Ethos_Dataset_Multi_Label: which contains 8 labels for the 433 comments with hate speech content.
+These labels are violence (if it incites (1) or not (0) violence), directed_vs_general (if it is 
+directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like, 
+gender, race, national_origin, disability, religion and sexual_orientation.
 """
 
 _URL = "https://github.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset"
@@ -55,6 +46,7 @@ class EthosConfig(datasets.BuilderConfig):
         """Constructs an EthosDataset.
 
         Args:
+        variation: can be binary or multilabel
         **kwargs: keyword arguments forwarded to super.
         """
         if variation.lower() == 'binary':
@@ -62,7 +54,8 @@ class EthosConfig(datasets.BuilderConfig):
         elif variation.lower() == 'multilabel':
             self.variation = 'multilabel'
         else:
-            logging.warning("Wrong variation. Could be either 'binary' or 'multilabel', using 'binary' instead.")
+            logging.warning("Wrong variation. Could be either \
+                'binary' or 'multilabel', using 'binary' instead.")
             self.variation = 'binary'
         super(EthosConfig, self).__init__(**kwargs)
 
@@ -108,18 +101,25 @@ class Ethos(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             features=f,
             supervised_keys=None,
-            homepage="https://github.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/tree/master/ethos/ethos_data",
+            homepage=
+            "https://github.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/tree/master\
+                /ethos/ethos_data",
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         if self.config.variation == 'binary':
-            url = { 'train':  'https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/master/ethos/ethos_data/Ethos_Dataset_Binary.csv'}
+            url = { 'train':  
+            'https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/master\
+                /ethos/ethos_data/Ethos_Dataset_Binary.csv'}
         else:
-            url = {'train': 'https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/master/ethos/ethos_data/Ethos_Dataset_Multi_Label.csv'}
+            url = {'train': 
+            'https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/master\
+                /ethos/ethos_data/Ethos_Dataset_Multi_Label.csv'}
         downloaded_files = dl_manager.download_and_extract(url)
         
-        return [datasets.SplitGenerator( name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]})]
+        return [datasets.SplitGenerator( name=datasets.Split.TRAIN, 
+                                         gen_kwargs={"filepath": downloaded_files["train"]})]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
