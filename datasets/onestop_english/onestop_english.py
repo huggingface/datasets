@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import logging
 import os
 
 import datasets
@@ -45,7 +46,7 @@ _URL = "https://github.com/purvimisal/OneStopCorpus-Compiled/raw/main/Texts-Sepa
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class OneStopEnglish(datasets.GeneratorBasedBuilder):
+class OnestopEnglish(datasets.GeneratorBasedBuilder):
     """OneStopEnglish Corpus: Dataset of texts classified into reading levels"""
 
     VERSION = datasets.Version("1.1.0")
@@ -74,79 +75,52 @@ class OneStopEnglish(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
-            ),
+            )
         ]
 
     def _get_examples_from_split(self, split_key, data_dir):
-        """Reads the downloaded and extracted files and combines the individual text files to one dataset and split it into 80% train,
-        10% validation and 10% test data."""
+        """Reads the downloaded and extracted files and combines the individual text files to one dataset."""
 
         data_dir = os.path.join(data_dir, "Texts-SeparatedByReadingLevel")
 
         ele_samples = []
-        dir_path = data_dir + "/Ele-Txt/"
+        dir_path = os.path.join(data_dir, "Ele-Txt")
         files = os.listdir(dir_path)
-        print("DIRPATH", dir_path)
-        for f in files:
+        for f in sorted(files):
             try:
-                with open(dir_path + f, encoding="utf-8-sig") as myfile:
+                with open(os.path.join(dir_path, f), encoding="utf-8-sig") as myfile:
                     text = myfile.read().strip()
                     ele_samples.append(text)
             except Exception as e:
-                print("Error with:", dir_path + f, e)
+                logging.info("Error with:", dir_path + f, e)
 
         int_samples = []
-        dir_path = data_dir + "/Int-Txt/"
-        print("DIRPATH", dir_path)
+        dir_path = os.path.join(data_dir, "Int-Txt")
         files = os.listdir(dir_path)
-        for f in files:
+        for f in sorted(files):
             try:
-                with open(dir_path + f, encoding="utf-8-sig") as myfile:
+                with open(os.path.join(dir_path, f), encoding="utf-8-sig") as myfile:
                     text = myfile.read().strip()
                     int_samples.append(text)
             except Exception as e:
-                print("Error with:", dir_path + f, e)
+                logging.info("Error with:", dir_path + f, e)
 
         adv_samples = []
-        dir_path = data_dir + "/Adv-Txt/"
-        print("DIRPATH", dir_path)
+        dir_path = os.path.join(data_dir, "Adv-Txt")
         files = os.listdir(dir_path)
-        for f in files:
+        for f in sorted(files):
             try:
-                with open(dir_path + f, encoding="utf-8-sig") as myfile:
+                with open(os.path.join(dir_path, f), encoding="utf-8-sig") as myfile:
                     text = myfile.read().strip()
                     adv_samples.append(text)
             except Exception as e:
-                print("Error with:", dir_path + f, e)
+                logging.info("Error with:", dir_path + f, e)
 
-        # 80/ 10/ 10 split of dataset
-        i1 = int(len(ele_samples) * 0.8 + 0.5)
-        i2 = int(len(ele_samples) * 0.9 + 0.5)
-        train_samples = ele_samples[:i1] + int_samples[:i1] + adv_samples[:i1]
-        train_labels = (["ele"] * i1) + (["int"] * i1) + (["adv"] * i1)
-        validation_samples = ele_samples[i1:i2] + int_samples[i1:i2] + adv_samples[i1:i2]
-        validation_labels = (["ele"] * (i2 - i1)) + (["int"] * (i2 - i1)) + (["adv"] * (i1 - i1))
-        test_samples = ele_samples[i2:] + int_samples[i2:] + adv_samples[i2:]
-        test_labels = (
-            (["ele"] * (len(ele_samples) - i2))
-            + (["int"] * (len(ele_samples) - i2))
-            + (["adv"] * (len(ele_samples) - i2))
-        )
+        train_samples = ele_samples + int_samples + adv_samples
+        train_labels = (["ele"] * len(ele_samples)) + (["int"] * len(int_samples)) + (["adv"] * len(adv_samples))
 
         if split_key == "train":
             return (train_samples, train_labels)
-        if split_key == "validation":
-            return (validation_samples, validation_labels)
-        if split_key == "test":
-            return (test_samples, test_labels)
         else:
             raise ValueError(f"Invalid split key {split_key}")
 
