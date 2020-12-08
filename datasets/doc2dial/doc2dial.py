@@ -101,8 +101,8 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "da": datasets.Value("string"),
                             "reference": datasets.features.Sequence(
                                 {
-                                    "keys": datasets.Value("string"),   
-                                    "values": datasets.Value("string"), 
+                                    "Key" : datasets.Value("string"),
+                                    "Values": datasets.Value("string"),   
                                 }
  
                             ),
@@ -133,6 +133,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
 
+        # filepath = "/Users/karimfoda/Downloads/doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json"
         logging.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
@@ -142,26 +143,29 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                     # print(doc_id)
                     for dialogue in data["dial_data"][domain][doc_id]:
                         # print(conv_id)
-                        print(dialogue["dial_id"])
-                        for turn in dialogue['turns']:
-                            print(turn["turn_id"])
-                            print(type(turn))
+                        # print(dialogue["dial_id"])
+                        # for turn in dialogue['turns']:
+                        #     print(turn["turn_id"])
+                        #     print(type(turn["turn_id"]))
 
-                            for reference in turn['reference']:
-                                print(reference)
-                                print(type(reference))
+                            # for reference in turn['reference']:
+                            #     print(reference)
+                            #     print(type(reference))
 
-                                # Features currently used are "context", "question", and "answers".
-                                # Others are extracted here for the ease of future expansions.
-                                yield dialogue["dial_id"], {
-                                        "dial_id":dialogue["dial_id"],
-                                        "domain":domain,
-                                        "doc_id": doc_id,
-                                        "turns" : {
-                                            "turn_id" : turn["turn_id"],
-                                            "role" : turn["role"],
-                                            "da" : turn["da"],
-                                            "reference" : {reference : turn['reference'][reference]},
-                                            "utternace" : turn["utterance"]
+                        # Features currently used are "context", "question", and "answers".
+                        # Others are extracted here for the ease of future expansions.
+                        yield dialogue["dial_id"], {
+                                "dial_id":dialogue["dial_id"],
+                                "domain":domain,
+                                "doc_id": doc_id,
+                                "turns" : {
+                                    "turn_id" : [i['turn_id'] for i in dialogue['turns']],
+                                    "role" : [i['role'] for i in dialogue['turns']],
+                                    "da" : [i['da'] for i in dialogue['turns']],
+                                    "reference" : { 
+                                        "keys" : [[ref for ref in turn["reference"]]for turn in dialogue['turns']],
+                                        "values" : [[turn["reference"][ref]for ref in turn["reference"]]for turn in dialogue['turns']],
                                         },
-                                    }
+                                    "utternace" : [i['utterance'] for i in dialogue['turns']]
+                                },
+                            }
