@@ -6,106 +6,301 @@ multilinguality:
 task_ids:
 - language-modeling
 languages:
-- ar
-- af
-- an
-- am
-- as
-- az
-- be
-- bg
-- bn
-- br
-- bs
-- ca
-- cs
-- cy
-- da
-- de
-- dz
-- en
-- el
-- eo
-- es
-- et
-- eu
-- fa
-- fi
-- fr
-- fy
-- ga
-- gd
-- gl
-- gu
-- ha
-- he
-- hi
-- hr
-- hu
-- hy
-- id
-- ig
-- is
-- it
-- ja
-- ka
-- kk
-- km
-- ko
-- kn
-- ku
-- ky
-- li
-- lt
-- lv
-- mg
-- mk
-- ml
-- mn
-- mr
-- ms
-- mt
-- my
-- nb
-- ne
-- nl
-- nn
-- no
-- oc
-- or
-- pa
-- pl
-- ps
-- pt
-- ro
-- ru
-- rw
-- se
-- sh
-- si
-- sk
-- sl
-- sq
-- sr
-- sv
-- ta
-- tg
-- te
-- th
-- tk
-- tr
-- tt
-- ug
-- uk
-- ur
-- uz
-- vi
-- wa
-- xh
-- yi
-- yo
-- zh
-- zu
+  af-en:
+  - af
+  - en
+  am-en:
+  - am
+  - en
+  an-en:
+  - an
+  - en
+  ar-en:
+  - ar
+  - en
+  as-en:
+  - as
+  - en
+  az-en:
+  - az
+  - en
+  be-en:
+  - be
+  - en
+  bg-en:
+  - bg
+  - en
+  bn-en:
+  - bn
+  - en
+  br-en:
+  - br
+  - en
+  bs-en:
+  - bs
+  - en
+  ca-en:
+  - ca
+  - en
+  cs-en:
+  - cs
+  - en
+  cy-en:
+  - cy
+  - en
+  da-en:
+  - da
+  - en
+  de-en:
+  - de
+  - en
+  dz-en:
+  - dz
+  - en
+  el-en:
+  - el
+  - en
+  en-eo:
+  - en
+  - eo
+  en-es:
+  - en
+  - es
+  en-et:
+  - en
+  - et
+  en-eu:
+  - en
+  - eu
+  en-fa:
+  - en
+  - fa
+  en-fi:
+  - en
+  - fi
+  en-fr:
+  - en
+  - fr
+  en-fy:
+  - en
+  - fy
+  en-ga:
+  - en
+  - ga
+  en-gd:
+  - en
+  - gd
+  en-gl:
+  - en
+  - gl
+  en-gu:
+  - en
+  - gu
+  en-ha:
+  - en
+  - ha
+  en-he:
+  - en
+  - he
+  en-hi:
+  - en
+  - hi
+  en-hr:
+  - en
+  - hr
+  en-hu:
+  - en
+  - hu
+  en-hy:
+  - en
+  - hy
+  en-id:
+  - en
+  - id
+  en-ig:
+  - en
+  - ig
+  en-is:
+  - en
+  - is
+  en-it:
+  - en
+  - it
+  en-ja:
+  - en
+  - ja
+  en-ka:
+  - en
+  - ka
+  en-kk:
+  - en
+  - kk
+  en-km:
+  - en
+  - km
+  en-ko:
+  - en
+  - ko
+  en-kn:
+  - en
+  - kn
+  en-ku:
+  - en
+  - ku
+  en-ky:
+  - en
+  - ky
+  en-li:
+  - en
+  - li
+  en-lt:
+  - en
+  - lt
+  en-lv:
+  - en
+  - lv
+  en-mg:
+  - en
+  - mg
+  en-mk:
+  - en
+  - mk
+  en-ml:
+  - en
+  - ml
+  en-mn:
+  - en
+  - mn
+  en-mr:
+  - en
+  - mr
+  en-ms:
+  - en
+  - ms
+  en-mt:
+  - en
+  - mt
+  en-my:
+  - en
+  - my
+  en-nb:
+  - en
+  - nb
+  en-ne:
+  - en
+  - ne
+  en-nl:
+  - en
+  - nl
+  en-nn:
+  - en
+  - nn
+  en-no:
+  - en
+  - no
+  en-oc:
+  - en
+  - oc
+  en-or:
+  - en
+  - or
+  en-pa:
+  - en
+  - pa
+  en-pl:
+  - en
+  - pl
+  en-ps:
+  - en
+  - ps
+  en-pt:
+  - en
+  - pt
+  en-ro:
+  - en
+  - ro
+  en-ru:
+  - en
+  - ru
+  en-rw:
+  - en
+  - rw
+  en-se:
+  - en
+  - se
+  en-sh:
+  - en
+  - sh
+  en-si:
+  - en
+  - si
+  en-sk:
+  - en
+  - sk
+  en-sl:
+  - en
+  - sl
+  en-sq:
+  - en
+  - sq
+  en-sr:
+  - en
+  - sr
+  en-sv:
+  - en
+  - sv
+  en-ta:
+  - en
+  - ta
+  en-te:
+  - en
+  - te
+  en-tg:
+  - en
+  - tg
+  en-th:
+  - en
+  - th
+  en-tk:
+  - en
+  - tk
+  en-tr:
+  - en
+  - tr
+  en-tt:
+  - en
+  - tt
+  en-ug:
+  - en
+  - ug
+  en-uk:
+  - en
+  - uk
+  en-ur:
+  - en
+  - ur
+  en-uz:
+  en-vi:
+  - en
+  - vi
+  en-wa:
+  - en
+  - wa
+  en-xh:
+  - en
+  - xh
+  en-yi:
+  - en
+  - yi
+  en-yo:
+  - en
+  - yo
+  en-zh:
+  - en
+  - zh
+  en-zu:
+  - en
+  - zu
 annotations_creators:
 - no-annotation
 source_datasets:
