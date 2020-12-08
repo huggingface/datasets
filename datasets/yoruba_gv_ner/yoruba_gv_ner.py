@@ -27,11 +27,11 @@ import datasets
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{alabi-etal-2020-massive,
-    title = "Massive vs. Curated Embeddings for Low-Resourced Languages: the Case of {Y}or{\`u}b{\'a} and {T}wi",
+    title = "Massive vs. Curated Embeddings for Low-Resourced Languages: the Case of {Yorùbá} and {T}wi",
     author = "Alabi, Jesujoba  and
       Amponsah-Kaakyire, Kwabena  and
       Adelani, David  and
-      Espa{\~n}a-Bonet, Cristina",
+      Espa{\\~n}a-Bonet, Cristina",
     booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
     month = may,
     year = "2020",
@@ -47,15 +47,15 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-The Yoruba GV NER dataset is a labeled dataset for named entity recognition in Yoruba. The texts were obtained from 
+The Yoruba GV NER dataset is a labeled dataset for named entity recognition in Yoruba. The texts were obtained from
 Yoruba Global Voices News articles https://yo.globalvoices.org/ . We concentrate on
 four types of named entities: persons [PER], locations [LOC], organizations [ORG], and dates & time [DATE].
 
-The Yoruba GV NER data files contain 2 columns separated by a tab ('\t'). Each word has been put on a separate line and 
+The Yoruba GV NER data files contain 2 columns separated by a tab ('\t'). Each word has been put on a separate line and
 there is an empty line after each sentences i.e the CoNLL format. The first item on each line is a word, the second
-is the named entity tag. The named entity tags have the format I-TYPE which means that the word is inside a phrase 
+is the named entity tag. The named entity tags have the format I-TYPE which means that the word is inside a phrase
 of type TYPE. For every multi-word expression like 'New York', the first word gets a tag B-TYPE and the subsequent words
-have tags I-TYPE, a word with tag O is not part of a phrase. The dataset is in the BIO tagging scheme.  
+have tags I-TYPE, a word with tag O is not part of a phrase. The dataset is in the BIO tagging scheme.
 
 For more details, see https://www.aclweb.org/anthology/2020.lrec-1.335/
 """
