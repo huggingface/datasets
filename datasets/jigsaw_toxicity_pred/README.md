@@ -70,7 +70,7 @@ The comments are in English
 
 A data point consists of a comment followed by multiple labels that can be associated with it.
 {'id': '02141412312',
- 'comment_text': 'Sample text',
+ 'comment_text': 'Sample comment text',
  'toxic': 0,
  'severe_toxic': 0,
  'obscene': 0,
