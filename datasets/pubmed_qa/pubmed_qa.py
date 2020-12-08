@@ -87,7 +87,7 @@ class PubMedQAConfig(datasets.BuilderConfig):
         super(PubMedQAConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class PubMedQA(datasets.GeneratorBasedBuilder):
+class PubmedQA(datasets.GeneratorBasedBuilder):
     """PubMedQA: A Dataset for Biomedical Research Question Answering"""
 
     VERSION = datasets.Version("1.0.0")
