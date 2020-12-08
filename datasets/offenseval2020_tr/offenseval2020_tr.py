@@ -10,6 +10,7 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 @InProceedings{coltekin2020lrec,
  author  = {Cagri Coltekin},
@@ -24,7 +25,7 @@ _CITATION = """\
 
 
 _DESCRIPTION = """\
-OffensEval-TR 2020 is a Turkish offensive language corpus. The corpus consist of randomly sampled tweets, and annotated in a similar way to OffensEval and GermEval.
+OffensEval-TR 2020 is a Turkish offensive language corpus. The corpus consist of randomly sampled tweets and annotated in a similar way to OffensEval and GermEval.
 """
 
 _HOMEPAGE = "https://coltekin.github.io/offensive-turkish/"
@@ -46,6 +47,7 @@ class OffensEval2020TRConfig(datasets.BuilderConfig):
 
 class OffensEval2020TR(datasets.GeneratorBasedBuilder):
     """OffensEval-TR 2020: A Corpus of Turkish Offensive Language on Social Media"""
+
     BUILDER_CONFIGS = [
         OffensEval2020TRConfig(
             name="offenseval2020-turkish",
@@ -77,17 +79,23 @@ class OffensEval2020TR(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, _FOLDER_NAME.format(split='training'), "offenseval-tr-training-v1.tsv"),
-                    "labelpath": None
+                    "filepath": os.path.join(
+                        data_dir, _FOLDER_NAME.format(split="training"), "offenseval-tr-training-v1.tsv"
+                    ),
+                    "labelpath": None,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, _FOLDER_NAME.format(split='testset'), "offenseval-tr-testset-v1.tsv"),
-                    "labelpath": os.path.join(data_dir, _FOLDER_NAME.format(split='testset'), "offenseval-tr-labela-v1.tsv"),
+                    "filepath": os.path.join(
+                        data_dir, _FOLDER_NAME.format(split="testset"), "offenseval-tr-testset-v1.tsv"
+                    ),
+                    "labelpath": os.path.join(
+                        data_dir, _FOLDER_NAME.format(split="testset"), "offenseval-tr-labela-v1.tsv"
+                    ),
                 },
-            )
+            ),
         ]
 
     def _generate_examples(self, filepath, labelpath):
@@ -98,21 +106,15 @@ class OffensEval2020TR(datasets.GeneratorBasedBuilder):
             with open(filepath, encoding="utf-8") as f:
                 with open(labelpath, encoding="utf-8") as f2:
                     reader_testset = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-                    reader_label = csv.DictReader(f2, delimiter=",", quoting=csv.QUOTE_NONE, fieldnames=['id', 'subtask_a'])
+                    reader_label = csv.DictReader(
+                        f2, delimiter=",", quoting=csv.QUOTE_NONE, fieldnames=["id", "subtask_a"]
+                    )
                     list_label = list(reader_label)
                     for idx, row in enumerate(reader_testset):
                         row_label = list_label[idx]
-                        yield idx, {
-                            "id": row["id"],
-                            "tweet": row["tweet"],
-                            "subtask_a": row_label["subtask_a"]
-                        }
+                        yield idx, {"id": row["id"], "tweet": row["tweet"], "subtask_a": row_label["subtask_a"]}
         else:
             with open(filepath, encoding="utf-8") as f:
                 reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for idx, row in enumerate(reader):
-                    yield idx, {
-                        "id": row["id"],
-                        "tweet": row["tweet"],
-                        "subtask_a": row["subtask_a"]
-                    }
+                    yield idx, {"id": row["id"], "tweet": row["tweet"], "subtask_a": row["subtask_a"]}
