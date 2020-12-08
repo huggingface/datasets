@@ -60,7 +60,6 @@ have tags I-TYPE, a word with tag O is not part of a phrase. The dataset is in t
 For more details, see https://www.aclweb.org/anthology/2020.lrec-1.335/
 """
 
-_URL = "https://github.com/davidsbatista/NER-datasets/raw/master/CONLL2003/"
 _URL = "https://github.com/ajesujoba/YorubaTwi-Embedding/raw/master/Yoruba/Yoruba-NER/"
 _TRAINING_FILE = "train.tsv"
 _DEV_FILE = "valid.tsv"
