@@ -80,6 +80,7 @@ Example of one instance in the dataset.
     - 0 = negative
     - 1 = positive
     - 2 = no impact
+    - 3 = mixed (both negative and positive)
 > Note: The original dataset uses different label indices  (negative = -1, no impact = 0, positive = 1) 
 
 ### Data Splits

@@ -44,6 +44,7 @@ _URLS = {
     "dev": f"{_BASE_URL}/dev.tsv",
     "test": f"{_BASE_URL}/test.tsv",
 }
+_LABLE_MAPPING = {-1: 0, 0: 2, 1: 1, 2: 3}
 
 
 class PoemSentiment(datasets.GeneratorBasedBuilder):
@@ -58,7 +59,7 @@ class PoemSentiment(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("int32"),
                     "verse_text": datasets.Value("string"),
-                    "label": datasets.ClassLabel(names=["negative", "positive", "no_impact"]),
+                    "label": datasets.ClassLabel(names=["negative", "positive", "no_impact", "mixed"]),
                 }
             ),
             supervised_keys=None,
@@ -80,6 +81,5 @@ class PoemSentiment(datasets.GeneratorBasedBuilder):
             for line in lines:
                 fields = line.strip().split("\t")
                 idx, verse_text, label = fields
-                label = int(label)
-                label = label + 1 if label == 1 or label == -1 else label
+                label = _LABLE_MAPPING[int(label)]
                 yield int(idx), {"id": int(idx), "verse_text": verse_text, "label": label}
