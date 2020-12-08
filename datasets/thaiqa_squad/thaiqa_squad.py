@@ -32,7 +32,7 @@ class ThaiQaSquadConfig(datasets.BuilderConfig):
         super(ThaiQaSquadConfig, self).__init__(**kwargs)
 
 
-class ThaiQaSquad(datasets.GeneratorBasedBuilder):
+class ThaiqaSquad(datasets.GeneratorBasedBuilder):
     _DOWNLOAD_URL = "https://github.com/PyThaiNLP/thaiqa_squad/raw/main/data.zip"
     _TRAIN_FILE = "train.jsonl"
     _VAL_FILE = "dev.jsonl"
