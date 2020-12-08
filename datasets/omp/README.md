@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - expert-generated
 language_creators:
@@ -20,7 +19,7 @@ task_ids:
 - sentiment-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for One Million Posts Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -55,15 +54,9 @@ task_ids:
 
 ### Dataset Summary
 
-The “One Million Posts” corpus is an annotated data set consisting of
-user comments posted to an Austrian newspaper website (in German language).
+The “One Million Posts” corpus is an annotated data set consisting of user comments posted to an Austrian newspaper website (in German language).
 
-DER STANDARD is an Austrian daily broadsheet newspaper. On the newspaper’s website,
-there is a discussion section below each news article where readers engage in
-online discussions. The data set contains a selection of user posts from the
-12 month time span from 2015-06-01 to 2016-05-31. There are 11,773 labeled and
-1,000,000 unlabeled posts in the data set. The labeled posts were annotated by
-professional forum moderators employed by the newspaper.
+DER STANDARD is an Austrian daily broadsheet newspaper. On the newspaper’s website, there is a discussion section below each news article where readers engage in online discussions. The data set contains a selection of user posts from the 12 month time span from 2015-06-01 to 2016-05-31. There are 11,773 labeled and 1,000,000 unlabeled posts in the data set. The labeled posts were annotated by professional forum moderators employed by the newspaper.
 
 The data set contains the following data for each post:
 
@@ -88,14 +81,12 @@ For each article, the data set contains the following data:
 
 Detailed descriptions of the post selection and annotation procedures are given in the paper.
 
-## Annotated Categories
+#### Annotated Categories
 
 Potentially undesirable content:
 
 * Sentiment (negative/neutral/positive)
-    An important goal is to detect changes in the prevalent sentiment in a discussion, e.g.,
-    the location within the fora and the point in time where a turn from positive/neutral
-    sentiment to negative sentiment takes place.
+    An important goal is to detect changes in the prevalent sentiment in a discussion, e.g., the location within the fora and the point in time where a turn from positive/neutral sentiment to negative sentiment takes place.
 * Off-Topic (yes/no)
     Posts which digress too far from the topic of the corresponding article.
 * Inappropriate (yes/no)
@@ -106,17 +97,14 @@ Potentially undesirable content:
 Neutral content that requires a reaction:
 
 * Feedback (yes/no)
-    Sometimes users ask questions or give feedback to the author of the article or the
-    newspaper in general, which may require a reply/reaction.
+    Sometimes users ask questions or give feedback to the author of the article or the newspaper in general, which may require a reply/reaction.
 
 Potentially desirable content:
 
 * Personal Stories (yes/no)
-    In certain fora, users are encouraged to share their personal stories, experiences,
-    anecdotes etc. regarding the respective topic.
+    In certain fora, users are encouraged to share their personal stories, experiences, anecdotes etc. regarding the respective topic.
 * Arguments Used (yes/no)
-    It is desirable for users to back their statements with rational argumentation,
-    reasoning and sources.
+    It is desirable for users to back their statements with rational argumentation, reasoning and sources.
 
 ### Supported Tasks and Leaderboards
 
@@ -192,8 +180,20 @@ Austrian German
 
 ### Licensing Information
 
-[More Information Needed]
+This data set is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{Schabus2018,
+  author    = {Dietmar Schabus and Marcin Skowron},
+  title     = {Academic-Industrial Perspective on the Development and Deployment of a Moderation System for a Newspaper Website},
+  booktitle = {Proceedings of the 11th International Conference on Language Resources and Evaluation (LREC)},
+  year      = {2018},
+  address   = {Miyazaki, Japan},
+  month     = may,
+  pages     = {1602-1605},
+  abstract  = {This paper describes an approach and our experiences from the development, deployment and usability testing of a Natural Language Processing (NLP) and Information Retrieval system that supports the moderation of user comments on a large newspaper website. We highlight some of the differences between industry-oriented and academic research settings and their influence on the decisions made in the data collection and annotation processes, selection of document representation and machine learning methods. We report on classification results, where the problems to solve and the data to work with come from a commercial enterprise. In this context typical for NLP research, we discuss relevant industrial aspects. We believe that the challenges faced as well as the solutions proposed for addressing them can provide insights to others working in a similar setting.},
+  url       = {http://www.lrec-conf.org/proceedings/lrec2018/summaries/8885.html},
+}
+```

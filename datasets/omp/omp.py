@@ -107,10 +107,9 @@ _HOMEPAGE = "https://ofai.github.io/million-post-corpus/"
 _LICENSE = "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
 
 _URLs = {
-    # "github_ofai": "https://github.com/OFAI/million-post-corpus/releases/download/v1.0.0/million_post_corpus.tar.bz2",
-    "posts_labeled": "https://www.dropbox.com/s/weedgzge5ianl87/posts_labeled.csv.gz?dl=1",
-    "posts_unlabeled": "https://www.dropbox.com/s/k774g5camqw1qv6/posts_unlabeled.csv.gz?dl=1",
-    "articles": "https://www.dropbox.com/s/9ue1cwoonxmze70/articles.csv.gz?dl=1",
+    "posts_labeled": "https://github.com/aseifert/million-post-corpus/raw/master/data/posts_labeled.csv.xz",
+    "posts_unlabeled": "https://github.com/aseifert/million-post-corpus/raw/master/data/posts_unlabeled.csv.xz",
+    "articles": "https://github.com/aseifert/million-post-corpus/raw/master/data/articles.csv.xz",
 }
 
 
@@ -229,6 +228,8 @@ class Omp(datasets.GeneratorBasedBuilder):
                 fname = "posts_unlabeled.csv.gz"
             elif self.config.name == "articles":
                 fname = "articles.csv.gz"
+            else:
+                assert False
             data_path = data_path / fname
 
         return [
