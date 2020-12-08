@@ -38,20 +38,20 @@ _URL = "https://github.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset"
 class EthosConfig(datasets.BuilderConfig):
     """BuilderConfig for Ethos."""
 
-    def __init__(self, variation='binary', **kwargs):
+    def __init__(self, variation="binary", **kwargs):
         """Constructs an EthosDataset.
 
         Args:
         variation: can be binary or multilabel
         **kwargs: keyword arguments forwarded to super.
         """
-        if variation.lower() == 'binary':
-            self.variation = 'binary'
-        elif variation.lower() == 'multilabel':
-            self.variation = 'multilabel'
+        if variation.lower() == "binary":
+            self.variation = "binary"
+        elif variation.lower() == "multilabel":
+            self.variation = "multilabel"
         else:
             logging.warning("Wrong variation. Could be either 'binary' or 'multilabel', using 'binary' instead.")
-            self.variation = 'binary'
+            self.variation = "binary"
         super(EthosConfig, self).__init__(**kwargs)
 
 
@@ -74,12 +74,13 @@ class Ethos(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        if self.config.variation == 'binary':
+        if self.config.variation == "binary":
             f = datasets.Features(
                 {
                     "text": datasets.Value("string"),
                     "label": datasets.features.ClassLabel(names=["no_hate_speech", "hate_speech"]),
-                })
+                }
+            )
         else:
             f = datasets.Features(
                 {
@@ -92,42 +93,45 @@ class Ethos(datasets.GeneratorBasedBuilder):
                     "disability": datasets.Value("int32"),
                     "religion": datasets.Value("int32"),
                     "sexual_orientation": datasets.Value("int32"),
-                })
+                }
+            )
         return datasets.DatasetInfo(
             features=f,
             supervised_keys=None,
-            homepage=
-            "https://github.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/tree/masterethos/ethos_data",
+            homepage="https://github.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset/tree/masterethos/ethos_data",
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        if self.config.variation == 'binary':
-            url = {'train': 'https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset'
-                            '/master/ethos/ethos_data/Ethos_Dataset_Binary.csv'}
+        if self.config.variation == "binary":
+            url = {
+                "train": "https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset"
+                "/master/ethos/ethos_data/Ethos_Dataset_Binary.csv"
+            }
         else:
-            url = {'train': 'https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset'
-                            '/master/ethos/ethos_data/Ethos_Dataset_Multi_Label.csv'}
+            url = {
+                "train": "https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset"
+                "/master/ethos/ethos_data/Ethos_Dataset_Multi_Label.csv"
+            }
         downloaded_files = dl_manager.download_and_extract(url)
 
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN,
-                                        gen_kwargs={"filepath": downloaded_files["train"]})]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]})]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
 
-        data = pd.read_csv(filepath, delimiter=';')
-        if self.config.variation == 'binary':
+        data = pd.read_csv(filepath, delimiter=";")
+        if self.config.variation == "binary":
 
-            x = data['comment'].values
-            y = [1 if i >= 0.5 else 0 for i in data['isHate'].values]
+            x = data["comment"].values
+            y = [1 if i >= 0.5 else 0 for i in data["isHate"].values]
             class_names = ["no_hate_speech", "hate_speech"]
             for i in range(len(x)):
                 _id = i
-                yield _id, {'text': x[i], 'label': class_names[y[i]]}
+                yield _id, {"text": x[i], "label": class_names[y[i]]}
         else:
-            x = data['comment'].values
-            y_temp = data.loc[:, data.columns != 'comment'].values
+            x = data["comment"].values
+            y_temp = data.loc[:, data.columns != "comment"].values
             y = []
             for yt in y_temp:
                 yi = []
@@ -139,12 +143,14 @@ class Ethos(datasets.GeneratorBasedBuilder):
                 y.append(yi)
             for i in range(len(x)):
                 _id = i
-                yield _id, {"text": x[i],
-                            "violence": y[i][0],
-                            "directed_vs_generalized": y[i][1],
-                            "gender": y[i][2],
-                            "race": y[i][3],
-                            "national_origin": y[i][4],
-                            "disability": y[i][5],
-                            "religion": y[i][6],
-                            "sexual_orientation": y[i][7]}
+                yield _id, {
+                    "text": x[i],
+                    "violence": y[i][0],
+                    "directed_vs_generalized": y[i][1],
+                    "gender": y[i][2],
+                    "race": y[i][3],
+                    "national_origin": y[i][4],
+                    "disability": y[i][5],
+                    "religion": y[i][6],
+                    "sexual_orientation": y[i][7],
+                }
