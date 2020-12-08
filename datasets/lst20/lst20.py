@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import os
+from pathlib import Path
 
 import datasets
 
@@ -25,20 +26,20 @@ Manually download at https://aiforthai.in.th/corpus.php
 """
 
 
-class LST20Config(datasets.BuilderConfig):
-    """BuilderConfig for LST20"""
+class Lst20Config(datasets.BuilderConfig):
+    """BuilderConfig for Lst20"""
 
     def __init__(self, **kwargs):
-        """BuilderConfig for LST20.
+        """BuilderConfig for Lst20.
 
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(LST20Config, self).__init__(**kwargs)
+        super(Lst20Config, self).__init__(**kwargs)
 
 
-class LST20(datasets.GeneratorBasedBuilder):
-    """LST20 dataset."""
+class Lst20(datasets.GeneratorBasedBuilder):
+    """Lst20 dataset."""
 
     _SENTENCE_SPLITTERS = ["", " ", "\n"]
     _TRAINING_FOLDER = "train"
@@ -81,7 +82,7 @@ class LST20(datasets.GeneratorBasedBuilder):
     _CLAUSE_TAGS = ["O", "B_CLS", "I_CLS", "E_CLS"]
 
     BUILDER_CONFIGS = [
-        LST20Config(name="lst20", version=datasets.Version("1.0.0"), description="LST20 dataset"),
+        Lst20Config(name="lst20", version=datasets.Version("1.0.0"), description="LST20 dataset"),
     ]
 
     @property
@@ -153,7 +154,7 @@ class LST20(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        for fname in glob.glob(f"{filepath}/*.txt"):
+        for fname in sorted(glob.glob(f"{filepath}/*.txt")):
             with open(fname, encoding="utf-8") as f:
                 guid = 0
                 tokens = []
@@ -166,7 +167,7 @@ class LST20(datasets.GeneratorBasedBuilder):
                         if tokens:
                             yield guid, {
                                 "id": str(guid),
-                                "fname": fname.split("/")[-1],
+                                "fname": Path(fname).name,
                                 "tokens": tokens,
                                 "pos_tags": pos_tags,
                                 "ner_tags": ner_tags,
@@ -189,7 +190,7 @@ class LST20(datasets.GeneratorBasedBuilder):
                 # last example
                 yield guid, {
                     "id": str(guid),
-                    "fname": fname.split("/")[-1],
+                    "fname": Path(fname).name,
                     "tokens": tokens,
                     "pos_tags": pos_tags,
                     "ner_tags": ner_tags,

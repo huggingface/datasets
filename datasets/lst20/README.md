@@ -10,15 +10,17 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+- 100k<n<1M
 source_datasets:
 - original
 task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- structure-prediction-other-pos-tagging, clause-segmentation, sentence-segmentation,
-  word-segmentation
+- parsing
+- structure-prediction-other-clause-segmentation
+- structure-prediction-other-sentence-segmentation
+- structure-prediction-other-word-segmentation
 ---
 
 # Dataset Card for LST20
