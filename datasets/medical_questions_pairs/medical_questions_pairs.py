@@ -25,7 +25,7 @@ import datasets
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @misc{mccreery2020effective,
-      title={Effective Transfer Learning for Identifying Similar Questions: Matching User Questions to COVID-19 FAQs}, 
+      title={Effective Transfer Learning for Identifying Similar Questions: Matching User Questions to COVID-19 FAQs},
       author={Clara H. McCreery and Namit Katariya and Anitha Kannan and Manish Chablani and Xavier Amatriain},
       year={2020},
       eprint={2008.13546},
