@@ -147,8 +147,8 @@ The data was collected and processed by Cristian Cardellino.
 
 ### Licensing Information
 
-Spanish Billion Word Corpus and Embeddings by Cristian Cardellino is licensed under a 
-[Creative Commons Attribution-ShareAlike 4.0 International License.](https://creativecommons.org/licenses/by-sa/4.0/)
+The dataset is licensed under a
+Creative Commons Attribution-ShareAlike 4.0 International license [(CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ### Citation Information
 ```
