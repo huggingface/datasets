@@ -1,5 +1,4 @@
 ---
-YAML tags:
 {"task_categories": [], "task_ids": [], "multilinguality": [multilingual], "languages": [multiple], "language_creators": [Unknown], "annotations_creators": [Unknown], "source_datasets": [Original], "size_categories": ["10K<n<100K"], "licenses": [Unknown]}
 ---
 
