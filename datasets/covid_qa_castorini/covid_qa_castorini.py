@@ -44,7 +44,7 @@ _URL = "https://raw.githubusercontent.com/castorini/pygaggle/master/data/"
 _URLs = {"covid_qa_castorini": _URL + "kaggle-lit-review-0.2.json"}
 
 
-class CovidQA(datasets.GeneratorBasedBuilder):
+class CovidQaCastorini(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.2.0")
 
     BUILDER_CONFIGS = [
