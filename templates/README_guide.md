@@ -1,5 +1,6 @@
 ---
-- YAML tags: copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/ or https://github.com/huggingface/datasets-tagging for local tagging
+YAML tags:
+- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
 ---
 
 # Dataset Card Creation Guide
@@ -11,8 +12,8 @@
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -71,6 +72,8 @@ Provide any additional information that is not covered in the other sections abo
 List and describe the fields present in the dataset. Mention their data type, and whether they are used as input or output in any of the tasks the dataset currently supports. If the data has span indices, describe their attributes, such as whether they are at the character level or word level, whether they are contiguous or not, etc. If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
 
 - `example_field`: description of `example_field`
+
+Note that the descriptions can be initialized with the **Show Markdown Data Fields** output of the [tagging app](https://github.com/huggingface/datasets-tagging), you will then only need to refine the generated descriptions.
 
 ### Data Splits
 
