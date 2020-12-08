@@ -83,12 +83,12 @@ class CuriosityDialogs(datasets.GeneratorBasedBuilder):
                     "messages": datasets.Sequence(
                         {
                             "message": datasets.Value("string"),
-                            "liked": datasets.ClassLabel(names=["True", "False"]),
+                            "liked": datasets.ClassLabel(names=["False", "True"]),
                             "sender": datasets.ClassLabel(names=["user", "assistant"]),
                             "facts": datasets.Sequence(
                                 {
                                     "fid": datasets.Value("int32"),
-                                    "used": datasets.ClassLabel(names=["True", "False"]),
+                                    "used": datasets.ClassLabel(names=["False", "True"]),
                                     "source": datasets.ClassLabel(names=["section", "known", "random"]),
                                 }
                             ),
@@ -99,23 +99,23 @@ class CuriosityDialogs(datasets.GeneratorBasedBuilder):
                     "known_entities": datasets.Sequence(datasets.Value("string")),
                     "focus_entity": datasets.Value("string"),
                     "dialog_id": datasets.Value("int32"),
-                    "inferred_steps": datasets.ClassLabel(names=["True", "False"]),
+                    "inferred_steps": datasets.ClassLabel(names=["False", "True"]),
                     "created_time": datasets.Value("int64"),
                     "aspects": datasets.Sequence(datasets.Value("string")),
                     "first_aspect": datasets.Value("string"),
                     "second_aspect": datasets.Value("string"),
-                    "shuffle_facts": datasets.ClassLabel(names=["True", "False"]),
+                    "shuffle_facts": datasets.ClassLabel(names=["False", "True"]),
                     "related_entities": datasets.Sequence(datasets.Value("string")),
                     "tag": datasets.Value("string"),
                     "user_id": datasets.Value("int32"),
                     "assistant_id": datasets.Value("int32"),
-                    "is_annotated": datasets.ClassLabel(names=["True", "False"]),
+                    "is_annotated": datasets.ClassLabel(names=["False", "True"]),
                     "user_dialog_rating": datasets.Value("int32"),
                     "user_other_agent_rating": datasets.Value("int32"),
                     "assistant_dialog_rating": datasets.Value("int32"),
                     "assistant_other_agent_rating": datasets.Value("int32"),
-                    "reported": datasets.ClassLabel(names=["True", "False"]),
-                    "annotated": datasets.ClassLabel(names=["True", "False"]),
+                    "reported": datasets.ClassLabel(names=["False", "True"]),
+                    "annotated": datasets.ClassLabel(names=["False", "True"]),
                 }
             ),
             supervised_keys=None,
