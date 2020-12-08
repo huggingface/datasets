@@ -41,18 +41,18 @@ A dataset of 1.7 million arXiv articles for applications like trend analysis, pa
 _HOMEPAGE = "https://www.kaggle.com/Cornell-University/arxiv"
 _LICENSE = "https://creativecommons.org/publicdomain/zero/1.0/"
 
-_ID = "id"
-_SUBMITTER = "submitter"
-_AUTHORS = "authors"
-_TITLE = "title"
-_COMMENTS = "comments"
-_JOURNAL_REF = "journal-ref"
-_DOI = "doi"
-_REPORT_NO = "report-no"
-_CATEGORIES = "categories"
-_LICENSE = "license"
-_ABSTRACT = "abstract"
-_UPDATE_DATE = "update_date"
+_ID = 'id'
+_SUBMITTER = 'submitter'
+_AUTHORS = 'authors'
+_TITLE = 'title'
+_COMMENTS = 'comments'
+_JOURNAL_REF = 'journal-ref'
+_DOI = 'doi'
+_REPORT_NO = 'report-no'
+_CATEGORIES = 'categories'
+_LICENSE = 'license'
+_ABSTRACT = 'abstract'
+_UPDATE_DATE = 'update_date'
 
 _FILENAME = "arxiv-metadata-oai-snapshot.json"
 
@@ -76,20 +76,7 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
     """
 
     def _info(self):
-        feature_names = [
-            _ID,
-            _SUBMITTER,
-            _AUTHORS,
-            _TITLE,
-            _COMMENTS,
-            _JOURNAL_REF,
-            _DOI,
-            _REPORT_NO,
-            _CATEGORIES,
-            _LICENSE,
-            _ABSTRACT,
-            _UPDATE_DATE,
-        ]
+        feature_names = [_ID, _SUBMITTER, _AUTHORS, _TITLE, _COMMENTS, _JOURNAL_REF, _DOI, _REPORT_NO, _CATEGORIES, _LICENSE, _ABSTRACT, _UPDATE_DATE]
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features({k: datasets.Value("string") for k in feature_names}),
@@ -103,9 +90,7 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
         path_to_manual_file = os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _FILENAME)
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('arxiv_dataset', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, _FILENAME, self.manual_download_instructions
-                )
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('arxiv_dataset', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(path_to_manual_file, _FILENAME, self.manual_download_instructions)
             )
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
 
@@ -115,16 +100,16 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
             for i, entry in enumerate(f):
                 data = dict(json.loads(entry))
                 yield i, {
-                    _ID: data["id"],
-                    _SUBMITTER: data["submitter"],
-                    _AUTHORS: data["authors"],
-                    _TITLE: data["title"],
-                    _COMMENTS: data["comments"],
-                    _JOURNAL_REF: data["journal-ref"],
-                    _DOI: data["doi"],
-                    _REPORT_NO: data["report-no"],
-                    _CATEGORIES: data["categories"],
-                    _LICENSE: data["license"],
-                    _ABSTRACT: data["abstract"],
-                    _UPDATE_DATE: data["update_date"],
-                }
+                _ID: data["id"],
+                _SUBMITTER: data["submitter"],
+                _AUTHORS: data["authors"],
+                _TITLE: data["title"],
+                _COMMENTS: data["comments"],
+                _JOURNAL_REF: data["journal-ref"],
+                _DOI: data["doi"],
+                _REPORT_NO: data["report-no"],
+                _CATEGORIES: data["categories"],
+                _LICENSE: data["license"],
+                _ABSTRACT: data["abstract"],
+                _UPDATE_DATE: data["update_date"],
+            }
