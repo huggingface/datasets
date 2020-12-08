@@ -75,7 +75,7 @@ The data consists of tab seperated entries
 ```
 {'translation': 
   {'en': 'Unit 1: What is Creative Commons?',
-  'yor': '﻿Ìdá 1: Kín ni Creative Commons?'
+  'yo': '﻿Ìdá 1: Kín ni Creative Commons?'
   }
 }
 
@@ -84,7 +84,7 @@ The data consists of tab seperated entries
 ### Data Fields
 
 - `en`: English sentence
-- `yor`: Yoruba sentence
+- `yo`: Yoruba sentence
 
 
 ### Data Splits
