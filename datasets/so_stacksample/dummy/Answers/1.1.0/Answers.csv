@@ -1,0 +1,13 @@
+92,61,2008-08-01T14:45:37Z,90,13,"<p><a href=""http://svnbook.red-bean.com/"">Version Control with Subversion</a></p>
+
+<p>A very good resource for source control in general. Not really TortoiseSVN specific, though.</p>"
+124,26,2008-08-01T16:09:47Z,80,12,"<p>I wound up using this. It is a kind of a hack, but it actually works pretty well. The only thing is you have to be very careful with your semicolons. : D</p>
+
+<pre><code>var strSql:String = stream.readUTFBytes(stream.bytesAvailable);      
+var i:Number = 0;
+var strSqlSplit:Array = strSql.split("";"");
+for (i = 0; i &lt; strSqlSplit.length; i++){
+    NonQuery(strSqlSplit[i].toString());
+}
+</code></pre>
+"
