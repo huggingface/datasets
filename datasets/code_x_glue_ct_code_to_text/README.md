@@ -129,84 +129,84 @@ An example of 'test' looks as follows.
 
 #### javascript
 
-An example of 'validation' looks as follows.
+An example of 'test' looks as follows.
 ```
 {
-    "code": "function getCounts(langs = []) {\n    return {\n        langs: langs.length,\n        modelLangs: langs.filter(({ models }) => models && !!models.length).length,\n        models: langs.map(({ models }) => (models ? models.length : 0)).reduce((a, b) => a + b, 0),\n    }\n}", 
-    "code_tokens": ["function", "getCounts", "(", "langs", "=", "[", "]", ")", "{", "return", "{", "langs", ":", "langs", ".", "length", ",", "modelLangs", ":", "langs", ".", "filter", "(", "(", "{", "models", "}", ")", "=>", "models", "&&", "!", "!", "models", ".", "length", ")", ".", "length", ",", "models", ":", "langs", ".", "map", "(", "(", "{", "models", "}", ")", "=>", "(", "models", "?", "models", ".", "length", ":", "0", ")", ")", ".", "reduce", "(", "(", "a", ",", "b", ")", "=>", "a", "+", "b", ",", "0", ")", ",", "}", "}"], 
-    "docstring": "Compute the overall total counts of models and languages", 
-    "docstring_tokens": ["Compute", "the", "overall", "total", "counts", "of", "models", "and", "languages"], 
-    "func_name": "getCounts", 
+    "code": "function createInstance(defaultConfig) {\n  var context = new Axios(defaultConfig);\n  var instance = bind(Axios.prototype.request, context);\n\n  // Copy axios.prototype to instance\n  utils.extend(instance, Axios.prototype, context);\n\n  // Copy context to instance\n  utils.extend(instance, context);\n\n  return instance;\n}", 
+    "code_tokens": ["function", "createInstance", "(", "defaultConfig", ")", "{", "var", "context", "=", "new", "Axios", "(", "defaultConfig", ")", ";", "var", "instance", "=", "bind", "(", "Axios", ".", "prototype", ".", "request", ",", "context", ")", ";", "// Copy axios.prototype to instance", "utils", ".", "extend", "(", "instance", ",", "Axios", ".", "prototype", ",", "context", ")", ";", "// Copy context to instance", "utils", ".", "extend", "(", "instance", ",", "context", ")", ";", "return", "instance", ";", "}"], 
+    "docstring": "Create an instance of Axios\n\n@param {Object} defaultConfig The default config for the instance\n@return {Axios} A new instance of Axios", 
+    "docstring_tokens": ["Create", "an", "instance", "of", "Axios"], 
+    "func_name": "createInstance", 
     "id": 0, 
     "language": "javascript", 
-    "original_string": "function getCounts(langs = []) {\n    return {\n        langs: langs.length,\n        modelLangs: langs.filter(({ models }) => models && !!models.length).length,\n        models: langs.map(({ models }) => (models ? models.length : 0)).reduce((a, b) => a + b, 0),\n    }\n}", 
-    "path": "website/src/widgets/landing.js", 
-    "repo": "explosion/spaCy", 
-    "sha": "a1e07f0d147e470cd4f0fd99bb62d28ddba7dd8d", 
-    "url": "https://github.com/explosion/spaCy/blob/a1e07f0d147e470cd4f0fd99bb62d28ddba7dd8d/website/src/widgets/landing.js#L55-L61"
+    "original_string": "function createInstance(defaultConfig) {\n  var context = new Axios(defaultConfig);\n  var instance = bind(Axios.prototype.request, context);\n\n  // Copy axios.prototype to instance\n  utils.extend(instance, Axios.prototype, context);\n\n  // Copy context to instance\n  utils.extend(instance, context);\n\n  return instance;\n}", 
+    "path": "lib/axios.js", 
+    "repo": "axios/axios", 
+    "sha": "92d231387fe2092f8736bc1746d4caa766b675f5", 
+    "url": "https://github.com/axios/axios/blob/92d231387fe2092f8736bc1746d4caa766b675f5/lib/axios.js#L15-L26"
 }
 ```
  
 
 #### php
 
-An example of 'validation' looks as follows.
+An example of 'train' looks as follows.
 ```
 {
-    "code": "public static function supports(IOInterface $io, Config $config, $url, $deep = false)\n    {\n        if (!preg_match(self::URL_REGEX, $url, $match)) {\n            return false;\n        }\n\n        $scheme = !empty($match['scheme']) ? $match['scheme'] : null;\n        $guessedDomain = !empty($match['domain']) ? $match['domain'] : $match['domain2'];\n        $urlParts = explode('/', $match['parts']);\n\n        if (false === self::determineOrigin((array) $config->get('gitlab-domains'), $guessedDomain, $urlParts)) {\n            return false;\n        }\n\n        if ('https' === $scheme && !extension_loaded('openssl')) {\n            $io->writeError('Skipping GitLab driver for '.$url.' because the OpenSSL PHP extension is missing.', true, IOInterface::VERBOSE);\n\n            return false;\n        }\n\n        return true;\n    }", 
-    "code_tokens": ["public", "static", "function", "supports", "(", "IOInterface", "$", "io", ",", "Config", "$", "config", ",", "$", "url", ",", "$", "deep", "=", "false", ")", "{", "if", "(", "!", "preg_match", "(", "self", "::", "URL_REGEX", ",", "$", "url", ",", "$", "match", ")", ")", "{", "return", "false", ";", "}", "$", "scheme", "=", "!", "empty", "(", "$", "match", "[", "'scheme'", "]", ")", "?", "$", "match", "[", "'scheme'", "]", ":", "null", ";", "$", "guessedDomain", "=", "!", "empty", "(", "$", "match", "[", "'domain'", "]", ")", "?", "$", "match", "[", "'domain'", "]", ":", "$", "match", "[", "'domain2'", "]", ";", "$", "urlParts", "=", "explode", "(", "'/'", ",", "$", "match", "[", "'parts'", "]", ")", ";", "if", "(", "false", "===", "self", "::", "determineOrigin", "(", "(", "array", ")", "$", "config", "->", "get", "(", "'gitlab-domains'", ")", ",", "$", "guessedDomain", ",", "$", "urlParts", ")", ")", "{", "return", "false", ";", "}", "if", "(", "'https'", "===", "$", "scheme", "&&", "!", "extension_loaded", "(", "'openssl'", ")", ")", "{", "$", "io", "->", "writeError", "(", "'Skipping GitLab driver for '", ".", "$", "url", ".", "' because the OpenSSL PHP extension is missing.'", ",", "true", ",", "IOInterface", "::", "VERBOSE", ")", ";", "return", "false", ";", "}", "return", "true", ";", "}"], 
-    "docstring": "Uses the config `gitlab-domains` to see if the driver supports the url for the\nrepository given.\n\n{@inheritDoc}", 
-    "docstring_tokens": ["Uses", "the", "config", "gitlab", "-", "domains", "to", "see", "if", "the", "driver", "supports", "the", "url", "for", "the", "repository", "given", "."], 
-    "func_name": "GitLabDriver.supports", 
+    "code": "public static function build($serviceAddress, $restConfigPath, array $config = [])\n    {\n        $config += [\n            'httpHandler'  => null,\n        ];\n        list($baseUri, $port) = self::normalizeServiceAddress($serviceAddress);\n        $requestBuilder = new RequestBuilder(\"$baseUri:$port\", $restConfigPath);\n        $httpHandler = $config['httpHandler'] ?: self::buildHttpHandlerAsync();\n        return new RestTransport($requestBuilder, $httpHandler);\n    }", 
+    "code_tokens": ["public", "static", "function", "build", "(", "$", "serviceAddress", ",", "$", "restConfigPath", ",", "array", "$", "config", "=", "[", "]", ")", "{", "$", "config", "+=", "[", "'httpHandler'", "=>", "null", ",", "]", ";", "list", "(", "$", "baseUri", ",", "$", "port", ")", "=", "self", "::", "normalizeServiceAddress", "(", "$", "serviceAddress", ")", ";", "$", "requestBuilder", "=", "new", "RequestBuilder", "(", "\"$baseUri:$port\"", ",", "$", "restConfigPath", ")", ";", "$", "httpHandler", "=", "$", "config", "[", "'httpHandler'", "]", "?", ":", "self", "::", "buildHttpHandlerAsync", "(", ")", ";", "return", "new", "RestTransport", "(", "$", "requestBuilder", ",", "$", "httpHandler", ")", ";", "}"], 
+    "docstring": "Builds a RestTransport.\n\n@param string $serviceAddress\nThe address of the API remote host, for example \"example.googleapis.com\".\n@param string $restConfigPath\nPath to rest config file.\n@param array $config {\nConfig options used to construct the gRPC transport.\n\n@type callable $httpHandler A handler used to deliver PSR-7 requests.\n}\n@return RestTransport\n@throws ValidationException", 
+    "docstring_tokens": ["Builds", "a", "RestTransport", "."], 
+    "func_name": "RestTransport.build", 
     "id": 0, 
     "language": "php", 
-    "original_string": "public static function supports(IOInterface $io, Config $config, $url, $deep = false)\n    {\n        if (!preg_match(self::URL_REGEX, $url, $match)) {\n            return false;\n        }\n\n        $scheme = !empty($match['scheme']) ? $match['scheme'] : null;\n        $guessedDomain = !empty($match['domain']) ? $match['domain'] : $match['domain2'];\n        $urlParts = explode('/', $match['parts']);\n\n        if (false === self::determineOrigin((array) $config->get('gitlab-domains'), $guessedDomain, $urlParts)) {\n            return false;\n        }\n\n        if ('https' === $scheme && !extension_loaded('openssl')) {\n            $io->writeError('Skipping GitLab driver for '.$url.' because the OpenSSL PHP extension is missing.', true, IOInterface::VERBOSE);\n\n            return false;\n        }\n\n        return true;\n    }", 
-    "path": "src/Composer/Repository/Vcs/GitLabDriver.php", 
-    "repo": "composer/composer", 
-    "sha": "5d615a16d175fcbdb67a536ef9d6fc4e8a1f6f2b", 
-    "url": "https://github.com/composer/composer/blob/5d615a16d175fcbdb67a536ef9d6fc4e8a1f6f2b/src/Composer/Repository/Vcs/GitLabDriver.php#L451-L472"
+    "original_string": "public static function build($serviceAddress, $restConfigPath, array $config = [])\n    {\n        $config += [\n            'httpHandler'  => null,\n        ];\n        list($baseUri, $port) = self::normalizeServiceAddress($serviceAddress);\n        $requestBuilder = new RequestBuilder(\"$baseUri:$port\", $restConfigPath);\n        $httpHandler = $config['httpHandler'] ?: self::buildHttpHandlerAsync();\n        return new RestTransport($requestBuilder, $httpHandler);\n    }", 
+    "path": "src/Transport/RestTransport.php", 
+    "repo": "googleapis/gax-php", 
+    "sha": "48387fb818c6882296710a2302a0aa973b99afb2", 
+    "url": "https://github.com/googleapis/gax-php/blob/48387fb818c6882296710a2302a0aa973b99afb2/src/Transport/RestTransport.php#L85-L94"
 }
 ```
  
 
 #### python
 
-An example of 'test' looks as follows.
+An example of 'validation' looks as follows.
 ```
 {
-    "code": "def sina_xml_to_url_list(xml_data):\n    \"\"\"str->list\n    Convert XML to URL List.\n    From Biligrab.\n    \"\"\"\n    rawurl = []\n    dom = parseString(xml_data)\n    for node in dom.getElementsByTagName('durl'):\n        url = node.getElementsByTagName('url')[0]\n        rawurl.append(url.childNodes[0].data)\n    return rawurl", 
-    "code_tokens": ["def", "sina_xml_to_url_list", "(", "xml_data", ")", ":", "rawurl", "=", "[", "]", "dom", "=", "parseString", "(", "xml_data", ")", "for", "node", "in", "dom", ".", "getElementsByTagName", "(", "'durl'", ")", ":", "url", "=", "node", ".", "getElementsByTagName", "(", "'url'", ")", "[", "0", "]", "rawurl", ".", "append", "(", "url", ".", "childNodes", "[", "0", "]", ".", "data", ")", "return", "rawurl"], 
-    "docstring": "str->list\n    Convert XML to URL List.\n    From Biligrab.", 
-    "docstring_tokens": ["str", "-", ">", "list", "Convert", "XML", "to", "URL", "List", ".", "From", "Biligrab", "."], 
-    "func_name": "sina_xml_to_url_list", 
+    "code": "def save_act(self, path=None):\n        \"\"\"Save model to a pickle located at `path`\"\"\"\n        if path is None:\n            path = os.path.join(logger.get_dir(), \"model.pkl\")\n\n        with tempfile.TemporaryDirectory() as td:\n            save_variables(os.path.join(td, \"model\"))\n            arc_name = os.path.join(td, \"packed.zip\")\n            with zipfile.ZipFile(arc_name, 'w') as zipf:\n                for root, dirs, files in os.walk(td):\n                    for fname in files:\n                        file_path = os.path.join(root, fname)\n                        if file_path != arc_name:\n                            zipf.write(file_path, os.path.relpath(file_path, td))\n            with open(arc_name, \"rb\") as f:\n                model_data = f.read()\n        with open(path, \"wb\") as f:\n            cloudpickle.dump((model_data, self._act_params), f)", 
+    "code_tokens": ["def", "save_act", "(", "self", ",", "path", "=", "None", ")", ":", "if", "path", "is", "None", ":", "path", "=", "os", ".", "path", ".", "join", "(", "logger", ".", "get_dir", "(", ")", ",", "\"model.pkl\"", ")", "with", "tempfile", ".", "TemporaryDirectory", "(", ")", "as", "td", ":", "save_variables", "(", "os", ".", "path", ".", "join", "(", "td", ",", "\"model\"", ")", ")", "arc_name", "=", "os", ".", "path", ".", "join", "(", "td", ",", "\"packed.zip\"", ")", "with", "zipfile", ".", "ZipFile", "(", "arc_name", ",", "'w'", ")", "as", "zipf", ":", "for", "root", ",", "dirs", ",", "files", "in", "os", ".", "walk", "(", "td", ")", ":", "for", "fname", "in", "files", ":", "file_path", "=", "os", ".", "path", ".", "join", "(", "root", ",", "fname", ")", "if", "file_path", "!=", "arc_name", ":", "zipf", ".", "write", "(", "file_path", ",", "os", ".", "path", ".", "relpath", "(", "file_path", ",", "td", ")", ")", "with", "open", "(", "arc_name", ",", "\"rb\"", ")", "as", "f", ":", "model_data", "=", "f", ".", "read", "(", ")", "with", "open", "(", "path", ",", "\"wb\"", ")", "as", "f", ":", "cloudpickle", ".", "dump", "(", "(", "model_data", ",", "self", ".", "_act_params", ")", ",", "f", ")"], 
+    "docstring": "Save model to a pickle located at `path`", 
+    "docstring_tokens": ["Save", "model", "to", "a", "pickle", "located", "at", "path"], 
+    "func_name": "ActWrapper.save_act", 
     "id": 0, 
     "language": "python", 
-    "original_string": "def sina_xml_to_url_list(xml_data):\n    \"\"\"str->list\n    Convert XML to URL List.\n    From Biligrab.\n    \"\"\"\n    rawurl = []\n    dom = parseString(xml_data)\n    for node in dom.getElementsByTagName('durl'):\n        url = node.getElementsByTagName('url')[0]\n        rawurl.append(url.childNodes[0].data)\n    return rawurl", 
-    "path": "src/you_get/extractors/miomio.py", 
-    "repo": "soimort/you-get", 
-    "sha": "b746ac01c9f39de94cac2d56f665285b0523b974", 
-    "url": "https://github.com/soimort/you-get/blob/b746ac01c9f39de94cac2d56f665285b0523b974/src/you_get/extractors/miomio.py#L41-L51"
+    "original_string": "def save_act(self, path=None):\n        \"\"\"Save model to a pickle located at `path`\"\"\"\n        if path is None:\n            path = os.path.join(logger.get_dir(), \"model.pkl\")\n\n        with tempfile.TemporaryDirectory() as td:\n            save_variables(os.path.join(td, \"model\"))\n            arc_name = os.path.join(td, \"packed.zip\")\n            with zipfile.ZipFile(arc_name, 'w') as zipf:\n                for root, dirs, files in os.walk(td):\n                    for fname in files:\n                        file_path = os.path.join(root, fname)\n                        if file_path != arc_name:\n                            zipf.write(file_path, os.path.relpath(file_path, td))\n            with open(arc_name, \"rb\") as f:\n                model_data = f.read()\n        with open(path, \"wb\") as f:\n            cloudpickle.dump((model_data, self._act_params), f)", 
+    "path": "baselines/deepq/deepq.py", 
+    "repo": "openai/baselines", 
+    "sha": "3301089b48c42b87b396e246ea3f56fa4bfc9678", 
+    "url": "https://github.com/openai/baselines/blob/3301089b48c42b87b396e246ea3f56fa4bfc9678/baselines/deepq/deepq.py#L55-L72"
 }
 ```
  
 
 #### ruby
 
-An example of 'validation' looks as follows.
+An example of 'train' looks as follows.
 ```
 {
-    "code": "def preparse(unparsed, args = [], opts = {})\n        case unparsed\n        when Hash  then opts.merge! unparsed\n        when Array then unparsed.each { |e| preparse(e, args, opts) }\n        else args << unparsed.to_s\n        end\n        [args, opts]\n      end", 
-    "code_tokens": ["def", "preparse", "(", "unparsed", ",", "args", "=", "[", "]", ",", "opts", "=", "{", "}", ")", "case", "unparsed", "when", "Hash", "then", "opts", ".", "merge!", "unparsed", "when", "Array", "then", "unparsed", ".", "each", "{", "|", "e", "|", "preparse", "(", "e", ",", "args", ",", "opts", ")", "}", "else", "args", "<<", "unparsed", ".", "to_s", "end", "[", "args", ",", "opts", "]", "end"], 
-    "docstring": "can't use flatten as it will flatten hashes", 
-    "docstring_tokens": ["can", "t", "use", "flatten", "as", "it", "will", "flatten", "hashes"], 
-    "func_name": "Travis.CLI.preparse", 
+    "code": "def render_body(context, options)\n      if options.key?(:partial)\n        [render_partial(context, options)]\n      else\n        StreamingTemplateRenderer.new(@lookup_context).render(context, options)\n      end\n    end", 
+    "code_tokens": ["def", "render_body", "(", "context", ",", "options", ")", "if", "options", ".", "key?", "(", ":partial", ")", "[", "render_partial", "(", "context", ",", "options", ")", "]", "else", "StreamingTemplateRenderer", ".", "new", "(", "@lookup_context", ")", ".", "render", "(", "context", ",", "options", ")", "end", "end"], 
+    "docstring": "Render but returns a valid Rack body. If fibers are defined, we return\n a streaming body that renders the template piece by piece.\n\n Note that partials are not supported to be rendered with streaming,\n so in such cases, we just wrap them in an array.", 
+    "docstring_tokens": ["Render", "but", "returns", "a", "valid", "Rack", "body", ".", "If", "fibers", "are", "defined", "we", "return", "a", "streaming", "body", "that", "renders", "the", "template", "piece", "by", "piece", "."], 
+    "func_name": "ActionView.Renderer.render_body", 
     "id": 0, 
     "language": "ruby", 
-    "original_string": "def preparse(unparsed, args = [], opts = {})\n        case unparsed\n        when Hash  then opts.merge! unparsed\n        when Array then unparsed.each { |e| preparse(e, args, opts) }\n        else args << unparsed.to_s\n        end\n        [args, opts]\n      end", 
-    "path": "lib/travis/cli.rb", 
-    "repo": "travis-ci/travis.rb", 
-    "sha": "6547e3ad1393f508c679236a4b0e5403d2732043", 
-    "url": "https://github.com/travis-ci/travis.rb/blob/6547e3ad1393f508c679236a4b0e5403d2732043/lib/travis/cli.rb#L117-L124"
+    "original_string": "def render_body(context, options)\n      if options.key?(:partial)\n        [render_partial(context, options)]\n      else\n        StreamingTemplateRenderer.new(@lookup_context).render(context, options)\n      end\n    end", 
+    "path": "actionview/lib/action_view/renderer/renderer.rb", 
+    "repo": "rails/rails", 
+    "sha": "85a8bc644be69908f05740a5886ec19cd3679df5", 
+    "url": "https://github.com/rails/rails/blob/85a8bc644be69908f05740a5886ec19cd3679df5/actionview/lib/action_view/renderer/renderer.rb#L38-L44"
 }
 ```
  

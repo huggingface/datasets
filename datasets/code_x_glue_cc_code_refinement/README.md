@@ -73,11 +73,11 @@ An example of 'train' looks as follows.
 
 #### small
 
-An example of 'test' looks as follows.
+An example of 'validation' looks as follows.
 ```
 {
-    "buggy": "private TYPE_1 getType ( TYPE_2 VAR_1 ) { TYPE_3 VAR_2 = new TYPE_3 ( STRING_1 ) ; return new TYPE_1 ( VAR_2 , VAR_2 ) ; } \n", 
-    "fixed": "private TYPE_1 getType ( TYPE_2 VAR_1 ) { TYPE_3 VAR_2 = new TYPE_3 ( STRING_1 ) ; return new TYPE_1 ( VAR_2 , VAR_2 , this , VAR_1 ) ; } \n", 
+    "buggy": "public java.util.List < TYPE_1 > METHOD_1 ( ) { java.util.ArrayList < TYPE_1 > VAR_1 = new java.util.ArrayList < TYPE_1 > ( ) ; for ( TYPE_2 VAR_2 : VAR_3 ) { VAR_1 . METHOD_2 ( VAR_2 . METHOD_1 ( ) ) ; } return VAR_1 ; } \n", 
+    "fixed": "public java.util.List < TYPE_1 > METHOD_1 ( ) { return VAR_1 ; } \n", 
     "id": 0
 }
 ```

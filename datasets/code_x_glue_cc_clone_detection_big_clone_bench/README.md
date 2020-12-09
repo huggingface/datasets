@@ -58,14 +58,14 @@ The dataset we use is BigCloneBench and filtered following the paper Detecting C
 
  
 
-An example of 'train' looks as follows.
+An example of 'test' looks as follows.
 ```
 {
-    "func1": "    private void setNodekeyInJsonResponse(String service) throws Exception {\n        String filename = this.baseDirectory + service + \".json\";\n        Scanner s = new Scanner(new File(filename));\n        PrintWriter fw = new PrintWriter(new File(filename + \".new\"));\n        while (s.hasNextLine()) {\n            fw.println(s.nextLine().replaceAll(\"NODEKEY\", this.key));\n        }\n        s.close();\n        fw.close();\n        (new File(filename + \".new\")).renameTo(new File(filename));\n    }\n", 
-    "func2": "    public void transform(String style, String spec, OutputStream out) throws IOException {\n        URL url = new URL(rootURL, spec);\n        InputStream in = new PatchXMLSymbolsStream(new StripDoctypeStream(url.openStream()));\n        transform(style, in, out);\n        in.close();\n    }\n", 
+    "func1": "    @Test(expected = GadgetException.class)\n    public void malformedGadgetSpecIsCachedAndThrows() throws Exception {\n        HttpRequest request = createCacheableRequest();\n        expect(pipeline.execute(request)).andReturn(new HttpResponse(\"malformed junk\")).once();\n        replay(pipeline);\n        try {\n            specFactory.getGadgetSpec(createContext(SPEC_URL, false));\n            fail(\"No exception thrown on bad parse\");\n        } catch (GadgetException e) {\n        }\n        specFactory.getGadgetSpec(createContext(SPEC_URL, false));\n    }\n", 
+    "func2": "    public InputStream getInputStream() throws TGBrowserException {\n        try {\n            if (!this.isFolder()) {\n                URL url = new URL(this.url);\n                InputStream stream = url.openStream();\n                return stream;\n            }\n        } catch (Throwable throwable) {\n            throw new TGBrowserException(throwable);\n        }\n        return null;\n    }\n", 
     "id": 0, 
-    "id1": 13988825, 
-    "id2": 8660836, 
+    "id1": 2381663, 
+    "id2": 4458076, 
     "label": false
 }
 ```
@@ -80,14 +80,14 @@ In the following each data field in go is explained for each config. The data fi
 
 #### default
 
-|field name|         type         |                    description                    |
-|----------|----------------------|---------------------------------------------------|
-|id        |int32                 | Index of the sample                               |
-|id1       |int32                 | The first function id                             |
-|id2       |int32                 | The second function id                            |
-|func1     |string                | The full text of the first function               |
-|func2     |string                | The full text of the second function              |
-|label     |datasets.Value("bool"]| 1 is the functions are not equivalent, 0 otherwise|
+|field name| type |                    description                    |
+|----------|------|---------------------------------------------------|
+|id        |int32 | Index of the sample                               |
+|id1       |int32 | The first function id                             |
+|id2       |int32 | The second function id                            |
+|func1     |string| The full text of the first function               |
+|func2     |string| The full text of the second function              |
+|label     |bool  | 1 is the functions are not equivalent, 0 otherwise|
 
 
 
