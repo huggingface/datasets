@@ -1,5 +1,29 @@
 ---
-{"task_categories": [intent-classification, sentiment-analysis],"multilinguality": [multilingual], "languages": [multiple], "language_creators": [Unknown], "annotations_creators": [Unknown], "source_datasets": [Original], "size_categories": ["10K<n<100K"], "licenses": [Unknown]}
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+languages:
+- en
+- es
+- fr
+- ht
+- ur
+licenses:
+- unknown
+multilinguality:
+- multilingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+- text-classification
+task_ids:
+- intent-classification
+- sentiment-classification
+- text-simplification
 ---
 
 # Dataset Card for Disaster Response Messages 
