@@ -3,7 +3,8 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages: [py]
+languages:
+- code
 licenses:
 - 0bsd
 - mit
