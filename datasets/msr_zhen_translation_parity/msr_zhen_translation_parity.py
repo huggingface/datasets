@@ -24,10 +24,10 @@ import datasets
 _DESCRIPTION = """\
 Translator Human Parity Data
 
-Human evaluation results and translation output for the Translator Human Parity Data release, 
-as described in https://blogs.microsoft.com/ai/machine-translation-news-test-set-human-parity/. 
+Human evaluation results and translation output for the Translator Human Parity Data release,
+as described in https://blogs.microsoft.com/ai/machine-translation-news-test-set-human-parity/.
 The Translator Human Parity Data release contains all human evaluation results and translations
-related to our paper "Achieving Human Parity on Automatic Chinese to English News Translation", 
+related to our paper "Achieving Human Parity on Automatic Chinese to English News Translation",
 published on March 14, 2018.
 """
 
@@ -37,11 +37,11 @@ See the Microsoft Research Data License Agreement.
 
 _CITATION = """\
 @misc{hassan2018achieving,
-      title={Achieving Human Parity on Automatic Chinese to English News Translation}, 
-      author={ Hany Hassan and Anthony Aue and Chang Chen and Vishal Chowdhary and Jonathan Clark 
-               and Christian Federmann and Xuedong Huang and Marcin Junczys-Dowmunt and William Lewis 
-               and Mu Li and Shujie Liu and Tie-Yan Liu and Renqian Luo and Arul Menezes and Tao Qin 
-               and Frank Seide and Xu Tan and Fei Tian and Lijun Wu and Shuangzhi Wu and Yingce Xia 
+      title={Achieving Human Parity on Automatic Chinese to English News Translation},
+      author={ Hany Hassan and Anthony Aue and Chang Chen and Vishal Chowdhary and Jonathan Clark
+               and Christian Federmann and Xuedong Huang and Marcin Junczys-Dowmunt and William Lewis
+               and Mu Li and Shujie Liu and Tie-Yan Liu and Renqian Luo and Arul Menezes and Tao Qin
+               and Frank Seide and Xu Tan and Fei Tian and Lijun Wu and Shuangzhi Wu and Yingce Xia
                and Dongdong Zhang and Zhirui Zhang and Ming Zhou},
       year={2018},
       eprint={1803.05567},
@@ -74,7 +74,7 @@ class MsrZhenTranslationParity(datasets.GeneratorBasedBuilder):
     Once it is completed, extract its content into a directory, <path/to/folder>.
     Within this directory, there are three subdirectories, Translations, References, and Evaluations.
     The <path/to/folder> can e.g. be "~/Downloads/translatorhumanparitydata2", if you just double click the .zip file.
-    msr_zhen_translation_parity can then be loaded using the following command 
+    msr_zhen_translation_parity can then be loaded using the following command
     `datasets.load_dataset("msr_zhen_translation_parity", data_dir="<path/to/folder>")`.
     """
 
