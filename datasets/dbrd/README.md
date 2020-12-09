@@ -52,11 +52,11 @@ task_ids:
 - **Repository:** https://github.com/benjaminvdb/DBRD
 - **Paper:** [The merits of Universal Language Model Fine-tuning for Small Datasets - a case with Dutch book reviews](https://arxiv.org/abs/1910.00896)
 - **Leaderboard:** 
-- **Point of Contact:** [Benjamin van der Burgh](benjaminvdb@gmail.com)
+- **Point of Contact:** [Benjamin van der Burgh](mailto:benjaminvdb@gmail.com)
 
 ### Dataset Summary
 
-The DBRD (pronounced *dee-bird*) dataset contains over 110k book reviews along with associated binary sentiment polarity labels and is intended as a benchmark for sentiment classification in Dutch. It was created due to a lack of annotated datasets in Dutch that are suitable for sentiment classification.
+The DBRD (pronounced *dee-bird*) dataset contains over 110k book reviews of which 22k have associated binary sentiment polarity labels. It is intended as a benchmark for sentiment classification in Dutch and created due to a lack of annotated datasets in Dutch that are suitable for this task.
 
 ### Supported Tasks and Leaderboards
 
@@ -65,39 +65,29 @@ The DBRD (pronounced *dee-bird*) dataset contains over 110k book reviews along w
 
 ### Languages
 
-Non-Dutch reviews were filtered out using [langdetect](https://github.com/Mimino666/langdetect), and all reviews should therefore be in Dutch (nl). They are written by reviewers on [Hebban](https://www.hebban.nl), a Dutch website for book reviews. Reviews aren't curated and are of varying lengths and qualities, as can be expected.
+Non-Dutch reviews were filtered out using [langdetect](https://github.com/Mimino666/langdetect), and all reviews should therefore be in Dutch (nl). They are written by reviewers on [Hebban](https://www.hebban.nl), a Dutch website for book reviews.
 
 ## Dataset Structure
 
 ### Data Instances
 
-The dataset contains three subsets: train, test and unsupervised. The `train` and `test` sets contain labels, while the `unsupervised` set doesn't (the value for label is -1 for each instance in unsupervised).
+The dataset contains three subsets: train, test and unsupervised. The `train` and `test` sets contain labels, while the `unsupervised` set doesn't (the label value is -1 for each instance in `unsupervised`). Here's an example of a positive review, indicated with a label value of `1`. 
 
 ```
-DatasetDict({
-    train: Dataset({
-        features: ['text', 'label'],
-        num_rows: 20028
-    })
-    test: Dataset({
-        features: ['text', 'label'],
-        num_rows: 2224
-    })
-    unsupervised: Dataset({
-        features: ['text', 'label'],
-        num_rows: 96264
-    })
-})
+{
+  'label': 1,
+  'text': 'Super om te lezen hoe haar leven is vergaan.\nBijzonder dat ze zo openhartig is geweest.'
+}
 ```
 
 ### Data Fields
 
-- `label`: either 0 (negative) or 1 (positive) in the supervised sets `train` and `test`. Always -1 for the unsupervised set.
+- `label`: either 0 (negative) or 1 (positive) in the supervised sets `train` and `test`. These are always -1 for the unsupervised set.
 - `text`: book review as utf-8 encoded string. 
 
 ### Data Splits
 
-The `train` and `test` sets were constructed by extracting all non-neutral reviews, because we want to assign either a positive or negative polarity label to each instance. Furthermore, the positive (pos) and negative (neg) labels were balanced in both train and test sets. The remainder was add to the unsupervised set.
+The `train` and `test` sets were constructed by extracting all non-neutral reviews, because we want to assign either a positive or negative polarity label to each instance. Furthermore, the positive (pos) and negative (neg) labels were balanced in both train and test sets. The remainder was added to the unsupervised set.
 
 |                            | Train  | Valid | Test   |
 | -----                      | ------ | ----- | ------ |
@@ -123,7 +113,7 @@ The reviews are written by users of [Hebban](https://www.hebban.nl) and are of v
 
 ### Annotations
 
-Each book review was accompanied by a 1 to 5 star rating. The annotations are produced by mapping the user-provided ratings to either positive or negative label. 1 and 2 star ratings are given the negative label `0` and 4 and 5 star ratings the positive label `1`. Reviews with a rating of 3 stars are considered neutral and left out of the `train`/`test` sets and added to the unsupervised set.
+Each book review was accompanied by a 1 to 5-star rating. The annotations are produced by mapping the user-provided ratings to either positive or negative label. 1 and 2-star ratings are given the negative label `0` and 4 and 5-star ratings the positive label `1`. Reviews with a rating of 3 stars are considered neutral and left out of the `train`/`test` sets and added to the unsupervised set.
 
 #### Annotation process
 
@@ -136,6 +126,20 @@ The annotators are the [Hebban](https://www.hebban.nl) users who wrote the book 
 ### Personal and Sensitive Information
 
 The book reviews and ratings are publicly available on [Hebban](https://www.hebban.nl) and no personal or otherwise sensitive information is contained in this dataset.
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+While prediciting sentiment of book reviews in itself is not that interesting on its own, the value of this dataset lies in its capability for benchmarking models. The dataset contains some challenges that are common to outings on the internet, such as spelling mistakes and other errors. It is therefore very useful to for validating models for their real-world performance. These datasets are abundant for English, but are harder to find for Dutch, making it a valuable resource for ML tasks in this language.
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+Reviews on [Hebban](https://www.hebban.nl) are usually written in Dutch, but some have been written in English and possibly in other languages. While we've done our best to filter out non-Dutch texts, it's hard to do this without errors. For example, some reviews are in multiple languages, and these might slip through. Also be aware that some commercial outings can appear in the text, making them different from other reviews and influencing your models. While this doesn't pose a major issue in most cases, I just wanted to mention it briefly.
 
 ## Additional Information
 
