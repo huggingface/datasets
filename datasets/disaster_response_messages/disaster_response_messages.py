@@ -55,7 +55,7 @@ class DisasterResponseMessages(datasets.GeneratorBasedBuilder):
                     "message": datasets.Value("string"),
                     "original": datasets.Value("string"),
                     "genre": datasets.Value("string"),
-                    "related": datasets.ClassLabel(names=["false", "true","maybe"]),
+                    "related": datasets.ClassLabel(names=["false", "true", "maybe"]),
                     "PII": datasets.Value("int8"),
                     "request": datasets.ClassLabel(names=["false", "true"]),
                     "offer": datasets.Value("int8"),
