@@ -21,7 +21,7 @@ languages:
   - ru
   ar-zh:
   - ar
-  -zh
+  - zh
   de-en:
   - de
   - en
