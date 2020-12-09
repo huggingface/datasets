@@ -35,11 +35,11 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Nineteen teams presented results for the Gene Mention Task at the BioCreative II Workshop. 
-In this task participants designed systems to identify substrings in sentences corresponding to gene name mentions. 
-A variety of different methods were used and the results varied with a highest achieved F1 score of 0.8721. 
-Here we present brief descriptions of all the methods used and a statistical analysis of the results. 
-We also demonstrate that, by combining the results from all submissions, an F score of 0.9066 is feasible, 
+Nineteen teams presented results for the Gene Mention Task at the BioCreative II Workshop.
+In this task participants designed systems to identify substrings in sentences corresponding to gene name mentions.
+A variety of different methods were used and the results varied with a highest achieved F1 score of 0.8721.
+Here we present brief descriptions of all the methods used and a statistical analysis of the results.
+We also demonstrate that, by combining the results from all submissions, an F score of 0.9066 is feasible,
 and furthermore that the best result makes use of the lowest scoring submissions.
 
 For more details, see: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2559986/
