@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 import os
-from os import sys
 
 import datasets
 
@@ -156,10 +155,6 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating examples from = %s", filepath)
 
         with open(filepath, encoding="utf-8") as f:
-            guid = 0
-            tokens = []
-            ner_tags = []
-            domains = []
             id_ = -1
             for id_, line in enumerate(f):
                 if line.startswith("-DOCSTART-") or line == "" or line == "\n":
