@@ -116,9 +116,9 @@ class PAWS(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_DATA_URL)
 
         if self.config.name == "labeled_final":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, "final/train.tsv")
-            _VAL_FILE_NAME = os.path.join(data_dir, "final/dev.tsv")
-            _TEST_FILE_NAME = os.path.join(data_dir, "final/test.tsv")
+            _TRAIN_FILE_NAME = os.path.join(data_dir, "final", "train.tsv")
+            _VAL_FILE_NAME = os.path.join(data_dir, "final", "dev.tsv")
+            _TEST_FILE_NAME = os.path.join(data_dir, "final", "test.tsv")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -147,7 +147,7 @@ class PAWS(datasets.GeneratorBasedBuilder):
             ]
 
         elif self.config.name == "labeled_swap":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, "swap/train.tsv")
+            _TRAIN_FILE_NAME = os.path.join(data_dir, "swap", "train.tsv")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -160,8 +160,8 @@ class PAWS(datasets.GeneratorBasedBuilder):
             ]
 
         elif self.config.name == "unlabeled_final":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, "unlabeled/final/train.tsv")
-            _VAL_FILE_NAME = os.path.join(data_dir, "unlabeled/final/dev.tsv")
+            _TRAIN_FILE_NAME = os.path.join(data_dir, "unlabeled", "final", "train.tsv")
+            _VAL_FILE_NAME = os.path.join(data_dir, "unlabeled", "final", "dev.tsv")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
