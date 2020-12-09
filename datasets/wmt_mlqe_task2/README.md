@@ -5,9 +5,12 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- de
-- en
-- zh
+  en-de:
+  - en
+  - de
+  en-zh:
+  - en
+  - zh
 licenses:
 - unknown
 multilinguality:

@@ -5,14 +5,27 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- de
-- en
-- et
-- ne
-- ro
-- ru
-- si
-- zh
+  en-de:
+  - en
+  - de
+  en-zh:
+  - en
+  - zh
+  et-en:
+  - et
+  - en
+  ne-en:
+  - ne
+  - en
+  ro-en:
+  - ro
+  - en
+  si-en:
+  - si
+  - en
+  ru-en:
+  - en
+  - ru
 licenses:
 - unknown
 multilinguality:
