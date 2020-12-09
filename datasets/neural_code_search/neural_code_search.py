@@ -134,11 +134,12 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, datapath, split):
         """ Yields examples. """
+        id_ = 0
         for dp in datapath:
             if self.config.name == "evaluation_dataset":
                 with open(dp, encoding="utf-8") as f:
                     data = json.load(f)
-                    for id_, row in enumerate(data):
+                    for row in data:
                         yield id_, {
                             "stackoverflow_id": row["stackoverflow_id"],
                             "question": row["question"],
@@ -152,11 +153,12 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
                             "examples": row["examples"],
                             "examples_url": row["examples_url"],
                         }
+                        id_ += 1
             else:
                 for dirpath, _, fnames in sorted(os.walk(dp)):
                     for fname in sorted(fnames):
                         with open(os.path.join(dirpath, fname), encoding="utf-8") as f:
-                            for id_, row in enumerate(f):
+                            for row in f:
                                 data_dict = json.loads(row)
                                 yield id_, {
                                     "id": data_dict["id"],
@@ -166,3 +168,4 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
                                     "end_line": data_dict["end_line"],
                                     "url": data_dict["url"],
                                 }
+                                id_ += 1
