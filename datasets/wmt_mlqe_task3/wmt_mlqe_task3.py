@@ -189,7 +189,7 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
             with open(fp, encoding="utf-8") as f:
                 return f.read().splitlines()
 
-        for id_, folder in enumerate(glob.glob(f"{filepath}/*")):
+        for id_, folder in enumerate(sorted(glob.glob(os.path.join(filepath, "*")))):
             source_segments = open_and_read(os.path.join(folder, "source.segments"))
             source_tokenized = open_and_read(os.path.join(folder, "source.tokenized"))
             mt_segments = open_and_read(os.path.join(folder, "mt.segments"))
