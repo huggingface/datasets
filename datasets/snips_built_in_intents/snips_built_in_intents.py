@@ -134,7 +134,9 @@ class SnipsBuiltInIntents(datasets.GeneratorBasedBuilder):
                         num_examples += 1  # Explicitly keep track of the number of examples.
 
         # Option 2 (Shuffled): Yield samples here if shuffled samples are required.
-        random.shuffle(samples_txt_lbl)
+        random.Random(12345).shuffle(
+            samples_txt_lbl
+        )  # Use a new instance of Random to fix shuffle pattern without affecting global rand.
         for sample_id, sample in enumerate(samples_txt_lbl):
             query_text, label = sample
             yield sample_id, {"text": query_text, "label": label}
