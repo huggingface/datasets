@@ -113,7 +113,9 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     "authors": datasets.features.Sequence(datasets.Value("string")),
                     "accepted": datasets.Value("bool"),
                     "abstract": datasets.Value("string"),
-                    "histories": datasets.features.Sequence(datasets.Value("string")),
+                    "histories": datasets.features.Sequence(
+                        datasets.features.Sequence(datasets.Value("string"))
+                    ),
                     "reviews": datasets.features.Sequence({
                         "date": datasets.Value("string"),
                         "title": datasets.Value("string"),
@@ -202,6 +204,14 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             ),
         ]
 
+    @staticmethod
+    def _parse_histories(histories):
+        if histories is None:
+            return [[]]
+        if isinstance(histories, str):
+            return [[histories]]
+        return histories
+
     def _generate_examples(self, filepaths, split):
         """ Yields examples. """
         for id_, filepath in enumerate(filepaths):
@@ -246,10 +256,41 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                         print('done')
                         yield id_, temp
                     else:
-                        yield id_, {
-                            "sentence": data["sentence"],
-                            "option2": data["option2"],
-                            "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
+                        temp2 = {
+                            "id": data.get("id", ""),
+                            "conference": data.get("conference", ""),
+                            "comments": data.get("comments", ""),
+                            "subjects": data.get("subjects", ""),
+                            "version": data.get("version", ""),
+                            "date_of_submission": data.get("date_of_submission", ""),
+                            "title": data.get("title", ""),
+                            "authors": data.get("authors", []) if isinstance(data.get("authors"), list) else [data.get("authors", "")],
+                            "accepted": data.get("accepted", ""),
+                            "abstract": data.get("abstract", ""),
+                            "histories": self._parse_histories(data.get("histories", [])),
+                            "reviews": [{
+                                "date": review.get("date", ""),
+                                "title": review.get("title", ""),
+                                "other_keys": review.get("other_keys", ""),
+                                "originality": review.get("originality", ""),
+                                "comments": review.get("comments", ""),
+                                "is_meta_review": review.get("is_meta_review", ""),
+                                "is_annotated": review.get("is_annotated", ""),
+                                "recommendation": review.get("recommendation", ""),
+                                "replicability": review.get("replicability", ""),
+                                "presentation_format": review.get("presentation_format", ""),
+                                "clarity": review.get("clarity", ""),
+                                "meaningful_comparison": review.get("meaningful_comparison", ""),
+                                "substance": review.get("substance", ""),
+                                "reviewer_confidence": review.get("reviewer_confidence", ""),
+                                "soundness_correctness": review.get("soundness_correctness", ""),
+                                "appropriateness": review.get("appropriateness", ""),
+                                "impact": review.get("impact"),
+                            } if isinstance(review, dict) else {} for review in data.get("metadata", {}).get("reviews", [])]
                         }
+                        if id_ >= 9998:
+                            print(f'fp: {filepath}')
+                            print(temp2)
+                        yield id_, temp2
             except Exception as e:
                 print(e)
