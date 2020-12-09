@@ -1,20 +1,22 @@
 ---
 annotations_creators:
 - expert-generated
-  language_creators:
+language_creators:
 - other
-  languages:
+languages:
 - pl
-  licenses:
+licenses:
 - cc-by-sa-3.0
-  multilinguality:
+multilinguality:
 - monolingual
-  size_categories:
+size_categories:
 - 1K<n<10K
-  source_datasets:
+source_datasets:
 - original
-  task_categories: []
-  task_ids: []
+task_categories:
+- conditional-text-generation
+task_ids:
+- summarization
 ---
 
 # Dataset Card for [Dataset Name]
