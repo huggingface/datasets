@@ -4,13 +4,69 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ar
-- de
-- en
-- es
-- fr
-- ru
-- zh
+  ar-de
+  - ar
+  - de
+  ar-en
+  - ar
+  - en
+  ar-es
+  - ar
+  - es
+  ar-fr
+  - ar
+  - fr
+  ar-ru
+  - ar
+  - ru
+  ar-zh
+  - ar
+  -zh
+  de-en
+  - de
+  - en
+  de-es
+  - de
+  - es
+  de-fr
+  - de
+  - fr
+  de-ru
+  - de
+  - ru
+  de-zh
+  - de
+  - zh
+  en-es
+  - en
+  - es
+  en-fr
+  - en
+  - fr
+  en-ru
+  - en
+  - ru
+  en-zh
+  - en
+  - zh
+  es-fr
+  - es
+  - fr
+  es-ru
+  - es
+  - ru
+  es-zh
+  - es
+  - zh
+  fr-ru
+  - fr
+  - ru
+  fr-zh
+  - fr
+  - zh
+  ru-zh
+  - ru
+  - zh
 licenses:
 - unknown
 multilinguality:
@@ -158,5 +214,16 @@ The underlying task is machine translation.
 ```
 
 ```
-J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
+@InProceedings{TIEDEMANN12.463,
+  author = {J�rg Tiedemann},
+  title = {Parallel Data, Tools and Interfaces in OPUS},
+  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
+  year = {2012},
+  month = {may},
+  date = {23-25},
+  address = {Istanbul, Turkey},
+  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+  publisher = {European Language Resources Association (ELRA)},
+  isbn = {978-2-9517408-7-7},
+}
 ```

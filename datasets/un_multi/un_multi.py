@@ -36,8 +36,18 @@ _CITATION = """\
     abstract = "This paper describes the acquisition, preparation and properties of a corpus extracted from the official documents of the United Nations (UN). This corpus is available in all 6 official languages of the UN, consisting of around 300 million words per language. We describe the methods we used for crawling, document formatting, and sentence alignment. This corpus also includes a common test set for machine translation. We present the results of a French-Chinese machine translation experiment performed on this corpus.",
 }
 
-J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. \
-In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
+@InProceedings{TIEDEMANN12.463,
+  author = {J�rg Tiedemann},
+  title = {Parallel Data, Tools and Interfaces in OPUS},
+  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
+  year = {2012},
+  month = {may},
+  date = {23-25},
+  address = {Istanbul, Turkey},
+  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+  publisher = {European Language Resources Association (ELRA)},
+  isbn = {978-2-9517408-7-7},
+}
 """
 
 
