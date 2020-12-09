@@ -55,43 +55,43 @@ class DisasterResponseMessages(datasets.GeneratorBasedBuilder):
                     "message": datasets.Value("string"),
                     "original": datasets.Value("string"),
                     "genre": datasets.Value("string"),
-                    "related": datasets.Value("int8"),
+                    "related": datasets.ClassLabel(names=["false", "true","maybe"]),
                     "PII": datasets.Value("int8"),
-                    "request": datasets.Value("int8"),
+                    "request": datasets.ClassLabel(names=["false", "true"]),
                     "offer": datasets.Value("int8"),
-                    "aid_related": datasets.Value("int8"),
-                    "medical_help": datasets.Value("int8"),
-                    "medical_products": datasets.Value("int8"),
-                    "search_and_rescue": datasets.Value("int8"),
-                    "security": datasets.Value("int8"),
-                    "military": datasets.Value("int8"),
+                    "aid_related": datasets.ClassLabel(names=["false", "true"]),
+                    "medical_help": datasets.ClassLabel(names=["false", "true"]),
+                    "medical_products": datasets.ClassLabel(names=["false", "true"]),
+                    "search_and_rescue": datasets.ClassLabel(names=["false", "true"]),
+                    "security": datasets.ClassLabel(names=["false", "true"]),
+                    "military": datasets.ClassLabel(names=["false", "true"]),
                     "child_alone": datasets.Value("int8"),
-                    "water": datasets.Value("int8"),
-                    "food": datasets.Value("int8"),
-                    "shelter": datasets.Value("int8"),
-                    "clothing": datasets.Value("int8"),
-                    "money": datasets.Value("int8"),
-                    "missing_people": datasets.Value("int8"),
-                    "refugees": datasets.Value("int8"),
-                    "death": datasets.Value("int8"),
-                    "other_aid": datasets.Value("int8"),
-                    "infrastructure_related": datasets.Value("int8"),
-                    "transport": datasets.Value("int8"),
-                    "buildings": datasets.Value("int8"),
-                    "electricity": datasets.Value("int8"),
-                    "tools": datasets.Value("int8"),
-                    "hospitals": datasets.Value("int8"),
-                    "shops": datasets.Value("int8"),
-                    "aid_centers": datasets.Value("int8"),
-                    "other_infrastructure": datasets.Value("int8"),
-                    "weather_related": datasets.Value("int8"),
-                    "floods": datasets.Value("int8"),
-                    "storm": datasets.Value("int8"),
-                    "fire": datasets.Value("int8"),
-                    "earthquake": datasets.Value("int8"),
-                    "cold": datasets.Value("int8"),
-                    "other_weather": datasets.Value("int8"),
-                    "direct_report": datasets.Value("int8"),
+                    "water": datasets.ClassLabel(names=["false", "true"]),
+                    "food": datasets.ClassLabel(names=["false", "true"]),
+                    "shelter": datasets.ClassLabel(names=["false", "true"]),
+                    "clothing": datasets.ClassLabel(names=["false", "true"]),
+                    "money": datasets.ClassLabel(names=["false", "true"]),
+                    "missing_people": datasets.ClassLabel(names=["false", "true"]),
+                    "refugees": datasets.ClassLabel(names=["false", "true"]),
+                    "death": datasets.ClassLabel(names=["false", "true"]),
+                    "other_aid": datasets.ClassLabel(names=["false", "true"]),
+                    "infrastructure_related": datasets.ClassLabel(names=["false", "true"]),
+                    "transport": datasets.ClassLabel(names=["false", "true"]),
+                    "buildings": datasets.ClassLabel(names=["false", "true"]),
+                    "electricity": datasets.ClassLabel(names=["false", "true"]),
+                    "tools": datasets.ClassLabel(names=["false", "true"]),
+                    "hospitals": datasets.ClassLabel(names=["false", "true"]),
+                    "shops": datasets.ClassLabel(names=["false", "true"]),
+                    "aid_centers": datasets.ClassLabel(names=["false", "true"]),
+                    "other_infrastructure": datasets.ClassLabel(names=["false", "true"]),
+                    "weather_related": datasets.ClassLabel(names=["false", "true"]),
+                    "floods": datasets.ClassLabel(names=["false", "true"]),
+                    "storm": datasets.ClassLabel(names=["false", "true"]),
+                    "fire": datasets.ClassLabel(names=["false", "true"]),
+                    "earthquake": datasets.ClassLabel(names=["false", "true"]),
+                    "cold": datasets.ClassLabel(names=["false", "true"]),
+                    "other_weather": datasets.ClassLabel(names=["false", "true"]),
+                    "direct_report": datasets.ClassLabel(names=["false", "true"]),
                 }
             ),
             homepage="https://appen.com/datasets/combined-disaster-response-data/",
@@ -115,8 +115,6 @@ class DisasterResponseMessages(datasets.GeneratorBasedBuilder):
             next(csv_reader, None)
             for id_, row in enumerate(csv_reader):
                 row = row[1:]
-                # message=row[:2]
-                # print(row)
                 (
                     split,
                     message,
@@ -160,87 +158,47 @@ class DisasterResponseMessages(datasets.GeneratorBasedBuilder):
                     other_weather,
                     direct_report,
                 ) = row
-                # print(type(related))
-                # print(related)
-                # print(message)
-                # related=int(related)
-                # PII=int(PII)
-                # request=int(request)
-                # offer=int(offer)
-                # aid_related=int(aid_related)
-                # medical_help=int(medical_help)
-                # medical_products=int(medical_products)
-                # search_and_rescue=int(search_and_rescue)
-                # security=int(security)
-                # military=int(military)
-                # child_alone=int(child_alone)
-                # water=int(water)
-                # food=int(food)
-                # shelter=int(shelter)
-                # clothing=int(clothing)
-                # money=int(money)
-                # missing_people=int(missing_people)
-                # refugees=int(refugees)
-                # death=int(death)
-                # other_aid=int(other_aid)
-                # infrastructure_related=int(infrastructure_related)
-                # transport=int(transport)
-                # buildings=int(buildings)
-                # electricity=int(electricity)
-                # tools=int(tools)
-                # hospitals=int(hospitals)
-                # shops=int(shops)
-                # aid_centers=int(aid_centers)
-                # other_infrastructure=int(other_infrastructure)
-                # weather_related=int(weather_related)
-                # floods=int(floods)
-                # storm=int(storm)
-                # fire=int(fire)
-                # earthquake=int(earthquake)
-                # cold=int(cold)
-                # other_weather=int(other_weather)
-                # direct_report=int(direct_report)
 
                 yield id_, {
-                    "split": split,
-                    "message": message,
-                    "original": original,
-                    "genre": genre,
-                    "related": related,
-                    "PII": PII,
-                    "request": request,
-                    "offer": offer,
-                    "aid_related": aid_related,
-                    "medical_help": medical_help,
-                    "medical_products": medical_products,
-                    "search_and_rescue": search_and_rescue,
-                    "security": security,
-                    "military": military,
-                    "child_alone": child_alone,
-                    "water": water,
-                    "food": food,
-                    "shelter": shelter,
-                    "clothing": clothing,
-                    "money": money,
-                    "missing_people": missing_people,
-                    "refugees": refugees,
-                    "death": death,
-                    "other_aid": other_aid,
-                    "infrastructure_related": infrastructure_related,
-                    "transport": transport,
-                    "buildings": buildings,
-                    "electricity": electricity,
-                    "tools": tools,
-                    "hospitals": hospitals,
-                    "shops": shops,
-                    "aid_centers": aid_centers,
-                    "other_infrastructure": other_infrastructure,
-                    "weather_related": weather_related,
-                    "floods": floods,
-                    "storm": storm,
-                    "fire": fire,
-                    "earthquake": earthquake,
-                    "cold": cold,
-                    "other_weather": other_weather,
-                    "direct_report": direct_report,
+                    "split": (split),
+                    "message": (message),
+                    "original": (original),
+                    "genre": (genre),
+                    "related": int(related),
+                    "PII": int(PII),
+                    "request": int(request),
+                    "offer": int(offer),
+                    "aid_related": int(aid_related),
+                    "medical_help": int(medical_help),
+                    "medical_products": int(medical_products),
+                    "search_and_rescue": int(search_and_rescue),
+                    "security": int(security),
+                    "military": int(military),
+                    "child_alone": int(child_alone),
+                    "water": int(water),
+                    "food": int(food),
+                    "shelter": int(shelter),
+                    "clothing": int(clothing),
+                    "money": int(money),
+                    "missing_people": int(missing_people),
+                    "refugees": int(refugees),
+                    "death": int(death),
+                    "other_aid": int(other_aid),
+                    "infrastructure_related": int(infrastructure_related),
+                    "transport": int(transport),
+                    "buildings": int(buildings),
+                    "electricity": int(electricity),
+                    "tools": int(tools),
+                    "hospitals": int(hospitals),
+                    "shops": int(shops),
+                    "aid_centers": int(aid_centers),
+                    "other_infrastructure": int(other_infrastructure),
+                    "weather_related": int(weather_related),
+                    "floods": int(floods),
+                    "storm": int(storm),
+                    "fire": int(fire),
+                    "earthquake": int(earthquake),
+                    "cold": int(cold),
+                    "other_weather": int(other_weather),
+                    "direct_report": int(direct_report),
                 }
