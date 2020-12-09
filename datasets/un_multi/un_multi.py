@@ -93,19 +93,8 @@ class UnMulti(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, source_file, target_file):
-        with open(source_file, encoding="utf-8") as f:
-            source_sentences = f.read().split("\n")
-        with open(target_file, encoding="utf-8") as f:
-            target_sentences = f.read().split("\n")
-
-        assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
-            len(source_sentences),
-            len(target_sentences),
-            source_file,
-            target_file,
-        )
-
         source, target = tuple(self.config.name.split("-"))
-        for idx, (l1, l2) in enumerate(zip(source_sentences, target_sentences)):
-            result = {"translation": {source: l1, target: l2}}
-            yield idx, result
+        with open(source_file, encoding="utf-8") as src_f, open(target_file, encoding="utf-8") as tgt_f:
+            for idx, (l1, l2) in enumerate(zip(src_f, tgt_f)):
+                result = {"translation": {source: l1.strip(), target: l2.strip()}}
+                yield idx, result
