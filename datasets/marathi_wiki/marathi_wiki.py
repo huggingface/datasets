@@ -50,7 +50,7 @@ _LICENSE = "CC BY-SA 4.0"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'first_domain': "https://huggingface.co/great-new-dataset-first_domain.zip",
+    "first_domain": "https://huggingface.co/great-new-dataset-first_domain.zip",
 }
 
 
@@ -72,15 +72,25 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="first_domain",
+            version=VERSION,
+            description="This part of my dataset covers a first domain",
+        ),
+        datasets.BuilderConfig(
+            name="second_domain",
+            version=VERSION,
+            description="This part of my dataset covers a second domain",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
+        if (
+            self.config.name == "first_domain"
+        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
@@ -122,7 +132,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
+        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
@@ -139,7 +149,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
+                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
@@ -171,5 +181,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "sentence": data["sentence"],
                         "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
+                        "second_domain_answer": ""
+                        if split == "test"
+                        else data["second_domain_answer"],
                     }
