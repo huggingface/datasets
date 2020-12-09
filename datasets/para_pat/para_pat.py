@@ -61,29 +61,6 @@ _HOMEPAGE = (
 
 _LICENSE = "CC BY 4.0"
 
-_URLs = {
-    "el-en": "https://ndownloader.figshare.com/files/23748818",
-    "cs-en": "https://ndownloader.figshare.com/files/23748821",
-    "en-hu": "https://ndownloader.figshare.com/files/23748827",
-    "en-ro": "https://ndownloader.figshare.com/files/23748842",
-    "en-sk": "https://ndownloader.figshare.com/files/23748848",
-    "en-uk": "https://ndownloader.figshare.com/files/23748851",
-    "es-fr": "https://ndownloader.figshare.com/files/23748857",
-    "fr-ru": "https://ndownloader.figshare.com/files/23748863",
-    "de-fr": "https://ndownloader.figshare.com/files/23748872",
-    "en-ja": "https://ndownloader.figshare.com/files/23748626",
-    "en-es": "https://ndownloader.figshare.com/files/23748896",
-    "en-fr": "https://ndownloader.figshare.com/files/23748944",
-    "de-en": "https://ndownloader.figshare.com/files/23855657",
-    "en-ko": "https://ndownloader.figshare.com/files/23748689",
-    "fr-ja": "https://ndownloader.figshare.com/files/23748866",
-    "en-zh": "https://ndownloader.figshare.com/files/23748779",
-    "en-ru": "https://ndownloader.figshare.com/files/23748704",
-    "fr-ko": "https://ndownloader.figshare.com/files/23855408",
-    "ru-uk": "https://ndownloader.figshare.com/files/23855465",
-    "en-pt": "https://ndownloader.figshare.com/files/23855441",
-}
-
 type1_datasets_file = ["el-en", "cs-en", "en-hu", "en-ro", "en-sk", "en-uk", "es-fr", "fr-ru"]
 type2_datasets_file = [
     "de-fr",
@@ -116,51 +93,130 @@ type1_datasets_features = [
 type2_datasets_features = ["de-fr", "en-ja", "en-es", "en-fr", "de-en", "en-ko", "fr-ja", "en-zh", "en-ru"]
 
 
+class ParaPatConfig(datasets.BuilderConfig):
+    """BuilderConfig for ParaPat."""
+
+    def __init__(self, language_pair=(None, None), url=None, **kwargs):
+        """BuilderConfig for ParaPat."""
+        name = "%s-%s" % (language_pair[0], language_pair[1])
+
+        description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
+
+        source, target = language_pair
+        super(ParaPatConfig, self).__init__(
+            name=name,
+            description=description,
+            version=datasets.Version("1.1.0", ""),
+            **kwargs,
+        )
+
+        self.language_pair = language_pair
+        self.url = url
+
+
 class ParaPat(datasets.GeneratorBasedBuilder):
     """ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts"""
 
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="el-en", version=VERSION, description="This part of dataset covers el-en domain"),
-        datasets.BuilderConfig(name="cs-en", version=VERSION, description="This part of dataset covers cs-en domain"),
-        datasets.BuilderConfig(name="en-hu", version=VERSION, description="This part of dataset covers en-hu domain"),
-        datasets.BuilderConfig(name="en-ro", version=VERSION, description="This part of dataset covers en-ro domain"),
-        datasets.BuilderConfig(name="en-sk", version=VERSION, description="This part of dataset covers en-sk domain"),
-        datasets.BuilderConfig(name="en-uk", version=VERSION, description="This part of dataset covers en-uk domain"),
-        datasets.BuilderConfig(name="es-fr", version=VERSION, description="This part of dataset covers es-fr domain"),
-        datasets.BuilderConfig(name="fr-ru", version=VERSION, description="This part of dataset covers fr-ru domain"),
-        datasets.BuilderConfig(name="fr-ko", version=VERSION, description="This part of dataset covers fr-ko domain"),
-        datasets.BuilderConfig(name="ru-uk", version=VERSION, description="This part of dataset covers ru-uk domain"),
-        datasets.BuilderConfig(name="en-pt", version=VERSION, description="This part of dataset covers en-pt domain"),
-        datasets.BuilderConfig(name="de-fr", version=VERSION, description="This part of dataset covers de-fr domain"),
-        datasets.BuilderConfig(name="en-ja", version=VERSION, description="This part of dataset covers en-ja domain"),
-        datasets.BuilderConfig(name="en-es", version=VERSION, description="This part of dataset covers en-es domain"),
-        datasets.BuilderConfig(name="en-fr", version=VERSION, description="This part of dataset covers en-fr domain"),
-        datasets.BuilderConfig(name="de-en", version=VERSION, description="This part of dataset covers de-en domain"),
-        datasets.BuilderConfig(name="en-ko", version=VERSION, description="This part of dataset covers en-ko domain"),
-        datasets.BuilderConfig(name="fr-ja", version=VERSION, description="This part of dataset covers fr-ja domain"),
-        datasets.BuilderConfig(name="en-zh", version=VERSION, description="This part of dataset covers en-zh domain"),
-        datasets.BuilderConfig(name="en-ru", version=VERSION, description="This part of dataset covers en-ru domain"),
+        ParaPatConfig(
+            language_pair=("el", "en"),
+            url="https://ndownloader.figshare.com/files/23748818",
+        ),
+        ParaPatConfig(
+            language_pair=("cs", "en"),
+            url="https://ndownloader.figshare.com/files/23748821",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "hu"),
+            url="https://ndownloader.figshare.com/files/23748827",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ro"),
+            url="https://ndownloader.figshare.com/files/23748842",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "sk"),
+            url="https://ndownloader.figshare.com/files/23748848",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "uk"),
+            url="https://ndownloader.figshare.com/files/23748851",
+        ),
+        ParaPatConfig(
+            language_pair=("es", "fr"),
+            url="https://ndownloader.figshare.com/files/23748857",
+        ),
+        ParaPatConfig(
+            language_pair=("fr", "ru"),
+            url="https://ndownloader.figshare.com/files/23748863",
+        ),
+        ParaPatConfig(
+            language_pair=("de", "fr"),
+            url="https://ndownloader.figshare.com/files/23748872",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ja"),
+            url="https://ndownloader.figshare.com/files/23748626",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "es"),
+            url="https://ndownloader.figshare.com/files/23748896",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "fr"),
+            url="https://ndownloader.figshare.com/files/23748944",
+        ),
+        ParaPatConfig(
+            language_pair=("de", "en"),
+            url="https://ndownloader.figshare.com/files/23855657",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ko"),
+            url="https://ndownloader.figshare.com/files/23748689",
+        ),
+        ParaPatConfig(
+            language_pair=("fr", "ja"),
+            url="https://ndownloader.figshare.com/files/23748866",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "zh"),
+            url="https://ndownloader.figshare.com/files/23748779",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ru"),
+            url="https://ndownloader.figshare.com/files/23748704",
+        ),
+        ParaPatConfig(
+            language_pair=("fr", "ko"),
+            url="https://ndownloader.figshare.com/files/23855408",
+        ),
+        ParaPatConfig(
+            language_pair=("ru", "uk"),
+            url="https://ndownloader.figshare.com/files/23855465",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "pt"),
+            url="https://ndownloader.figshare.com/files/23855441",
+        ),
     ]
 
     def _info(self):
+        source, target = self.config.language_pair
+
         if self.config.name in type1_datasets_features:
             features = datasets.Features(
                 {
                     "index": datasets.Value("int32"),
                     "family_id": datasets.Value("int32"),
-                    "src_lang": datasets.Value("string"),
-                    "src_abs": datasets.Value("string"),
-                    "tgt_lang": datasets.Value("string"),
-                    "tgt_abs": datasets.Value("string"),
+                    "translation": datasets.features.Translation(languages=(source, target)),
                 }
             )
         elif self.config.name in type2_datasets_features:
             features = datasets.Features(
                 {
-                    "src_lang": datasets.features.Sequence(datasets.Value("string")),
-                    "tgt_lang": datasets.features.Sequence(datasets.Value("string")),
+                    "translation": datasets.features.Translation(languages=(source, target)),
                 }
             )
         return datasets.DatasetInfo(
@@ -171,7 +227,7 @@ class ParaPat(datasets.GeneratorBasedBuilder):
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
-            supervised_keys=None,
+            supervised_keys=(source, target),
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available
@@ -182,8 +238,9 @@ class ParaPat(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        source, target = self.config.language_pair
+
+        data_dir = dl_manager.download_and_extract(self.config.url)
 
         if self.config.name in type1_datasets_file:
             _TRAIN_FILE_NAME = data_dir
@@ -204,23 +261,21 @@ class ParaPat(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
+        source, target = self.config.language_pair
         with open(filepath, encoding="utf-8") as f:
-            data = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-            for id_, row in enumerate(data):
-                if self.config.name in type1_datasets_features:
+            if self.config.name in type1_datasets_features:
+                data = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+                for id_, row in enumerate(data):
                     if row["src_lang"] + "-" + row["tgt_lang"] != self.config.name:
                         continue
                     yield id_, {
                         "index": row["index"],
                         "family_id": row["family_id"],
-                        "src_lang": row["src_lang"],
-                        "src_abs": row["src_abs"],
-                        "tgt_lang": row["tgt_lang"],
-                        "tgt_abs": row["tgt_abs"],
+                        "translation": {source: row["src_abs"], target: row["tgt_abs"]},
                     }
-                else:
-                    row = list(row.items())
+            else:
+                data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+                for id_, row in enumerate(data):
                     yield id_, {
-                        "src_lang": list(row[0]),
-                        "tgt_lang": list(row[1]),
+                        "translation": {source: row[0], target: row[1]},
                     }
