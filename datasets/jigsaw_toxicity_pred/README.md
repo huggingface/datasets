@@ -81,14 +81,13 @@ A data point consists of a comment followed by multiple labels that can be assoc
 
 ### Data Fields
 
-- `id`: id of the comment
-- `comment_text`: the text of the comment
-- `toxic`: probability between 0 and 1 of comment being classified toxic
-- `severe_toxic`: probability between 0 and 1 of comment being classified severely toxic
-- `obscene`: probability between 0 and 1 of comment being classified obscene
-- `threat`: probability between 0 and 1 of comment being classified as a threat
-- `insult`: probability between 0 and 1 of comment being classified as an insult
-- `identity_hate`: probability between 0 and 1 of comment being classified as a hate comment
+- `comment_text`: a `string` feature.
+- `toxic`: a `float32` feature.
+- `severe_toxic`: a `float32` feature.
+- `obscene`: a `float32` feature.
+- `threat`: a `float32` feature.
+- `insult`: a `float32` feature.
+- `identity_hate`: a `float32` feature.
 
 ### Data Splits
 
