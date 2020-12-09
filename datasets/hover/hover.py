@@ -15,6 +15,7 @@
 
 # Lint as: python3
 import json
+
 import datasets
 
 
@@ -48,7 +49,10 @@ class Hover(datasets.GeneratorBasedBuilder):
                     "uid": datasets.Value("string"),
                     "claim": datasets.Value("string"),
                     "supporting_facts": [
-                        [datasets.Value("string"), datasets.Value("int32")]
+                        {
+                            "key": datasets.Value("string"),
+                            "value": datasets.Value("int32"),
+                        }
                     ],
                     "label": datasets.Value("string"),
                     "num_hops": datasets.Value("int32"),
@@ -89,7 +93,7 @@ class Hover(datasets.GeneratorBasedBuilder):
                     "id": sentence_counter,
                     "uid": d["uid"],
                     "claim": d["claim"],
-                    "supporting_facts": d["supporting_facts"],
+                    "supporting_facts": [{"key": x[0], "value": x[1]} for x in d["supporting_facts"]],
                     "label": d["label"],
                     "num_hops": d["num_hops"],
                     "hpqa_id": d["hpqa_id"],
@@ -99,10 +103,9 @@ class Hover(datasets.GeneratorBasedBuilder):
                     "id": sentence_counter,
                     "uid": d["uid"],
                     "claim": d["claim"],
-                    "supporting_facts": [["None", -1]],
+                    "supporting_facts": [{"key": "None", "value": -1}],
                     "label": "None",
                     "num_hops": -1,
                     "hpqa_id": "None",
                 }
-                print(resp)
             yield sentence_counter, resp
