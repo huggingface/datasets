@@ -61,9 +61,9 @@ From the homepage:
 *The goal of this task 3 is to predict document-level quality scores as well as fine-grained annotations.*
 
 *Each document has a product title and its description, and is annotated for translation errors according to the MQM framework. Each error annotation has:*
-- ***Word span(s).** Errors may consist of one or more words, not necessarily contiguous.*
-- ***Severity.** An error can be minor (if it doesn't lead to a loss of meaning and it doesn't confuse or mislead the user), major (if it changes the meaning) or critical (if it changes the meaning and carry any type of implication, or could be seen as offensive).*
-- ***Type.** A label specifying the error type, such as wrong word order, missing words, agreement, etc. They may provide additional information, but systems don't need to predict them.*
+- ***Word span(s).*** *Errors may consist of one or more words, not necessarily contiguous.*
+- ***Severity.*** *An error can be minor (if it doesn't lead to a loss of meaning and it doesn't confuse or mislead the user), major (if it changes the meaning) or critical (if it changes the meaning and carry any type of implication, or could be seen as offensive).*
+- ***Type.*** *A label specifying the error type, such as wrong word order, missing words, agreement, etc. They may provide additional information, but systems don't need to predict them.*
 
 ### Supported Tasks and Leaderboards
 

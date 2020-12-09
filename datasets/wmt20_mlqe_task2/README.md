@@ -62,10 +62,10 @@ From the homepage:
 *This shared task (part of WMT20) will build on its previous editions to further examine automatic methods for estimating the quality of neural machine translation output at run-time, without relying on reference translations. As in previous years, we cover estimation at various levels. Important elements introduced this year include: a new task where sentences are annotated with Direct Assessment (DA) scores instead of labels based on post-editing; a new multilingual sentence-level dataset mainly from Wikipedia articles, where the source articles can be retrieved for document-wide context; the availability of NMT models to explore system-internal information for the task.*
 
 *Task 1 evaluates the application of QE for post-editing purposes. It consists of predicting:*
-- ***Word-level tags.** This is done both on source side (to detect which words caused errors) and target side (to detect mistranslated or missing words).*
-  - ***Target.** Each token is tagged as either `OK` or `BAD`. Additionally, each gap between two words is tagged as `BAD` if one or more missing words should have been there, and `OK` otherwise. Note that number of tags for each target sentence is 2*N+1, where N is the number of tokens in the sentence.*
-  - ***Source.** Tokens are tagged as `OK` if they were correctly translated, and `BAD` otherwise. Gaps are not tagged.*
-- ***Sentence-level HTER scores.** HTER (Human Translation Error Rate) is the ratio between the number of edits (insertions/deletions/replacements) needed and the reference translation length.*
+- ***Word-level tags.*** *This is done both on source side (to detect which words caused errors) and target side (to detect mistranslated or missing words).*
+  - ***Target.*** *Each token is tagged as either `OK` or `BAD`. Additionally, each gap between two words is tagged as `BAD` if one or more missing words should have been there, and `OK` otherwise. Note that number of tags for each target sentence is 2*N+1, where N is the number of tokens in the sentence.*
+  - ***Source.*** *Tokens are tagged as `OK` if they were correctly translated, and `BAD` otherwise. Gaps are not tagged.*
+- ***Sentence-level HTER scores.*** *HTER (Human Translation Error Rate) is the ratio between the number of edits (insertions/deletions/replacements) needed and the reference translation length.*
 
 ### Supported Tasks and Leaderboards
 
