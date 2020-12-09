@@ -130,7 +130,7 @@ The dataset is divided into two splits. All the headlines are scraped from news 
 ### Social Impact of Dataset
 
 There are starkingly less amount of data for South Indian languages, especially Kannada, available in digital format which can be used for NLP purposes.
-Though having roughly 38 million native speakers, it is a little under-represented language and will benifit from active contribution from the community.
+Though having roughly 38 million native speakers, it is a little under-represented language and will benefit from active contribution from the community.
 
 This dataset, however, can just help people get exposed to Kannada and help proceed further active participation for enabling continuous progress and development.
 
