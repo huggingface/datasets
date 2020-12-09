@@ -86,9 +86,6 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 relative_dst_path,
             )
 
-            import pdb
-
-            pdb.set_trace()
             total += self._create_dummy_data(
                 src_path,
                 dst_path,
@@ -115,9 +112,6 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         match_text_files: Optional[str] = None,
         encoding: Optional[str] = None,
     ) -> int:
-        import pdb
-
-        pdb.set_trace()
         encoding = encoding or DEFAULT_ENCODING
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
