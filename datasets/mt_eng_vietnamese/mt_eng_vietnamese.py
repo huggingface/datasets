@@ -63,7 +63,7 @@ class MT_Eng_ViConfig(datasets.BuilderConfig):
         self.language_pair = language_pair
 
 
-class MT_Eng_Vietnamese(datasets.GeneratorBasedBuilder):
+class MTEngVietnamese(datasets.GeneratorBasedBuilder):
     """English Vietnamese machine translation dataset from IWSLT2015."""
 
     BUILDER_CONFIGS = [
