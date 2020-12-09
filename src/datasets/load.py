@@ -279,8 +279,10 @@ def prepare_module(
             except FileNotFoundError:
                 raise FileNotFoundError(
                     "Couldn't find file locally at {}, or remotely at {} or {}.\n"
-                    'If the dataset was added recently, you may need to to pass script_version="master" to find '
-                    "the loading script in the master branch.".format(combined_path, github_file_path, file_path)
+                    'If the {} was added recently, you may need to to pass script_version="master" to find '
+                    "the loading script on the master branch.".format(
+                        combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
+                    )
                 )
 
     # Load the module in two steps:
