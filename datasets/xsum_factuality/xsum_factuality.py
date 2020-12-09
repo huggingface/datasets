@@ -91,7 +91,7 @@ class XsumFactuality(datasets.GeneratorBasedBuilder):
                     "bbcid": datasets.Value("int32"),
                     "system": datasets.Value("string"),
                     "summary": datasets.Value("string"),
-                    "is_factual": datasets.ClassLabel(names=["1", "0"]),
+                    "is_factual": datasets.ClassLabel(names=["no", "yes"]),
                     "worker_id": datasets.Value("string"),
                 }
             )
@@ -101,7 +101,7 @@ class XsumFactuality(datasets.GeneratorBasedBuilder):
                     "bbcid": datasets.Value("int32"),
                     "system": datasets.Value("string"),
                     "summary": datasets.Value("string"),
-                    "hallucination_type": datasets.ClassLabel(names=["1", "0"]),
+                    "hallucination_type": datasets.ClassLabel(names=["intrinsic", "extrinsic"]),
                     "hallucinated_span_start": datasets.Value("int32"),
                     "hallucinated_span_end": datasets.Value("int32"),
                     "worker_id": datasets.Value("string"),
@@ -154,12 +154,7 @@ class XsumFactuality(datasets.GeneratorBasedBuilder):
                 if self.config.name == "xsum_factuality":
                     bbcid, system, summary, is_factual, worker_id = data
 
-                    if is_factual == "yes":
-                        is_factual = 1
-                    elif is_factual == "no":
-                        is_factual = 0
-                    else:
-                        is_factual = -1
+                    is_factual = -1 if is_factual == "NULL" else is_factual
 
                     yield id_, {
                         "bbcid": bbcid,
@@ -180,18 +175,13 @@ class XsumFactuality(datasets.GeneratorBasedBuilder):
                         worker_id,
                     ) = data
 
-                    if hallucination_type == "intrinsic":
-                        hallucination_type = 1
-                    elif hallucination_type == "extrinsic":
-                        hallucination_type = 0
-                    else:
-                        hallucination_type = -1
+                    hallucination_type = -1 if hallucination_type == "NULL" else hallucination_type
 
                     yield id_, {
                         "bbcid": bbcid,
                         "system": system,
                         "summary": summary,
-                        "hallucination_type": hallucination_type if hallucination_type != "NULL" else -1,
+                        "hallucination_type": hallucination_type,
                         "hallucinated_span_start": hallucinated_span_start,
                         "hallucinated_span_end": hallucinated_span_end,
                         "worker_id": worker_id,
