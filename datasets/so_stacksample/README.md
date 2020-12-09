@@ -211,6 +211,8 @@ This data contains information that can identify individual users of StackOverfl
 
 ### Discussion of Biases
 
+StackOverflow answers are not guarenteed to be safe, secure, or correct. Some answers may purposefully be insecure as is done in this https://stackoverflow.com/a/35571883/5768407 answer from user [`zys`](https://stackoverflow.com/users/5259310/zys), where they show a solution to purposefully bypass Google Play store security checks. Such answers can lead to biased models that use this data and can further propogate unsafe and insecure programming practices.
+
 [Needs More Information]
 
 ### Other Known Limitations
