@@ -230,7 +230,7 @@ class Hkcancor(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL) + "/utf8/"
+        data_dir = os.path.join(dl_manager.download_and_extract(_URL), "utf8")
 
         return [
             datasets.SplitGenerator(
