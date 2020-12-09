@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - text_classification
 task_ids:
-- offensive-language-classification
+- text-classification-other-offensive-language-classification
 ---
 
 # Dataset Card for OffensEval-TR 2020
