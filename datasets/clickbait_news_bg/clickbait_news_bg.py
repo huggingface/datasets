@@ -12,21 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+
+""" Dataset with clickbait and fake news in Bulgarian. """
 
 from __future__ import absolute_import, division, print_function
 
 import csv
 import json
 import os
-
 import pandas as pd
 
 import datasets
 
-
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @InProceedings{clickbait_news_bg,
 title = {Dataset with clickbait and fake news in Bulgarian. Introduced for the Hack the Fake News 2017.},
