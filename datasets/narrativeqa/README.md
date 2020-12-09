@@ -19,7 +19,7 @@ task_ids:
 - abstractive-qa
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Narrative QA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -54,7 +54,7 @@ task_ids:
 
 ### Dataset Summary
 
-NarrativeQA is an English-lanaguage dataset of stories and corresponding questions designed to test reading comprehension.
+NarrativeQA is an English-lanaguage dataset of stories and corresponding questions designed to test reading comprehension, especially on long documents.
 
 ### Supported Tasks and Leaderboards
 
