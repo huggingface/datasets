@@ -19,7 +19,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for Yoruba NER Corpus
+# Dataset Card for Yoruba GV NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
