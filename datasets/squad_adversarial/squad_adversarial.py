@@ -60,7 +60,8 @@ class SquadAdversarial(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="squad_adversarial", version=VERSION, description=_DESCRIPTION),
+        datasets.BuilderConfig(name="AddSent", version=VERSION, description=_DESCRIPTION),
+        datasets.BuilderConfig(name="AddOneSent", version=VERSION, description=_DESCRIPTION),
     ]
 
     def _info(self):
@@ -94,8 +95,9 @@ class SquadAdversarial(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name="AddSent", gen_kwargs={"filepath": downloaded_files["AddSent"]}),
-            datasets.SplitGenerator(name="AddOneSent", gen_kwargs={"filepath": downloaded_files["AddOneSent"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files[self.config.name]}
+            )
         ]
 
     def _generate_examples(self, filepath):
