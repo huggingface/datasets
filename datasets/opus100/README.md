@@ -280,6 +280,8 @@ languages:
   - en
   - ur
   en-uz:
+  - en
+  - uz
   en-vi:
   - en
   - vi
@@ -308,6 +310,7 @@ source_datasets:
 size_categories:
 - 10K<n<1M
 licenses:
+- unknown
 ---
 
 # Dataset Card Creation Guide
