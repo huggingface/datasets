@@ -37,9 +37,6 @@ _CITATION = """\
     pages = "3530--3534",
     abstract = "This paper describes the creation process and statistics of the official United Nations Parallel Corpus, the first parallel corpus composed from United Nations documents published by the original data creator. The parallel corpus presented consists of manually translated UN documents from the last 25 years (1990 to 2014) for the six official UN languages, Arabic, Chinese, English, French, Russian, and Spanish. The corpus is freely available for download under a liberal license. Apart from the pairwise aligned documents, a fully aligned subcorpus for the six official UN languages is distributed. We provide baseline BLEU scores of our Moses-based SMT systems trained with the full data of language pairs involving English and for all possible translation directions of the six-way subcorpus.",
 }
-
-J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. \
-In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
 """
 
 
@@ -64,7 +61,7 @@ class UnPc(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=f"{l1}-{l2}", version=datasets.Version("1.0.0"), description=f"MultiUN {l1}-{l2}")
+        datasets.BuilderConfig(name=f"{l1}-{l2}", version=datasets.Version("1.0.0"), description=f"UNPC {l1}-{l2}")
         for l1, l2 in _LANGUAGE_PAIRS
     ]
 
