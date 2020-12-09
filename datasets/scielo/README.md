@@ -4,9 +4,16 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- en
-- pt
-- es
+  en-es
+  - en
+  - es
+  en-pt
+  - en
+  - pt
+  en-pt-es
+  - en
+  - pt
+  - es
 licenses:
 - unknown
 multilinguality:
