@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - n>1M
 source_datasets:
-- extended|turkish_ner
+- extended|other-turkish_ner
 task_categories:
 - structure-prediction
 task_ids:
