@@ -1,19 +1,16 @@
----
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
-annotations_creators:
+nnotations_creators:
 - expert-generated
 language_creators:
-- 
+- found
 languages:
 - ar
 licenses: [apache-2.0]
 multilinguality:
-- monolingual
+- multilingual
 size_categories:
-- 
+- 1K<n<10K
 source_datasets:
-- original
+- extended
 task_categories:
 - text-classification
 task_ids:
@@ -51,9 +48,9 @@ task_ids:
 - **Repository:** https://github.com/qcri/dialectal_arabic_resources
 - **Paper:** http://www.lrec-conf.org/proceedings/lrec2018/pdf/562.pdf
 - **Contacts:**
--- Ahmed Abdelali < aabdelali @ hbku dot edu dot qa >
--- Kareem Darwish < kdarwish @ hbku dot edu dot qa >
--- Hamdy Mubarak < hmubarak @ hbku dot edu dot qa >
+- Ahmed Abdelali < aabdelali @ hbku dot edu dot qa >
+- Kareem Darwish < kdarwish @ hbku dot edu dot qa >
+- Hamdy Mubarak < hmubarak @ hbku dot edu dot qa >
 
 ### Dataset Summary
 
@@ -61,7 +58,7 @@ This dataset was created to support part of speech (POS) tagging in dialects of 
 
 ### Supported Tasks and Leaderboards
 
-The dataset can be used to train a model for Arabic token segmentation and part of speech tagging in Arabic dialects. Success on this task is typically measured by achieving a high accuracy over a held out dataset. Darwish et al (2018) train a CRF model across all four dialects and achieve an average accuracy of 89.3%. 
+The dataset can be used to train a model for Arabic token segmentation and part of speech tagging in Arabic dialects. Success on this task is typically measured by achieving a high accuracy over a held out dataset. Darwish et al. (2018) train a CRF model across all four dialects and achieve an average accuracy of 89.3%. 
 
 ### Languages
 
@@ -71,15 +68,68 @@ The BCP-47 code is ar-Arab. The dataset consists of four dialects of Arabic, Egy
 
 ### Data Instances
 
-[More Information Needed]4	A	1	1	ليه	ليه	PART
+Below is an example from the Egyptian set:
+```
+- `Fold`: 4
+- `SubFold`: A
+- `SentID`: 1
+- `Order`: 6
+- `Word`: قلبك
+- `Segmentation`: قلب+ك
+- `POS`: NOUN+PRON
+```
 
 ### Data Fields
 
-[More Information Needed]
+The `Fold` and the `SubFold` fields refer to the crossfold validation splits used by Darwish et al., which can be generated using this [script](https://github.com/qcri/dialectal_arabic_resources/blob/master/generate_splits.sh). 
+
+- `Fold`: An int32 indicating which fold the instance was in for the crossfold validation
+- `SubFold`: A string, either 'A' or 'B', indicating which subfold the instance was in for the crossfold validation
+- `SentID`: An int32 indicating the sentence ID
+- `Order`: An int32 indicating the index of the word in the sentence
+- `Word`: A string of the unsegmented token
+- `Segmentation`: A string consisting of the segments of the word separated by '+' if there is more than one segment
+- `POS`: A string of the part of speech tags of the segments separated by '+' if there is more than one segment
+
+The POS tags consist of a set developed by [Darwish et al. (2017)](https://www.aclweb.org/anthology/W17-1316.pdf) for Modern Standard Arabic (MSA) plus an additional 6 tags (2 dialect-specific tags and 4 tweet-specific tags). 
+
+|   Tag      | Purpose | Description                          |
+| -----      | ------  | -----                                |
+| ADV        | MSA     | Adverb                               |
+| ADJ        | MSA     | Adjective                            |
+| CONJ       | MSA     | Conjunction                          |
+| DET        | MSA     | Determiner                           |
+| NOUN       | MSA     | Noun                                 |
+| NSUFF      | MSA     | Noun suffix                          |
+| NUM        | MSA     | Number                               |
+| PART       | MSA     | Particle                             |
+| PREP       | MSA     | Preposition                          |
+| PRON       | MSA     | Pronoun                              |
+| PUNC       | MSA     | Preposition                          |
+| V          | MSA     | Verb                                 | 
+| ABBREV     | MSA     | Abbreviation                         |
+| CASE       | MSA     | Alef of tanween fatha                |
+| JUS        | MSA     | Jussification attached to verbs      |
+| VSUFF      | MSA     | Verb Suffix                          | 
+| FOREIGN    | MSA     | Non-Arabic as well as non-MSA words  |
+| FUR_PART   | MSA     | Future particle "s" prefix and "swf" |
+| PROG_PART  | Dialect | Progressive particle                 |
+| NEG_PART   | Dialect | Negation particle                    |
+| HASH       | Tweet   | Hashtag                              |
+| EMOT       | Tweet   | Emoticon/Emoji                       |
+| MENTION    | Tweet   | Mention                              |
+| URL        | Tweet   | URL                                  |
 
 ### Data Splits
 
-[More Information Needed]
+The dataset is split by dialect. 
+
+|   Dialect             | Tweets |  Words  |
+| -----                 | ------ |  -----  |
+| Egyptian (EGY)        |  350   |  7481   |
+| Levantine (LEV)       |  350   |  7221   |
+| Gulf (GLF)            |  350   |  6767   |
+| Maghrebi (MGR)        |  350   |  6400   |
 
 ## Dataset Creation
 
@@ -89,9 +139,11 @@ This dataset was created to address the lack of computational resources availabl
 
 ### Source Data
 
+This dataset builds off of the work of [Eldesouki et al. (2017)](https://arxiv.org/pdf/1708.05891.pdf) and [Samih et al. (2017b)](https://www.aclweb.org/anthology/K17-1043.pdf) who originally collected the tweets.
+
 #### Initial Data Collection and Normalization
 
-This dataset builds off of the work of [Eldesouki et al. (2017)](https://arxiv.org/pdf/1708.05891.pdf) and [Samih et al. (2017b)](https://www.aclweb.org/anthology/K17-1043.pdf) who originally collected the tweets. They started with 175 million Arabic tweets returned by the Twitter API using the query "lang:ar" in March 2014. They then filtered this set using author-identified locations and tokens that are unique to each dialect. Finally, they had native speakers of each dialect select 350 tweets that were heavily accented. 
+They started with 175 million Arabic tweets returned by the Twitter API using the query "lang:ar" in March 2014. They then filtered this set using author-identified locations and tokens that are unique to each dialect. Finally, they had native speakers of each dialect select 350 tweets that were heavily accented. 
 
 #### Who are the source language producers?
 
@@ -101,11 +153,11 @@ The source language producers are people who posted on Twitter in Arabic using d
 
 #### Annotation process
 
-The segmentation guidelines are available at https://alt.qcri.org/resources1/da_resources/seg-guidelines.pdf.  
+The segmentation guidelines are available at https://alt.qcri.org/resources1/da_resources/seg-guidelines.pdf. The tagging guidelines are not provided, but Darwish at al. note that there were multiple rounds of quality control and revision.
 
 #### Who are the annotators?
 
-[More Information Needed]
+The POS tags were annotated by native speakers of each dialect. Further information is not known.
 
 ### Personal and Sensitive Information
 
@@ -115,7 +167,7 @@ The segmentation guidelines are available at https://alt.qcri.org/resources1/da_
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+Darwish et al find that the accuracy on the Maghrebi dataset suffered the most when the training set was from another dialect, and conversely training on Maghrebi yielded the worst results for all the other dialects. They suggest that Egyptian, Levantine, and Gulf may be more similar to each other and Maghrebi the most dissimilar to all of them. They also find that training on Modern Standard Arabic (MSA) and testing on dialects yielded significantly lower results compared to training on dialects and testing on MSA. This suggests that dialectal variation should be a significant consideration for future work in Arabic NLP applications, particularly when working with social media text. 
 
 ### Discussion of Biases
 
