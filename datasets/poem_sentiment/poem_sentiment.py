@@ -44,7 +44,7 @@ _URLS = {
     "dev": f"{_BASE_URL}/dev.tsv",
     "test": f"{_BASE_URL}/test.tsv",
 }
-_LABLE_MAPPING = {-1: 0, 0: 2, 1: 1, 2: 3}
+_LABEL_MAPPING = {-1: 0, 0: 2, 1: 1, 2: 3}
 
 
 class PoemSentiment(datasets.GeneratorBasedBuilder):
@@ -81,5 +81,5 @@ class PoemSentiment(datasets.GeneratorBasedBuilder):
             for line in lines:
                 fields = line.strip().split("\t")
                 idx, verse_text, label = fields
-                label = _LABLE_MAPPING[int(label)]
+                label = _LABEL_MAPPING[int(label)]
                 yield int(idx), {"id": int(idx), "verse_text": verse_text, "label": label}
