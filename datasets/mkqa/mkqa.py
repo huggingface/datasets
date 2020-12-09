@@ -129,7 +129,6 @@ class Mkqa(datasets.GeneratorBasedBuilder):
         # download and extract URLs
         urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
-        
 
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]})]
 
