@@ -176,15 +176,12 @@ class WikiLingua(datasets.GeneratorBasedBuilder):
             train_fname = files[0]
         else:
             train_fname = data_dir
-        # train_fname = os.path.join(data_dir, f"{self.config.name}.pkl")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": train_fname,
-                    # "filepath": os.path.join(data_dir),
-                    # "filepath": os.path.join(data_dir, "train.jsonl"),
                     "split": "train",
                 },
             ),
