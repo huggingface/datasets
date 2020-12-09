@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import glob
-import logging
 import os
 
 import datasets
@@ -196,9 +195,6 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
             mt_tokenized = open_and_read(os.path.join(folder, "mt.tokenized"))
 
             if split in ["train", "dev"] and not os.path.exists(os.path.join(folder, "token_index")):
-                logging.warning(
-                    f"Example {folder} doesn't contain a `token_index` file. Filling `token_index` field with default value []."
-                )
                 token_index = []
             else:
                 token_index = [

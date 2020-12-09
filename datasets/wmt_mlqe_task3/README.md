@@ -114,7 +114,7 @@ An example looks like this:
 - `source_segments`: the original source text, one sentence per line (i.e. per element of the list).
 - `source_tokenized`: a tokenized version of `source_segments`.
 - `mt_segments`: the original machine-translated text, one sentence per line (i.e. per element of the list).
-- `mt_tokenized`: a tokenized version of `mt_segments`. Default value is `[]` when this information is not available (it happens 3 times in the train set).
+- `mt_tokenized`: a tokenized version of `mt_segments`. Default value is `[]` when this information is not available (it happens 3 times in the train set: `B0001BW0PQ`, `B0001GS19U` and `B000A6SMJ0`).
 - `annotations`: error annotations for the document. Each item of the list corresponds to an error annotation, which in turn may contain one or more error spans. Error fields are encoded in a dictionary. In the case of a multi-span error, multiple starting positions and lengths are encoded in the list. Note that these positions points to `mt.segments`, not `mt_tokenized`.
   - `segment_id`: List of list of integers. Id of each error.
   - `annotation_start`: List of list of integers. Start of each error.
