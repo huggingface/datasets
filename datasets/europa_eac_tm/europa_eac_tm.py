@@ -115,10 +115,10 @@ def _find_sentence(translation, language):
 
 
 class EuropaEacTMConfig(datasets.BuilderConfig):
-    """BuilderConfig for EacTranslationMemory"""
+    """BuilderConfig for EuropaEacTM"""
 
     def __init__(self, language_pair=(None, None), **kwargs):
-        """BuilderConfig for EacTranslationMemory
+        """BuilderConfig for EuropaEacTM
 
         Args:
             language_pair: pair of languages that will be used for translation. Should
