@@ -4,13 +4,13 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  en-es
+  en-es:
   - en
   - es
-  en-pt
+  en-pt:
   - en
   - pt
-  en-pt-es
+  en-pt-es:
   - en
   - pt
   - es
