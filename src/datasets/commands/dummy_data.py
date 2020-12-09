@@ -124,33 +124,46 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 with open(src_path, "r", encoding=encoding) as src_file:
                     with open(dst_path, "w", encoding=encoding) as dst_file:
                         first_lines = []
-                        for i, line in enumerate(src_file):
-                            if i >= n_lines:
-                                break
-                            first_lines.append(line)
+                        try:
+                            for i, line in enumerate(src_file):
+                                if i >= n_lines:
+                                    break
+                                first_lines.append(line)
+                        except:
+                            pass
                         dst_file.write("".join(first_lines).strip())
                 return 1
             # json file
             elif dst_path.endswith(".json"):
                 with open(src_path, "r", encoding=encoding) as src_file:
-                    json_data = json.load(src_file)
-                    if json_field is not None:
-                        json_data = json_data[json_field]
-                    if isinstance(json_data, dict):
-                        if not all(isinstance(v, list) for v in json_data.values()):
-                            raise ValueError(
-                                f"Couldn't parse columns {list(json_data.keys())}. "
-                                "Maybe specify which json field must be used "
-                                "to read the data with --json_field <my_field>."
-                            )
-                        first_json_data = {k: v[:n_lines] for k, v in json_data.items()}
-                    else:
-                        first_json_data = json_data[:n_lines]
-                    if json_field is not None:
-                        first_json_data = {json_field: first_json_data}
-                    Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                    with open(dst_path, "w", encoding=encoding) as dst_file:
-                        json.dump(first_json_data, dst_file)
+                    try:
+                        json_data = json.load(src_file)
+                    except Exception as e:
+                        pass
+
+                with open(src_path, "r", encoding=encoding) as src_file:
+                    json_data = []
+                    for line in src_file:
+                        json_data.append(json.loads(line))
+
+                if json_field is not None:
+                    json_data = json_data[json_field]
+
+                if isinstance(json_data, dict):
+                    if not all(isinstance(v, list) for v in json_data.values()):
+                        raise ValueError(
+                            f"Couldn't parse columns {list(json_data.keys())}. "
+                            "Maybe specify which json field must be used "
+                            "to read the data with --json_field <my_field>."
+                        )
+                    first_json_data = {k: v[:n_lines] for k, v in json_data.items()}
+                else:
+                    first_json_data = json_data[:n_lines]
+                if json_field is not None:
+                    first_json_data = {json_field: first_json_data}
+                Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
+                with open(dst_path, "w", encoding=encoding) as dst_file:
+                    json.dump(first_json_data, dst_file)
                 return 1
             # xml file
             elif dst_path.endswith(".xml"):
