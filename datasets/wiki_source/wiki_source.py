@@ -68,9 +68,7 @@ class WikiSource(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "translation": datasets.Translation(
-                        languages=(self.config.lang1, self.config.lang2)
-                    ),
+                    "translation": datasets.Translation(languages=(self.config.lang1, self.config.lang2)),
                 },
             ),
             supervised_keys=None,
@@ -98,9 +96,7 @@ class WikiSource(datasets.GeneratorBasedBuilder):
         l2_file = _BASE_NAME.format(folder, l2)
         l1_path = os.path.join(datapath, l1_file)
         l2_path = os.path.join(datapath, l2_file)
-        with open(l1_path, encoding="utf-8") as f1, open(
-            l2_path, encoding="utf-8"
-        ) as f2:
+        with open(l1_path, encoding="utf-8") as f1, open(l2_path, encoding="utf-8") as f2:
             for sentence_counter, (x, y) in enumerate(zip(f1, f2)):
                 x = x.strip()
                 y = y.strip()
