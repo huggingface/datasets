@@ -1,8 +1,4 @@
-# Linguistic Probing
-10 probing tasks designed to capture simple linguistic features of sentences
-https://www.aclweb.org/anthology/P18-1198.pdf
-
-
+---
 annotations_creators:
 - machine-generated
 language_creators:
@@ -58,3 +54,125 @@ task_ids:
   - text-classification-other-syntactic tree depth prediction
   word_content:
   - text-classification-other-words prediction
+ ---
+
+# Dataset Card for LinguisticProbing
+
+## Table of Contents
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+
+## Dataset Description
+
+- **Homepage:** https://github.com/facebookresearch/SentEval
+- **Repository:** https://github.com/facebookresearch/SentEval
+- **Paper:** https://arxiv.org/abs/1805.01070
+- **Leaderboard:**
+- **Point of Contact:**
+
+### Dataset Summary
+
+[More Information Needed]
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
+
+### Languages
+
+English
+
+## Dataset Structure
+
+10 classification tasks for single sentence or sentence pairs
+
+### Data Instances
+
+[More Information Needed]
+
+### Data Fields
+
+[More Information Needed]
+
+### Data Splits
+
+Train/Val/Test
+
+## Dataset Creation
+
+### Curation Rationale
+
+[More Information Needed]
+
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+Automated annotation with parsing tools
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
+
+### Licensing Information
+
+[More Information Needed]
+
+### Citation Information
+
+[More Information Needed]
