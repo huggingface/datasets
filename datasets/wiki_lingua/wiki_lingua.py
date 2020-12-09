@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import pickle
-
+from glob import glob
 import datasets
 
 
@@ -164,20 +164,26 @@ class WikiLingua(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
-        # dl_dir = dl_manager.download_and_extract(my_urls)
-        # data_dir = os.path.join(dl_dir, _CONFIG_TO_FOLDER[self.config.name])
+        # The domain specific files are all in pkl format so when
+        # the download manager downloads it, the path returned is
+        # the actual file path where in tests we get the dir
         data_dir = dl_manager.download_and_extract(my_urls)
-        # import pdb; pdb.set_trace();
+        # See create_dummy.py to create new dummy data
+        if os.path.isdir(data_dir):
+            files = glob(f"{data_dir}/*")
+            # Will pickup the 1st file. Not sure if this is fine though
+            train_fname = files[0]
+        else:
+            train_fname = data_dir
+        # train_fname = os.path.join(data_dir, f"{self.config.name}.pkl")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir),
+                    "filepath": train_fname,
+                    # "filepath": os.path.join(data_dir),
                     # "filepath": os.path.join(data_dir, "train.jsonl"),
                     "split": "train",
                 },
