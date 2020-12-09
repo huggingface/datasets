@@ -21,9 +21,9 @@ from hashlib import sha256
 from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
-import rarfile
 
 import numpy as np
+import rarfile
 import requests
 from tqdm.auto import tqdm
 
