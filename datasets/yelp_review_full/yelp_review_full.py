@@ -76,11 +76,11 @@ class YelpReviewFull(datasets.GeneratorBasedBuilder):
             {
                 "label": datasets.features.ClassLabel(
                     names=[
-                        "0 star",
                         "1 star",
-                        "2 stars",
+                        "2 star",
                         "3 stars",
                         "4 stars",
+                        "5 stars",
                     ]
                 ),
                 "text": datasets.Value("string"),
