@@ -28,9 +28,9 @@ Please cite this dataset as "鈴木 優: COVID-19 日本語 Twitter データセ
 """
 
 _DESCRIPTION = """\
-53,640 Japanese tweets with annotation if a tweet is related to COVID-19 or not. The annotation is by majority decision by 5 - 10 crowdworkers. \
+53,640 Japanese tweets with annotation if a tweet is related to COVID-19 or not. The annotation is by majority decision by 5 - 10 crowd workers. \
 Target tweets include "COVID" or "コロナ". The period of the tweets is from around January 2020 to around June 2020. \
-The original tweets is not contained. Please use Twitter API to get them, for example.
+The original tweets are not contained. Please use Twitter API to get them, for example.
 """
 
 _HOMEPAGE = "http://www.db.info.gifu-u.ac.jp/data/Data_5f02db873363f976fce930d1"
