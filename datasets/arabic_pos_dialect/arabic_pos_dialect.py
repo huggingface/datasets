@@ -17,10 +17,11 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
+
 import datasets
 
 
-_CITATION = """\
+_CITATION = """
 @InProceedings{DARWISH18.562,  author = {Kareem Darwish ,Hamdy Mubarak ,Ahmed Abdelali ,Mohamed Eldesouki ,Younes Samih ,Randah Alharbi ,Mohammed Attia ,Walid Magdy and Laura Kallmeyer},
 title = {Multi-Dialect Arabic POS Tagging: A CRF Approach},
 booktitle = {Proceedings of the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)},
@@ -64,7 +65,7 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
     """POS-tagged Arabic tweets in four major dialects."""
 
     VERSION = datasets.Version("1.1.0")
-
+    BUILDER_CONFIG_CLASS = ArabicPosDialectConfig
     BUILDER_CONFIGS = [
         ArabicPosDialectConfig(
             name=dialect,
@@ -81,13 +82,11 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "Fold": datasets.Value("int32"),
-                    "SubFold": datasets.Value("string"),
-                    "SentID": datasets.Value("int32"),
-                    "Order": datasets.Value("int32"),
-                    "Word": datasets.Value("string"),
-                    "Segmentation": datasets.Value("string"),
-                    "POS": datasets.Value("string"),
+                    "fold": datasets.Value("int32"),
+                    "subfold": datasets.Value("string"),
+                    "words": datasets.Sequence(datasets.Value("string")),
+                    "segments": datasets.Sequence(datasets.Value("string")),
+                    "pos_tags": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -115,15 +114,43 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples in the raw (text) form. """
-        with open(filepath, encoding="utf-8") as f:
-            reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+        with open(filepath, encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file, delimiter="\t", quoting=csv.QUOTE_NONE)
+            fold = -1
+            subfold = ""
+            words = []
+            segments = []
+            pos_tags = []
+            curr_sent = -1
             for idx, row in enumerate(reader):
-                yield idx, {
-                    "Fold": row["Fold"],
-                    "SubFold": row["SubFold"],
-                    "SentID": row["SentID"],
-                    "Order": row["Order"],
-                    "Word": row["Segmentation"],
-                    "Segmentation": row["Word"],
-                    "POS": row["POS"],
-                }
+                # first example
+                if fold == -1:
+                    fold = row["Fold"]
+                    subfold = row["SubFold"]
+                    curr_sent = int(row["SentID"])
+                if int(row["SentID"]) != curr_sent:
+                    yield curr_sent, {
+                        "fold": fold,
+                        "subfold": subfold,
+                        "words": words,
+                        "segments": segments,
+                        "pos_tags": pos_tags,
+                    }
+                    fold = row["Fold"]
+                    subfold = row["SubFold"]
+                    words = [row["Word"]]
+                    segments = [row["Segmentation"]]
+                    pos_tags = [row["POS"]]
+                    curr_sent = int(row["SentID"])
+                else:
+                    words.append(row["Word"])
+                    segments.append(row["Segmentation"])
+                    pos_tags.append(row["POS"])
+            # last example
+            yield curr_sent, {
+                "fold": fold,
+                "subfold": subfold,
+                "words": words,
+                "segments": segments,
+                "pos_tags": pos_tags,
+            }
