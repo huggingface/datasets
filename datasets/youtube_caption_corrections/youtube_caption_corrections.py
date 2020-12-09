@@ -103,7 +103,6 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
         for fp in filepaths:
             with open(fp, "r", encoding="utf-8") as json_file:
                 json_lists = list(json_file)
-
             for json_list_str in json_lists:
                 json_list = json.loads(json_list_str)
 
