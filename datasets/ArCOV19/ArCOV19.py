@@ -90,7 +90,7 @@ class arcov19(datasets.GeneratorBasedBuilder):
     def _info(self):
        
         features={}
-        features["tweetID"]= datasets.Value("string")
+        features["tweetID"]= datasets.Value("int64")
      
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -128,7 +128,7 @@ class arcov19(datasets.GeneratorBasedBuilder):
          #   datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
         #]
         urls_to_download = {
-            "train": os.path.join(_URL, "2020-01-27"),
+            "train": "https://gitlab.com/bigirqu/ArCOV-19/-/raw/master/dataset/all_tweets/2020-01-27"
         }
         print("urls_to_download")
         downloaded_files = dl_manager.download(urls_to_download)
