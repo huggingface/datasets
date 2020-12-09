@@ -216,81 +216,74 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         for id_, filepath in enumerate(filepaths):
             print(id_)
-            try:
-                with open(filepath, encoding="utf-8") as f:
-                    data = json.load(f)
-                    if id_ == 9999:
-                        print(filepath)
-                    if self.config.name == "parsed_pdfs":
-                        temp = {
-                            "name": data.get("name", ""),
-                            "metadata": {
-                                "source": data.get("metadata", {}).get("source", ""),
-                                "title": data.get("metadata", {}).get("title", ""),
-                                "authors": data.get("metadata", {}).get("authors", []),
-                                "emails": data.get("metadata", {}).get("emails", []),
-                                "sections": [{
-                                    "heading": section.get("heading", ""),
-                                    "text": section.get("text", ""),
-                                } if isinstance(section, dict) else {}
-                                     for section in data.get("metadata", {}).get("sections", [])] if isinstance(data.get("metadata", {}).get("sections", []), list) else [],
-                                "references": [{
-                                    "title": reference.get("title", ""),
-                                    "author": reference.get("author", []),
-                                    "venue": reference.get("venue", ""),
-                                    "citeRegEx": reference.get("citeRegEx", ""),
-                                    "shortCiteRegEx": reference.get("shortCiteRegEx", ""),
-                                    "year": reference.get("year", ""),
-                                } if isinstance(reference, dict) else {} for reference in data.get("metadata", {}).get("references", [])],
-                                "referenceMentions": [{
-                                    "referenceID": reference_mention.get("referenceID", ""),
-                                    "context": reference_mention.get("context", ""),
-                                    "startOffset": reference_mention.get("startOffset", ""),
-                                    "endOffset": reference_mention.get("endOffset", ""),
-                                } if isinstance(reference_mention, dict) else {} for reference_mention in data.get("metadata", {}).get("referenceMentions", [])],
-                                "year": data.get("metadata", {}).get("year", ""),
-                                "abstractText": data.get("metadata", {}).get("abstractText", ""),
-                                "creator": data.get("metadata", {}).get("creator", ""),
-                            }
+            with open(filepath, errors='replace') as f:
+                f = f.read().encode('utf-8', 'surrogatepass').decode('utf-8')
+                data = json.loads(f)
+                if id_ == 9999:
+                    print(filepath)
+                if self.config.name == "parsed_pdfs":
+                    temp = {
+                        "name": data.get("name", ""),
+                        "metadata": {
+                            "source": data.get("metadata", {}).get("source", ""),
+                            "title": data.get("metadata", {}).get("title", ""),
+                            "authors": data.get("metadata", {}).get("authors", []),
+                            "emails": data.get("metadata", {}).get("emails", []),
+                            "sections": [{
+                                "heading": section.get("heading", ""),
+                                "text": section.get("text", ""),
+                            } if isinstance(section, dict) else {}
+                                 for section in data.get("metadata", {}).get("sections", [])] if isinstance(data.get("metadata", {}).get("sections", []), list) else [],
+                            "references": [{
+                                "title": reference.get("title", ""),
+                                "author": reference.get("author", []),
+                                "venue": reference.get("venue", ""),
+                                "citeRegEx": reference.get("citeRegEx", ""),
+                                "shortCiteRegEx": reference.get("shortCiteRegEx", ""),
+                                "year": reference.get("year", ""),
+                            } if isinstance(reference, dict) else {} for reference in data.get("metadata", {}).get("references", [])],
+                            "referenceMentions": [{
+                                "referenceID": reference_mention.get("referenceID", ""),
+                                "context": reference_mention.get("context", ""),
+                                "startOffset": reference_mention.get("startOffset", ""),
+                                "endOffset": reference_mention.get("endOffset", ""),
+                            } if isinstance(reference_mention, dict) else {} for reference_mention in data.get("metadata", {}).get("referenceMentions", [])],
+                            "year": data.get("metadata", {}).get("year", ""),
+                            "abstractText": data.get("metadata", {}).get("abstractText", ""),
+                            "creator": data.get("metadata", {}).get("creator", ""),
                         }
-                        print('done')
-                        yield id_, temp
-                    else:
-                        temp2 = {
-                            "id": data.get("id", ""),
-                            "conference": data.get("conference", ""),
-                            "comments": data.get("comments", ""),
-                            "subjects": data.get("subjects", ""),
-                            "version": data.get("version", ""),
-                            "date_of_submission": data.get("date_of_submission", ""),
-                            "title": data.get("title", ""),
-                            "authors": data.get("authors", []) if isinstance(data.get("authors"), list) else [data.get("authors", "")],
-                            "accepted": data.get("accepted", ""),
-                            "abstract": data.get("abstract", ""),
-                            "histories": self._parse_histories(data.get("histories", [])),
-                            "reviews": [{
-                                "date": review.get("date", ""),
-                                "title": review.get("title", ""),
-                                "other_keys": review.get("other_keys", ""),
-                                "originality": review.get("originality", ""),
-                                "comments": review.get("comments", ""),
-                                "is_meta_review": review.get("is_meta_review", ""),
-                                "is_annotated": review.get("is_annotated", ""),
-                                "recommendation": review.get("recommendation", ""),
-                                "replicability": review.get("replicability", ""),
-                                "presentation_format": review.get("presentation_format", ""),
-                                "clarity": review.get("clarity", ""),
-                                "meaningful_comparison": review.get("meaningful_comparison", ""),
-                                "substance": review.get("substance", ""),
-                                "reviewer_confidence": review.get("reviewer_confidence", ""),
-                                "soundness_correctness": review.get("soundness_correctness", ""),
-                                "appropriateness": review.get("appropriateness", ""),
-                                "impact": review.get("impact"),
-                            } if isinstance(review, dict) else {} for review in data.get("metadata", {}).get("reviews", [])]
-                        }
-                        if id_ >= 9998:
-                            print(f'fp: {filepath}')
-                            print(temp2)
-                        yield id_, temp2
-            except Exception as e:
-                print(e)
+                    }
+                    yield id_, temp
+                else:
+                    yield id_, {
+                        "id": str(data.get("id", "")),
+                        "conference": str(data.get("conference", "")),
+                        "comments": str(data.get("comments", "")),
+                        "subjects": str(data.get("subjects", "")),
+                        "version": str(data.get("version", "")),
+                        "date_of_submission": str(data.get("date_of_submission", "")),
+                        "title": str(data.get("title", "")),
+                        "authors": data.get("authors", []) if isinstance(data.get("authors"), list) else [data.get("authors", "")],
+                        "accepted": str(data.get("accepted", "")),
+                        "abstract": str(data.get("abstract", "")),
+                        "histories": self._parse_histories(data.get("histories", [])),
+                        "reviews": [{
+                            "date": str(review.get("date", "")),
+                            "title": str(review.get("title", "")),
+                            "other_keys": str(review.get("other_keys", "")),
+                            "originality": str(review.get("originality", "")),
+                            "comments": str(review.get("comments", "")),
+                            "is_meta_review": str(review.get("is_meta_review", "")),
+                            "is_annotated": str(review.get("is_annotated", "")),
+                            "recommendation": str(review.get("recommendation", "")),
+                            "replicability": str(review.get("replicability", "")),
+                            "presentation_format": str(review.get("presentation_format", "")),
+                            "clarity": str(review.get("clarity", "")),
+                            "meaningful_comparison": str(review.get("meaningful_comparison", "")),
+                            "substance": str(review.get("substance", "")),
+                            "reviewer_confidence": str(review.get("reviewer_confidence", "")),
+                            "soundness_correctness": str(review.get("soundness_correctness", "")),
+                            "appropriateness": str(review.get("appropriateness", "")),
+                            "impact": str(review.get("impact")),
+                        } if isinstance(review, dict) else {} for review in data.get("metadata", {}).get("reviews", [])]
+                    }
