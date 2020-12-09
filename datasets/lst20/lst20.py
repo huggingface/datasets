@@ -125,9 +125,9 @@ class Lst20(datasets.GeneratorBasedBuilder):
             )
 
         # check number of .txt files
-        nb_train = len(glob.glob(f"{data_dir}/train/*.txt"))
-        nb_valid = len(glob.glob(f"{data_dir}/eval/*.txt"))
-        nb_test = len(glob.glob(f"{data_dir}/test/*.txt"))
+        nb_train = len(glob.glob(os.path.join(data_dir, "train", "*.txt"))
+        nb_valid = len(glob.glob(os.path.join(data_dir, "eval", "*.txt"))
+        nb_test = len(glob.glob(os.path.join(data_dir, "test", "*.txt"))
         assert (
             nb_train > 0
         ), f"No files found in train/*.txt.\nManual download instructions:{self.manual_download_instructions})"
