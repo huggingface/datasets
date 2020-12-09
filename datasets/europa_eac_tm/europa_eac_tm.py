@@ -1,0 +1,224 @@
+# coding=utf-8
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""European commission Joint Reasearch Center's Education And Culture Translation Memory dataset"""
+
+from __future__ import absolute_import, division, print_function
+
+from bs4 import BeautifulSoup
+from itertools import repeat, chain
+import os
+
+import datasets
+
+
+_CITATION = """\
+@Article{Steinberger2014,
+        author={Steinberger, Ralf
+                and Ebrahim, Mohamed
+                and Poulis, Alexandros
+                and Carrasco-Benitez, Manuel
+                and Schl{\"u}ter, Patrick
+                and Przybyszewski, Marek
+                and Gilbro, Signe},
+        title={An overview of the European Union's highly multilingual parallel corpora},
+        journal={Language Resources and Evaluation},
+        year={2014},
+        month={Dec},
+        day={01},
+        volume={48},
+        number={4},
+        pages={679-707},
+        issn={1574-0218},
+        doi={10.1007/s10579-014-9277-0},
+        url={https://doi.org/10.1007/s10579-014-9277-0}
+}
+"""
+
+_DESCRIPTION = """\
+In October 2012, the European Union's (EU) Directorate General for Education and Culture ( DG EAC) released a \
+translation memory (TM), i.e. a collection of sentences and their professionally produced translations, in \
+twenty-six languages. This resource bears the name EAC Translation Memory, short EAC-TM.
+
+EAC-TM covers up to 26 languages: 22 official languages of the EU (all except Irish) plus Icelandic, Croatian, \
+Norwegian and Turkish. EAC-TM thus contains translations from English into the following 25 languages: Bulgarian, \
+Czech, Danish, Dutch, Estonian, German, Greek, Finnish, French, Croatian, Hungarian, Icelandic, Italian, Latvian, \
+Lithuanian, Maltese, Norwegian, Polish, Portuguese, Romanian, Slovak, Slovenian, Spanish, Swedish and Turkish.
+
+All documents and sentences were originally written in English (source language is English) and then translated into \
+the other languages. The texts were translated by staff of the National Agencies of the Lifelong Learning and Youth in \
+Action programmes. They are typically professionals in the field of education/youth and EU programmes. They are thus not \
+professional translators, but they are normally native speakers of the target language.
+"""
+
+_HOMEPAGE = "https://ec.europa.eu/jrc/en/language-technologies/eac-translation-memory"
+
+_LICENSE = "\
+Creative Commons Attribution 4.0 International(CC BY 4.0) licence \
+© European Union, 1995-2020"
+
+_DATA_URL = "https://wt-public.emm4u.eu/Resources/EAC-TM/EAC-TM-all.zip"
+
+_TARGET_LANGUAGES = (
+    "bg",
+    "cs",
+    "da",
+    "de",
+    "el",
+    "es",
+    "et",
+    "fi",
+    "fr",
+    "hu",
+    "is",
+    "it",
+    "lt",
+    "lv",
+    "mt",
+    "nb",
+    "nl",
+    "pl",
+    "pt",
+    "ro",
+    "sk",
+    "sl",
+    "sv",
+    "tr",
+)
+
+
+def _find_sentence(translation, language):
+    """Util that returns the sentence in the given language from translation, or None if it is not found
+
+    Args:
+        translation: `bs4.Tag`, beautiful soup tag extracted from the translation memory files.
+        language: `str`, language of interest e.g. 'en'
+
+    Returns: `str` or `None`, can be `None` if the language of interest is not found in the translation
+    """
+    tuv_tag = translation.find("tuv", attrs={"xml:lang": language})
+    if tuv_tag is not None:
+        return tuv_tag.seg.string
+    return None
+
+
+class EuropaEacTMConfig(datasets.BuilderConfig):
+    """BuilderConfig for EacTranslationMemory"""
+
+    def __init__(self, language_pair=(None, None), **kwargs):
+        """BuilderConfig for EacTranslationMemory
+
+        Args:
+            language_pair: pair of languages that will be used for translation. Should
+                contain 2-letter coded strings. First will be used at source and second
+                as target in supervised mode. For example: ("se", "en").
+            **kwargs: keyword arguments forwarded to super.
+        """
+        name = f"{language_pair[0]}2{language_pair[1]}"
+        description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
+        super(EuropaEacTMConfig, self).__init__(
+            name=name,
+            description=description,
+            version=datasets.Version("1.0.0", ""),
+            **kwargs,
+        )
+        source, target = language_pair
+        assert source != target, "Source and target languages must be different}"
+        assert source == "en", f"Source language muste be 'en', got {source}"
+        assert (
+            target in _TARGET_LANGUAGES
+        ), f"Source language {target} is not supported. Must be one of : {_TARGET_LANGUAGES}"
+        self.language_pair = language_pair
+
+
+# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
+class EuropaEacTM(datasets.GeneratorBasedBuilder):
+    """European Commission Joint Research Center's EAC Translation Memory"""
+
+    VERSION = datasets.Version("1.0.0")
+    FORM_SENTENCE_TYPE = "form_data"
+    REFERENCE_SENTENCE_TYPE = "sentence_data"
+
+    BUILDER_CONFIGS = [EuropaEacTMConfig(language_pair=("en", target)) for target in _TARGET_LANGUAGES]
+
+    def _info(self):
+        source, target = self.config.language_pair
+        return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            features=datasets.Features(
+                {
+                    "translation": datasets.features.Translation(languages=self.config.language_pair),
+                    "sentence_type": datasets.features.ClassLabel(
+                        names=[self.FORM_SENTENCE_TYPE, self.REFERENCE_SENTENCE_TYPE]
+                    ),
+                }
+            ),
+            supervised_keys=(source, target),
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        form_data_file = os.path.join(dl_dir, "EAC_FORMS.tmx")
+        reference_data_file = os.path.join(dl_dir, "EAC_REFRENCE_DATA.tmx")
+        source, target = self.config.language_pair
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "form_data_file": form_data_file,
+                    "reference_data_file": reference_data_file,
+                    "source_language": source,
+                    "target_language": target,
+                },
+            ),
+        ]
+
+    def _generate_examples(
+        self,
+        form_data_file,
+        reference_data_file,
+        source_language,
+        target_language,
+    ):
+
+        with open(form_data_file, encoding="utf-8") as f_forms:
+            forms_soup = BeautifulSoup(f_forms.read(), "xml")  # Needs bs4 and lxml as dependencies
+
+        with open(reference_data_file, encoding="utf-8") as f_references:
+            references_soup = BeautifulSoup(f_references.read(), "xml")
+
+        # Translations are stored in <tu>...</tu> tags
+        forms_translations = forms_soup.find_all("tu")
+        references_translations = references_soup.find_all("tu")
+
+        # Pairing sentence type with <tu> tags
+        forms_iter = zip(repeat(self.FORM_SENTENCE_TYPE), forms_translations)
+        refrences_iter = zip(repeat(self.REFERENCE_SENTENCE_TYPE), references_translations)
+
+        # _ids may not be contiguous
+        for _id, (sentence_type, translation) in enumerate(chain(forms_iter, refrences_iter)):
+            source_sentence = _find_sentence(translation=translation, language=source_language)
+            target_sentence = _find_sentence(translation=translation, language=target_language)
+            if source_sentence is None or target_sentence is None:
+                continue
+
+            sentence_label = 0 if sentence_type == self.FORM_SENTENCE_TYPE else 1
+
+            yield _id, {
+                "translation": {source_language: source_sentence, target_language: target_sentence},
+                "sentence_type": sentence_label,
+            }
