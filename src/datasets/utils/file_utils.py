@@ -368,12 +368,9 @@ def cached_path(
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
             elif rarfile.is_rarfile(output_path):
-                try:
-                    rf = rarfile.RarFile(output_path)
-                    rf.extractall(output_path_extracted)
-                    rf.close()
-                except:
-                    raise EnvironmentError("Please apt-install unrar")
+                rf = rarfile.RarFile(output_path)
+                rf.extractall(output_path_extracted)
+                rf.close()
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
