@@ -1,10 +1,10 @@
-
-import shutil
+import itertools
 import os
 import pickle
-import itertools
+import shutil
 from glob import glob
 from os.path import join as pjoin
+
 
 _URLs = {
     "arabic": "https://drive.google.com/uc?export=download&id=1__EjA6oZsgXQpggPm-h54jZu3kP6Y6zu",
@@ -60,7 +60,7 @@ def zip():
         # dirname = pjoin(base_path, f"datasets/wiki_lingua/dummy/{key}/1.1.0/dummy_data")
         dirname = pjoin(base_path, f"datasets/wiki_lingua/dummy/{key}/1.1.0")
         print(f"Zipping {dirname}")
-        shutil.make_archive(f"{dirname}/dummy_data", 'zip', dirname, "dummy_data")
+        shutil.make_archive(f"{dirname}/dummy_data", "zip", dirname, "dummy_data")
         shutil.rmtree(f"{dirname}/dummy_data")
         print(f"Deleted folder {dirname}/dummy_data")
 
