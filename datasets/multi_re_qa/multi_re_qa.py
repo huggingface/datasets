@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -36,11 +35,7 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-MultiReQA contains the sentence boundary annotation from eight publicly available QA datasets including 
-SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, BioASQ, RelationExtraction, and TextbookQA. 
-Five of these datasets, including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, contain both training and test data, 
-and three, including BioASQ, RelationExtraction, TextbookQA, contain only the test data
-"""
+MultiReQA contains the sentence boundary annotation from eight publicly available QA datasets including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, BioASQ, RelationExtraction, and TextbookQA. Five of these datasets, including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, contain both training and test data, and three, including BioASQ, RelationExtraction, TextbookQA, contain only the test data"""
 
 _HOMEPAGE = "https://github.com/google-research-datasets/MultiReQA"
 
