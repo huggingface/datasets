@@ -40,10 +40,10 @@ task_categories:
 
 ## Dataset Description
 
-- **Homepage:** 
+- **Homepage:**  http://qufaculty.qu.edu.qa/telsayed/datasets/
 - **Repository:** https://gitlab.com/bigirqu/ArCOV-19
 - **Paper:** [ArCOV-19: The First Arabic COVID-19 Twitter Dataset with Propagation Networks](https://arxiv.org/abs/2004.05861)
-- **Leaderboard:**
+- **Leaderboard:** [More Information Needed]
 - **Point of Contact:** [Fatima Haouari](mailto:200159617@qu.edu.qa)
 
 ### Dataset Summary
@@ -66,7 +66,7 @@ Arabic
 
 ### Data Fields
 
-[More Information Needed]
+tweet_id: the Twitter assigned ID for the tweet object.
 
 ### Data Splits
 
