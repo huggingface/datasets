@@ -85,9 +85,7 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
 
     DEFAULT_CONFIG_NAME = "default"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
-    def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        
+    def _info(self):        
         if (
             self.config.name == "default"
         ):
@@ -97,7 +95,7 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
                     "click_bait_score": datasets.Value("int8"),
                     "content_title": datasets.Value("string"),
                     "content_url": datasets.Value("string"),
-                    "content_published_time": datasets.Value("date64"),
+                    "content_published_time": datasets.Value("string"),
                     "content": datasets.Value("string")
                 }
             )
@@ -155,7 +153,15 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
             keys = ["fake_news_score", "click_bait_score", "content_title", "content_url", "content_published_time", "content"]
             data = pd.read_excel(filepath)
             for id_, row in enumerate(data.itertuples()):
-                # print(id_, dict(zip(keys, row[1:])))
-                yield id_, dict(zip(keys, row[1:]))
+                row_dict = dict()
+                for key, value in zip(keys, row[1:]):
+                    if key in ["fake_news_score", "click_bait_score"]:
+                        row_dict[key] = value
+                    else:
+                        row_dict[key] = str(value)
+                print(id_, row_dict)
+                yield id_, row_dict
+
+                # yield id_, dict(zip(keys, row[1:]))
 
                 
