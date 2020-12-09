@@ -1,9 +1,26 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-sa-3.0
+multilinguality:
+- monolingual
+size_categories:
+- n>1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- abstractive-qa
+- open-domain-qa
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for SOStackSample
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -30,43 +47,145 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** https://www.kaggle.com/stackoverflow/stacksample
 
 ### Dataset Summary
 
-[More Information Needed]
+Dataset with the text of 10% of questions and answers from the Stack Overflow programming Q&A website.
+
+This is organized as three tables:
+
+Questions contains the title, body, creation date, closed date (if applicable), score, and owner ID for all non-deleted Stack Overflow questions whose Id is a multiple of 10.
+Answers contains the body, creation date, score, and owner ID for each of the answers to these questions. The ParentId column links back to the Questions table.
+Tags contains the tags on each of these questions.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+Example projects include:
+
+- Identifying tags from question text
+- Predicting whether questions will be upvoted, downvoted, or closed based on their text
+- Predicting how long questions will take to answer
+- Open Domain Q/A
 
 ### Languages
 
-[More Information Needed]
+English (en) and Programming Languages.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+For Answers:
+```json
+{
+  "Id": { # Unique ID given to the Answer post
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "OwnerUserId": { # The UserID of the person who generated the Answer on StackOverflow. -99 means NA
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "CreationDate": { # The date the Answer was generated. Follows standard datetime format.
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "ParentId": { # Refers to the `Id` of the Question the Answer belong to.
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "Score": { # The sum of up and down votes given to the Answer. Can be negative.
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "Body": { # The body content of the Answer.
+    "feature_type": "Value",
+    "dtype": "string"
+  }
+}
+```
+
+
+
+For Questions:
+```json
+{
+  "Id": { # Unique ID given to the Question post
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "OwnerUserId": { # The UserID of the person who generated the Question on StackOverflow. -99 means NA.
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "CreationDate": { # The date the Question was generated. Follows standard datetime format.
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "ClosedDate": { # The date the Question was generated. Follows standard datetime format. Can be NA.
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "Score": { # The sum of up and down votes given to the Question. Can be negative.
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "Title": { # The title of the Question.
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "Body": { # The body content of the Question.
+    "feature_type": "Value",
+    "dtype": "string"
+  }
+}
+```
+
+For Tags:
+```json
+{
+  "Id": { # ID of the Question the tag belongs to
+    "feature_type": "Value",
+    "dtype": "int32"
+  },
+  "Tag": { # The tag name
+    "feature_type": "Value",
+    "dtype": "string"
+  }
+}
+```
+
+`
 
 ### Data Fields
 
-[More Information Needed]
+For Answers:
+-`Id`: Unique ID given to the Answer post
+`OwnerUserId`: The UserID of the person who generated the Answer on StackOverflow. -99 means NA
+"`CreationDate`": The date the Answer was generated. Follows standard datetime format.
+"`ParentId`": Refers to the `Id` of the Question the Answer belong to.
+"`Score`": The sum of up and down votes given to the Answer. Can be negative.
+"`Body`": The body content of the Answer.
 
-### Data Splits
+For Questions:
+- `Id`: Unique ID given to the Question post.
+- `OwnerUserId`: The UserID of the person who generated the Question on StackOverflow. -99 means NA.
+- `CreationDate`: The date the Question was generated. Follows standard datetime format.
+- `ClosedDate`: The date the Question was generated. Follows standard datetime format. Can be NA.
+- `Score`: The sum of up and down votes given to the Question. Can be negative.
+- `Title`: {The title of the Question.
+- `Body`: The body content of the Question.
 
-[More Information Needed]
+For Tags:
+- `Id`: ID of the Question the tag belongs to.
+- `Tag`: The tag name.
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+Datasets of all R questions and all Python questions are also available on Kaggle, but this dataset is especially useful for analyses that span many languages.
 
 ### Source Data
 
@@ -76,46 +195,34 @@ YAML tags:
 
 #### Who are the source language producers?
 
-[More Information Needed]
-
-### Annotations
-
-#### Annotation process
-
-[More Information Needed]
-
-#### Who are the annotators?
-
-[More Information Needed]
+StackOverflow Users.
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+This data contains information that can identify individual users of StackOverflow. The information is self-reported.
+
+[Needs More Information]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+[Needs More Information]
 
 ### Discussion of Biases
 
-[More Information Needed]
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed]
+[Needs More Information]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed]
+[Needs More Information]
 
 ### Licensing Information
 
-[More Information Needed]
-
-### Citation Information
-
-[More Information Needed]
+All Stack Overflow user contributions are licensed under CC-BY-SA 3.0 with attribution required.
