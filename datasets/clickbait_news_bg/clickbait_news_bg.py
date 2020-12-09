@@ -54,38 +54,14 @@ _LICENSE = ""
 _URLs = {
     "default_train": "https://gitlab.com/datasciencesociety/case_fake_news/-/raw/master/data/FN_Training_Set.xlsx",
     "default_validation": "https://gitlab.com/datasciencesociety/case_fake_news/-/raw/master/data/FN_Validation_Set.xlsx",
-    # 'default': "https://drive.google.com/file/d/1QCuaM6mi1OJYg13hCTAUA7NEy-c8QVZW/view?usp=sharing"
 }
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
-
     VERSION = datasets.Version("1.1.0")
-
-    ##############################
-    #####  No need for multiple domains at this point.
-    ##############################
-
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
-    # BUILDER_CONFIGS = [
-    #     datasets.BuilderConfig(name="training_set", version=VERSION, description="Training data file"),
-    #     datasets.BuilderConfig(name="validation_set", version=VERSION, description="Validation data file"),
-    # ]
-
     DEFAULT_CONFIG_NAME = (
-        "default"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+        "default"  
     )
 
     def _info(self):
@@ -101,19 +77,11 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
                 }
             )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,  
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
