@@ -19,7 +19,7 @@ task_ids:
 - structure-prediction-other-word-tokenization
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for `wisesight1000`
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -78,6 +78,7 @@ Thai
 
 - `char`: characters
 - `char_type`: character types as adopted from []() by [deepcut](https://github.com/rkcosmos/deepcut)
+- `is_beginning`: 1 if beginning of word else 0
 
 ### Data Splits
 
