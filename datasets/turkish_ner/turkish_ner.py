@@ -63,7 +63,7 @@ under 77 different domains.
 _HOMEPAGE = "https://data.mendeley.com/datasets/cdcztymf4k/1"
 
 # TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Creative Commons Attribution 4.0 International"
 
 _URL = "https://data.mendeley.com/public-files/datasets/cdcztymf4k/files/5557ef78-7d53-4a01-8241-3173c47bbe10/file_downloaded"
 
