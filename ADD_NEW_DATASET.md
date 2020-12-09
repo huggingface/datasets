@@ -271,6 +271,8 @@ Creating the dataset card goes in two steps:
 
 
 	- **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+		
+		You might want to try out this efficient way to create card for your dataset. Go to this website https://huggingface.co/datasets/card-creator/ and fill all the fields including yaml tags. Finally press 'export' to download README.md for your dataset.
 
 		Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
 
