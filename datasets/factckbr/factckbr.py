@@ -17,14 +17,13 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import os
 
 import datasets
 
 
-_CITATION = """\
+_CITATION = """
     @inproceedings{10.1145/3323503.3361698,
-    author = {Moreno, Jo\~{a}o and Bressan, Gra\c{c}a},
+    author = {Moreno, Jo\\~{a}o and Bressan, Gra\\c{c}a},
     title = {FACTCK.BR: A New Dataset to Study Fake News},
     year = {2019},
     isbn = {9781450367639},
@@ -98,7 +97,7 @@ class FactCkBR(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """ Yields examples. """
 
-        with open(filepath) as tsv_file:
+        with open(filepath, encoding="utf-8") as tsv_file:
             reader = csv.reader(tsv_file, delimiter="\t")
             for id_, row in enumerate(reader):
                 if id_ == 0:
