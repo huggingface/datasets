@@ -1,21 +1,24 @@
+---
 annotations_creators:
-- automatic tagging
-language_creators: 
-- authors
+- machine-generated
+language_creators:
+- expert-generated
 languages:
 - tr
 licenses:
-- Creative Commons Attribution 4.0 International
+- cc-by-4.0
 multilinguality:
 - monolingual
-size_categories: 
-- n > 700K
+size_categories:
+- n>700K
 source_datasets:
-- mendeley
-task_categories: 
-- structure prediction
+- original
+task_categories:
+- structure-prediction
 task_ids:
 - named-entity-recognition
+---
+
 
 # Dataset Card for turkish_ner
 
@@ -44,7 +47,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://data.mendeley.com/datasets/cdcztymf4k/1
+- **Homepage:** http://arxiv.org/abs/1702.02363
 - **Repository:** [Needs More Information]
 - **Paper:** http://arxiv.org/abs/1702.02363
 - **Leaderboard:** [Needs More Information]
@@ -52,11 +55,11 @@ task_ids:
 
 ### Dataset Summary
 
-Coarse-grained Turkish named entity recognition dataset, including 25 different domains and over 700K sentences.
+Automatically annotated Turkish corpus for named entity recognition and text categorization using large-scale gazetteers. The constructed gazetteers contains approximately 300K entities with thousands of fine-grained entity types under 25 different domains.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+[Needs More Information]
 
 ### Languages
 
@@ -74,7 +77,7 @@ Turkish
 
 ### Data Splits
 
-[More Information Needed]
+There's only the training set.
 
 ## Dataset Creation
 
@@ -124,12 +127,29 @@ Turkish
 
 ### Dataset Curators
 
-[Needs More Information]
+H. Bahadir Sahin, Caglar Tirkaz, Eray Yildiz, Mustafa Tolga Eren and Omer Ozan Sonmez
 
 ### Licensing Information
 
-[Needs More Information]
+Creative Commons Attribution 4.0 International
 
 ### Citation Information
 
-[Needs More Information]
+@InProceedings@article{DBLP:journals/corr/SahinTYES17,
+  author    = {H. Bahadir Sahin and
+               Caglar Tirkaz and
+               Eray Yildiz and
+               Mustafa Tolga Eren and
+               Omer Ozan Sonmez},
+  title     = {Automatically Annotated Turkish Corpus for Named Entity Recognition
+               and Text Categorization using Large-Scale Gazetteers},
+  journal   = {CoRR},
+  volume    = {abs/1702.02363},
+  year      = {2017},
+  url       = {http://arxiv.org/abs/1702.02363},
+  archivePrefix = {arXiv},
+  eprint    = {1702.02363},
+  timestamp = {Mon, 13 Aug 2018 16:46:36 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/SahinTYES17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
