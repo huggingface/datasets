@@ -7,11 +7,16 @@ from __future__ import absolute_import, division, print_function
 import csv
 import logging
 import os
-#import sys
 
 import datasets
 
-#csv.field_size_limit(sys.maxsize)
+
+# import sys
+
+
+
+# csv.field_size_limit(sys.maxsize)
+
 
 _DESCRIPTION = """\
 It is a Turkish news data set consisting of 273601 news in 17 categories, compiled from print media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company.
