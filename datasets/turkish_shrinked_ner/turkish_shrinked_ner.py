@@ -21,6 +21,7 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 """
 
@@ -36,8 +37,8 @@ _HOMEPAGE = "https://www.kaggle.com/behcetsenturk/shrinked-twnertc-turkish-ner-d
 
 _LICENSE = "Attribution 4.0 International (CC BY 4.0)"
 
-class TurkishShrinkedNER(datasets.GeneratorBasedBuilder):
 
+class TurkishShrinkedNER(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
@@ -156,7 +157,7 @@ class TurkishShrinkedNER(datasets.GeneratorBasedBuilder):
                                 "B-train",
                                 "I-train",
                                 "B-vehicle",
-                                "I-vehicle"
+                                "I-vehicle",
                             ]
                         )
                     ),
@@ -214,7 +215,7 @@ class TurkishShrinkedNER(datasets.GeneratorBasedBuilder):
                     ner_tags = []
                     id_ += 1
                 else:
-                    token, tag = row.split(' ')
+                    token, tag = row.split(" ")
                     tokens.append(token)
                     ner_tags.append(tag)
 
