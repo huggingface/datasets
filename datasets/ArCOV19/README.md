@@ -40,7 +40,7 @@ task_categories:
 
 ## Dataset Description
 
-- **Homepage:**  http://qufaculty.qu.edu.qa/telsayed/datasets/
+- **Homepage:**  
 - **Repository:** https://gitlab.com/bigirqu/ArCOV-19
 - **Paper:** [ArCOV-19: The First Arabic COVID-19 Twitter Dataset with Propagation Networks](https://arxiv.org/abs/2004.05861)
 - **Leaderboard:** [More Information Needed]
