@@ -24,6 +24,7 @@ import pandas as pd
 
 import datasets
 
+
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -51,8 +52,8 @@ _LICENSE = ""
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'default_train': "https://gitlab.com/datasciencesociety/case_fake_news/-/raw/master/data/FN_Training_Set.xlsx",
-    'default_validation': "https://gitlab.com/datasciencesociety/case_fake_news/-/raw/master/data/FN_Validation_Set.xlsx",
+    "default_train": "https://gitlab.com/datasciencesociety/case_fake_news/-/raw/master/data/FN_Training_Set.xlsx",
+    "default_validation": "https://gitlab.com/datasciencesociety/case_fake_news/-/raw/master/data/FN_Validation_Set.xlsx",
     # 'default': "https://drive.google.com/file/d/1QCuaM6mi1OJYg13hCTAUA7NEy-c8QVZW/view?usp=sharing"
 }
 
@@ -83,12 +84,12 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
     #     datasets.BuilderConfig(name="validation_set", version=VERSION, description="Validation data file"),
     # ]
 
-    DEFAULT_CONFIG_NAME = "default"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "default"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
-    def _info(self):        
-        if (
-            self.config.name == "default"
-        ):
+    def _info(self):
+        if self.config.name == "default":
             features = datasets.Features(
                 {
                     "fake_news_score": datasets.Value("int8"),
@@ -96,7 +97,7 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
                     "content_title": datasets.Value("string"),
                     "content_url": datasets.Value("string"),
                     "content_published_time": datasets.Value("string"),
-                    "content": datasets.Value("string")
+                    "content": datasets.Value("string"),
                 }
             )
         return datasets.DatasetInfo(
@@ -121,23 +122,30 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download(_URLs)
 
         return [
-                datasets.SplitGenerator(
-                    name=spl_enum,
-                    gen_kwargs={
-                        "filepath": data_dir[f"{self.config.name}_{spl}"],
-                        "split": spl,
-                    },
-                )
-                for spl, spl_enum in [
-                    ("train", datasets.Split.TRAIN),
-                    ("validation", datasets.Split.VALIDATION),
-                ]
+            datasets.SplitGenerator(
+                name=spl_enum,
+                gen_kwargs={
+                    "filepath": data_dir[f"{self.config.name}_{spl}"],
+                    "split": spl,
+                },
+            )
+            for spl, spl_enum in [
+                ("train", datasets.Split.TRAIN),
+                ("validation", datasets.Split.VALIDATION),
             ]
+        ]
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
         if self.config.name == "default":
-            keys = ["fake_news_score", "click_bait_score", "content_title", "content_url", "content_published_time", "content"]
+            keys = [
+                "fake_news_score",
+                "click_bait_score",
+                "content_title",
+                "content_url",
+                "content_published_time",
+                "content",
+            ]
             data = pd.read_excel(filepath)
             for id_, row in enumerate(data.itertuples()):
                 row_dict = dict()
@@ -147,5 +155,3 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
                     else:
                         row_dict[key] = str(value)
                 yield id_, row_dict
-
-                
