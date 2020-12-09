@@ -156,8 +156,8 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             id_ = -1
-            for id_, line in enumerate(f):
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+            for line in f:
+                if line == "" or line == "\n":
                     continue
                 else:
                     splits = line.split("\t")
