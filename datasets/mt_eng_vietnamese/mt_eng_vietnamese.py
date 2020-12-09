@@ -76,6 +76,7 @@ class MT_Eng_Vietnamese(datasets.GeneratorBasedBuilder):
             language_pair=("en", "vi"),
         ),
     ]
+    BUILDER_CONFIG_CLASS = MT_Eng_ViConfig
 
     def _info(self):
         source, target = self.config.language_pair
