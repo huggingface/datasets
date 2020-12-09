@@ -43,9 +43,11 @@ _HOMEPAGE = "https://allenai.org/data/haspartkb"
 _LICENSE = ""
 
 
-_URL = (
-    "https://drive.google.com/uc?export=download&id=1Ev4RqWcPsLI9rgOGAKh-_dFKqcEZ1u-G"
-)
+TSV_ID = "1Ev4RqWcPsLI9rgOGAKh-_dFKqcEZ1u-G"
+FOLDER_ID = "1NzjXX46NnpxtgxBrkBWFiUbsXAMdd-lB"
+ID = TSV_ID
+
+_URL = f"https://drive.google.com/uc?export=download&id={ID}"
 
 
 class HasPart(datasets.GeneratorBasedBuilder):
@@ -74,13 +76,15 @@ class HasPart(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        input_file = dl_manager.download_and_extract(_URL)
+        dl_fp = dl_manager.download_and_extract(_URL)
+        # input_fp = os.path.join(os.path.dirname(dl_fp), "hasPartKB.tsv")
+        # os.rename(dl_fp, input_fp)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "input_file": input_file,
+                    "input_file": dl_fp,
                     "split": "train",
                 },
             ),
