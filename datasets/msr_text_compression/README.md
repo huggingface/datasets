@@ -91,7 +91,8 @@ into the impact of multi-sentence operations on human compression quality.
 **Note**: Average CPS = Average Compressions per Source Text
 
 ### Data Fields
-```json
+
+```
 {'domain': 'Newswire',
  'source_id': '106',
  'source_text': '" Except for this small vocal minority, we have just not gotten a lot of groundswell against this from members, " says APA president Philip G. Zimbardo of Stanford University.',
