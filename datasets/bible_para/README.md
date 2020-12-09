@@ -4,108 +4,108 @@ annotations_creators:
 language_creators:
 - found
 languages:
--acu
--af
--agr
--ake
--am
--amu
--ar
--bg
--bsn
--cak
--ceb
--ch
--chq
--chr
--cjp
--cni
--cop
--crp
--cs
--da
--de
--dik
--dje
--djk
--dop
--ee
--el
--en
--eo
--es
--et
--eu
--fi
--fr
--gbi
--gd
--gu
--gv
--he
--hi
--hr
--hu
--hy
--id
--is
--it
--jak
--jap
--jiv
--kab
--kbh
--kek
--kn
--ko
--la
--lt
--lv
--mam
--mi
--ml
--mr
--my
--ne
--nhg
--nl
--no
--ojb
--pck
--pes
--pl
--plt
--pot
--ppk
--pt
--quc
--quw
--ro
--rom
--ru
--shi
--sk
--sl
--sn
--so
--sq
--sr
--ss
--sv
--syr
--te
--th
--tl
--tmh
--tr
--uk
--usp
--vi
--wal
--wo
--xh
--zh
--zu
+- acu
+- af
+- agr
+- ake
+- am
+- amu
+- ar
+- bg
+- bsn
+- cak
+- ceb
+- ch
+- chq
+- chr
+- cjp
+- cni
+- cop
+- crp
+- cs
+- da
+- de
+- dik
+- dje
+- djk
+- dop
+- ee
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fi
+- fr
+- gbi
+- gd
+- gu
+- gv
+- he
+- hi
+- hr
+- hu
+- hy
+- id
+- is
+- it
+- jak
+- jap
+- jiv
+- kab
+- kbh
+- kek
+- kn
+- ko
+- la
+- lt
+- lv
+- mam
+- mi
+- ml
+- mr
+- my
+- ne
+- nhg
+- nl
+- no
+- ojb
+- pck
+- pes
+- pl
+- plt
+- pot
+- ppk
+- pt
+- quc
+- quw
+- ro
+- rom
+- ru
+- shi
+- sk
+- sl
+- sn
+- so
+- sq
+- sr
+- ss
+- sv
+- syr
+- te
+- th
+- tl
+- tmh
+- tr
+- uk
+- usp
+- vi
+- wal
+- wo
+- xh
+- zh
+- zu
 licenses:
 - cc0-1.0
 multilinguality:
