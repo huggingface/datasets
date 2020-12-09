@@ -21,6 +21,7 @@ from hashlib import sha256
 from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
+import rarfile
 
 import numpy as np
 import requests
@@ -327,6 +328,7 @@ def cached_path(
             and not tarfile.is_tarfile(output_path)
             and not is_gzip(output_path)
             and not is_xz(output_path)
+            and not rarfile.is_rarfile(output_path)
         ):
             return output_path
 
@@ -365,6 +367,13 @@ def cached_path(
                 with lzma.open(output_path) as compressed_file:
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
+            elif rarfile.is_rarfile(output_path):
+                try:
+                    rf = rarfile.RarFile(output_path)
+                    rf.extractall(output_path_extracted)
+                    rf.close()
+                except:
+                    raise EnvironmentError("Please apt-install unrar")
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
