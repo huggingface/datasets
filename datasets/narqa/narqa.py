@@ -94,6 +94,8 @@ class NarrativeQA(datasets.GeneratorBasedBuilder):
                     "story_start": datasets.Value("string"),
                     "story_end": datasets.Value("string"),
                     "story_text": datasets.Value("string"),
+                    "summary": datasets.Value("string"),
+                    "summary_tokenized": datasets.Value("string"),
                     "qaps": datasets.features.Sequence(
                         {
                             "question": datasets.Value("string"),
@@ -333,4 +335,6 @@ class NarrativeQA(datasets.GeneratorBasedBuilder):
                 "story_end": data[keys]["story_end"],
                 "qaps": data[keys]["question-answers"],
                 "story_text": data[keys]["story_text"],
+                "summary": data[keys]["summary"],
+                "summary_tokenized": data[keys]["summary_tokenized"],
             }
