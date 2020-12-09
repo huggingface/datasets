@@ -48,7 +48,7 @@ class OpusInfopankki(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=f"{l1}-{l2}", version=datasets.Version("1.0.0"), description=f"MultiUN {l1}-{l2}")
+        datasets.BuilderConfig(name=f"{l1}-{l2}", version=datasets.Version("1.0.0"), description=f"OpusInfopankki {l1}-{l2}")
         for l1, l2 in _LANGUAGE_PAIRS
     ]
 
