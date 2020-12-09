@@ -3,7 +3,8 @@ annotations_creators:
 - no-annotation
 language_creators:
 - machine-generated
-languages: ["go", "php", "python", "java", "javascript", "ruby"]
+languages:
+- code
 licenses:
 - other-several-licenses
 multilinguality:
