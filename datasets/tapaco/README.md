@@ -4,226 +4,226 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-	all_languages:
-	- af
-	- ar
-	- az
-	- be
-	- ber
-	- bg
-	- bn
-	- br
-	- ca
-	- cbk
-	- cmn
-	- cs
-	- da
-	- de
-	- el
-	- en
-	- eo
-	- es
-	- et
-	- eu
-	- fi
-	- fr
-	- gl
-	- gos
-	- he
-	- hi
-	- hr
-	- hu
-	- hy
-	- ia
-	- id
-	- ie
-	- io
-	- is
-	- it
-	- ja
-	- jbo
-	- kab
-	- ko
-	- kw
-	- la
-	- lfn
-	- lt
-	- mk
-	- mr
-	- nb
-	- nds
-	- nl
-	- orv
-	- ota
-	- pes
-	- pl
-	- pt
-	- rn
-	- ro
-	- ru
-	- sl
-	- sr
-	- sv
-	- tk
-	- tl
-	- tlh
-	- toki
-	- tr
-	- tt
-	- ug
-	- uk
-	- ur
-	- vi
-	- vo
-	- war
-	- wuu
-	- yue
-	af:
-	- af
-	ar:
-	- ar
-	az:
-	- az
-	be:
-	- be
-	ber:
-	- ber
-	bg:
-	- bg
-	bn:
-	- bn
-	br:
-	- br
-	ca:
-	- ca
-	cbk:
-	- cbk
-	cmn:
-	- cmn
-	cs:
-	- cs
-	da:
-	- da
-	de:
-	- de
-	el:
-	- el
-	en:
-	- en
-	eo:
-	- eo
-	es:
-	- es
-	et:
-	- et
-	eu:
-	- eu
-	fi:
-	- fi
-	fr:
-	- fr
-	gl:
-	- gl
-	gos:
-	- gos
-	he:
-	- he
-	hi:
-	- hi
-	hr:
-	- hr
-	hu:
-	- hu
-	hy:
-	- hy
-	ia:
-	- ia
-	id:
-	- id
-	ie:
-	- ie
-	io:
-	- io
-	is:
-	- is
-	it:
-	- it
-	ja:
-	- ja
-	jbo:
-	- jbo
-	kab:
-	- kab
-	ko:
-	- ko
-	kw:
-	- kw
-	la:
-	- la
-	lfn:
-	- lfn
-	lt:
-	- lt
-	mk:
-	- mk
-	mr:
-	- mr
-	nb:
-	- nb
-	nds:
-	- nds
-	nl:
-	- nl
-	orv:
-	- orv
-	ota:
-	- ota
-	pes:
-	- pes
-	pl:
-	- pl
-	pt:
-	- pt
-	rn:
-	- rn
-	ro:
-	- ro
-	ru:
-	- ru
-	sl:
-	- sl
-	sr:
-	- sr
-	sv:
-	- sv
-	tk:
-	- tk
-	tl:
-	- tl
-	tlh:
-	- tlh
-	toki:
-	- toki
-	tr:
-	- tr
-	tt:
-	- tt
-	ug:
-	- ug
-	uk:
-	- uk
-	ur:
-	- ur
-	vi:
-	- vi
-	vo:
-	- vo
-	war:
-	- war
-	wuu:
-	- wuu
-	yue:
-	- yue
+ all_languages:
+ - af
+ - ar
+ - az
+ - be
+ - ber
+ - bg
+ - bn
+ - br
+ - ca
+ - cbk
+ - cmn
+ - cs
+ - da
+ - de
+ - el
+ - en
+ - eo
+ - es
+ - et
+ - eu
+ - fi
+ - fr
+ - gl
+ - gos
+ - he
+ - hi
+ - hr
+ - hu
+ - hy
+ - ia
+ - id
+ - ie
+ - io
+ - is
+ - it
+ - ja
+ - jbo
+ - kab
+ - ko
+ - kw
+ - la
+ - lfn
+ - lt
+ - mk
+ - mr
+ - nb
+ - nds
+ - nl
+ - orv
+ - ota
+ - pes
+ - pl
+ - pt
+ - rn
+ - ro
+ - ru
+ - sl
+ - sr
+ - sv
+ - tk
+ - tl
+ - tlh
+ - toki
+ - tr
+ - tt
+ - ug
+ - uk
+ - ur
+ - vi
+ - vo
+ - war
+ - wuu
+ - yue
+ af:
+ - af
+ ar:
+ - ar
+ az:
+ - az
+ be:
+ - be
+ ber:
+ - ber
+ bg:
+ - bg
+ bn:
+ - bn
+ br:
+ - br
+ ca:
+ - ca
+ cbk:
+ - cbk
+ cmn:
+ - cmn
+ cs:
+ - cs
+ da:
+ - da
+ de:
+ - de
+ el:
+ - el
+ en:
+ - en
+ eo:
+ - eo
+ es:
+ - es
+ et:
+ - et
+ eu:
+ - eu
+ fi:
+ - fi
+ fr:
+ - fr
+ gl:
+ - gl
+ gos:
+ - gos
+ he:
+ - he
+ hi:
+ - hi
+ hr:
+ - hr
+ hu:
+ - hu
+ hy:
+ - hy
+ ia:
+ - ia
+ id:
+ - id
+ ie:
+ - ie
+ io:
+ - io
+ is:
+ - is
+ it:
+ - it
+ ja:
+ - ja
+ jbo:
+ - jbo
+ kab:
+ - kab
+ ko:
+ - ko
+ kw:
+ - kw
+ la:
+ - la
+ lfn:
+ - lfn
+ lt:
+ - lt
+ mk:
+ - mk
+ mr:
+ - mr
+ nb:
+ - nb
+ nds:
+ - nds
+ nl:
+ - nl
+ orv:
+ - orv
+ ota:
+ - ota
+ pes:
+ - pes
+ pl:
+ - pl
+ pt:
+ - pt
+ rn:
+ - rn
+ ro:
+ - ro
+ ru:
+ - ru
+ sl:
+ - sl
+ sr:
+ - sr
+ sv:
+ - sv
+ tk:
+ - tk
+ tl:
+ - tl
+ tlh:
+ - tlh
+ toki:
+ - toki
+ tr:
+ - tr
+ tt:
+ - tt
+ ug:
+ - ug
+ uk:
+ - uk
+ ur:
+ - ur
+ vi:
+ - vi
+ vo:
+ - vo
+ war:
+ - war
+ wuu:
+ - wuu
+ yue:
+ - yue
 licenses:
 - cc-by-2.0
 multilinguality:
