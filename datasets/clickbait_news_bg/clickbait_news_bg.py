@@ -17,12 +17,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
-import os
 import pandas as pd
 
 import datasets
+
 
 _CITATION = """\
 @InProceedings{clickbait_news_bg,
@@ -57,9 +55,7 @@ _URLs = {
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
-    DEFAULT_CONFIG_NAME = (
-        "default"  
-    )
+    DEFAULT_CONFIG_NAME = "default"
 
     def _info(self):
         if self.config.name == "default":
@@ -75,7 +71,7 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
             )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=features,  
+            features=features,
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
