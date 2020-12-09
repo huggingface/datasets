@@ -44,8 +44,7 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-This is the Penn Treebank Project: Release 2 CDROM, featuring a million words of 1989 Wall Street Journal material.
-This corpus has been annotated for part-of-speech (POS) information. In addition, over half of it has been annotated for skeletal syntactic structure. 
+This is the Penn Treebank Project: Release 2 CDROM, featuring a million words of 1989 Wall Street Journal material. This corpus has been annotated for part-of-speech (POS) information. In addition, over half of it has been annotated for skeletal syntactic structure.
 """
 
 # TODO: Add a link to an official homepage for the dataset here
@@ -99,9 +98,7 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = datasets.Features(
-            {"tokens": datasets.Sequence(datasets.Value("string"))}
-        )
+        features = datasets.Features({"tokens": datasets.Value("string")})
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -135,19 +132,13 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["train"]},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"]}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["test"]},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"]}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["dev"]},
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"]}
             ),
         ]
 
@@ -157,10 +148,11 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         eos_token = "</s>"
-        unknown_token = "<unk>"
-        text = []
         with open(filepath, encoding="utf-8") as f:
             for line in f:
-                text.extend(line.split())
-                text.append(eos_token)
-        return text
+                a = line.split()
+                a.append(eos_token)
+                for id_, word in enumerate(a):
+                    feat = dict()
+                    feat["tokens"] = word
+                    yield id_, feat
