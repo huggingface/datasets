@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import ast
-import os
 from collections import defaultdict
 
 import datasets
