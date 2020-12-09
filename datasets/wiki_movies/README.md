@@ -1,7 +1,24 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- closed-domain-qa
 ---
+
 
 # Dataset Card for WikiMovies
 
@@ -63,7 +80,8 @@ It is unclear what the `1` is for at the beginning of each line, but it has been
 ### Data Fields
 Here is an example of the raw data ingested by `Datasets`:
 ```buildoutcfg
-{'answer': 'Before the Rain', 
+{
+'answer': 'Before the Rain', 
 'question': 'what does Grégoire Colin appear in?'
 }
 ```

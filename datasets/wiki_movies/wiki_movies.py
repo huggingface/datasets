@@ -87,26 +87,34 @@ class WikiMovies(datasets.GeneratorBasedBuilder):
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
-        base_dir = "movieqa/questions/wiki_entities/wiki-entities_qa_"
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, base_dir + "train.txt"),
+                    "filepath": os.path.join(
+                        data_dir, "movieqa", "questions", "wiki_entities", "wiki-entities_qa_train.txt"
+                    ),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, base_dir + "test.txt"), "split": "test"},
+                gen_kwargs={
+                    "filepath": os.path.join(
+                        data_dir, "movieqa", "questions", "wiki_entities", "wiki-entities_qa_test.txt"
+                    ),
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, base_dir + "dev.txt"),
+                    "filepath": os.path.join(
+                        data_dir, "movieqa", "questions", "wiki_entities", "wiki-entities_qa_dev.txt"
+                    ),
                     "split": "dev",
                 },
             ),
