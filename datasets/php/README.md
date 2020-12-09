@@ -78,7 +78,7 @@ task_ids:
 
 
 To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
-You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/QED.php
+You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/PHP.php
 E.g.
 
 `dataset = load_dataset("php", lang1="it", lang2="pl")`
