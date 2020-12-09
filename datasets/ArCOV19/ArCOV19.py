@@ -21,7 +21,7 @@ import json
 import os
 import pandas as pd
 import datasets
-
+import glob
 
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -48,7 +48,8 @@ _HOMEPAGE = "https://gitlab.com/bigirqu/ArCOV-19"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://gitlab.com/bigirqu/ArCOV-19/-/blob/master/dataset/all_tweets/"
+_URL = "https://gitlab.com/bigirqu/ArCOV-19/-/archive/master/ArCOV-19-master.zip"
+#_URL="https://gitlab.com/bigirqu/ArCOV-19/-/archive/master/ArCOV-19-master.zip?path=dataset/all_tweets"
 
 class arcov19Config(datasets.BuilderConfig):
     """BuilderConfig for ArCOV19."""
@@ -117,34 +118,21 @@ class arcov19(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        #DF=pd.date_range(start="2020-01-27",end="2020-04-30")        
-        #for i in range(len(DF)):
-
-        #    urls_to_download = {
-        #         "train": os.path.join(_URL, DF[i].date().strftime("%Y-%m-%d")),
-        #    }
-        #    downloaded_files = dl_manager.download(urls_to_download)
-        #return [
-         #   datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-        #]
-        urls_to_download = {
-            "train": "https://gitlab.com/bigirqu/ArCOV-19/-/raw/master/dataset/all_tweets/2020-01-27"
-        }
-        print("urls_to_download")
-        downloaded_files = dl_manager.download(urls_to_download)
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-        ]
-    def _generate_examples(self, filepath):
+  
+        data_dir = dl_manager.download_and_extract(_URL)
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir})]
+        
+    def _generate_examples(self, data_dir):
         """ Yields examples. """
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-
-        df = pd.read_csv(filepath, names=["tweetID"])
-        for id_, record in df.iterrows():
-            tweetID= record["tweetID"]
-            yield str(id_), {"tweetID": tweetID}
+        for fname in glob.glob(os.path.join(data_dir, "dataset/all_tweets/2020-*")):
+        #for fname in glob.glob(data_dir):
+            df = pd.read_csv(fname, names=["tweetID"])
+            for id_, record in df.iterrows():
+                tweetID= record["tweetID"]
+                yield str(id_), {"tweetID": tweetID}
 #        for i in range(len(df)):
             
 #            tweetID= df["tweetID"]
