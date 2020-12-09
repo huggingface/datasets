@@ -245,7 +245,7 @@ class Hkcancor(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_dir, split):
         """ Yields examples. """
 
-        downloaded_files = [data_dir + fn for fn in sorted(os.listdir(data_dir))]
+        downloaded_files = [os.path.join(data_dir, fn) for fn in sorted(os.listdir(data_dir))]
         for filepath in downloaded_files:
             # Each file in the corpus contains one conversation
             with open(filepath, encoding="utf-8") as f:
