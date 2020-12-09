@@ -45,7 +45,7 @@ _CITATION = """\
 _DESCRIPTION = """\
 A dataset to study Fake News in Portuguese, presenting a supposedly false News along with their respective fact check and classification.
 The data is collected from the ClaimReview, a structured data schema used by fact check agencies to share their results in search engines, enabling data collect in real time.
-The FACTCK.BR dataset contain 1309 claims with its corresponding label.
+The FACTCK.BR dataset contains 1309 claims with its corresponding label.
 """
 
 _HOMEPAGE = "https://github.com/jghm-f/FACTCK.BR"

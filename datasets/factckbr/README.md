@@ -1,6 +1,22 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- expert-generated
+language_creators:
+- found
+languages:
+- pt
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- fact-checking
 ---
 
 # Dataset Card for [Dataset Name]
@@ -30,15 +46,17 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** https://github.com/jghm-f/FACTCK.BR
+- **Repository:** https://github.com/jghm-f/FACTCK.BR
+- **Paper:** https://dl.acm.org/doi/10.1145/3323503.3361698
 - **Leaderboard:**
 - **Point of Contact:**
 
 ### Dataset Summary
 
-[More Information Needed]
+A dataset to study Fake News in Portuguese, presenting a supposedly false News along with their respective fact check and classification.
+The data is collected from the ClaimReview, a structured data schema used by fact check agencies to share their results in search engines, enabling data collect in real time.
+The FACTCK.BR dataset contains 1309 claims with its corresponding label.
 
 ### Supported Tasks and Leaderboards
 
