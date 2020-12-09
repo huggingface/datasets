@@ -205,14 +205,14 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, split):
         """ Yields examples. """
         for id_, filepath in enumerate(filepaths):
-            with open(filepath, encoding="utf-8") as f:
-                try:
+            print(id_)
+            try:
+                with open(filepath, encoding="utf-8") as f:
                     data = json.load(f)
-                except Exception as e:
-                    print(e)
-                if self.config.name == "parsed_pdfs":
-                    try:
-                        yield id_, {
+                    if id_ == 9999:
+                        print(filepath)
+                    if self.config.name == "parsed_pdfs":
+                        temp = {
                             "name": data.get("name", ""),
                             "metadata": {
                                 "source": data.get("metadata", {}).get("source", ""),
@@ -222,8 +222,8 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                                 "sections": [{
                                     "heading": section.get("heading", ""),
                                     "text": section.get("text", ""),
-                                } if isinstance(section, dict) else section
-                                     for section in data.get("metadata", {}).get("sections", [])],
+                                } if isinstance(section, dict) else {}
+                                     for section in data.get("metadata", {}).get("sections", [])] if isinstance(data.get("metadata", {}).get("sections", []), list) else [],
                                 "references": [{
                                     "title": reference.get("title", ""),
                                     "author": reference.get("author", []),
@@ -231,23 +231,25 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                                     "citeRegEx": reference.get("citeRegEx", ""),
                                     "shortCiteRegEx": reference.get("shortCiteRegEx", ""),
                                     "year": reference.get("year", ""),
-                                } if isinstance(reference, dict) else reference for reference in data.get("metadata", {}).get("references", [])],
+                                } if isinstance(reference, dict) else {} for reference in data.get("metadata", {}).get("references", [])],
                                 "referenceMentions": [{
                                     "referenceID": reference_mention.get("referenceID", ""),
                                     "context": reference_mention.get("context", ""),
                                     "startOffset": reference_mention.get("startOffset", ""),
                                     "endOffset": reference_mention.get("endOffset", ""),
-                                } if isinstance(reference_mention, dict) else reference_mention for reference_mention in data.get("metadata", {}).get("referenceMentions", [])],
+                                } if isinstance(reference_mention, dict) else {} for reference_mention in data.get("metadata", {}).get("referenceMentions", [])],
                                 "year": data.get("metadata", {}).get("year", ""),
                                 "abstractText": data.get("metadata", {}).get("abstractText", ""),
                                 "creator": data.get("metadata", {}).get("creator", ""),
                             }
                         }
-                    except Exception as e:
-                        print(e)
-                else:
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+                        print('done')
+                        yield id_, temp
+                    else:
+                        yield id_, {
+                            "sentence": data["sentence"],
+                            "option2": data["option2"],
+                            "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
+                        }
+            except Exception as e:
+                print(e)
