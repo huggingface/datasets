@@ -165,7 +165,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                         def _get_parent_tag(tree, tag: str) -> str:
                             for element in tree.iter():
                                 for subelement in element:
-                                    if subelement.tag == xml_tag:
+                                    if subelement.tag == tag:
                                         return element.tag
 
                         parent_tag = _get_parent_tag(tree, xml_tag)
