@@ -50,7 +50,7 @@ task_ids:
 - **Repository:** [NarrativeQA Repo](https://github.com/deepmind/narrativeqa)
 - **Paper:** [The NarrativeQA Reading Comprehension Challenge](https://arxiv.org/pdf/1712.07040.pdf)
 - **Leaderboard:**
-- **Point of Contact:** [Tomáš Kočiský](mailto:tkocisky@google.com) [Jonathan Schwarz](mailto:schwarzjn@google.com) [Phil Blunsom](pblunsom@google.com) [Chris Dyer](cdyer@google.com) [Karl Moritz Hermann](mailto:kmh@google.com) [G ́abor Melis](mailto:melisgl@google.com) [Edward Grefenstette](mailto:etg@google.com)
+- **Point of Contact:** [Tomáš Kočiský](mailto:tkocisky@google.com) [Jonathan Schwarz](mailto:schwarzjn@google.com) [Phil Blunsom](pblunsom@google.com) [Chris Dyer](cdyer@google.com) [Karl Moritz Hermann](mailto:kmh@google.com) [Gábor Melis](mailto:melisgl@google.com) [Edward Grefenstette](mailto:etg@google.com)
 
 ### Dataset Summary
 
@@ -58,9 +58,7 @@ NarrativeQA is an English-lanaguage dataset of stories and corresponding questio
 
 ### Supported Tasks and Leaderboards
 
-The dataset is used to test reading comprehension. There are 2 tasks: "summaries only" and "stories only".
-
-[More Information Needed]
+The dataset is used to test reading comprehension. There are 2 tasks proposed in the paper: "summaries only" and "stories only", depending on whether the human-generated summary or the full story text is used to answer the question.
 
 ### Languages
 
@@ -135,7 +133,7 @@ The data is split into training, valiudation, and test sets based on story (i.e.
 ### Source Data
 
 #### Initial Data Collection and Normalization
-Stories and movies scripts were downloaded from [Project Guttenburg](https://www.gutenberg.org) and a range of movie script repositories (mainly [imsdb](http://www.imsdb.com)).
+Stories and movies scripts were downloaded from [Project Gutenburg](https://www.gutenberg.org) and a range of movie script repositories (mainly [imsdb](http://www.imsdb.com)).
 
 #### Who are the source language producers?
 
@@ -177,7 +175,7 @@ None
 
 ### Licensing Information
 
-The dataset is released under a [Apache-2.0 License](https://github.com/deepmind/narrativeqa/blob/master/LICENSE)
+The dataset is released under a [Apache-2.0 License](https://github.com/deepmind/narrativeqa/blob/master/LICENSE).
 
 ### Citation Information
 
