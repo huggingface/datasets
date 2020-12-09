@@ -56,9 +56,7 @@ class HasPart(datasets.GeneratorBasedBuilder):
                 "arg1": datasets.features.Value("string"),
                 "arg2": datasets.features.Value("string"),
                 "score": datasets.features.Value("float64"),
-                "wikipedia_primary_page": datasets.features.Sequence(
-                    datasets.features.Value("string")
-                ),
+                "wikipedia_primary_page": datasets.features.Sequence(datasets.features.Value("string")),
                 "synset": datasets.features.Sequence(datasets.features.Value("string")),
             }
         )
