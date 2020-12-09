@@ -14,8 +14,10 @@ size_categories:
 - 100K<n<1M
 source_datasets:
 - original
-task_categories: []
-task_ids: []
+task_categories:
+- sequence-modeling
+task_ids:
+- sequence-modeling-code-modeling
 ---
 # Dataset Card for [py_ast]
 
