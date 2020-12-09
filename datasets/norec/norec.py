@@ -39,7 +39,7 @@ _DEV = "conllu/dev"
 _TEST = "conllu/test"
 
 
-class NoReC(datasets.GeneratorBasedBuilder):
+class Norec(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.1")
 
     def _info(self):
