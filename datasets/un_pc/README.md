@@ -4,12 +4,51 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- "ar"
-- "en"
-- "es"
-- "fr"
-- "ru"
-- "zh"
+  ar-en
+  - ar
+  - en
+  ar-es
+  - ar
+  - es
+  ar-fr
+  - ar
+  - fr
+  ar-ru
+  - ar
+  - ru
+  ar-zh
+  - ar
+  - zh
+  en-es
+  - en
+  - es
+  en-fr
+  - en
+  - fr
+  en-ru
+  - en
+  - ru
+  en-zh
+  - en
+  - zh
+  es-fr
+  - es
+  - fr
+  es-ru
+  - es
+  - ru
+  es-zh
+  - es
+  - zh
+  fr-ru
+  - fr
+  - ru
+  fr-zh
+  - fr
+  - zh
+  ru-zh
+  - ru
+  - zh
 licenses:
 - unknown
 multilinguality:
