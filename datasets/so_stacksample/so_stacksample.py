@@ -21,6 +21,7 @@ import os
 
 import datasets
 
+
 _DESCRIPTION = """\
 Dataset with the text of 10% of questions and answers from the Stack Overflow programming Q&A website.
 
@@ -28,7 +29,7 @@ This is organized as three tables:
 
 Questions contains the title, body, creation date, closed date (if applicable), score, and owner ID for all non-deleted Stack Overflow questions whose Id is a multiple of 10.
 Answers contains the body, creation date, score, and owner ID for each of the answers to these questions. The ParentId column links back to the Questions table.
-Tags contains the tags on each of these questions
+Tags contains the tags on each of these questions.
 """
 
 _HOMEPAGE = "https://www.kaggle.com/stackoverflow/stacksample"
@@ -42,9 +43,21 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="Answers", version=VERSION, description="This part of the dataset contains only posts that are answers."),
-        datasets.BuilderConfig(name="Questions", version=VERSION, description="This part of the dataset contains only posts that are questions."),
-        datasets.BuilderConfig(name="Tags", version=VERSION, description="This part of the dataset contains only tags of the questions in the question part of the StackSample dataset."),
+        datasets.BuilderConfig(
+            name="Answers",
+            version=VERSION,
+            description="This part of the dataset contains only posts that are answers.",
+        ),
+        datasets.BuilderConfig(
+            name="Questions",
+            version=VERSION,
+            description="This part of the dataset contains only posts that are questions.",
+        ),
+        datasets.BuilderConfig(
+            name="Tags",
+            version=VERSION,
+            description="This part of the dataset contains only tags of the questions in the question part of the StackSample dataset.",
+        ),
     ]
 
     @property
@@ -124,14 +137,12 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
         with open(filepath, encoding="ISO-8859-1") as f:
-            csv_reader = csv.reader(
-                f, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
+            csv_reader = csv.reader(f, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True)
             next(csv_reader, None)
             for row_id, row in enumerate(csv_reader):
                 if split == "Answers":
                     id_, owner_user_id, creation_date, parent_id, score, body = row
-                    if owner_user_id == 'NA':
+                    if owner_user_id == "NA":
                         owner_user_id = -99  # Set N/A's to default -99 value
                     yield row_id, {
                         "Id": id_,
@@ -143,7 +154,7 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
                     }
                 elif split == "Questions":
                     id_, owner_user_id, creation_date, closed_date, score, title, body = row
-                    if owner_user_id == 'NA':
+                    if owner_user_id == "NA":
                         owner_user_id = -99  # Set N/A's to default -99 value
                     yield row_id, {
                         "Id": id_,
