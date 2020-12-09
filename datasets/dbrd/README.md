@@ -131,7 +131,7 @@ The book reviews and ratings are publicly available on [Hebban](https://www.hebb
 
 ### Social Impact of Dataset
 
-While prediciting sentiment of book reviews in itself is not that interesting on its own, the value of this dataset lies in its capability for benchmarking models. The dataset contains some challenges that are common to outings on the internet, such as spelling mistakes and other errors. It is therefore very useful to for validating models for their real-world performance. These datasets are abundant for English, but are harder to find for Dutch, making it a valuable resource for ML tasks in this language.
+While prediciting sentiment of book reviews in itself is not that interesting on its own, the value of this dataset lies in its capability for benchmarking models. The dataset contains some challenges that are common to outings on the internet, such as spelling mistakes and other errors. It is therefore very useful for validating models for their real-world performance. These datasets are abundant for English, but are harder to find for Dutch, making it a valuable resource for ML tasks in this language.
 
 ### Discussion of Biases
 
