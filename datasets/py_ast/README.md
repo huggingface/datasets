@@ -1,8 +1,8 @@
 ---
 annotations_creators:
-- other
+- machine-generated
 language_creators:
-- other
+- found
 languages:
 - code
 licenses:
