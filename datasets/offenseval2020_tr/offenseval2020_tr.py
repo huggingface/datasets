@@ -45,7 +45,7 @@ class OffensEval2020TRConfig(datasets.BuilderConfig):
         super(OffensEval2020TRConfig, self).__init__(**kwargs)
 
 
-class OffensEval2020TR(datasets.GeneratorBasedBuilder):
+class Offenseval2020TR(datasets.GeneratorBasedBuilder):
     """OffensEval-TR 2020: A Corpus of Turkish Offensive Language on Social Media"""
 
     BUILDER_CONFIGS = [
