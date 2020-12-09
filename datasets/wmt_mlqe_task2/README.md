@@ -86,9 +86,11 @@ There are two language pairs in this dataset:
 An example looks like this:
 ```
 {
-  'src': 'favorite fish include cod , salmon , winter flounder , haddock , striped bass , pollock , hake , bluefish , and , in southern New England , Tautog .',
+  'translation': {
+    'en': 'favorite fish include cod , salmon , winter flounder , haddock , striped bass , pollock , hake , bluefish , and , in southern New England , Tautog .',
+    'de': 'zu den Lieblingsfischen gehören Kabeljau , Lachs , Winterflounder , Schellfisch , gestreifter Bass , Pollock , Seehecht , Rotbarsch und in Südengland Tautog .',
+  }
   'src_tags': [1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-  'mt': 'zu den Lieblingsfischen gehören Kabeljau , Lachs , Winterflounder , Schellfisch , gestreifter Bass , Pollock , Seehecht , Rotbarsch und in Südengland Tautog .',
   'mt_tags': [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1],
   'pe': 'zu den Lieblingsfischen zählen Kabeljau , Lachs , Winterflunder , Schellfisch , Wolfsbarsch , Pollock , Seehecht , Bluefish und im Süden Neuenglands Tautog .',
   'hter': 0.3199999928474426,
@@ -98,9 +100,10 @@ An example looks like this:
 
 ### Data Fields
 
-- `src`: original sentence.
+- `translation`: Dictionary with pairs (source,target).
+  - src_lg: sequence of text in source language.
+  - tgt_lg: sequence of text in target language.
 - `src_tags`: source word-level tags. `0`=`BAD`, `1`=`OK`. `[]` if N/A (only for test).
-- `mt`: NMT output.
 - `mt_tags`: target word-level tags. `0`=`BAD`, `1`=`OK`. `[]` if N/A (only for test).
 - `pe`: post-edited version of NMT output. `""` if N/A (only for test).
 - `hter`: human translation error rate. `-10_000` if N/A (only for test).

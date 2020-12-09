@@ -101,8 +101,7 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "segid": datasets.Value("int32"),
-                "original": datasets.Value("string"),
-                "translation": datasets.Value("string"),
+                "translation": datasets.Translation(languages=(self.config.src_lg, self.config.tgt_lg)),
                 "scores": datasets.Sequence(datasets.Value("float32")),
                 "mean": datasets.Value("float32"),
                 "z_scores": datasets.Sequence(datasets.Value("float32")),
@@ -180,8 +179,7 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
             ):
                 yield id_, {
                     "segid": row_[0],
-                    "original": row_[1],
-                    "translation": row_[2],
+                    "translation": {source_lg: row_[1], target_lg: row_[2]},
                     "scores": []
                     if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
                     else row_[3].strip("][").split(", "),

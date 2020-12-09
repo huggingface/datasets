@@ -104,8 +104,10 @@ An example looks like this:
 ```
 {
   'segid': 123,
-  'original': 'José Ortega y Gasset visited Husserl at Freiburg in 1934.',
-  'translation': '1934 besuchte José Ortega y Gasset Husserl in Freiburg.',
+  'translation': {
+    'en': 'José Ortega y Gasset visited Husserl at Freiburg in 1934.',
+    'de': '1934 besuchte José Ortega y Gasset Husserl in Freiburg.',
+  },
   'scores': [100.0, 100.0, 100.0],
   'mean': 100.0,
   'z_scores': [0.9553316831588745, 1.552362322807312, 0.850531816482544],
@@ -121,7 +123,9 @@ An example looks like this:
 
 - `segid`: segment id.
 - `original`: original sentence.
-- `translation`: NMT output.
+- `translation`: Dictionary with pairs (source,target).
+  - src_lg: sequence of text in source language.
+  - tgt_lg: sequence of text in target language.
 - `scores`: list of DA scores by all annotators - the number of annotators may vary. [] if N/A (only for `ru-en/test`).
 - `mean`: average of DA scores. -10_000 if N/A (only for `ru-en/test`).
 - `z_scores`: list of z-standardized DA scores. [] if N/A (only for `ru-en/test`).

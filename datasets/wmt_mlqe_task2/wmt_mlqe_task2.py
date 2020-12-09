@@ -99,9 +99,8 @@ class WmtMlqeTask2(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "src": datasets.Value("string"),
+                "translation": datasets.Translation(languages=(self.config.src_lg, self.config.tgt_lg)),
                 "src_tags": datasets.Sequence(datasets.ClassLabel(names=["BAD", "OK"])),
-                "mt": datasets.Value("string"),
                 "mt_tags": datasets.Sequence(datasets.ClassLabel(names=["BAD", "OK"])),
                 "pe": datasets.Value("string"),
                 "hter": datasets.Value("float32"),
@@ -187,9 +186,8 @@ class WmtMlqeTask2(datasets.GeneratorBasedBuilder):
             zip(srcs, src_tags, mts, mt_tags, pes, hters, alignments)
         ):
             yield id_, {
-                "src": src_,
+                "translation": {source_lg: src_, target_lg: mt_},
                 "src_tags": src_tags_,
-                "mt": mt_,
                 "mt_tags": mt_tags_,
                 "pe": pe_,
                 "hter": hter_,
