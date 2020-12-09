@@ -56,7 +56,7 @@ _DOWNLOAD_URL = "https://raw.githubusercontent.com/trunghlt/AdverseDrugReaction/
 
 # Different usage configs/
 configs = {
-    "classifiaction": "Ade_corpos_v2_classificaion",
+    "classification": "Ade_corpos_v2_classificaion",
     "RE_ade": "Ade_corpos_v2_drug_ade_relation",
     "RE_dosage": "Ade_corpos_v2_drug_dosage_relation",
 }
@@ -73,7 +73,7 @@ class ADE_Corpus_V2Config(datasets.BuilderConfig):
         super(ADE_Corpus_V2Config, self).__init__(**kwargs)
 
 
-class ADE_Corpus_V2(datasets.GeneratorBasedBuilder):
+class ADECorpusV2(datasets.GeneratorBasedBuilder):
     """ADE_Corpus_V2 Dataset: Adverse Drug Reaction Data for Classification and Relation Extraction tasks ."""
 
     BUILDER_CONFIGS = [
@@ -96,11 +96,11 @@ class ADE_Corpus_V2(datasets.GeneratorBasedBuilder):
 
     def _info(self):
 
-        if self.config.name == configs["classifiaction"]:
+        if self.config.name == configs["classification"]:
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["Related", "Not-Related"]),
+                    "label": datasets.features.ClassLabel(names=["Not-Related", "Related"]),
                 }
             )
 
@@ -176,7 +176,7 @@ class ADE_Corpus_V2(datasets.GeneratorBasedBuilder):
         """Generate Allocine examples."""
 
         # For Classification task with ade dataset.
-        if self.config.name == configs["classifiaction"]:
+        if self.config.name == configs["classification"]:
             texts, labels = [], []
             with open(DRUG_AE_file, encoding="utf-8") as f:
                 for line in f:
