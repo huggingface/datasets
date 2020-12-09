@@ -21,7 +21,7 @@ task_ids:
 - machine-translation
 ---
 
-# Dataset Card for [msr_zhen_translation_parity]
+# Dataset Card for msr_zhen_translation_parity
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
