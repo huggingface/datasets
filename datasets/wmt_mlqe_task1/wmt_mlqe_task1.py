@@ -97,6 +97,7 @@ class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
     ]
 
     DEFAULT_CONFIG_NAME = "en-de"
+    BUILDER_CONFIG_CLASS = WmtMlqeConfig
 
     def _info(self):
         features = datasets.Features(
