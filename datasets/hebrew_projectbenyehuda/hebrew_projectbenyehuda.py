@@ -4,7 +4,9 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
+
 import datasets
+
 
 _CITATION = """\
 @article{,
@@ -26,7 +28,7 @@ There are 10078 files, 3181136 lines
 _ASSET_ROOT_URL = "https://raw.githubusercontent.com/projectbenyehuda/public_domain_dump/master/"
 _STORAGE_API_ROOT_URL = "https://raw.githubusercontent.com/projectbenyehuda/public_domain_dump/master/txt/"
 
-# download one by one from github is too slow
+# download one by one file from github is too slow
 _STORAGE_TEXTS_URL = "https://drive.google.com/uc?id=1-37-xrFPrJhxa55FHGZk9XiI7tMIbC4H"
 
 _METADATA_URL = _ASSET_ROOT_URL + "pseudocatalogue.csv"
@@ -96,8 +98,19 @@ class HebrewProjectBenYehuda(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         with open(metadata_filepath, encoding="utf-8") as f:
-            metadata_dict = csv.DictReader(f, fieldnames=["_id", "path", "title", "authors", "translators",
-                                                          "original_language", "genre", "source_edition"])
+            metadata_dict = csv.DictReader(
+                f,
+                fieldnames=[
+                    "_id",
+                    "path",
+                    "title",
+                    "authors",
+                    "translators",
+                    "original_language",
+                    "genre",
+                    "source_edition",
+                ],
+            )
             indexed_metadata = {str(row["_id"]): row for row in metadata_dict}
 
         for _id in ids:
