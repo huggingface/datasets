@@ -93,7 +93,7 @@ class TestCommand(BaseTransformersCLICommand):
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path, hash = prepare_module(path)
+        module_path, hash = prepare_module(path, cache_dir=self._cache_dir)
         builder_cls = import_main_class(module_path)
 
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
