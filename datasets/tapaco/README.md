@@ -241,7 +241,7 @@ task_ids:
 - semantic-similarity-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for TaPaCo Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -283,6 +283,20 @@ quarters of inferred paraphrases are correct and that most remaining ones are ei
 or near-paraphrases that neutralize a morphological distinction. The corpus contains a total of 1.9 million 
 sentences, with 200 – 250 000 sentences per language. It covers a range of languages for which, to our knowledge,
 no other paraphrase dataset exists.
+
+### Supported Tasks and Leaderboards
+Paraphrase detection and generation have become popular tasks in NLP
+and are increasingly integrated into a wide variety of common downstream tasks such as machine translation
+, information retrieval, question answering, and semantic parsing. Most of the existing datasets
+ cover only a single language – in most cases English – or a small number of languages. Furthermore, some paraphrase
+  datasets focus on lexical and phrasal rather than sentential paraphrases, while others are created (semi
+  -)automatically using machine translation.
+
+The number of sentences per language ranges from 200 to 250 000, which makes the dataset
+more suitable for fine-tuning and evaluation purposes than
+for training. It is well-suited for multi-reference evaluation
+of paraphrase generation models, as there is generally not a
+single correct way of paraphrasing a given input sentence.
 
 ### Languages
 
