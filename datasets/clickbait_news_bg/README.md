@@ -1,6 +1,24 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- bg
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- fact-checking
 ---
 
 # Dataset Card for Clickbait/Fake News in Bulgarian
