@@ -20,14 +20,26 @@ import datasets
 
 
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {Indic NLP - Natural Language Processing for Indian Languages},
-authors = {Sudalai Rajkumar, Anusha Motamarri},
-year={2019}
+@inproceedings{bien-etal-2020-recipenlg,
+title = "{R}ecipe{NLG}: A Cooking Recipes Dataset for Semi-Structured Text Generation",
+author = "Bie{'n}, Micha{l}  and
+  Gilski, Micha{l}  and
+  Maciejewska, Martyna  and
+  Taisner, Wojciech  and
+  Wisniewski, Dawid  and
+  Lawrynowicz, Agnieszka",
+booktitle = "Proceedings of the 13th International Conference on Natural Language Generation",
+month = dec,
+year = "2020",
+address = "Dublin, Ireland",
+publisher = "Association for Computational Linguistics",
+url = "https://www.aclweb.org/anthology/2020.inlg-1.4",
+pages = "22--28"
 }
 """
 
 _DESCRIPTION = """\
+The dataset contains 2231142 cooking recipes (>2 millions). It's processed in more careful way and provides more samples than any other dataset in the area.
 """
 
 _HOMEPAGE = "https://recipenlg.cs.put.poznan.pl/"
