@@ -118,13 +118,6 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
-        # my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download(_URLs)
 
         return [
@@ -143,12 +136,6 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
-
-        print('generating examples with filepath:', filepath, split)
-
         if self.config.name == "default":
             keys = ["fake_news_score", "click_bait_score", "content_title", "content_url", "content_published_time", "content"]
             data = pd.read_excel(filepath)
@@ -159,9 +146,6 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
                         row_dict[key] = value
                     else:
                         row_dict[key] = str(value)
-                print(id_, row_dict)
                 yield id_, row_dict
-
-                # yield id_, dict(zip(keys, row[1:]))
 
                 
