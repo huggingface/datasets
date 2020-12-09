@@ -154,7 +154,7 @@ class Lst20(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        for fname in sorted(glob.glob(f"{filepath}/*.txt")):
+        for fname in sorted(glob.glob(os.path.join(filepath, "*.txt"))):
             with open(fname, encoding="utf-8") as f:
                 guid = 0
                 tokens = []
