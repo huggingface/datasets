@@ -16,9 +16,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-from bs4 import BeautifulSoup
-from itertools import repeat, chain
 import os
+from itertools import chain, repeat
+
+from bs4 import BeautifulSoup
 
 import datasets
 
