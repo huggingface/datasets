@@ -54,6 +54,7 @@ class WikitextTl39(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
         ),
     ]
+    BUILDER_CONFIG_CLASS = WikitextTl39Config
 
     def _info(self):
         # TODO(wikitext): Specifies the datasets.DatasetInfo object
