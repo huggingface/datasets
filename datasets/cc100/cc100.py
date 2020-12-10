@@ -132,5 +132,4 @@ class Cc100(datasets.GeneratorBasedBuilder):
                         "text": row,
                     },
                 )
-                sentence_counter += 1
                 yield result
