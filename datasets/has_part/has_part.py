@@ -74,8 +74,6 @@ class HasPart(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         dl_fp = dl_manager.download_and_extract(_URL)
-        # input_fp = os.path.join(os.path.dirname(dl_fp), "hasPartKB.tsv")
-        # os.rename(dl_fp, input_fp)
 
         return [
             datasets.SplitGenerator(
