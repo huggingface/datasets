@@ -213,18 +213,18 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download(_URL)
+        data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "anonymized.augmented.train.english.v4_auto_conll")},
+                gen_kwargs={"filepath": data_dir},
             )
         ]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        with open("../anonymized.augmented.train.english.v4_auto_conll", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             id_ = 0
             document_id = None
             part_number = 0
