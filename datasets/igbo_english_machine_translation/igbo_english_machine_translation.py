@@ -58,7 +58,6 @@ class IgboEnglishMachineTranslationConfig(datasets.BuilderConfig):
 
 
 class IgboEnglishMachineTranslation(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         IgboEnglishMachineTranslationConfig(
             lang1=lang1,
