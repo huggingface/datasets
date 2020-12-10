@@ -22,12 +22,7 @@ import json
 import datasets
 
 
-_CITATION = """\
-url={https://github.com/2dot71mily/youtube_captions_corrections}
-},
-year={2020}
-}
-"""
+_CITATION = ""
 
 _DESCRIPTION = """\
 Dataset built from pairs of YouTube captions where both an `auto-generated` and
