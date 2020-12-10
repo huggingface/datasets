@@ -141,13 +141,13 @@ The authors propose the experimental setting of using the training data in a 5-f
 
 ### Curation Rationale
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-`[More Information Needed]`
+[More Information Needed]
 
 #### Who are the source language producers?
 
@@ -163,30 +163,30 @@ For manual annotation, the authors use the InCeption annotation tool (Klie et al
 
 #### Who are the annotators?
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-`[More Information Needed]`
+[More Information Needed]
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Discussion of Biases
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Other Known Limitations
 
-`[More Information Needed]`
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Licensing Information
 
