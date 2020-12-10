@@ -34,7 +34,7 @@ def xml_file(tmp_path_factory):
         """\
     <?xml version="1.0" encoding="UTF-8" ?>
     <tmx version="1.4">
-      <header srclang="ca" segtype="sentence" />
+      <header segtype="sentence" srclang="ca" />
       <body>
         <tu>
           <tuv xml:lang="ca"><seg>Contingut 1</seg></tuv>

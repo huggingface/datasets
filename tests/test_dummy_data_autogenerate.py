@@ -11,7 +11,7 @@ from datasets.utils.version import Version
 
 EXPECTED_XML_DUMMY_DATA = """\
 <tmx version="1.4">
-  <header srclang="ca" segtype="sentence" />
+  <header segtype="sentence" srclang="ca" />
   <body>
     <tu>
       <tuv xml:lang="ca"><seg>Contingut 1</seg></tuv>
