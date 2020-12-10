@@ -165,7 +165,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             {
                 "id": datasets.Value("string"),
                 "tokens": datasets.Sequence(datasets.Value("string")),
-                "tags": datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes)),
+                "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes)),
             }
         )
         return datasets.DatasetInfo(
@@ -215,26 +215,26 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []
-            tags = []
+            ner_tags = []
             for line in f:
                 splits = line.strip().split()
                 if len(splits) != 2:
                     if tokens:
-                        assert len(tokens) == len(tags), "word len doesn't match label length"
+                        assert len(tokens) == len(ner_tags), "word len doesn't match label length"
                         yield guid, {
                             "id": str(guid),
                             "tokens": tokens,
-                            "tags": tags,
+                            "ner_tags": ner_tags,
                         }
                         guid += 1
                         tokens = []
-                        tags = []
+                        ner_tags = []
                 else:
                     tokens.append(splits[0])
-                    tags.append(splits[1].rstrip())
+                    ner_tags.append(splits[1].rstrip())
             # last example
             yield guid, {
                 "id": str(guid),
                 "tokens": tokens,
-                "tags": tags,
+                "ner_tags": ner_tags,
             }
