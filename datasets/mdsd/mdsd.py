@@ -34,16 +34,19 @@ _DOMAINS = ["books", "dvd", "electronics", "kitchen_&_housewares"]
 _ALL = "all"
 
 
-class MDSDatasetConfig(datasets.BuilderConfig):
+class MDSDConfig(datasets.BuilderConfig):
     def __init__(self, *args, domains=None, **kwargs):
-        super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
+        super().__init__(*args, **kwargs)
         self.domains = domains
 
 
-class MDSDataset(datasets.GeneratorBasedBuilder):
+class MDSD(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         MDSDatasetConfig(
-            name=domain, domains=[domain], description=f"domain: {domain}."
+            name=domain,
+            domains=[domain],
+            description=f"domain: {domain}.",
+            version=datasets.Version(_VERSION),
         )
         for domain in _DOMAINS
     ] + [
@@ -51,6 +54,7 @@ class MDSDataset(datasets.GeneratorBasedBuilder):
             name=_ALL,
             domains=_DOMAINS,
             description=f"All sources included: books, dvd, electronics, kitchen_&_housewares",
+            version=datasets.Version(_VERSION),
         )
     ]
     BUILDER_CONFIG_CLASS = MDSDatasetConfig
