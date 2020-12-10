@@ -118,6 +118,10 @@ To split the dataset, entities were split into 4 mutually exclusive sets. Due to
 
 ## Dataset Creation
 
+### Curation Rationale
+
+[More Information Needed]
+
 ### Source Data
 
 #### Initial Data Collection and Normalization
