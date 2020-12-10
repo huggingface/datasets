@@ -1,0 +1,1 @@
+{"task_categories": ["conditional-text-generation"], "task_ids": ["machine-translation"], "multilinguality": ["multilingual"], "languages": ["en", "vi"], "language_creators": [], "annotations_creators": [], "source_datasets": [], "size_categories": ["100K<n<1M"], "licenses": []}
