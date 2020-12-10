@@ -83,7 +83,6 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 self.mock_download_manager.dummy_data_folder,
                 relative_dst_path,
             )
-
             total += self._create_dummy_data(
                 src_path,
                 dst_path,
@@ -219,16 +218,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("dummy_data")
+        test_parser.add_argument("--auto_generate", action="store_true", help="Automatically generate dummy data")
         test_parser.add_argument(
-            "--auto_generate",
-            action="store_true",
-            help="Automatically generate dummy data",
-        )
-        test_parser.add_argument(
-            "--n_lines",
-            type=int,
-            default=5,
-            help="Number of lines or samples to keep when auto-generating dummy data",
+            "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"
         )
         test_parser.add_argument(
             "--json_field",
@@ -265,11 +257,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             default=None,
             help=f"Encoding to use when auto-generating dummy data. Defaults to {DEFAULT_ENCODING}",
         )
-        test_parser.add_argument(
-            "path_to_dataset",
-            type=str,
-            help="Path to the dataset (example: ./datasets/squad)",
-        )
+        test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
         test_parser.set_defaults(func=test_command_factory)
 
     def __init__(
@@ -347,9 +335,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         dl_cache_dir = os.path.join(self._cache_dir or HF_DATASETS_CACHE, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
-            dataset_name=self._dataset_name,
-            mock_download_manager=mock_dl_manager,
-            download_config=download_config,
+            dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
         )
         dataset_builder._split_generators(dl_manager)
         mock_dl_manager.load_existing_dummy_data = False  # don't use real dummy data
