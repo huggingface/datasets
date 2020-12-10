@@ -68,10 +68,10 @@ _TEST_FILE = "test.tsv"
 
 
 class HausaVoaNerConfig(datasets.BuilderConfig):
-    """BuilderConfig for Conll2003"""
+    """BuilderConfig for HausaVoaNer"""
 
     def __init__(self, **kwargs):
-        """BuilderConfig forConll2003.
+        """BuilderConfig for HausaVoaNer.
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
