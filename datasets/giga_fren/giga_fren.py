@@ -40,7 +40,6 @@ class GigaFrenConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name="en-fr",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
 
@@ -54,6 +53,7 @@ class GigaFrenConfig(datasets.BuilderConfig):
 
 
 class GigaFren(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [GigaFrenConfig(description=f"Translating en to fr ")]
     BUILDER_CONFIG_CLASS = GigaFrenConfig
 
