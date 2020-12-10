@@ -29,7 +29,7 @@ _CITATION = """\
       Goyal, Naman  and
       Chaudhary, Vishrav  and
       Wenzek, Guillaume  and
-      Guzm{\'a}n, Francisco  and
+      Guzm{'a}n, Francisco  and
       Grave, Edouard  and
       Ott, Myle  and
       Zettlemoyer, Luke  and
@@ -50,7 +50,7 @@ _CITATION = """\
       Lachaux, Marie-Anne  and
       Conneau, Alexis  and
       Chaudhary, Vishrav  and
-      Guzm{\'a}n, Francisco  and
+      Guzm{'a}n, Francisco  and
       Joulin, Armand  and
       Grave, Edouard",
     booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
