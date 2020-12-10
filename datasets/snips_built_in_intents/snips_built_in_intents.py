@@ -27,7 +27,6 @@ import datasets
 # from typing import List, Tuple
 
 
-
 _DESCRIPTION = """\
 Snips' built in intents dataset was initially used to compare different voice assistants and released as a public dataset hosted at
 https://github.com/sonos/nlu-benchmark 2016-12-built-in-intents. The dataset contains 328 utterances over 10 intent classes. The
