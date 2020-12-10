@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- unknown
+- sequence-modeling
 task_ids:
-- unknown
+- language-modeling
 ---
 
 # Dataset Card for CC-News
@@ -172,4 +172,3 @@ The purpose of this dataset is to help language model researchers develop better
 ### Citation Information
 
 [More Information Needed]
-
