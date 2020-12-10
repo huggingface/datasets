@@ -71,7 +71,6 @@ class MultiParaCrawlConfig(datasets.BuilderConfig):
 
 
 class MultiParaCrawl(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         MultiParaCrawlConfig(
             lang1=lang1,
