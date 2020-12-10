@@ -105,5 +105,4 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
                         "url": url,
                     },
                 )
-                sentence_counter += 1
                 yield result
