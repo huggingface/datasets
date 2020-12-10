@@ -278,8 +278,10 @@ def prepare_module(
                 local_path = cached_path(file_path, download_config=download_config)
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {}, or remotely at {} or {}".format(
-                        combined_path, github_file_path, file_path
+                    "Couldn't find file locally at {}, or remotely at {} or {}.\n"
+                    'If the {} was added recently, you may need to to pass script_version="master" to find '
+                    "the loading script on the master branch.".format(
+                        combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
                     )
                 )
 
