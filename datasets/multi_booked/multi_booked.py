@@ -90,7 +90,9 @@ class MultiBooked(datasets.GeneratorBasedBuilder):
                             "oid": datasets.Value("string"),
                             "opinion_holder_target": datasets.features.Sequence(datasets.Value("string")),
                             "opinion_target_target": datasets.features.Sequence(datasets.Value("string")),
-                            "opinion_expression_polarity": datasets.Value("string"),
+                            "opinion_expression_polarity": datasets.features.ClassLabel(
+                                names=["StrongNegative", "Negative", "Positive", "StrongPositive"]
+                            ),
                             "opinion_expression_target": datasets.features.Sequence(datasets.Value("string")),
                         }
                     ),
