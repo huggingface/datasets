@@ -120,5 +120,4 @@ class IgboEnglishMachineTranslation(datasets.GeneratorBasedBuilder):
                         "translation": {"ig": x, "en": y},
                     },
                 )
-                sentence_counter += 1
                 yield result
