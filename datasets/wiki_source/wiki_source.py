@@ -44,7 +44,6 @@ class WikiSourceConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -52,6 +51,7 @@ class WikiSourceConfig(datasets.BuilderConfig):
 
 
 class WikiSource(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         WikiSourceConfig(
             lang1=lang1,
