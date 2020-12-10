@@ -1,7 +1,11 @@
+import json
 import os
 import shutil
+from contextlib import ExitStack as does_not_raise
 from tempfile import TemporaryDirectory
 from unittest import TestCase
+
+import pytest
 
 from datasets.builder import DatasetInfo, DownloadConfig, GeneratorBasedBuilder, Split, SplitGenerator
 from datasets.commands.dummy_data import DummyDataGeneratorDownloadManager, MockDownloadManager
@@ -78,3 +82,21 @@ class DummyDataAutoGenerationTest(TestCase):
             dataset = dataset_builder.as_dataset(split="train")
             self.assertEqual(len(dataset), n_lines)
             del dataset
+
+
+@pytest.mark.parametrize(
+    "json_field, expected_json_dummy_data, expected_exception",
+    [
+        ("data-1", {"data-1": [{"title": "title-1", "text": "text-1"}]}, None),
+        ("data-2", {"data-2": {"lemmas": ["lemma-1"], "tokens": ["token-1"]}}, None),
+        ("data-3", None, pytest.raises(ValueError, match="Couldn't parse")),
+    ],
+)
+def test_create_json_dummy_data(json_file, tmp_path, json_field, expected_json_dummy_data, expected_exception):
+    dst_path = tmp_path / "file.xml"
+    expected_exception = expected_exception or does_not_raise()
+    with expected_exception:
+        DummyDataGeneratorDownloadManager._create_json_dummy_data(json_file, dst_path, json_field, n_lines=1)
+        with open(dst_path) as f:
+            json_dummy_data = json.load(f)
+        assert json_dummy_data == expected_json_dummy_data
