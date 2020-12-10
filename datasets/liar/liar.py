@@ -52,7 +52,7 @@ _URL = "https://www.cs.ucsb.edu/~william/data/liar_dataset.zip"
 class Liar(datasets.GeneratorBasedBuilder):
     """LIAR is a dataset for fake news detection with annotated claims."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -60,7 +60,16 @@ class Liar(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "label": datasets.Value("string"),
+                    "label": datasets.ClassLabel(
+                        names=[
+                            "false",
+                            "half-true",
+                            "mostly-true",
+                            "true",
+                            "barely-true",
+                            "pants-fire",
+                        ]
+                    ),
                     "statement": datasets.Value("string"),
                     "subject": datasets.Value("string"),
                     "speaker": datasets.Value("string"),
@@ -75,7 +84,7 @@ class Liar(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                 }
             ),
-            supervised_keys=None,
+            supervised_keys=("statement", "label"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
