@@ -19,10 +19,13 @@
 from __future__ import absolute_import, division, print_function
 
 import json
+
+import datasets
+
+
 # import random
 # from typing import List, Tuple
 
-import datasets
 
 
 _DESCRIPTION = """\
