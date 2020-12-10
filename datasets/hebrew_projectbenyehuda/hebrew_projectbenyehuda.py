@@ -29,7 +29,6 @@ _ASSET_ROOT_URL = "https://raw.githubusercontent.com/projectbenyehuda/public_dom
 _STORAGE_API_ROOT_URL = "https://raw.githubusercontent.com/projectbenyehuda/public_domain_dump/master/txt/"
 
 # download one by one file from github is too slow
-_STORAGE_TEXTS_URL = "https://drive.google.com/uc?id=1-37-xrFPrJhxa55FHGZk9XiI7tMIbC4H"
 
 _METADATA_URL = _ASSET_ROOT_URL + "pseudocatalogue.csv"
 
@@ -74,23 +73,22 @@ class HebrewProjectBenYehuda(datasets.GeneratorBasedBuilder):
         # download and extract URLs
 
         metadata = dl_manager.download({"metadata": _METADATA_URL})
-        folder = dl_manager.download_and_extract({"texts": _STORAGE_TEXTS_URL})
-        folder = folder["texts"] + "/txt"
 
         urls_to_download = dict()
         ids = list()
         with open(metadata["metadata"], encoding="utf-8") as csv_file:
             for row in csv.DictReader(csv_file):
                 ids.append(row["ID"])
-                urls_to_download[row["ID"]] = os.path.join(folder, row["path"].strip("/") + ".txt")
+                urls_to_download[row["ID"]] = _STORAGE_API_ROOT_URL + row["path"].strip("/") + ".txt"
 
+        downloaded_files = dl_manager.download(urls_to_download)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "ids": ids,
                     "metadata_filepath": metadata["metadata"],
-                    "filepaths": urls_to_download,
+                    "filepaths": downloaded_files,
                 },
             )
         ]
