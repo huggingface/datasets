@@ -83,7 +83,26 @@ Each sub-dataset is monolingual in the languages:
 
 ### Data Fields
 
-[More Information Needed]
+- `text`: layer of the original text.
+  - `wid`: list of word IDs for each word within the example.
+  - `sent`: list of sentence IDs for each sentence within the example.
+  - `para`: list of paragraph IDs for each paragraph within the example.
+  - `word`: list of words.
+- `terms`: layer of the terms resulting from the analysis of the original text (lemmatization, morphological,
+  PoS tagging)
+  - `tid`: list of term IDs for each term within the example.
+  - `lemma`: list of lemmas.
+  - `morphofeat`: list of morphological features.
+  - `pos`: list of PoS tags.
+  - `target`: list of sublists of the corresponding word IDs (normally, the sublists contain only one element,
+    in a one-to-one correspondence between words and terms).
+- `opinions`: layer of the opinions in the text.
+  - `oid`: list of opinion IDs
+  - `opinion_holder_target`: list of sublists of the corresponding term IDs that span the opinion holder.
+  - `opinion_target_target`: list of sublists of the corresponding term IDs that span the opinion target.
+  - `opinion_expression_polarity`: list of the opinion expression polarities. The polarity can take one of the values:
+    `StrongNegative`, `Negative`, `Positive`, or `StrongPositive`.
+  - `opinion_expression_target`: list of sublists of the corresponding term IDs that span the opinion expression.
 
 ### Data Splits
 
