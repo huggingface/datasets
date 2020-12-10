@@ -222,31 +222,31 @@ Annotations for the `dialogue_acts` in `train` and `test` were generated via a r
 
 #### Who are the annotators?
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-`[More Information Needed]`
+[More Information Needed]
 
 ## Considerations for Using the Data
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Social Impact of Dataset
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Discussion of Biases
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Other Known Limitations
 
-`[More Information Needed]`
+[More Information Needed]
 
 ## Additional Information
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Dataset Curators
 
@@ -260,7 +260,7 @@ program under ARO prime contract no. W911NF15-1-0462
 
 ### Licensing Information
 
-`[More Information Needed]`
+[More Information Needed]
 
 ### Citation Information
 
