@@ -39,9 +39,15 @@ An annotated dataset for hate speech and offensive language detection on tweets.
 
 _HOMEPAGE = "https://github.com/t-davidson/hate-speech-and-offensive-language"
 
-_LICENSE = "Unknown"
+_LICENSE = "MIT"
 
 _URL = "https://raw.githubusercontent.com/t-davidson/hate-speech-and-offensive-language/master/data/labeled_data.csv"
+
+_CLASS_MAP = {
+    "0": "hate speech",
+    "1": "offensive language",
+    "2": "neither",
+}
 
 
 class HateSpeechOffensive(datasets.GeneratorBasedBuilder):
@@ -54,11 +60,11 @@ class HateSpeechOffensive(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "count": datasets.Value("float"),
-                    "hate_speech": datasets.Value("float"),
-                    "offensive_language": datasets.Value("float"),
-                    "neither": datasets.Value("float"),
-                    "class": datasets.Value("float"),
+                    "count": datasets.Value("int64"),
+                    "hate_speech_count": datasets.Value("int64"),
+                    "offensive_language_count": datasets.Value("int64"),
+                    "neither_count": datasets.Value("int64"),
+                    "class": datasets.ClassLabel(names=["hate speech", "offensive language", "neither"]),
                     "tweet": datasets.Value("string"),
                 }
             ),
@@ -92,9 +98,9 @@ class HateSpeechOffensive(datasets.GeneratorBasedBuilder):
 
                 yield id_, {
                     "count": row[1],
-                    "hate_speech": row[2],
-                    "offensive_language": row[3],
-                    "neither": row[4],
-                    "class": row[5],
+                    "hate_speech_count": row[2],
+                    "offensive_language_count": row[3],
+                    "neither_count": row[4],
+                    "class": _CLASS_MAP[row[5]],
                     "tweet": row[6],
                 }
