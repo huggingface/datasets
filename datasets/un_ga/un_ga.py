@@ -22,7 +22,14 @@ import datasets
 
 
 _CITATION = """\
-Alexandre Rafalovitch, Robert Dale. 2009. United Nations General Assembly Resolutions: A Six-Language Parallel Corpus. In Proceedings of the MT Summit XII, pages 292-299, Ottawa, Canada, August"""
+@inproceedings{title = "United Nations General Assembly Resolutions: a six-language parallel corpus",
+abstract = "In this paper we describe a six-ways parallel public-domain corpus consisting of 2100 United Nations General Assembly Resolutions with translations in the six official languages of the United Nations, with an average of around 3 million tokens per language. The corpus is available in a preprocessed, formatting-normalized TMX format with paragraphs aligned across multiple languages. We describe the background to the corpus and its content, the process of its construction, and some of its interesting properties.",
+author = "Alexandre Rafalovitch and Robert Dale",
+year = "2009",
+language = "English",
+booktitle = "MT Summit XII proceedings",
+publisher = "International Association of Machine Translation",
+}"""
 
 _HOMEPAGE = "http://opus.nlpl.eu/UN.php"
 

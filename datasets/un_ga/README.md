@@ -4,12 +4,51 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ar
-- en
-- es
-- fr
-- ru
-- zh
+- ar-to-en
+  - ar
+  - en
+- ar-to-es
+  - ar
+  - es
+- ar-to-fr
+  - ar
+  - fr
+- ar-to-ru
+  - ar
+  - ru
+- ar-to-zh
+  - ar
+  - zh
+- en-to-es
+  - en
+  - es
+- en-to-fr
+  - en
+  - fr
+- en-to-ru
+  - en
+  - ru
+- en-to-zh
+  - en
+  - zh
+- es-to-fr
+  - es
+  - fr
+- es-to-ru
+  - es
+  - ru
+- es-to-zh
+  - es
+  - zh
+- fr-to-ru
+  - fr
+  - ru
+- fr-to-zh
+  - fr
+  - zh
+- ru-to-zh
+  - ru
+  - zh
 licenses:
 - unknown
 multilinguality:
@@ -139,4 +178,11 @@ This is a collection of translated documents from the United Nations originally 
 
 ### Citation Information
 
-Alexandre Rafalovitch, Robert Dale. 2009. United Nations General Assembly Resolutions: A Six-Language Parallel Corpus. In Proceedings of the MT Summit XII, pages 292-299, Ottawa, Canada, August
+@inproceedings{title = "United Nations General Assembly Resolutions: a six-language parallel corpus",
+abstract = "In this paper we describe a six-ways parallel public-domain corpus consisting of 2100 United Nations General Assembly Resolutions with translations in the six official languages of the United Nations, with an average of around 3 million tokens per language. The corpus is available in a preprocessed, formatting-normalized TMX format with paragraphs aligned across multiple languages. We describe the background to the corpus and its content, the process of its construction, and some of its interesting properties.",
+author = "Alexandre Rafalovitch and Robert Dale",
+year = "2009",
+language = "English",
+booktitle = "MT Summit XII proceedings",
+publisher = "International Association of Machine Translation",
+}
