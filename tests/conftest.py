@@ -30,7 +30,8 @@ def xz_file(tmp_path_factory):
 @pytest.fixture(scope="session")
 def xml_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.xml"
-    data = textwrap.dedent("""\
+    data = textwrap.dedent(
+        """\
     <?xml version="1.0" encoding="UTF-8" ?>
     <tmx version="1.4">
       <header srclang="ca" segtype="sentence" />
@@ -56,7 +57,8 @@ def xml_file(tmp_path_factory):
           <tuv xml:lang="en"><seg>Content 5</seg></tuv>
         </tu>
       </body>
-    </tmx>""")
+    </tmx>"""
+    )
     with open(filename, "w") as f:
         f.write(data)
     return filename
