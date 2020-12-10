@@ -69,32 +69,18 @@ task_ids:
 
 ### Data Instances
 
-```
-DatasetDict({
-    train: Dataset({
-        features: ['id', 'uid', 'claim', 'supporting_facts', 'label', 'num_hops', 'hpqa_id'],
-        num_rows: 18171
-    })
-    validation: Dataset({
-        features: ['id', 'uid', 'claim', 'supporting_facts', 'label', 'num_hops', 'hpqa_id'],
-        num_rows: 4000
-    })
-    test: Dataset({
-        features: ['id', 'uid', 'claim', 'supporting_facts', 'label', 'num_hops', 'hpqa_id'],
-        num_rows: 4000
-    })
-})
-```
-
-### Data Fields
-
 A sample training set is provided below
 
 ```
 {'id': 14856, 'uid': 'a0cf45ea-b5cd-4c4e-9ffa-73b39ebd78ce', 'claim': 'The park at which Tivolis Koncertsal is located opened on 15 August 1843.', 'supporting_facts': [{'key': 'Tivolis Koncertsal', 'value': 0}, {'key': 'Tivoli Gardens', 'value': 1}], 'label': 'SUPPORTED', 'num_hops': 2, 'hpqa_id': '5abca1a55542993a06baf937'}
 ```
 
-Please note that in test set sentence only id, uid and claim are available.
+Please note that in test set sentence only id, uid and claim are available. Labels are not available in test set and are represented by -1.
+
+
+### Data Fields
+
+[More Information Needed]
 
 ### Data Splits
 

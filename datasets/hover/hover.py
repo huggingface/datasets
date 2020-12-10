@@ -54,7 +54,7 @@ class Hover(datasets.GeneratorBasedBuilder):
                             "value": datasets.Value("int32"),
                         }
                     ],
-                    "label": datasets.Value("string"),
+                    "label": datasets.ClassLabel(names=["NOT_SUPPORTED", "SUPPORTED"]),
                     "num_hops": datasets.Value("int32"),
                     "hpqa_id": datasets.Value("string"),
                 },
@@ -104,7 +104,7 @@ class Hover(datasets.GeneratorBasedBuilder):
                     "uid": d["uid"],
                     "claim": d["claim"],
                     "supporting_facts": [{"key": "None", "value": -1}],
-                    "label": "None",
+                    "label": -1,
                     "num_hops": -1,
                     "hpqa_id": "None",
                 }
