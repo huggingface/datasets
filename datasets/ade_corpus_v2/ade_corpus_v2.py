@@ -21,8 +21,6 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-import numpy as np
-
 import datasets
 
 
@@ -191,10 +189,8 @@ class ADECorpusV2(datasets.GeneratorBasedBuilder):
                     texts.append(text)
                     labels.append("Not-Related")
 
-            np.random.seed(0)
-            idxs = np.random.permutation(len(labels))
-            for i, idx in enumerate(idxs):
-                text, label = texts[idx], labels[idx]
+            for i in range(len(labels)):
+                text, label = texts[i], labels[i]
                 yield i, {"text": text, "label": label}
 
         # For Relation Extraction between drug and its effect.
