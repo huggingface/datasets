@@ -57,6 +57,7 @@ The LiveQA dataset is a Chinese question-answering resource constructed from pla
 
 ### Supported Tasks and Leaderboards
 Question Answering. 
+
 [More Information Needed]
 
 ### Languages
@@ -65,26 +66,39 @@ Chinese.
 ## Dataset Structure
 
 ### Data Instances
-Each instance contains either a text comment or a question segment. In the following truncated example, user comments about the game is followed by a question about which team will be the first to reach 60 points. 
+Each instance represents a timeline (i.e., a game) with an identifier. The passages field comprise an array of text or question segments. In the following truncated example, user comments about the game is followed by a question about which team will be the first to reach 60 points. 
 ```python
 {
   
     'id': 1,
     'passages': [
       {
-        'text': '我希望两位球员都能做到！！'
+        "is_question": False,
+        "text": "'我希望两位球员都能做到！！",
+        "candidate1": "",
+        "candidate2": "",
+        "answer": "",
       },
       {
-        'text': '新年给我们送上精彩比赛！'
+        "is_question": False,
+        "text": "新年给我们送上精彩比赛！",
+        "candidate1": "",
+        "candidate2": "",
+        "answer": "",
       },
       {
-        'question': '先达到60分？', 
-        'candidate1': '火箭', 
-        'candidate2': '勇士', 
-        'answer': '勇士'
+        "is_question": True,
+        "text": "先达到60分？",
+        "candidate1": "火箭",
+        "candidate2": "勇士",
+        "answer": "勇士",
       },
-      { 
-        'text': '自己急停跳投！！！'
+      {
+        "is_question": False,
+        "text": "自己急停跳投！！！",
+        "candidate1": "",
+        "candidate2": "",
+        "answer": "",
       }
     ]
 }
@@ -93,8 +107,7 @@ Each instance contains either a text comment or a question segment. In the follo
 ### Data Fields
 - id: identifier for the game
 - passages: collection of text/question segments
-- text: real-time text comments 
-- question: binary question related to the context
+- text: real-time text comment or binary question related to the context
 - candidate1/2: one of the two answer options to the question
 - answer: correct answer to the question in text
 
