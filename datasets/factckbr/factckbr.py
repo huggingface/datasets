@@ -54,7 +54,7 @@ _LICENSE = "MIT"
 _URL = "https://github.com/jghm-f/FACTCK.BR/raw/master/FACTCKBR.tsv"
 
 
-class FactCkBR(datasets.GeneratorBasedBuilder):
+class Factckbr(datasets.GeneratorBasedBuilder):
     """FACTCK.BR: A dataset to study Fake News in Portuguese."""
 
     VERSION = datasets.Version("1.1.0")
@@ -72,7 +72,24 @@ class FactCkBR(datasets.GeneratorBasedBuilder):
                     "title": datasets.Value("string"),
                     "rating": datasets.Value("float"),
                     "best_rating": datasets.Value("float"),
-                    "label": datasets.Value("string"),
+                    "label": datasets.ClassLabel(
+                        names=[
+                            "falso",
+                            "distorcido",
+                            "impreciso",
+                            "exagerado",
+                            "insustentável",
+                            "verdadeiro",
+                            "outros",
+                            "subestimado",
+                            "impossível provar",
+                            "discutível",
+                            "sem contexto",
+                            "de olho",
+                            "verdadeiro, mas",
+                            "ainda é cedo para dizer",
+                        ]
+                    ),
                 }
             ),
             supervised_keys=("claim", "label"),
@@ -103,6 +120,11 @@ class FactCkBR(datasets.GeneratorBasedBuilder):
                 if id_ == 0:
                     continue
 
+                label = row[8].lower()
+
+                if label == "":
+                    continue
+
                 yield id_, {
                     "url": row[0],
                     "author": row[1],
@@ -112,5 +134,5 @@ class FactCkBR(datasets.GeneratorBasedBuilder):
                     "title": row[5],
                     "rating": row[6] or 0,
                     "best_rating": row[7],
-                    "label": row[8],
+                    "label": label,
                 }
