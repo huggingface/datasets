@@ -45,7 +45,6 @@ class OfisPublikConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -53,6 +52,7 @@ class OfisPublikConfig(datasets.BuilderConfig):
 
 
 class OfisPublik(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         OfisPublikConfig(
             lang1=lang1,
