@@ -22,7 +22,20 @@ import datasets
 
 
 _CITATION = """\
-Ataman, D. (2018) Bianet: A Parallel News Corpus in Turkish, Kurdish and English. In Proceedings of the LREC 2018 Workshop MLP-Moment. pp. 14-17. pdf"""
+@InProceedings{ATAMAN18.6,
+  author = {Duygu Ataman},
+  title = {Bianet: A Parallel News Corpus in Turkish, Kurdish and English},
+  booktitle = {Proceedings of the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)},
+  year = {2018},
+  month = {may},
+  date = {7-12},
+  location = {Miyazaki, Japan},
+  editor = {Jinhua Du and Mihael Arcan and Qun Liu and Hitoshi Isahara},
+  publisher = {European Language Resources Association (ELRA)},
+  address = {Paris, France},
+  isbn = {979-10-95546-15-3},
+  language = {english}
+  }"""
 
 _HOMEPAGE = "http://opus.nlpl.eu/Bianet.php"
 
