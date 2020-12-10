@@ -41,8 +41,6 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
 ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts
 
@@ -51,8 +49,6 @@ Patents dataset in 74 language pairs, comprising more than 68 million sentences
 and 800 million tokens. Sentences were automatically aligned using the Hunalign algorithm
 for the largest 22 language pairs, while the others were abstract (i.e. paragraph) aligned.
 
-We demonstrate the capabilities of our corpus by training Neural Machine Translation
-(NMT) models for the main 9 language pairs, with a total of 18 models.
 """
 
 _HOMEPAGE = (
