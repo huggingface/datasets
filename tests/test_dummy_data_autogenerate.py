@@ -9,6 +9,18 @@ from datasets.features import Features, Value
 from datasets.utils.version import Version
 
 
+EXPECTED_XML_DUMMY_DATA = """\
+<tmx version="1.4">
+  <header srclang="ca" segtype="sentence" />
+  <body>
+    <tu>
+      <tuv xml:lang="ca"><seg>Contingut 1</seg></tuv>
+      <tuv xml:lang="en"><seg>Content 1</seg></tuv>
+    </tu>
+    </body>
+</tmx>"""
+
+
 class DummyBuilder(GeneratorBasedBuilder):
     def __init__(self, tmp_test_dir, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -78,3 +90,11 @@ class DummyDataAutoGenerationTest(TestCase):
             dataset = dataset_builder.as_dataset(split="train")
             self.assertEqual(len(dataset), n_lines)
             del dataset
+
+
+def test_create_xml_dummy_data(xml_file, tmp_path):
+    dst_path = tmp_path / "file.xml"
+    DummyDataGeneratorDownloadManager._create_xml_dummy_data(xml_file, dst_path, "tu", n_lines=1)
+    with open(dst_path) as f:
+        xml_dummy_data = f.read()
+    assert xml_dummy_data == EXPECTED_XML_DUMMY_DATA
