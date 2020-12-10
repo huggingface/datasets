@@ -63,7 +63,6 @@ class PhpConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -71,6 +70,7 @@ class PhpConfig(datasets.BuilderConfig):
 
 
 class Php(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         PhpConfig(
             lang1=lang1,
