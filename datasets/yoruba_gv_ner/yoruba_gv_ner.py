@@ -67,10 +67,10 @@ _TEST_FILE = "test.tsv"
 
 
 class YorubaGvNerConfig(datasets.BuilderConfig):
-    """BuilderConfig for Conll2003"""
+    """BuilderConfig for YorubaGvNer"""
 
     def __init__(self, **kwargs):
-        """BuilderConfig forConll2003.
+        """BuilderConfig for YorubaGvNer.
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
