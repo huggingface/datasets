@@ -306,7 +306,7 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
         for id_, name in enumerate(names):
 
             textfile_path = os.path.join(textfile_base_path, name + ".txt")
-            text = open(textfile_path).read()
+            text = open(textfile_path, encoding="utf-8").read()
 
             sentence_meta_path = os.path.join(sentence_meta_base_path, name + ".csv")
             sentence_meta = pd.read_csv(sentence_meta_path, sep="\t", names=sentence_meta_header)
@@ -327,7 +327,7 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
             )
 
             frames_meta_path = os.path.join(frame_meta_base_path, name + ".csv")
-            frames_meta = open(frames_meta_path).readlines()
+            frames_meta = open(frames_meta_path, encoding="utf-8").readlines()
 
             sentence_offsets = (
                 sentence_meta[["begin_char_offset", "end_char_offset"]].apply(lambda x: x.to_dict(), axis=1).tolist()
