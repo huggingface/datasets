@@ -52,7 +52,6 @@ class OfisPublikConfig(datasets.BuilderConfig):
 
 
 class OfisPublik(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         OfisPublikConfig(
             lang1=lang1,
