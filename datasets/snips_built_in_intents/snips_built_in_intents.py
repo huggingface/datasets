@@ -106,7 +106,7 @@ class SnipsBuiltInIntents(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Snips built in intent examples."""
-        samples_txt_lbl = []  # type: List[Tuple[str, str]]
+        # samples_txt_lbl = []  # type: List[Tuple[str, str]]
         num_examples = 0
 
         with open(filepath, encoding="utf-8") as file_obj:
@@ -124,19 +124,18 @@ class SnipsBuiltInIntents(datasets.GeneratorBasedBuilder):
                     for query_dict in queries:
                         query_text = query_dict["text"]
 
-                        samples_txt_lbl.append(
-                            (query_text, label)
-                        )  # Make a list of all 328 examples, then shuffle and yield below.
+                        # samples_txt_lbl.append(
+                        #     (query_text, label)
+                        # )  # Make a list of all 328 examples, then shuffle and yield below.
 
                         # Option 1 (Unshuffled): Yield samples here if un-shuffled samples ok.
-                        # yield num_examples, {"text": query_text, "label": label}
-
+                        yield num_examples, {"text": query_text, "label": label}
                         num_examples += 1  # Explicitly keep track of the number of examples.
 
-        # Option 2 (Shuffled): Yield samples here if shuffled samples are required.
-        random.Random(12345).shuffle(
-            samples_txt_lbl
-        )  # Use a new instance of Random to fix shuffle pattern without affecting global rand.
-        for sample_id, sample in enumerate(samples_txt_lbl):
-            query_text, label = sample
-            yield sample_id, {"text": query_text, "label": label}
+        # # Option 2 (Shuffled): Yield samples here if shuffled samples are required.
+        # random.Random(12345).shuffle(
+        #     samples_txt_lbl
+        # )  # Use a new instance of Random to fix shuffle pattern without affecting global rand.
+        # for sample_id, sample in enumerate(samples_txt_lbl):
+        #     query_text, label = sample
+        #     yield sample_id, {"text": query_text, "label": label}
