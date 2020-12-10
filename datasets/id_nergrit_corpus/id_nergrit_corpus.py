@@ -165,11 +165,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             {
                 "id": datasets.Value("string"),
                 "tokens": datasets.Sequence(datasets.Value("string")),
-                "tags": datasets.Sequence(
-                    datasets.features.ClassLabel(
-                        names=self.config.label_classes
-                    )
-                ),
+                "tags": datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes)),
             }
         )
         return datasets.DatasetInfo(
@@ -188,24 +184,27 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir,
-                                             "nergrit-corpus/{}/data/train_corrected.txt".format(self.config.name)),
+                    "filepath": os.path.join(
+                        data_dir, "nergrit-corpus/{}/data/train_corrected.txt".format(self.config.name)
+                    ),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir,
-                                             "nergrit-corpus/{}/data/test_corrected.txt".format(self.config.name)),
+                    "filepath": os.path.join(
+                        data_dir, "nergrit-corpus/{}/data/test_corrected.txt".format(self.config.name)
+                    ),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir,
-                                             "nergrit-corpus/{}/data/valid_corrected.txt".format(self.config.name)),
+                    "filepath": os.path.join(
+                        data_dir, "nergrit-corpus/{}/data/valid_corrected.txt".format(self.config.name)
+                    ),
                     "split": "dev",
                 },
             ),
