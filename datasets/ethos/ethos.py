@@ -88,14 +88,14 @@ class Ethos(datasets.GeneratorBasedBuilder):
             f = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "violence": datasets.Value("int32"),
-                    "directed_vs_generalized": datasets.Value("int32"),
-                    "gender": datasets.Value("int32"),
-                    "race": datasets.Value("int32"),
-                    "national_origin": datasets.Value("int32"),
-                    "disability": datasets.Value("int32"),
-                    "religion": datasets.Value("int32"),
-                    "sexual_orientation": datasets.Value("int32"),
+                    "violence": datasets.ClassLabel(names=["not_violent", "violent"]),
+                    "directed_vs_generalized": datasets.ClassLabel(names=["generalied", "directed"]),
+                    "gender": datasets.ClassLabel(names=["false", "true"]),
+                    "race": datasets.ClassLabel(names=["false", "true"]),
+                    "national_origin": datasets.ClassLabel(names=["false", "true"]),
+                    "disability": datasets.ClassLabel(names=["false", "true"]),
+                    "religion": datasets.ClassLabel(names=["false", "true"]),
+                    "sexual_orientation": datasets.ClassLabel(names=["false", "true"]),
                 }
             )
         return datasets.DatasetInfo(
