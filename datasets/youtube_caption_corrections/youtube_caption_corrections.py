@@ -61,7 +61,7 @@ _URLS = [
 ]
 
 
-class YouTubeCaptionCorrections(datasets.GeneratorBasedBuilder):
+class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
     """YouTube captions simple single token corrections."""
 
     def _info(self):
