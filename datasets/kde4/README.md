@@ -51,7 +51,6 @@ languages:
 - km
 - kn
 - ko
-- 
 - ku
 - lb
 - lt
