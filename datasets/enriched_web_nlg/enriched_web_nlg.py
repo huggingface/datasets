@@ -123,7 +123,7 @@ def parse_entry(entry, config_name):
     res["shape_type"] = entry.get("shape_type", "")
     return res
 
-
+  
 def xml_file_to_examples(filename, config_name):
     tree = ET.parse(filename).getroot()
     examples = et_to_dict(tree)["benchmark"]["entries"][0]["entry"]
