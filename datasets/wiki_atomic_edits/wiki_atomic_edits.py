@@ -92,7 +92,7 @@ _LANG_EDITS = [
 
 class WikiAtomicEditsConfig(datasets.BuilderConfig):
     def __init__(self, *args, language=None, edit_type=None, **kwargs):
-        super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
+        super().__init__(*args, **kwargs)
         self.language = language
         self.edit_type = edit_type
 
@@ -104,6 +104,7 @@ class WikiAtomicEdits(datasets.GeneratorBasedBuilder):
             language=lang,
             edit_type=edit_type,
             description=f"Language: {lang}, Edit type: {edit_type}",
+            version=datasets.Version(_VERSION),
         )
         for lang, edit_type in _LANG_EDITS
     ]
