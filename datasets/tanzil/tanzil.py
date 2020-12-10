@@ -61,12 +61,12 @@ class TanzilConfig(datasets.BuilderConfig):
 
 
 class Tanzil(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         TanzilConfig(
             lang1=lang1,
             lang2=lang2,
             description=f"Translating {lang1} to {lang2} or vice versa",
+            version=datasets.Version(_VERSION),
         )
         for lang1, lang2 in _LANGUAGE_PAIRS
     ]
