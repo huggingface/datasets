@@ -82,7 +82,7 @@ test_TextbookQA = (
 test_DuoRC = "https://github.com/google-research-datasets/MultiReQA/raw/master/data/test/DuoRC/candidates.json.gz"
 
 
-class Multi_Re_Qa(datasets.GeneratorBasedBuilder):
+class MultiReQa(datasets.GeneratorBasedBuilder):
     """MultiReQA contains the sentence boundary annotation from eight publicly available QA datasets including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, BioASQ, RelationExtraction, and TextbookQA."""
 
     VERSION = datasets.Version("1.0.0")
