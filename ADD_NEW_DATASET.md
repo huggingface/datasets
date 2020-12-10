@@ -213,6 +213,20 @@ Here are the step to open the Pull-Request on the main repo.
 	flake8 datasets
 	```
 
+	If you are on windows and `make style` doesn't work you can do the following steps instead:
+
+	```bash
+	pip install black
+	pip install isort
+	pip install flake8
+
+	black --line-length 119 --target-version py36 datasets/your_dataset
+	
+	isort datasets/your_dataset/your_dataset.py
+
+	flake8 datasets/your_dataset
+	```
+
 2. Make sure that you have a dataset card (more information in the [next section](#tag-the-dataset-and-write-the-dataset-card)) with:
 
 	1. **Required:** The YAML tags obtained with the [tagging app](https://github.com/huggingface/datasets-tagging) and a description of the various fields in your dataset.
