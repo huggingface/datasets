@@ -4,36 +4,36 @@ annotations_creators:
 language_creators:
 - found
 languages:
--bg
--cs
--da
--de
--el
--en
--es
--et
--fi
--fr
--hr
--hu
--is
--it
--lt
--lv
--mt
--nl
--no
--pl
--pt
--ro
--ru
--sk
--sl
--sq
--sr
--sv
--tr
--uk
+- bg
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- fi
+- fr
+- hr
+- hu
+- is
+- it
+- lt
+- lv
+- mt
+- nl
+- no
+- pl
+- pt
+- ro
+- ru
+- sk
+- sl
+- sq
+- sr
+- sv
+- tr
+- uk
 licenses:
 - cc-by-sa-4.0
 multilinguality:
