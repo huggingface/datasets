@@ -46,16 +46,16 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Nergrit](https://ner.grit.id/)
+- **Homepage:** [PT Gria Inovasi Teknologi](https://grit.id/)
 - **Repository:** [Nergrit Corpus](https://github.com/grit-id/nergrit-corpus)
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [Taufiqur Rohman](mailto:taufiq@grit.id)
 
 ### Dataset Summary
 
 Nergrit Corpus is a dataset collection of Indonesian Named Entity Recognition, Statement Extraction, 
-and Sentiment Analysis developed by [Gria Inovasi Teknologi (GRIT)](https://grit.id/). 
+and Sentiment Analysis developed by [PT Gria Inovasi Teknologi (GRIT)](https://grit.id/). 
 This `id_nergrit_ner` dataset contains the Named Entity Recognition part of the collection.
 
 ### Supported Tasks and Leaderboards
@@ -69,11 +69,12 @@ Indonesian
 ## Dataset Structure
 
 A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+```
 {'id': '0',
- 'ner_tags': [9, 28, 28, 38, 38, 38],
- 'tokens': ['Gubernur', 'Bank', 'Indonesia', 'menggelar', 'konferensi', 'pers']
+ 'tokens': ['Gubernur', 'Bank', 'Indonesia', 'menggelar', 'konferensi', 'pers'],
+ 'tags': [9, 28, 28, 38, 38, 38],
 }
-
+```
 ### Data Instances
 
 [More Information Needed]
