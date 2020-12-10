@@ -128,5 +128,4 @@ class BingCoronavirusQuerySet(datasets.GeneratorBasedBuilder):
                         "Country": row[4],
                         "PopularityScore": int(row[5]),
                     }
-                sentence_counter += 1
                 yield sentence_counter, resp
