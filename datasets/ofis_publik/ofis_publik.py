@@ -27,8 +27,29 @@ total number of sentence fragments: 0.13M
 """
 _HOMEPAGE_URL = "http://opus.nlpl.eu/OfisPublik.php"
 _CITATION = """\
-Tiedemann, J., 2012, Parallel Data, Tools and Interfaces in OPUS. In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012) and
-Tyers, F. M. (2009) "Rule-based augmentation of training data in Breton-French statistical machine translation ". Proceedings of the 13th Annual Conference of the European Association of Machine Translation, EAMT09. pp. 213--218
+@InProceedings{TIEDEMANN12.463,
+  author = {J{\"o}rg Tiedemann},
+  title = {Parallel Data, Tools and Interfaces in OPUS},
+  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
+  year = {2012},
+  month = {may},
+  date = {23-25},
+  address = {Istanbul, Turkey},
+  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+  publisher = {European Language Resources Association (ELRA)},
+  isbn = {978-2-9517408-7-7},
+  language = {english}
+ }
+ @inproceedings{tyers-2009-rule,
+    title = "Rule-Based Augmentation of Training Data in {B}reton-{F}rench Statistical Machine Translation",
+    author = "Tyers, Francis M.",
+    booktitle = "Proceedings of the 13th Annual conference of the European Association for Machine Translation",
+    month = may # " 14{--}15",
+    year = "2009",
+    address = "Barcelona, Spain",
+    publisher = "European Association for Machine Translation",
+    url = "https://www.aclweb.org/anthology/2009.eamt-1.29",
+}
 """
 
 _VERSION = "1.0.0"
