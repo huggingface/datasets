@@ -23,7 +23,7 @@ import datasets
 
 _CITATION = """\
 @misc{karim2020classification,
-      title={Classification Benchmarks for Under-resourced Bengali Language based on Multichannel Convolutional-LSTM Network}, 
+      title={Classification Benchmarks for Under-resourced Bengali Language based on Multichannel Convolutional-LSTM Network},
       author={Md. Rezaul Karim and Bharathi Raja Chakravarthi and John P. McCrae and Michael Cochez},
       year={2020},
       eprint={2004.07807},
@@ -34,10 +34,10 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 The Bengali Hate Speech Dataset is a collection of Bengali articles collected from Bengali news articles,
-news dump of Bengali TV channels, books, blogs, and social media. Emphasis was placed on Facebook pages and 
+news dump of Bengali TV channels, books, blogs, and social media. Emphasis was placed on Facebook pages and
 newspaper sources because they attract close to 50 million followers and is a common source of opinions
 and hate speech. The raw text corpus contains 250 million articles and the full dataset is being prepared
-for release. This is a subset of the full dataset. 
+for release. This is a subset of the full dataset.
 
 This dataset was prepared for text classification benchmark on Bengali, an under-resourced language.
 """
