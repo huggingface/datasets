@@ -4,22 +4,22 @@ annotations_creators:
 language_creators:
 - found
 languages:
--ca
--de
--el
--en
--eo
--es
--fi
--fr
--hu
--it
--nl
--no
--pl
--pt
--ru
--sv
+- ca
+- de
+- el
+- en
+- eo
+- es
+- fi
+- fr
+- hu
+- it
+- nl
+- no
+- pl
+- pt
+- ru
+- sv
 licenses:
 - unknown
 multilinguality:
