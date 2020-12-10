@@ -42,7 +42,7 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         InterpressNewsCategoryTRConfig(
-            name="interpress_news_category_tr_270k",
+            name="270k",
             version=datasets.Version("1.0.0"),
             description="Turkish News Category Dataset (270K) - Interpress Media Monitoring Company",
         ),
@@ -53,6 +53,9 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "id": datasets.Value("int32"),
+                    "title": datasets.Value("string"),
+                    "content": datasets.Value("string"),
                     "category": datasets.features.ClassLabel(
                         names=[
                             "aktuel",
@@ -74,11 +77,10 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
                             "yasam",
                         ]
                     ),
-                    "id": datasets.Value("int32"),
-                    "title": datasets.Value("string"),
+                    "categorycode": datasets.features.ClassLabel(
+                        names=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+                    ),
                     "publishdatetime": datasets.Value("string"),
-                    "content": datasets.Value("string"),
-                    "categorycode": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -102,7 +104,6 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-            csv.field_size_limit()
             for idx, row in enumerate(reader):
                 yield idx, {
                     "id": row["ID"],
