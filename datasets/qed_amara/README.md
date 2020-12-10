@@ -221,7 +221,7 @@ languages:
 - vo
 - wa
 - wol
-- xho
+- xh
 - yaq
 - yi
 - yor
