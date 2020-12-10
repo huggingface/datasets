@@ -48,19 +48,19 @@ _WIKI_URL = "https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/ALT-Parallel
 class AltParallelConfig(datasets.BuilderConfig):
     """BuilderConfig for ALT."""
 
-    def __init__(self, language_pair=(None, None), **kwargs):
+    def __init__(self, languages, **kwargs):
         """BuilderConfig for ALT.
 
         Args:
             for the `datasets.features.text.TextEncoder` used for the features feature.
 
-            language_pair: pair of languages that will be used for translation. Should contain 2-letter coded strings. First will be used at source and second as target in supervised mode. For example: ("se", "en").
+            languages: languages that will be used for translation. it should be one of the
             **kwargs: keyword arguments forwarded to super.
         """
 
-        name = "alt-parallel-%s-%s" % (language_pair[0], language_pair[1])
+        name = "alt-parallel"
 
-        description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
+        description = "ALT Parallel Corpus"
         super(AltParallelConfig, self).__init__(
             name=name,
             description=description,
@@ -68,27 +68,22 @@ class AltParallelConfig(datasets.BuilderConfig):
             **kwargs,
         )
 
-        self.language_pair = language_pair
+        available_langs = set(
+            ["bg", "en", "en_tok", "fil", "hi", "id", "ja", "khm", "lo", "ms", "my", "th", "vi", "zh"]
+        )
+        for l in languages:
+            assert l in available_langs
+
+        self.languages = languages
 
 
 class Alt(datasets.GeneratorBasedBuilder):
     """Asian Language Treebank (ALT) Project"""
 
     BUILDER_CONFIGS = [
-        AltParallelConfig(language_pair=("en", "bg")),
-        AltParallelConfig(language_pair=("en", "en")),
-        AltParallelConfig(language_pair=("en", "en_tok")),
-        AltParallelConfig(language_pair=("en", "fil")),
-        AltParallelConfig(language_pair=("en", "hi")),
-        AltParallelConfig(language_pair=("en", "id")),
-        AltParallelConfig(language_pair=("en", "ja")),
-        AltParallelConfig(language_pair=("en", "khm")),
-        AltParallelConfig(language_pair=("en", "lo")),
-        AltParallelConfig(language_pair=("en", "ms")),
-        AltParallelConfig(language_pair=("en", "my")),
-        AltParallelConfig(language_pair=("en", "th")),
-        AltParallelConfig(language_pair=("en", "vi")),
-        AltParallelConfig(language_pair=("en", "zh")),
+        AltParallelConfig(
+            languages=["bg", "en", "en_tok", "fil", "hi", "id", "ja", "khm", "lo", "ms", "my", "th", "vi", "zh"]
+        ),
         datasets.BuilderConfig(name="alt-en", version=datasets.Version("1.0.0"), description="English ALT"),
         datasets.BuilderConfig(name="alt-jp", version=datasets.Version("1.0.0"), description="Japanese ALT"),
         datasets.BuilderConfig(name="alt-my", version=datasets.Version("1.0.0"), description="Myanmar ALT"),
@@ -114,7 +109,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                     "SNT.URLID": datasets.Value("string"),
                     "SNT.URLID.SNTID": datasets.Value("string"),
                     "url": datasets.Value("string"),
-                    "translation": datasets.features.Translation(languages=self.config.language_pair),
+                    "translation": datasets.features.Translation(languages=self.config.languages),
                 }
             )
         elif self.config.name == "alt-en":
@@ -228,15 +223,13 @@ class Alt(datasets.GeneratorBasedBuilder):
 
         data = {}
         if self.config.name.startswith("alt-parallel"):
-
-            source, target = self.config.language_pair
-            files = [source, target]
+            files = self.config.languages
 
             template = {
                 "SNT.URLID": None,
                 "SNT.URLID.SNTID": None,
                 "url": None,
-                "translation": {source: None, target: None},
+                "translation": {},
             }
 
             data = {}
