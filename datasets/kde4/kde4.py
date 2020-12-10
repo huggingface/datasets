@@ -63,7 +63,6 @@ class Kde4Config(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -71,6 +70,7 @@ class Kde4Config(datasets.BuilderConfig):
 
 
 class Kde4(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         Kde4Config(
             lang1=lang1,
