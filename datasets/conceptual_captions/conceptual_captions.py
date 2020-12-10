@@ -56,11 +56,11 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
         return """\
     You need to go to https://ai.google.com/research/ConceptualCaptions/download,
     and manually download the dataset. Once it is completed,
-    two files named Train_GCC-training.tsv and Validation_GCC-1.1.0-Validation.tsv 
-    will appear in your Downloads folder or whichever folder your browser chooses to save files to. 
+    two files named Train_GCC-training.tsv and Validation_GCC-1.1.0-Validation.tsv
+    will appear in your Downloads folder or whichever folder your browser chooses to save files to.
     You then have to move these files under <path/to/folder>.
     The <path/to/folder> can e.g. be "~/manual_data".
-    conceptual_captions can then be loaded using the following command 
+    conceptual_captions can then be loaded using the following command
     `datasets.load_dataset("conceptual_captions", data_dir="<path/to/folder>")`.
     """
 
@@ -84,11 +84,15 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": os.path.join(path_to_manual_file, _TRAIN_FILENAME)},
+                gen_kwargs={
+                    "datapath": os.path.join(path_to_manual_file, _TRAIN_FILENAME)
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"datapath": os.path.join(path_to_manual_file, _VALID_FILENAME)},
+                gen_kwargs={
+                    "datapath": os.path.join(path_to_manual_file, _VALID_FILENAME)
+                },
             ),
         ]
 
