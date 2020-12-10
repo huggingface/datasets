@@ -4,29 +4,29 @@ annotations_creators:
 language_creators:
 - found
 languages:
--cs
--de
--en
--es
--fi
--fr
--he
--hu
--it
--ja
--ko
--nl
--pl
--pt_BR
--ro
--ru
--sk
--sl
--sv
--tr
--tw
--zh
--zh_TW
+- cs
+- de
+- en
+- es
+- fi
+- fr
+- he
+- hu
+- it
+- ja
+- ko
+- nl
+- pl
+- pt_BR
+- ro
+- ru
+- sk
+- sl
+- sv
+- tr
+- tw
+- zh
+- zh_TW
 licenses:
 - unknown
 multilinguality:
