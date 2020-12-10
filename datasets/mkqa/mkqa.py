@@ -134,7 +134,6 @@ class Mkqa(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        print(filepath)
         with open(filepath, encoding="utf-8") as f:
             for row in f:
                 data = json.loads(row)
