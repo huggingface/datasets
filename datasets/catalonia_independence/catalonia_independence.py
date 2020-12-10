@@ -65,10 +65,14 @@ class CataloniaIndependence(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="catalan", version=VERSION, description="This part of the corpus contains annotated tweets posted in Catalan."
+            name="catalan",
+            version=VERSION,
+            description="This part of the corpus contains annotated tweets posted in Catalan.",
         ),
         datasets.BuilderConfig(
-            name="spanish", version=VERSION, description="This part of the corpus contains annotated tweets posted in Spanish."
+            name="spanish",
+            version=VERSION,
+            description="This part of the corpus contains annotated tweets posted in Spanish.",
         ),
     ]
 
@@ -76,7 +80,11 @@ class CataloniaIndependence(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {"id_str": datasets.Value("string"), "TWEET": datasets.Value("string"), "LABEL": datasets.ClassLabel(names=["AGAINST", "FAVOR", "NEUTRAL"])}
+            {
+                "id_str": datasets.Value("string"),
+                "TWEET": datasets.Value("string"),
+                "LABEL": datasets.ClassLabel(names=["AGAINST", "FAVOR", "NEUTRAL"]),
+            }
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
