@@ -41,13 +41,13 @@ class BingCoronavirusQuerySetConfig(datasets.BuilderConfig):
 
 
 class BingCoronavirusQuerySet(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         BingCoronavirusQuerySetConfig(
             queries_by="country",
             start_date="2020-09-01",
             end_date="2020-09-30",
             description=f"Query by: country, start_date: 2020-09-01, end_date: 2020-09-30",
+            version=datasets.Version(_VERSION),
         )
     ]
     BUILDER_CONFIG_CLASS = BingCoronavirusQuerySetConfig
