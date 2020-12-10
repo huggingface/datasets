@@ -69,7 +69,6 @@ class SpcConfig(datasets.BuilderConfig):
 
 
 class Spc(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         SpcConfig(
             lang1=lang1,
