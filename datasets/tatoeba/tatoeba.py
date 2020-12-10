@@ -29,7 +29,7 @@ total number of sentence fragments: 8.96M
 _HOMEPAGE_URL = "http://opus.nlpl.eu/Tatoeba.php"
 _CITATION = """\
 @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
+  author = {J{\"o}rg}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
