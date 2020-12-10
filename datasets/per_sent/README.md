@@ -143,7 +143,35 @@ We obtained document and paragraph level annotations with the help of Amazon Mec
 entity. Last, they rated the sentiment towards the entity based on the entire document. In both cases, the workers made assessments about the authors view based on what they said about the target entity. For both paragraph and document level sentiment, the workers chose from five rating categories: Negative,
 Slightly Negative, Neutral, Slightly Positive, or Positive. We then combine the fine-grained annotations to obtain three coarse-grained classes Negative, Neutral, or Positive.
 
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+[More Information Needed]
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
+
 ## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
 
 ### Licensing Information
 
