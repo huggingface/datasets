@@ -51,7 +51,6 @@ class WikiSourceConfig(datasets.BuilderConfig):
 
 
 class WikiSource(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         WikiSourceConfig(
             lang1=lang1,
