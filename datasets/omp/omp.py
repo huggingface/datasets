@@ -123,13 +123,13 @@ class Omp(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="posts_labeled", version=VERSION, description="This part of my dataset covers a first domain"
+            name="posts_labeled", version=VERSION, description="This part of the dataset includes labeled posts (11,773 annotated posts)"
         ),
         datasets.BuilderConfig(
-            name="posts_unlabeled", version=VERSION, description="This part of my dataset covers a second domain"
+            name="posts_unlabeled", version=VERSION, description="This part of the dataset includes unlabeled posts (1,000,000)"
         ),
         datasets.BuilderConfig(
-            name="articles", version=VERSION, description="This part of my dataset covers a second domain"
+            name="articles", version=VERSION, description="This part of the dataset includes the articles that the comments were posted to (~12k)"
         ),
     ]
 
