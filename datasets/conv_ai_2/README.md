@@ -1,4 +1,24 @@
-[Needs More Information]
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+- text-scoring
+task_ids:
+- text-scoring-other-evaluating-dialogue-systems
+---
 
 # Dataset Card for conv_ai_2
 
@@ -30,8 +50,8 @@
 - **Homepage:** https://github.com/DeepPavlov/convai/tree/master/2018
 - **Repository:** https://github.com/DeepPavlov/convai/tree/master/2018
 - **Paper:** https://arxiv.org/abs/1902.00098
-- **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Leaderboard:** [More Information Needed]
+- **Point of Contact:** [More Information Needed]
 
 ### Dataset Summary
 
@@ -39,11 +59,11 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+[More Information Needed]
 
 ### Languages
 
-[Needs More Information]
+[More Information Needed]
 
 ## Dataset Structure
 
@@ -90,65 +110,70 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
 
 ### Data Fields
 
-[Needs More Information]
+- dialog_id : specifies the unique ID for the dialogs.
+- dialog : Array of dialogs.
+- bot_profile : Bot annotated response that will be used for evaluation.
+- user_profile : user annoted response that will be used for evaluation.
+- eval_score : (1, 2, 3, 4, 5;) how does an user like a conversation.
+- profile_match : 0, 1.0; an user is given by two profile descriptions (4 sentences each), one of them is the one given to the bot it had been talking to, the other one is random; the user needs to choose one of them.
 
 ### Data Splits
 
-[Needs More Information]
+[More Information Needed]
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+[More Information Needed]
 
 ### Licensing Information
 
-[Needs More Information]
+[More Information Needed]
 
 ### Citation Information
 
