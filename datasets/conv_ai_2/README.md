@@ -69,6 +69,7 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
 
 ### Data Instances
 
+```
 {
         "dialog_id": "0x648cc5b7",
         "dialog": [
@@ -107,6 +108,7 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
         "eval_score": 4,
         "profile_match": 1
     }
+```
 
 ### Data Fields
 
