@@ -84,15 +84,11 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "datapath": os.path.join(path_to_manual_file, _TRAIN_FILENAME)
-                },
+                gen_kwargs={"datapath": os.path.join(path_to_manual_file, _TRAIN_FILENAME)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "datapath": os.path.join(path_to_manual_file, _VALID_FILENAME)
-                },
+                gen_kwargs={"datapath": os.path.join(path_to_manual_file, _VALID_FILENAME)},
             ),
         ]
 
