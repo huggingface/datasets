@@ -9,7 +9,7 @@ languages:
 licenses:
 - cc-by-sa-3.0
 multilinguality:
-- multilingual
+- translation
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -20,7 +20,7 @@ task_ids:
 - machine-translation
 ---
 
-# Dataset Card for caWaC
+# Dataset Card for hrenwac_para
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
