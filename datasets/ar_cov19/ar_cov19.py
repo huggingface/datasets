@@ -16,12 +16,13 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
-import os
-import pandas as pd
-import datasets
 import glob
+import os
+
+import pandas as pd
+
+import datasets
+
 
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -43,13 +44,14 @@ ArCOV-19 is an Arabic COVID-19 Twitter dataset that covers the period from 27th 
 _HOMEPAGE = "https://gitlab.com/bigirqu/ArCOV-19"
 
 # TODO: Add the licence for the dataset here if you can find it
-#_LICENSE = ""
+# _LICENSE = ""
 
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://gitlab.com/bigirqu/ArCOV-19/-/archive/master/ArCOV-19-master.zip"
-#_URL="https://gitlab.com/bigirqu/ArCOV-19/-/archive/master/ArCOV-19-master.zip?path=dataset/all_tweets"
+# _URL="https://gitlab.com/bigirqu/ArCOV-19/-/archive/master/ArCOV-19-master.zip?path=dataset/all_tweets"
+
 
 class ArCov19Config(datasets.BuilderConfig):
     """BuilderConfig for ArCOV19."""
@@ -81,23 +83,25 @@ class ArCov19(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-      ArCov19Config(
+        ArCov19Config(
             name="ar_cov19",
             description="Plain text",
         )
     ]
 
-
     def _info(self):
-       
-        features={}
-        features["tweetID"]= datasets.Value("int64")
-     
+
+        features = {}
+
+        features["tweetID"] = datasets.Value("int64")
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=datasets.Features(features),  # Here we define them above because they are different between the two configurations
+            features=datasets.Features(
+                features
+            ),  # Here we define them above because they are different between the two configurations
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -105,7 +109,7 @@ class ArCov19(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available
-            #license=_LICENSE,
+            # license=_LICENSE,
             # Citation for the dataset
             citation=_CITATION,
         )
@@ -114,26 +118,22 @@ class ArCov19(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
         # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-  
         data_dir = dl_manager.download_and_extract(_URL)
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir})]
-        
+
     def _generate_examples(self, data_dir):
         """ Yields examples. """
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         for fname in glob.glob(os.path.join(data_dir, "ArCOV-19-master/dataset/all_tweets/2020-*")):
-        #for fname in glob.glob(data_dir):
+
             df = pd.read_csv(fname, names=["tweetID"])
             for id_, record in df.iterrows():
-                tweetID= record["tweetID"]
+
+                tweetID = record["tweetID"]
+
                 yield str(id_), {"tweetID": tweetID}
-#        for i in range(len(df)):
-            
-#            tweetID= df["tweetID"]
-#            yield  {"textID": tweetID}
