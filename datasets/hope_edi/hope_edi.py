@@ -155,12 +155,5 @@ class HopeEdi(datasets.GeneratorBasedBuilder):
             )
 
             for id_, row in enumerate(csv_reader):
-
-                # train, validation
-                # While generating dummy data, the split skips the last tab in the last line, resulting in 2 values instead of 3
-                if len(row) == 2:
-                    text, label = row
-                else:
-                    text, label, dummy = row
-
+                text, label, dummy = row
                 yield id_, {"text": text, "label": label}
