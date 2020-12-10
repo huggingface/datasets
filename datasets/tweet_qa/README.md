@@ -84,6 +84,9 @@ qid: question id
 
 ### Data Splits
 
+The dataset is split in train, validation and test.
+The test split doesn't include answers so the Answer field is an empty list.
+
 [More Information Needed]
 
 ## Dataset Creation
