@@ -4,231 +4,231 @@ annotations_creators:
 language_creators:
 - found
 languages:
--aa
--ab
--ae
--aeb
--af
--aka
--amh
--an
--ar
--arq
--arz
--as
--ase
--ast
--av
--ay
--az
--ba
--bam
--be
--ber
--bg
--bh
--bi
--bn
--bnt
--bo
--br
--bs
--bug
--ca
--ce
--ceb
--ch
--cho
--cku
--cnh
--co
--cr
--cs
--cu
--cv
--cy
--da
--de
--dv
--dz
--ee
--efi
--el
--en
--eo
--es
--et
--eu
--fa
--ff
--fi
--fil
--fj
--fo
--fr
--ful
--ga
--gd
--gl
--gn
--gu
--hai
--hau
--haw
--haz
--hb
--hch
--he
--hi
--ho
--hr
--ht
--hu
--hup
--hus
--hy
--hz
--ia
--ibo
--id
--ie
--ik
--inh
--io
--iro
--is
--it
--iu
--ja
--jv
--ka
--kar
--kau
--kik
--kin
--kj
--kk
--kl
--km
--kn
--ko
--ksh
--ku
--kv
--kw
--ky
--la
--lb
--lg
--li
--lin
--lkt
--lld
--lo
--lt
--ltg
--lu
--luo
--luy
--lv
--mad
--mfe
--mi
--mk
--ml
--mlg
--mn
--mni
--mo
--moh
--mos
--mr
--ms
--mt
--mus
--my
--nb
--nci
--nd
--ne
--nl
--nn
--nso
--nv
--nya
--oc
--or
--orm
--pam
--pan
--pap
--pi
--pl
--pnb
--prs
--ps
--pt
--que
--rm
--ro
--ru
--run
--rup
--ry
--sa
--sc
--scn
--sco
--sd
--sg
--sgn
--sh
--si
--sk
--sl
--sm
--sna
--som
--sot
--sq
--sr
--srp
--sv
--swa
--szl
--ta
--te
--tet
--tg
--th
--tir
--tk
--tl
--tlh
--to
--tr
--ts
--tt
--tw
--ug
--uk
--umb
--ur
--uz
--ve
--vi
--vls
--vo
--wa
--wol
--xho
--yaq
--yi
--yor
--za
--zam
--zh
--zul
+- aa
+- ab
+- ae
+- aeb
+- af
+- aka
+- amh
+- an
+- ar
+- arq
+- arz
+- as
+- ase
+- ast
+- av
+- ay
+- az
+- ba
+- bam
+- be
+- ber
+- bg
+- bh
+- bi
+- bn
+- bnt
+- bo
+- br
+- bs
+- bug
+- ca
+- ce
+- ceb
+- ch
+- cho
+- cku
+- cnh
+- co
+- cr
+- cs
+- cu
+- cv
+- cy
+- da
+- de
+- dv
+- dz
+- ee
+- efi
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- ff
+- fi
+- fil
+- fj
+- fo
+- fr
+- ful
+- ga
+- gd
+- gl
+- gn
+- gu
+- hai
+- hau
+- haw
+- haz
+- hb
+- hch
+- he
+- hi
+- ho
+- hr
+- ht
+- hu
+- hup
+- hus
+- hy
+- hz
+- ia
+- ibo
+- id
+- ie
+- ik
+- inh
+- io
+- iro
+- is
+- it
+- iu
+- ja
+- jv
+- ka
+- kar
+- kau
+- kik
+- kin
+- kj
+- kk
+- kl
+- km
+- kn
+- ko
+- ksh
+- ku
+- kv
+- kw
+- ky
+- la
+- lb
+- lg
+- li
+- lin
+- lkt
+- lld
+- lo
+- lt
+- ltg
+- lu
+- luo
+- luy
+- lv
+- mad
+- mfe
+- mi
+- mk
+- ml
+- mlg
+- mn
+- mni
+- mo
+- moh
+- mos
+- mr
+- ms
+- mt
+- mus
+- my
+- nb
+- nci
+- nd
+- ne
+- nl
+- nn
+- nso
+- nv
+- nya
+- oc
+- or
+- orm
+- pam
+- pan
+- pap
+- pi
+- pl
+- pnb
+- prs
+- ps
+- pt
+- que
+- rm
+- ro
+- ru
+- run
+- rup
+- ry
+- sa
+- sc
+- scn
+- sco
+- sd
+- sg
+- sgn
+- sh
+- si
+- sk
+- sl
+- sm
+- sna
+- som
+- sot
+- sq
+- sr
+- srp
+- sv
+- swa
+- szl
+- ta
+- te
+- tet
+- tg
+- th
+- tir
+- tk
+- tl
+- tlh
+- to
+- tr
+- ts
+- tt
+- tw
+- ug
+- uk
+- umb
+- ur
+- uz
+- ve
+- vi
+- vls
+- vo
+- wa
+- wol
+- xho
+- yaq
+- yi
+- yor
+- za
+- zam
+- zh
+- zul
 licenses:
 - unknown
 multilinguality:
