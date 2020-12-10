@@ -59,7 +59,7 @@ _DEV_FILE = "dev/dev.conll"
 _TEST_FILE = "test/test.conll"
 
 
-class LeNERBr(datasets.GeneratorBasedBuilder):
+class LenerBr(datasets.GeneratorBasedBuilder):
     """LeNER-Br dataset"""
 
     VERSION = datasets.Version("1.0.0")
