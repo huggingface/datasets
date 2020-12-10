@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- other-stuctured-to-text
+- conditional-text-generation-other-stuctured-to-text
 ---
 
 
