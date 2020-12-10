@@ -55,10 +55,11 @@ _LANGUAGE_PAIRS = {
 
 class TedIwlst2013Config(datasets.BuilderConfig):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class TedIwlst2013(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         TedIwlst2013Config(
             name=f"{lang1}-{lang2}",
