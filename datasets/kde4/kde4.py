@@ -70,7 +70,6 @@ class Kde4Config(datasets.BuilderConfig):
 
 
 class Kde4(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         Kde4Config(
             lang1=lang1,
