@@ -146,6 +146,12 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 ```
 
+**Note:** If your dataset requires manually downloading the data and having the user provide the path to the dataset you can run the following command:
+```bash
+python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
+```
+To have the configs use the path from `--data_dir` when generating them.
+
 ### Automatically add code metadata
 
 Now that your dataset script runs and create a dataset with the format you expected, you can add the JSON metadata and test data.
