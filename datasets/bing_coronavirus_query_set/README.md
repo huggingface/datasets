@@ -60,7 +60,7 @@ example:
 
 ```
 load_dataset("datasets/bing_coronavirus_query_set", queries_by="state", start_date="2020-09-01", end_date="2020-09-30")
-```
+```
 
 ### Supported Tasks and Leaderboards
 
@@ -74,8 +74,7 @@ load_dataset("datasets/bing_coronavirus_query_set", queries_by="state", start_da
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 
