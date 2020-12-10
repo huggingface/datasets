@@ -42,7 +42,11 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         InterpressNewsCategoryTRConfig(
+<<<<<<< HEAD
             name="270k",
+=======
+            name="interpress_news_category_tr_270k",
+>>>>>>> cb6d81ed8e525a403441d067f6246d4cfc070d95
             version=datasets.Version("1.0.0"),
             description="Turkish News Category Dataset (270K) - Interpress Media Monitoring Company",
         ),
@@ -53,9 +57,12 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
+<<<<<<< HEAD
                     "id": datasets.Value("int32"),
                     "title": datasets.Value("string"),
                     "content": datasets.Value("string"),
+=======
+>>>>>>> cb6d81ed8e525a403441d067f6246d4cfc070d95
                     "category": datasets.features.ClassLabel(
                         names=[
                             "aktuel",
@@ -77,10 +84,18 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
                             "yasam",
                         ]
                     ),
+<<<<<<< HEAD
                     "categorycode": datasets.features.ClassLabel(
                         names=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
                     ),
                     "publishdatetime": datasets.Value("string"),
+=======
+                    "id": datasets.Value("int32"),
+                    "title": datasets.Value("string"),
+                    "publishdatetime": datasets.Value("string"),
+                    "content": datasets.Value("string"),
+                    "categorycode": datasets.Value("string"),
+>>>>>>> cb6d81ed8e525a403441d067f6246d4cfc070d95
                 }
             ),
             supervised_keys=None,
@@ -104,6 +119,10 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+<<<<<<< HEAD
+=======
+            csv.field_size_limit()
+>>>>>>> cb6d81ed8e525a403441d067f6246d4cfc070d95
             for idx, row in enumerate(reader):
                 yield idx, {
                     "id": row["ID"],
