@@ -78,8 +78,6 @@ class HopeEdi(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "english"
-
     def _info(self):
 
         if self.config.name == "english":  # This is the name of the configuration selected in BUILDER_CONFIGS above
