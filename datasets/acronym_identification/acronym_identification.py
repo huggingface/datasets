@@ -46,18 +46,11 @@ class AcronymIdentification(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "id": datasets.Value("int32"),
-                    "uid": datasets.Value("string"),
-                    "claim": datasets.Value("string"),
-                    "supporting_facts": [
-                        {
-                            "key": datasets.Value("string"),
-                            "value": datasets.Value("int32"),
-                        }
-                    ],
-                    "label": datasets.Value("string"),
-                    "num_hops": datasets.Value("int32"),
-                    "hpqa_id": datasets.Value("string"),
+                    "id": datasets.Value("string"),
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "labels": datasets.Sequence(
+                        datasets.ClassLabel(names=["B-long", "B-short", "I-long", "I-short", "O"])
+                    ),
                 },
             ),
             supervised_keys=None,
@@ -90,14 +83,11 @@ class AcronymIdentification(datasets.GeneratorBasedBuilder):
 
         for sentence_counter, d in enumerate(data):
             resp = {
-                "id": sentence_counter,
-                "uid": d["uid"],
-                "claim": d["claim"],
-                "supporting_facts": [
-                    {"key": x[0], "value": x[1]} for x in d["supporting_facts"]
-                ],
-                "label": d["label"],
-                "num_hops": d["num_hops"],
-                "hpqa_id": d["hpqa_id"],
+                "id": d["id"],
+                "tokens": d["tokens"],
             }
+            if datatype != "test":
+                resp["labels"] = d["labels"]
+            else:
+                resp["labels"] = ["O"] * len(d["tokens"])
             yield sentence_counter, resp
