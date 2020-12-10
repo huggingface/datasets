@@ -59,7 +59,7 @@ class YorubaTextC3Config(datasets.BuilderConfig):
         super(YorubaTextC3Config, self).__init__(**kwargs)
 
 
-class YorubaTwiTextC3(datasets.GeneratorBasedBuilder):
+class YorubaTextC3(datasets.GeneratorBasedBuilder):
     """Yoruba Text C3 dataset."""
 
     BUILDER_CONFIGS = [
