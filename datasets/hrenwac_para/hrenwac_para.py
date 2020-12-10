@@ -37,7 +37,7 @@ _HOMEPAGE = "http://nlp.ffzg.hr/resources/corpora/hrenwac/"
 _URLS = "http://nlp.ffzg.hr/data/corpora/hrenwac/hrenwac.en-hr.txt.gz"
 
 
-class HrEnWaC(datasets.GeneratorBasedBuilder):
+class HrenwacPara(datasets.GeneratorBasedBuilder):
     """Croatian-English parallel corpus hrenWaC"""
 
     VERSION = datasets.Version("1.0.0")
@@ -53,12 +53,9 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "en": datasets.Value("string"),
-                    "hr": datasets.Value("string"),
-                }
+                {"translation": datasets.features.Translation(languages=("en", "hr"))}
             ),
-            supervised_keys=None,
+            supervised_keys=("en", "hr"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
@@ -79,13 +76,17 @@ class HrEnWaC(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf8") as f:
             en = ""
             hr = ""
+            i = -1
             for id_, row in enumerate(f):
                 if id_ % 3 == 0:
                     en = row.strip()
                 if id_ % 3 == 1:
                     hr = row.strip()
                 if id_ % 3 == 2:
-                    yield id_, {
-                        "en": en,
-                        "hr": hr,
+                    i = i + 1
+                    yield i, {
+                        "translation": {
+                            "en": en,
+                            "hr": hr,
+                        }
                     }
