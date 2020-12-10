@@ -54,7 +54,7 @@ class TweetQA(datasets.GeneratorBasedBuilder):
                 "Question": datasets.Value("string"),
                 "Answer": datasets.Sequence(datasets.Value("string")),
                 "Tweet": datasets.Value("string"),
-                "qid": datasets.Value("string")
+                "qid": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
@@ -108,5 +108,5 @@ class TweetQA(datasets.GeneratorBasedBuilder):
                     "Question": data["Question"],
                     "Answer": [] if split == "test" else data["Answer"],
                     "Tweet": data["Tweet"],
-                    "qid": data["qid"]
+                    "qid": data["qid"],
                 }
