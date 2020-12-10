@@ -79,9 +79,10 @@ class HebrewProjectBenYehuda(datasets.GeneratorBasedBuilder):
 
         urls_to_download = dict()
         ids = list()
-        for row in csv.DictReader(open(metadata["metadata"])):
-            ids.append(row["ID"])
-            urls_to_download[row["ID"]] = os.path.join(folder, row["path"].strip("/") + ".txt")
+        with open(metadata["metadata"], encoding="utf-8") as csv_file:
+            for row in csv.DictReader(csv_file):
+                ids.append(row["ID"])
+                urls_to_download[row["ID"]] = os.path.join(folder, row["path"].strip("/") + ".txt")
 
         return [
             datasets.SplitGenerator(
