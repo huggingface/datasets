@@ -63,7 +63,7 @@ class HateSpeechPortuguese(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.Value("float"),
+                    "label": datasets.ClassLabel(names=["hate", "no-hate"]),
                     "hatespeech_G1": datasets.Value("string"),
                     "annotator_G1": datasets.Value("string"),
                     "hatespeech_G2": datasets.Value("string"),
@@ -72,7 +72,7 @@ class HateSpeechPortuguese(datasets.GeneratorBasedBuilder):
                     "annotator_G3": datasets.Value("string"),
                 }
             ),
-            supervised_keys=None,
+            supervised_keys=("text", "label"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
@@ -102,7 +102,7 @@ class HateSpeechPortuguese(datasets.GeneratorBasedBuilder):
 
                 yield id_, {
                     "text": row[0],
-                    "label": row[1],
+                    "label": "hate" if row[1] == "1" else "no-hate",
                     "hatespeech_G1": row[2],
                     "annotator_G1": row[3],
                     "hatespeech_G2": row[4],
