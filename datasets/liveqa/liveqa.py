@@ -98,7 +98,7 @@ class LiveQA(datasets.GeneratorBasedBuilder):
 
         data_raw = ""
         for filepath in filepaths:
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data_raw += f.read()
 
         data = json.loads(data_raw)
