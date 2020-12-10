@@ -1,9 +1,62 @@
----
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
----
 
-# Dataset Card for [Dataset Name]
+---
+annotations_creators:
+- expert-generated
+- found
+language_creators:
+- expert-generated
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+  BioASQ:
+  - 10K<n<100K
+  DuoRC:
+  - 1K<n<10K
+  HotpotQA:
+  - 100K<n<1M
+  NaturalQuestions:
+  - 100K<n<1M
+  RelationExtraction:
+  - 1K<n<10K
+  SQuAD:
+  - 100K<n<1M
+  SearchQA:
+  - n>1M
+  TextbookQA:
+  - 10K<n<100K
+  TriviaQA:
+  - n>1M
+source_datasets:
+  BioASQ:
+  - extended|other-BioASQ
+  DuoRC:
+  - extended|other-DuoRC
+  HotpotQA:
+  - extended|other-HotpotQA
+  NaturalQuestions:
+  - extended|other-Natural-Questions
+  RelationExtraction:
+  - extended|other-Relation-Extraction
+  SQuAD:
+  - extended|other-SQuAD
+  SearchQA:
+  - extended|other-SearchQA
+  TextbookQA:
+  - extended|other-TextbookQA
+  TriviaQA:
+  - extended|other-TriviaQA
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- open-domain-qa
+---
+# Dataset Card for MultiReQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -37,14 +90,14 @@ YAML tags:
 - **Point of Contact:**
 
 ### Dataset Summary
-MultiReQA contains the sentence boundary annotation from eight publicly available QA datasets including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, BioASQ, RelationExtraction, and TextbookQA. Five of these datasets, including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, contain both training and test data, and three, in cluding BioASQ, RelationExtraction, TextbookQA, contain only the test data
+MultiReQA contains the sentence boundary annotation from eight publicly available QA datasets including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, BioASQ, RelationExtraction, and TextbookQA. Five of these datasets, including SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, contain both training and test data, and three, in cluding BioASQ, RelationExtraction, TextbookQA, contain only the test data (also includes DuoRC but not specified in the official documentation)
 ### Supported Tasks and Leaderboards
 
 - Question answering (QA)
 - Retrieval question answering (ReQA)
 ### Languages
 
-[More Information Needed]
+Sentence boundary annotation for SearchQA, TriviaQA, HotpotQA, NaturalQuestions, SQuAD, BioASQ, RelationExtraction, TextbookQA and DuoRC
 
 ## Dataset Structure
 
@@ -111,14 +164,12 @@ The number of candidate sentences for each dataset in the table below.
 
 ### Curation Rationale
 
-[More Information Needed]
-
+MultiReQA is a new multi-domain ReQA evaluation suite composed of eight retrieval QA tasks drawn from publicly available QA datasets from the [MRQA shared task](https://mrqa.github.io/). The dataset was curated by converting existing QA datasets from [MRQA shared task](https://mrqa.github.io/) to the format of MultiReQA benchmark.
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
-
+The Initial data collection was performed by  converting existing QA datasets from MRQA shared task to the format of MultiReQA benchmark.
 #### Who are the source language producers?
 
 [More Information Needed]
@@ -131,8 +182,7 @@ The number of candidate sentences for each dataset in the table below.
 
 #### Who are the annotators?
 
-[More Information Needed]
-
+The annotators/curators of the dataset are [mandyguo-xyguo](https://github.com/mandyguo-xyguo) and [mwurts4google](https://github.com/mwurts4google), the contributors of the official MultiReQA github repository 
 ### Personal and Sensitive Information
 
 [More Information Needed]
@@ -155,7 +205,7 @@ The number of candidate sentences for each dataset in the table below.
 
 ### Dataset Curators
 
-[More Information Needed]
+The annotators/curators of the dataset are [mandyguo-xyguo](https://github.com/mandyguo-xyguo) and [mwurts4google](https://github.com/mwurts4google), the contributors of the official MultiReQA github repository 
 
 ### Licensing Information
 
