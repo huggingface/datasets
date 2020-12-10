@@ -49,7 +49,7 @@ _ALL = "all"
 
 class TurkishTreebankConfig(datasets.BuilderConfig):
     def __init__(self, *args, sources=None, **kwargs):
-        super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
+        super().__init__(*args, **kwargs)
         self.sources = sources
 
 
@@ -61,6 +61,7 @@ class TurkishTreebank(datasets.GeneratorBasedBuilder):
             name=_ALL,
             sources=_SOURCES,
             description=f"All sources included: wiki, web",
+            version=datasets.Version(_VERSION),
         )
     ]
     BUILDER_CONFIG_CLASS = TurkishTreebankConfig
