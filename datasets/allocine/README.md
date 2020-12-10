@@ -96,7 +96,7 @@ The ID is an integer starting from 0. It has no inherent meaning.
 
 ### Free text description for context (e.g. describe difference between title / selftext / body in Reddit data) and example
 
-For each ID, there is a string for the review and an integer for the label. See the [Allociné corpus viewer](https://huggingface.co/nlp/viewer/?dataset=allocine) to explore more examples.
+For each ID, there is a string for the review and an integer for the label. See the [Allociné corpus viewer](https://huggingface.co/datasets/viewer/?dataset=allocine) to explore more examples.
 
 ID | Review | Label
 ---|--------|-------

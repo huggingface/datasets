@@ -39,7 +39,7 @@ For example, these frames are meant to distill the implication that "women (cand
 behind the statement "we shouldn’t lower our standards to hire more women."
 """
 
-_DATA_URL = "https://homes.cs.washington.edu/~msap/social-bias-frames/SocialBiasFrames_v2.tgz"
+_DATA_URL = "https://homes.cs.washington.edu/~msap/social-bias-frames/SBIC.v2.tgz"
 
 
 class SocialBiasFrames(datasets.GeneratorBasedBuilder):
@@ -68,6 +68,7 @@ class SocialBiasFrames(datasets.GeneratorBasedBuilder):
                     "targetMinority": datasets.Value("string"),
                     "targetCategory": datasets.Value("string"),
                     "targetStereotype": datasets.Value("string"),
+                    "dataSource": datasets.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -81,13 +82,13 @@ class SocialBiasFrames(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.tst.csv")}
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SBIC.v2.tst.csv")}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.dev.csv")}
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "SBIC.v2.dev.csv")}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.trn.csv")}
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SBIC.v2.trn.csv")}
             ),
         ]
 

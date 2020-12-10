@@ -1,6 +1,6 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
 ---
 
 # Dataset Card for [Dataset Name]
@@ -12,8 +12,8 @@ YAML tags:
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

@@ -17,13 +17,13 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- PAWS-X:
+  PAWS-X:
   - intent-classification
-- XNLI:
+  XNLI:
   - semantic-similarity-classification
-- CLS:
+  CLS:
   - sentiment-classification
-- WSD-V:
+  WSD-V:
   - text-classification-other-Word Sense Disambiguation for Verbs
 ---
 
