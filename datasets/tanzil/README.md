@@ -4,48 +4,48 @@ annotations_creators:
 language_creators:
 - found
 languages:
--am
--ar
--az
--bg
--bn
--bs
--cs
--de
--dv
--en
--es
--fa
--fr
--ha
--hi
--id
--it
--ja
--ko
--ku
--ml
--ms
--nl
--no
--pl
--pt
--ro
--ru
--sd
--so
--sq
--sv
--sw
--ta
--tg
--th
--tr
--tt
--ug
--ur
--uz
--zh
+- am
+- ar
+- az
+- bg
+- bn
+- bs
+- cs
+- de
+- dv
+- en
+- es
+- fa
+- fr
+- ha
+- hi
+- id
+- it
+- ja
+- ko
+- ku
+- ml
+- ms
+- nl
+- no
+- pl
+- pt
+- ro
+- ru
+- sd
+- so
+- sq
+- sv
+- sw
+- ta
+- tg
+- th
+- tr
+- tt
+- ug
+- ur
+- uz
+- zh
 licenses:
 - unknown
 multilinguality:
