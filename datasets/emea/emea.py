@@ -53,7 +53,6 @@ class EmeaConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -61,6 +60,7 @@ class EmeaConfig(datasets.BuilderConfig):
 
 
 class Emea(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         EmeaConfig(
             lang1=lang1,
