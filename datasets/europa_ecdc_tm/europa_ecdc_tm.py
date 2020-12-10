@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import logging
 import os
 
 from bs4 import BeautifulSoup
@@ -177,7 +178,7 @@ class EuropaEcdcTM(datasets.GeneratorBasedBuilder):
         source_language,
         target_language,
     ):
-
+        logging.info(f"⏳ Generating examples from = {filepath}")
         with open(filepath, encoding="utf-8") as f:
             translation_soup = BeautifulSoup(f.read(), "xml")  # Needs bs4 and lxml as dependencies
 
