@@ -4,14 +4,39 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- de
-- en
-- es
-- fr
-- it
-- ja
-- ru
-- zh
+  german_insertions:
+  - de
+  german_deletions:
+  - de
+  english_insertions:
+  - en
+  english_deletions:
+  - en
+  spanish_insertions:
+  - es
+  spanish_deletions:
+  - es
+  french_insertions:
+  - fr
+  french_deletions:
+  - fr
+  italian_insertions:
+  - it
+  italian_deletions:
+  - it
+  japanese_insertions:
+  - jp
+  japanese_deletions:
+  - jp
+  russian_insertions:
+  - ru
+  russian_deletions:
+  - ru
+  chinese_insertions:
+  - zh
+  chinese_deletions:
+  - zh
+
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -20,8 +45,11 @@ size_categories:
 - n>1M
 source_datasets:
 - original
-task_categories: []
-task_ids: []
+task_categories:
+- conditional-text-generation
+task_ids:
+- explanation-generation
+- summarization
 ---
 
 # Dataset Card Creation Guide
