@@ -27,7 +27,19 @@ total number of sentence fragments: 47.55M
 """
 _HOMEPAGE_URL = "http://opus.nlpl.eu/giga-fren.php"
 _CITATION = """\
-J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
+@InProceedings{TIEDEMANN12.463,
+  author = {J�rg Tiedemann},
+  title = {Parallel Data, Tools and Interfaces in OPUS},
+  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
+  year = {2012},
+  month = {may},
+  date = {23-25},
+  address = {Istanbul, Turkey},
+  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+  publisher = {European Language Resources Association (ELRA)},
+  isbn = {978-2-9517408-7-7},
+  language = {english}
+ }
 """
 
 _VERSION = "2.0.0"
@@ -97,5 +109,4 @@ class GigaFren(datasets.GeneratorBasedBuilder):
                         "translation": {l1: x, l2: y},
                     },
                 )
-                sentence_counter += 1
                 yield result
