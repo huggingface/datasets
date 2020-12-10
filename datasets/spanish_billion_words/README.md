@@ -49,7 +49,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** [Spanish Billion Words homepage](https://crscardellino.github.io/SBWCE/)
-- **Point of Contact:** [Cristian Cardellino](mailto:ccardellino@unc.edu.ar)(corpus creator) or [María Grandury](mailto:mariagrandury@gmail.com) (corpus submitter)
+- **Point of Contact:** [Cristian Cardellino](mailto:ccardellino@unc.edu.ar) (Corpus Creator), [María Grandury](mailto:mariagrandury@gmail.com) (Corpus Submitter)
 
 ### Dataset Summary
 
@@ -65,19 +65,23 @@ This dataset can be used for language modelling and for pretraining language mod
 
 ### Languages
 
-Spanish
+The text in this dataset is in Spanish, BCP-47 code: 'es'.
 
 ## Dataset Structure
 
 ### Data Instances
 
+Each example in this dataset is a sentence in Spanish:
+```
 {'text': 'Yo me coloqué en un asiento próximo a una ventana cogí un libro de una mesa y empecé a leer'}
+```
 
 ### Data Fields
 
 - `text`: a sentence in Spanish
 
 ### Data Splits
+
 The dataset is not split.
 
 ## Dataset Creation
@@ -117,9 +121,15 @@ The data was compiled and processed by Cristian Cardellino.
 
 ### Annotations
 
+The dataset is unannotated. 
+
 #### Annotation process
 
-The dataset is unannotated. 
+[N/A]
+
+#### Who are the annotators?
+
+[N/A]
 
 ### Personal and Sensitive Information
 
@@ -147,8 +157,8 @@ The data was collected and processed by Cristian Cardellino.
 
 ### Licensing Information
 
-The dataset is licensed under a
-Creative Commons Attribution-ShareAlike 4.0 International license [(CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
+The dataset is licensed under a Creative Commons Attribution-ShareAlike 4.0 International license 
+[(CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ### Citation Information
 ```
