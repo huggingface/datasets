@@ -48,28 +48,21 @@ _HOMEPAGE = "https://doc2dial.github.io/file/doc2dial/"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-# _URL = "https://doc2dial.github.io/file/doc2dial/"
-# _URL = "https://doc2dial.github.io/file/doc2dial.zip"
-# _URLS = {
-#     "train": _URL + "v.09/data/wOOD/doc2dial_dial_train.json",
-#     "dev": _URL + "v.09/data/wOOD/doc2dial_dial_dev.json",
-# }
-
 _URLs = {
     'dialogue_domain': "https://doc2dial.github.io/file/doc2dial.zip",
     'document_domain': "https://doc2dial.github.io/file/doc2dial.zip",
 }
 
-class Doc2dialConfig(datasets.BuilderConfig):
-    """BuilderConfig for Doc2dial."""
+# class Doc2dialConfig(datasets.BuilderConfig):
+#     """BuilderConfig for Doc2dial."""
 
-    def __init__(self, **kwargs):
-        """BuilderConfig for Doc2dial.
+#     def __init__(self, **kwargs):
+#         """BuilderConfig for Doc2dial.
 
-        Args:
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(Doc2dialConfig, self).__init__(**kwargs)
+#         Args:
+#           **kwargs: keyword arguments forwarded to super.
+#         """
+#         super(Doc2dialConfig, self).__init__(**kwargs)
 
 class Doc2dial(datasets.GeneratorBasedBuilder):
     "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9"
@@ -87,36 +80,63 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "dialogue_domain" 
 
     def _info(self):
-        return datasets.DatasetInfo(
-            description=_DESCRIPTION,
+
+        if self.config.name == "dialogue_domain":
             features=datasets.Features(
                 {
                     "dial_id": datasets.Value("string"),
                     "doc_id": datasets.Value("string"),
                     "domain": datasets.Value("string"),
-                    "turns": datasets.features.Sequence(
-                        {
-                            "turn_id": datasets.Value("int32"),
-                            "role": datasets.Value("string"),
-                            "da": datasets.Value("string"),
-                            "reference": datasets.features.Sequence(
-                                {
-                                    "keys" : datasets.Value("string"),
-                                    "values": datasets.Value("string"),   
-                                }
- 
-                            ),
+                    # "turns": [
+                    #     {
+                    #         "turn_id": datasets.Value("int32"),
+                    #         "role": datasets.Value("string"),
+                    #         "da": datasets.Value("string"),
+                    #         "reference": [
+                    #             {
+                    #                 "keys" : datasets.Value("string"),
+                    #                 "values": datasets.Value("string"),   
+                    #             }
 
-                            "utternace": datasets.Value("string"),
-                        }
-                    ),
+                    #         ],
+                    #         "utterance": datasets.Value("string"),
+                    #     }
+                    # ],
                 }
             ),
-            # No default supervised_keys (as we have to pass both question
-            # and context as input).
+        elif self.config.name == "document_domain":
+            features = datasets.Features(
+                {
+                    "domain": datasets.Value("string"),
+                    "doc_id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "doc_text": datasets.Value("string"),
+                    "spans" : datasets.Sequence(
+                        {
+                            "id_sp": datasets.Value("string"),
+                            "tag": datasets.Value("string"),
+                            "start_sp": datasets.Value("string"),
+                            "end_sp": datasets.Value("string"),
+                            "text_sp": datasets.Value("string"),
+                            "title": datasets.Value("string"),
+                            "parent_titles": datasets.Value("string"),
+                            "id_sec": datasets.Value("string"),
+                            "start_sec": datasets.Value("string"),
+                            "text_sec": datasets.Value("string"),
+                            "end_sec": datasets.Value("string"), 
+                        }
+                    ),                            
+                }
+            )
+
+        return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            features=features,
+            # # No default supervised_keys (as we have to pass both question
+            # # and context as input).
             supervised_keys=None,
             homepage=_HOMEPAGE,
-            citation=_CITATION,
+            # citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -125,47 +145,75 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         print('my_url:',my_urls)
         data_dir = dl_manager.download_and_extract(my_urls)
 
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_train.json")}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json")}),
-        ]
+        if self.config.name == "dialogue_domain":
+            return [
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_train.json")}),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json")}),
+            ]
+        elif self.config.name == "document_domain":
+            return [
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/doc2dial_doc.json")}),
+            ]
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
 
         # filepath = "/Users/karimfoda/Downloads/doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json"
-        logging.info("generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8") as f:
-            data = json.load(f)
-            for domain in data["dial_data"]:
-                # print(domain)
-                for doc_id in data["dial_data"][domain]:
-                    # print(doc_id)
-                    for dialogue in data["dial_data"][domain][doc_id]:
-                        # print(conv_id)
-                        # print(dialogue["dial_id"])
-                        # for turn in dialogue['turns']:
-                        #     print(turn["turn_id"])
-                        #     print(type(turn["turn_id"]))
+        
+        if self.config.name == "dialogue_domain":
+            logging.info("generating examples from = %s", filepath)
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
+                for domain in data["dial_data"]:
+                    print(domain)
+                    for doc_id in data["dial_data"][domain]:
+                        print(doc_id)
+                        for dialogue in data["dial_data"][domain][doc_id]:
+                            print(dialogue["dial_id"])
 
-                            # for reference in turn['reference']:
-                            #     print(reference)
-                            #     print(type(reference))
+                            # Features currently used are "context", "question", and "answers".
+                            # Others are extracted here for the ease of future expansions.
+                            # yield dialogue["dial_id"], {
+                            #         "dial_id":dialogue["dial_id"],
+                            #         "domain":domain,
+                            #         "doc_id": doc_id,
+                                    # "turns" : 
+                                    # [{
+                                    #     "turn_id" : i['turn_id'],
+                                    #     "role" : i['role'],
+                                    #     "da" : i['da'],
+                                    #     "reference" : 
+                                    #     [{ 
+                                    #         "keys" : ref,
+                                    #         "values" : i["reference"][ref],
+                                    #         } for ref in i['reference']],
+                                    #     "utterance" : i['utterance']
+                                    # } for i in dialogue['turns']],
+                                # }
+        elif self.config.name == "document_domain":
 
-                        # Features currently used are "context", "question", and "answers".
-                        # Others are extracted here for the ease of future expansions.
-                        yield dialogue["dial_id"], {
-                                "dial_id":dialogue["dial_id"],
-                                "domain":domain,
-                                "doc_id": doc_id,
-                                "turns" : {
-                                    "turn_id" : [i['turn_id'] for i in dialogue['turns']],
-                                    "role" : [i['role'] for i in dialogue['turns']],
-                                    "da" : [i['da'] for i in dialogue['turns']],
-                                    "reference" : { 
-                                        "keys" : [[ref for ref in turn["reference"]]for turn in dialogue['turns']],
-                                        "values" : [[turn["reference"][ref]for ref in turn["reference"]]for turn in dialogue['turns']],
-                                        },
-                                    "utternace" : [i['utterance'] for i in dialogue['turns']]
-                                },
-                            }
+            logging.info("generating examples from = %s", filepath)
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
+                for domain in data["doc_data"]:
+                    for doc_id in data["dial_data"][domain]:
+                            for dialogue in data["dial_data"][domain][doc_id]:
+                                a = 1
+                                # yield {
+                                # "domain": domain,
+                                # "doc_id": doc_id,
+                                # "title": dialogue['title'],
+                                # "doc_text": dialogue['doc_text'],
+                                # "spans" : {
+                                #     "id_sp": [i['id_sp'] for i in dialogue['spans']],
+                                #     "tag": [i['tag'] for i in dialogue['spans']],
+                                #     "start_sp": [i['start_sp'] for i in dialogue['spans']],
+                                #     "end_sp": [i['end_sp'] for i in dialogue['spans']],
+                                #     "text_sp": [i['text_sp'] for i in dialogue['spans']],
+                                #     "title": [i['title'] for i in dialogue['spans']],
+                                #     "parent_titles": [i['parent_titles'] for i in dialogue['spans']],
+                                #     "id_sec": [i['id_sec'] for i in dialogue['spans']],
+                                #     "start_sec": [i['start_sec'] for i in dialogue['spans']],
+                                #     "text_sec": [i['text_sec'] for i in dialogue['spans']],
+                                #     "end_sec": [i['end_sec'] for i in dialogue['spans']],                              
+                                # }}
