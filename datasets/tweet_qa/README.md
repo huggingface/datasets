@@ -19,7 +19,7 @@ task_ids:
 - open-domain-qa
 ---
 
-# Dataset Card for Tweet QA
+# Dataset Card for TweetQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -77,8 +77,7 @@ Sample data:
 ```
 ### Data Fields
 
-
-Question: a question based on information from a tweet,
+Question: a question based on information from a tweet
 Answer: list of possible answers from the tweet
 Tweet: source tweet
 qid: question id
