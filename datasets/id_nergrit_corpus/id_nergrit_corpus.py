@@ -69,12 +69,13 @@ _URLs = [
 class IdNergritCorpusConfig(datasets.BuilderConfig):
     """BuilderConfig for IdNergritCorpus"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, label_classes=None, **kwargs):
         """BuilderConfig for IdNergritCorpus.
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
         super(IdNergritCorpusConfig, self).__init__(**kwargs)
+        self.label_classes = label_classes
 
 
 class IdNergritCorpus(datasets.GeneratorBasedBuilder):
