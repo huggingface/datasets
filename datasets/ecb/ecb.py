@@ -62,7 +62,6 @@ class EcbConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -70,6 +69,7 @@ class EcbConfig(datasets.BuilderConfig):
 
 
 class Ecb(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version(_VERSION)
     BUILDER_CONFIGS = [
         EcbConfig(
             lang1=lang1,
