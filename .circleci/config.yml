@@ -15,7 +15,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install pyarrow==0.17.1
-            - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
+            - run: RUN_REMOTE=0 HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
         working_directory: ~/datasets
@@ -28,7 +28,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install pyarrow==1.0.0
-            - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
+            - run: RUN_REMOTE=0 HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
 
     run_dataset_script_tests_pyarrow_0p17_WIN:
@@ -45,6 +45,7 @@ jobs:
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
             - run: pip install pyarrow==0.17.1
+            - run: $env:RUN_REMOTE="0"
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
@@ -62,6 +63,7 @@ jobs:
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
             - run: pip install pyarrow==1.0.0
+            - run: $env:RUN_REMOTE="0"
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
