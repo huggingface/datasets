@@ -20,7 +20,7 @@ task_ids:
 - text-scoring-other-evaluating-dialogue-systems
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for [More Information Needed]
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -50,8 +50,8 @@ task_ids:
 - **Homepage:** https://github.com/aliannejadi/ClariQ
 - **Repository:** https://github.com/aliannejadi/ClariQ
 - **Paper:** https://arxiv.org/abs/2009.11352
-- **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Leaderboard:** [More Information Needed]
+- **Point of Contact:** [More Information Needed]
 
 ### Dataset Summary
 
@@ -61,11 +61,11 @@ The Conv AI 3 challenge is organized as part of the Search-oriented Conversation
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+[More Information Needed]
 
 ### Languages
 
-[Needs More Information]
+[More Information Needed]
 
 ## Dataset Structure
 
@@ -90,61 +90,61 @@ topic_id	initial_request	topic_desc	clarification_need	facet_id	facet_desc	quest
 
 ### Data Splits
 
-[Needs More Information]
+[More Information Needed]
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+[More Information Needed]
 
 ### Licensing Information
 
-[Needs More Information]
+[More Information Needed]
 
 ### Citation Information
 
