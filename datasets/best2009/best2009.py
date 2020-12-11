@@ -29,24 +29,24 @@ _CITATION = """\
 _LICENSE = "CC-BY-NC-SA 3.0"
 
 _DESCRIPTION = """\
-`best` is a Thai word-tokenization dataset from encyclopedia, novels, news and articles by
+`best2009` is a Thai word-tokenization dataset from encyclopedia, novels, news and articles by
 [NECTEC](https://www.nectec.or.th/) (148,995/2,252 lines of train/test). It was created for
 [BEST 2010: Word Tokenization Competition](https://thailang.nectec.or.th/archive/indexa290.html?q=node/10).
 The test set answers are not provided publicly.
 """
 
 
-class BestConfig(datasets.BuilderConfig):
+class Best2009Config(datasets.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig
 
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(BestConfig, self).__init__(**kwargs)
+        super(Best2009Config, self).__init__(**kwargs)
 
 
-class BestDataset(datasets.GeneratorBasedBuilder):
+class Best2009(datasets.GeneratorBasedBuilder):
 
     _DOWNLOAD_URL = "https://archive.org/download/best_dataset/data.zip"
     _TRAIN_FOLDER = "train"
@@ -77,10 +77,10 @@ class BestDataset(datasets.GeneratorBasedBuilder):
     _CHAR_TYPES = ["b_e", "c", "d", "n", "o", "p", "q", "s", "s_e", "t", "v", "w"]
 
     BUILDER_CONFIGS = [
-        BestConfig(
-            name="best",
+        Best2009Config(
+            name="best2009",
             version=datasets.Version("1.0.0"),
-            description="",
+            description=_DESCRIPTION,
         ),
     ]
 
@@ -116,7 +116,7 @@ class BestDataset(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        for fname in Path(filepath).rglob("*.txt"):
+        for fname in sorted(Path(filepath).rglob("*.txt")):
             with open(fname, encoding="utf-8") as f:
                 for _id, line in enumerate(f):
                     chars = []

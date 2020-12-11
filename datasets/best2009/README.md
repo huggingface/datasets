@@ -19,7 +19,7 @@ task_ids:
 - structure-prediction-other-word-tokenization
 ---
 
-# Dataset Card for `best`
+# Dataset Card for `best2009`
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -54,7 +54,7 @@ task_ids:
 
 ### Dataset Summary
 
-`best` is a Thai word-tokenization dataset from encyclopedia, novels, news and articles by [NECTEC](https://www.nectec.or.th/) (148,995/2,252 lines of train/test). It was created for [BEST 2010: Word Tokenization Competition](https://thailang.nectec.or.th/archive/indexa290.html?q=node/10). The test set answers are not provided publicly.
+`best2009` is a Thai word-tokenization dataset from encyclopedia, novels, news and articles by [NECTEC](https://www.nectec.or.th/) (148,995/2,252 lines of train/test). It was created for [BEST 2010: Word Tokenization Competition](https://thailang.nectec.or.th/archive/indexa290.html?q=node/10). The test set answers are not provided publicly.
 
 ### Supported Tasks and Leaderboards
 
