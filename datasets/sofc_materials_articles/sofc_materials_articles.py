@@ -282,18 +282,20 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, names, data_dir, split):
         """ Yields examples. """
-
+        # The dataset consists of the original article text as well as annotations
         textfile_base_path = os.path.join(data_dir, "texts")
         annotations_base_path = os.path.join(data_dir, "annotations")
+
+        # The annotations are mostly references to offsets in the source text
+        # with corresponding labels, so we'll refer to them as `meta`
         sentence_meta_base_path = os.path.join(annotations_base_path, "sentences")
         tokens_meta_base_path = os.path.join(annotations_base_path, "tokens")
         ets_meta_base_path = os.path.join(annotations_base_path, "entity_types_and_slots")
         frame_meta_base_path = os.path.join(annotations_base_path, "frames")
 
+        # Define the headers for the sentence and token and entity metadata
         sentence_meta_header = ["sentence_id", "label", "begin_char_offset", "end_char_offset"]
-
         tokens_meta_header = ["sentence_id", "token_id", "begin_char_offset", "end_char_offset"]
-
         ets_meta_header = [
             "sentence_id",
             "token_id",
@@ -303,55 +305,95 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
             "slot_label",
         ]
 
+        # Start the processing loop
+        # For each text file, we'll load all of the
+        # associated annotation files
         for id_, name in enumerate(names):
 
+            # Load the main source text
             textfile_path = os.path.join(textfile_base_path, name + ".txt")
             text = open(textfile_path, encoding="utf-8").read()
 
+            # Load the sentence offsets file
             sentence_meta_path = os.path.join(sentence_meta_base_path, name + ".csv")
             sentence_meta = pd.read_csv(sentence_meta_path, sep="\t", names=sentence_meta_header)
 
+            # Load the tokens offsets file
             tokens_meta_path = os.path.join(tokens_meta_base_path, name + ".csv")
             tokens_meta = pd.read_csv(tokens_meta_path, sep="\t", names=tokens_meta_header)
 
+            # Load the entity offsets file
             ets_meta_path = os.path.join(ets_meta_base_path, name + ".csv")
             ets_meta = pd.read_csv(ets_meta_path, sep="\t", names=ets_meta_header)
 
+            # Create a list of lists indexed as [sentence][token] for the entity and slot labels
             entity_labels = ets_meta.groupby("sentence_id").apply(lambda x: x["entity_label"].tolist()).to_list()
             slot_labels = ets_meta.groupby("sentence_id").apply(lambda x: x["slot_label"].tolist()).to_list()
 
+            # Create a list of lists for the token offsets indexed as [sentence][token]
+            # Each element will contain a dict with beginning and ending character offsets
             token_offsets = (
                 tokens_meta.groupby("sentence_id")[["begin_char_offset", "end_char_offset"]]
                 .apply(lambda x: x.to_dict(orient="records"))
                 .tolist()
             )
 
+            # Load the frames metadata. The frames file contains the data for all of the annotations
+            # in a condensed format that varies throughout the file. More information on this format
+            # can be found: https://framenet.icsi.berkeley.edu/fndrupal/
             frames_meta_path = os.path.join(frame_meta_base_path, name + ".csv")
             frames_meta = open(frames_meta_path, encoding="utf-8").readlines()
 
+            # Parse the sentence offsets, producing a list of dicts with the
+            # starting and ending position of each sentence in the original text
             sentence_offsets = (
                 sentence_meta[["begin_char_offset", "end_char_offset"]].apply(lambda x: x.to_dict(), axis=1).tolist()
             )
 
+            # The sentence labels are a binary label that describes whether the sentence contains
+            # any annotations
             sentence_labels = sentence_meta["label"].tolist()
 
+            # Materialiaze a list of strings of the actual sentences
             sentences = [text[ost["begin_char_offset"] : ost["end_char_offset"]] for ost in sentence_offsets]
 
+            # Materialize a list of lists of the tokens in each sentence.
+            # Annotation labels are aligned with these tokens, so be careful with
+            # alignment if using your own tokenization scheme with the sentences above
             tokens = [
                 [s[tto["begin_char_offset"] : tto["end_char_offset"]] for tto in to]
                 for s, to in zip(sentences, token_offsets)
             ]
 
+            # The frames file first contains spans annotations (in one format),
+            # then contains experiments annotations (in another format),
+            # then links annotations (in yet another format).
+            # Here we find the beginning of the experiments and links sections of the file
+            # Additionally, each experiment annotation in the experiment annotations begins with a
+            # line starting with the word EXPERIMENT (in one format)
+            # followed by the annotations for that experiment (in yet _another_ format)
+            # Here we get the start positions for each experiment _within_ the experiments
+            # section of the frames data
             experiment_starts = [i for i, line in enumerate(frames_meta) if line.startswith("EXPERIMENT")]
             experiment_start = min(experiment_starts)
             link_start = min([i for i, line in enumerate(frames_meta) if line.startswith("LINK")])
 
+            # Pick out the spans section of the data for parsing
             spans_raw = frames_meta[:experiment_start]
 
+            # Iterate through the spans data
             spans = []
             for span in spans_raw:
+
+                # Split out the elements in each tab-delimited line
                 _, span_id, entity_label_or_exp, sentence_id, begin_char_offset, end_char_offset = span.split("\t")
 
+                # The entity label for experiment spans have a sub-label,
+                # called the experiment mention type,
+                # which is sub-delimited by a ':'
+                # The code below standardizes the fields produced by
+                # each line to a common schema, some fields of which may
+                # be empty depending on the data available in the line
                 if entity_label_or_exp.startswith("EXPERIMENT"):
                     exp, experiment_mention_type = entity_label_or_exp.split(":")
                     entity_label = ""
@@ -370,8 +412,10 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
                 }
                 spans.append(s)
 
+            # Pull out the links annotations for from the frames data
             links_raw = [f.rstrip("\n") for f in frames_meta[link_start:]]
 
+            # Iterate through the links data, which is in a simple tab-delimited format
             links = []
             for l in links_raw:
                 _, relation_label, start_span_id, end_span_id = l.split("\t")
@@ -383,12 +427,19 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
                 }
                 links.append(link_out)
 
+            # Iterate through the experiments data and parse each experiment
             experiments = []
+            # Zip the experiment start offsets to get start/end position tuples
+            # for each experiment in the experiments data
             for start, end in zip(experiment_starts[:-1], experiment_starts[1:]):
                 current_experiment = frames_meta[start:end]
+                # The first line of each experiment annotation contains the
+                # experiment id and the span id
                 _, experiment_id, span_id = current_experiment[0].rstrip("\n").split("\t")
                 exp = {"experiment_id": int(experiment_id), "span_id": int(span_id)}
 
+                # The remaining lines in the experiment annotations contain
+                # slot level information for each experiment.
                 slots = []
                 for e in current_experiment[1:]:
                     e = e.rstrip("\n")
@@ -399,6 +450,10 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
 
                 experiments.append(exp)
 
+            # Yield the final parsed example output
+            # NOTE: the `token_offsets` is converted to a list of
+            # dicts to accommodate processing to the arrow files
+            # in the `features` schema defined above
             yield id_, {
                 "text": text,
                 "sentence_offsets": sentence_offsets,
