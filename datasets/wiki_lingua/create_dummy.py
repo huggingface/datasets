@@ -30,6 +30,8 @@ _URLs = {
 
 def create():
     """Creates the dummy pickle file with a subset of data"""
+    # 1. Download the google drive folder : https://drive.google.com/drive/folders/1PFvXUOsW_KSEzFm5ixB8J8BDB8zRRfHW
+    # and specify the decompressed folder location 
     downloaded_data_path = "/Users/katnoria/Downloads/WikiLingua"
     files = glob(f"{downloaded_data_path}/*.pkl")
     base_path = "/Users/katnoria/dev/projects/workspaces/python/datasets"
