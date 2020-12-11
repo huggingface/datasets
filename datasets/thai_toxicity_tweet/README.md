@@ -69,7 +69,7 @@ text classification
 
 ### Languages
 
-Thai
+Thai (`th`)
 
 ## Dataset Structure
 
