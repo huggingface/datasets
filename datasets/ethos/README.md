@@ -180,10 +180,6 @@ The licensing status of the datasets is [GNU GPLv3](https://choosealicense.com/l
 }
 ```
 
-
-
-
-
 ## Contributors on Ethos
 Name | Email
 --- | ---
