@@ -1,13 +1,22 @@
 ---
-annotations_creators: [crowdsourced]
-language_creators: [found]
-languages: [ja]
-licenses: [cc-by-nd-4.0]
-multilinguality: [monolingual]
-size_categories: [10K<n<100K]
-source_datasets: [original]
-task_categories: [text-classification]
-task_ids: [fact-checking]
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- ja
+licenses:
+- cc-by-nd-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- fact-checking
 ---
 
 # Dataset Card for COVID-19 日本語Twitterデータセット (COVID-19 Japanese Twitter Dataset)
@@ -74,13 +83,13 @@ CSV file with the 1st column is Twitter ID and the 2nd column is assessment opti
 
 ### Data Splits
 
-[N/A]
+[More Information Needed]
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-N/A because the paper is not yet published.
+[More Information Needed] because the paper is not yet published.
 
 ### Source Data
 
@@ -110,15 +119,15 @@ The author does not contain original tweets.
 
 ### Social Impact of Dataset
 
-[N/A]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[N/A]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
