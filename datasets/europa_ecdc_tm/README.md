@@ -82,6 +82,10 @@ ECDC-TM covers 25 languages: the 23 official languages of the EU plus Norwegian 
 
 All documents and sentences were originally written in English. They were then translated into the other languages by professional translators from the Translation Centre CdT in Luxembourg.
 
+To load a language pair that is not part of the config, just specify the language code as language pair. For example, if you want to translate Czech to Greek:
+
+`dataset = load_dataset("europa_ecdc_tm", language_pair=("cs", "el"))`
+
 ### Supported Tasks and Leaderboards
 
 - `conditional-text-generation`: the dataset can be used to train a model for `machine-translation`. Machine translation models are usually evaluated using metrics such as [BLEU](https://huggingface.co/metrics/bleu), [ROUGE](https://huggingface.co/metrics/rouge) or [SacreBLEU](https://huggingface.co/metrics/sacrebleu). You can use the [mBART](https://huggingface.co/facebook/mbart-large-cc25) model for this task. This task has active leaderboards which can be found at [https://paperswithcode.com/task/machine-translation](https://paperswithcode.com/task/machine-translation), which usually rank models based on [BLEU score](https://huggingface.co/metrics/bleu).
@@ -99,8 +103,8 @@ Translations are available in these languages: `en`, `bg`, `cs`, `da`, `de`, `el
 ```
 {
   "translation": {
-    "en":"Sentence to translate",
-    "<target_language>": "Phrase à traduire",
+    "<source_language>":"Sentence to translate",
+    "<target_language>": "Translated sentence",
   },
 }
 ```
