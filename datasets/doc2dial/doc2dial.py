@@ -19,10 +19,11 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 import logging
+import os
 
 import datasets
+
 
 _CITATION = """\
 @inproceedings{feng-etal-2020-doc2dial,
@@ -49,8 +50,8 @@ _HOMEPAGE = "https://doc2dial.github.io/file/doc2dial/"
 _LICENSE = ""
 
 _URLs = {
-    'dialogue_domain': "https://doc2dial.github.io/file/doc2dial.zip",
-    'document_domain': "https://doc2dial.github.io/file/doc2dial.zip",
+    "dialogue_domain": "https://doc2dial.github.io/file/doc2dial.zip",
+    "document_domain": "https://doc2dial.github.io/file/doc2dial.zip",
 }
 
 # class Doc2dialConfig(datasets.BuilderConfig):
@@ -64,6 +65,7 @@ _URLs = {
 #         """
 #         super(Doc2dialConfig, self).__init__(**kwargs)
 
+
 class Doc2dial(datasets.GeneratorBasedBuilder):
     "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9"
 
@@ -73,16 +75,20 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="dialogue_domain", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="document_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="dialogue_domain", version=VERSION, description="This part of my dataset covers a first domain"
+        ),
+        datasets.BuilderConfig(
+            name="document_domain", version=VERSION, description="This part of my dataset covers a second domain"
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "dialogue_domain" 
+    DEFAULT_CONFIG_NAME = "dialogue_domain"
 
     def _info(self):
 
         if self.config.name == "dialogue_domain":
-            features=datasets.Features(
+            features = datasets.Features(
                 {
                     "dial_id": datasets.Value("string"),
                     "doc_id": datasets.Value("string"),
@@ -94,10 +100,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "da": datasets.Value("string"),
                             "reference": [
                                 {
-                                    "keys" : datasets.Value("string"),
-                                    "values": datasets.Value("string"),   
+                                    "keys": datasets.Value("string"),
+                                    "values": datasets.Value("string"),
                                 }
-
                             ],
                             "utterance": datasets.Value("string"),
                         }
@@ -111,9 +116,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                     "doc_id": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     "doc_text": datasets.Value("string"),
-                    "spans" : [
+                    "spans": [
                         {
-                            "id_sp" : datasets.Value("string"),
+                            "id_sp": datasets.Value("string"),
                             "tag": datasets.Value("string"),
                             "start_sp": datasets.Value("int32"),
                             "end_sp": datasets.Value("int32"),
@@ -123,11 +128,11 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "id_sec": datasets.Value("string"),
                             "start_sec": datasets.Value("int32"),
                             "text_sec": datasets.Value("string"),
-                            "end_sec": datasets.Value("int32"), 
+                            "end_sec": datasets.Value("int32"),
                         }
                     ],
                     "doc_html_ts": datasets.Value("string"),
-                    "doc_html_raw" : datasets.Value("string"),                            
+                    "doc_html_raw": datasets.Value("string"),
                 }
             )
 
@@ -142,41 +147,41 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        
+
         my_urls = _URLs[self.config.name]
-        print('my_url:',my_urls)
+        print("my_url:", my_urls)
         data_dir = dl_manager.download_and_extract(my_urls)
 
         if self.config.name == "dialogue_domain":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, 
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_train.json"),
-                        }
+                    },
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, 
+                    name=datasets.Split.VALIDATION,
                     gen_kwargs={
                         "filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json"),
-                        }
+                    },
                 ),
             ]
         elif self.config.name == "document_domain":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, 
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(data_dir, "doc2dial/v0.9/data/doc2dial_doc.json"),
-                        }
+                    },
                 )
-            ]  
+            ]
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
 
         # filepath = "/Users/karimfoda/Downloads/doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json"
-        
+
         if self.config.name == "dialogue_domain":
             logging.info("generating examples from = %s", filepath)
             with open(filepath, encoding="utf-8") as f:
@@ -189,22 +194,26 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             # print(dialogue["dial_id"])
 
                             x = {
-                                    "dial_id":dialogue["dial_id"],
-                                    "domain":domain,
-                                    "doc_id": doc_id,
-                                    "turns" : 
-                                    [{
-                                        "turn_id" : i['turn_id'],
-                                        "role" : i['role'],
-                                        "da" : i['da'],
-                                        "reference" : 
-                                        [{ 
-                                            "keys" : ref,
-                                            "values" : str(i["reference"][ref]),
-                                            } for ref in i['reference']],
-                                        "utterance" : i['utterance']
-                                    } for i in dialogue['turns']],
-                                }
+                                "dial_id": dialogue["dial_id"],
+                                "domain": domain,
+                                "doc_id": doc_id,
+                                "turns": [
+                                    {
+                                        "turn_id": i["turn_id"],
+                                        "role": i["role"],
+                                        "da": i["da"],
+                                        "reference": [
+                                            {
+                                                "keys": ref,
+                                                "values": str(i["reference"][ref]),
+                                            }
+                                            for ref in i["reference"]
+                                        ],
+                                        "utterance": i["utterance"],
+                                    }
+                                    for i in dialogue["turns"]
+                                ],
+                            }
                             # print(x)
                             # Features currently used are "context", "question", and "answers".
                             # Others are extracted here for the ease of future expansions.
@@ -226,24 +235,28 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             # print(set([type(data["doc_data"][domain][doc_id]['spans'][i]['id_sp']) for i in data["doc_data"][domain][doc_id]['spans']]))
 
                             yield doc_id, {
-                            "domain": domain,
-                            "doc_id": doc_id,
-                            "title": data["doc_data"][domain][doc_id]['title'],
-                            "doc_text": data["doc_data"][domain][doc_id]['doc_text'],
-                            "spans" : 
-                            [{
-                                "id_sp": data["doc_data"][domain][doc_id]['spans'][i]['id_sp'],
-                                "tag": data["doc_data"][domain][doc_id]['spans'][i]['tag'],
-                                "start_sp": data["doc_data"][domain][doc_id]['spans'][i]['start_sp'],
-                                "end_sp": data["doc_data"][domain][doc_id]['spans'][i]['end_sp'],
-                                "text_sp": data["doc_data"][domain][doc_id]['spans'][i]['text_sp'],
-                                "title": data["doc_data"][domain][doc_id]['spans'][i]['title'],
-                                "parent_titles": str(data["doc_data"][domain][doc_id]['spans'][i]['parent_titles']),
-                                "id_sec": data["doc_data"][domain][doc_id]['spans'][i]['id_sec'],
-                                "start_sec": data["doc_data"][domain][doc_id]['spans'][i]['start_sec'],
-                                "text_sec": data["doc_data"][domain][doc_id]['spans'][i]['text_sec'],
-                                "end_sec": data["doc_data"][domain][doc_id]['spans'][i]['end_sec']
-                            } for i in data["doc_data"][domain][doc_id]['spans']],
-                            "doc_html_ts": data["doc_data"][domain][doc_id]['doc_html_ts'],
-                            "doc_html_raw" : data["doc_data"][domain][doc_id]['doc_html_raw'],
+                                "domain": domain,
+                                "doc_id": doc_id,
+                                "title": data["doc_data"][domain][doc_id]["title"],
+                                "doc_text": data["doc_data"][domain][doc_id]["doc_text"],
+                                "spans": [
+                                    {
+                                        "id_sp": data["doc_data"][domain][doc_id]["spans"][i]["id_sp"],
+                                        "tag": data["doc_data"][domain][doc_id]["spans"][i]["tag"],
+                                        "start_sp": data["doc_data"][domain][doc_id]["spans"][i]["start_sp"],
+                                        "end_sp": data["doc_data"][domain][doc_id]["spans"][i]["end_sp"],
+                                        "text_sp": data["doc_data"][domain][doc_id]["spans"][i]["text_sp"],
+                                        "title": data["doc_data"][domain][doc_id]["spans"][i]["title"],
+                                        "parent_titles": str(
+                                            data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"]
+                                        ),
+                                        "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
+                                        "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
+                                        "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
+                                        "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
+                                    }
+                                    for i in data["doc_data"][domain][doc_id]["spans"]
+                                ],
+                                "doc_html_ts": data["doc_data"][domain][doc_id]["doc_html_ts"],
+                                "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
                             }
