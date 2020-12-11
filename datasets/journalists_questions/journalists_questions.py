@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import os
 
 import datasets
 
@@ -64,15 +63,13 @@ class JournalistsQuestions(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         return [
-           datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_dir}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_dir}),
         ]
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         with open(filepath, encoding="utf-8") as f:
-            reader = csv.DictReader(f, delimiter="\t", fieldnames=['tweet_id',"label","label_confidence"])
+            reader = csv.DictReader(f, delimiter="\t", fieldnames=["tweet_id", "label", "label_confidence"])
             for idx, row in enumerate(reader):
                 yield idx, {
                     "tweet_id": row["tweet_id"],
