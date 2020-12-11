@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -69,74 +68,74 @@ _URL = "http://parl.ai/downloads/md_gender/gend_multiclass_10072020.tgz"
 
 _CONF_FILES = {
     "funpedia": {
-        "train": 'funpedia/train.jsonl',
-        "validation": 'funpedia/valid.jsonl',
-        "test": 'funpedia/test.jsonl',
+        "train": "funpedia/train.jsonl",
+        "validation": "funpedia/valid.jsonl",
+        "test": "funpedia/test.jsonl",
     },
     "image_chat": {
-        "train": 'image_chat/engaging_imagechat_gender_captions_hashed.test.jsonl',
-        "validation": 'image_chat/engaging_imagechat_gender_captions_hashed.train.jsonl',
-        "test": 'image_chat/engaging_imagechat_gender_captions_hashed.valid.jsonl',
+        "train": "image_chat/engaging_imagechat_gender_captions_hashed.test.jsonl",
+        "validation": "image_chat/engaging_imagechat_gender_captions_hashed.train.jsonl",
+        "test": "image_chat/engaging_imagechat_gender_captions_hashed.valid.jsonl",
     },
     "wizard": {
-        "train": 'wizard/train.jsonl',
-        "validation": 'wizard/valid.jsonl',
-        "test": 'wizard/test.jsonl',
+        "train": "wizard/train.jsonl",
+        "validation": "wizard/valid.jsonl",
+        "test": "wizard/test.jsonl",
     },
     "convai2_inferred": {
         "train": (
-            'inferred_about/convai2_train_binary.txt',
-            'inferred_about/convai2_train.txt',
+            "inferred_about/convai2_train_binary.txt",
+            "inferred_about/convai2_train.txt",
         ),
         "validation": (
-            'inferred_about/convai2_valid_binary.txt',
-            'inferred_about/convai2_valid.txt',
+            "inferred_about/convai2_valid_binary.txt",
+            "inferred_about/convai2_valid.txt",
         ),
         "test": (
-            'inferred_about/convai2_test_binary.txt',
-            'inferred_about/convai2_test.txt',
+            "inferred_about/convai2_test_binary.txt",
+            "inferred_about/convai2_test.txt",
         ),
     },
     "light_inferred": {
         "train": (
-            'inferred_about/light_train_binary.txt',
-            'inferred_about/light_train.txt',
+            "inferred_about/light_train_binary.txt",
+            "inferred_about/light_train.txt",
         ),
         "validation": (
-            'inferred_about/light_valid_binary.txt',
-            'inferred_about/light_valid.txt',
+            "inferred_about/light_valid_binary.txt",
+            "inferred_about/light_valid.txt",
         ),
         "test": (
-            'inferred_about/light_test_binary.txt',
-            'inferred_about/light_test.txt',
+            "inferred_about/light_test_binary.txt",
+            "inferred_about/light_test.txt",
         ),
     },
     "opensubtitles_inferred": {
         "train": (
-            'inferred_about/opensubtitles_train_binary.txt',
-            'inferred_about/opensubtitles_train.txt',
+            "inferred_about/opensubtitles_train_binary.txt",
+            "inferred_about/opensubtitles_train.txt",
         ),
         "validation": (
-            'inferred_about/opensubtitles_valid_binary.txt',
-            'inferred_about/opensubtitles_valid.txt',
+            "inferred_about/opensubtitles_valid_binary.txt",
+            "inferred_about/opensubtitles_valid.txt",
         ),
         "test": (
-            'inferred_about/opensubtitles_test_binary.txt',
-            'inferred_about/opensubtitles_test.txt',
+            "inferred_about/opensubtitles_test_binary.txt",
+            "inferred_about/opensubtitles_test.txt",
         ),
     },
     "yelp_inferred": {
         "train": (
-            'inferred_about/yelp_train_binary.txt',
-            '',
+            "inferred_about/yelp_train_binary.txt",
+            "",
         ),
         "validation": (
-            'inferred_about/yelp_valid_binary.txt',
-            '',
+            "inferred_about/yelp_valid_binary.txt",
+            "",
         ),
         "test": (
-            'inferred_about/yelp_test_binary.txt',
-            '',
+            "inferred_about/yelp_test_binary.txt",
+            "",
         ),
     },
 }
@@ -148,23 +147,65 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="gendered_words", version=VERSION, description="A list of common nouns with a masculine and feminine variant."),
-        datasets.BuilderConfig(name="name_genders", version=VERSION, description="A list of first names with their gender attribution by year in the US."),
-        datasets.BuilderConfig(name="new_data", version=VERSION, description="Some data reformulated and annotated along all three axes."),
-        datasets.BuilderConfig(name="funpedia", version=VERSION, description="Data from Funpedia with ABOUT annotations based on Funpedia information on an entity's gender."),
-        datasets.BuilderConfig(name="image_chat", version=VERSION, description="Data from ImageChat with ABOUT annotations based on image recognition."),
-        datasets.BuilderConfig(name="wizard", version=VERSION, description="Data from WizardsOfWikipedia with ABOUT annotations based on Wikipedia information on an entity's gender."),
-        datasets.BuilderConfig(name="convai2_inferred", version=VERSION, description="Data from the ConvAI2 challenge with ABOUT annotations inferred by a trined classifier."),
-        datasets.BuilderConfig(name="light_inferred", version=VERSION, description="Data from LIGHT with ABOUT annotations inferred by a trined classifier."),
-        datasets.BuilderConfig(name="opensubtitles_inferred", version=VERSION, description="Data from OpenSubtitles with ABOUT annotations inferred by a trined classifier."),
-        datasets.BuilderConfig(name="yelp_inferred", version=VERSION, description="Data from Yelp reviews with ABOUT annotations inferred by a trined classifier."),
+        datasets.BuilderConfig(
+            name="gendered_words",
+            version=VERSION,
+            description="A list of common nouns with a masculine and feminine variant.",
+        ),
+        datasets.BuilderConfig(
+            name="name_genders",
+            version=VERSION,
+            description="A list of first names with their gender attribution by year in the US.",
+        ),
+        datasets.BuilderConfig(
+            name="new_data", version=VERSION, description="Some data reformulated and annotated along all three axes."
+        ),
+        datasets.BuilderConfig(
+            name="funpedia",
+            version=VERSION,
+            description="Data from Funpedia with ABOUT annotations based on Funpedia information on an entity's gender.",
+        ),
+        datasets.BuilderConfig(
+            name="image_chat",
+            version=VERSION,
+            description="Data from ImageChat with ABOUT annotations based on image recognition.",
+        ),
+        datasets.BuilderConfig(
+            name="wizard",
+            version=VERSION,
+            description="Data from WizardsOfWikipedia with ABOUT annotations based on Wikipedia information on an entity's gender.",
+        ),
+        datasets.BuilderConfig(
+            name="convai2_inferred",
+            version=VERSION,
+            description="Data from the ConvAI2 challenge with ABOUT annotations inferred by a trined classifier.",
+        ),
+        datasets.BuilderConfig(
+            name="light_inferred",
+            version=VERSION,
+            description="Data from LIGHT with ABOUT annotations inferred by a trined classifier.",
+        ),
+        datasets.BuilderConfig(
+            name="opensubtitles_inferred",
+            version=VERSION,
+            description="Data from OpenSubtitles with ABOUT annotations inferred by a trined classifier.",
+        ),
+        datasets.BuilderConfig(
+            name="yelp_inferred",
+            version=VERSION,
+            description="Data from Yelp reviews with ABOUT annotations inferred by a trined classifier.",
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "new_data"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "new_data"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "gendered_words":  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if (
+            self.config.name == "gendered_words"
+        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "word_masculine": datasets.Value("string"),
@@ -175,7 +216,7 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "name": datasets.Value("string"),
-                    "assigned_gender": datasets.ClassLabel(names=['M', 'F']),
+                    "assigned_gender": datasets.ClassLabel(names=["M", "F"]),
                     "count": datasets.Value("int32"),
                 }
             )
@@ -184,22 +225,22 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                 {
                     "text": datasets.Value("string"),
                     "original": datasets.Value("string"),
-                    "labels": [datasets.ClassLabel(names=[
-                        'ABOUT:female',
-                        'ABOUT:male',
-                        'PARTNER:female',
-                        'PARTNER:male',
-                        'SELF:female',
-                        'SELF:male',
-                    ])],
-                    "class_type": datasets.ClassLabel(names=['about', 'partner', 'self']),
-                    "turker_gender": datasets.ClassLabel(names=[
-                        'man',
-                        'woman',
-                        'nonbinary',
-                        'prefer not to say',
-                        'no answer'
-                    ]),
+                    "labels": [
+                        datasets.ClassLabel(
+                            names=[
+                                "ABOUT:female",
+                                "ABOUT:male",
+                                "PARTNER:female",
+                                "PARTNER:male",
+                                "SELF:female",
+                                "SELF:male",
+                            ]
+                        )
+                    ],
+                    "class_type": datasets.ClassLabel(names=["about", "partner", "self"]),
+                    "turker_gender": datasets.ClassLabel(
+                        names=["man", "woman", "nonbinary", "prefer not to say", "no answer"]
+                    ),
                     "episode_done": datasets.Value("bool_"),
                     "confidence": datasets.Value("string"),
                 }
@@ -210,16 +251,16 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                     "text": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     "persona": datasets.Value("string"),
-                    "gender": datasets.ClassLabel(names=['gender-neutral', 'female', 'male']),
+                    "gender": datasets.ClassLabel(names=["gender-neutral", "female", "male"]),
                 }
             )
         elif self.config.name == "image_chat":
             features = datasets.Features(
                 {
-                    'caption': datasets.Value("string"),
-                    'id': datasets.Value("string"),
-                    'male': datasets.Value("bool_"),
-                    'female': datasets.Value("bool_"),
+                    "caption": datasets.Value("string"),
+                    "id": datasets.Value("string"),
+                    "male": datasets.Value("bool_"),
+                    "female": datasets.Value("bool_"),
                 }
             )
         elif self.config.name == "wizard":
@@ -227,24 +268,24 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                 {
                     "text": datasets.Value("string"),
                     "chosen_topic": datasets.Value("string"),
-                    "gender": datasets.ClassLabel(names=['gender-neutral', 'female', 'male']),
+                    "gender": datasets.ClassLabel(names=["gender-neutral", "female", "male"]),
                 }
             )
         elif self.config.name == "yelp_inferred":
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "binary_label": datasets.ClassLabel(names=['ABOUT:female', 'ABOUT:male']),
+                    "binary_label": datasets.ClassLabel(names=["ABOUT:female", "ABOUT:male"]),
                     "binary_score": datasets.Value("float"),
                 }
             )
-        else: # data with inferred labels
+        else:  # data with inferred labels
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "binary_label": datasets.ClassLabel(names=['ABOUT:female', 'ABOUT:male']),
+                    "binary_label": datasets.ClassLabel(names=["ABOUT:female", "ABOUT:male"]),
                     "binary_score": datasets.Value("float"),
-                    "ternary_label": datasets.ClassLabel(names=['ABOUT:female', 'ABOUT:male', 'ABOUT:gender-neutral']),
+                    "ternary_label": datasets.ClassLabel(names=["ABOUT:female", "ABOUT:male", "ABOUT:gender-neutral"]),
                     "ternary_score": datasets.Value("float"),
                 }
             )
@@ -267,8 +308,8 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "filepath": None,
                         "filepath_pair": (
-                            os.path.join(data_dir, 'word_list/male_word_file.txt'),
-                            os.path.join(data_dir, 'word_list/female_word_file.txt'),
+                            os.path.join(data_dir, "word_list/male_word_file.txt"),
+                            os.path.join(data_dir, "word_list/female_word_file.txt"),
                         ),
                     },
                 )
@@ -325,14 +366,14 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
             with open(filepath_pair[0], encoding="utf-8") as f_m:
                 with open(filepath_pair[1], encoding="utf-8") as f_f:
                     for id_, (l_m, l_f) in enumerate(zip(f_m, f_f)):
-                        yield id_,{
+                        yield id_, {
                             "word_masculine": l_m.strip(),
                             "word_feminine": l_f.strip(),
                         }
         elif self.config.name == "name_genders":
             with open(filepath, encoding="utf-8") as f:
                 for id_, line in enumerate(f):
-                    name, g, ct = line.strip().split(',')
+                    name, g, ct = line.strip().split(",")
                     yield id_, {
                         "name": name,
                         "assigned_gender": g,
@@ -342,7 +383,7 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
             with open(filepath_pair[0], encoding="utf-8") as f_b:
                 if "yelp" in self.config.name:
                     for id_, line_b in enumerate(f_b):
-                        text_b, label_b, score_b = line_b.split('\t')
+                        text_b, label_b, score_b = line_b.split("\t")
                         yield id_, {
                             "text": text_b,
                             "binary_label": label_b,
@@ -351,8 +392,8 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                 else:
                     with open(filepath_pair[1], encoding="utf-8") as f_t:
                         for id_, (line_b, line_t) in enumerate(zip(f_b, f_t)):
-                            text_b, label_b, score_b = line_b.split('\t')
-                            text_t, label_t, score_t = line_t.split('\t')
+                            text_b, label_b, score_b = line_b.split("\t")
+                            text_t, label_t, score_t = line_t.split("\t")
                             yield id_, {
                                 "text": text_b,
                                 "binary_label": label_b,
