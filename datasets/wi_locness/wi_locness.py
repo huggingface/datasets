@@ -161,7 +161,7 @@ submissions and assigned them a CEFR level."""
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        data_dir = Path(dl_manager.download_and_extract(_URL)) / "wi+locness/json"
+        data_dir = Path(dl_manager.download_and_extract(_URL)) / "wi+locness" / "json"
 
         if self.config.name == "wi":
             return [
