@@ -100,7 +100,7 @@ class Alt(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "alt"
+    DEFAULT_CONFIG_NAME = "alt-parallel"
 
     def _info(self):
         if self.config.name.startswith("alt-parallel"):
