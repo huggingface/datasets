@@ -90,12 +90,13 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"train_path": os.path.join(data_dir, "train.csv"), 'split': 'train'},
+                gen_kwargs={"train_path": os.path.join(data_dir, "train.csv"), "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"test_text_path": os.path.join(data_dir, "test.csv"), 'test_labels_path': os.path.join(data_dir, "test_labels.csv"), 'split': 'test'},
+                gen_kwargs={"test_text_path": os.path.join(data_dir, "test.csv"), 
+                            "test_labels_path": os.path.join(data_dir, "test_labels.csv"), "split": "test"},
             ),
         ]
 
