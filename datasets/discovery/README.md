@@ -23,7 +23,7 @@ task_ids:
 ---
 
 
-# Dataset Card for LinguisticProbing
+# Dataset Card for Discovey
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
