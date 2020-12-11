@@ -1,4 +1,36 @@
-[Needs More Information]
+
+---
+annotations_creators: []
+language_creators: []
+languages:
+- en
+licenses: []
+multilinguality:
+- monolingual
+size_categories:
+  Ade_corpos_v2_classificaion:
+  - 10K<n<100K
+  Ade_corpos_v2_drug_ade_relation:
+  - 1K<n<10K
+  Ade_corpos_v2_drug_dosage_relation:
+  - n<1K
+source_datasets:
+- original
+task_categories:
+  Ade_corpos_v2_classificaion:
+    - text-classification
+  Ade_corpos_v2_drug_ade_relation:
+    - structure-prediction
+  Ade_corpos_v2_drug_dosage_relation:
+    - structure-prediction
+task_ids:
+  Ade_corpos_v2_classificaion:
+    - fact-checking
+  Ade_corpos_v2_drug_ade_relation:
+    - coreference-resolution
+  Ade_corpos_v2_drug_dosage_relation:
+    - coreference-resolution
+---
 
 # Dataset Card for [Needs More Information]
 
@@ -63,6 +95,30 @@ English
 
 ### Data Fields
 
+#### Config - `Ade_corpos_v2_classificaion`
+
+- `text` - Input text.
+- `label` - Whether the adverse drug effect(ADE) related or not.
+#### Config - `Ade_corpos_v2_drug_ade_relation`
+
+- `text` - Input text.
+- `drug` - Name of drug.
+- `effect` - Effect caused by the drug.
+- `indexes.drug.start_char` - Start index of `drug` string in text.
+- `indexes.drug.end_char` - End index of `drug` string in text.
+- `indexes.effect.start_char` - Start index of `effect` string in text.
+- `indexes.effect.end_char` - End index of `effect` string in text.
+
+#### Config - `Ade_corpos_v2_drug_dosage_relation`
+
+- `text` - Input text.
+- `drug` - Name of drug.
+- `dosage` - Dosage of the drug.
+- `indexes.drug.start_char` - Start index of `drug` string in text.
+- `indexes.drug.end_char` - End index of `drug` string in text.
+- `indexes.dosage.start_char` - Start index of `dosage` string in text.
+- `indexes.dosage.end_char` - End index of `dosage` string in text.
+
 
 ### Data Splits
 
@@ -124,4 +180,20 @@ Train
 
 ### Citation Information
 
-[Needs More Information]
+```
+@article{GURULINGAPPA2012885,
+title = "Development of a benchmark corpus to support the automatic extraction of drug-related adverse effects from medical case reports",
+journal = "Journal of Biomedical Informatics",
+volume = "45",
+number = "5",
+pages = "885 - 892",
+year = "2012",
+note = "Text Mining and Natural Language Processing in Pharmacogenomics",
+issn = "1532-0464",
+doi = "https://doi.org/10.1016/j.jbi.2012.04.008",
+url = "http://www.sciencedirect.com/science/article/pii/S1532046412000615",
+author = "Harsha Gurulingappa and Abdul Mateen Rajput and Angus Roberts and Juliane Fluck and Martin Hofmann-Apitius and Luca Toldo",
+keywords = "Adverse drug effect, Benchmark corpus, Annotation, Harmonization, Sentence classification",
+abstract = "A significant amount of information about drug-related safety issues such as adverse effects are published in medical case reports that can only be explored by human readers due to their unstructured nature. The work presented here aims at generating a systematically annotated corpus that can support the development and validation of methods for the automatic extraction of drug-related adverse effects from medical case reports. The documents are systematically double annotated in various rounds to ensure consistent annotations. The annotated documents are finally harmonized to generate representative consensus annotations. In order to demonstrate an example use case scenario, the corpus was employed to train and validate models for the classification of informative against the non-informative sentences. A Maximum Entropy classifier trained with simple features and evaluated by 10-fold cross-validation resulted in the F1 score of 0.70 indicating a potential useful application of the corpus."
+}
+```
