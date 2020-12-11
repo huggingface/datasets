@@ -4,31 +4,22 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- bg
-- bs
-- el
-- en
-- hr
-- mk
-- ro
-- sq
-- sr
 - tr
 licenses:
-- cc-by-sa-4.0
+- unknown
 multilinguality:
-- multilingual
+- monolingual
 size_categories:
-- 100K<n<1M
+- 100k<n<1M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text_classification
 task_ids:
-- machine-translation
+- text_classification-other-news-category-classification
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Interpress Turkish News Category Dataset (270K)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -45,8 +36,7 @@ task_ids:
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
+  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -55,30 +45,22 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
-- **Leaderboard:** [More Information Needed]
-- **Point of Contact:** [More Information Needed]
+- **Homepage:** [Interpress](https://www.interpress.com/)
+- **Point of Contact:** [Yavuz Komecoglu](mailto:yavuz.komecoglu@kodiks.com)
 
 ### Dataset Summary
 
-[More Information Needed]
-
-### Supported Tasks and Leaderboards
-
-[More Information Needed]
+Turkish News Category Dataset (270K) is a Turkish news data set consisting of 273601 news in 17 categories, compiled from printed media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company.
 
 ### Languages
 
-[More Information Needed]
+The dataset is based on Turkish.
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+A text classification dataset with 17 different news category. 
 
 ### Data Fields
 
@@ -86,7 +68,11 @@ Here are some examples of questions and facts:
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into a training and testing. The split is organized as the following 
+
+|           | Tain    | Test  |
+|---------- | ------- | ----- |
+|data split | 218,880 | 54,721|
 
 ## Dataset Creation
 
@@ -100,15 +86,16 @@ Here are some examples of questions and facts:
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Downloaded over 270,000 news from the printed media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company. This data collection compiled from print media and internet news is presented in its raw form. For this reason, it is appropriate to use it with careful pre-processing steps regarding various OCR errors and typos.
+
 
 #### Who are the source language producers?
 
-[More Information Needed]
+Turkish printed news sources and online news sites. 
 
 ### Annotations
 
-[More Information Needed]
+The dataset does not contain any additional annotations.
 
 #### Annotation process
 
@@ -124,11 +111,7 @@ Here are some examples of questions and facts:
 
 ## Considerations for Using the Data
 
-### Social Impact of Dataset
-
-[More Information Needed]
-
-### Discussion of Biases
+### Discussion of Social Impact and Biases
 
 [More Information Needed]
 

@@ -1,34 +1,26 @@
 ---
 annotations_creators:
-- found
+- crowdsourced
 language_creators:
-- found
+- expert-generated
 languages:
-- bg
-- bs
-- el
 - en
-- hr
-- mk
-- ro
-- sq
-- sr
-- tr
+- yo
 licenses:
-- cc-by-sa-4.0
+- unknown
 multilinguality:
 - multilingual
 size_categories:
-- 100K<n<1M
+- n<1K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text-scoring
 task_ids:
-- machine-translation
+- semantic-similarity-scoring
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for wordsim-353 in Yorùbá (yoruba_wordsim353)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -55,15 +47,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
-- **Leaderboard:** [More Information Needed]
-- **Point of Contact:** [More Information Needed]
+- **Homepage:** -
+- **Repository:** https://github.com/ajesujoba/YorubaTwi-Embedding
+- **Paper:** https://www.aclweb.org/anthology/2020.lrec-1.335/
+- **Leaderboard:** -
+- **Point of Contact:** Jesujoba Alabi ( jesujobaoluwadara.alabi (at) dfki.de ) and David Adelani ( didelani (at) lsv.uni-saarland.de )
 
 ### Dataset Summary
 
-[More Information Needed]
+A translation of the word pair similarity dataset wordsim-353 to Yorùbá.
 
 ### Supported Tasks and Leaderboards
 
@@ -71,18 +63,21 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Yorùbá (ISO 639-1: yo)
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+An instance consists of a pair of words as well as their similarity. The dataset contains both the original English words (from wordsim-353) as well as their translation to Yorùbá.
 
 ### Data Fields
 
-[More Information Needed]
+- `english1`: the first word of the pair; the original English word
+- `english2`: the second word of the pair; the original English word
+- `yoruba1`: the first word of the pair; translation to Yorùbá
+- `yoruba2`: the second word of the pair; translation to Yorùbá
+- `similarity`: similarity rating according to the English dataset
 
 ### Data Splits
 
@@ -96,8 +91,6 @@ Here are some examples of questions and facts:
 
 ### Source Data
 
-[More Information Needed]
-
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -107,8 +100,6 @@ Here are some examples of questions and facts:
 [More Information Needed]
 
 ### Annotations
-
-[More Information Needed]
 
 #### Annotation process
 

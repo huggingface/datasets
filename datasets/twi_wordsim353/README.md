@@ -1,34 +1,25 @@
 ---
 annotations_creators:
-- found
+- crowdsourced
 language_creators:
-- found
+- expert-generated
 languages:
-- bg
-- bs
-- el
 - en
-- hr
-- mk
-- ro
-- sq
-- sr
-- tr
+- tw
 licenses:
-- cc-by-sa-4.0
+- unknown
 multilinguality:
 - multilingual
 size_categories:
-- 100K<n<1M
-source_datasets:
-- original
+- n<1K
+source_datasets: []
 task_categories:
-- conditional-text-generation
+- text-scoring
 task_ids:
-- machine-translation
+- semantic-similarity-scoring
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Yorùbá Wordsim-353
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -55,15 +46,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
-- **Leaderboard:** [More Information Needed]
-- **Point of Contact:** [More Information Needed]
+- **Homepage:** -https://www.aclweb.org/anthology/2020.lrec-1.335/
+- **Repository:** https://github.com/ajesujoba/YorubaTwi-Embedding
+- **Paper:** https://www.aclweb.org/anthology/2020.lrec-1.335/
+- **Leaderboard:** -
+- **Point of Contact:** [Kwabena Amponsah-Kaakyire](mailto:s8kwampo@stud.uni-saarland.de)
 
 ### Dataset Summary
 
-[More Information Needed]
+A translation of the word pair similarity dataset wordsim-353 to Twi. However, only 274 (out of 353) pairs of words were translated
 
 ### Supported Tasks and Leaderboards
 
@@ -71,22 +62,23 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Twi (ISO 639-1: tw)
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+An instance consists of a pair of words as well as their similarity. The dataset contains both the original English words (from wordsim-353) as well as their translation to Twi.
 
 ### Data Fields
 
-[More Information Needed]
+- `twi1`: the first word of the pair; translation to Twi
+- `twi2`: the second word of the pair; translation to Twi
+- `similarity`: similarity rating according to the English dataset
 
 ### Data Splits
 
-[More Information Needed]
+Only the test data is available
 
 ## Dataset Creation
 
@@ -95,8 +87,6 @@ Here are some examples of questions and facts:
 [More Information Needed]
 
 ### Source Data
-
-[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
@@ -107,8 +97,6 @@ Here are some examples of questions and facts:
 [More Information Needed]
 
 ### Annotations
-
-[More Information Needed]
 
 #### Annotation process
 

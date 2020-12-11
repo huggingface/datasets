@@ -1,34 +1,27 @@
 ---
 annotations_creators:
-- found
+- expert-generated
 language_creators:
 - found
 languages:
-- bg
-- bs
-- el
-- en
-- hr
-- mk
-- ro
-- sq
-- sr
-- tr
+- pt
 licenses:
-- cc-by-sa-4.0
+- unknown
 multilinguality:
-- multilingual
+- monolingual
 size_categories:
-- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text-classification
+- text-scoring
 task_ids:
-- machine-translation
+- natural-language-inference
+- semantic-similarity-scoring
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ASSIN 2
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -37,8 +30,8 @@ task_ids:
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,15 +48,18 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
-- **Leaderboard:** [More Information Needed]
-- **Point of Contact:** [More Information Needed]
+- **Homepage:** [ASSIN 2 homepage](https://sites.google.com/view/assin2)
+- **Repository:** [ASSIN 2 repository](https://sites.google.com/view/assin2)
+- **Paper:** [The ASSIN 2 shared task: a quick overview](https://drive.google.com/file/d/1ft1VU6xiVm-N58dfAp6FHWjQ4IvcXgqp/view)
+- **Point of Contact:** [Livy Real](mailto:livyreal@gmail.com)
 
 ### Dataset Summary
 
-[More Information Needed]
+The ASSIN 2 corpus is composed of rather simple sentences. Following the procedures of SemEval 2014 Task 1.
+The training and validation data are composed, respectively, of 6,500 and 500 sentence pairs in Brazilian Portuguese, 
+annotated for entailment and semantic similarity. Semantic similarity values range from 1 to 5, and text entailment 
+classes are either entailment or none. The test data are composed of approximately 3,000 sentence pairs with the same 
+annotation. All data were manually annotated.
 
 ### Supported Tasks and Leaderboards
 
@@ -71,18 +67,21 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+The language supported is Portuguese.
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 
-[More Information Needed]
+- `sentence_pair_id`: a `int64` feature.
+- `premise`: a `string` feature.
+- `hypothesis`: a `string` feature.
+- `relatedness_score`: a `float32` feature.
+- `entailment_judgment`: a classification label, with possible values including `NONE`, `ENTAILMENT`.
 
 ### Data Splits
 
@@ -96,8 +95,6 @@ Here are some examples of questions and facts:
 
 ### Source Data
 
-[More Information Needed]
-
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -107,8 +104,6 @@ Here are some examples of questions and facts:
 [More Information Needed]
 
 ### Annotations
-
-[More Information Needed]
 
 #### Annotation process
 
@@ -148,4 +143,11 @@ Here are some examples of questions and facts:
 
 ### Citation Information
 
-[More Information Needed]
+@inproceedings{real2020assin,
+  title={The assin 2 shared task: a quick overview},
+  author={Real, Livy and Fonseca, Erick and Oliveira, Hugo Goncalo},
+  booktitle={International Conference on Computational Processing of the Portuguese Language},
+  pages={406--412},
+  year={2020},
+  organization={Springer}
+}
