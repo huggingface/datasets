@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import os
 
 import pandas as pd
@@ -55,12 +54,12 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "comment_text": datasets.Value("string"),
-                    "toxic": datasets.Value("float32"),
-                    "severe_toxic": datasets.Value("float32"),
-                    "obscene": datasets.Value("float32"),
-                    "threat": datasets.Value("float32"),
-                    "insult": datasets.Value("float32"),
-                    "identity_hate": datasets.Value("float32"),
+                    "toxic": datasets.ClassLabel(names=["false", "true"]),
+                    "severe_toxic": datasets.ClassLabel(names=["false", "true"]),
+                    "obscene": datasets.ClassLabel(names=["false", "true"]),
+                    "threat": datasets.ClassLabel(names=["false", "true"]),
+                    "insult": datasets.ClassLabel(names=["false", "true"]),
+                    "identity_hate": datasets.ClassLabel(names=["false", "true"])
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -87,42 +86,39 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
                 )
             )
 
-        test_csv_path = os.path.join(data_dir, "test.csv")
-        test_labels_path = os.path.join(data_dir, "test_labels.csv")
-        output_path = os.path.join(data_dir, "test_expanded.csv")
-
-        df1 = pd.read_csv(test_csv_path)
-        df2 = pd.read_csv(test_labels_path)
-        df3 = df1.merge(df2)
-        df3[df3["toxic"] != -1].to_csv(output_path)
-
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")},
+                gen_kwargs={"train_path": os.path.join(data_dir, "train.csv"), 'split': 'train'},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test_expanded.csv")},
+                gen_kwargs={"test_text_path": os.path.join(data_dir, "test.csv"), 'test_labels_path': os.path.join(data_dir, "test_labels.csv"), 'split': 'test'},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, split='train', train_path=None, test_text_path=None, test_labels_path=None):
         """ Yields examples. """
         # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        with open(filepath, encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
+        if split == 'test':
+            df1 = pd.read_csv(test_text_path)
+            df2 = pd.read_csv(test_labels_path)
+            df3 = df1.merge(df2)
+            df4 = df3[df3["toxic"] != -1]
 
-                example = {}
-                example["comment_text"] = row["comment_text"]
+        elif split == 'train':
+            df4 = pd.read_csv(train_path)
 
-                for label in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]:
-                    example[label] = float(row[label])
+        for _, row in df4.iterrows():
+            example = {}
+            example['comment_text'] = row['comment_text']
 
-                yield (row["id"], example)
+            for label in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]:
+                if row[label] != -1:
+                    example[label] = int(row[label])
+            yield (row['id'], example)

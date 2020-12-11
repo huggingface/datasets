@@ -81,13 +81,14 @@ A data point consists of a comment followed by multiple labels that can be assoc
 
 ### Data Fields
 
-- `comment_text`: a `string` feature.
-- `toxic`: a `float32` feature.
-- `severe_toxic`: a `float32` feature.
-- `obscene`: a `float32` feature.
-- `threat`: a `float32` feature.
-- `insult`: a `float32` feature.
-- `identity_hate`: a `float32` feature.
+- `id`: id of the comment
+- `comment_text`: the text of the comment
+- `toxic`: value of 0(non-toxic) or 1(toxic) classifying the comment
+- `severe_toxic`: value of 0(non-severe_toxic) or 1(severe_toxic) classifying the comment
+- `obscene`: value of 0(non-obscene) or 1(obscene) classifying the comment
+- `threat`: value of 0(non-threat) or 1(threat) classifying the comment
+- `insult`: value of 0(non-insult) or 1(insult) classifying the comment
+- `identity_hate`: value of 0(non-identity_hate) or 1(identity_hate) classifying the comment
 
 ### Data Splits
 
@@ -145,7 +146,7 @@ If words that are associated with swearing, insults or profanity are present in 
 
 ### Licensing Information
 
-The "Toxic Comment Classification" dataset is released under [CC0], with the underlying comment text being governed by Wikipedia\'s [CC-SA-3.0].
+The "Toxic Comment Classification" dataset is released under [CC0], with the underlying comment text being governed by Wikipedia\'s [CC-SA-3.0.
 
 ### Citation Information
 
