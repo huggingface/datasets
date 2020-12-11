@@ -38,7 +38,7 @@ _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/tblock/10kGNAD/master/t
 _TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/tblock/10kGNAD/master/test.csv"
 
 
-class GNAD_10(datasets.GeneratorBasedBuilder):
+class Gnad10(datasets.GeneratorBasedBuilder):
     """10k German news articles for topic classification"""
 
     VERSION = datasets.Version("1.1.0")
