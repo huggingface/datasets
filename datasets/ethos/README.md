@@ -79,7 +79,7 @@ The text in the dataset is in English.
 
 ### Data Instances
 
-A typical data point in the binary version comprises a comment, with a `text` containing the  text and a `label` describing the appearence of hate speech content. In the multilabel version more labels like *violence* (if it incites (1) or not (0) violence), *directed_vs_general* (if it is directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like, *gender*, *race*, *national_origin*, *disability*, *religion* and *sexual_orientation* are appearing.
+A typical data point in the binary version comprises a comment, with a `text` containing the  text and a `label` describing if a comment contains hate speech content (0 - hate-speech) or not (1 - non-hate-speech). In the multilabel version more labels like *violence* (if it incites (1) or not (0) violence), *directed_vs_general* (if it is directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like, *gender*, *race*, *national_origin*, *disability*, *religion* and *sexual_orientation* are appearing.
 
 An example from the binary version:
 ```
@@ -179,11 +179,6 @@ The licensing status of the datasets is [GNU GPLv3](https://choosealicense.com/l
       primaryClass={cs.CL}
 }
 ```
-
-## Contributors on Ethos
-Name | Email
---- | ---
-Uknown Contributors
 
 ## License
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
