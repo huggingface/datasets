@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- sequence-modeling
 task_ids:
 - language-modeling
 ---
@@ -70,6 +70,7 @@ Data Annotation:
 
 ### Supported Tasks and Leaderboards
 
+[More Information Needed]
 
 ### Languages
 
@@ -92,7 +93,7 @@ Sample:
 
 ### Data Instances
 
-
+[More Information Needed]
 
 ### Data Fields
 
@@ -152,6 +153,7 @@ Researchers
 
 ### Dataset Curators
 
+[More Information Needed]
 
 ### Licensing Information
 
