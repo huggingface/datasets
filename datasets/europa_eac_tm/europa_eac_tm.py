@@ -17,9 +17,8 @@
 from __future__ import absolute_import, division, print_function
 
 import os
-from itertools import chain, repeat
-
-from bs4 import BeautifulSoup
+from itertools import repeat
+from xml.etree import ElementTree
 
 import datasets
 
@@ -103,14 +102,16 @@ def _find_sentence(translation, language):
     """Util that returns the sentence in the given language from translation, or None if it is not found
 
     Args:
-        translation: `bs4.Tag`, beautiful soup tag extracted from the translation memory files.
+        translation: `xml.etree.ElementTree.Element`, xml tree element extracted from the translation memory files.
         language: `str`, language of interest e.g. 'en'
 
     Returns: `str` or `None`, can be `None` if the language of interest is not found in the translation
     """
-    tuv_tag = translation.find("tuv", attrs={"xml:lang": language})
-    if tuv_tag is not None:
-        return tuv_tag.seg.string
+    # Retrieve the first <tuv> children of translation having xml:lang tag equal to language
+    namespaces = {"xml": "http://www.w3.org/XML/1998/namespace"}
+    seg_tag = translation.find(path=f".//tuv[@xml:lang='{language}']/seg", namespaces=namespaces)
+    if seg_tag is not None:
+        return seg_tag.text
     return None
 
 
@@ -129,10 +130,7 @@ class EuropaEacTMConfig(datasets.BuilderConfig):
         name = f"{language_pair[0]}2{language_pair[1]}"
         description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
         super(EuropaEacTMConfig, self).__init__(
-            name=name,
-            description=description,
-            version=datasets.Version("1.0.0", ""),
-            **kwargs,
+            name=name, description=description, version=datasets.Version("1.0.0", ""), **kwargs,
         )
         source, target = language_pair
         assert source != target, "Source and target languages must be different}"
@@ -189,37 +187,28 @@ class EuropaEacTM(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self,
-        form_data_file,
-        reference_data_file,
-        source_language,
-        target_language,
+        self, form_data_file, reference_data_file, source_language, target_language,
     ):
+        _id = 0
+        for (sentence_type, filepath) in [
+            (self.FORM_SENTENCE_TYPE, form_data_file),
+            (self.REFERENCE_SENTENCE_TYPE, reference_data_file),
+        ]:
+            # Retrieve <tu></tu> tags in the tmx file
+            xml_element_tree = ElementTree.parse(filepath)
+            xml_body_tag = xml_element_tree.getroot().find("body")
+            assert xml_body_tag is not None, f"Invalid data: <body></body> tag not found in {filepath}"
+            translation_units = xml_body_tag.iter("tu")
 
-        with open(form_data_file, encoding="utf-8") as f_forms:
-            forms_soup = BeautifulSoup(f_forms.read(), "xml")  # Needs bs4 and lxml as dependencies
-
-        with open(reference_data_file, encoding="utf-8") as f_references:
-            references_soup = BeautifulSoup(f_references.read(), "xml")
-
-        # Translations are stored in <tu>...</tu> tags
-        forms_translations = forms_soup.find_all("tu")
-        references_translations = references_soup.find_all("tu")
-
-        # Pairing sentence type with <tu> tags
-        forms_iter = zip(repeat(self.FORM_SENTENCE_TYPE), forms_translations)
-        refrences_iter = zip(repeat(self.REFERENCE_SENTENCE_TYPE), references_translations)
-
-        # _ids may not be contiguous
-        for _id, (sentence_type, translation) in enumerate(chain(forms_iter, refrences_iter)):
-            source_sentence = _find_sentence(translation=translation, language=source_language)
-            target_sentence = _find_sentence(translation=translation, language=target_language)
-            if source_sentence is None or target_sentence is None:
-                continue
-
-            sentence_label = 0 if sentence_type == self.FORM_SENTENCE_TYPE else 1
-
-            yield _id, {
-                "translation": {source_language: source_sentence, target_language: target_sentence},
-                "sentence_type": sentence_label,
-            }
+            # Pair sentence_type and translation_units
+            for sentence_type, translation in zip(repeat(sentence_type), translation_units):
+                source_sentence = _find_sentence(translation=translation, language=source_language)
+                target_sentence = _find_sentence(translation=translation, language=target_language)
+                if source_sentence is None or target_sentence is None:
+                    continue
+                _id += 1
+                sentence_label = 0 if sentence_type == self.FORM_SENTENCE_TYPE else 1
+                yield _id, {
+                    "translation": {source_language: source_sentence, target_language: target_sentence},
+                    "sentence_type": sentence_label,
+                }
