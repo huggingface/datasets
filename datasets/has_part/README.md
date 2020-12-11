@@ -75,10 +75,7 @@ English
 ### Data Instances
 
 [More Information Needed]
-
-### Data Fields
-
-```json
+```
 {'arg1': 'plant',
  'arg2': 'stem',
  'score': 0.9991798414303377,
@@ -86,6 +83,9 @@ English
  'wikipedia_primary_page': ['Plant']}
 
 ```
+
+### Data Fields
+
 - `arg1`, `arg2`: These are the entities of the meronym, i.e., `arg1` _has\_part_ `arg2`
 - `score`: Meronymic score per the procedure described below
 - `synset`: Ontological classification from WordNet for the two entities
