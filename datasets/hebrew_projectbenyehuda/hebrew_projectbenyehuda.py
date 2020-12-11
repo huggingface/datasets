@@ -32,7 +32,7 @@ _STORAGE_API_ROOT_URL = "https://raw.githubusercontent.com/projectbenyehuda/publ
 _METADATA_URL = _ASSET_ROOT_URL + "pseudocatalogue.csv"
 
 
-class HebrewProjectBenYehuda(datasets.GeneratorBasedBuilder):
+class HebrewProjectbenyehuda(datasets.GeneratorBasedBuilder):
     """Project Ben Yehuda dataset - books as plain text extracted from the Project Project Ben Yehuda library"""
 
     VERSION = datasets.Version("0.1.0")

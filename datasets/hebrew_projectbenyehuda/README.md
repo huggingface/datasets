@@ -20,7 +20,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for HebrewProjectBenYehuda
+# Dataset Card for HebrewProjectbenyehuda
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
