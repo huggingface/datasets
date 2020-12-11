@@ -201,7 +201,7 @@ submissions and assigned them a CEFR level."""
             assert False
 
         for level in levels:
-            with open(filepath / f"{level}.{split}.json", "r") as fp:
+            with open(filepath / f"{level}.{split}.json", "r", encoding="utf-8") as fp:
                 for line in fp:
                     o = json.loads(line)
 
