@@ -12,11 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""A Dataset of Peer Reviews (PeerRead): Collection, Insights and NLP Applications"""
 
 from __future__ import absolute_import, division, print_function
 
 import csv
+import glob
 import json
 import os
 
@@ -26,37 +27,33 @@ import datasets
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+@inproceedings{kang18naacl,
+  title = {A Dataset of Peer Reviews (PeerRead): Collection, Insights and NLP Applications},
+  author = {Dongyeop Kang and Waleed Ammar and Bhavana Dalvi and Madeleine van Zuylen and Sebastian Kohlmeier and Eduard Hovy and Roy Schwartz},
+  booktitle = {Meeting of the North American Chapter of the Association for Computational Linguistics (NAACL)},
+  address = {New Orleans, USA},
+  month = {June},
+  url = {https://arxiv.org/abs/1804.09635},
+  year = {2018}
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
+
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
+PearRead is a dataset of scientific peer reviews available to help researchers study this important artifact. The dataset consists of over 14K paper drafts and the corresponding accept/reject decisions in top-tier venues including ACL, NIPS and ICLR, as well as over 10K textual peer reviews written by experts for a subset of the papers. 
 """
 
-# TODO: Add a link to an official homepage for the dataset here
-_HOMEPAGE = ""
+_HOMEPAGE = "https://github.com/allenai/PeerRead"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Creative Commons Public License"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
     "dataset_repo": "https://github.com/allenai/PeerRead/archive/master.zip",
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class NewDataset(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+class PeerRead(datasets.GeneratorBasedBuilder):
+    """A Dataset of Peer Reviews (PeerRead): Collection, Insights and NLP Applications"""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -66,7 +63,6 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         if self.config.name == "parsed_pdfs":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
@@ -100,7 +96,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     }
                 }
             )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        else:
             features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -138,19 +134,11 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                 }
             )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -159,21 +147,18 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         paths = {
             'train': [], 'test': [], 'dev': [],
         }
-        parent_dirpth, conferences, _ = next(os.walk(f'{data_dir}/PeerRead-master/data'))
-        for conference in conferences:
-            dirpth, data_types, _ = next(os.walk(f'{parent_dirpth}/{conference}'))
-            for data_type in data_types:
-                for sub_dirpth, _, fnames in sorted(os.walk(f'{dirpth}/{data_type}/{domain}')):
-                    for fname in sorted(fnames):
-                        paths[data_type].append(f'{sub_dirpth}/{fname}')
-
+        conference_paths = glob.glob(data_dir)
+        for conference_path in conference_paths:
+            for dtype in ['test', 'train', 'dev']:
+                file_paths = glob.glob(f'{conference_path}/{dtype}/{domain}/*.json')
+                for file_path in file_paths:
+                    paths[dtype].append(file_path)
         return paths
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         url = _URLs["dataset_repo"]
-        # data_dir = dl_manager.download_and_extract(url)
-        data_dir = '/Users/vinay/.cache/huggingface/datasets/downloads/extracted/64c0256152da8883e4ab77c89dd07012e40c69f8b514f74411001e4375e94e17'
+        data_dir = dl_manager.download_and_extract(url)
         paths = self._get_paths(
             data_dir=data_dir, domain=self.config.name,
         )
@@ -216,10 +201,11 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         for id_, filepath in enumerate(filepaths):
             print(id_)
-            with open(filepath, errors='replace') as f:
+            with open(filepath, encoding='utf-8', errors='replace') as f:
                 f = f.read().encode('utf-8', 'surrogatepass').decode('utf-8')
                 data = json.loads(f)
-                if id_ == 9999:
+                # Failing from 9999th example
+                if id_ >= 9999:
                     print(filepath)
                 if self.config.name == "parsed_pdfs":
                     temp = {
