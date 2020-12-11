@@ -105,19 +105,26 @@ For subtask-2, i.e Given the original headline and two edited versions, predict 
 
 ### Data Fields
 For subtask-1
-- `id`: Unique identifier of an edited headline
-- `original`: The replaced word(s) identified with the </> tag
-- `edit`: The new word which replaces the word marked in </> tag in the original field
+- `id`: Unique identifier of an edited headline.
+- `original`: The headline with replaced word(s) identified with the </> tag.
+- `edit`: The new word which replaces the word marked in </> tag in the original field.
 - `grades`: 'grades' are the concatenation of all the grades by different annotators. 
-- `mean` is the mean of all the judges scores
+- `mean` is the mean of all the judges scores.
 
 
-For subtask-1
-- `id`: Unique identifier of an edited headline
-- `original`: The replaced word(s) identified with the </> tag
-- `edit`: The new word which replaces the word marked in </> tag in the original field
-- `grades`: 'grades' are the concatenation of all the grades by different annotators. 
-- `mean` is the mean of all the judges scores
+For subtask-2
+- `id`: Unique identifier of an edited headline.
+- `original1`: The original headline with replaced word(s) identified with </> tag.
+- `edit1`: The new word which replaces the word marked in </> tag in the `original1` field.
+- `grades1`: The concatenation of all the grades annotated by different annotators for sentence1. 
+- `meanGrade1` is the mean of all the judges scores for sentence1.
+- `original2`: The original headline with replaced word(s) identified with </> tag.
+- `edit2`: The new word which replaces the word marked in </> tag in the `original1` field.
+- `grades2`: The concatenation of all the grades annotated by different annotators for the sentence2. 
+- `meanGrade2` is the mean of all the judges scores for sentence2.
+- `label` is 1 if sentence1 is more humourous than sentence2,
+           2 if sentence 2 is more humorous than sentence1,
+           0 if both the sentences are equally humorous
 
 ### Data Splits
 |   Sub Task                 | Train   | Dev | Test  | Funlines|

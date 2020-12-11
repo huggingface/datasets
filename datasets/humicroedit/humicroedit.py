@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""This is humorous headline dataset called Humicroedit introduced in the Task-7 of SemEval 2020."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -62,8 +62,6 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="subtask-2", description="This part of the dataset covers the data for subtask-2"),
     ]
 
-    DEFAULT_CONFIG_NAME = "subtask-1"
-
     def _info(self):
         if self.config.name == "subtask-1":
             features = datasets.Features(
@@ -88,34 +86,20 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
                     "edit2": datasets.Value("string"),
                     "grades2": datasets.Value("string"),
                     "meanGrade2": datasets.Value("float"),
-                    "label": datasets.Value("int32"),
+                    "label": datasets.ClassLabel(names=[0, 1, 2]),
                 }
             )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         data_dir = dl_manager.download_and_extract(_URL)
         ROOT = "semeval-2020-task-7-dataset"
 
@@ -153,9 +137,6 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
 
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
