@@ -17,7 +17,9 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+
 import pandas as pd
+
 import datasets
 
 
@@ -48,10 +50,11 @@ fake news researchers.
 
 _HOMEPAGE = "https://dl.acm.org/doi/10.1145/3201064.3201100"
 
-#_LICENSE = ""
+# _LICENSE = ""
 
 _URLs = "https://github.com/jgolbeck/fakenews/raw/master/FakeNewsData.zip"
-    
+
+
 class FakeNewsEnglish(datasets.GeneratorBasedBuilder):
     """Fake News vs Satire: A Dataset and Analysis"""
 
@@ -59,37 +62,37 @@ class FakeNewsEnglish(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-                {
-                    "url_of_article": datasets.Value("string"),
-                    "fake_or_satire": datasets.ClassLabel(names=["Satire", "Fake"]),
-                    "url_of_rebutting_article": datasets.Value("string")
-                }
-            )
+            {
+                "url_of_article": datasets.Value("string"),
+                "fake_or_satire": datasets.ClassLabel(names=["Satire", "Fake"]),
+                "url_of_rebutting_article": datasets.Value("string"),
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=features,  
+            features=features,
             supervised_keys=None,
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
+
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLs) 
+        data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir,"FakeNewsData","Fake News Stories.xlsx")                  
-                }
+                gen_kwargs={"filepath": os.path.join(data_dir, "FakeNewsData", "Fake News Stories.xlsx")},
             )
-        ] 
+        ]
+
     def _generate_examples(self, filepath):
         """ Yields examples. """
         f = pd.read_excel(filepath)
         for id_, row in f.iterrows():
             yield id_, {
-                    "url_of_article": str(row["URL of article"]),
-                    "fake_or_satire": str(row["Fake or Satire?"]),
-                    "url_of_rebutting_article": str(row["URL of rebutting article"])
-                    }                             
+                "url_of_article": str(row["URL of article"]),
+                "fake_or_satire": str(row["Fake or Satire?"]),
+                "url_of_rebutting_article": str(row["URL of rebutting article"]),
+            }
