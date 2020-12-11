@@ -49,7 +49,7 @@ The dataset contains questions about the following topics: medicine, nursing, ps
 
 _HOMEPAGE = "https://aghie.github.io/head-qa/"
 
-_LICENSE = "https://www.mscbs.gob.es/avisoLegal/home.htm"
+_LICENSE = "MIT License"
 
 _URLs = {
     "es": "https://drive.google.com/uc?export=download&id=1dUIqVwvoZAtbX_-z5axCoe97XNcFo1No",
