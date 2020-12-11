@@ -101,7 +101,7 @@ _ANNOTATION_CATEGORIES = [
 ]
 
 
-class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
+class Wmt20MlqeTask3(datasets.GeneratorBasedBuilder):
     """WMT MLQE Shared task 3."""
 
     BUILDER_CONFIGS = [
