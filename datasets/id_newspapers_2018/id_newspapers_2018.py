@@ -106,7 +106,7 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, article_dir, split):
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
-        for path in glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True):
+        for path in sorted(glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True)):
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
                 yield id, {
