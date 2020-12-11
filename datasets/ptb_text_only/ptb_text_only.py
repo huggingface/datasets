@@ -62,18 +62,18 @@ _DEV_FILE = "ptb.valid.txt"
 _TEST_FILE = "ptb.test.txt"
 
 
-class PennTreebankConfig(datasets.BuilderConfig):
-    """BuilderConfig for PennTreebank"""
+class PtbTextOnlyConfig(datasets.BuilderConfig):
+    """BuilderConfig for PtbTextOnly"""
 
     def __init__(self, **kwargs):
-        """BuilderConfig PennTreebank.
+        """BuilderConfig PtbTextOnly.
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(PennTreebankConfig, self).__init__(**kwargs)
+        super(PtbTextOnlyConfig, self).__init__(**kwargs)
 
 
-class PennTreebank(datasets.GeneratorBasedBuilder):
+class PtbTextOnly(datasets.GeneratorBasedBuilder):
     """Load the Penn Treebank dataset."""
 
     VERSION = datasets.Version("1.1.0")
@@ -90,7 +90,7 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        PennTreebankConfig(
+        PtbTextOnlyConfig(
             name="penn_treebank",
             version=VERSION,
             description="Load the Penn Treebank dataset",
@@ -98,7 +98,7 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = datasets.Features({"tokens": datasets.Value("string")})
+        features = datasets.Features({"tokens": datasets.Sequence(datasets.Value("string"))})
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -146,7 +146,7 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
             for line in f:
                 a = line.split()
                 a.append(eos_token)
+                feat = dict()
                 for id_, word in enumerate(a):
-                    feat = dict()
-                    feat["tokens"] = word
+                    feat["tokens"] = feat.get("tokens", []) + [word]
                     yield id_, feat

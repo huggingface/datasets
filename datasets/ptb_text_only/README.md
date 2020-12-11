@@ -13,9 +13,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- sequence-modeling
 task_ids:
-- structure-prediction-other-POS Tagging
+- language-modeling
 
 # Dataset Card for Penn Treebank
 
@@ -55,12 +55,12 @@ task_ids:
 
 ### Dataset Summary
 
-This is the Penn Treebank Project: Release 2 CDROM, featuring a million words of 1989 Wall Street Journal material.
-This corpus has been annotated for part-of-speech (POS) information. In addition, over half of it has been annotated for skeletal syntactic structure. 
+This is the Penn Treebank Project: Release 2 CDROM, featuring a million words of 1989 Wall Street Journal material. 
+The rare words in this version are already replaced with <unk> token.
 
 ### Supported Tasks and Leaderboards
 
-POS Tagging
+Language Modelling
 
 ### Languages
 
@@ -78,7 +78,7 @@ The text in the dataset is in American English
 
 ### Data Splits
 
-[Needs More Information]
+Train Valid Test: 929589 73760 82430 examples
 
 ## Dataset Creation
 
