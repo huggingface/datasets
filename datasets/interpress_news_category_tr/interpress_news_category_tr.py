@@ -90,9 +90,7 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
                             "yasam",
                         ]
                     ),
-                    "categorycode": datasets.features.ClassLabel(
-                        num_classes=17
-                    ),
+                    "categorycode": datasets.features.ClassLabel(num_classes=17),
                     "publishdatetime": datasets.Value("string"),
                 }
             ),
