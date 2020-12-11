@@ -79,6 +79,10 @@ task_ids:
 
 This dataset is a corpus of manually produced translations from english to up to 25 languages, released in 2012 by the European Union's Directorate General for Education and Culture (EAC).
 
+To load a language pair that is not part of the config, just specify the language code as language pair. For example, if you want to translate Czech to Greek:
+
+`dataset = load_dataset("europa_eac_tm", language_pair=("cs", "el"))`
+
 ### Supported Tasks and Leaderboards
 
 - `conditional-text-generation`: the dataset can be used to train a model for `machine-translation`. Machine translation models are usually evaluated using metrics such as [BLEU](https://huggingface.co/metrics/bleu), [ROUGE](https://huggingface.co/metrics/rouge) or [SacreBLEU](https://huggingface.co/metrics/sacrebleu). You can use the [mBART](https://huggingface.co/facebook/mbart-large-cc25) model for this task. This task has active leaderboards which can be found at [https://paperswithcode.com/task/machine-translation](https://paperswithcode.com/task/machine-translation), which usually rank models based on [BLEU score](https://huggingface.co/metrics/bleu).

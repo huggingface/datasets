@@ -68,14 +68,17 @@ _LICENSE = "\
 Creative Commons Attribution 4.0 International(CC BY 4.0) licence \
 © European Union, 1995-2020"
 
+_VERSION = "1.0.0"
+
 _DATA_URL = "https://wt-public.emm4u.eu/Resources/EAC-TM/EAC-TM-all.zip"
 
-_TARGET_LANGUAGES = (
+_AVAILABLE_LANGUAGES = (
     "bg",
     "cs",
     "da",
     "de",
     "el",
+    "en",
     "es",
     "et",
     "fi",
@@ -118,26 +121,29 @@ def _find_sentence(translation, language):
 class EuropaEacTMConfig(datasets.BuilderConfig):
     """BuilderConfig for EuropaEacTM"""
 
-    def __init__(self, language_pair=(None, None), **kwargs):
+    def __init__(self, *args, language_pair=(None, None), **kwargs):
         """BuilderConfig for EuropaEacTM
 
         Args:
             language_pair: pair of languages that will be used for translation. Should
                 contain 2-letter coded strings. First will be used at source and second
-                as target in supervised mode. For example: ("se", "en").
+                as target in supervised mode. For example: ("ro", "en").
             **kwargs: keyword arguments forwarded to super.
         """
         name = f"{language_pair[0]}2{language_pair[1]}"
         description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
         super(EuropaEacTMConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("1.0.0", ""), **kwargs,
+            *args,
+            name=name,
+            description=description,
+            **kwargs,
         )
         source, target = language_pair
         assert source != target, "Source and target languages must be different}"
-        assert source == "en", f"Source language muste be 'en', got {source}"
         assert (
-            target in _TARGET_LANGUAGES
-        ), f"Source language {target} is not supported. Must be one of : {_TARGET_LANGUAGES}"
+            (source in _AVAILABLE_LANGUAGES) and (target in _AVAILABLE_LANGUAGES)
+        ), f"Either source language {source} or target language {target} is not supported. Both must be one of : {_AVAILABLE_LANGUAGES}"
+
         self.language_pair = language_pair
 
 
@@ -145,11 +151,12 @@ class EuropaEacTMConfig(datasets.BuilderConfig):
 class EuropaEacTM(datasets.GeneratorBasedBuilder):
     """European Commission Joint Research Center's EAC Translation Memory"""
 
-    VERSION = datasets.Version("1.0.0")
     FORM_SENTENCE_TYPE = "form_data"
     REFERENCE_SENTENCE_TYPE = "sentence_data"
 
-    BUILDER_CONFIGS = [EuropaEacTMConfig(language_pair=("en", target)) for target in _TARGET_LANGUAGES]
+    # Only a few language pairs are listed here. You can use config to generate all language pairs !
+    BUILDER_CONFIGS = [EuropaEacTMConfig(language_pair=("en", target), version=_VERSION) for target in ["bg", "es", "fr"]]
+    BUILDER_CONFIG_CLASS = EuropaEacTMConfig
 
     def _info(self):
         source, target = self.config.language_pair
