@@ -95,6 +95,7 @@ English
 
 ### Data Fields
 
+
 #### Config - `Ade_corpos_v2_classificaion`
 
 - `text` - Input text.
@@ -122,7 +123,9 @@ English
 
 ### Data Splits
 
-Train
+| Train  |
+| ------ | 
+| 23516  |
 
 ## Dataset Creation
 
