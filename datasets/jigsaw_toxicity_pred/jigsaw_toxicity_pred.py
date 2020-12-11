@@ -59,7 +59,7 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
                     "obscene": datasets.ClassLabel(names=["false", "true"]),
                     "threat": datasets.ClassLabel(names=["false", "true"]),
                     "insult": datasets.ClassLabel(names=["false", "true"]),
-                    "identity_hate": datasets.ClassLabel(names=["false", "true"])
+                    "identity_hate": datasets.ClassLabel(names=["false", "true"]),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -95,31 +95,34 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"test_text_path": os.path.join(data_dir, "test.csv"), 
-                            "test_labels_path": os.path.join(data_dir, "test_labels.csv"), "split": "test"},
+                gen_kwargs={
+                    "test_text_path": os.path.join(data_dir, "test.csv"),
+                    "test_labels_path": os.path.join(data_dir, "test_labels.csv"),
+                    "split": "test",
+                },
             ),
         ]
 
-    def _generate_examples(self, split='train', train_path=None, test_text_path=None, test_labels_path=None):
+    def _generate_examples(self, split="train", train_path=None, test_text_path=None, test_labels_path=None):
         """ Yields examples. """
         # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        if split == 'test':
+        if split == "test":
             df1 = pd.read_csv(test_text_path)
             df2 = pd.read_csv(test_labels_path)
             df3 = df1.merge(df2)
             df4 = df3[df3["toxic"] != -1]
 
-        elif split == 'train':
+        elif split == "train":
             df4 = pd.read_csv(train_path)
 
         for _, row in df4.iterrows():
             example = {}
-            example['comment_text'] = row['comment_text']
+            example["comment_text"] = row["comment_text"]
 
             for label in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]:
                 if row[label] != -1:
                     example[label] = int(row[label])
-            yield (row['id'], example)
+            yield (row["id"], example)
