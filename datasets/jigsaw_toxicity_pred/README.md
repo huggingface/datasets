@@ -146,7 +146,11 @@ If words that are associated with swearing, insults or profanity are present in 
 
 ### Licensing Information
 
+<<<<<<< HEAD
 The "Toxic Comment Classification" dataset is released under [CC0], with the underlying comment text being governed by Wikipedia\'s [CC-SA-3.0.
+=======
+The "Toxic Comment Classification" dataset is released under [CC0], with the underlying comment text being governed by Wikipedia\'s [CC-SA-3.0].
+>>>>>>> 9e3511e127b4c40e38c9316016dd5d17416f0474
 
 ### Citation Information
 
