@@ -1,6 +1,8 @@
 ---
 annotations_creators:
 - no-annotation
+language_creators:
+- found
 languages:
 - ar
 multilinguality:
@@ -11,6 +13,8 @@ source_datasets:
 - original
 task_categories:
 - other
+task_ids:
+- other-other-data-mining
 ---
 
 # Dataset Card for ArCOV19
