@@ -16,10 +16,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+import glob
 import json
 import logging
 import os
-from pathlib import Path
 
 import datasets
 
@@ -106,7 +106,7 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, article_dir, split):
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
-        for path in Path(article_dir).rglob("*.json"):
+        for path in glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True):
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
                 yield id, {
