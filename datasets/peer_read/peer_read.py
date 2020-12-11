@@ -147,7 +147,7 @@ class PeerRead(datasets.GeneratorBasedBuilder):
         paths = {
             'train': [], 'test': [], 'dev': [],
         }
-        conference_paths = glob.glob(data_dir)
+        conference_paths = glob.glob(f'{data_dir}/PeerRead-master/data/*/')
         for conference_path in conference_paths:
             for dtype in ['test', 'train', 'dev']:
                 file_paths = glob.glob(f'{conference_path}/{dtype}/{domain}/*.json')
