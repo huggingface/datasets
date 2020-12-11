@@ -4,16 +4,16 @@ annotations_creators:
 language_creators:
 - found
 languages:
--bg
--bs
--el
--en
--hr
--mk
--ro
--sq
--sr
--tr
+- bg
+- bs
+- el
+- en
+- hr
+- mk
+- ro
+- sq
+- sr
+- tr
 licenses:
 - cc-by-sa-4.0
 multilinguality:
