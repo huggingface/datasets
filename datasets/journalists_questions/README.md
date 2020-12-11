@@ -1,13 +1,22 @@
 ---
-annotations_creators: [crowdsourced]
-language_creators: [other]
-languages: [ar]
-licenses: [unknown]
-multilinguality: [monolingual]
-size_categories: [1k<n<10K]
-source_datasets: [original]
-task_categories: [text-classification]
-task_ids: [text-classification-other-question-identification]
+annotations_creators:
+- crowdsourced
+language_creators:
+- other
+languages:
+- ar
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1k<n<10K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- text-classification-other-question-identification
 ---
 
 # Dataset Card for journalists_questions
