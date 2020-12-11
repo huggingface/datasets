@@ -54,7 +54,7 @@ task_ids:
 
 ### Dataset Summary
 
-Please note that the config has only one example. You can get start and end dates from here: https://github.com/microsoft/BingCoronavirusQuerySet/tree/master/data/2020
+Please note that you can specify the start and end date of the data. You can get start and end dates from here: https://github.com/microsoft/BingCoronavirusQuerySet/tree/master/data/2020
 
 example:
 
