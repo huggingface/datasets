@@ -1,9 +1,25 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- expert-generated
+language_creators:
+- found
+languages:
+- pt
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- structure-prediction
+task_ids:
+- part-of-speech-tagging
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Mac-Morpho
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -30,11 +46,10 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Mac-Morpho homepage](http://nilc.icmc.usp.br/macmorpho/)
+- **Repository:** [Mac-Morpho repository](http://nilc.icmc.usp.br/macmorpho/)
+- **Paper:** [Evaluating word embeddings and a revised corpus for part-of-speech tagging in Portuguese](https://journal-bcs.springeropen.com/articles/10.1186/s13173-014-0020-x)
+- **Point of Contact:** [Erick R Fonseca](mailto:erickrfonseca@gmail.com)
 
 ### Dataset Summary
 
