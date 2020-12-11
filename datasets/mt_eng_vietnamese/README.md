@@ -1,21 +1,23 @@
-
 ---
-task_categories:
-- conditional-text-generation
+annotations_creators:
+- found
+language_creators:
+- found
 multilinguality:
 - multilingual
-task_ids:
-- machine-translation
 languages:
 - en
 - vi
-annotations_creators: []
-language_creators: []
-licenses: []
+licenses:
+- unknown
 size_categories:
 - 100K<n<1M
-source_datasets: []
-
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for mt_eng_vietnamese
@@ -73,29 +75,14 @@ English, Vietnamese
 
 ### Data Instances
 
-{
-  "translation": {
-    "feature_type": "Translation",
-    "dtype": "string",
-    "languages": [
-      "vi",
-      "en"
-    ]
-  }
-}
+[More Information Needed]
 
 ### Data Fields
 
-{
-  "translation": {
-    "feature_type": "Translation",
-    "dtype": "string",
-    "languages": [
-      "vi",
-      "en"
-    ]
-  }
-}
+- translation:
+  - en: text in english
+  - vi: text in vietnamese
+
 
 ### Data Splits
 
@@ -105,56 +92,56 @@ train, dev, test
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+[More Information Needed]
 
 ### Licensing Information
 
-[Needs More Information]
+[More Information Needed]
 
 ### Citation Information
 
-[Needs More Information]
+[More Information Needed]
