@@ -1,4 +1,17 @@
 # coding=utf-8
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 # Lint as: python3
 """Turkish News Category Dataset (270K) - Interpress Media Monitoring Company"""
 
@@ -16,7 +29,7 @@ It is a Turkish news data set consisting of 273601 news in 17 categories, compil
 """
 
 _CITATION = ""
-
+_LICENSE = "unknown"
 _HOMEPAGE = "https://www.interpress.com/"
 _DOWNLOAD_URL = "https://www.interpress.com/downloads/interpress_news_category_tr_270k.zip"
 _DATASET_URLS = {
@@ -78,7 +91,7 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
                         ]
                     ),
                     "categorycode": datasets.features.ClassLabel(
-                        names=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+                        num_classes=17
                     ),
                     "publishdatetime": datasets.Value("string"),
                 }
