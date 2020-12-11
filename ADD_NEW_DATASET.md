@@ -250,10 +250,10 @@ Here are the step to open the Pull-Request on the main repo.
 	
 	- If you haven't pushed your branch yet, you can rebase on upstream/master:
 
-          ```bash
-          git fetch upstream
+	  ```bash
+	  git fetch upstream
 	  git rebase upstream/master
-          ```
+	  ```
 	  
 	- If you have already pushed your branch, do not rebase but merge instead:
 	
