@@ -55,18 +55,51 @@ _URLs = {
     "banking": "https://minio.clarin-pl.eu/semrel/corpora/ner_export_json/ner_banking_export.json",
 }
 
+_CATEGORIES = {
+    "tele": "telecommunications",
+    "electro": "electronics",
+    "cosmetics": "cosmetics",
+    "banking": "banking",
+}
+_ALL_CATEGORIES = "all"
+_VERSION = "1.1.0"
+
+
+class BprecConfig(datasets.BuilderConfig):
+    """BuilderConfig for BprecConfig."""
+
+    def __init__(self, categories=None, **kwargs):
+        super(BprecConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs),
+        self.categories = categories
+
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Bprec(datasets.GeneratorBasedBuilder):
     """Brand-Product Relation Extraction Corpora in Polish"""
 
-    VERSION = datasets.Version("1.1.0")
+    BUILDER_CONFIGS = [
+        BprecConfig(
+            name=_ALL_CATEGORIES,
+            categories=_CATEGORIES,
+            description="A collection of Polish language texts annotated to recognize brand-product relations",
+        )
+    ] + [
+        BprecConfig(
+            name=cat,
+            categories=[cat],
+            description=f"{_CATEGORIES[cat]} examples from a collection of Polish language texts annotated to recognize brand-product relations",
+        )
+        for cat in _CATEGORIES
+    ]
+    BUILDER_CONFIG_CLASS = BprecConfig
+    DEFAULT_CONFIG_NAME = _ALL_CATEGORIES
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         features = datasets.Features(
             {
                 "id": datasets.Value("int32"),
+                "category": datasets.Value("string"),
                 "text": datasets.Value("string"),
                 "ner": datasets.features.Sequence(
                     {
@@ -137,13 +170,12 @@ class Bprec(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        downloaded_files = dl_manager.download_and_extract(_URLs)
+        _my_urls = [_URLs[cat] for cat in self.config.categories]
+
+        downloaded_files = dl_manager.download_and_extract(_my_urls)
+
         return [
-            datasets.SplitGenerator(name="tele", gen_kwargs={"filedirs": [downloaded_files["tele"]]}),
-            datasets.SplitGenerator(name="electro", gen_kwargs={"filedirs": [downloaded_files["electro"]]}),
-            datasets.SplitGenerator(name="cosmetics", gen_kwargs={"filedirs": [downloaded_files["cosmetics"]]}),
-            datasets.SplitGenerator(name="banking", gen_kwargs={"filedirs": [downloaded_files["banking"]]}),
-            # datasets.SplitGenerator(name="all", gen_kwargs={"filedirs": [downloaded_files[x] for x in list(_URLs.keys())]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filedirs": downloaded_files}),
         ]
 
     def _generate_examples(self, filedirs, split="tele"):
@@ -151,8 +183,9 @@ class Bprec(datasets.GeneratorBasedBuilder):
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-        for filepath in filedirs:
-            print(filepath)
+        cats = [cat for cat in self.config.categories]
+        for cat, filepath in zip(cats, filedirs):
+            # print(cat, filepath)
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for key in data.keys():
@@ -160,9 +193,9 @@ class Bprec(datasets.GeneratorBasedBuilder):
                     id_ = example.get("id")
                     text = example.get("text")
                     ner = example.get("ner")
-
                     yield id_, {
                         "id": id_,
+                        "category": cat,
                         "text": text,
                         "ner": ner,
                     }
