@@ -53,7 +53,7 @@ class JournalistsQuestions(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "tweet_id": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["yes", "no"]),
+                    "label": datasets.features.ClassLabel(names=["no", "yes"]),
                     "label_confidence": datasets.Value("float"),
                 }
             ),
