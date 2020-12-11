@@ -62,6 +62,9 @@ example:
 load_dataset("datasets/bing_coronavirus_query_set", queries_by="state", start_date="2020-09-01", end_date="2020-09-30")
 ```
 
+You can also load the data by country by using `queries_by="country"`.
+
+
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
