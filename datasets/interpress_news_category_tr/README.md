@@ -86,8 +86,7 @@ The data is split into a training and testing. The split is organized as the fol
 
 #### Initial Data Collection and Normalization
 
-Downloaded over 270,000 news from the
-printed media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company. This data collection compiled from print media and internet news is presented in its raw form. For this reason, it is appropriate to use it with careful pre-processing steps regarding various OCR errors and typos.
+Downloaded over 270,000 news from the printed media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company. This data collection compiled from print media and internet news is presented in its raw form. For this reason, it is appropriate to use it with careful pre-processing steps regarding various OCR errors and typos.
 
 
 #### Who are the source language producers?
