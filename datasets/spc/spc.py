@@ -49,7 +49,6 @@ _VERSION = "1.0.0"
 _BASE_NAME = "SPC.{}.{}"
 _BASE_URL = "https://object.pouta.csc.fi/OPUS-SPC/v1/moses/{}-{}.txt.zip"
 
-# Please note that only few pairs are shown here. You can use config to generate data for all language pairs
 _LANGUAGE_PAIRS = [
     ("af", "en"),
     ("el", "en"),
