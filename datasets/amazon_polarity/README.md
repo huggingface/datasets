@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -16,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+---
 
 # Dataset Card for amazon_polarity
 
