@@ -131,15 +131,9 @@ class PennTreebank(datasets.GeneratorBasedBuilder):
         }
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"]}
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"]}
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"]}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"]}),
         ]
 
     def _generate_examples(self, filepath):
