@@ -1,16 +1,29 @@
 ---
-annotations_creators: [crowdsourced, expert-generated]
-language_creators: [found, other]
-languages: [en]
-licenses: [agpl-3.0-or-later]
-multilinguality: [monolingual]
-size_categories: [n<1K]
-source_datasets: [original]
-task_categories: [text-classification]
+annotations_creators:
+- crowdsourced
+- expert-generated
+language_creators:
+- found, other
+languages:
+- en
+licenses:
+- agpl-3.0-or-later
+multilinguality:
+- monolingual
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories:
+- text-classification
 task_ids:
-- binary: [sentiment-classification, text-classification-other-Hate Speech Detection]
-- multilabel: [multi-label-classification, sentiment-classification, text-classification-other-Hate
-      Speech Detection]
+  binary:
+- sentiment-classification
+- text-classification-other-Hate Speech Detection
+  multilabel:
+- multi-label-classification
+- sentiment-classification
+- text-classification-other-Hate Speech Detection
 ---
 
 # Dataset Card for Ethos
