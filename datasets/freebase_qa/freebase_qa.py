@@ -16,12 +16,9 @@
 
 
 import json
-
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @article{jiang2019freebaseqa,
   title={FreebaseQA: A New Factoid QA Dataset Matching Trivia-Style Question-Answer Pairs with Freebase},
@@ -116,26 +113,27 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             dataset = json.load(f)
 
-            for data in dataset["Questions"]:
-                id_ = data["Question-ID"]
-                parses = []
-                for item in data["Parses"]:
-                    answers = [answer for answer in item["Answers"]]
+            if "Questions" in dataset:
+                for data in dataset["Questions"]:
+                    id_ = data["Question-ID"]
+                    parses = []
+                    for item in data["Parses"]:
+                        answers = [answer for answer in item["Answers"]]
 
-                    parses.append(
-                        {
-                            "Parse-Id": item["Parse-Id"],
-                            "PotentialTopicEntityMention": item["PotentialTopicEntityMention"],
-                            "TopicEntityName": item["TopicEntityName"],
-                            "TopicEntityMid": item["TopicEntityMid"],
-                            "InferentialChain": item["InferentialChain"],
-                            "Answers": answers
-                        }
-                    )
+                        parses.append(
+                            {
+                                "Parse-Id": item["Parse-Id"],
+                                "PotentialTopicEntityMention": item["PotentialTopicEntityMention"],
+                                "TopicEntityName": item["TopicEntityName"],
+                                "TopicEntityMid": item["TopicEntityMid"],
+                                "InferentialChain": item["InferentialChain"],
+                                "Answers": answers,
+                            },
+                        )
 
-                yield id_, {
-                    "Question-ID": data["Question-ID"],
-                    "RawQuestion": data["RawQuestion"],
-                    "ProcessedQuestion": data["ProcessedQuestion"],
-                    "Parses": parses
-                }
+                    yield id_, {
+                        "Question-ID": data["Question-ID"],
+                        "RawQuestion": data["RawQuestion"],
+                        "ProcessedQuestion": data["ProcessedQuestion"],
+                        "Parses": parses
+                    }
