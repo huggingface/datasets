@@ -140,8 +140,8 @@ class EuropaEacTMConfig(datasets.BuilderConfig):
         )
         source, target = language_pair
         assert source != target, "Source and target languages must be different}"
-        assert (
-            (source in _AVAILABLE_LANGUAGES) and (target in _AVAILABLE_LANGUAGES)
+        assert (source in _AVAILABLE_LANGUAGES) and (
+            target in _AVAILABLE_LANGUAGES
         ), f"Either source language {source} or target language {target} is not supported. Both must be one of : {_AVAILABLE_LANGUAGES}"
 
         self.language_pair = language_pair
@@ -155,7 +155,9 @@ class EuropaEacTM(datasets.GeneratorBasedBuilder):
     REFERENCE_SENTENCE_TYPE = "sentence_data"
 
     # Only a few language pairs are listed here. You can use config to generate all language pairs !
-    BUILDER_CONFIGS = [EuropaEacTMConfig(language_pair=("en", target), version=_VERSION) for target in ["bg", "es", "fr"]]
+    BUILDER_CONFIGS = [
+        EuropaEacTMConfig(language_pair=("en", target), version=_VERSION) for target in ["bg", "es", "fr"]
+    ]
     BUILDER_CONFIG_CLASS = EuropaEacTMConfig
 
     def _info(self):
@@ -194,7 +196,11 @@ class EuropaEacTM(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self, form_data_file, reference_data_file, source_language, target_language,
+        self,
+        form_data_file,
+        reference_data_file,
+        source_language,
+        target_language,
     ):
         _id = 0
         for (sentence_type, filepath) in [
