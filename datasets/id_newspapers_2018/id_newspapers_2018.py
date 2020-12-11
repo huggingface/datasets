@@ -46,7 +46,7 @@ _HOMEPAGE = "https://github.com/feryandi/Dataset-Artikel"
 
 _LICENSE = ""
 
-_URLs = ["http://cloud.uncool.ai/index.php/s/kF83dQHfGeS2LX2/download"]
+_URLs = ["http://cloud.uncool.ai/index.php/s/Do8ngbi9ZYjaLkf/download"]
 
 
 class IdNewspapers2018Config(datasets.BuilderConfig):
@@ -97,7 +97,7 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "Project: Artikel"),
+                    "article_dir": os.path.join(data_dir, "newspapers"),
                     "split": "train",
                 },
             )
