@@ -23,7 +23,7 @@ task_ids:
 ---
 
 
-# Dataset Card for Discovey
+# Dataset Card for Discovery
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
