@@ -64,7 +64,7 @@ This dataset is a new knowledge-base (KB) of hasPart relationships, extracted fr
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+Text Classification / Scoring - meronyms (e.g., `plant` has part `stem`)
 
 ### Languages
 
