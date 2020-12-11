@@ -68,25 +68,6 @@ task_ids:
 
 ### Data Instances
 
-```
-DatasetDict({
-    train: Dataset({
-        features: ['id', 'tokens', 'labels'],
-        num_rows: 14006
-    })
-    validation: Dataset({
-        features: ['id', 'tokens', 'labels'],
-        num_rows: 1717
-    })
-    test: Dataset({
-        features: ['id', 'tokens', 'labels'],
-        num_rows: 1750
-    })
-})
-```
-
-### Data Fields
-
 A sample training set is provided below
 
 ```
@@ -113,6 +94,11 @@ A sample training set is provided below
 ```
 
 Please note that in test set sentence only id, tokens are available. labels can be ignored for test set.
+Labels in the test set are all `O`
+
+### Data Fields
+
+[More Information Needed]
 
 ### Data Splits
 
