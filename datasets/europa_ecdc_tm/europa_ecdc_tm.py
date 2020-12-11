@@ -18,8 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 import os
-
-from bs4 import BeautifulSoup
+from xml.etree import ElementTree
 
 import datasets
 
@@ -64,15 +63,18 @@ _LICENSE = "\
 Creative Commons Attribution 4.0 International(CC BY 4.0) licence \
 Copyright © EU/ECDC, 1995-2020"
 
+_VERSION = "1.0.0"
+
 _DATA_URL = "http://optima.jrc.it/Resources/ECDC-TM/ECDC-TM.zip"
 
-_TARGET_LANGUAGES = (
+_AVAILABLE_LANGUAGES = (
     "bg",
     "cs",
     "da",
     "de",
     "el",
     "es",
+    "en",
     "et",
     "fi",
     "fr",
@@ -96,21 +98,25 @@ _TARGET_LANGUAGES = (
 
 def _find_sentence(translation, language):
     """Util that returns the sentence in the given language from translation, or None if it is not found
+
     Args:
-        translation: `bs4.Tag`, beautiful soup tag extracted from the translation memory files.
+        translation: `xml.etree.ElementTree.Element`, xml tree element extracted from the translation memory files.
         language: `str`, language of interest e.g. 'en'
+
     Returns: `str` or `None`, can be `None` if the language of interest is not found in the translation
     """
-    tuv_tag = translation.find("tuv", attrs={"xml:lang": language.upper()})
-    if tuv_tag is not None:
-        return tuv_tag.seg.string
+    # Retrieve the first <tuv> children of translation having xml:lang tag equal to language
+    namespaces = {"xml": "http://www.w3.org/XML/1998/namespace"}
+    seg_tag = translation.find(path=f".//tuv[@xml:lang='{language.upper()}']/seg", namespaces=namespaces)
+    if seg_tag is not None:
+        return seg_tag.text
     return None
 
 
 class EuropaEcdcTMConfig(datasets.BuilderConfig):
     """BuilderConfig for EuropaEcdcTM"""
 
-    def __init__(self, language_pair=(None, None), **kwargs):
+    def __init__(self, *args, language_pair=(None, None), **kwargs):
         """BuilderConfig for EuropaEcdcTM
         Args:
             language_pair: pair of languages that will be used for translation. Should
@@ -121,17 +127,16 @@ class EuropaEcdcTMConfig(datasets.BuilderConfig):
         name = f"{language_pair[0]}2{language_pair[1]}"
         description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
         super(EuropaEcdcTMConfig, self).__init__(
+            *args,
             name=name,
             description=description,
-            version=datasets.Version("1.0.0", ""),
             **kwargs,
         )
         source, target = language_pair
         assert source != target, "Source and target languages must be different}"
-        assert source == "en", f"Source language muste be 'en', got {source}"
-        assert (
-            target in _TARGET_LANGUAGES
-        ), f"Source language {target} is not supported. Must be one of : {_TARGET_LANGUAGES}"
+        assert (source in _AVAILABLE_LANGUAGES) and (
+            target in _AVAILABLE_LANGUAGES
+        ), f"Either source language {source} or target language {target} is not supported. Both must be one of : {_AVAILABLE_LANGUAGES}"
         self.language_pair = language_pair
 
 
@@ -139,8 +144,10 @@ class EuropaEcdcTMConfig(datasets.BuilderConfig):
 class EuropaEcdcTM(datasets.GeneratorBasedBuilder):
     """European Center for Disease Control and Prevention Translation Memory"""
 
-    VERSION = datasets.Version("1.0.0")
-    BUILDER_CONFIGS = [EuropaEcdcTMConfig(language_pair=("en", target)) for target in _TARGET_LANGUAGES]
+    BUILDER_CONFIGS = [
+        EuropaEcdcTMConfig(language_pair=("en", target), version=_VERSION) for target in ["bg", "fr", "sl"]
+    ]
+    BUILDER_CONFIG_CLASS = EuropaEcdcTMConfig
 
     def _info(self):
         source, target = self.config.language_pair
@@ -179,14 +186,15 @@ class EuropaEcdcTM(datasets.GeneratorBasedBuilder):
         target_language,
     ):
         logging.info(f"⏳ Generating examples from = {filepath}")
-        with open(filepath, encoding="utf-8") as f:
-            translation_soup = BeautifulSoup(f.read(), "xml")  # Needs bs4 and lxml as dependencies
+        xml_element_tree = ElementTree.parse(filepath)
+        xml_body_tag = xml_element_tree.getroot().find("body")
+        assert xml_body_tag is not None, f"Invalid data: <body></body> tag not found in {filepath}"
 
         # Translations are stored in <tu>...</tu> tags
-        translations = translation_soup.find_all("tu")
+        translation_units = xml_body_tag.iter("tu")
 
         # _ids may not be contiguous
-        for _id, translation in enumerate(translations):
+        for _id, translation in enumerate(translation_units):
             source_sentence = _find_sentence(translation=translation, language=source_language)
             target_sentence = _find_sentence(translation=translation, language=target_language)
             if source_sentence is None or target_sentence is None:
