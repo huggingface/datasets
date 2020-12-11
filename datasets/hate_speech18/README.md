@@ -139,6 +139,7 @@ English
 
 ### Citation Information
 
+```
 @inproceedings{gibert2018hate,
     title = "{Hate Speech Dataset from a White Supremacy Forum}",
     author = "de Gibert, Ona  and
@@ -154,3 +155,4 @@ English
     doi = "10.18653/v1/W18-5102",
     pages = "11--20",
 }
+```
