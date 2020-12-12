@@ -249,7 +249,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             news websites. The dataset consists of around 8000 sentences with 26 POS tags. The POS tag labels follow the
             Indonesian Association of Computational Linguistics (INACL) POS Tagging Convention."""
             ),
-            text_features={"sentence": "sentence"},
+            text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=[
                 "B-PPO",
@@ -279,7 +279,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                 "B-PRI",
                 "B-VBE",
             ],
-            label_column="seq_label",
+            label_column="pos_tags",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/valid_preprocess.txt",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/posp_pos-prosa/test_preprocess_masked_label.txt",
@@ -303,7 +303,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             Project. In this dataset, each word is tagged by one of 23 POS tag classes. Data splitting used in this benchmark follows
             the experimental setting used by Kurniawan and Aji (2018)"""
             ),
-            text_features={"sentence": "sentence"},
+            text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=[
                 "B-PR",
@@ -348,7 +348,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                 "I-CC",
                 "B-X",
             ],
-            label_column="seq_label",
+            label_column="pos_tags",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/valid_preprocess.txt",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/bapos_pos-idn/test_preprocess_masked_label.txt",
@@ -381,10 +381,10 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             and sentiment words representing the opinion of the reviewer on the corresponding aspect. The labels use
             Inside-Outside-Beginning (IOB) tagging representation with two kinds of tags, aspect and sentiment."""
             ),
-            text_features={"sentence": "sentece"},
+            text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["I-SENTIMENT", "O", "I-ASPECT", "B-SENTIMENT", "B-ASPECT"],
-            label_column="seq_label",
+            label_column="post_tags",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/valid_preprocess.txt",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/test_preprocess_masked_label.txt",
@@ -414,7 +414,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             important phrases can be located at different positions. The dataset follows the IOB chunking format,
             which represents the position of the keyphrase."""
             ),
-            text_features={"sentence": "sentence"},
+            text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["O", "B", "I"],
             label_column="seq_label",
@@ -441,10 +441,10 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             The dataset consists of three kinds of named entity tags, PERSON (name of person), PLACE (name of location), and
             ORGANIZATION (name of organization)."""
             ),
-            text_features={"sentence": "sentence"},
+            text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["I-PERSON", "B-ORGANISATION", "I-ORGANISATION", "B-PLACE", "I-PLACE", "O", "B-PERSON"],
-            label_column="seq_label",
+            label_column="ner_tags",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nergrit_ner-grit/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nergrit_ner-grit/valid_preprocess.txt",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nergrit_ner-grit/test_preprocess_masked_label.txt",
@@ -466,7 +466,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             There are five labels available in this dataset, PER (name of person), LOC (name of location), IND (name of product or brand),
             EVT (name of the event), and FNB (name of food and beverage). The NERP dataset uses the IOB chunking format."""
             ),
-            text_features={"sentence": "sentence"},
+            text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=[
                 "I-PPL",
@@ -481,7 +481,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                 "O",
                 "I-FNB",
             ],
-            label_column="seq_label",
+            label_column="ner_tags",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/valid_preprocess.txt",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/nerp_ner-prosa/test_preprocess_masked_label.txt",
@@ -527,9 +527,11 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        sentence_features = ["posp", "bapos", "terma", "keps", "nergrit", "nerp", "facqa"]
+        sentence_features = ["terma", "facqa"]
+        ner_ = ["nergrit", "nerp"]
+        pos_ = ["posp", "bapos"]
 
-        if self.config.name in sentence_features:
+        if self.config.name in (sentence_features + ner_ + pos_):
             features = {
                 text_feature: datasets.Sequence(datasets.Value("string"))
                 for text_feature in six.iterkeys(self.config.text_features)
@@ -542,6 +544,14 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         if self.config.label_classes:
             if self.config.name in sentence_features:
                 features["seq_label"] = datasets.Sequence(
+                    datasets.features.ClassLabel(names=self.config.label_classes)
+                )
+            elif self.config.name in ner_:
+                features["ner_tags"] = datasets.Sequence(
+                    datasets.features.ClassLabel(names=self.config.label_classes)
+                )
+            elif self.config.name in pos_:
+                features["pos_tags"] = datasets.Sequence(
                     datasets.features.ClassLabel(names=self.config.label_classes)
                 )
             elif self.config.name == "casa" or self.config.name == "hoasa":
