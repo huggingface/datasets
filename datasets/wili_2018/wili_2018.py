@@ -17,10 +17,14 @@
 
 from __future__ import absolute_import, division, print_function
 
+import csv
+
 import pandas as pd
 
 import datasets
 
+
+csv.field_size_limit(500000)
 
 _CITATION = """\
 @dataset{thoma_martin_2018_841984,
