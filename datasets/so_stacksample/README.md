@@ -83,7 +83,7 @@ For Answers:
     "feature_type": "Value",
     "dtype": "int32"
   },
-  "OwnerUserId": { # The UserID of the person who generated the Answer on StackOverflow. -99 means NA
+  "OwnerUserId": { # The UserID of the person who generated the Answer on StackOverflow. -1 means NA
     "feature_type": "Value",
     "dtype": "int32"
   },
@@ -115,7 +115,7 @@ For Questions:
     "feature_type": "Value",
     "dtype": "int32"
   },
-  "OwnerUserId": { # The UserID of the person who generated the Question on StackOverflow. -99 means NA.
+  "OwnerUserId": { # The UserID of the person who generated the Question on StackOverflow. -1 means NA.
     "feature_type": "Value",
     "dtype": "int32"
   },
@@ -162,7 +162,7 @@ For Tags:
 
 For Answers:
 -`Id`: Unique ID given to the Answer post
-`OwnerUserId`: The UserID of the person who generated the Answer on StackOverflow. -99 means NA
+`OwnerUserId`: The UserID of the person who generated the Answer on StackOverflow. -1 means NA
 "`CreationDate`": The date the Answer was generated. Follows standard datetime format.
 "`ParentId`": Refers to the `Id` of the Question the Answer belong to.
 "`Score`": The sum of up and down votes given to the Answer. Can be negative.
@@ -170,7 +170,7 @@ For Answers:
 
 For Questions:
 - `Id`: Unique ID given to the Question post.
-- `OwnerUserId`: The UserID of the person who generated the Question on StackOverflow. -99 means NA.
+- `OwnerUserId`: The UserID of the person who generated the Question on StackOverflow. -1 means NA.
 - `CreationDate`: The date the Question was generated. Follows standard datetime format.
 - `ClosedDate`: The date the Question was generated. Follows standard datetime format. Can be NA.
 - `Score`: The sum of up and down votes given to the Question. Can be negative.

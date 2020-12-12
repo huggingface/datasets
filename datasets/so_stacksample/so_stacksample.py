@@ -151,7 +151,7 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
                 if split == "Answers":
                     id_, owner_user_id, creation_date, parent_id, score, body = row
                     if owner_user_id == "NA":
-                        owner_user_id = -99  # Set N/A's to default -99 value
+                        owner_user_id = -1  # Set N/A's to default -1 value
                     yield row_id, {
                         "Id": id_,
                         "OwnerUserId": owner_user_id,
@@ -163,7 +163,7 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
                 elif split == "Questions":
                     id_, owner_user_id, creation_date, closed_date, score, title, body = row
                     if owner_user_id == "NA":
-                        owner_user_id = -99  # Set N/A's to default -99 value
+                        owner_user_id = -1  # Set N/A's to default -1 value
                     yield row_id, {
                         "Id": id_,
                         "OwnerUserId": owner_user_id,
