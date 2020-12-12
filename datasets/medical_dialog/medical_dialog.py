@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Medical Dialog dataset in english" and chinese"""
+"""Medical Dialog dataset in english and chinese"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -66,11 +66,11 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
     datasets.load_dataset(...) option.
     The <path/to/folder> can e.g. be "/Downloads/Medical-Dialogue-Dataset-English".
     The data can then be loaded using the below command:\
-         `datasets.load_dataset("medical_dialog", data_dir="/Downloads/Medical-Dialogue-Dataset-English")`.
+         `datasets.load_dataset("medical_dialog", name="en", data_dir="/Downloads/Medical-Dialogue-Dataset-English")`.
 
-    \n  For Chinese:\nFollow the above process. The download link is https://drive.google.com/drive/folders/1r09_i8nJ9c1nliXVGXwSqRYqklcHd9e2
+    \n  For Chinese:\nFollow the above process. Change the 'name' to 'zh'.The download link is https://drive.google.com/drive/folders/1r09_i8nJ9c1nliXVGXwSqRYqklcHd9e2
 
-    **NOTE:**
+    **NOTE**
     - A caution while downloading from drive. It is better to download single files since creating a zip might not include files <500 MB. This has been observed mutiple times.
     - After downloading the files and adding them to the appropriate folder, the path of the folder can be given as input tu the data_dir path.
     """
@@ -109,11 +109,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
@@ -142,7 +138,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": filepaths})]
 
     def _generate_examples(self, filepaths):
-        """Yields examples. Calls helper function to iterate over each file and give the output
+        """Yields examples. Iterates over each file and give the creates the corresponding features.
 
         NOTE:
         - The code makes some assumption on the structure of the raw .txt file.
