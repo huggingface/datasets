@@ -4,22 +4,14 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- bg
-- bs
-- el
 - en
-- hr
-- mk
-- ro
-- sq
-- sr
-- tr
+- ig
 licenses:
-- cc-by-sa-4.0
+- unknown
 multilinguality:
 - multilingual
 size_categories:
-- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -55,9 +47,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
+- **Homepage:** None
+- **Repository:** https://github.com/IgnatiusEzeani/IGBONLP/tree/master/ig_en_mt
+- **Paper:** https://arxiv.org/abs/2004.00648
 - **Leaderboard:** [More Information Needed]
 - **Point of Contact:** [More Information Needed]
 
@@ -77,8 +69,7 @@ task_ids:
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 

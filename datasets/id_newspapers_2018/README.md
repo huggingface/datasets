@@ -1,36 +1,28 @@
 ---
 annotations_creators:
-- found
+- no-annotation
 language_creators:
 - found
 languages:
-- bg
-- bs
-- el
-- en
-- hr
-- mk
-- ro
-- sq
-- sr
-- tr
+- id
 licenses:
-- cc-by-sa-4.0
+- other-my-license
 multilinguality:
-- multilingual
+- monolingual
 size_categories:
-- 100K<n<1M
+- n>1M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- sequence-modeling
 task_ids:
-- machine-translation
+- language-modeling
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Indonesian Newspapers 2018
 
 ## Table of Contents
+
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks](#supported-tasks-and-leaderboards)
@@ -55,38 +47,52 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
-- **Leaderboard:** [More Information Needed]
-- **Point of Contact:** [More Information Needed]
+- **Homepage:** [Indonesian Newspapers](https://github.com/feryandi/Dataset-Artikel)
+- **Repository:** [Indonesian Newspapers](https://github.com/feryandi/Dataset-Artikel)
+- **Paper:**
+- **Leaderboard:**
+- **Point of Contact:** [feryandi.n@gmail.com](mailto:feryandi.n@gmail.com)
 
 ### Dataset Summary
 
-[More Information Needed]
+The dataset contains around 500K articles (136M of words) from 7 Indonesian newspapers: Detik, Kompas, Tempo,
+CNN Indonesia, Sindo, Republika and Poskota. The articles are dated between 1st January 2018 and 20th August 2018
+(with few exceptions dated earlier). The size of uncompressed 500K json files (newspapers-json.tgz) is around 2.2GB,
+and the cleaned uncompressed in a big text file (newspapers.txt.gz) is about 1GB. The original source in Google Drive
+contains also a dataset in html format which include raw data (pictures, css, javascript, ...)
+from the online news website
 
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
 
 ### Languages
-
-[More Information Needed]
+Indonesian
 
 ## Dataset Structure
-
+```
+{
+  'id': 'string',
+  'url': 'string',
+  'date': 'string',
+  'title': 'string',
+  'content': 'string'
+}
+```
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
-
-[More Information Needed]
+- `id`: id of the sample
+- `url`: the url to the original article
+- `date`: the publishing date of the article
+- `title`: the title of the article
+- `content`: the content of the article
 
 ### Data Splits
 
-[More Information Needed]
+The dataset contains train set.
 
 ## Dataset Creation
 
@@ -95,8 +101,6 @@ Here are some examples of questions and facts:
 [More Information Needed]
 
 ### Source Data
-
-[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
@@ -108,14 +112,11 @@ Here are some examples of questions and facts:
 
 ### Annotations
 
-[More Information Needed]
-
 #### Annotation process
 
 [More Information Needed]
 
 #### Who are the annotators?
-
 [More Information Needed]
 
 ### Personal and Sensitive Information

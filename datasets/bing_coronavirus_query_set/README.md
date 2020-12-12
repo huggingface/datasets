@@ -4,28 +4,19 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- bg
-- bs
-- el
 - en
-- hr
-- mk
-- ro
-- sq
-- sr
-- tr
 licenses:
-- cc-by-sa-4.0
+- o-uda-1.0
 multilinguality:
-- multilingual
+- monolingual
 size_categories:
 - 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text-classification
 task_ids:
-- machine-translation
+- intent-classification
 ---
 
 # Dataset Card Creation Guide
@@ -55,15 +46,24 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
+- **Homepage:** None
+- **Repository:** https://github.com/microsoft/BingCoronavirusQuerySet
+- **Paper:** Nonewww
 - **Leaderboard:** [More Information Needed]
 - **Point of Contact:** [More Information Needed]
 
 ### Dataset Summary
 
-[More Information Needed]
+Please note that you can specify the start and end date of the data. You can get start and end dates from here: https://github.com/microsoft/BingCoronavirusQuerySet/tree/master/data/2020
+
+example:
+
+```
+load_dataset("bing_coronavirus_query_set", queries_by="state", start_date="2020-09-01", end_date="2020-09-30")
+```
+
+You can also load the data by country by using `queries_by="country"`.
+
 
 ### Supported Tasks and Leaderboards
 
@@ -77,8 +77,7 @@ task_ids:
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 

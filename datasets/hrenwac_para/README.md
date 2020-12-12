@@ -1,25 +1,17 @@
 ---
 annotations_creators:
-- found
+- no-annotation
 language_creators:
 - found
 languages:
-- bg
-- bs
-- el
 - en
 - hr
-- mk
-- ro
-- sq
-- sr
-- tr
 licenses:
-- cc-by-sa-4.0
+- cc-by-sa-3.0
 multilinguality:
-- multilingual
+- translation
 size_categories:
-- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -28,7 +20,7 @@ task_ids:
 - machine-translation
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for hrenwac_para
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -55,15 +47,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://nlp.ffzg.hr/resources/corpora/setimes/
-- **Repository:** None
-- **Paper:** None
-- **Leaderboard:** [More Information Needed]
-- **Point of Contact:** [More Information Needed]
+- **Homepage:** http://nlp.ffzg.hr/resources/corpora/hrenwac/
+- **Repository:** http://nlp.ffzg.hr/data/corpora/hrenwac/hrenwac.en-hr.txt.gz
+- **Paper:** http://workshop2013.iwslt.org/downloads/IWSLT-2013-Cettolo.pdf
+- **Leaderboard:**
+- **Point of Contact:** [Nikola Ljubešič](mailto:nikola.ljubesic@ffzg.hr)
 
 ### Dataset Summary
 
-[More Information Needed]
+The hrenWaC corpus version 2.0 consists of parallel Croatian-English texts crawled from the .hr top-level domain for Croatia. The corpus was built with Spidextor (https://github.com/abumatran/spidextor), a tool that glues together the output of SpiderLing used for crawling and Bitextor used for bitext extraction. The accuracy of the extracted bitext on the segment level is around 80% and on the word level around 84%.
 
 ### Supported Tasks and Leaderboards
 
@@ -71,14 +63,13 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Dataset is bilingual with Croatian and English languages.
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 
@@ -96,8 +87,6 @@ Here are some examples of questions and facts:
 
 ### Source Data
 
-[More Information Needed]
-
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -107,8 +96,6 @@ Here are some examples of questions and facts:
 [More Information Needed]
 
 ### Annotations
-
-[More Information Needed]
 
 #### Annotation process
 
@@ -144,8 +131,16 @@ Here are some examples of questions and facts:
 
 ### Licensing Information
 
-[More Information Needed]
+Dataset is under the [CC-BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.0/) license.
 
 ### Citation Information
 
-[More Information Needed]
+```
+  @misc{11356/1058,
+ title = {Croatian-English parallel corpus {hrenWaC} 2.0},
+ author = {Ljube{\v s}i{\'c}, Nikola and Espl{\`a}-Gomis, Miquel and Ortiz Rojas, Sergio and Klubi{\v c}ka, Filip and Toral, Antonio},
+ url = {http://hdl.handle.net/11356/1058},
+ note = {Slovenian language resource repository {CLARIN}.{SI}},
+ copyright = {{CLARIN}.{SI} User Licence for Internet Corpora},
+ year = {2016} }
+```
