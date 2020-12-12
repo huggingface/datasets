@@ -28,7 +28,7 @@ YorubaTwi Embedding paper: https://www.aclweb.org/anthology/2020.lrec-1.335/
 
 _CITATION = """\
 @inproceedings{alabi-etal-2020-massive,
-    title = "Massive vs. Curated Embeddings for Low-Resourced Languages: the Case of Yoruba and {T}wi",
+    title = "Massive vs. Curated Embeddings for Low-Resourced Languages: the Case of {Yoruba} and {T}wi",
     author = "Alabi, Jesujoba  and
       Amponsah-Kaakyire, Kwabena  and
       Adelani, David  and
