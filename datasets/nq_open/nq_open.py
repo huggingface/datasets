@@ -29,7 +29,7 @@ All questions can be answered using the contents of English Wikipedia.
 _HOMEPAGE_URL = "https://efficientqa.github.io/"
 
 _CITATION = """\
-@article{doi:10.1162/tacl\_a\_00276,
+@article{doi:10.1162/tacl_a_00276,
     author = {Kwiatkowski, Tom and Palomaki, Jennimaria and Redfield, Olivia and Collins, Michael and Parikh, Ankur and Alberti, Chris and Epstein, Danielle and Polosukhin, Illia and Devlin, Jacob and Lee, Kenton and Toutanova, Kristina and Jones, Llion and Kelcey, Matthew and Chang, Ming-Wei and Dai, Andrew                         M. and Uszkoreit, Jakob and Le, Quoc and Petrov, Slav},
     title = {Natural Questions: A Benchmark for Question Answering Research},
     journal = {Transactions of the Association for Computational Linguistics},
@@ -37,7 +37,7 @@ _CITATION = """\
     number = {},
     pages = {453-466},
     year = {2019},
-    doi = {10.1162/tacl\_a\_00276},
+    doi = {10.1162/tacl_a_00276},
     URL = {
             https://doi.org/10.1162/tacl_a_00276
         },
