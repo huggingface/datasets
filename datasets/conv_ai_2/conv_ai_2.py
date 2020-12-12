@@ -5,6 +5,17 @@ import json
 import datasets
 
 
+_CITATION = """\
+@misc{dinan2019second,
+      title={The Second Conversational Intelligence Challenge (ConvAI2)}, 
+      author={Emily Dinan and Varvara Logacheva and Valentin Malykh and Alexander Miller and Kurt Shuster and Jack Urbanek and Douwe Kiela and Arthur Szlam and Iulian Serban and Ryan Lowe and Shrimai Prabhumoye and Alan W Black and Alexander Rudnicky and Jason Williams and Joelle Pineau and Mikhail Burtsev and Jason Weston},
+      year={2019},
+      eprint={1902.00098},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+"""
+
 _DESCRIPTION = """\
 ConvAI is a dataset of human-to-bot conversations labelled for quality. \
 This data can be used to train a metric for evaluating dialogue systems. \
@@ -50,6 +61,7 @@ class ConvAi_2(datasets.GeneratorBasedBuilder):
             ),
             supervised_keys=None,
             homepage="https://github.com/DeepPavlov/convai/tree/master/2018",
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):

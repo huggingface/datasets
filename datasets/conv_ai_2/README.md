@@ -116,8 +116,8 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
 - dialog : Array of dialogs.
 - bot_profile : Bot annotated response that will be used for evaluation.
 - user_profile : user annoted response that will be used for evaluation.
-- eval_score : (1, 2, 3, 4, 5;) how does an user like a conversation.
-- profile_match : 0, 1.0; an user is given by two profile descriptions (4 sentences each), one of them is the one given to the bot it had been talking to, the other one is random; the user needs to choose one of them.
+- eval_score : (`1`,` 2`,` 3`,` 4`,` 5`) how does an user like a conversation. The missing values are replaced with` -1`
+- profile_match : (`0`,` 1`) an user is given by two profile descriptions (4 sentences each), one of them is the one given to the bot it had been talking to, the other one is random; the user needs to choose one of them.The missing values are replaced with` -1`
 
 ### Data Splits
 
