@@ -1,6 +1,23 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-scoring
+task_ids:
+- sentiment-scoring
 ---
 
 # Dataset Card for [Dataset Name]
@@ -30,37 +47,46 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage: [Home Page](https://github.com/sealuzh/user_quality)
+- **Repository: [Repo Link](https://github.com/sealuzh/user_quality)
+- **Paper: [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
+- **Leaderboard:
+- **Point of Contact: [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
-[More Information Needed]
+It is a large dataset of Android applications belonging to 23 differentapps categories, which provides an overview of the types of feedback users report on the apps and documents the evolution of the related code metrics. The dataset contains about 395 applications of the F-Droid repository, including around 600 versions, 280,000 user reviews (extracted with specific text mining approaches)
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+The dataset we provide comprises 395 different apps from F-Droid repository, including code quality indicators of 629 versions of these
+apps. It also encloses app reviews related to each of these versions, which have been automatically categorized classifying types of user feedback from a software maintenance and evolution perspective.
 
 ### Languages
 
-[More Information Needed]
+The dataset is a monolingual dataset which has the messages English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+The dataset consists of a message in English.
+
+{'package_name': 'com.mantz_it.rfanalyzer',
+ 'review': "Great app! The new version now works on my Bravia Android TV which is great as it's right by my rooftop aerial cable. The scan feature would be useful...any ETA on when this will be available? Also the option to import a list of bookmarks e.g. from a simple properties file would be useful.",
+ 'date': 'October 12 2016',
+ 'star': 4}
 
 ### Data Fields
 
-[More Information Needed]
+* package_name : Name of the Software Application Package
+* review : Message of the user 
+* date : date when the user posted the review 
+* star : rating provied by the user for the application
 
 ### Data Splits
 
-[More Information Needed]
+There is training data, with a total of : 288065
 
 ## Dataset Creation
 
@@ -96,11 +122,11 @@ YAML tags:
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+With the help of this dataset one can try to understand more about software applications and what are the views and opinions of the users about them. This helps to understand more about which type of software applications are prefeered by the users and how do these applications facilitate the user to help them solve their problems and issues. 
 
 ### Discussion of Biases
 
-[More Information Needed]
+The reviews are only for applications which are in the open-source software applications, the other sectors have not been considered here 
 
 ### Other Known Limitations
 
@@ -110,7 +136,7 @@ YAML tags:
 
 ### Dataset Curators
 
-[More Information Needed]
+Giovanni Grano - (University of Zurich), Sebastiano Panichella - (University of Zurich), Andrea di Sorbo - (University of Sannio)
 
 ### Licensing Information
 
@@ -118,4 +144,10 @@ YAML tags:
 
 ### Citation Information
 
-[More Information Needed]
+@InProceedings{Zurich Open Repository and
+Archive:dataset,
+title = {Software Applications User Reviews},
+authors={Grano, Giovanni; Di Sorbo, Andrea; Mercaldo, Francesco; Visaggio, Corrado A; Canfora, Gerardo;
+Panichella, Sebastiano},
+year={2017}
+}
