@@ -16,9 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-import xml.etree.ElementTree as ET
 import logging
+import xml.etree.ElementTree as ET
 
 import datasets
 
@@ -45,9 +44,7 @@ _LICENSE = "All files in the /text directory are covered under standard copyrigh
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _BASE_URL = "https://raw.githubusercontent.com/zeerakahmed/makhzan/master/text/"
-_URLs = {
-    'train': [_BASE_URL + '{:04d}.xml'.format(i) for i in range(1, 5523)]
-}
+_URLs = {"train": [_BASE_URL + "{:04d}.xml".format(i) for i in range(1, 5523)]}
 
 
 class Makhzan(datasets.GeneratorBasedBuilder):
@@ -56,7 +53,10 @@ class Makhzan(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="train", version=VERSION, description="This part of my dataset covers a first domain")    ]
+        datasets.BuilderConfig(
+            name="train", version=VERSION, description="This part of my dataset covers a first domain"
+        )
+    ]
 
     DEFAULT_CONFIG_NAME = "train"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
@@ -66,12 +66,12 @@ class Makhzan(datasets.GeneratorBasedBuilder):
                 "file_id": datasets.Value("string"),
                 "metadata": datasets.Value("string"),
                 "title": datasets.Value("string"),
-                'num-words': datasets.Value("int64"),
-                'contains-non-urdu-languages': datasets.Value("string"),
+                "num-words": datasets.Value("int64"),
+                "contains-non-urdu-languages": datasets.Value("string"),
                 "document_body": datasets.Value("string")
                 # These are the features of your dataset like images, labels ...
             }
-            )
+        )
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -90,9 +90,7 @@ class Makhzan(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "file_paths": dowloaded_files
-                }
+                gen_kwargs={"file_paths": dowloaded_files},
             )
         ]
 
@@ -100,31 +98,33 @@ class Makhzan(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         for id_, file_path in enumerate(file_paths):
             with open(file_path, encoding="utf-8") as f:
-                example = {'file_id': '',
-                           'metadata': '',
-                            'title': '',
-                            'num-words': 0,
-                            'contains-non-urdu-languages': ''}
+                example = {
+                    "file_id": "",
+                    "metadata": "",
+                    "title": "",
+                    "num-words": 0,
+                    "contains-non-urdu-languages": "",
+                }
                 try:
                     tree = ET.parse(f)
                     root = tree.getroot()
-                    if root.tag == 'document':
-                        example['file_id'] = '{:04d}.xml'.format(id_ + 1)
-                        metadata = root.find('meta')
+                    if root.tag == "document":
+                        example["file_id"] = "{:04d}.xml".format(id_ + 1)
+                        metadata = root.find("meta")
                         if metadata:
-                            example['metadata'] = ET.tostring(metadata, encoding='unicode')
-                            title = metadata.find('title')
+                            example["metadata"] = ET.tostring(metadata, encoding="unicode")
+                            title = metadata.find("title")
                             if title:
-                                example['title'] = title.text
-                            example['num-words'] = int(metadata.find('num-words').text)
-                            example['contains-non-urdu-languages'] = metadata.find('contains-non-urdu-languages').text
+                                example["title"] = title.text
+                            example["num-words"] = int(metadata.find("num-words").text)
+                            example["contains-non-urdu-languages"] = metadata.find("contains-non-urdu-languages").text
                         else:
                             raise ValueError('Missing tag "<meta>"')
-                        document_body = root.find('body')
+                        document_body = root.find("body")
                         if document_body:
-                            example['document_body'] = ET.tostring(document_body, encoding='unicode')
+                            example["document_body"] = ET.tostring(document_body, encoding="unicode")
                     else:
                         raise ValueError('Missing tag "<document>"')
                     yield id_, example
                 except ET.ParseError:
-                    logging.warning('{:04d}.xml could not be parsed.'.format(id_ + 1))
+                    logging.warning("{:04d}.xml could not be parsed.".format(id_ + 1))
