@@ -109,9 +109,7 @@ class Nell(datasets.GeneratorBasedBuilder):
                     "entity": datasets.Value("string"),
                     "relation": datasets.Value("string"),
                     "value": datasets.Value("string"),
-                    "probability": datasets.Value(
-                        "string"
-                    ),  # if we change this to float there will be a PyArrow error:  OverflowError: There was an overflow in the <class 'pyarrow.lib.FloatArray'>. Try to reduce writer_batch_size to have batches smaller than 2GB
+                    "probability": datasets.Value("string"),
                     "sentence": datasets.Value("string"),
                     "count": datasets.Value("int32"),
                     "url": datasets.Value("string"),
@@ -211,9 +209,7 @@ class Nell(datasets.GeneratorBasedBuilder):
                                     "entity": row[0].replace("candidate:", "").replace("concept:", ""),
                                     "relation": row[1].replace("candidate:", "").replace("concept:", ""),
                                     "value": row[2].replace("candidate:", "").replace("concept:", ""),
-                                    "probability": row[
-                                        4
-                                    ],  # if we change this to float(row[4]) there will be a PyArrow error:  OverflowError: There was an overflow in the <class 'pyarrow.lib.FloatArray'>. Try to reduce writer_batch_size to have batches smaller than 2GB
+                                    "probability": row[4],
                                     "sentence": sentence,
                                     "count": int(count),
                                     "url": url,
