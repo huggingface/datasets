@@ -100,7 +100,7 @@ class Swahili(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
         _id = 0
-        with open(filepath, mode="r") as f:
+        with open(filepath, mode="r", encoding='utf-8') as f:
             for line in f:
                 yield _id, {"text": line.strip()},
                 _id += 1
