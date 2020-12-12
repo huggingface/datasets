@@ -17,6 +17,7 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
+import errno
 import os
 
 import datasets
@@ -120,6 +121,13 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
         path_to_manual_file = os.path.join(
             os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), self.config.name + ".csv"
         )
+        if not os.path.exists(path_to_manual_file):
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('so_stacksample', '{}', data_dir=...)` that includes a file name {}. Manual download instructions: \n{})".format(
+                    path_to_manual_file, self.config.name, self.config.name + ".csv", self.manual_download_instructions
+                )
+            )
+
         return [
             datasets.SplitGenerator(
                 name=self.config.name,
