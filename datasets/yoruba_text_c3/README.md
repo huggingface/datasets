@@ -96,7 +96,7 @@ The data was created to help introduce resources to new language - Yorùbá.
 
 #### Initial Data Collection and Normalization
 
-The dataset comes from various sources of the web like Bible, JW300, books, news articles, wikipedia, etc . 
+The dataset comes from various sources of the web like Bible, JW300, books, news articles, wikipedia, etc. 
 See Table 1 in the [paper](https://www.aclweb.org/anthology/2020.lrec-1.335/) for the summary of the dataset and statistics
 
 #### Who are the source language producers?
