@@ -42,11 +42,10 @@ _URLs = {
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class NewDataset(datasets.GeneratorBasedBuilder):
+class Offcombr(datasets.GeneratorBasedBuilder):
     """OffComBR: an annotated dataset containing for hate speech detection in Portuguese composed of news comments on the Brazilian Web."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
@@ -61,16 +60,14 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = (
-        "offcombr-2"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
+    DEFAULT_CONFIG_NAME = "offcombr-2"
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "label": datasets.Value("string"),
+                    "label": datasets.ClassLabel(names=["no", "yes"]),
                     "text": datasets.Value("string"),
                 }
             ),
