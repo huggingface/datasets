@@ -1,20 +1,24 @@
 ---
 task_categories:
-- text-scoring
+- text-classification
 multilinguality:
-- monolingual
+- multilingual
 task_ids:
 - other
 languages:
-- en
+- hi
+- awa
+- bho
+- mag
+- bra
 annotations_creators:
-- crowdsourced
+- unknown
 source_datasets:
-- extended
+- original
 size_categories:
 - 10K<n<100K
 licenses:
-- CC-BY-SA-4.0
+- unknown
 ---
 
 # Dataset Card Creation Guide
@@ -50,15 +54,15 @@ licenses:
 
 ## Dataset Description
 
-- **Homepage:** 
-- **Repository:** [GitHub](https://github.com/google-research-datasets/query-wellformedness)
-- **Paper:** [ARXIV](https://arxiv.org/abs/1808.09419)
-- **Leaderboard:** 
-- **Point of Contact:** 
+- **Homepage:**
+- **Repository:** [GitHub](https://github.com/kmi-linguistics/vardial2018)
+- **Paper:** [Link](https://www.aclweb.org/anthology/W18-3900/)
+- **Leaderboard:**
+- **Point of Contact:** linguistics.kmi@gmail.com
 
 ### Dataset Summary
 
-Google's query wellformedness dataset was created by crowdsourcing well-formedness annotations for 25,100 queries from the Paralex corpus. Every query was annotated by five raters each with 1/0 rating of whether or not the query is well-formed.
+This datasets is introduced in a task which aimed at identifying 5 closely-related languages of Indo-Aryan language family – Hindi (also known as Khari Boli), Braj Bhasha, Awadhi, Bhojpuri and Magahi. These languages form part of a continuum starting from Western Uttar Pradesh (Hindi and Braj Bhasha) to Eastern Uttar Pradesh (Awadhi and Bhojpuri) and the neighbouring Eastern state of Bihar (Bhojpuri and Magahi). For this task, participants were provided with a dataset of approximately 15,000 sentences in each language, mainly from the domain of literature, published over the web as well as in print.
 
 ### Supported Tasks and Leaderboards
 
@@ -66,7 +70,7 @@ Google's query wellformedness dataset was created by crowdsourcing well-formedne
 
 ### Languages
 
-English
+ Hindi, Braj Bhasha, Awadhi, Bhojpuri and Magahi
 
 ## Dataset Structure
 
@@ -76,28 +80,28 @@ English
 
 ### Data Fields
 
-- `rating`: a `float` between 0-1
-- `sentence`: query which you want to rate
+- `language_id`: a `string`
+- `text`: text which you want to classfiy
 
 ### Data Splits
 
 |                            | Train   | Valid | Test |
 | -----                      | ------ | ----- | ---- |
-| Input Sentences            |   17500     |   3750    |  3850    |
+| Input Sentences            |   70351     |   9692    |  10329    |
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-Understanding search queries is a hard problem as it involves dealing with “word salad” text ubiquitously issued by users. However, if a query resembles a well-formed question, a natural language processing pipeline is able to perform more accurate interpretation, thus reducing downstream compounding errors. Hence, identifying whether or not a query is well formed can enhance query understanding. This dataset introduce a new task of identifying a well-formed natural language question. 
+[More Information Needed]
 
 ### Source Data
 
-Used the Paralex corpus (Fader et al., 2013) that contains pairs of noisy paraphrase questions. These questions were issued by users in WikiAnswers (a Question-Answer forum) and consist of both web-search query like constructs (“5 parts of chloroplast?”) and well-formed questions (“What is the punishment for grand theft?”).
+[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
-Selected 25,100 queries from the unique list of queries extracted from the corpus such that no two queries in the selected set are paraphrases.
+[More Information Needed]
 
 #### Who are the source language producers?
 
@@ -107,15 +111,11 @@ Selected 25,100 queries from the unique list of queries extracted from the corpu
 
 #### Annotation process
 
-The queries are annotated into well-formed or non-wellformed questions if it satisfies the following:
-
-1. Query is grammatical.
-2. Query is an explicit question.
-3. Query does not contain spelling errors.
+[More Information Needed]
 
 #### Who are the annotators?
 
-Every query was labeled by five different crowdworkers with a binary label indicating whether a query is well-formed or not. And average of the ratings of the five annotators was reported, to get the probability of a query being well-formed.
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
@@ -143,15 +143,23 @@ Every query was labeled by five different crowdworkers with a binary label indic
 
 ### Licensing Information
 
-Query-wellformedness dataset is licensed under CC BY-SA 4.0. Any third party content or data is provided “As Is” without any warranty, express or implied.
+[More Information Needed]
 
 ### Citation Information
 
 ```
-@InProceedings{FaruquiDas2018,
-   title = {{Identifying Well-formed Natural Language Questions}},
-   author = {Faruqui, Manaal and Das, Dipanjan},
-   booktitle = {Proc. of EMNLP},
-   year = {2018}
+@proceedings{ws-2018-nlp-similar,
+    title = "Proceedings of the Fifth Workshop on {NLP} for Similar Languages, Varieties and Dialects ({V}ar{D}ial 2018)",
+    editor = {Zampieri, Marcos  and
+      Nakov, Preslav  and
+      Ljube{\v{s}}i{\'c}, Nikola  and
+      Tiedemann, J{\"o}rg  and
+      Malmasi, Shervin  and
+      Ali, Ahmed},
+    month = aug,
+    year = "2018",
+    address = "Santa Fe, New Mexico, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/W18-3900",
 }
 ```
