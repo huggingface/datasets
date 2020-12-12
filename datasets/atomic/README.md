@@ -1,9 +1,25 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- other-stuctured-to-text
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for An Atlas of Machine Commonsense for If-Then Reasoning - Atomic Common Sense Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -12,8 +28,8 @@ YAML tags:
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -31,91 +47,139 @@ YAML tags:
 ## Dataset Description
 
 - **Homepage:**
+https://homes.cs.washington.edu/~msap/atomic/
 - **Repository:**
+https://homes.cs.washington.edu/~msap/atomic/
 - **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+Maarten Sap, Ronan LeBras, Emily Allaway, Chandra Bhagavatula, Nicholas Lourie, Hannah Rashkin, Brendan Roof, Noah A. Smith & Yejin Choi (2019). ATOMIC: An Atlas of Machine Commonsense for If-Then Reasoning. AAAI
 
 ### Dataset Summary
 
-[More Information Needed]
+This dataset provides the template sentences and
+relationships defined in the ATOMIC common sense dataset. There are
+three splits - train, test, and dev.
 
-### Supported Tasks and Leaderboards
+From the authors.
 
-[More Information Needed]
+Disclaimer/Content warning: the events in atomic have been
+automatically extracted from blogs, stories and books written at
+various times. The events might depict violent or problematic actions,
+which we left in the corpus for the sake of learning the (probably
+negative but still important) commonsense implications associated with
+the events. We removed a small set of truly out-dated events, but
+might have missed some so please email us (msap@cs.washington.edu) if
+you have any concerns.
+
+
+For more information, see: https://homes.cs.washington.edu/~msap/atomic/
 
 ### Languages
-
-[More Information Needed]
+en
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+The atomic dataset has the following fields:
+
+
+``
+{
+	'event': ...,
+	'oEffect': ...,
+	'oReact': ...,
+	'oWant': ...,
+	'xAttr': ...,
+	'xEffect': ...,
+	'xIntent': ...
+	'xNeed': ...
+	'xReact': ...
+	'xWant': ...
+	'prefix': ...
+	'split': ...
+}
+``
+
 
 ### Data Fields
 
-[More Information Needed]
+Notes from the authors:
+
+* event: just a string representation of the event.
+* oEffect,oReact,oWant,xAttr,xEffect,xIntent,xNeed,xReact,xWant: annotations for each of the dimensions, stored in a json-dumped list of strings.
+  Note: [""none""] means the worker explicitly responded with the empty response, whereas [] means the worker did not annotate this dimension.
+* prefix: json-dumped list that represents the prefix of content words (used to make a better trn/dev/tst split).
+* split: string rep of which split the event belongs to.
 
 ### Data Splits
 
-[More Information Needed]
+The atomic dataset has three splits: test, train and dev of the form:
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+This dataset was gathered and created over to assist in common sense reasoning.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+See the reaserch paper and website for more detail. The dataset was
+created by the University of Washington using crowd sourced data
+
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The Atomic authors and crowd source.
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+Human annotations directed by forms.
 
 #### Who are the annotators?
 
-[More Information Needed]
+Human annotations.
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+Unkown, but likely none.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+The goal for the work is to help machines understand common sense.
 
 ### Discussion of Biases
 
-[More Information Needed]
+Since the data is human annotators, there is likel to be baises. From the authors:
+
+Disclaimer/Content warning: the events in atomic have been automatically extracted from blogs, stories and books written at various times. The events might depict violent or problematic actions, which we left in the corpus for the sake of learning the (probably negative but still important) commonsense implications associated with the events. We removed a small set of truly out-dated events, but might have missed some so please email us (msap@cs.washington.edu) if you have any concerns.
+
 
 ### Other Known Limitations
 
-[More Information Needed]
+While there are many relationships, the data is quite sparse. Also, each item of the dataset could be expanded into multiple sentences along the vsrious dimensions, oEffect, oRect, etc.
+
+For example, given event: "PersonX uses PersonX's ___ to obtain" and dimension oReact: "annoyed", this could be transformed into an entry:
+
+"PersonX uses PersonX's ___ to obtain => PersonY is annoyed"
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed]
+The authors of Aotmic at The University of Washington
 
 ### Licensing Information
 
-[More Information Needed]
+The Creative Commons Attribution 4.0 International License. https://creativecommons.org/licenses/by/4.0/
 
 ### Citation Information
 
-[More Information Needed]
+Maarten Sap, Ronan LeBras, Emily Allaway, Chandra Bhagavatula, Nicholas Lourie, Hannah Rashkin, Brendan Roof, Noah A. Smith & Yejin Choi (2019). ATOMIC: An Atlas of Machine Commonsense for If-Then Reasoning. AAAI
+
+
