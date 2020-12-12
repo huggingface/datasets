@@ -77,7 +77,7 @@ English (en) and Programming Languages.
 ### Data Instances
 
 For Answers:
-```json
+```
 {
   "Id": { # Unique ID given to the Answer post
     "feature_type": "Value",
@@ -109,7 +109,7 @@ For Answers:
 
 
 For Questions:
-```json
+```
 {
   "Id": { # Unique ID given to the Question post
     "feature_type": "Value",
@@ -143,7 +143,7 @@ For Questions:
 ```
 
 For Tags:
-```json
+```
 {
   "Id": { # ID of the Question the tag belongs to
     "feature_type": "Value",
