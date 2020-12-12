@@ -160,16 +160,19 @@ class KdConv(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         if "dialogues" in self.config.name:
             if "all" in self.config.name:
-                file_list = [os.path.join(os.path.join(data_dir, domain), split + ".json") for domain in _DOMAINS]
+                file_dict = {
+                    domain: os.path.join(os.path.join(data_dir, domain), split + ".json") for domain in _DOMAINS
+                }
             else:
-                file_list = [os.path.join(os.path.join(data_dir, self.config.name.split("_")[0]), split + ".json")]
+                domain = self.config.name.split("_")[0]
+                file_dict = {domain: os.path.join(os.path.join(data_dir, domain), split + ".json")}
             id_ = -1
-            for filepath in file_list:
+            for domain, filepath in file_dict.items():
                 with open(filepath, encoding="utf-8") as f:
                     conversations = json.load(f)
                     for conversation in conversations:
                         id_ += 1
-                        conversation["domain"] = filepath.split("/")[-2]
+                        conversation["domain"] = domain
                         for turn in conversation["messages"]:
                             if "attrs" in turn:
                                 attrnames = [kb_triplet.get("attrname", "") for kb_triplet in turn["attrs"]]
@@ -182,22 +185,18 @@ class KdConv(datasets.GeneratorBasedBuilder):
                         yield id_, conversation
         else:
             if "all" in self.config.name:
-                file_list = [
-                    os.path.join(os.path.join(data_dir, domain), "kb_" + domain + ".json") for domain in _DOMAINS
-                ]
+                file_dict = {
+                    domain: os.path.join(os.path.join(data_dir, domain), "kb_" + domain + ".json")
+                    for domain in _DOMAINS
+                }
             else:
-                file_list = [
-                    os.path.join(
-                        os.path.join(data_dir, self.config.name.split("_")[0]),
-                        "kb_" + self.config.name.split("_")[0] + ".json",
-                    )
-                ]
+                domain = self.config.name.split("_")[0]
+                file_dict = {domain: os.path.join(os.path.join(data_dir, domain), "kb_" + domain + ".json")}
 
             id_ = -1
-            for filepath in file_list:
+            for domain, filepath in file_dict.items():
                 with open(filepath, encoding="utf-8") as f:
                     kb_dict = json.load(f)
                     for head_entity, kb_triplets in kb_dict.items():
                         id_ += 1
-                        domain = filepath.split("/")[-2]
                         yield id_, {"head_entity": head_entity, "kb_triplets": kb_triplets, "domain": domain}
