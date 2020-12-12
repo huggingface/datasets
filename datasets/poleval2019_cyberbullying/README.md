@@ -4,7 +4,8 @@ language_creators:
 - found
 languages:
 - pl
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
