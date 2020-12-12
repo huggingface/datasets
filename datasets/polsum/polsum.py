@@ -62,7 +62,7 @@ _LICENSE = "CC BY v.3"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = ["http://zil.ipipan.waw.pl/PolishSummariesCorpus?action=AttachFile&do=get&target=PSC_1.0.zip"]
+_URL = "http://zil.ipipan.waw.pl/PolishSummariesCorpus?action=AttachFile&do=get&target=PSC_1.0.zip"
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
@@ -119,16 +119,13 @@ class Polsum(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        print("enter split")
-        data_dir = dl_manager.download_and_extract(_URLs)
-        print(data_dir)
-
+        data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepaths": glob.glob(data_dir[0] + "/*/*/*.xml"),
+                    "filepaths": glob.glob(data_dir + "/*/*/*.xml"),
                 },
             ),
         ]
