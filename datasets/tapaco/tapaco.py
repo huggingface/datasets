@@ -202,9 +202,9 @@ class Tapaco(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_dir):
         """ Yields examples. """
         base_path = os.path.join(data_dir, "tapaco_v1.0")
-        file_list = sorted([os.path.join(base_path, lang + ".txt") for lang in self.config.languages])
+        file_dict = {lang: os.path.join(base_path, lang + ".txt") for lang in self.config.languages}
         id_ = -1
-        for filepath in file_list:
+        for language, filepath in file_dict.items():
             with open(filepath, encoding="utf-8") as csv_file:
                 csv_reader = csv.reader(
                     csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_ALL, skipinitialspace=True
@@ -218,5 +218,5 @@ class Tapaco(datasets.GeneratorBasedBuilder):
                         "paraphrase": paraphrase,
                         "lists": lists.split(";"),
                         "tags": tags.split(";"),
-                        "language": filepath.split("/")[-1].split(".")[0],
+                        "language": language,
                     }
