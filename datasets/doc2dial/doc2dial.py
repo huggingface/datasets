@@ -49,7 +49,8 @@ _HOMEPAGE = "https://doc2dial.github.io/file/doc2dial/"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-_URLs = "dialogue_domain": "https://doc2dial.github.io/file/doc2dial.zip"
+_URLs = "https://doc2dial.github.io/file/doc2dial.zip"
+
 
 class Doc2dial(datasets.GeneratorBasedBuilder):
     "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9"
@@ -61,10 +62,14 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="dialogue_domain", version=VERSION, description="This part of the dataset covers the dialgoue domain that has questions, answers and the associated doc ids"
+            name="dialogue_domain",
+            version=VERSION,
+            description="This part of the dataset covers the dialgoue domain that has questions, answers and the associated doc ids",
         ),
         datasets.BuilderConfig(
-            name="document_domain", version=VERSION, description="This part of the dataset covers the document domain which details all the documents in the various doamins"
+            name="document_domain",
+            version=VERSION,
+            description="This part of the dataset covers the document domain which details all the documents in the various doamins",
         ),
     ]
 
