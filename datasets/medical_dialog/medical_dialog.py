@@ -1,4 +1,4 @@
-#Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +15,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
+import copy
 import os
 import re
-import copy
-import sys
+
 import datasets
 
 
@@ -28,10 +26,11 @@ _CITATION = """\
 @article{chen2020meddiag,
   title={MedDialog: a large-scale medical dialogue dataset},
   author={Chen, Shu and Ju, Zeqian and Dong, Xiangyu and Fang, Hongchao and Wang, Sicheng and Yang, Yue and Zeng, Jiaqi and Zhang, Ruisi and Zhang, Ruoyu and Zhou, Meng and Zhu, Penghui and Xie, Pengtao},
-  journal={arXiv preprint arXiv:2004.03329}, 
+  journal={arXiv preprint arXiv:2004.03329},
   year={2020}
 }
 """
+
 
 _DESCRIPTION = """\
 The MedDialog dataset (English) contains conversations (in English) between doctors and patients.\
@@ -45,6 +44,7 @@ _HOMEPAGE = "https://github.com/UCSD-AI4H/Medical-Dialogue-System"
 
 _LICENSE = ""
 
+
 class MedicalDialog(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
@@ -56,19 +56,23 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-    \n    For English:\nYou need to go to https://drive.google.com/drive/folders/1g29ssimdZ6JzTST6Y8g6h-ogUNReBtJD?usp=sharing,\
+    \n  For English:\nYou need to go to https://drive.google.com/drive/folders/1g29ssimdZ6JzTST6Y8g6h-ogUNReBtJD?usp=sharing,\
     and manually download the dataset from Google Drive. Once it is completed,
     a file named Medical-Dialogue-Dataset-English-<timestamp-info>.zip will appear in your Downloads folder(
     or whichever folder your browser chooses to save files to). Unzip the folder to obtain
     a folder named "Medical-Dialogue-Dataset-English" several text files.
-    
+
     Now, you can specify the path to this folder for the data_dir argument in the
     datasets.load_dataset(...) option.
     The <path/to/folder> can e.g. be "/Downloads/Medical-Dialogue-Dataset-English".
     The data can then be loaded using the below command:\
          `datasets.load_dataset("medical_dialog", data_dir="/Downloads/Medical-Dialogue-Dataset-English")`.
 
-         For Chinese:\nFollow the above process. The download link is https://drive.google.com/drive/folders/1r09_i8nJ9c1nliXVGXwSqRYqklcHd9e2
+    \n  For Chinese:\nFollow the above process. The download link is https://drive.google.com/drive/folders/1r09_i8nJ9c1nliXVGXwSqRYqklcHd9e2
+
+    **NOTE:**
+    - A caution while downloading from drive. It is better to download single files since creating a zip might not include files <500 MB. This has been observed mutiple times.
+    - After downloading the files and adding them to the appropriate folder, the path of the folder can be given as input tu the data_dir path.
     """
 
     def _info(self):
@@ -130,22 +134,15 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
             )
 
         filepaths = [
-                os.path.join(path_to_manual_file, txt_file_name)
-                for txt_file_name in sorted(os.listdir(path_to_manual_file))
-                if txt_file_name.endswith("txt")
-            ]
-
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepaths": filepaths
-                }
-            )
+            os.path.join(path_to_manual_file, txt_file_name)
+            for txt_file_name in sorted(os.listdir(path_to_manual_file))
+            if txt_file_name.endswith("txt")
         ]
 
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": filepaths})]
+
     def _generate_examples(self, filepaths):
-        """ Yields examples. Calls helper function to iterate over each file and give the output
+        """Yields examples. Calls helper function to iterate over each file and give the output
 
         NOTE:
         - The code makes some assumption on the structure of the raw .txt file.
@@ -155,56 +152,52 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
         id_ = -1
         for filepath in filepaths:
             with open(filepath, encoding="utf-8") as f_in:
-                #Parameters to just "sectionize" the raw data
+                # Parameters to just "sectionize" the raw data
                 last_part = ""
                 last_dialog = {}
                 last_list = []
                 last_user = ""
                 check_list = []
 
-                #These flags are present to have a single function address both chinese and english data
-                #English data is a little hahazard (i.e. the sentences spans multiple different lines),
-                #Chinese is compact with one line for doctor and patient.
+                # These flags are present to have a single function address both chinese and english data
+                # English data is a little hahazard (i.e. the sentences spans multiple different lines),
+                # Chinese is compact with one line for doctor and patient.
                 conv_flag = False
                 des_flag = False
-
-                #The final list having all the dialogs present in the file
-                dialog_list = []
 
                 while True:
                     line = f_in.readline()
                     if not line:
                         break
 
-                    #Extracting the dialog id
-                    if line[:2] == "id":#Hardcode alert!
-                        #Handling ID references that may come in the description
-                        #These were observed in the Chinese dataset and were not
-                        #followed by numbers
+                    # Extracting the dialog id
+                    if line[:2] == "id":  # Hardcode alert!
+                        # Handling ID references that may come in the description
+                        # These were observed in the Chinese dataset and were not
+                        # followed by numbers
                         try:
-                            dialogue_id = int(re.findall(r'\d+', line)[0])
+                            dialogue_id = int(re.findall(r"\d+", line)[0])
                         except IndexError:
                             continue
 
-                    #Extracting the url
-                    if line[:4] == "http":#Hardcode alert!
+                    # Extracting the url
+                    if line[:4] == "http":  # Hardcode alert!
                         dialogue_url = line.rstrip()
 
-
-                    #Extracting the patient info from description.
-                    if line[:11] == "Description":#Hardcode alert!
+                    # Extracting the patient info from description.
+                    if line[:11] == "Description":  # Hardcode alert!
                         last_part = "description"
                         last_dialog = {}
                         last_list = []
                         last_user = ""
-                        last_conv = {"speaker":"", "utterance":""}
+                        last_conv = {"speaker": "", "utterance": ""}
                         while True:
                             line = f_in.readline()
                             if (not line) or (line in ["\n", "\n\r"]):
                                 break
                             else:
-                                if data_lang == "zh":#Condition in chinese
-                                    if line[:5] == '病情描述：': #Hardcode alert!
+                                if data_lang == "zh":  # Condition in chinese
+                                    if line[:5] == "病情描述：":  # Hardcode alert!
                                         last_user = "病人"
                                         sen = f_in.readline().rstrip()
                                         des_flag = True
@@ -217,8 +210,8 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                                 if des_flag:
                                     if sen == "":
                                         continue
-                                    if sen[-1] not in '.。？，,?!！~～':
-                                        sen += '.'
+                                    if sen[-1] not in ".。？，,?!！~～":
+                                        sen += "."
                                     if sen in check_list:
                                         last_conv["speaker"] = ""
                                         last_conv["utterance"] = ""
@@ -228,8 +221,8 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                                         check_list.append(sen)
                                     des_flag = False
                                     break
-                    #Extracting the conversation info from dialogue.   
-                    elif line[:8] == "Dialogue": #Hardcode alert!
+                    # Extracting the conversation info from dialogue.
+                    elif line[:8] == "Dialogue":  # Hardcode alert!
                         if last_part == "description" and len(last_conv["utterance"]) > 0:
                             last_part = "dialogue"
                             if data_lang == "zh":
@@ -244,10 +237,10 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                                     conv_flag = False
                                     last_user = ""
                                     last_list.append(copy.deepcopy(last_conv))
-                                    #To ensure close of conversation, only even number of sentences
-                                    #are extracted
+                                    # To ensure close of conversation, only even number of sentences
+                                    # are extracted
                                     last_turn = len(last_list)
-                                    if  int(last_turn / 2) > 0:
+                                    if int(last_turn / 2) > 0:
                                         temp = int(last_turn / 2)
                                         id_ += 1
                                         last_dialog["file_name"] = filepath
@@ -258,35 +251,34 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                                     break
 
                                 if data_lang == "zh":
-                                    if line[:3] == "病人:" or line[:3] == "医生:":#Hardcode alert!
-                                        user = line[:2]#Hardcode alert!
+                                    if line[:3] == "病人:" or line[:3] == "医生:":  # Hardcode alert!
+                                        user = line[:2]  # Hardcode alert!
                                         line = f_in.readline()
                                         conv_flag = True
 
-                                #The elif block is to ensure that multi-line sentences are captured.
-                                #This has been observed only in english.
+                                # The elif block is to ensure that multi-line sentences are captured.
+                                # This has been observed only in english.
                                 if data_lang == "en":
-                                    if line.strip() == "Patient:" or line.strip() == "Doctor:":#Hardcode alert!
-                                        user = line.replace(":","").rstrip()
+                                    if line.strip() == "Patient:" or line.strip() == "Doctor:":  # Hardcode alert!
+                                        user = line.replace(":", "").rstrip()
                                         line = f_in.readline()
-                                        conv_flag = True 
-                                    elif line[:2] != "id":#Hardcode alert!
-                                        conv_flag == True
+                                        conv_flag = True
+                                    elif line[:2] != "id":  # Hardcode alert!
+                                        conv_flag = True
 
-                                #Continues till the next ID is parsed
-                                if conv_flag == True:
+                                # Continues till the next ID is parsed
+                                if conv_flag:
                                     sen = line.rstrip()
                                     if sen == "":
                                         continue
 
-                                    if sen[-1] not in '.。？，,?!！~～':
-                                        sen += '.'
+                                    if sen[-1] not in ".。？，,?!！~～":
+                                        sen += "."
 
                                     if user == last_user:
                                         last_conv["utterance"] = last_conv["utterance"] + sen
                                     else:
-                                        
                                         last_user = user
-                                        last_list.append(copy.deepcopy(last_conv))                            
+                                        last_list.append(copy.deepcopy(last_conv))
                                         last_conv["utterance"] = sen
-                                        last_conv["speaker"] = user                             
+                                        last_conv["speaker"] = user
