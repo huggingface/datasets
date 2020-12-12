@@ -247,7 +247,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                                     break
 
                                 if data_lang == "zh":
-                                    if line[:3] == "病人:" or line[:3] == "医生:":  # Hardcode alert!
+                                    if line[:3] == "病人：" or line[:3] == "医生：":  # Hardcode alert!
                                         user = line[:2]  # Hardcode alert!
                                         line = f_in.readline()
                                         conv_flag = True
