@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -42,30 +41,15 @@ advertise their progress and to be up-to-speed with the state of the art on the
 tasks offered (see below for a definition).
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://propaganda.qcri.org/ptc/index.html"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class SemEval2020Task11(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """Semeval 2020 task 11 propaganda detection dataset"""
 
     VERSION = datasets.Version("1.1.0")
-
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
 
     @property
     def manual_download_instructions(self):
@@ -141,12 +125,6 @@ class SemEval2020Task11(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         keys = {}
@@ -175,9 +153,6 @@ class SemEval2020Task11(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_dir, keys, split, labels):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
 
         # Get the main path for the articles
         articles_path = os.path.join(data_dir, f"{split}-articles")
