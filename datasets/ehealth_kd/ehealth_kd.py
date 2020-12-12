@@ -16,10 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
-import os
-
 import datasets
 
 
@@ -37,7 +33,7 @@ year={2020}
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
+This new dataset is designed to solve this great NLP task and is crafted with a lot of care.
 """
 
 _HOMEPAGE = "https://knowledge-learning.github.io/ehealthkd-2020/"
@@ -58,10 +54,7 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="ehealth_kd",
-            version=VERSION,
-            description="eHealth Knowledge Discovery dataset"),
+        datasets.BuilderConfig(name="ehealth_kd", version=VERSION, description="eHealth Knowledge Discovery dataset"),
     ]
 
     def _info(self):
@@ -76,7 +69,7 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
                             "ent_text": datasets.Value("string"),
                             "ent_tag": datasets.Value("string"),
                             "start_character": datasets.Value("int32"),
-                            "end_character": datasets.Value("int32")
+                            "end_character": datasets.Value("int32"),
                         }
                     ],
                     "relations": [
@@ -84,15 +77,15 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
                             "rel_id": datasets.Value("string"),
                             "rel_tag": datasets.Value("string"),
                             "arg1": datasets.Value("string"),
-                            "arg2": datasets.Value("string")
+                            "arg2": datasets.Value("string"),
                         }
-                    ]
+                    ],
                 }
             ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
-            citation=_CITATION
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -100,34 +93,24 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
         urls_to_download = {
             "train": [f"{_URL}{_TRAIN_DIR}{_TEXT_FILE}", f"{_URL}{_TRAIN_DIR}{_ANNOTATIONS_FILE}"],
             "dev": [f"{_URL}{_DEV_DIR}{_TEXT_FILE}", f"{_URL}{_DEV_DIR}{_ANNOTATIONS_FILE}"],
-            "test": [f"{_URL}{_TEST_DIR}{_TEXT_FILE}", f"{_URL}{_TEST_DIR}{_ANNOTATIONS_FILE}"]
+            "test": [f"{_URL}{_TEST_DIR}{_TEXT_FILE}", f"{_URL}{_TEST_DIR}{_ANNOTATIONS_FILE}"],
         }
 
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
-        print("\nDOWNLOAD,", downloaded_files)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "text_dir": downloaded_files["train"][0],
-                    "ann_dir": downloaded_files["train"][1]
-                }
+                gen_kwargs={"text_dir": downloaded_files["train"][0], "ann_dir": downloaded_files["train"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "text_dir": downloaded_files["dev"][0],
-                    "ann_dir": downloaded_files["dev"][1]
-                }
+                gen_kwargs={"text_dir": downloaded_files["dev"][0], "ann_dir": downloaded_files["dev"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "text_dir": downloaded_files["test"][0],
-                    "ann_dir": downloaded_files["test"][1]
-                }
-            )
+                gen_kwargs={"text_dir": downloaded_files["test"][0], "ann_dir": downloaded_files["test"][1]},
+            ),
         ]
 
     def _generate_examples(self, text_dir, ann_dir):
@@ -138,33 +121,21 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
             relations = []
 
             # For each sentence in the text_file, in the annotations_file the entities are before the relations
-            last_annotation = ''
+            last_annotation = ""
 
             for annotation in a:
                 if annotation.startswith("T"):
                     if last_annotation == "relation":
                         sentence = t.readline().strip()
-                        #print('\nSENTENCE:', sentence)
-                        yield _id, {
-                           "sentence": sentence,
-                            "entities": entities,
-                            "relations": relations
-                        }
+                        yield _id, {"sentence": sentence, "entities": entities, "relations": relations}
                         _id += 1
                         entities = []
                         relations = []
 
                     ent_id, mid, ent_text = annotation.strip().split("\t")
-                    #print('\nID', ent_id)
-                    #print('\nMID', mid)
-                    #print('\nTEXT', ent_text)
                     ent_tag, spans = mid.split(" ", 1)
-                    #print('\nTAG', ent_tag)
-                    #print('\nSPANS', spans)
                     start_character = spans.split(" ")[0]
                     end_character = spans.split(" ")[-1]
-                    #print('\nCHARS', start_character)
-                    #print(end_character)
 
                     entities.append(
                         {
@@ -172,7 +143,7 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
                             "ent_text": ent_text,
                             "ent_tag": ent_tag,
                             "start_character": start_character,
-                            "end_character": end_character
+                            "end_character": end_character,
                         }
                     )
 
@@ -182,15 +153,7 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
                     rel_id, rel_tag, arg1, arg2 = annotation.strip().split()
                     arg1 = arg1.split(":")[1]
                     arg2 = arg2.split(":")[1]
-                    #print('\nRELATION', (rel_id, rel_tag, arg1, arg2))
 
-                    relations.append(
-                        {
-                            "rel_id": rel_id,
-                            "rel_tag": rel_tag,
-                            "arg1": arg1,
-                            "arg2": arg2
-                        }
-                    )
+                    relations.append({"rel_id": rel_id, "rel_tag": rel_tag, "arg1": arg1, "arg2": arg2})
 
                     last_annotation = "relation"
