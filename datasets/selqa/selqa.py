@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import json
-import os
 
 import datasets
 
@@ -28,8 +27,8 @@ import datasets
 _CITATION = """\
 @InProceedings{7814688,
   author={T. {Jurczyk} and M. {Zhai} and J. D. {Choi}},
-  booktitle={2016 IEEE 28th International Conference on Tools with Artificial Intelligence (ICTAI)}, 
-  title={SelQA: A New Benchmark for Selection-Based Question Answering}, 
+  booktitle={2016 IEEE 28th International Conference on Tools with Artificial Intelligence (ICTAI)},
+  title={SelQA: A New Benchmark for Selection-Based Question Answering},
   year={2016},
   volume={},
   number={},
@@ -41,7 +40,7 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-The SelQA dataset provides crowdsourced annotation for two selection-based question answer tasks, 
+The SelQA dataset provides crowdsourced annotation for two selection-based question answer tasks,
 answer sentence selection and answer triggering.
 """
 
@@ -55,14 +54,12 @@ _LICENSE = ""
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 types = {
-    'answer_selection': "ass",
-    'answer_triggering': "at",
+    "answer_selection": "ass",
+    "answer_triggering": "at",
 }
 
-modes = {
-    "analysis": "json",
-    "experiments": "tsv"
-}
+modes = {"analysis": "json", "experiments": "tsv"}
+
 
 class SelqaConfig(datasets.BuilderConfig):
     """"BuilderConfig for SelQA Dataset"""
@@ -71,6 +68,7 @@ class SelqaConfig(datasets.BuilderConfig):
         super(SelqaConfig, self).__init__(**kwargs)
         self.mode = mode
         self.type_ = type_
+
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Selqa(datasets.GeneratorBasedBuilder):
@@ -90,21 +88,47 @@ class Selqa(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        SelqaConfig(name="answer_selection_analysis", mode="analysis", type_="answer_selection", version=VERSION, description="This part covers answer selection analysis"),
-        SelqaConfig(name="answer_selection_experiments", mode="experiments", type_="answer_selection", version=VERSION, description="This part covers answer selection experiments"),
-        SelqaConfig(name="answer_triggering_analysis", mode="analysis", type_="answer_triggering", version=VERSION, description="This part covers answer triggering analysis"),
-        SelqaConfig(name="answer_triggering_experiments", mode="experiments", type_="answer_triggering", version=VERSION, description="This part covers answer triggering experiments"),
+        SelqaConfig(
+            name="answer_selection_analysis",
+            mode="analysis",
+            type_="answer_selection",
+            version=VERSION,
+            description="This part covers answer selection analysis",
+        ),
+        SelqaConfig(
+            name="answer_selection_experiments",
+            mode="experiments",
+            type_="answer_selection",
+            version=VERSION,
+            description="This part covers answer selection experiments",
+        ),
+        SelqaConfig(
+            name="answer_triggering_analysis",
+            mode="analysis",
+            type_="answer_triggering",
+            version=VERSION,
+            description="This part covers answer triggering analysis",
+        ),
+        SelqaConfig(
+            name="answer_triggering_experiments",
+            mode="experiments",
+            type_="answer_triggering",
+            version=VERSION,
+            description="This part covers answer triggering experiments",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "answer_selection_analysis"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
-        if self.config.mode == "experiments":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
+        if (
+            self.config.mode == "experiments"
+        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "question": datasets.Value("string"),
                     "candidate": datasets.Value("string"),
-                    "label": datasets.ClassLabel(names=["0", "1"])
+                    "label": datasets.ClassLabel(names=["0", "1"]),
                 }
             )
         else:
@@ -115,10 +139,25 @@ class Selqa(datasets.GeneratorBasedBuilder):
                         "question": datasets.Value("string"),
                         "article": datasets.Value("string"),
                         "is_paraphrase": datasets.Value("bool"),
-                        "topic": datasets.ClassLabel(names=["MUSIC", "TV", "TRAVEL", "ART", "SPORT", "COUNTRY", "MOVIES", "HISTORICAL EVENTS", "SCIENCE", "FOOD"]),
+                        "topic": datasets.ClassLabel(
+                            names=[
+                                "MUSIC",
+                                "TV",
+                                "TRAVEL",
+                                "ART",
+                                "SPORT",
+                                "COUNTRY",
+                                "MOVIES",
+                                "HISTORICAL EVENTS",
+                                "SCIENCE",
+                                "FOOD",
+                            ]
+                        ),
                         "answers": datasets.Sequence(datasets.Value("int32")),
                         "candidates": datasets.Sequence(datasets.Value("string")),
-                        "q_types": datasets.Sequence(datasets.ClassLabel(names=["what", "why", "when", "who", "where", "how", ""]))
+                        "q_types": datasets.Sequence(
+                            datasets.ClassLabel(names=["what", "why", "when", "who", "where", "how", ""])
+                        ),
                     }
                 )
             else:
@@ -128,16 +167,31 @@ class Selqa(datasets.GeneratorBasedBuilder):
                         "question": datasets.Value("string"),
                         "article": datasets.Value("string"),
                         "is_paraphrase": datasets.Value("bool"),
-                        "topic": datasets.ClassLabel(names=["MUSIC", "TV", "TRAVEL", "ART", "SPORT", "COUNTRY", "MOVIES", "HISTORICAL EVENTS", "SCIENCE", "FOOD"]),
-                        "q_types": datasets.Sequence(datasets.ClassLabel(names=["what", "why", "when", "who", "where", "how", ""])),
+                        "topic": datasets.ClassLabel(
+                            names=[
+                                "MUSIC",
+                                "TV",
+                                "TRAVEL",
+                                "ART",
+                                "SPORT",
+                                "COUNTRY",
+                                "MOVIES",
+                                "HISTORICAL EVENTS",
+                                "SCIENCE",
+                                "FOOD",
+                            ]
+                        ),
+                        "q_types": datasets.Sequence(
+                            datasets.ClassLabel(names=["what", "why", "when", "who", "where", "how", ""])
+                        ),
                         "candidate_list": datasets.Sequence(
                             {
                                 "article": datasets.Value("string"),
                                 "section": datasets.Value("string"),
                                 "candidates": datasets.Sequence(datasets.Value("string")),
-                                "answers": datasets.Sequence(datasets.Value("int32"))
+                                "answers": datasets.Sequence(datasets.Value("int32")),
                             }
-                        )
+                        ),
                     }
                 )
         return datasets.DatasetInfo(
@@ -164,11 +218,11 @@ class Selqa(datasets.GeneratorBasedBuilder):
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
+        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         urls = {
             "train": f"https://raw.githubusercontent.com/emorynlp/selqa/master/{types[self.config.type_]}/selqa-{types[self.config.type_]}-train.{modes[self.config.mode]}",
             "dev": f"https://raw.githubusercontent.com/emorynlp/selqa/master/{types[self.config.type_]}/selqa-{types[self.config.type_]}-dev.{modes[self.config.mode]}",
-            "test": f"https://raw.githubusercontent.com/emorynlp/selqa/master/{types[self.config.type_]}/selqa-{types[self.config.type_]}-test.{modes[self.config.mode]}"
+            "test": f"https://raw.githubusercontent.com/emorynlp/selqa/master/{types[self.config.type_]}/selqa-{types[self.config.type_]}-test.{modes[self.config.mode]}",
         }
         data_dir = dl_manager.download_and_extract(urls)
         return [
@@ -183,10 +237,7 @@ class Selqa(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -205,7 +256,9 @@ class Selqa(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         with open(filepath, encoding="utf-8") as f:
             if self.config.mode == "experiments":
-                csv_reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE, fieldnames=["question", "candidate", "label"])
+                csv_reader = csv.DictReader(
+                    f, delimiter="\t", quoting=csv.QUOTE_NONE, fieldnames=["question", "candidate", "label"]
+                )
                 for id_, row in enumerate(csv_reader):
                     yield id_, row
             else:
@@ -214,15 +267,15 @@ class Selqa(datasets.GeneratorBasedBuilder):
                         data = json.loads(row)
                         for id_, item in enumerate(data):
                             yield id_, {
-                            "section": item["section"],
-                            "question": item["question"],
-                            "article": item["article"],
-                            "is_paraphrase": item["is_paraphrase"],
-                            "topic": item["topic"],
-                            "answers": item["answers"],
-                            "candidates": item["candidates"],
-                            "q_types": item["q_types"]
-                        }
+                                "section": item["section"],
+                                "question": item["question"],
+                                "article": item["article"],
+                                "is_paraphrase": item["is_paraphrase"],
+                                "topic": item["topic"],
+                                "answers": item["answers"],
+                                "candidates": item["candidates"],
+                                "q_types": item["q_types"],
+                            }
                 else:
                     for row in f:
                         data = json.loads(row)
@@ -234,15 +287,15 @@ class Selqa(datasets.GeneratorBasedBuilder):
                                         "article": entity["article"],
                                         "section": entity["section"],
                                         "answers": entity["answers"],
-                                        "candidates": entity["candidates"]
+                                        "candidates": entity["candidates"],
                                     }
                                 )
                             yield id_, {
-                            "section": item["section"],
-                            "question": item["question"],
-                            "article": item["article"],
-                            "is_paraphrase": item["is_paraphrase"],
-                            "topic": item["topic"],
-                            "q_types": item["q_types"],
-                            "candidate_list": candidate_list
+                                "section": item["section"],
+                                "question": item["question"],
+                                "article": item["article"],
+                                "is_paraphrase": item["is_paraphrase"],
+                                "topic": item["topic"],
+                                "q_types": item["q_types"],
+                                "candidate_list": candidate_list,
                             }
