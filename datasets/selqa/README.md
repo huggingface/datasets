@@ -178,7 +178,10 @@ Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	The Rockef
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	It is also the home of the first hominid fossil skull found in Western Asia called Galilee Man .	0
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	A cast of the skull is on display at the Israel Museum .	0
 
-## Data for Analysis
+### Data Fields
+
+#### Answer Selection
+##### Data for Analysis
 
 JSON files, `selqa-ass-(train|dev|test).json`, are provided for analysis: 
 
@@ -191,7 +194,7 @@ JSON files, `selqa-ass-(train|dev|test).json`, are provided for analysis:
 * `candidates`: the list of sentences in the related section.
 * `answers`: the list of candidate indices containing the answer context of this question.
 
-## Data for Experiments
+##### Data for Experiments
 
 TSV files, `selqa-ass-(train|dev|test).tsv`, are provided for experiments, where each column gives:
 
@@ -199,8 +202,8 @@ TSV files, `selqa-ass-(train|dev|test).tsv`, are provided for experiments, where
 * `1`: a candidate of the question where all tokens are separated.
 * `2`: the label where `0` implies no answer to the question is found in this candidate and `1` implies the answer is found.
 
-# Answer Triggering
-## Data for Analysis
+#### Answer Triggering
+##### Data for Analysis
 
 JSON files, `selqa-at-(train|dev|test).json` are provided for analysis: 
 
@@ -216,7 +219,7 @@ JSON files, `selqa-at-(train|dev|test).json` are provided for analysis:
   * `candidates`: the list of sentences in this candidate section.
   * `answers`: the list of candidate indices containing the answer context of this question (can be empty).
 
-## Data for Experiments
+##### Data for Experiments
 
 TSV files, `selqa-at-(train|dev|test).tsv`, are provided for experiments, where each column gives:
 
