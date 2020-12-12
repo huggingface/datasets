@@ -19,7 +19,11 @@ task_ids:
 - named-entity-recognition
 ---
 
+<<<<<<< HEAD
 # Dataset Card for Yoruba GV NER Corpus
+=======
+# Dataset Card for Yoruba NER Corpus
+>>>>>>> add Yoruba NER dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -119,7 +123,11 @@ The dataset contributed by journalists, translators, bloggers, and human rights 
 
 #### Who are the annotators?
 
+<<<<<<< HEAD
 The data was annotated by Jesujoba Alabi and David Adelani for the paper: 
+=======
+The data was annotated by Jesujoba Alabi and David Adelani for the papaer: 
+>>>>>>> add Yoruba NER dataset
 [Massive vs. Curated Embeddings for Low-Resourced Languages: the case of Yorùbá and Twi](https://www.aclweb.org/anthology/2020.lrec-1.335/).
 
 [More Information Needed]

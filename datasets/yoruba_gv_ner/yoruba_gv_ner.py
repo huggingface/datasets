@@ -67,10 +67,17 @@ _TEST_FILE = "test.tsv"
 
 
 class YorubaGvNerConfig(datasets.BuilderConfig):
+<<<<<<< HEAD
     """BuilderConfig for YorubaGvNer"""
 
     def __init__(self, **kwargs):
         """BuilderConfig for YorubaGvNer.
+=======
+    """BuilderConfig for Conll2003"""
+
+    def __init__(self, **kwargs):
+        """BuilderConfig forConll2003.
+>>>>>>> add Yoruba NER dataset
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
