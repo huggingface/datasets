@@ -384,7 +384,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             text_features={"tokens": "tokens"},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["I-SENTIMENT", "O", "I-ASPECT", "B-SENTIMENT", "B-ASPECT"],
-            label_column="post_tags",
+            label_column="seq_label",
             train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/train_preprocess.txt",
             valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/valid_preprocess.txt",
             test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/terma_term-extraction-airy/test_preprocess_masked_label.txt",

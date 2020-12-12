@@ -1,17 +1,90 @@
-|    | dataset | annotations_creators | language_creators | languages | licenses | multilinguality | size_categories | source_datasets | task_categories      | task_ids                                                  |
-|----|---------|----------------------|-------------------|-----------|----------|-----------------|-----------------|-----------------|----------------------|-----------------------------------------------------------|
-| 1  | EmoT    | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | text-classification  | multi-class-classification                                |
-| 2  | SmSA    | expert-generated     | expert-generated  | id        | mit      | monolingual     | 10K<n<100K      | original        | text-classification  | sentiment-classification                                  |
-| 3  | CASA    | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | text-classification  | text-classification-other-aspect-based-sentiment-analysis |
-| 4  | HoASA   | expert-generated     | expert-generated  | id        | mit      | monolingual     | n<1K            | original        | text-classification  | text-classification-other-aspect-based-sentiment-analysis |
-| 5  | WReTE   | expert-generated     | expert-generated  | id        | mit      | monolingual     | n<1K            | original        | text-classification  | semantic-similarity-classification                        |
-| 6  | POSP    | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | structure-prediction | structure-prediction-other-part-of-speech-tagging         |
-| 7  | BaPOS   | expert-generated     | expert-generated  | id        | mit      | monolingual     | 10K<n<100K      | original        | structure-prediction | structure-prediction-other-part-of-speech-tagging         |
-| 8  | TermA   | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | structure-prediction | structure-prediction-other-span-extraction                |
-| 9  | KEPS    | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | structure-prediction | structure-prediction-other-key-phrase-extraction          |
-| 10 | NERGrit | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | structure-prediction | named-entity-recognition                                  |
-| 11 | NERP    | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | structure-prediction | named-entity-recognition                                  |
-| 12 | FacQA   | expert-generated     | expert-generated  | id        | mit      | monolingual     | 1K<n<10K        | original        | question-answering   | closed-domain-qa                                          |
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- id
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+  bapos:
+  - 10K<n<100K
+  casa:
+  - 1K<n<10K
+  emot:
+  - 1K<n<10K
+  facqa:
+  - 1K<n<10K
+  hoasa:
+  - n<1K
+  keps:
+  - 1K<n<10K
+  nergrit:
+  - 1K<n<10K
+  nerp:
+  - 1K<n<10K
+  posp:
+  - 1K<n<10K
+  smsa:
+  - 10K<n<100K
+  terma:
+  - 1K<n<10K
+  wrete:
+  - n<1K
+source_datasets:
+- original
+task_categories:
+  bapos:
+  - structure-prediction
+  casa:
+  - text-classification
+  emot:
+  - text-classification
+  facqa:
+  - question-answering
+  hoasa:
+  - text-classification
+  keps:
+  - structure-prediction
+  nergrit:
+  - structure-prediction
+  nerp:
+  - structure-prediction
+  posp:
+  - structure-prediction
+  smsa:
+  - text-classification
+  terma:
+  - structure-prediction
+  wrete:
+  - text-classification
+task_ids:
+  bapos:
+  - structure-prediction-other-part-of-speech-tagging
+  casa:
+  - text-classification-other-aspect-baset-sentiment-analysis
+  emot:
+  - multi-class-classification
+  facqa:
+  - closed-domain-qa
+  hoasa:
+  - text-classification-other-aspect-baset-sentiment-analysis
+  keps:
+  - structure-prediction-other-keyphrase-extraction
+  nergrit:
+  - named-entity-recognition
+  nerp:
+  - named-entity-recognition
+  posp:
+  - structure-prediction-other-part-of-speech-tagging
+  smsa:
+  - sentiment-classification
+  terma:
+  - structure-prediction-other-span-extraction
+  wrete:
+  - semantic-similarity-classification
 
 # Dataset Card for IndoNLU
 
@@ -40,11 +113,11 @@
 
 ## Dataset Description
 
-- **Homepage:** [IndoNLU](https://www.indobenchmark.com/)
-- **Repository:** [IndoNLU](https://github.com/indobenchmark/indonlu)
+- **Homepage:** [IndoNLU Website](https://www.indobenchmark.com/)
+- **Repository:** [IndoNLU GitHub](https://github.com/indobenchmark/indonlu)
 - **Paper:** [IndoNLU: Benchmark and Resources for Evaluating Indonesian Natural Language Understanding](https://www.aclweb.org/anthology/2020aacl-main.85.pdf)
-- **Leaderboard:**
-- **Point of Contact:**
+- **Leaderboard:** [Needs More Information]
+- **Point of Contact:** [Needs More Information]
 
 ### Dataset Summary
 
@@ -65,7 +138,7 @@ There are 12 datasets in IndoNLU benchmark for Indonesian natural language under
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+[Needs More Information]
 
 ### Languages
 
@@ -77,21 +150,21 @@ Indonesian
 
 1. `EmoT` dataset
 
-A data point consists of `label` and `tweet`. An example from the train set looks as follows:
+A data point consists of `tweet` and `label`. An example from the train set looks as follows:
 ```
 {
-  'label': 4,
   'tweet': 'Ini adalah hal yang paling membahagiakan saat biasku foto bersama ELF #ReturnOfTheLittlePrince #HappyHeeChulDay'
+  'label': 4,
 }
 ```
 
 2. `SmSA` dataset
 
-A data point consists of `label` and `text`. An example from the train set looks as follows:
+A data point consists of `text` and `label`. An example from the train set looks as follows:
 ```
 {
-  'label': 0,
   'text': 'warung ini dimiliki oleh pengusaha pabrik tahu yang sudah puluhan tahun terkenal membuat tahu putih di bandung . tahu berkualitas , dipadu keahlian memasak , dipadu kretivitas , jadilah warung yang menyajikan menu utama berbahan tahu , ditambah menu umum lain seperti ayam . semuanya selera indonesia . harga cukup terjangkau . jangan lewatkan tahu bletoka nya , tidak kalah dengan yang asli dari tegal !'
+  'label': 0,
 }
 ```
 
@@ -100,28 +173,28 @@ A data point consists of `label` and `text`. An example from the train set looks
 A data point consists of `sentence` and multi-label `feature`, `machine`, `others`, `part`, `price`, and `service`. An example from the train set looks as follows:
 ```
 {
+  'sentence': 'Saya memakai Honda Jazz GK5 tahun 2014 ( pertama meluncur ) . Mobil nya bagus dan enak sesuai moto nya menyenangkan untuk dikendarai',
   'fuel': 1,
   'machine': 1,
   'others': 2,
   'part': 1,
   'price': 1,
-  'sentence': 'Saya memakai Honda Jazz GK5 tahun 2014 ( pertama meluncur ) . Mobil nya bagus dan enak sesuai moto nya menyenangkan untuk dikendarai',
   'service': 1
 }
 ```
 
 4. `HoASA` dataset
 
-A data point consists of `sentence` and multi-label `ac`, `air_panas`, `bau`, `general`, `kebersihan`, `linen`, `service`, `sunrise_meal`, `tv`, and `tv`. An example from the train set looks as follows:
+A data point consists of `sentence` and multi-label `ac`, `air_panas`, `bau`, `general`, `kebersihan`, `linen`, `service`, `sunrise_meal`, `tv`, and `wifi`. An example from the train set looks as follows:
 ```
 {
+  'sentence': 'kebersihan kurang...',
   'ac': 1,
   'air_panas': 1,
   'bau': 1,
   'general': 1,
   'kebersihan': 0,
   'linen': 1,
-  'sentence': 'kebersihan kurang...',
   'service': 1,
   'sunrise_meal': 1,
   'tv': 1,
@@ -134,69 +207,69 @@ A data point consists of `sentence` and multi-label `ac`, `air_panas`, `bau`, `g
 A data point consists of `sent_A`, `sent_B`, `category`, and `label`. An example from the train set looks as follows:
 ```
 {
+  'sent_A': 'Pada awalnya bangsa Israel hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kanan pada abad 18 SM .',
+  'sent_B': 'Pada awalnya bangsa Yahudi hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kanan pada abad 18 SM .'
   'category': 'menolak perubahan teks terakhir oleh istimewa kontribusi pengguna 141 109 98 87 141 109 98 87 dan mengembalikan revisi 6958053 oleh johnthorne',
   'label': 0,
-  'sent_A': 'Pada awalnya bangsa Israel hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kan’an pada abad 18 SM .',
-  'sent_B': 'Pada awalnya bangsa Yahudi hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kan’an pada abad 18 SM .'
 }
 ```
 
 6. `POSP` dataset
 
-A data point consists of `sentence` and `seq_label`. An example from the train set looks as follows:
+A data point consists of `tokens` and `pos_tags`. An example from the train set looks as follows:
 ```
 {
-  'sentence': ['kepala', 'dinas', 'tata', 'kota', 'manado', 'amos', 'kenda', 'menyatakan', 'tidak', 'tahu', '-', 'menahu', 'soal', 'pencabutan', 'baliho', '.', 'ia', 'enggan', 'berkomentar', 'banyak', 'karena', 'merasa', 'bukan', 'kewenangannya', '.'],
-  'seq_label': [11, 6, 11, 11, 7, 7, 7, 9, 23, 4, 21, 9, 11, 11, 11, 21, 3, 2, 4, 1, 19, 9, 23, 11, 21]
+  'tokens': ['kepala', 'dinas', 'tata', 'kota', 'manado', 'amos', 'kenda', 'menyatakan', 'tidak', 'tahu', '-', 'menahu', 'soal', 'pencabutan', 'baliho', '.', 'ia', 'enggan', 'berkomentar', 'banyak', 'karena', 'merasa', 'bukan', 'kewenangannya', '.'],
+  'pos_tags': [11, 6, 11, 11, 7, 7, 7, 9, 23, 4, 21, 9, 11, 11, 11, 21, 3, 2, 4, 1, 19, 9, 23, 11, 21]
 }
 ```
 
 7. `BaPOS` dataset
 
-A data point consists of `sentence` and `seq_label`. An example from the train set looks as follows:
+A data point consists of `tokens` and `pos_tags`. An example from the train set looks as follows:
 ```
 {
-  'sentence': ['Kera', 'untuk', 'amankan', 'pesta', 'olahraga'],
-  'seq_label': [27, 8, 26, 27, 30]
+  'tokens': ['Kera', 'untuk', 'amankan', 'pesta', 'olahraga'],
+  'pos_tags': [27, 8, 26, 27, 30]
 }
 ```
 
 8. `TermA` dataset
 
-A data point consists of `sentence` and `seq_label`. An example from the train set looks as follows:
+A data point consists of `tokens` and `seq_label`. An example from the train set looks as follows:
 ```
 {
-  'sentence': ['kamar', 'saya', 'ada', 'kendala', 'di', 'ac', 'tidak', 'berfungsi', 'optimal', '.', 'dan', 'juga', 'wifi', 'koneksi', 'kurang', 'stabil', '.'],
+  'tokens': ['kamar', 'saya', 'ada', 'kendala', 'di', 'ac', 'tidak', 'berfungsi', 'optimal', '.', 'dan', 'juga', 'wifi', 'koneksi', 'kurang', 'stabil', '.'],
   'seq_label': [1, 1, 1, 1, 1, 4, 3, 0, 0, 1, 1, 1, 4, 2, 3, 0, 1]
 }
 ```
 
 9. `KEPS` dataset
 
-A data point consists of `sentence` and `seq_label`. An example from the train set looks as follows:
+A data point consists of `tokens` and `seq_label`. An example from the train set looks as follows:
 ```
 {
-  'sentence': ['Setelah', 'melalui', 'proses', 'telepon', 'yang', 'panjang', 'tutup', 'sudah', 'kartu', 'kredit', 'bca', 'Ribet'],
+  'tokens': ['Setelah', 'melalui', 'proses', 'telepon', 'yang', 'panjang', 'tutup', 'sudah', 'kartu', 'kredit', 'bca', 'Ribet'],
   'seq_label': [0, 1, 1, 2, 0, 0, 1, 0, 1, 2, 2, 1]
 }
 ```
 
 10. `NERGrit` dataset
 
-A data point consists of `sentence` and `seq_label`. An example from the train set looks as follows:
+A data point consists of `tokens` and `ner_tags`. An example from the train set looks as follows:
 ```
 {
-  'sentence': ['Kontribusinya', 'terhadap', 'industri', 'musik', 'telah', 'mengumpulkan', 'banyak', 'prestasi', 'termasuk', 'lima', 'Grammy', 'Awards', ',', 'serta', 'dua', 'belas', 'nominasi', ';', 'dua', 'Guinness', 'World', 'Records', ';', 'dan', 'penjualannya', 'diperkirakan', 'sekitar', '64', 'juta', 'rekaman', '.'],
-  'seq_label': [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]}
+  'tokens': ['Kontribusinya', 'terhadap', 'industri', 'musik', 'telah', 'mengumpulkan', 'banyak', 'prestasi', 'termasuk', 'lima', 'Grammy', 'Awards', ',', 'serta', 'dua', 'belas', 'nominasi', ';', 'dua', 'Guinness', 'World', 'Records', ';', 'dan', 'penjualannya', 'diperkirakan', 'sekitar', '64', 'juta', 'rekaman', '.'],
+  'ner_tags': [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]}
 ```
 
 11. `NERP` dataset
 
-A data point consists of `sentence` and `seq_label`. An example from the train set looks as follows:
+A data point consists of `tokens` and `ner_tags`. An example from the train set looks as follows:
 ```
 {
-  'sentence': ['kepala', 'dinas', 'tata', 'kota', 'manado', 'amos', 'kenda', 'menyatakan', 'tidak', 'tahu', '-', 'menahu', 'soal', 'pencabutan', 'baliho', '.', 'ia', 'enggan', 'berkomentar', 'banyak', 'karena', 'merasa', 'bukan', 'kewenangannya', '.'],
-  'seq_label': [9, 9, 9, 9, 2, 7, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+  'tokens': ['kepala', 'dinas', 'tata', 'kota', 'manado', 'amos', 'kenda', 'menyatakan', 'tidak', 'tahu', '-', 'menahu', 'soal', 'pencabutan', 'baliho', '.', 'ia', 'enggan', 'berkomentar', 'banyak', 'karena', 'merasa', 'bukan', 'kewenangannya', '.'],
+  'ner_tags': [9, 9, 9, 9, 2, 7, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 }
 ```
 
@@ -215,148 +288,88 @@ A data point consists of `question`, `passage`, and `seq_label`. An example from
 
 1. `EmoT` dataset
 
-- `label`: class of the emotion
-- `tweet`: tweet
-
-The labels correspond to this list:
-```
-"sadness", "anger", "love", "fear", "happy" 
-```
+- `tweet`: a `string` feature.
+- `label`: an emotion label, with possible values including `sadness`, `anger`, `love`, `fear`, `happy`.
 
 2. `SmSA` dataset
 
-- `label`: sentiment of the example text
-- `text`: text
-
-The labels correspond to this list:
-```
-"positive", "neutral", "negative" 
-```
+- `text`: a `string` feature.
+- `label`: a sentiment label, with possible values including `positive`, `neutral`, `negative`.
 
 3. `CASA` dataset
 
-- `sentence`: sentence
-- `fuel`: the sentiment label of the aspect domain fuel.
-- `machine`: the sentiment label of the aspect domain machine.
-- `others`: the sentiment label of the aspect domain others.
-- `part`: the sentiment label of the aspect domain part.
-- `price`: the sentiment label of the aspect domain price.
-- `service`: the sentiment label of the aspect domain service.
-
-The sentiment labels correspond to this list:
-```
-"negative", "neutral", "positive" 
-```
+- `sentence`: a `string` feature.
+- `fuel`: a sentiment label, with possible values including `negative`, `neutral`, `positive`.
+- `machine`: a sentiment label, with possible values including `negative`, `neutral`, `positive`.
+- `others`: a sentiment label, with possible values including `negative`, `neutral`, `positive`.
+- `part`: a sentiment label, with possible values including `negative`, `neutral`, `positive`.
+- `price`: a sentiment label, with possible values including `negative`, `neutral`, `positive`.
+- `service`: a sentiment label, with possible values including `negative`, `neutral`, `positive`.
 
 4. `HoASA` dataset
 
-- `sentence`: sentence
-- `ac`: the sentiment label of the aspect domain ac.
-- `air_panas`: the sentiment label of the aspect domain air_panas.
-- `bau`: the sentiment label of the aspect domain bau.
-- `general`: the sentiment label of the aspect domain general.
-- `kebersihan`: the sentiment label of the aspect domain kebersihan.
-- `linen`: the sentiment label of the aspect domain linen.
-- `service`: the sentiment label of the aspect domain service.
-- `sunrise_meal`: the sentiment label of the aspect domain sunrise_meal.
-- `tv`: the sentiment label of the aspect domain tv.
-- `wifi`: the sentiment label of the aspect domain wifi.
-
-The sentiment labels correspond to this list:
-```
-"neg", "neut", "pos", "neg_pos" 
-```
+- `sentence`: a `string` feature.
+- `ac`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `air_panas`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `bau`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `general`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `kebersihan`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `linen`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `service`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `sunrise_meal`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `tv`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
+- `wifi`: a sentiment label, with possible values including `neg`, `neut`, `pos`, `neg_pos`.
 
 5. `WReTE` dataset
 
-- `sent_A`: sentence A.
-- `sent_B`: sentence B.
-- `category`: the category for both sentence.
-- `label`: the binary semantic relations between sent_A and sent_B.
-
-The labels correspond to this list:
-```
-"NotEntail", "Entail_or_Paraphrase"
-```
+- `sent_A`: a `string` feature.
+- `sent_B`: a `string` feature.
+- `category`: a `string` feature.
+- `label`: a classification label, with possible values including `NotEntail`, `Entail_or_Paraphrase`.
 
 6. `POSP` dataset
 
-- `sentence`: the tokens of the example text.
-- `seq_label`: the part-of-speech (POS) tags for each token.
+- `tokens`: a `list` of `string` features.
+- `pos_tags`: a `list` of POS tag labels, with possible values including `B-PPO`, `B-KUA`, `B-ADV`, `B-PRN`, `B-VBI`.
 
-The 26 POS tags correspond to this list.
-```
-"B-PPO", "B-KUA", "B-ADV", "B-PRN", "B-VBI", "B-PAR", "B-VBP", "B-NNP", "B-UNS", "B-VBT",
-"B-VBL", "B-NNO", "B-ADJ", "B-PRR", "B-PRK", "B-CCN", "B-$$$", "B-ADK", "B-ART", "B-CSN",
-"B-NUM", "B-SYM", "B-INT", "B-NEG", "B-PRI", "B-VBE",
-```
 The POS tag labels follow the [Indonesian Association of Computational Linguistics (INACL) POS Tagging Convention](http://inacl.id/inacl/wp-content/uploads/2017/06/INACLPOS-Tagging-Convention-26-Mei.pdf).
 
 7. `BaPOS` dataset
 
-- `sentence`: the tokens of the example text.
-- `seq_label`: the part-of-speech (POS) tags for each token.
+- `tokens`: a `list` of `string` features.
+- `pos_tags`: a `list` of POS tag labels, with possible values including `B-PR`, `B-CD`, `I-PR`, `B-SYM`, `B-JJ`.
 
-The POS tags correspond to this list.
-```
-"B-PR", "B-CD", "I-PR", "B-SYM", "B-JJ", "B-DT", "I-UH", "I-NND", "B-SC", "I-WH",
-"I-IN", "I-NNP", "I-VB", "B-IN", "B-NND", "I-CD", "I-JJ", "I-X", "B-OD", "B-RP",
-"B-RB", "B-NNP", "I-RB", "I-Z", "B-CC", "B-NEG", "B-VB", "B-NN", "B-MD", "B-UH",
-"I-NN", "B-PRP", "I-SC", "B-Z", "I-PRP", "I-OD", "I-SYM", "B-WH", "B-FW", "I-CC",
-"B-X"
-```
-The 23 POS tag labels from [Tagset UI](https://bahasa.cs.ui.ac.id/postag/downloads/Tagset.pdf).
+The POS tag labels from [Tagset UI](https://bahasa.cs.ui.ac.id/postag/downloads/Tagset.pdf).
 
 8. `TermA` dataset
 
-- `sentence`: the tokens of the example text.
-- `seq_label`: the span-extraction tags for each token.
-
-The labels use Inside-Outside-Beginning (IOB) tagging representation with two kinds of tags, aspect and sentiment. The span extraction tags correspond to this list.
-```
-"I-SENTIMENT", "O", "I-ASPECT", "B-SENTIMENT", "B-ASPECT"
-```
+- `tokens`: a `list` of `string` features.
+- `seq_label`: a `list` of classification labels, with possible values including `I-SENTIMENT`, `O`, `I-ASPECT`, `B-SENTIMENT`, `B-ASPECT`.
 
 9. `KEPS` dataset
 
-- `sentence`: the tokens of the example text.
-- `seq_label`: the key phrase extraction tags for each token.
+- `tokens`: a `list` of `string` features.
+- `seq_label`: a `list` of classification labels, with possible values including `O`, `B`, `I`.
 
-The labels use Inside-Outside-Beginning (IOB) tagging. The key phrase extraction tags correspond to this list.
-```
-"O", "B", "I"
-```
+The labels use Inside-Outside-Beginning (IOB) tagging.
 
 10. `NERGrit` dataset
 
-- `sentence`: the tokens of the example text.
-- `seq_label`: the NER tags for each token.
+- `tokens`: a `list` of `string` features.
+- `ner_tags`: a `list` of NER tag labels, with possible values including `I-PERSON`, `B-ORGANISATION`, `I-ORGANISATION`, `B-PLACE`, `I-PLACE`.
 
-The labels use Inside-Outside-Beginning (IOB) tagging. The NER tags correspond to this list.
-```
-"I-PERSON", "B-ORGANISATION", "I-ORGANISATION", "B-PLACE", "I-PLACE", "O", "B-PERSON"
-```
+The labels use Inside-Outside-Beginning (IOB) tagging.
 
 11. `NERP` dataset
 
-- `sentence`: the tokens of the example text.
-- `seq_label`: the NER tags for each token.
-
-The labels use Inside-Outside-Beginning (IOB) tagging. The NER tags correspond to this list.
-```
-"I-PPL", B-EVT", "B-PLC", "I-IND", "B-IND", "B-FNB", "I-EVT", "B-PPL", "I-PLC", "O", "I-FNB"
-```
+- `tokens`: a `list` of `string` features.
+- `ner_tags`: a `list` of NER tag labels, with possible values including `I-PPL`, `B-EVT`, `B-PLC`, `I-IND`, `B-IND`.
 
 12. `FacQA` dataset
 
-- `question`: the tokens of the question.
-- `passage`: the tokens of the passage.
-- `seq_label`: the label phrase tokens.
-
-The labels use Inside-Outside-Beginning (IOB) tagging.
-```
-"O", "B", "I"
-```
+- `question`: a `list` of `string` features.
+- `passage`: a `list` of `string` features.
+- `seq_label`: a `list` of classification labels, with possible values including `O`, `B`, `I`.
 
 ### Data Splits
 
@@ -381,51 +394,51 @@ The data is split into a training, validation and test set.
 
 ### Curation Rationale
 
-[More Information Needed]
+[Needs More Information]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+[Needs More Information]
 
 #### Who are the source language producers?
 
-[More Information Needed]
+[Needs More Information]
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+[Needs More Information]
 
 #### Who are the annotators?
 
-[More Information Needed]
+[Needs More Information]
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+[Needs More Information]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+[Needs More Information]
 
 ### Discussion of Biases
 
-[More Information Needed]
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed]
+[Needs More Information]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed]
+[Needs More Information]
 
 ### Licensing Information
 
