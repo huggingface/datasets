@@ -547,13 +547,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                     datasets.features.ClassLabel(names=self.config.label_classes)
                 )
             elif self.config.name in ner_:
-                features["ner_tags"] = datasets.Sequence(
-                    datasets.features.ClassLabel(names=self.config.label_classes)
-                )
+                features["ner_tags"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
             elif self.config.name in pos_:
-                features["pos_tags"] = datasets.Sequence(
-                    datasets.features.ClassLabel(names=self.config.label_classes)
-                )
+                features["pos_tags"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
             elif self.config.name == "casa" or self.config.name == "hoasa":
                 for label in self.config.label_column:
                     features[label] = datasets.features.ClassLabel(names=self.config.label_classes)
