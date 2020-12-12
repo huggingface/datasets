@@ -52,8 +52,7 @@ _URLs = {
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
+class ClickbaitNewsBG(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
     DEFAULT_CONFIG_NAME = "default"
 
@@ -61,8 +60,8 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
         if self.config.name == "default":
             features = datasets.Features(
                 {
-                    "fake_news_score": datasets.Value("int8"),
-                    "click_bait_score": datasets.Value("int8"),
+                    "fake_news_score": datasets.features.ClassLabel(names=["legitimate", "fake"]),
+                    "click_bait_score": datasets.features.ClassLabel(names=["normal", "clickbait"]),
                     "content_title": datasets.Value("string"),
                     "content_url": datasets.Value("string"),
                     "content_published_time": datasets.Value("string"),
@@ -111,8 +110,10 @@ class ClickbaitNewsBGDataset(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(data.itertuples()):
                 row_dict = dict()
                 for key, value in zip(keys, row[1:]):
-                    if key in ["fake_news_score", "click_bait_score"]:
-                        row_dict[key] = value
+                    if key == "fake_news_score":
+                        row_dict[key] = "legitimate" if value == 1 else "fake"
+                    elif key == "click_bait_score":
+                        row_dict[key] = "normal" if value == 1 else "clickbait"
                     else:
                         row_dict[key] = str(value)
                 yield id_, row_dict
