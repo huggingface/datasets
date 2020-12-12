@@ -1,5 +1,5 @@
 ---
-YAML tags:
+- YAML tags:
 annotations_creators:
 - expert-generated
 language_creators:

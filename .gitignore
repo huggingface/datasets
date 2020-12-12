@@ -1,0 +1,63 @@
+# Locked files
+*.lock
+
+# Extracted dummy data
+datasets/**/dummy_data-zip-extracted/
+
+# Compiled python modules.
+*.pyc
+
+# Byte-compiled
+_pycache__/
+.cache/
+
+# Python egg metadata, regenerated from source files by setuptools.
+*.egg-info
+.eggs/
+
+# PyPI distribution artifacts.
+build/
+dist/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# pyenv
+.python-version
+
+# Tests
+.pytest_cache/
+
+# Other
+*.DS_Store
+
+# PyCharm/vscode
+.idea
+.vscode
+
+# keep only the empty datasets and metrics directory with it's __init__.py file
+/src/*/datasets/*
+!/src/*/datasets/__init__.py
+
+/src/*/metrics/*
+!/src/*/metrics/__init__.py
+
+# Vim
+.*.swp
+
+# playground
+/playground
+
+# Sphinx documentation
+docs/_build/
+docs/source/_build/
+
+# Benchmark results
+report.json
+report.md

@@ -49,22 +49,7 @@ _HOMEPAGE = "https://doc2dial.github.io/file/doc2dial/"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-_URLs = {
-    "dialogue_domain": "https://doc2dial.github.io/file/doc2dial.zip",
-    "document_domain": "https://doc2dial.github.io/file/doc2dial.zip",
-}
-
-# class Doc2dialConfig(datasets.BuilderConfig):
-#     """BuilderConfig for Doc2dial."""
-
-#     def __init__(self, **kwargs):
-#         """BuilderConfig for Doc2dial.
-
-#         Args:
-#           **kwargs: keyword arguments forwarded to super.
-#         """
-#         super(Doc2dialConfig, self).__init__(**kwargs)
-
+_URLs = "dialogue_domain": "https://doc2dial.github.io/file/doc2dial.zip"
 
 class Doc2dial(datasets.GeneratorBasedBuilder):
     "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9"
@@ -76,10 +61,10 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="dialogue_domain", version=VERSION, description="This part of my dataset covers a first domain"
+            name="dialogue_domain", version=VERSION, description="This part of the dataset covers the dialgoue domain that has questions, answers and the associated doc ids"
         ),
         datasets.BuilderConfig(
-            name="document_domain", version=VERSION, description="This part of my dataset covers a second domain"
+            name="document_domain", version=VERSION, description="This part of the dataset covers the document domain which details all the documents in the various doamins"
         ),
     ]
 
@@ -139,8 +124,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
-            # # No default supervised_keys (as we have to pass both question
-            # # and context as input).
             supervised_keys=None,
             homepage=_HOMEPAGE,
             citation=_CITATION,
@@ -148,8 +131,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        my_urls = _URLs[self.config.name]
-        print("my_url:", my_urls)
+        my_urls = _URLs
         data_dir = dl_manager.download_and_extract(my_urls)
 
         if self.config.name == "dialogue_domain":
@@ -180,18 +162,13 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
 
-        # filepath = "/Users/karimfoda/Downloads/doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json"
-
         if self.config.name == "dialogue_domain":
             logging.info("generating examples from = %s", filepath)
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for domain in data["dial_data"]:
-                    # print(domain)
                     for doc_id in data["dial_data"][domain]:
-                        # print(doc_id)
                         for dialogue in data["dial_data"][domain][doc_id]:
-                            # print(dialogue["dial_id"])
 
                             x = {
                                 "dial_id": dialogue["dial_id"],
@@ -214,25 +191,17 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     for i in dialogue["turns"]
                                 ],
                             }
-                            # print(x)
-                            # Features currently used are "context", "question", and "answers".
-                            # Others are extracted here for the ease of future expansions.
+
                             yield dialogue["dial_id"], x
 
         elif self.config.name == "document_domain":
-
-            # filepath = "/Users/karimfoda/Downloads/doc2dial/v0.9/data/doc2dial_doc.json"
 
             logging.info("generating examples from = %s", filepath)
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for domain in data["doc_data"]:
-                    # print(domain)
                     for doc_id in data["doc_data"][domain]:
-                        # print(doc_id)
                         for dialogue in data["doc_data"][domain][doc_id]:
-                            # a = 1
-                            # print(set([type(data["doc_data"][domain][doc_id]['spans'][i]['id_sp']) for i in data["doc_data"][domain][doc_id]['spans']]))
 
                             yield doc_id, {
                                 "domain": domain,
