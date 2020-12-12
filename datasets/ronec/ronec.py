@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import logging
 import os
 
@@ -37,7 +35,7 @@ _CITATION = """\
 # You can copy an official description
 _DESCRIPTION = """\
 The RONEC (Named Entity Corpus for the Romanian language) dataset  contains over 26000 entities in ~5000 annotated sentence,
-belonging to 16 distinct classes. It represents the first initiative in the Romanian language space specifically targeted for named entity recognition 
+belonging to 16 distinct classes. It represents the first initiative in the Romanian language space specifically targeted for named entity recognition
 """
 
 _HOMEPAGE = "https://github.com/dumitrescustefan/ronec"
@@ -131,7 +129,6 @@ class RONEC(datasets.GeneratorBasedBuilder):
             "test": os.path.join(_URL, _TEST_FILE),
         }
 
-        # Download .zip file
         downloaded_files = dl_manager.download(urls_to_download)
 
         return [
