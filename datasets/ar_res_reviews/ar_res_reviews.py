@@ -21,13 +21,6 @@ import csv
 import datasets
 
 
-<<<<<<< HEAD
-=======
-# import json
-# import os
-
-
->>>>>>> 4ab01f21137425a8c57a3f0cf72ed6d1fe07aff5
 _CITATION = """\
 @InProceedings{10.1007/978-3-319-18117-2_2,
 author="ElSahar, Hady
