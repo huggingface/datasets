@@ -53,7 +53,7 @@ _CLASS_MAP = {
 class HateSpeechOffensive(datasets.GeneratorBasedBuilder):
     """An annotated dataset for hate speech and offensive language detection on tweets."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -68,7 +68,7 @@ class HateSpeechOffensive(datasets.GeneratorBasedBuilder):
                     "tweet": datasets.Value("string"),
                 }
             ),
-            supervised_keys=("class", "tweet"),
+            supervised_keys=("tweet", "class"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
