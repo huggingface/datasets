@@ -171,7 +171,7 @@ class ADECorpusV2(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, DRUG_AE_file, DRUG_DOSAGE_file, NEG_DRUG_AE_file):
-        """Generate Allocine examples."""
+        """Generate ADE_Corpus_V2 examples."""
 
         # For Classification task with ade dataset.
         if self.config.name == configs["classification"]:
