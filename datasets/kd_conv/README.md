@@ -50,7 +50,6 @@ task_ids:
 
 - **Repository:** [Github](https://github.com/thu-coai/KdConv)
 - **Paper:** [{K}d{C}onv: A {C}hinese Multi-domain Dialogue Dataset Towards Multi-turn Knowledge-driven Conversation](https://www.aclweb.org/anthology/2020.acl-main.635.pdf)
-- **Point of Contact:** 
 
 ### Dataset Summary
 

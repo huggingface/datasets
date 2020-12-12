@@ -164,7 +164,6 @@ class KdConv(datasets.GeneratorBasedBuilder):
             else:
                 file_list = [os.path.join(os.path.join(data_dir, self.config.name.split("_")[0]), split + ".json")]
             id_ = -1
-            print(file_list)
             for filepath in file_list:
                 with open(filepath, encoding="utf-8") as f:
                     conversations = json.load(f)
