@@ -55,7 +55,7 @@ _URL = "https://github.com/paulafortuna/Portuguese-Hate-Speech-Dataset/raw/maste
 class HateSpeechPortuguese(datasets.GeneratorBasedBuilder):
     """Portuguese dataset for hate speech detection composed of 5,668 tweets with binary annotations (i.e. 'hate' vs. 'no-hate')."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -63,7 +63,7 @@ class HateSpeechPortuguese(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.ClassLabel(names=["hate", "no-hate"]),
+                    "label": datasets.ClassLabel(names=["no-hate", "hate"]),
                     "hatespeech_G1": datasets.Value("string"),
                     "annotator_G1": datasets.Value("string"),
                     "hatespeech_G2": datasets.Value("string"),
