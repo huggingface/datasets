@@ -70,6 +70,11 @@ class Cord19(datasets.GeneratorBasedBuilder):
             description="The set of documents loading some metadata like title and "
             "abstract and full text for each article.",
         ),
+        datasets.BuilderConfig(
+            name="embeddings",
+            description="The set of documents loading some metadata like title and "
+            "abstract and document embeddings for each article.",
+        ),
     ]
 
     def _info(self):
@@ -90,6 +95,10 @@ class Cord19(datasets.GeneratorBasedBuilder):
         if "fulltext" in self.config.name:
             # adding full_text
             features_dict["fulltext"] = datasets.Value("string")
+
+        if "embeddings" in self.config.name:
+            # adding embeddings
+            features_dict["doc_embeddings"] = datasets.Sequence(datasets.Value("float64"))
 
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -115,6 +124,14 @@ class Cord19(datasets.GeneratorBasedBuilder):
                 shutil.unpack_archive(os.path.join(data_dir, "2020-11-29/document_parses.tar.gz"), fulltext_dir_path)
             files["fulltext"] = fulltext_dir_path
 
+        if "embeddings" in self.config.name:
+            embeddings_dir_path = os.path.join(data_dir, "2020-11-29/cord_19_embeddings")
+            if not os.path.isdir(embeddings_dir_path):
+                shutil.unpack_archive(
+                    os.path.join(data_dir, "2020-11-29/cord_19_embeddings.tar.gz"), embeddings_dir_path
+                )
+            files["embeddings"] = os.path.join(embeddings_dir_path, "cord_19_embeddings_2020-11-29.csv")
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -133,6 +150,11 @@ class Cord19(datasets.GeneratorBasedBuilder):
 
         if "fulltext" in self.config.name:
             fulltext_filepath = filepath["fulltext"]
+
+        fh = None
+        if "embeddings" in self.config.name:
+            embeddings_filepath = filepath["embeddings"]
+            fh = open(embeddings_filepath, mode="r", encoding="utf-8")
 
         with open(metadata_filepath, mode="r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
@@ -169,4 +191,17 @@ class Cord19(datasets.GeneratorBasedBuilder):
                             data = json.load(json_file)
                             doc_fields["fulltext"] = "\n".join(text_block["text"] for text_block in data["body_text"])
 
+                if "embeddings" in self.config.name:
+                    # synchronized reading of embeddings csv
+                    data = fh.readline().split(",")
+                    doc_id = data[0]
+
+                    doc_fields["doc_embeddings"] = []
+
+                    if doc_id == doc_fields["cord_uid"]:
+                        doc_fields["doc_embeddings"] = [float(v) for v in data[1:-1]]
+
                 yield i, doc_fields
+
+            if "embeddings" and fh is not None:
+                fh.close()
