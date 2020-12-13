@@ -42,8 +42,6 @@ _HOMEPAGE = "https://github.com/dumitrescustefan/ronec"
 
 _LICENSE = "MIT License"
 
-_FILE_FORMAT = "ronec.conllup"
-
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://raw.githubusercontent.com/dumitrescustefan/ronec/master/ronec/conllup/raw/"
@@ -124,9 +122,9 @@ class RONEC(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         urls_to_download = {
-            "train": os.path.join(_URL, _TRAINING_FILE),
-            "dev": os.path.join(_URL, _DEV_FILE),
-            "test": os.path.join(_URL, _TEST_FILE),
+            "train": _URL + _TRAINING_FILE,
+            "dev": _URL  +  _DEV_FILE,
+            "test": _URL +  _TEST_FILE
         }
 
         downloaded_files = dl_manager.download(urls_to_download)
