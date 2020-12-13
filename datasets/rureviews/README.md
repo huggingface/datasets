@@ -71,11 +71,15 @@ The dataset is based on Women’s Clothes and Accessories Reviews in Russian Lan
 
 ### Data Instances
 
-{reviews_sentiment : 'качество плохое пошив ужасный (горловина наперекос) Фото не соответствует Ткань ужасная рисунок блеклый маленький рукав не такой УЖАС!!!!! не стоит за такие деньги г.......	negative'}
+The data is pre-processed and has 2 columns, one of the reviews of the user and the other about the intended sentiment of them
+
+{reviews : 'качество плохое пошив ужасный (горловина наперекос) Фото не соответствует Ткань ужасная рисунок блеклый маленький рукав не такой УЖАС!!!!! не стоит за такие деньги г, sentiment : 'negative' } 
+
 
 ### Data Fields
 
-* reviews_sentiment : review of the user for women's clothes and accessories 
+* review : review of the user for women's clothes and accessories 
+* sentiment : sentiment of the review {positive,negative,neautral}
 
 ### Data Splits
 
