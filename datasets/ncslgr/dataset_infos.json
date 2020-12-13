@@ -1,0 +1,144 @@
+{
+  "entire_dataset": {
+    "description": "\nA small corpus of American Sign Language (ASL) video data from native signers, annotated with non-manual features.\n",
+    "citation": "@misc{dataset:databases2007volumes,\n    title={Volumes 2--7},\n    author={Databases, NCSLGR},\n    year={2007},\n    publisher={American Sign Language Linguistic Research Project (Distributed on CD-ROM~\u2026}\n}\n",
+    "homepage": "https://www.bu.edu/asllrp/ncslgr.html",
+    "license": "",
+    "features": {
+      "eaf": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "sentences": {
+        "feature": {
+          "gloss": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
+      "videos": {
+        "feature": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "ncslgr",
+    "config_name": "entire_dataset",
+    "version": {
+      "version_str": "0.7.0",
+      "description": null,
+      "major": 0,
+      "minor": 7,
+      "patch": 0
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 783504,
+        "num_examples": 870,
+        "dataset_name": "ncslgr"
+      }
+    },
+    "download_checksums": {
+      "http://asl.cs.depaul.edu/corpus/elanBUcorpus.zip": {
+        "num_bytes": 5335358,
+        "checksum": "7e2a49cfec0d2d39a933df1c20e1f1f79f30bca70974b1f65ef05a0df99f2949"
+      },
+      "http://asl.cs.depaul.edu/corpus/video.zip": {
+        "num_bytes": 4108493785,
+        "checksum": "9a71da5ef7a978b42be236794af43a4ba6f5f8119ce28cdf9d9746d9e4481a15"
+      }
+    },
+    "download_size": 4113829143,
+    "post_processing_size": null,
+    "dataset_size": 783504,
+    "size_in_bytes": 4114612647
+  },
+  "annotations": {
+    "description": "\nA small corpus of American Sign Language (ASL) video data from native signers, annotated with non-manual features.\n",
+    "citation": "@misc{dataset:databases2007volumes,\n    title={Volumes 2--7},\n    author={Databases, NCSLGR},\n    year={2007},\n    publisher={American Sign Language Linguistic Research Project (Distributed on CD-ROM~\u2026}\n}\n",
+    "homepage": "https://www.bu.edu/asllrp/ncslgr.html",
+    "license": "",
+    "features": {
+      "eaf": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "sentences": {
+        "feature": {
+          "gloss": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
+      "videos": {
+        "feature": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "ncslgr",
+    "config_name": "annotations",
+    "version": {
+      "version_str": "0.7.0",
+      "description": null,
+      "major": 0,
+      "minor": 7,
+      "patch": 0
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 371725,
+        "num_examples": 870,
+        "dataset_name": "ncslgr"
+      }
+    },
+    "download_checksums": {
+      "http://asl.cs.depaul.edu/corpus/elanBUcorpus.zip": {
+        "num_bytes": 5335358,
+        "checksum": "7e2a49cfec0d2d39a933df1c20e1f1f79f30bca70974b1f65ef05a0df99f2949"
+      }
+    },
+    "download_size": 5335358,
+    "post_processing_size": null,
+    "dataset_size": 371725,
+    "size_in_bytes": 5707083
+  }
+}

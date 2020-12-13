@@ -49,11 +49,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Add homepage URL here if available (unless it's a GitHub repository)]()
-- **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
-- **Paper:** [If the dataset was introduced by a paper or there was a paper written describing the dataset, add URL here (landing page for Arxiv paper preferred)]()
-- **Leaderboard:** [If the dataset supports an active leaderboard, add link here]()
-- **Point of Contact:** [If known, name and email of at least one person the reader can contact for questions about the dataset.]()
+- **Homepage:** [QuAC](https://quac.ai/)
+- **Paper:** [QuAC: Question Answering in Context](https://arxiv.org/abs/1808.07036)
+- **Leaderboard:** [QuAC's leaderboard](https://quac.ai/)
+- **Point of Contact:** [Google group](https://groups.google.com/forum/#!forum/quac_ai)
 
 ### Dataset Summary
 

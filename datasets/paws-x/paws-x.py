@@ -32,7 +32,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-PAWS: Paraphrase Adversaries from Word Scrambling
+PAWS-X, a multilingual version of PAWS (Paraphrase Adversaries from Word Scrambling) for six languages.
 
 This dataset contains 23,659 human translated PAWS evaluation pairs and 296,406 machine
 translated training pairs in six typologically distinct languages: French, Spanish, German,
