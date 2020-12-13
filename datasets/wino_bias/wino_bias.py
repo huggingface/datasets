@@ -240,7 +240,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             for line in f:
                 if line.startswith("#begin") or line.startswith("#end"):
                     continue
-                elif line == "" or line == "\n":
+                elif not line.strip():
                     id_ += 1
                     yield str(id_), {
                         "document_id": document_id,
@@ -267,7 +267,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                     ner_tags = []
                     verbal_predicates = []
                 else:
-                    splits = line.split(" ")
+                    splits = [s for s in line.split(" ") if s]
                     if len(splits) > 7:
                         document_id = splits[0]
                         part_number = splits[1]
@@ -294,3 +294,20 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
                         if word_is_verbal_predicate:
                             verbal_predicates.append(splits[3])
+            if tokens:
+                # add the last one
+                id_ += 1
+                yield str(id_), {
+                    "document_id": document_id,
+                    "part_number": part_number,
+                    "word_number": word_num,
+                    "tokens": tokens,
+                    "pos_tags": pos_tags,
+                    "parse_bit": parse_bit,
+                    "predicate_lemma": predicate_lemma,
+                    "predicate_framenet_id": predicate_framenet_id,
+                    "word_sense": word_sense,
+                    "speaker": speaker,
+                    "ner_tags": ner_tags,
+                    "verbal_predicates": verbal_predicates,
+                }
