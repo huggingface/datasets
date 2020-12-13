@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - coreference-resolution
 - named-entity-recognition
+- parsing
 ---
 
 # Dataset Card for Wino_Bias dataset
