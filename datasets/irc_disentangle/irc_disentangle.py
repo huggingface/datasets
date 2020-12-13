@@ -268,7 +268,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                         "ascii": ascii_sentences[i],
                         "tokenized": tok_sentences[i],
                         "date": date,
-                        "connections": annotations[id_],
+                        "connections": sorted(annotations[id_]),
                     }
                 elif self.config.name == "channel_two":
                     yield id_, {
