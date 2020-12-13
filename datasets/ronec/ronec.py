@@ -121,11 +121,7 @@ class RONEC(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        urls_to_download = {
-            "train": _URL + _TRAINING_FILE,
-            "dev": _URL  +  _DEV_FILE,
-            "test": _URL +  _TEST_FILE
-        }
+        urls_to_download = {"train": _URL + _TRAINING_FILE, "dev": _URL + _DEV_FILE, "test": _URL + _TEST_FILE}
 
         downloaded_files = dl_manager.download(urls_to_download)
 
