@@ -81,6 +81,6 @@ class ConvAi_2(datasets.GeneratorBasedBuilder):
                 example["id"] = example["dialog_id"]
                 if example["eval_score"] is None:
                     example["eval_score"] = -1  # missing eval_score is replaced with -1
-                if not example["profile_match"]:
+                if example["profile_match"] == "":
                     example["profile_match"] = -1  # missing profile_match is replaced with -1
                 yield example["id"], example
