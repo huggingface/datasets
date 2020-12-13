@@ -55,7 +55,7 @@ task_ids:
 
 ### Dataset Summary
 
-This is the dataset of the eHealth-KD Challenge at IberLEF 2020. It is designed for the identification of semantic 
+Dataset of the eHealth-KD Challenge at IberLEF 2020. It is designed for the identification of semantic 
 entities and relations in Spanish health documents.
 
 ### Supported Tasks and Leaderboards
@@ -85,21 +85,21 @@ The first example of the eHeatlh-KD Corpus train set looks as follows:
     [
         'ent_id: 'T1',
         'ent_text': 'leucemia linfocítica crónica',
-        'ent_tag': 'Concept',
+        'ent_label': 0,
         'start_character': 6,
         'end_character': 34
     ],
     [
         'ent_id: 'T2',
         'ent_text': 'linfocitos',
-        'ent_tag': 'Concept',
+        'ent_label': 0,
         'start_character': 51,
         'end_character': 61
     ],
     [
         'ent_id: 'T3',
         'ent_text': 'glóbulos blancos',
-        'ent_tag': 'Concept',
+        'ent_label': 0,
         'start_character': 74,
         'end_character': 90
     ]
@@ -107,13 +107,13 @@ The first example of the eHeatlh-KD Corpus train set looks as follows:
 relations: {
     [
         'rel_id: 'R0'
-        'rel_tag': 'is-a',
+        'rel_label': 0,
         'arg1': T2
         'arg2': T3
     ],
     [
         'rel_id': 'R1'
-        'rel_tag': 'entails',
+        'rel_label': 5,
         'arg1': T1,
         'arg2': T2
     ]
@@ -128,13 +128,13 @@ relations: {
     - `ent_id`: entity identifier (`T`+ a number)
     - `ent_text`: entity, can consist of one or more complete words (i.e., not a prefix or a suffix of a word), and will
      never include any surrounding punctuation symbols, parenthesis, etc.
-    - `ent_tag`: type of entity (`concept`, `action`, `predicate` or `reference`)
+    - `ent_label`: type of entity (`Concept`, `Action`, `Predicate` or `Reference`)
     - `start_character`: position of the first character of the entity
     - `end_character`: position of the last character of the entity
 - `relations`: list of semantic relationships between the entities recognised
     - `rel_id`: relation identifier (`R` + a number)
-    - `rel_tag`: type of relation, can be a general relation (`is-a`, `same-as`, `has-property`, `part-of`, `causes`, `entails`),
-    a contextual relation (`in-time`, `in-place`, `in-context`) an action role (`subject`, `target`) or a predicate rol (`domain`, `arg`). 
+    - `rel_label`: type of relation, can be a general relation (`is-a`, `same-as`, `has-property`, `part-of`, `causes`, `entails`),
+    a contextual relation (`in-time`, `in-place`, `in-context`) an action role (`subject`, `target`) or a predicate role (`domain`, `arg`). 
     - `arg1`: ID of the first entity of the relation
     - `arg2`: ID of the second entity of the relation
 

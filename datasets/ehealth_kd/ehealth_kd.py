@@ -35,7 +35,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-This is the dataset of the eHealth-KD Challenge at IberLEF 2020. It is designed for
+Dataset of the eHealth Knowledge Discovery Challenge at IberLEF 2020. It is designed for
 the identification of semantic entities and relations in Spanish health documents.
 """
 
@@ -70,7 +70,7 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
                         {
                             "ent_id": datasets.Value("string"),
                             "ent_text": datasets.Value("string"),
-                            "ent_tag": datasets.Value("string"),
+                            "ent_label": datasets.ClassLabel(names=["Concept", "Action", "Predicate", "Reference"]),
                             "start_character": datasets.Value("int32"),
                             "end_character": datasets.Value("int32"),
                         }
@@ -78,7 +78,23 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
                     "relations": [
                         {
                             "rel_id": datasets.Value("string"),
-                            "rel_tag": datasets.Value("string"),
+                            "rel_label": datasets.ClassLabel(
+                                names=[
+                                    "is-a",
+                                    "same-as",
+                                    "has-property",
+                                    "part-of",
+                                    "causes",
+                                    "entails",
+                                    "in-time",
+                                    "in-place",
+                                    "in-context",
+                                    "subject",
+                                    "target",
+                                    "domain",
+                                    "arg",
+                                ]
+                            ),
                             "arg1": datasets.Value("string"),
                             "arg2": datasets.Value("string"),
                         }
@@ -103,21 +119,21 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"text_dir": downloaded_files["train"][0], "ann_dir": downloaded_files["train"][1]},
+                gen_kwargs={"txt_path": downloaded_files["train"][0], "ann_path": downloaded_files["train"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"text_dir": downloaded_files["dev"][0], "ann_dir": downloaded_files["dev"][1]},
+                gen_kwargs={"txt_path": downloaded_files["dev"][0], "ann_path": downloaded_files["dev"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"text_dir": downloaded_files["test"][0], "ann_dir": downloaded_files["test"][1]},
+                gen_kwargs={"txt_path": downloaded_files["test"][0], "ann_path": downloaded_files["test"][1]},
             ),
         ]
 
-    def _generate_examples(self, text_dir, ann_dir):
+    def _generate_examples(self, txt_path, ann_path):
         """ Yields examples. """
-        with open(text_dir, encoding="utf-8") as txt_file, open(ann_dir, encoding="utf-8") as ann_file:
+        with open(txt_path, encoding="utf-8") as txt_file, open(ann_path, encoding="utf-8") as ann_file:
             _id = 0
             entities = []
             relations = []
@@ -136,7 +152,7 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
                         relations = []
 
                     ent_id, mid, ent_text = annotation.strip().split("\t")
-                    ent_tag, spans = mid.split(" ", 1)
+                    ent_label, spans = mid.split(" ", 1)
                     start_character = spans.split(" ")[0]
                     end_character = spans.split(" ")[-1]
 
@@ -144,7 +160,7 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
                         {
                             "ent_id": ent_id,
                             "ent_text": ent_text,
-                            "ent_tag": ent_tag,
+                            "ent_label": ent_label,
                             "start_character": start_character,
                             "end_character": end_character,
                         }
@@ -153,10 +169,10 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
                     last_annotation = "entity"
 
                 if annotation.startswith("R"):
-                    rel_id, rel_tag, arg1, arg2 = annotation.strip().split()
+                    rel_id, rel_label, arg1, arg2 = annotation.strip().split()
                     arg1 = arg1.split(":")[1]
                     arg2 = arg2.split(":")[1]
 
-                    relations.append({"rel_id": rel_id, "rel_tag": rel_tag, "arg1": arg1, "arg2": arg2})
+                    relations.append({"rel_id": rel_id, "rel_label": rel_label, "arg1": arg1, "arg2": arg2})
 
                     last_annotation = "relation"
