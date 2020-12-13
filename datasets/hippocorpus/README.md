@@ -73,6 +73,10 @@ The dataset can be found in English
 
 ### Data Instances
 
+[More Information Needed]
+
+### Data Fields
+
 This CSV file contains all the stories in Hippcorpus v2 (6854 stories)
 
 These are the columns in the file:
@@ -99,10 +103,6 @@ These are the columns in the file:
 - `stressful`: How stressful was this writing task? (5-point Likert)
 - `summary`: Summary of the events in the story (1-3 sentences)
 - `timeSinceEvent`: Time (num. days) since the recalled event happened
-
-### Data Fields
-
-[More Information Needed]
 
 ### Data Splits
 
