@@ -12,33 +12,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""The eHealth-KD 2020 Corpus."""
 
 from __future__ import absolute_import, division, print_function
 
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+@inproceedings{overview_ehealthkd2020,
+  author    = {Piad{-}Morffis, Alejandro and
+               Guti{\'{e}}rrez, Yoan and
+               Cañizares-Diaz, Hian and
+               Estevez{-}Velarde, Suilan and
+               Almeida{-}Cruz, Yudivi{\'{a}}n and
+               Muñoz, Rafael and
+               Montoyo, Andr{\'{e}}s},
+  title     = {Overview of the eHealth Knowledge Discovery Challenge at IberLEF 2020},
+  booktitle = ,
+  year      = {2020},
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care.
+This is the dataset of the eHealth-KD Challenge at IberLEF 2020. It is designed for 
+the identification of semantic entities and relations in Spanish health documents.
 """
 
 _HOMEPAGE = "https://knowledge-learning.github.io/ehealthkd-2020/"
 
-_LICENSE = ""
+_LICENSE = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 
 _URL = "https://raw.githubusercontent.com/knowledge-learning/ehealthkd-2020/master/data/"
 _TRAIN_DIR = "training/"
@@ -48,13 +51,13 @@ _TEXT_FILE = "scenario.txt"
 _ANNOTATIONS_FILE = "scenario.ann"
 
 
-class eHealthKD(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+class EHealthKD(datasets.GeneratorBasedBuilder):
+    """The eHealth-KD 2020 dataset."""
 
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="ehealth_kd", version=VERSION, description="eHealth Knowledge Discovery dataset"),
+        datasets.BuilderConfig(name="ehealth_kd", version=VERSION, description="eHealth-KD dataset"),
     ]
 
     def _info(self):
@@ -91,9 +94,8 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         urls_to_download = {
-            "train": [f"{_URL}{_TRAIN_DIR}{_TEXT_FILE}", f"{_URL}{_TRAIN_DIR}{_ANNOTATIONS_FILE}"],
-            "dev": [f"{_URL}{_DEV_DIR}{_TEXT_FILE}", f"{_URL}{_DEV_DIR}{_ANNOTATIONS_FILE}"],
-            "test": [f"{_URL}{_TEST_DIR}{_TEXT_FILE}", f"{_URL}{_TEST_DIR}{_ANNOTATIONS_FILE}"],
+            k: [f"{_URL}{v}{_TEXT_FILE}", f"{_URL}{v}{_ANNOTATIONS_FILE}"]
+            for k, v in zip(["train", "dev", "test"], [_TRAIN_DIR, _DEV_DIR, _TEST_DIR])
         }
 
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
@@ -115,18 +117,19 @@ class eHealthKD(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, text_dir, ann_dir):
         """ Yields examples. """
-        with open(text_dir, encoding="utf-8") as t, open(ann_dir, encoding="utf-8") as a:
+        with open(text_dir, encoding="utf-8") as txt_file, open(ann_dir, encoding="utf-8") as ann_file:
             _id = 0
             entities = []
             relations = []
 
-            # For each sentence in the text_file, in the annotations_file the entities are before the relations
+            # Create a variable to keep track of the last annotation (entity or relation) to know when a sentence is fully annotated
+            # In the annotations file, the entities are before the relations
             last_annotation = ""
 
-            for annotation in a:
+            for annotation in ann_file:
                 if annotation.startswith("T"):
                     if last_annotation == "relation":
-                        sentence = t.readline().strip()
+                        sentence = txt_file.readline().strip()
                         yield _id, {"sentence": sentence, "entities": entities, "relations": relations}
                         _id += 1
                         entities = []
