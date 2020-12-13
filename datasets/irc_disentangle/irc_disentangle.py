@@ -275,7 +275,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                         "raw": raw_sentences[i],
                         "ascii": ascii_sentences[i],
                         "tokenized": tok_sentences[i],
-                        "connections": annotations[i],
+                        "connections": sorted(annotations[i]),
                     }
 
             # continue counting from position last left off
