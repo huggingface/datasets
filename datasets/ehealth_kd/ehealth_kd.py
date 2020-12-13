@@ -35,7 +35,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-This is the dataset of the eHealth-KD Challenge at IberLEF 2020. It is designed for 
+This is the dataset of the eHealth-KD Challenge at IberLEF 2020. It is designed for
 the identification of semantic entities and relations in Spanish health documents.
 """
 
