@@ -19,7 +19,9 @@ CORD-19 dataset implementation initiated by @ggdupont
 from __future__ import absolute_import, division, print_function
 
 import csv
+import json
 import os
+import shutil
 
 import datasets
 
@@ -60,35 +62,40 @@ class Cord19(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="cord-19",
-            description="The whole dataset in a compressed file. Only title and "
-            "abstract of each article are loaded for now.",
+            name="metadata",
+            description="The set of documents but loading some metadata like title and " "abstract for each article.",
         ),
-        # datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="fulltext",
+            description="The set of documents loading some metadata like title and "
+            "abstract and full text for each article.",
+        ),
     ]
 
     def _info(self):
+        # default metadata only
+        features_dict = {
+            "cord_uid": datasets.Value("string"),
+            "sha": datasets.Value("string"),
+            "source_x": datasets.Value("string"),
+            "title": datasets.Value("string"),
+            "doi": datasets.Value("string"),
+            "abstract": datasets.Value("string"),
+            "publish_time": datasets.Value("string"),
+            "authors": datasets.Value("string"),
+            "journal": datasets.Value("string"),
+            "url": datasets.Value("string"),
+        }
+
+        if "fulltext" in self.config.name:
+            # metatata and full_text
+            features_dict["fulltext"] = datasets.Value("string")
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=datasets.Features(
-                {
-                    "cord_uid": datasets.Value("string"),
-                    "sha": datasets.Value("string"),
-                    "source_x": datasets.Value("string"),
-                    "title": datasets.Value("string"),
-                    "doi": datasets.Value("string"),
-                    "abstract": datasets.Value("string"),
-                    "publish_time": datasets.Value("string"),
-                    "authors": datasets.Value("string"),
-                    "journal": datasets.Value("string"),
-                    "url": datasets.Value("string"),
-                    # TODO "full_text" (complex nested json)
-                    # TODO "bib_entries" (complex nested json)
-                    # TODO "doc_embeddings" (separated file to be link by paper_id?)
-                }
-            ),
+            features=datasets.Features(features_dict),
             supervised_keys=None,
             homepage="https://www.semanticscholar.org/cord19/download",
             citation=_CITATION,
@@ -99,12 +106,21 @@ class Cord19(datasets.GeneratorBasedBuilder):
         my_urls = _URL
         data_dir = dl_manager.download_and_extract(my_urls)
 
+        files = dict()
+        files["metadata"] = os.path.join(data_dir, "2020-11-29/metadata.csv")
+
+        if "fulltext" in self.config.name:
+            fulltext_dir_path = os.path.join(data_dir, "2020-11-29/document_parses")
+            if not os.path.isdir(fulltext_dir_path):
+                shutil.unpack_archive(os.path.join(data_dir, "2020-11-29/document_parses.tar.gz"), fulltext_dir_path)
+            files["fulltext"] = fulltext_dir_path
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "2020-11-29/metadata.csv"),
+                    "filepath": files,
                     "split": "train",
                 },
             ),
@@ -113,14 +129,18 @@ class Cord19(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        with open(filepath, mode="r", encoding="utf-8") as f:
+        metadata_filepath = filepath["metadata"]
+
+        if "fulltext" in self.config.name:
+            fulltext_filepath = filepath["fulltext"]
+
+        with open(metadata_filepath, mode="r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
             # skip headers
             next(reader, None)
-            # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
-            # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
+
             for i, line in enumerate(reader):
-                yield i, {
+                doc_fields = {
                     "cord_uid": line[0],
                     "sha": line[1],
                     "source_x": line[2],
@@ -132,3 +152,19 @@ class Cord19(datasets.GeneratorBasedBuilder):
                     "journal": line[11],
                     "url": line[17],
                 }
+
+                if "fulltext" in self.config.name:
+                    doc_fields["fulltext"] = ""
+                    json_filepath = line[15]
+                    # some entry do not have pdf transcript
+                    if len(json_filepath) > 0:
+                        # possibly multiple json (matching multiple pdf) then take the first one arbitrarily
+                        if ";" in json_filepath:
+                            json_filepath = json_filepath.split(";")[0]
+
+                        # load json file
+                        with open(os.path.join(fulltext_filepath, json_filepath)) as json_file:
+                            data = json.load(json_file)
+                            doc_fields["fulltext"] = "\n".join(text_block["text"] for text_block in data["body_text"])
+
+                yield i, doc_fields
