@@ -138,9 +138,9 @@ English (en), Spanish (es), German (de), French (fr), Swedish (sv)
 
 ### Citation Information
 
-"""\
+```
 @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
+  author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
@@ -152,4 +152,4 @@ English (en), Spanish (es), German (de), French (fr), Swedish (sv)
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
-"""
+```
