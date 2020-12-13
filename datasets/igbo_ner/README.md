@@ -1,9 +1,25 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- ig
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- structure-prediction
+task_ids:
+- named-entity-recognition
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Igbo NER dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
