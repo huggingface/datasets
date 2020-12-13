@@ -7,7 +7,8 @@ languages:
 - en
 - id
 licenses: []
-multilinguality: []
+multilinguality: 
+- translation
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -52,7 +53,10 @@ task_ids:
 - **Point of Contact:**
 
 ### Dataset Summary
-Parallel Corpus in Indonesian-English.
+Parallel Text Corpora for Multi-Domain Translation System created by BPPT (Indonesian Agency for the Assessment and 
+Application of Technology) for PAN Localization Project (A Regional Initiative to Develop Local Language Computing 
+Capacity in Asia). The dataset contains around 24K sentences divided in 4 difference topics (Economic, international,
+Science and Technology and Sport).
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]

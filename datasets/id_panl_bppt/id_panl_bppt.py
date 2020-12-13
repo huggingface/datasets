@@ -32,7 +32,10 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Parallel Text Corpora for Multi-Domain Translation System
+Parallel Text Corpora for Multi-Domain Translation System created by BPPT (Indonesian Agency for the Assessment and
+Application of Technology) for PAN Localization Project (A Regional Initiative to Develop Local Language Computing
+Capacity in Asia). The dataset contains around 24K sentences divided in 4 difference topics (Economic, international,
+Science and Technology and Sport).
 """
 
 _HOMEPAGE = "http://digilib.bppt.go.id/sampul/p92-budiono.pdf"
