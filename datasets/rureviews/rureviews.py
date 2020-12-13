@@ -60,7 +60,8 @@ class AppReviews(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "review_sentiment": datasets.Value("string"),
+                    "review": datasets.Value("string"),
+                    "sentiment": datasets.Value("string"),
                 }
             ),
             homepage="https://ieeexplore.ieee.org/document/8807792",
@@ -80,9 +81,14 @@ class AppReviews(datasets.GeneratorBasedBuilder):
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
             next(csv_reader, None)
-            for id_, row in enumerate(csv_reader):
-                (row) = row
 
-                yield id_, {
-                    "review_sentiment": (str(row)),
-                }
+            for id_, row in enumerate(csv_reader):
+                row = [s for s in row if "\t" in s]
+                row = row[0].split("\t")
+                if len(row) == 2:
+                    review, sentiment = row
+                elif len(row) == 3 or len(row) == 4:
+                    review = " ".join(row[:-1])
+                    sentiment = row[-1]
+
+                    yield id_, {"review": (str(review)), "sentiment": (str(sentiment))}
