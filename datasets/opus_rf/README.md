@@ -4,11 +4,36 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-- de
-- en
-- es
-- fr
-- sv
+  de-en:
+  - de
+  - en
+  de-es:
+  - de
+  - es
+  de-fr:
+  - de
+  - fr
+  de-sv:
+  - de
+  -sv
+  en-es:
+  - en
+  - es
+  en-fr:
+  - en
+  - fr
+  en-sv:
+  - en
+  - sv
+  es-fr:
+  - es
+  - fr
+  es-sv:
+  - es
+  - sv
+  fr-sv:
+  - fr
+  - sv
 licenses:
 - unknown
 multilinguality:
