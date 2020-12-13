@@ -19,8 +19,9 @@ from __future__ import absolute_import, division, print_function
 import ast
 import csv
 import json
-import pandas as pd
 import os
+
+
 import datasets
 
 
@@ -44,23 +45,37 @@ _HOMEPAGE = "https://allenai.org/data/genericskb"
 _LICENSE = "cc-by-4.0"
 
 _FILEPATHS = {
-    "generics_kb_best" : "GenericsKB-Best.tsv",
-    "generics_kb" : "GenericsKB.tsv",
+    "generics_kb_best": "GenericsKB-Best.tsv",
+    "generics_kb": "GenericsKB.tsv",
     "generics_kb_simplewiki": "GenericsKB-SimpleWiki-With-Context.jsonl",
-    "generics_kb_waterloo": "cskb-waterloo-06-21-with-bert-scores.jsonl"
+    "generics_kb_waterloo": "cskb-waterloo-06-21-with-bert-scores.jsonl",
 }
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
+
 class GenericsKb(datasets.GeneratorBasedBuilder):
     """ The GenericsKB is the first large-scale resource containing naturally occurring generic sentences, and is rich in high-quality, general, semantically complete statements."""
 
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="generics_kb_best", version=VERSION, description="This is the default and recommended config.Comprises of GENERICSKB generics with a score > 0.234 "),
-        datasets.BuilderConfig(name="generics_kb", version=VERSION, description="This GENERICSKB that contains 3,433,000 sentences."),
-        datasets.BuilderConfig(name="generics_kb_simplewiki", version=VERSION, description="SimpleWikipedia is a filtered scrape of SimpleWikipedia pages (simple.wikipedia.org)"),
-        datasets.BuilderConfig(name="generics_kb_waterloo", version=VERSION, description="The Waterloo corpus is 280GB of English plain text, gathered by Charles Clarke (Univ. Waterloo) using a webcrawler in 2001 from .edu domains."),
+        datasets.BuilderConfig(
+            name="generics_kb_best",
+            version=VERSION,
+            description="This is the default and recommended config.Comprises of GENERICSKB generics with a score > 0.234 ",
+        ),
+        datasets.BuilderConfig(
+            name="generics_kb", version=VERSION, description="This GENERICSKB that contains 3,433,000 sentences."
+        ),
+        datasets.BuilderConfig(
+            name="generics_kb_simplewiki",
+            version=VERSION,
+            description="SimpleWikipedia is a filtered scrape of SimpleWikipedia pages (simple.wikipedia.org)",
+        ),
+        datasets.BuilderConfig(
+            name="generics_kb_waterloo",
+            version=VERSION,
+            description="The Waterloo corpus is 280GB of English plain text, gathered by Charles Clarke (Univ. Waterloo) using a webcrawler in 2001 from .edu domains.",
+        ),
     ]
 
     @property
@@ -82,19 +97,21 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
            The Waterloo is also generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences). The Waterloo generics are the majority of GenericsKB. This zip file is 1.4GB expanding to 5.5GB.
         2. Extract the GenericsKB-Waterloo-WithContext.jsonl.zip; It will create a file of 5.5 GB called cskb-waterloo-06-21-with-bert-scores.jsonl.
            Ensure you move this file into your <path/to/folder>.
-      
+
       generics_kb can then be loaded using the following commands based on which data you want to work on. Respective data files must be present in the <path/to/folder>
       1. `datasets.load_dataset("generics_kb","generics_kb_best", data_dir="<path/to/folder>")`.
       2. `datasets.load_dataset("generics_kb","generics_kb", data_dir="<path/to/folder>")`
       3. `datasets.load_dataset("generics_kb","generics_kb_simplewiki", data_dir="<path/to/folder>")`
       4. `datasets.load_dataset("generics_kb","generics_kb_waterloo", data_dir="<path/to/folder>")`
-      
+
       """
 
-    DEFAULT_CONFIG_NAME = "generics_kb_best"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "generics_kb_best"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
     def _info(self):
-        if self.config.name == "generics_kb_best" or  self.config.name == "generics_kb":
+        if self.config.name == "generics_kb_best" or self.config.name == "generics_kb":
             features = datasets.Features(
                 {
                     "source": datasets.Value("string"),
@@ -108,15 +125,15 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
 
             featuredict = {
-                    "source_name": datasets.Value("string"),
-                    "sentence": datasets.Value("string"),
-                    "sentences_before": datasets.Sequence(datasets.Value("string")),
-                    "sentences_after": datasets.Sequence(datasets.Value("string")),
-                    "concept_name": datasets.Value("string"),
-                    "quantifiers": datasets.Sequence(datasets.Value("string")),
-                    "id": datasets.Value("string"),
-                    "bert_score": datasets.Value("float64")
-                }
+                "source_name": datasets.Value("string"),
+                "sentence": datasets.Value("string"),
+                "sentences_before": datasets.Sequence(datasets.Value("string")),
+                "sentences_after": datasets.Sequence(datasets.Value("string")),
+                "concept_name": datasets.Value("string"),
+                "quantifiers": datasets.Sequence(datasets.Value("string")),
+                "id": datasets.Value("string"),
+                "bert_score": datasets.Value("float64"),
+            }
             if self.config.name == "generics_kb_simplewiki":
                 featuredict["headings"] = datasets.Sequence(datasets.Value("string"))
                 featuredict["categories"] = datasets.Sequence(datasets.Value("string"))
@@ -148,7 +165,6 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
                 f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('generics_kb_best', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
             )
 
-
         # Check if required files exist in the folder
         filepath = os.path.join(data_dir, _FILEPATHS[self.config.name])
 
@@ -156,7 +172,6 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
             raise FileNotFoundError(
                 f"{filepath} does not exist. Make sure you required files are present in {data_dir} `. Manual download instructions: {self.manual_download_instructions})"
             )
-
 
         return [
             datasets.SplitGenerator(
@@ -182,21 +197,21 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
                 for id_, row in enumerate(read_tsv):
 
                     quantifier = row[2]
-                    quantifier_frequency = ''
-                    quantifier_number = ''
-                    if quantifier != '':
+                    quantifier_frequency = ""
+                    quantifier_number = ""
+                    if quantifier != "":
                         quantifier = ast.literal_eval(quantifier)
-                        if 'frequency' in quantifier.keys():
-                            quantifier_frequency = quantifier['frequency']
-                        if 'number' in  quantifier.keys():
-                            quantifier_number = quantifier['number']
+                        if "frequency" in quantifier.keys():
+                            quantifier_frequency = quantifier["frequency"]
+                        if "number" in quantifier.keys():
+                            quantifier_number = quantifier["number"]
                     yield id_, {
-                        'source': row[0],
-                        'term':row[1],
-                        'quantifier_frequency': quantifier_frequency,
-                        'quantifier_number': quantifier_number,
-                        'generic_sentence': row[3],
-                        'score': row[4]
+                        "source": row[0],
+                        "term": row[1],
+                        "quantifier_frequency": quantifier_frequency,
+                        "quantifier_number": quantifier_number,
+                        "generic_sentence": row[3],
+                        "score": row[4],
                     }
         else:
             with open(filepath, encoding="utf-8") as f:
@@ -204,19 +219,17 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
                     data = json.loads(row)
 
                     result = {
-                        "source_name": data['source']['name'],
-                        "sentence": data['knowledge']['sentence'],
-                        "sentences_before": data['knowledge']['context']['sentences_before'],
-                        "sentences_after": data['knowledge']['context']['sentences_after'],
-                        "concept_name": data['knowledge']['key_concepts'][0]['concept_name'],
-                        "quantifiers": data['knowledge']['key_concepts'][0]['quantifiers'],
-                        "id": data['id'],
-                        "bert_score": data['bert_score']
+                        "source_name": data["source"]["name"],
+                        "sentence": data["knowledge"]["sentence"],
+                        "sentences_before": data["knowledge"]["context"]["sentences_before"],
+                        "sentences_after": data["knowledge"]["context"]["sentences_after"],
+                        "concept_name": data["knowledge"]["key_concepts"][0]["concept_name"],
+                        "quantifiers": data["knowledge"]["key_concepts"][0]["quantifiers"],
+                        "id": data["id"],
+                        "bert_score": data["bert_score"],
                     }
                     if self.config.name == "generics_kb_simplewiki":
-                        result["headings"] = data['knowledge']['context']['headings']
-                        result["categories"] = data['knowledge']['context']['categories']
+                        result["headings"] = data["knowledge"]["context"]["headings"]
+                        result["categories"] = data["knowledge"]["context"]["categories"]
 
-                    yield id_,result
-
-
+                    yield id_, result

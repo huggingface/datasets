@@ -1,6 +1,22 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- n>1M
+source_datasets:
+- original
+task_categories:
+- other
+task_ids:
+- other-other-knowledge-base
 ---
 
 # Dataset Card for [Dataset Name]
@@ -55,7 +71,7 @@ The dataset is in English.
 
 ### Data Instances
 
-The GENERICSKB contains 3,433,000 sentences. We also create GENERICS-KB-BEST, comprising GENERICSKB generics with a score > 0.234, augmented with short generics synthesized from three other resources for all the terms (generic categories) in GENERICSKB- BEST. GENERICSKB-BEST contains 1,020,868 generics (774,621 from GENERICSKB plus 246,247 synthesized).
+The GENERICSKB contains 3,433,000 sentences. GENERICS-KB-BEST comprises of GENERICSKB generics with a score > 0.234, augmented with short generics synthesized from three other resources for all the terms (generic categories) in GENERICSKB- BEST. GENERICSKB-BEST contains 1,020,868 generics (774,621 from GENERICSKB plus 246,247 synthesized).
 SimpleWikipedia is a filtered scrape of SimpleWikipedia pages (simple.wikipedia.org). The Waterloo corpus is 280GB of English plain text, gathered by Charles Clarke (Univ. Waterloo) using a webcrawler in 2001 from .edu domains.
 
 ### Data Fields
@@ -87,7 +103,7 @@ Detailed description of each of the fields:
 
 ### Data Splits
 
-[More Information Needed]
+There are no splits. 
 
 ## Dataset Creation
 
@@ -99,7 +115,7 @@ Detailed description of each of the fields:
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Data was crawled. SimpleWikipedia is a filtered scrape of SimpleWikipedia pages (simple.wikipedia.org). The Waterloo corpus is 280GB of English plain text, gathered by Charles Clarke (Univ. Waterloo) using a webcrawler in 2001 from .edu domains.
 
 #### Who are the source language producers?
 
@@ -109,11 +125,11 @@ Detailed description of each of the fields:
 
 #### Annotation process
 
-[More Information Needed]
+Bert was used to decide whether the sentence is useful or not. Every sentence has a bert score.
 
 #### Who are the annotators?
 
-[More Information Needed]
+No annotations were made. 
 
 ### Personal and Sensitive Information
 
@@ -160,5 +176,11 @@ For details, see https://creativecommons.org/licenses/by/4.0/ or the or the incl
 file "Creative Commons ― Attribution 4.0 International ― CC BY 4.0.pdf" in this folder.
 
 ### Citation Information
-
-[More Information Needed]
+```
+@InProceedings{huggingface:dataset,
+title = {GenericsKB: A Knowledge Base of Generic Statements},
+authors={Sumithra Bhakthavatsalam, Chloe Anastasiades, Peter Clark},
+year={2020},
+publisher = {Allen Institute for AI},
+}
+```
