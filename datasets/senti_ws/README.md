@@ -67,20 +67,30 @@ German
 ## Dataset Structure
 
 ### Data Instances
-
-{ "word":"Abbau"
+For pos-tagging:
+{ 
+"word":"Abbau"
 "pos-tag": "NN"	
-"polarity":-0.058	
-"Inflections":"Abbaus,Abbaues,Abbauen,Abbaue,Abbauten"
+}
+For sentiment-scoring:
+{
+"word":"Abbau"
+"sentiment-score":-0.058
 }
 
 ### Data Fields
 
-SentiWS is UTF8-encoded text and structured in the following way:
-
-<Word>|<POS tag> \t <Polarity weight> \t <Infl_1>,...,<Infl_k> \n
-where \t denotes a tab, and \n denotes a new line.
-
+SentiWS is UTF8-encoded text.
+For pos-tagging:
+                {
+                    "word": datasets.Value("string"),
+                    "pos-tag": datasets.Value("string"),
+                }
+For sentiment-scoring:
+                {
+                    "word": datasets.Value("string"),
+                    "sentiment-score": datasets.Value("float32"),
+                }
 The POS tags are ["NN", "VVINF", "ADJX", "ADV"] -> ["noun", "verb", "adjective", "adverb"], and positive and negative polarity bearing words are weighted within the interval of [-1, 1].
 
 ### Data Splits
