@@ -1,9 +1,28 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- no-annotation
+language_creators:
+- expert-generated
+- found
+languages:
+- en
+- pl
+- ru
+licenses:
+- unknown
+multilinguality:
+- translation
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for poleval2019_mt
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -30,43 +49,65 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** PolEval-2019 competition. http://2019.poleval.pl/
+- **Repository:** Links available [in this page](http://2019.poleval.pl/index.php/tasks/task4)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
 
 ### Dataset Summary
 
-[More Information Needed]
+PolEval is a SemEval-inspired evaluation campaign for natural language processing tools for Polish.
+Submitted solutions compete against one another within certain tasks selected by organizers, using available data and are evaluated according to
+pre-established procedures. One of the tasks in PolEval-2019 was Machine Translation (Task-4).
+
+The task is to train as good as possible machine translation system, using any technology,with limited textual resources.
+The competition will be done for 2 language pairs, more popular English-Polish (into Polish direction) and pair that can be called low resourced
+Russian-Polish (in both directions).
+
+Here, Polish-English is also made available to allow for training in both directions. However, the test data is ONLY available for English-Polish
 
 ### Supported Tasks and Leaderboards
-
-[More Information Needed]
+Supports Machine Translation between Russian to Polish and English to Polish (and vice versa). 
 
 ### Languages
-
-[More Information Needed]
+- Polish (pl)
+- Russian (ru)
+- English (en) 
 
 ## Dataset Structure
 
 ### Data Instances
-
-[More Information Needed]
+As the training data set, a set of bi-lingual corpora aligned at the sentence level has been prepared. The corpora are saved in UTF-8 encoding as plain text, one language per file.
 
 ### Data Fields
-
-[More Information Needed]
+One example of the translation is as below:
+```
+{
+  'translation': {'ru': 'не содержала в себе моделей. Модели это сравнительно новое явление. ', 
+                  'pl': 'nie miała w sobie modeli. Modele to względnie nowa dziedzina. Tak więc, jeśli '}
+}
+```
 
 ### Data Splits
 
-[More Information Needed]
+The dataset is divided into two splits. All the headlines are scraped from news websites on the internet.
+|       | Tain   | Valid | Test  |
+| ----- | ------ | ----- | ----- |
+| ru-pl |  20001 | 3001  | 2969  |
+| pl-ru |  20001 | 3001  | 2969  |
+| en-pl | 129255 | 1000  | 9845  |
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+This data was curated as a task for the PolEval-2019. The task is to train as good as possible machine translation system, using any technology, with limited textual resources. The competition will be done for 2 language pairs, more popular English-Polish (into Polish direction) and pair that can be called low resourced Russian-Polish (in both directions).
+
+PolEval is a SemEval-inspired evaluation campaign for natural language processing tools for Polish. Submitted tools compete against one another within certain tasks selected by organizers, using available data and are evaluated according to pre-established procedures.
+
+PolEval 2019-related papers were presented at AI & NLP Workshop Day (Warsaw, May 31, 2019).
+The links for the top performing models on various tasks (including the Task-4: Machine Translation) is present in [this](http://2019.poleval.pl/index.php/publication) link
 
 ### Source Data
 
@@ -76,7 +117,7 @@ YAML tags:
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The organization details of PolEval is present in this [link](http://2019.poleval.pl/index.php/organizers)
 
 ### Annotations
 

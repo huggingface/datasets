@@ -34,7 +34,7 @@ The task is to train as good as possible machine translation system, using any t
 The competition will be done for 2 language pairs, more popular English-Polish (into Polish direction) and pair that can be called low resourced\
 Russian-Polish (in both directions).
 
-Here, Polish-English is also made available to allow for training in both directions. However, the test data is ONLY available for English-Polish,
+Here, Polish-English is also made available to allow for training in both directions. However, the test data is ONLY available for English-Polish.
 """
 
 # Official homepage for the dataset
@@ -84,7 +84,7 @@ class PolevalMTConfig(datasets.BuilderConfig):
 
 
 class Poleval2019Mt(datasets.GeneratorBasedBuilder):
-    """PMIndia machine translation dataset."""
+    """Polish Translation Dataset"""
 
     @property
     def manual_download_instructions(self):
@@ -98,7 +98,7 @@ class Poleval2019Mt(datasets.GeneratorBasedBuilder):
     datasets.load_dataset(...) option.
 
     The <path/to/folder> can e.g. be "/Downloads/English-To-Polish".
-    The data can then be loaded using the following command `datasets.load_dataset("kannada_news", name="en-pl", data_dir="/Downloads/archive")`.
+    The data can then be loaded using the following command `datasets.load_dataset("poleval2019_mt", name="en-pl", data_dir="/Downloads/English-To-Polish")`.
     Name can also be set as "pl-en" when Polish to English dataset is required.
 
     For Russian to Polish (or vice versa) the link to download the folder is https://drive.google.com/drive/folders/14bpulmsyaou5RPMeGW_u5zmHQamcNQxU
