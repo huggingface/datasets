@@ -25,39 +25,26 @@ import datasets
 _CITATION = ""
 
 _DESCRIPTION = """\
-Dataset built from pairs of YouTube captions where both an `auto-generated` and
-a `manually corrected` caption was available for a single specified language.
-This dataset looks only at simple (e.g. ignoring case/punctuation/stop words)
-two-way (e.g. ignoring single-sided insertions) single-token differences between the
-auto-gen and manual transcripts.
-More complex differences in the original repo are not captured here.
+Dataset built from pairs of YouTube captions where both 'auto-generated' and
+'manually-corrected' captions are available for a single specified language.
+This dataset labels two-way (e.g. ignoring single-sided insertions) same-length
+token differences in the `diff_type` column. The `default_seq` is composed of
+tokens from the 'auto-generated' captions. When a difference occurs between
+the 'auto-generated' vs 'manually-corrected' captions types, the `correction_seq`
+contains tokens from the 'manually-corrected' captions.
 """
 
 _LICENSE = "MIT License"
 
-_CHANNEL_NAMES = [
-    "3Blue1Brown",
-    "Aurélien_Géron",
-    "Jeremy_Howard",
-    "Luis_Serrano",
-    "TED",
-    "Weights_&_Biases",
-    "nature_video",
-    "Alfredo_Canziani",
-    "DeepMind",
-    "Pieter_Abbeel",
-    "Veritasium",
-    "minutephysics",
-    "stanfordonline",
-]
+_NUM_FILES = 4
 _URLS = [
-    f"https://raw.githubusercontent.com/2dot71mily/youtube_captions_corrections/main/data/transcripts/en/postproc_transcripts/{channel_name}.json"
-    for channel_name in _CHANNEL_NAMES
+    f"https://raw.githubusercontent.com/2dot71mily/youtube_captions_corrections/main/data/transcripts/en/split/youtube_caption_corrections_{i}.json"
+    for i in range(_NUM_FILES)
 ]
 
 
 class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
-    """YouTube captions simple single token corrections."""
+    """YouTube captions corrections."""
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -67,20 +54,26 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
                     "video_ids": datasets.Value("string"),
                     "default_seq": datasets.Sequence(datasets.Value("string")),
                     "correction_seq": datasets.Sequence(datasets.Value("string")),
-                    "is_single_simple_diff": datasets.Sequence(
+                    "diff_type": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
-                                "FALSE",
-                                "TRUE",
+                                "NO_DIFF",
+                                "CASE_DIFF",
+                                "PUNCUATION_DIFF",
+                                "CASE_AND_PUNCUATION_DIFF",
+                                "STEM_BASED_DIFF",
+                                "DIGIT_DIFF",
+                                "INTRAWORD_PUNC_DIFF",
+                                "UNKNOWN_TYPE_DIFF",
+                                "RESERVED_DIFF",
                             ]
                         )
                     ),
                 }
             ),
-            supervised_keys=("correction_seq", "is_single_simple_diff"),
+            supervised_keys=("correction_seq", "diff_type"),
             homepage="https://github.com/2dot71mily/youtube_captions_corrections",
             license=_LICENSE,
-            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -104,7 +97,7 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
                 for ctr, result in enumerate(json_list):
                     response = {
                         "video_ids": result["video_ids"],
-                        "is_single_simple_diff": result["is_single_simple_diff"],
+                        "diff_type": result["diff_type"],
                         "default_seq": result["default_seq"],
                         "correction_seq": result["correction_seq"],
                     }
