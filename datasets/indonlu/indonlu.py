@@ -527,7 +527,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        sentence_features = ["terma", "facqa"]
+        sentence_features = ["terma", "keps", "facqa"]
         ner_ = ["nergrit", "nerp"]
         pos_ = ["posp", "bapos"]
 
@@ -576,9 +576,11 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        csv_file = ["emot", "wrete", "facqa", "casa"]
+        csv_file = ["emot", "wrete", "facqa", "casa", "hoasa"]
         tsv_file = ["smsa"]
-        txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
+        txt_file = ["terma", "keps"]
+        txt_file_pos = ["posp", "bapos"]
+        txt_file_ner = ["nergrit", "nerp"]
 
         with open(filepath, encoding="utf-8") as f:
 
@@ -608,17 +610,22 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                     if self.config.name == "smsa":
                         text, label = row
                         yield id_, {"text": text, "label": label}
-            elif self.config.name in txt_file:
+            elif self.config.name in (txt_file + txt_file_pos + txt_file_ner):
                 id_ = 0
-                sentence = []
+                tokens = []
                 seq_label = []
                 for line in f:
                     if len(line.strip()) > 0:
                         token, label = line[:-1].split("\t")
-                        sentence.append(token)
+                        tokens.append(token)
                         seq_label.append(label)
                     else:
-                        yield id_, {"sentence": sentence, "seq_label": seq_label}
+                        if self.config.name in txt_file:
+                            yield id_, {"tokens": tokens, "seq_label": seq_label}
+                        elif self.config.name in txt_file_pos:
+                            yield id_, {"tokens": tokens, "pos_tags": seq_label}
+                        elif self.config.name in txt_file_ner:
+                            yield id_, {"tokens": tokens, "ner_tags": seq_label}
                         id_ += 1
-                        sentence = []
+                        tokens = []
                         seq_label = []
