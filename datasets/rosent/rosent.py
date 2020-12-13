@@ -18,9 +18,6 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import logging
-import os
-
-import pandas as pd
 
 import datasets
 
