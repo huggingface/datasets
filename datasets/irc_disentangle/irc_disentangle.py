@@ -196,8 +196,8 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         if self.config.name == "ubuntu":
             # run loop for each date
             all_files = sorted(glob.glob(os.path.join(filepath", "*.annotation.txt")))
-            all_dates = [file.split("/")[-1][:10] for file in all_files]
-            all_info = [file.split("/")[-1][10:-15] for file in all_files]
+            all_dates = [Path(file.name)[:10] for file in all_files]
+            all_info = [Path(file.name)[10:-15] for file in all_files]
 
         elif self.config.name == "channel_two":
             # run loop once (no dates for this config)
