@@ -46,11 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** https://github.com/IgnatiusEzeani/IGBONLP/tree/master/ig_ner
+- **Repository:** https://github.com/IgnatiusEzeani/IGBONLP/tree/master/ig_ner
+- **Paper:** https://arxiv.org/abs/2004.00648
 
 ### Dataset Summary
 
@@ -134,4 +132,11 @@ task_ids:
 
 ### Citation Information
 
-[More Information Needed]
+@misc{ezeani2020igboenglish,  
+    title={Igbo-English Machine Translation: An Evaluation Benchmark},  
+    author={Ignatius Ezeani and Paul Rayson and Ikechukwu Onyenwe and Chinedu Uchechukwu and Mark Hepple},  
+    year={2020},  
+    eprint={2004.00648},  
+    archivePrefix={arXiv},  
+    primaryClass={cs.CL}   
+}
