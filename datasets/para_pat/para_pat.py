@@ -197,6 +197,7 @@ class ParaPat(datasets.GeneratorBasedBuilder):
             url="https://ndownloader.figshare.com/files/23855441",
         ),
     ]
+    BUILDER_CONFIG_CLASS = ParaPatConfig
 
     def _info(self):
         source, target = self.config.language_pair
