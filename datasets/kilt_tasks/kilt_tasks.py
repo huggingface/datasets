@@ -121,10 +121,17 @@ _DATA_URLS = {
 class KiltTasks(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="triviaqa_support_only", version=datasets.Version("1.0.0"), description="Supporting paragraphs information for the TriviaQA task")
+        datasets.BuilderConfig(
+            name="triviaqa_support_only",
+            version=datasets.Version("1.0.0"),
+            description="Supporting paragraphs information for the TriviaQA task",
+        )
     ] + [
-        datasets.BuilderConfig(name=k, version=datasets.Version("1.0.0"), description=f"Task data and supporting paragraphs for {k}")
-        for k in _DATA_URLS if k != "triviaqa_support_only"
+        datasets.BuilderConfig(
+            name=k, version=datasets.Version("1.0.0"), description=f"Task data and supporting paragraphs for {k}"
+        )
+        for k in _DATA_URLS
+        if k != "triviaqa_support_only"
     ]
 
     DEFAULT_CONFIG_NAME = "nq"
@@ -140,14 +147,16 @@ class KiltTasks(datasets.GeneratorBasedBuilder):
                         "left_context": datasets.Value("string"),
                         "mention": datasets.Value("string"),
                         "right_context": datasets.Value("string"),
-                        "partial_evidence": [{
-                            "start_paragraph_id": datasets.Value("int32"),
-                            "end_paragraph_id": datasets.Value("int32"),
-                            "title": datasets.Value("string"),
-                            "section": datasets.Value("string"),
-                            "wikipedia_id": datasets.Value("string"),
-                            "meta": {"evidence_span": [datasets.Value("string")]},
-                        }],
+                        "partial_evidence": [
+                            {
+                                "start_paragraph_id": datasets.Value("int32"),
+                                "end_paragraph_id": datasets.Value("int32"),
+                                "title": datasets.Value("string"),
+                                "section": datasets.Value("string"),
+                                "wikipedia_id": datasets.Value("string"),
+                                "meta": {"evidence_span": [datasets.Value("string")]},
+                            }
+                        ],
                         "obj_surface": [datasets.Value("string")],
                         "sub_surface": [datasets.Value("string")],
                         "subj_aliases": [datasets.Value("string")],
@@ -212,9 +221,7 @@ class KiltTasks(datasets.GeneratorBasedBuilder):
                         "title": partial.get("title", ""),
                         "section": partial.get("section", ""),
                         "wikipedia_id": partial.get("wikipedia_id", ""),
-                        "meta": {
-                            "evidence_span": partial.get("meta", {}).get("evidence_span", [])
-                        },
+                        "meta": {"evidence_span": partial.get("meta", {}).get("evidence_span", [])},
                     }
                     for partial in article["meta"].get("partial_evidence", [])
                 ]
@@ -225,7 +232,7 @@ class KiltTasks(datasets.GeneratorBasedBuilder):
                         "meta": output.get("meta", {"score": -1}),
                         "provenance": [
                             {
-                                "bleu_score": provenance.get("bleu_score", -1.),
+                                "bleu_score": provenance.get("bleu_score", -1.0),
                                 "start_character": provenance.get("start_character", -1),
                                 "start_paragraph_id": provenance.get("start_paragraph_id", -1),
                                 "end_character": provenance.get("end_character", -1),
@@ -233,7 +240,9 @@ class KiltTasks(datasets.GeneratorBasedBuilder):
                                 "meta": {
                                     "fever_page_id": provenance.get("meta", {}).get("fever_page_id", ""),
                                     "fever_sentence_id": provenance.get("meta", {}).get("fever_sentence_id", -1),
-                                    "annotation_id": str(provenance.get("meta", {}).get("annotation_id", -1)),  # int runs into overflow issues
+                                    "annotation_id": str(
+                                        provenance.get("meta", {}).get("annotation_id", -1)
+                                    ),  # int runs into overflow issues
                                     "yes_no_answer": provenance.get("meta", {}).get("yes_no_answer", ""),
                                     "evidence_span": provenance.get("meta", {}).get("evidence_span", []),
                                 },
