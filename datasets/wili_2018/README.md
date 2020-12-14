@@ -240,17 +240,17 @@ languages:
 - other-nds-nl
 - other-be-tarask
 licenses:
-- ODC Open Database License v1.0
+- odbl-1.0
 multilinguality:
-- 235 different languages
+- multilingual
 size_categories:
-- 1000 lines of text for every language, so in total 235000 lines of text (as total 235 languages)
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- language-identification
+- text-classification
 task_ids:
-- language-identification
+- text-classification-other-language-identification
 ---
 
 # Dataset Card for wili_2018
