@@ -69,7 +69,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(
             name="document_domain",
             version=VERSION,
-            description="This part of the dataset covers the document domain which details all the documents in the various doamins",
+            description="This part of the dataset covers the document domain which details all the documents in the various domains",
         ),
     ]
 
