@@ -60,8 +60,6 @@ class Offcombr(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "offcombr-2"
-
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
