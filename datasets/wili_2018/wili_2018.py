@@ -287,7 +287,7 @@ _CLASSES = [
 ]
 
 
-class Wili2018(datasets.GeneratorBasedBuilder):
+class Wili_2018(datasets.GeneratorBasedBuilder):
     """WiLI Language Identification Dataset"""
 
     VERSION = datasets.Version("1.1.0")
