@@ -326,7 +326,6 @@ class Wili2018(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
 
         with open(filepath, encoding="utf-8") as f:
-            next(f)
             for id_, line in enumerate(f):
                 text, label = line.rsplit(",", 1)
                 text = text.strip('"')
