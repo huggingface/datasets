@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - expert-generated
 language_creators:
@@ -64,13 +65,13 @@ task_ids:
   bapos:
   - structure-prediction-other-part-of-speech-tagging
   casa:
-  - text-classification-other-aspect-baset-sentiment-analysis
+  - text-classification-other-aspect-based-sentiment-analysis
   emot:
   - multi-class-classification
   facqa:
   - closed-domain-qa
   hoasa:
-  - text-classification-other-aspect-baset-sentiment-analysis
+  - text-classification-other-aspect-based-sentiment-analysis
   keps:
   - structure-prediction-other-keyphrase-extraction
   nergrit:
@@ -85,6 +86,7 @@ task_ids:
   - structure-prediction-other-span-extraction
   wrete:
   - semantic-similarity-classification
+  ---
 
 # Dataset Card for IndoNLU
 
