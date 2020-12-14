@@ -146,5 +146,4 @@ class Bianet(datasets.GeneratorBasedBuilder):
                         "translation": {lang1: x, lang2: y},
                     },
                 )
-                sentence_counter += 1
                 yield result
