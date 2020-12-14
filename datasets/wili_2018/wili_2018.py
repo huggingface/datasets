@@ -17,14 +17,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-
-import pandas as pd
-
 import datasets
 
-
-csv.field_size_limit(500000)
 
 _CITATION = """\
 @dataset{thoma_martin_2018_841984,
@@ -331,12 +325,10 @@ class Wili2018(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
 
-        df = pd.read_csv(filepath, encoding="utf8", engine="python")
-        sentences = df.iloc[:, 0].tolist()
-        labels = df.iloc[:, 1].tolist()
-
-        ids = [i for i in range(len(labels))]
-
-        for id_, sentence, label in zip(ids, sentences, labels):
-
-            yield id_, {"sentence": sentence, "label": label - 1}
+        with open(filepath, encoding="utf-8") as f:
+            next(f)  # to remove header
+            for id_, line in enumerate(f):
+                text, label = line.rsplit(",", 1)
+                text = text.strip('"')
+                label = int(label.strip())
+                yield id_, {"sentence": text, "label": label - 1}
