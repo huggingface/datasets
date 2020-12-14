@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors, The Google AI Language Team Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
+import ast
 
 import datasets
 
@@ -52,6 +53,64 @@ _LICENSE = "Microsoft Research Data License Agreement"
 _URL = "https://download.microsoft.com/download/1/D/C/1DC270D2-1B53-4A61-A2E3-88AB3E4E6E1F/SQA%20Release%201.0.zip"
 
 
+def _load_table_data(table_file):
+    """Load additional data from a csv table file.
+
+    Args:
+        table_file: Path to the csv file.
+
+    Returns:
+        header: a list of headers in the table.
+        data: 2d array of data in the table.
+    """
+    with open(table_file, encoding="utf-8") as f:
+        lines = f.readlines()
+    header = lines[0].strip().split(",")
+    data = [line.strip().split(",") for line in lines[1:]]
+    return header, data
+
+
+def _parse_answer_coordinates(answer_coordinate_str):
+    """Parsing answer_coordinates field to a list of answer coordinates.
+    The original code is from https://github.com/google-research/tapas.
+
+    Args:
+      answer_coordinate_str: A string representation of a Python list of tuple
+        strings.
+        For example: "['(1, 4)','(1, 3)', ...]"
+
+    Returns:
+      answer_coordinates: A list of answer cordinates.
+    """
+    try:
+        answer_coordinates = []
+        coords = ast.literal_eval(answer_coordinate_str)
+        for row_index, column_index in sorted(ast.literal_eval(coord) for coord in coords):
+            answer_coordinates.append({"row_index": row_index, "column_index": column_index})
+        return answer_coordinates
+    except SyntaxError:
+        raise ValueError("Unable to evaluate %s" % answer_coordinate_str)
+
+
+def _parse_answer_text(answer_text_str):
+    """Parsing `answer_text` field to list of answers.
+    The original code is from https://github.com/google-research/tapas.
+    Args:
+      answer_text_str: A string representation of a Python list of strings.
+        For example: "[u'test', u'hello', ...]"
+
+    Returns:
+      answer_texts: A list of answers.
+    """
+    try:
+        answer_texts = []
+        for value in ast.literal_eval(answer_text_str):
+            answer_texts.append(value)
+        return answer_texts
+    except SyntaxError:
+        raise ValueError("Unable to evaluate %s" % answer_text_str)
+
+
 class MsrSQA(datasets.GeneratorBasedBuilder):
     """Microsoft Research Sequential Question Answering (SQA) Dataset"""
 
@@ -67,7 +126,12 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
                     "table_file": datasets.Value("string"),
                     "table_header": datasets.features.Sequence(datasets.Value("string")),
                     "table_data": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
-                    "answer_coordinates": datasets.features.Sequence(datasets.Value("string")),
+                    "answer_coordinates": datasets.features.Sequence(
+                        {
+                            "row_index": datasets.Value("int32"),
+                            "column_index": datasets.Value("int32")
+                        }
+                    ),
                     "answer_text": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
@@ -94,20 +158,13 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, data_dir):
         """ Yields examples. """
 
-        def load_table_data(table_file):
-            with open(table_file, encoding="utf-8") as f:
-                lines = f.readlines()
-            header = lines[0].strip().split(",")
-            data = [line.strip().split(",") for line in lines[1:]]
-            return header, data
-
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t")
             for row in reader:
                 item = dict(row)
-                item["answer_text"] = eval(item["answer_text"])
-                item["answer_coordinates"] = eval(item["answer_coordinates"])
-                header, table_data = load_table_data(os.path.join(data_dir, item["table_file"]))
+                item["answer_text"] = _parse_answer_text(item["answer_text"])
+                item["answer_coordinates"] = _parse_answer_coordinates(item["answer_coordinates"])
+                header, table_data = _load_table_data(os.path.join(data_dir, item["table_file"]))
                 item["table_header"] = header
                 item["table_data"] = table_data
                 yield item["id"], item
