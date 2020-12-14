@@ -19,7 +19,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for BrWaC
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -75,10 +75,10 @@ Portuguese
 
 ### Data Fields
 
-- `doc_id`: The text document ID
-- `title`: The text title
-- `uri`: URI where the text was extracted from
-- `sentences`: A list of document sentences
+- `doc_id`: The document ID
+- `title`: The document title
+- `uri`: URI where the document was extracted from
+- `paragraphs`: A list of document paragraphs (with a list of sentences in it)
 
 ### Data Splits
 

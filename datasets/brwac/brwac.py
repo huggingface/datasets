@@ -65,7 +65,7 @@ class Brwac(datasets.GeneratorBasedBuilder):
                 "doc_id": datasets.Value("string"),
                 "title": datasets.Value("string"),
                 "uri": datasets.Value("string"),
-                "sentences": datasets.Sequence(datasets.Value("string")),
+                "paragraphs": datasets.Sequence({"sentences": datasets.Sequence(datasets.Value("string"))}),
             }
         )
         return datasets.DatasetInfo(
@@ -103,9 +103,8 @@ class Brwac(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
 
             add_space = 1
-            doc_id = None
-            current_sentence = ""
-            sentences = []
+            doc_id, title, uri = None, None, None
+            current_sentence, current_paragraph_sentences, paragraphs = "", [], []
             id_ = 0
             for line in f:
 
@@ -122,11 +121,12 @@ class Brwac(datasets.GeneratorBasedBuilder):
                         add_space = 0
 
                     elif line == "</s>":  # end sentence
-                        sentences.append(current_sentence)
+                        current_paragraph_sentences.append(current_sentence)
                         current_sentence = ""
 
                     elif line == "</p>":  # end paragraph
-                        sentences[-1] += "\n"
+                        paragraphs.append({"sentences": current_paragraph_sentences})
+                        current_paragraph_sentences = []
 
                     elif len(current_sentence) == 0:
                         current_sentence = line
@@ -136,9 +136,8 @@ class Brwac(datasets.GeneratorBasedBuilder):
                         add_space = 1
 
                     if line.strip() == "</doc>":  # doc end
-                        yield id_, {"doc_id": doc_id, "title": title, "uri": uri, "sentences": sentences}
+                        yield id_, {"doc_id": doc_id, "title": title, "uri": uri, "paragraphs": paragraphs}
                         id_ += 1
                         add_space = 1
-                        doc_id = None
-                        current_sentence = ""
-                        sentences = []
+                        doc_id, title, uri = None, None, None
+                        current_sentence, current_paragraph_sentences, paragraphs = "", [], []
