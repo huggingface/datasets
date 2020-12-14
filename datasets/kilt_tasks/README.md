@@ -239,11 +239,11 @@ task_ids:
 
 KILT has been built from 11 datasets representing 5 types of tasks:
 
-· Fact-checking
-· Entity linking
-· Slot filling
-· Open domain QA
-· Dialog generation
+- Fact-checking
+- Entity linking
+- Slot filling
+- Open domain QA
+- Dialog generation
 
 All these datasets have been grounded in a single pre-processed Wikipedia dump, allowing for fairer and more consistent evaluation as well as enabling new task setups such as multitask and transfer learning with minimal effort. KILT also provides tools to analyze and understand the predictions made by models, as well as the evidence they provide for their predictions.
 
@@ -314,7 +314,7 @@ An example of open-domain QA from the Natural Questions `nq` configuration looks
      'start_paragraph_id': 1,
      'title': 'Super Bowl 50 halftime show',
      'wikipedia_id': '45267196'}]},
-  {'answer': 'Beyoncé',
+  {'answer': 'BeyoncÃ©',
    'meta': {'score': 0},
    'provenance': [{'bleu_score': 1.0,
      'end_character': 224,
@@ -344,10 +344,10 @@ An example of open-domain QA from the Natural Questions `nq` configuration looks
      'start_paragraph_id': 1,
      'title': 'Super Bowl 50 halftime show',
      'wikipedia_id': '45267196'}]},
-  {'answer': 'Coldplay with special guest performers Beyoncé and Bruno Mars',
+  {'answer': 'Coldplay with special guest performers BeyoncÃ© and Bruno Mars',
    'meta': {'score': 0},
    'provenance': []},
-  {'answer': 'British rock group Coldplay with special guest performers Beyoncé and Bruno Mars',
+  {'answer': 'British rock group Coldplay with special guest performers BeyoncÃ© and Bruno Mars',
    'meta': {'score': 0},
    'provenance': []},
   {'answer': '',
@@ -371,10 +371,10 @@ An example of open-domain QA from the Natural Questions `nq` configuration looks
      'end_character': -1,
      'end_paragraph_id': 1,
      'meta': {'annotation_id': '-1',
-      'evidence_span': ['It was headlined by the British rock group Coldplay with special guest performers Beyoncé and Bruno Mars',
-       'It was headlined by the British rock group Coldplay with special guest performers Beyoncé and Bruno Mars, who previously had headlined the Super Bowl XLVII and Super Bowl XLVIII halftime shows, respectively.',
-       "The Super Bowl 50 Halftime Show took place on February 7, 2016, at Levi's Stadium in Santa Clara, California as part of Super Bowl 50. It was headlined by the British rock group Coldplay with special guest performers Beyoncé and Bruno Mars",
-       "The Super Bowl 50 Halftime Show took place on February 7, 2016, at Levi's Stadium in Santa Clara, California as part of Super Bowl 50. It was headlined by the British rock group Coldplay with special guest performers Beyoncé and Bruno Mars,"],
+      'evidence_span': ['It was headlined by the British rock group Coldplay with special guest performers BeyoncÃ© and Bruno Mars',
+       'It was headlined by the British rock group Coldplay with special guest performers BeyoncÃ© and Bruno Mars, who previously had headlined the Super Bowl XLVII and Super Bowl XLVIII halftime shows, respectively.',
+       "The Super Bowl 50 Halftime Show took place on February 7, 2016, at Levi's Stadium in Santa Clara, California as part of Super Bowl 50. It was headlined by the British rock group Coldplay with special guest performers BeyoncÃ© and Bruno Mars",
+       "The Super Bowl 50 Halftime Show took place on February 7, 2016, at Levi's Stadium in Santa Clara, California as part of Super Bowl 50. It was headlined by the British rock group Coldplay with special guest performers BeyoncÃ© and Bruno Mars,"],
       'fever_page_id': '',
       'fever_sentence_id': -1,
       'yes_no_answer': ''},
