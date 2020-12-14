@@ -66,7 +66,7 @@ class DiplomacyDetection(datasets.GeneratorBasedBuilder):
                 "receiver_labels": datasets.ClassLabel(names=["deceptive", "truthful", "no_annotation"]),
                 "speakers": datasets.Value("string"),
                 "receivers": datasets.Value("string"),
-                "absolute_message_index": datasets.Value("string"),
+                "absolute_message_index": datasets.Value("int64"),
                 "relative_message_index": datasets.Value("string"),
                 "seasons": datasets.Value("string"),
                 "years": datasets.Value("string"),
