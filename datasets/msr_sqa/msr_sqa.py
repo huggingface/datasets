@@ -16,9 +16,9 @@
 
 from __future__ import absolute_import, division, print_function
 
+import ast
 import csv
 import os
-import ast
 
 import datasets
 
@@ -127,10 +127,7 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
                     "table_header": datasets.features.Sequence(datasets.Value("string")),
                     "table_data": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
                     "answer_coordinates": datasets.features.Sequence(
-                        {
-                            "row_index": datasets.Value("int32"),
-                            "column_index": datasets.Value("int32")
-                        }
+                        {"row_index": datasets.Value("int32"), "column_index": datasets.Value("int32")}
                     ),
                     "answer_text": datasets.features.Sequence(datasets.Value("string")),
                 }
