@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -60,7 +60,7 @@ Annotations (spans and questions) are written by students of the CentraleSupéle
 
 ## Data characteristics
 
-The texts are movie reviews written by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. The reviews were written between 2006 and 2020. Further information on the kinds of films included in the dataset has not been documented.
+Dataset is analyzed in the FQuAD publication [publication](https://arxiv.org/abs/2002.06071).
 
 ### How was the data collected?
 
