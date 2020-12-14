@@ -63,7 +63,6 @@ The corpus contains a total of 10472 sentences belonging to the following catego
 Hindi
 
 ## Dataset Structure
-- The dataset is structured into JSON format.
 
 ### Data Instances
 {'Story_no': 15, 'Sentence': ' गाँठ से साढ़े तीन रुपये लग गये, जो अब पेट में जाकर खनकते भी नहीं! जो तेरी करनी मालिक! ” “इसमें मालिक की क्या करनी है? ”', 'Discourse Mode': 'Dialogue'}
