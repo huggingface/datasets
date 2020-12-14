@@ -68,7 +68,7 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
                     "table_header": datasets.features.Sequence(datasets.Value("string")),
                     "table_data": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
                     "answer_coordinates": datasets.features.Sequence(datasets.Value("string")),
-                    "answer_text": datasets.features.Sequence(datasets.Value("string"))
+                    "answer_text": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -83,18 +83,12 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.tsv"),
-                    "data_dir": data_dir
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "data_dir": data_dir},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.tsv"),
-                    "data_dir": data_dir
-                },
-            )
+                gen_kwargs={"filepath": os.path.join(data_dir, "test.tsv"), "data_dir": data_dir},
+            ),
         ]
 
     def _generate_examples(self, filepath, data_dir):
