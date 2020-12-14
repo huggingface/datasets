@@ -59,7 +59,8 @@ _LICENSE = "cc-by-nc-4.0"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    "air_dialogue": "https://storage.googleapis.com/airdialogue/airdialogue_data.tar.gz",
+    "air_dialogue_data": "https://storage.googleapis.com/airdialogue/airdialogue_data.tar.gz",
+    "air_dialogue_kb": "https://storage.googleapis.com/airdialogue/airdialogue_data.tar.gz",
 }
 
 
@@ -82,49 +83,81 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="air_dialogue", version=VERSION, description="This part of my dataset covers a first domain"
+            name="air_dialogue_data", version=VERSION, description="This part of my dataset covers the dialog files"
+        ),
+        datasets.BuilderConfig(
+            name="air_dialogue_kb", version=VERSION, description="This part of my dataset covers the knowledge base"
         ),
     ]
 
+    DEFAULT_CONFIG_NAME = "air_dialogue_data"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+
+
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        features = datasets.Features(
-            {
-                "action": {
-                    "status": datasets.Value("string"),
-                    "name": datasets.Value("string"),
-                    "flight": datasets.features.Sequence(datasets.Value("int32")),
-                },
-                "intent": {
-                    "return_month": datasets.Value("string"),
-                    "return_day": datasets.Value("string"),
-                    "max_price": datasets.Value("int32"),
-                    "departure_airport": datasets.Value("string"),
-                    "max_connections": datasets.Value("int32"),
-                    "departure_day": datasets.Value("string"),
-                    "goal": datasets.Value("string"),
-                    "departure_month": datasets.Value("string"),
-                    "name": datasets.Value("string"),
-                    "return_airport": datasets.Value("string"),
-                },
-                "timestamps": datasets.features.Sequence(datasets.Value("int32")),
-                "dialogue": datasets.features.Sequence(datasets.Value("string")),
-                "expected_action": {
-                    "status": datasets.Value("string"),
-                    "name": datasets.Value("string"),
-                    "flight": datasets.features.Sequence(datasets.Value("int32")),
-                },
-                "search_info": [
-                    {
-                        "button_name": datasets.Value("string"),
-                        "field_name": datasets.Value("string"),
-                        "field_value": datasets.Value("string"),
-                        "timestmamp": datasets.Value("int32"),
-                    },
-                ],
-                "correct_sample": datasets.Value("bool_"),
-            }
-        )
+        if self.config.name == "air_dialogue_data": # This is the name of the configuration selected in BUILDER_CONFIGS above
+            features = datasets.Features(
+                        {
+                        "action": {
+                            "status": datasets.Value("string"),
+                            "name": datasets.Value("string"),
+                            "flight": datasets.features.Sequence(datasets.Value("int32")),
+                        },
+                        "intent": {
+                            "return_month": datasets.Value("string"),
+                            "return_day": datasets.Value("string"),
+                            "max_price": datasets.Value("int32"),
+                            "departure_airport": datasets.Value("string"),
+                            "max_connections": datasets.Value("int32"),
+                            "departure_day": datasets.Value("string"),
+                            "goal": datasets.Value("string"),
+                            "departure_month": datasets.Value("string"),
+                            "name": datasets.Value("string"),
+                            "return_airport": datasets.Value("string"),
+                        },
+                        "timestamps": datasets.features.Sequence(datasets.Value("int32")),
+                        "dialogue": datasets.features.Sequence(datasets.Value("string")),
+                        "expected_action": {
+                            "status": datasets.Value("string"),
+                            "name": datasets.Value("string"),
+                            "flight": datasets.features.Sequence(datasets.Value("int32")),
+                        },
+                        "search_info": [
+                            {
+                                "button_name": datasets.Value("string"),
+                                "field_name": datasets.Value("string"),
+                                "field_value": datasets.Value("string"),
+                                "timestmamp": datasets.Value("int32"),
+                            },
+                        ],
+                        "correct_sample": datasets.Value("bool_"),
+                    }
+                )
+        else:
+            features = datasets.Features(
+                {
+                    "kb": [
+                        {
+                         "airline": datasets.Value("string"),
+                         "class": datasets.Value("string"),
+                         "departure_airport": datasets.Value("string"),
+                         "departure_day": datasets.Value("string"),
+                         "departure_month": datasets.Value("string"),
+                         "departure_time_num": datasets.Value("int32"),
+                         "flight_number": datasets.Value("int32"),
+                         "num_connections": datasets.Value("int32"),
+                         "price": datasets.Value("int32"),
+                         "return_airport": datasets.Value("string"),
+                         "return_day": datasets.Value("string"),   
+                         "return_month": datasets.Value("string"),
+                         "return_time_num": datasets.Value("int32"),
+                        }
+                        ],
+                    "reservation": datasets.Value("int32"),
+                    
+                }
+            )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -152,12 +185,19 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
+        if self.config.name == "air_dialogue_data":
+            train = "airdialogue_data/airdialogue/train_data.json"
+            dev = "airdialogue_data/airdialogue/dev_data.json"
+        else:
+            train = "airdialogue_data/airdialogue/train_kb.json"
+            dev = "airdialogue_data/airdialogue/dev_kb.json"
+            
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "airdialogue_data/airdialogue/train_data.json"),
+                    "filepath": os.path.join(data_dir, train),
                     "split": "train",
                 },
             ),
@@ -165,7 +205,7 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "airdialogue_data/airdialogue/dev_data.json"),
+                    "filepath": os.path.join(data_dir, dev),
                     "split": "dev",
                 },
             ),
@@ -180,61 +220,89 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
+                if self.config.name == "air_dialogue_data":
 
-                intent = (
-                    {}
-                    if "intent" not in data
-                    else {
-                        "return_month": "" if "return_month" not in data["intent"] else data["intent"]["return_month"],
-                        "return_day": "" if "return_day" not in data["intent"] else data["intent"]["return_day"],
-                        "max_price": -1 if "max_price" not in data["intent"] else data["intent"]["max_price"],
-                        "departure_airport": ""
-                        if "departure_airport" not in data["intent"]
-                        else data["intent"]["departure_airport"],
-                        "max_connections": -1
-                        if "max_connections" not in data["intent"]
-                        else data["intent"]["max_connections"],
-                        "departure_day": ""
-                        if "departure_day" not in data["intent"]
-                        else data["intent"]["departure_day"],
-                        "goal": "" if "goal" not in data["intent"] else data["intent"]["goal"],
-                        "departure_month": ""
-                        if "departure_month" not in data["intent"]
-                        else data["intent"]["departure_month"],
-                        "name": "" if "name" not in data["intent"] else data["intent"]["name"],
-                        "return_airport": ""
-                        if "return_airport" not in data["intent"]
-                        else data["intent"]["return_airport"],
+                    intent = (
+                        {}
+                        if "intent" not in data
+                        else {
+                            "return_month": "" if "return_month" not in data["intent"] else data["intent"]["return_month"],
+                            "return_day": "" if "return_day" not in data["intent"] else data["intent"]["return_day"],
+                            "max_price": -1 if "max_price" not in data["intent"] else data["intent"]["max_price"],
+                            "departure_airport": ""
+                            if "departure_airport" not in data["intent"]
+                            else data["intent"]["departure_airport"],
+                            "max_connections": -1
+                            if "max_connections" not in data["intent"]
+                            else data["intent"]["max_connections"],
+                            "departure_day": ""
+                            if "departure_day" not in data["intent"]
+                            else data["intent"]["departure_day"],
+                            "goal": "" if "goal" not in data["intent"] else data["intent"]["goal"],
+                            "departure_month": ""
+                            if "departure_month" not in data["intent"]
+                            else data["intent"]["departure_month"],
+                            "name": "" if "name" not in data["intent"] else data["intent"]["name"],
+                            "return_airport": ""
+                            if "return_airport" not in data["intent"]
+                            else data["intent"]["return_airport"],
+                        }
+                    )
+
+                    search_info = (
+                        []
+                        if "search_info" not in data
+                        else [
+                            {
+                                "button_name": ""
+                                if "button_name" not in data["search_info"]
+                                else data["search_info"]["button_name"],
+                                "field_name": ""
+                                if "field_name" not in data["search_info"]
+                                else data["search_info"]["field_name"],
+                                "field_value": ""
+                                if "field_value" not in data["search_info"]
+                                else data["search_info"]["field_value"],
+                                "timestmamp": -1
+                                if "timestmamp" not in data["search_info"]
+                                else data["search_info"]["timestmamp"],
+                            },
+                        ]
+                    )
+
+                    yield id_, {
+                        "action": {key: data["action"][key] for key in data["action"]},
+                        "intent": intent,
+                        "timestamps": data["timestamps"],
+                        "dialogue": data["dialogue"],
+                        "expected_action": {key: data["expected_action"][key] for key in data["expected_action"]},
+                        "search_info": search_info,
+                        "correct_sample": data["correct_sample"],
                     }
-                )
 
-                search_info = (
-                    []
-                    if "search_info" not in data
-                    else [
-                        {
-                            "button_name": ""
-                            if "button_name" not in data["search_info"]
-                            else data["search_info"]["button_name"],
-                            "field_name": ""
-                            if "field_name" not in data["search_info"]
-                            else data["search_info"]["field_name"],
-                            "field_value": ""
-                            if "field_value" not in data["search_info"]
-                            else data["search_info"]["field_value"],
-                            "timestmamp": -1
-                            if "timestmamp" not in data["search_info"]
-                            else data["search_info"]["timestmamp"],
-                        },
+                else:
+
+                    kb = [] if "kb" not in data else [
+                     {
+                       "airline": "" if "airline" not in data["kb"] else data["kb"]["airline"],
+                       "class": "" if "class" not in data["kb"] else data["kb"]["class"],
+                       "departure_airport": "" if "departure_airport" not in data["kb"] else data["kb"]["departure_airport"],
+                       "departure_day": "" if "departure_day" not in data["kb"] else data["kb"]["departure_day"],
+                       "departure_month": "" if "departure_month" not in data["kb"] else data["kb"]["departure_month"],
+                       "departure_time_num": -1 if "departure_time_num" not in data["kb"] else data["kb"]["departure_time_num"],
+                       "flight_number": -1 if "flight_number" not in data["kb"] else data["kb"]["flight_number"],
+                       "num_connections": -1 if "num_connections" not in data["kb"] else data["kb"]["num_connections"],
+                       "price": -1 if "price" not in data["kb"] else data["kb"]["price"],
+                       "return_airport": "" if "return_airport" not in data["kb"] else data["kb"]["return_airport"],
+                       "return_day": "" if "return_day" not in data["kb"] else data["kb"]["return_day"],   
+                       "return_month": "" if "return_month" not in data["kb"] else data["kb"]["return_month"],
+                       "return_time_num": -1 if "return_time_num" not in data["kb"] else data["kb"]["return_time_num"], 
+                     }
                     ]
-                )
 
-                yield id_, {
-                    "action": {key: data["action"][key] for key in data["action"]},
-                    "intent": intent,
-                    "timestamps": data["timestamps"],
-                    "dialogue": data["dialogue"],
-                    "expected_action": {key: data["expected_action"][key] for key in data["expected_action"]},
-                    "search_info": search_info,
-                    "correct_sample": data["correct_sample"],
-                }
+                    yield id_, {
+                        "kb": data["kb"],
+                        "reservation": -1 if "reservation" not in data else data["reservation"],
+                    }
+
+
