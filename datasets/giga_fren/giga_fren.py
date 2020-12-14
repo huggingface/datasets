@@ -28,7 +28,7 @@ total number of sentence fragments: 47.55M
 _HOMEPAGE_URL = "http://opus.nlpl.eu/giga-fren.php"
 _CITATION = """\
 @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
+  author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
