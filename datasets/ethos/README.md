@@ -81,12 +81,27 @@ The text in the dataset is in English.
 
 A typical data point in the binary version comprises a comment, with a `text` containing the  text and a `label` describing if a comment contains hate speech content (1 - hate-speech) or not (0 - non-hate-speech). In the multilabel version more labels like *violence* (if it incites (1) or not (0) violence), *directed_vs_general* (if it is directed to a person (1) or a group (0)), and 6 labels about the category of hate speech like, *gender*, *race*, *national_origin*, *disability*, *religion* and *sexual_orientation* are appearing.
 
-An example from the binary version:
+An example from the binary version, which is offensive, but it does not contain hate speech content:
 ```
 {'text': 'What the fuck stupid people !!!',
  'label': '0'
 }
 ```
+
+An example from the multi-label version, which contains hate speech content towards women (gender):
+```
+{'text': 'You should know women's sports are a joke',
+ `violence`: 0,
+ `directed_vs_generalized`: 0,
+ `gender`: 1,
+ `race`: 0,
+ `national_origin`: 0,
+ `disability`: 0,
+ `religion`: 0,
+ `sexual_orientation`: 0
+}
+```
+
 
 ### Data Fields
 
