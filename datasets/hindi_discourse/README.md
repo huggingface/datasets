@@ -24,14 +24,21 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-instances)
   - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
@@ -57,6 +64,9 @@ The corpus contains a total of 10472 sentences belonging to the following catego
 - Informative
 - Narrative
 
+### Supported Tasks and Leaderboards
+
+- Discourse Analysis of Hindi.
 
 ### Languages
 
@@ -77,6 +87,15 @@ Sentence number, story number, sentence and discourse mode
 - Train: 9983
 
 ## Dataset Creation
+
+### Curation Rationale
+- Present a new publicly available corpus
+consisting of sentences from short stories written in a
+low-resource language of Hindi having high quality annotation for five different discourse modes -
+argumentative, narrative, descriptive, dialogic and informative.
+
+- Perform a detailed analysis of the proposed annotated corpus and characterize the performance of
+different classification algorithms.
 
 ### Source Data
 - Source of all the data points in this dataset is Hindi stories written by famous authors of Hindi literature.
@@ -110,6 +129,24 @@ absence of the other one.
 - The annotators were three native Hindi speakers with college level education.
 - Please refer to the accompnaying paper for a detailed annotation process.
 
+### Personal and Sensitive Information
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+- As a future work we would also like to use the presented corpus to see how it could be further used
+in certain downstream tasks such as emotion analysis, machine translation,
+textual entailment, and speech sythesis for improving storytelling experience in Hindi language.
+
+### Discussion of Biases
+[More Information Needed]
+
+### Other Known Limitations
+
+- We could not get the best performance using the deep learning model trained on the data, due to
+  insufficient data for DL models.
+
 ## Additional Information
 
 Please refer to this link: https://github.com/midas-research/hindi-discourse
@@ -132,7 +169,9 @@ However, the contact listed above will be happy to respond to queries and clarif
 
 ### Licensing Information
 
-[More Information Needed]
+- If you use the corpus in a product or application, then please credit the authors
+and [Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi]
+(http://midas.iiitd.edu.in) appropriately.
 
 ### Citation Information
 
