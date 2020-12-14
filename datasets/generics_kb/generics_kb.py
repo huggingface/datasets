@@ -18,9 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import ast
 import csv
-import json
 import os
-
 
 import datasets
 
@@ -46,6 +44,7 @@ _LICENSE = "cc-by-4.0"
 
 _FILEPATHS = {
     "generics_kb_best": "GenericsKB-Best.tsv",
+    "default": "GenericsKB-Best.tsv",
     "generics_kb": "GenericsKB.tsv",
     "generics_kb_simplewiki": "GenericsKB-SimpleWiki-With-Context.jsonl",
     "generics_kb_waterloo": "cskb-waterloo-06-21-with-bert-scores.jsonl",
@@ -111,18 +110,7 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
     )
 
     def _info(self):
-        if self.config.name == "generics_kb_best" or self.config.name == "generics_kb":
-            features = datasets.Features(
-                {
-                    "source": datasets.Value("string"),
-                    "term": datasets.Value("string"),
-                    "quantifier_frequency": datasets.Value("string"),
-                    "quantifier_number": datasets.Value("string"),
-                    "generic_sentence": datasets.Value("string"),
-                    "score": datasets.Value("float64"),
-                }
-            )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        if self.config.name == "generics_kb_waterloo" or self.config.name == "generics_kb_simplewiki":
 
             featuredict = {
                 "source_name": datasets.Value("string"),
@@ -139,6 +127,20 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
                 featuredict["categories"] = datasets.Sequence(datasets.Value("string"))
 
             features = datasets.Features(featuredict)
+
+        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+
+            features = datasets.Features(
+                {
+                    "source": datasets.Value("string"),
+                    "term": datasets.Value("string"),
+                    "quantifier_frequency": datasets.Value("string"),
+                    "quantifier_number": datasets.Value("string"),
+                    "generic_sentence": datasets.Value("string"),
+                    "score": datasets.Value("float64"),
+                }
+            )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -162,7 +164,7 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
         # check if manual folder exists
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('generics_kb_best', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
+                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('generics_kb', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
             )
 
         # Check if required files exist in the folder
@@ -186,37 +188,11 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """ Yields examples. """
 
-        if self.config.name == "generics_kb_best" or self.config.name == "generics_kb":
+        if self.config.name == "generics_kb_waterloo" or self.config.name == "generics_kb_simplewiki":
 
-            with open(filepath, encoding="utf-8") as f:
-                # Skip the header
-                next(f)
-
-                read_tsv = csv.reader(f, delimiter="\t")
-
-                for id_, row in enumerate(read_tsv):
-
-                    quantifier = row[2]
-                    quantifier_frequency = ""
-                    quantifier_number = ""
-                    if quantifier != "":
-                        quantifier = ast.literal_eval(quantifier)
-                        if "frequency" in quantifier.keys():
-                            quantifier_frequency = quantifier["frequency"]
-                        if "number" in quantifier.keys():
-                            quantifier_number = quantifier["number"]
-                    yield id_, {
-                        "source": row[0],
-                        "term": row[1],
-                        "quantifier_frequency": quantifier_frequency,
-                        "quantifier_number": quantifier_number,
-                        "generic_sentence": row[3],
-                        "score": row[4],
-                    }
-        else:
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
-                    data = json.loads(row)
+                    data = ast.literal_eval(row)
 
                     result = {
                         "source_name": data["source"]["name"],
@@ -233,3 +209,31 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
                         result["categories"] = data["knowledge"]["context"]["categories"]
 
                     yield id_, result
+        else:
+
+            with open(filepath, encoding="utf-8") as f:
+                # Skip the header
+                next(f)
+
+                read_tsv = csv.reader(f, delimiter="\t")
+
+                for id_, row in enumerate(read_tsv):
+
+                    quantifier = row[2]
+                    quantifier_frequency = ""
+                    quantifier_number = ""
+
+                    if quantifier != "":
+                        quantifier = ast.literal_eval(quantifier)
+                        if "frequency" in quantifier.keys():
+                            quantifier_frequency = quantifier["frequency"]
+                        if "number" in quantifier.keys():
+                            quantifier_number = quantifier["number"]
+                    yield id_, {
+                        "source": row[0],
+                        "term": row[1],
+                        "quantifier_frequency": quantifier_frequency,
+                        "quantifier_number": quantifier_number,
+                        "generic_sentence": row[3],
+                        "score": row[4],
+                    }
