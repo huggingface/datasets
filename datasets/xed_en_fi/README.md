@@ -13,8 +13,7 @@ multilinguality:
 size_categories:
 - n<1K
 source_datasets:
-- 'extended|other-OpenSubtitles2016: Extracting Large Parallel Corpora from Movie
-  and TV Subtitles'
+- 'extended|other-OpenSubtitles2016
 task_categories:
 - text-classification
 task_ids:
