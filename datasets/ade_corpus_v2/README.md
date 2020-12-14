@@ -1,10 +1,12 @@
-
 ---
-annotations_creators: []
-language_creators: []
+annotations_creators:
+- expert-generated
+language_creators:
+- found
 languages:
 - en
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
