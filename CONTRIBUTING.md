@@ -124,7 +124,10 @@ If you're looking for more details about dataset scripts creation, please refer 
 
 Improving the documentation of datasets is an ever increasing effort and we invite users to contribute by sharing their insights with the community in the `README.md` dataset cards provided for each dataset.
 
-If you see that a dataset card is missing information that you are in a position to provide (as an author of the dataset or as an experienced user), the best thing you can do is to open a Pull Request with the updated `README.md` file. We provide a [template](https://github.com/huggingface/datasets/blob/master/templates/README.md) and a [guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md) describing what information should go into each of the paragraphs; and if you need inspiration, we recommend looking through a [completed example](https://github.com/huggingface/datasets/blob/master/datasets/eli5/README.md).
+If you see that a dataset card is missing information that you are in a position to provide (as an author of the dataset or as an experienced user), the best thing you can do is to open a Pull Request with the updated `README.md` file. We provide:
+- a [template](https://github.com/huggingface/datasets/blob/master/templates/README.md)
+- a [guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md) describing what information should go into each of the paragraphs
+- and if you need inspiration, we recommend looking through a [completed example](https://github.com/huggingface/datasets/blob/master/datasets/eli5/README.md)
 
 If you are a **dataset author**... you know what to do, it is your dataset after all ;) ! We would especially appreciate if you could help us fill in information about the process of creating the dataset, and take a moment to reflect on its social impact and possible limitations if you haven't already done so in the dataset paper or in another data statement.
 
