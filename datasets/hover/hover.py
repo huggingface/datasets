@@ -103,7 +103,7 @@ class Hover(datasets.GeneratorBasedBuilder):
                     "id": sentence_counter,
                     "uid": d["uid"],
                     "claim": d["claim"],
-                    "supporting_facts": [{"key": "None", "value": -1}],
+                    "supporting_facts": [],
                     "label": -1,
                     "num_hops": -1,
                     "hpqa_id": "None",
