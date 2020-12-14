@@ -15,12 +15,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
-import os
-from pathlib import Path
 import xml.etree.ElementTree as ET
-from glob import glob
+from pathlib import Path
+
 import datasets
 
 
@@ -39,12 +36,14 @@ url="http://dx.doi.org/10.1007/s10579-016-9367-2"
 """
 
 _DESCRIPTION = """\
- The COrpus ofUrdu News TExt Reuse (COUNTER) corpus contains 1200 documents with realexamples of text reuse from the field of journalism. It has been manually annotatedat document level with three levels of reuse: wholly derived, partially derived and non derived. 
+ The COrpus ofUrdu News TExt Reuse (COUNTER) corpus contains 1200 documents with realexamples of text reuse from the field of journalism. It has been manually annotatedat document level with three levels of reuse: wholly derived, partially derived and non derived.
 """
 
 _HOMEPAGE = "http://ucrel.lancs.ac.uk/textreuse/counter.php"
 
-_LICENSE = "The corpus is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. "
+_LICENSE = (
+    "The corpus is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. "
+)
 
 _DOWNLOAD_URL = "http://ucrel.lancs.ac.uk/textreuse/COUNTER.zip"
 
@@ -56,21 +55,22 @@ class Counter(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-
     def _info(self):
         features = datasets.Features(
             {
                 "source": {
-                "filename": datasets.Value("string"),
-                "headline": datasets.Value("string"),
-                "body": datasets.Value("string"),
-                "total_number_of_words": datasets.Value("int64"),
-                "total_number_of_sentences": datasets.Value("int64"),
-                "number_of_words_with_swr": datasets.Value("int64"),
-                "newspaper": datasets.Value("string"),
-                "newsdate": datasets.Value("string"),
-                "domain": datasets.Value("string"),
-                "classification": datasets.ClassLabel(num_classes=3, names=['WD', 'PD', 'ND'], names_file=None, id=None)
+                    "filename": datasets.Value("string"),
+                    "headline": datasets.Value("string"),
+                    "body": datasets.Value("string"),
+                    "total_number_of_words": datasets.Value("int64"),
+                    "total_number_of_sentences": datasets.Value("int64"),
+                    "number_of_words_with_swr": datasets.Value("int64"),
+                    "newspaper": datasets.Value("string"),
+                    "newsdate": datasets.Value("string"),
+                    "domain": datasets.Value("string"),
+                    "classification": datasets.ClassLabel(
+                        num_classes=3, names=["WD", "PD", "ND"], names_file=None, id=None
+                    ),
                 },
                 "derived": {
                     "filename": datasets.Value("string"),
@@ -82,11 +82,12 @@ class Counter(datasets.GeneratorBasedBuilder):
                     "newspaper": datasets.Value("string"),
                     "newsdate": datasets.Value("string"),
                     "domain": datasets.Value("string"),
-                    "classification": datasets.ClassLabel(num_classes=3, names=['WD', 'PD', 'ND'], names_file=None, id=None)
-                }
+                    "classification": datasets.ClassLabel(
+                        num_classes=3, names=["WD", "PD", "ND"], names_file=None, id=None
+                    ),
+                },
             }
-
-            )
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -102,45 +103,44 @@ class Counter(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "data_dir": data_dir
-                },
+                gen_kwargs={"data_dir": data_dir},
             )
         ]
 
     def _generate_examples(self, data_dir):
         """ Yields examples. """
+
         def parse_file(file):
             tree = ET.parse(file)
             root = tree.getroot()
             attributes = root.attrib
-            headline = root.find('headline').text
-            body = root.find('body').text
+            headline = root.find("headline").text
+            body = root.find("body").text
             parsed = {
-                "filename": attributes['filename'],
-                'headline': headline,
-                'body': body,
-                "total_number_of_words": int(attributes['totalnoofwords']),
-                "total_number_of_sentences": int(attributes['totalnoofsentences']),
+                "filename": attributes["filename"],
+                "headline": headline,
+                "body": body,
+                "total_number_of_words": int(attributes["totalnoofwords"]),
+                "total_number_of_sentences": int(attributes["totalnoofsentences"]),
                 "number_of_words_with_swr": int(attributes["noofwordswithSWR"]),
-                "newspaper": attributes['newspaper'],
-                "newsdate": attributes['newsdate'],
-                "domain": attributes['domain'],
-                "classification": attributes['classification'],
+                "newspaper": attributes["newspaper"],
+                "newsdate": attributes["newsdate"],
+                "domain": attributes["domain"],
+                "classification": attributes["classification"],
             }
             return parsed
 
         base_path = Path(data_dir)
-        base_path = base_path/'COUNTER'
-        files = base_path.glob(r'[0-9][0-9][0-9][0-9].xml')
+        base_path = base_path / "COUNTER"
+        files = base_path.glob(r"[0-9][0-9][0-9][0-9].xml")
         for _id, file in enumerate(files):
             example = {}
             with file.open(encoding="utf-8") as f:
                 source = parse_file(f)
-                example['source'] = source
+                example["source"] = source
 
-            derived_file = base_path / (file.stem + 'p' + file.suffix)
+            derived_file = base_path / (file.stem + "p" + file.suffix)
             with derived_file.open(encoding="utf-8") as f:
                 derived = parse_file(f)
-                example['derived'] = derived
+                example["derived"] = derived
             yield _id, example
