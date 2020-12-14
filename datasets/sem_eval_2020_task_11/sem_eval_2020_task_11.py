@@ -167,7 +167,8 @@ class SemEval2020Task11(datasets.GeneratorBasedBuilder):
             text_path = os.path.join(articles_path, key + ".txt")
 
             # Read the text for the article
-            text = open(text_path, encoding="utf-8").read()
+            with open(text_path, encoding="utf-8") as f:
+                text = f.read()
 
             # If the split has labels, load and parse the labels data
             if labels:
@@ -175,7 +176,8 @@ class SemEval2020Task11(datasets.GeneratorBasedBuilder):
                 # Get the path for the span labels for the current article
                 # and load/split (tab-delimited) label file
                 si_labels_path = os.path.join(si_labels_dir, f"{key}.task-si.labels")
-                si_labels = open(si_labels_path, encoding="utf-8").readlines()
+                with open(si_labels_path, encoding="utf-8") as f:
+                    si_labels = f.readlines()
                 si_labels = [l.rstrip("\n").split("\t") for l in si_labels]
 
                 # Span identification task is binary span classification,
@@ -188,7 +190,8 @@ class SemEval2020Task11(datasets.GeneratorBasedBuilder):
                 # Get the path for the technique labels for the current article
                 # and load/split (tab-delimited) label file
                 tc_labels_path = os.path.join(tc_labels_dir, f"{key}.task-flc-tc.labels")
-                tc_labels = open(tc_labels_path, encoding="utf-8").readlines()
+                with open(tc_labels_path, encoding="utf-8") as f:
+                    tc_labels = f.readlines()
                 tc_labels = [l.rstrip("\n").split("\t") for l in tc_labels]
 
                 # Technique classification task is a multi-class span classification task
