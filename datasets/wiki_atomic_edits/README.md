@@ -36,7 +36,6 @@ languages:
   - zh
   chinese_deletions:
   - zh
-
 licenses:
 - cc-by-sa-4.0
 multilinguality:
