@@ -23,10 +23,6 @@ import json
 import datasets
 
 
-# import random
-# from typing import List, Tuple
-
-
 _DESCRIPTION = """\
 Snips' built in intents dataset was initially used to compare different voice assistants and released as a public dataset hosted at
 https://github.com/sonos/nlu-benchmark 2016-12-built-in-intents. The dataset contains 328 utterances over 10 intent classes. The
@@ -108,7 +104,6 @@ class SnipsBuiltInIntents(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Snips built in intent examples."""
-        # samples_txt_lbl = []  # type: List[Tuple[str, str]]
         num_examples = 0
 
         with open(filepath, encoding="utf-8") as file_obj:
@@ -119,25 +114,11 @@ class SnipsBuiltInIntents(datasets.GeneratorBasedBuilder):
                 intents = domain_dict["intents"]
 
                 for intent_dict in intents:
-                    # ToDo: The file format is not expected to change. Is it ok to throw on key errors here?
                     label = intent_dict["benchmark"]["Snips"]["original_intent_name"]
                     queries = intent_dict["queries"]
 
                     for query_dict in queries:
                         query_text = query_dict["text"]
 
-                        # samples_txt_lbl.append(
-                        #     (query_text, label)
-                        # )  # Make a list of all 328 examples, then shuffle and yield below.
-
-                        # Option 1 (Unshuffled): Yield samples here if un-shuffled samples ok.
                         yield num_examples, {"text": query_text, "label": label}
                         num_examples += 1  # Explicitly keep track of the number of examples.
-
-        # # Option 2 (Shuffled): Yield samples here if shuffled samples are required.
-        # random.Random(12345).shuffle(
-        #     samples_txt_lbl
-        # )  # Use a new instance of Random to fix shuffle pattern without affecting global rand.
-        # for sample_id, sample in enumerate(samples_txt_lbl):
-        #     query_text, label = sample
-        #     yield sample_id, {"text": query_text, "label": label}
