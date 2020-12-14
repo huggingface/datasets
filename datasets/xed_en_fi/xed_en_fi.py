@@ -33,7 +33,7 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-A multilingual fine-grained emotion dataset. The dataset consists of humanannotated Finnish (25k) and English sentences (30k). Plutchik’s
+A multilingual fine-grained emotion dataset. The dataset consists of human annotated Finnish (25k) and English sentences (30k). Plutchik’s
 core emotions are used to annotate the dataset with the addition of neutral to create a multilabel multiclass
 dataset. The dataset is carefully evaluated using language-specific BERT models and SVMs to
 show that XED performs on par with other similar datasets and is therefore a useful tool for
