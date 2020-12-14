@@ -57,7 +57,6 @@ class Samsum(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="samsum"),
     ]
 
-
     def _info(self):
         features = datasets.Features(
             {
