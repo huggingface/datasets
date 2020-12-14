@@ -57,7 +57,7 @@ _URL = "https://github.com/jghm-f/FACTCK.BR/raw/master/FACTCKBR.tsv"
 class Factckbr(datasets.GeneratorBasedBuilder):
     """FACTCK.BR: A dataset to study Fake News in Portuguese."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -122,9 +122,6 @@ class Factckbr(datasets.GeneratorBasedBuilder):
 
                 label = row[8].lower()
 
-                if label == "":
-                    continue
-
                 yield id_, {
                     "url": row[0],
                     "author": row[1],
@@ -134,5 +131,5 @@ class Factckbr(datasets.GeneratorBasedBuilder):
                     "title": row[5],
                     "rating": row[6] or 0,
                     "best_rating": row[7],
-                    "label": label,
+                    "label": -1 if label == "" else label,
                 }
