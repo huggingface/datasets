@@ -91,8 +91,6 @@ Each example is structured as follows:
 
 ### Data Fields
 
-List and describe the fields present in the dataset. Mention their data type, and whether they are used as input or output in any of the tasks the dataset currently supports. If the data has span indices, describe their attributes, such as whether they are at the character level or word level, whether they are contiguous or not, etc. If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
-
 - `text`: The full text of the news article.
 - `span_identification`: a dictionary feature containing:
   - `start_char_offset`: The start character offset of the span for the SI task
@@ -103,12 +101,6 @@ List and describe the fields present in the dataset. Mention their data type, an
   - `technique`: the propaganda technique classification label, with possible values including `Appeal_to_Authority`, `Appeal_to_fear-prejudice`, `Bandwagon,Reductio_ad_hitlerum`, `Black-and-White_Fallacy`, `Causal_Oversimplification`.
 
 ### Data Splits
-
-Describe and name the splits in the dataset if there are more than one.
-
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
-
-Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
 
 |                            | Train  | Valid | Test |
 | -----                      | ------ | ----- | ---- |
