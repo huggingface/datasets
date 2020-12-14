@@ -87,13 +87,17 @@ English
 
 ### Data Fields
 
-- `id`: question sequence id (the id is consistent with those in WTQ)
-- `annotator`: `0`, `1`, `2` (the 3 annotators who annotated the question intent)
-- `position`: the position of the question in the sequence
-- `question`: the question given by the annotator
-- `table_file`: the associated table
-- `answer_coordinates`: the table cell coordinates of the answers (0-based, where 0 is the first row after the table header)
-- `answer_text`: the content of the answer cells
+- `id` (`str`): question sequence id (the id is consistent with those in WTQ)
+- `annotator` (`int`): `0`, `1`, `2` (the 3 annotators who annotated the question intent)
+- `position` (`int`): the position of the question in the sequence
+- `question` (`str`): the question given by the annotator
+- `table_file` (`str`): the associated table
+- `table_header` (`List[str]`): a list of headers in the table
+- `table_data` (`List[List[str]]`): 2d array of data in the table
+- `answer_coordinates` (`List[Dict]`): the table cell coordinates of the answers (0-based, where 0 is the first row after the table header)
+  - `row_index`
+  - `column_index`
+- `answer_text` (`List[str]`): the content of the answer cells
 
 Note that some text fields may contain Tab or LF characters and thus start with quotes.
 It is recommended to use a CSV parser like the Python CSV package to process the data.
