@@ -143,6 +143,8 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch.cuda.manual_seed_all(seed)
 
     if set_tensorflow and _tf_available:
+        import tensorflow.python as tfpy
+
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
         tf.random.set_global_generator(temp_gen)
@@ -150,7 +152,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         if not tf.executing_eagerly():
             raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
 
-        tf_context = tf.python.context.context()  # eager mode context
+        tf_context = tfpy.context.context()  # eager mode context
         tf_seed = tf_context._seed
         tf_rng_initialized = hasattr(tf_context, "_rng")
         if tf_rng_initialized:
