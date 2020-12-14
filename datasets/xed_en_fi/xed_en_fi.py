@@ -83,10 +83,6 @@ class XedEnFi(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="fi_neutral", version=VERSION, description="Finnish, Covers neutral"),
     ]
 
-    DEFAULT_CONFIG_NAME = (
-        "en_annotated"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
-
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         if self.config.name == "en_annotated" or self.config.name == "fi_annotated":
