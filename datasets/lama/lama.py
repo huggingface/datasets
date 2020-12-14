@@ -1,0 +1,390 @@
+# coding=utf-8
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""The LAMA Dataset"""
+
+from __future__ import absolute_import, division, print_function
+
+import json
+import os
+
+import datasets
+
+
+_CITATION = """@inproceedings{petroni2019language,
+  title={Language Models as Knowledge Bases?},
+  author={F. Petroni, T. Rockt{\"{a}}schel, A. H. Miller, P. Lewis, A. Bakhtin, Y. Wu and S. Riedel},
+  booktitle={In: Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP), 2019},
+  year={2019}
+}
+
+@inproceedings{petroni2020how,
+  title={How Context Affects Language Models' Factual Predictions},
+  author={Fabio Petroni and Patrick Lewis and Aleksandra Piktus and Tim Rockt{\"a}schel and Yuxiang Wu and Alexander H. Miller and Sebastian Riedel},
+  booktitle={Automated Knowledge Base Construction},
+  year={2020},
+  url={https://openreview.net/forum?id=025X0zPfn}
+}
+"""
+
+
+_DESCRIPTION = """LAMA is a dataset used to probe and analyze the factual and commonsense knowledge contained in pretrained language models. See https://github.com/facebookresearch/LAMA.
+"""
+
+_HOMEPAGE = "https://github.com/facebookresearch/LAMA"
+
+_LICENSE = "The Creative Commons Attribution-Noncommercial 4.0 International License. see https://github.com/facebookresearch/LAMA/blob/master/LICENSE"
+
+_URLs = {
+    "trex": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
+    "squad": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
+    "google_re": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
+    "conceptnet": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
+}
+
+
+class Lama(datasets.GeneratorBasedBuilder):
+    """Lama Dataset"""
+
+    VERSION = datasets.Version("1.1.0")
+
+    BUILDER_CONFIGS = [
+        datasets.BuilderConfig(name="trex", version=VERSION, description="The TRex part of the Lama dataset"),
+        datasets.BuilderConfig(name="squad", version=VERSION, description="The Squad part of the Lama dataset"),
+        datasets.BuilderConfig(
+            name="google_re", version=VERSION, description="The Google_re part of the Lama dataset"
+        ),
+        datasets.BuilderConfig(
+            name="conceptnet", version=VERSION, description="The Conceptnet part of the Lama dataset"
+        ),
+    ]
+
+    DEFAULT_CONFIG_NAME = "trex"
+
+    def _info(self):
+        if self.config.name == "trex":
+            features = datasets.Features(
+                {
+                    "uuid": datasets.Value("string"),
+                    "obj_uri": datasets.Value("string"),
+                    "obj_label": datasets.Value("string"),
+                    "sub_uri": datasets.Value("string"),
+                    "sub_label": datasets.Value("string"),
+                    "predicate_id": datasets.Value("string"),
+                    "sub_surface": datasets.Value("string"),
+                    "obj_surface": datasets.Value("string"),
+                    "masked_sentence": datasets.Value("string"),
+                    "template": datasets.Value("string"),
+                    "template_negated": datasets.Value("string"),
+                    "label": datasets.Value("string"),
+                    "description": datasets.Value("string"),
+                    "type": datasets.Value("string"),
+                }
+            )
+            return datasets.DatasetInfo(
+                description=_DESCRIPTION,
+                features=features,
+                supervised_keys=None,
+                homepage=_HOMEPAGE,
+                license=_LICENSE,
+                citation=_CITATION,
+            )
+        elif self.config.name == "conceptnet":
+            features = datasets.Features(
+                {
+                    "uuid": datasets.Value("string"),
+                    "sub": datasets.Value("string"),
+                    "obj": datasets.Value("string"),
+                    "pred": datasets.Value("string"),
+                    "obj_label": datasets.Value("string"),
+                    "masked_sentence": datasets.Value("string"),
+                    "negated": datasets.Value("string"),
+                }
+            )
+            return datasets.DatasetInfo(
+                description=_DESCRIPTION,
+                features=features,
+                supervised_keys=None,
+                homepage=_HOMEPAGE,
+                license=_LICENSE,
+                citation=_CITATION,
+            )
+        elif self.config.name == "squad":
+            features = datasets.Features(
+                {
+                    "id": datasets.Value("string"),
+                    "sub_label": datasets.Value("string"),
+                    "obj_label": datasets.Value("string"),
+                    "negated": datasets.Value("string"),
+                    "masked_sentence": datasets.Value("string"),
+                }
+            )
+            return datasets.DatasetInfo(
+                description=_DESCRIPTION,
+                features=features,
+                supervised_keys=None,
+                homepage=_HOMEPAGE,
+                license=_LICENSE,
+                citation=_CITATION,
+            )
+        elif self.config.name == "google_re":
+            features = datasets.Features(
+                {
+                    "pred": datasets.Value("string"),
+                    "sub": datasets.Value("string"),
+                    "obj": datasets.Value("string"),
+                    "evidences": datasets.Value("string"),
+                    "judgments": datasets.Value("string"),
+                    "sub_w": datasets.Value("string"),
+                    "sub_label": datasets.Value("string"),
+                    "sub_aliases": datasets.Value("string"),
+                    "obj_w": datasets.Value("string"),
+                    "obj_label": datasets.Value("string"),
+                    "obj_aliases": datasets.Value("string"),
+                    "uuid": datasets.Value("string"),
+                    "masked_sentence": datasets.Value("string"),
+                    "template": datasets.Value("string"),
+                    "template_negated": datasets.Value("string"),
+                }
+            )
+            return datasets.DatasetInfo(
+                description=_DESCRIPTION,
+                features=features,
+                supervised_keys=None,
+                homepage=_HOMEPAGE,
+                license=_LICENSE,
+                citation=_CITATION,
+            )
+
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        my_urls = _URLs[self.config.name]
+        data_dir = dl_manager.download_and_extract(my_urls)
+        if self.config.name == "trex":
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": [
+                            os.path.join(data_dir, *f.split("/"))
+                            for f in [
+                                "relations.jsonl",
+                                "Trex/P1001.jsonl",
+                                "Trex/P101.jsonl",
+                                "Trex/P103.jsonl",
+                                "Trex/P106.jsonl",
+                                "Trex/P108.jsonl",
+                                "Trex/P127.jsonl",
+                                "Trex/P1303.jsonl",
+                                "Trex/P131.jsonl",
+                                "Trex/P136.jsonl",
+                                "Trex/P1376.jsonl",
+                                "Trex/P138.jsonl",
+                                "Trex/P140.jsonl",
+                                "Trex/P1412.jsonl",
+                                "Trex/P159.jsonl",
+                                "Trex/P17.jsonl",
+                                "Trex/P176.jsonl",
+                                "Trex/P178.jsonl",
+                                "Trex/P19.jsonl",
+                                "Trex/P190.jsonl",
+                                "Trex/P20.jsonl",
+                                "Trex/P264.jsonl",
+                                "Trex/P27.jsonl",
+                                "Trex/P276.jsonl",
+                                "Trex/P279.jsonl",
+                                "Trex/P30.jsonl",
+                                "Trex/P31.jsonl",
+                                "Trex/P36.jsonl",
+                                "Trex/P361.jsonl",
+                                "Trex/P364.jsonl",
+                                "Trex/P37.jsonl",
+                                "Trex/P39.jsonl",
+                                "Trex/P407.jsonl",
+                                "Trex/P413.jsonl",
+                                "Trex/P449.jsonl",
+                                "Trex/P463.jsonl",
+                                "Trex/P47.jsonl",
+                                "Trex/P495.jsonl",
+                                "Trex/P527.jsonl",
+                                "Trex/P530.jsonl",
+                                "Trex/P740.jsonl",
+                                "Trex/P937.jsonl",
+                            ]
+                        ],
+                        "split": "train",
+                    },
+                ),
+            ]
+        elif self.config.name == "google_re":
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": [
+                            os.path.join(data_dir, *f.split("/"))
+                            for f in [
+                                "Google_RE/date_of_birth_test.jsonl",
+                                "Google_RE/place_of_birth_test.jsonl",
+                                "Google_RE/place_of_death_test.jsonl",
+                            ]
+                        ],
+                        "split": "train",
+                    },
+                ),
+            ]
+        elif self.config.name == "conceptnet":
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "ConceptNet", "test.jsonl"),
+                        "split": "train",
+                    },
+                ),
+            ]
+        elif self.config.name == "squad":
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "Squad", "test.jsonl"),
+                        "split": "train",
+                    },
+                ),
+            ]
+
+    def _generate_examples(self, filepath, split):
+        """ Yields examples from the LAMA dataset. """
+        if self.config.name == "trex":
+            paths = filepath
+            relations_path = paths[0]
+            paths = paths[1:]
+            all_rels = {}
+            with open(relations_path, encoding="utf-8") as f:
+                for row in f:
+                    data = json.loads(row)
+                    all_rels[data["relation"]] = data
+            id_ = -1
+            for filepath in paths:
+                with open(filepath, encoding="utf-8") as f:
+                    for row in f:
+                        data = json.loads(row)
+                        pred = all_rels.get(data["predicate_id"], {})
+                        for evidences in data["evidences"]:
+                            id_ += 1
+                            yield id_, {
+                                "uuid": str(data["uuid"]),
+                                "obj_uri": str(data["obj_uri"]),
+                                "obj_label": str(data["obj_label"]),
+                                "sub_uri": str(data["sub_uri"]),
+                                "sub_label": str(data["sub_label"]),
+                                "predicate_id": str(data["predicate_id"]),
+                                "sub_surface": str(evidences["sub_surface"]),
+                                "obj_surface": str(evidences["obj_surface"]),
+                                "masked_sentence": str(evidences["masked_sentence"]),
+                                "template": str(pred.get("template", "")),
+                                "template_negated": str(pred.get("template_negated", "")),
+                                "label": str(pred.get("label", "")),
+                                "description": str(pred.get("description", "")),
+                                "type": str(pred.get("type", "")),
+                            }
+        elif self.config.name == "conceptnet":
+            id_ = -1
+            with open(filepath, encoding="utf-8") as f:
+                for row in f:
+                    data = json.loads(row)
+                    if data.get("negated") is not None:
+                        for masked_sentence, negated in zip(data["masked_sentences"], data["negated"]):
+                            id_ += 1
+                            yield id_, {
+                                "uuid": str(data["uuid"]),
+                                "sub": str(data.get("sub", "")),
+                                "obj": str(data.get("obj", "")),
+                                "pred": str(data["pred"]),
+                                "obj_label": str(data["obj_label"]),
+                                "masked_sentence": str(masked_sentence),
+                                "negated": str(negated),
+                            }
+                    else:
+                        for masked_sentence in data["masked_sentences"]:
+                            id_ += 1
+                            yield id_, {
+                                "uuid": str(data["uuid"]),
+                                "sub": str(data.get("sub", "")),
+                                "obj": str(data.get("obj", "")),
+                                "pred": str(data["pred"]),
+                                "obj_label": str(data["obj_label"]),
+                                "masked_sentence": str(masked_sentence),
+                                "negated": str(""),
+                            }
+        elif self.config.name == "squad":
+            id_ = -1
+            with open(filepath, encoding="utf-8") as f:
+                for row in f:
+                    data = json.loads(row)
+                    for masked_sentence in data["masked_sentences"]:
+                        id_ += 1
+                        yield id_, {
+                            "id": str(data["id"]),
+                            "sub_label": str(data["sub_label"]),
+                            "obj_label": str(data["obj_label"]),
+                            "negated": str(data.get("negated", "")),
+                            "masked_sentence": str(masked_sentence),
+                        }
+        elif self.config.name == "google_re":
+            id_ = -1
+            paths = filepath
+            for filepath in paths:
+                # from https://github.com/facebookresearch/LAMA/blob/master/scripts/run_experiments.py
+                if "place_of_birth" in filepath:
+                    pred = {
+                        "relation": "place_of_birth",
+                        "template": "[X] was born in [Y] .",
+                        "template_negated": "[X] was not born in [Y] .",
+                    }
+                elif "date_of_birth" in filepath:
+                    pred = {
+                        "relation": "date_of_birth",
+                        "template": "[X] (born [Y]).",
+                        "template_negated": "[X] (not born [Y]).",
+                    }
+                else:
+                    pred = {
+                        "relation": "place_of_death",
+                        "template": "[X] died in [Y] .",
+                        "template_negated": "[X] did not die in [Y] .",
+                    }
+                with open(filepath, encoding="utf-8") as f:
+                    for row in f:
+                        data = json.loads(row)
+                        for masked_sentence in data["masked_sentences"]:
+                            id_ += 1
+                            yield id_, {
+                                "pred": str(data["pred"]),
+                                "sub": str(data["sub"]),
+                                "obj": str(data["obj"]),
+                                "evidences": str(data["evidences"]),
+                                "judgments": str(data["judgments"]),
+                                "sub_w": str(data["sub_w"]),
+                                "sub_label": str(data["sub_label"]),
+                                "sub_aliases": str(data["sub_aliases"]),
+                                "obj_w": str(data["obj_w"]),
+                                "obj_label": str(data["obj_label"]),
+                                "obj_aliases": str(data["obj_aliases"]),
+                                "uuid": str(data["uuid"]),
+                                "masked_sentence": str(masked_sentence),
+                                "template": str(pred["template"]),
+                                "template_negated": str(pred["template_negated"]),
+                            }
