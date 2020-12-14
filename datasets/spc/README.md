@@ -4,10 +4,15 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- af
-- el
-- en
-- zh
+  af-en:
+  - af
+  - en
+  el-en:
+  - el
+  - en
+  en-zh:
+  - en
+  - zh
 licenses:
 - unknown
 multilinguality:
