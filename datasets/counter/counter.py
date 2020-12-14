@@ -36,7 +36,7 @@ url="http://dx.doi.org/10.1007/s10579-016-9367-2"
 """
 
 _DESCRIPTION = """\
- The COrpus ofUrdu News TExt Reuse (COUNTER) corpus contains 1200 documents with realexamples of text reuse from the field of journalism. It has been manually annotatedat document level with three levels of reuse: wholly derived, partially derived and non derived.
+ The COrpus ofUrdu News TExt Reuse (COUNTER) corpus contains 1200 documents with real examples of text reuse from the field of journalism. It has been manually annotated at document level with three levels of reuse: wholly derived, partially derived and non derived.
 """
 
 _HOMEPAGE = "http://ucrel.lancs.ac.uk/textreuse/counter.php"
