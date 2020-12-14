@@ -82,7 +82,7 @@ class WmtMlqeConfig(datasets.BuilderConfig):
         self.tgt_lg = tgt_lg
 
 
-class WmtMlqeTask1(datasets.GeneratorBasedBuilder):
+class Wmt20MlqeTask1(datasets.GeneratorBasedBuilder):
     """WMT MLQE Shared task 1."""
 
     BUILDER_CONFIGS = [
