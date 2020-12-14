@@ -60,7 +60,7 @@ The journalists_questions dataset supports question identification over Arabic t
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+[More Information Needed]
 
 ### Languages
 
@@ -87,7 +87,7 @@ label_confidence: confidence score for the label given annotations of multiple a
 
 ### Data Splits
 
-[Needs More Information]
+[More Information Needed]
 
 ## Dataset Creation
 
@@ -103,46 +103,46 @@ To construct our dataset of question tweets posted by journalists, we first acqu
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+[More Information Needed]
 
 ### Licensing Information
 
-[Needs More Information]
+[More Information Needed]
 
 ### Citation Information
 
-[Needs More Information]
+[More Information Needed]
