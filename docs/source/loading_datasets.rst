@@ -203,7 +203,8 @@ The ``csv`` loading script provides a few simple access options to control parsi
     - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
     - :obj:`autogenerate_column_names` (bool) – Whether to autogenerate column names if column_names is empty. If true, column names will be of the form “f0”, “f1”… If false, column names will be read from the first CSV row after skip_rows (default False).
     - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
-    - :obj:`quote_char` (1-character string or False) – The character used optionally for quoting CSV values (False if quoting is not allowed, default '"').
+    - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default '"').
+    - :obj:`quoting` (bool) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to pandas.read_csv documentation for more details).
 
 If you want more control, the ``csv`` script provide full control on reading, parsong and convertion through the Apache Arrow `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__, `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ and `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__
 
