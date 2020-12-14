@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
-
 import datasets
 
 
@@ -47,72 +46,15 @@ _DESCRIPTION = "The Diplomacy dataset contains pairwise conversations annotated 
 
 _HOMEPAGE = "https://sites.google.com/view/qanta/projects/diplomacy"
 
-# _LICENSE = ""
+#_LICENSE = ""
 
 _URL = "https://github.com/DenisPeskov/2020_acl_diplomacy/raw/master/data/"
 
-_PLAYABLE_COUNTRIES = ["italy", "turkey", "russia", "england", "austria", "germany", "france"]
-_SEASONS = ["spring", "fall", "winter", "Spring", "Fall", "Winter"]
-_YEARS = [
-    "1901",
-    "1902",
-    "1903",
-    "1904",
-    "1905",
-    "1906",
-    "1907",
-    "1908",
-    "1909",
-    "1910",
-    "1911",
-    "1912",
-    "1913",
-    "1914",
-    "1915",
-    "1916",
-    "1917",
-    "1918",
-]
-_GAME_SCORE = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"]
-_GAME_SCORE_DELTA = [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "-1",
-    "-2",
-    "-3",
-    "-4",
-    "-5",
-    "-6",
-    "-7",
-    "-8",
-    "-9",
-    "-10",
-    "-11",
-    "-12",
-    "-13",
-    "-14",
-    "-15",
-    "-16",
-    "-17",
-    "-18",
-]
+_PLAYABLE_COUNTRIES= ["italy", "turkey", "russia", "england","austria","germany","france"]
+_SEASONS= ["spring", "fall","winter","Spring","Fall","Winter"]
+_YEARS=["1901","1902","1903","1904","1905","1906","1907","1908","1909","1910","1911","1912","1913","1914","1915","1916","1917","1918"]
+_GAME_SCORE=["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18"]
+_GAME_SCORE_DELTA=["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-13","-14","-15","-16","-17","-18"]
 
 
 class DiplomacyDetection(datasets.GeneratorBasedBuilder):
@@ -122,65 +64,62 @@ class DiplomacyDetection(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {
-                "messages": datasets.Sequence(datasets.Value("string")),
-                # "sender_labels": datasets.Sequence(datasets.ClassLabel(names=["True", "False"])),
-                "sender_labels": datasets.Value("string"),
-                "receiver_labels": datasets.Value("string"),
-                # "receiver_labels": datasets.Sequence(datasets.ClassLabel(names=["True", "False", "NOANNOTATION"])),
-                "speakers": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
-                "receivers": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
-                "absolute_message_index": datasets.Sequence(datasets.Value("int64")),
-                "relative_message_index": datasets.Sequence(datasets.Value("int64")),
-                "seasons": datasets.Sequence(datasets.ClassLabel(names=_SEASONS)),
-                "years": datasets.Sequence(datasets.ClassLabel(names=_YEARS)),
-                "game_score": datasets.Sequence(datasets.ClassLabel(names=_GAME_SCORE)),
-                "game_score_delta": datasets.Sequence(datasets.ClassLabel(names=_GAME_SCORE_DELTA)),
-                "players": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
-                "game_id": datasets.Value("int64"),
-            }
-        )
+                {
+                    "messages": datasets.Sequence(datasets.Value("string")),
+                    "sender_labels": datasets.Sequence(datasets.ClassLabel(names=["True", "False"])),
+                    #"sender_labels": datasets.Value("string"),
+                    #"receiver_labels": datasets.Value("string"),
+                    "receiver_labels": datasets.Sequence(datasets.ClassLabel(names=["True", "False", "NOANNOTATION"])),        
+                    "speakers": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
+                    "receivers": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
+                    "absolute_message_index": datasets.Sequence(datasets.Value("int64")),
+                    "relative_message_index": datasets.Sequence(datasets.Value("int64")),
+                    "seasons": datasets.Sequence(datasets.ClassLabel(names=_SEASONS)),
+                    "years": datasets.Sequence(datasets.ClassLabel(names=_YEARS)),
+                    "game_score": datasets.Sequence(datasets.ClassLabel(names=_GAME_SCORE)),
+                    "game_score_delta": datasets.Sequence(datasets.ClassLabel(names=_GAME_SCORE_DELTA)),
+                    "players": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
+                    "game_id": datasets.Value("int64")
+                }
+            )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=features,
+            features=features,  
             supervised_keys=None,
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
-
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         urls_to_download = {
             "train": os.path.join(_URL, "train.jsonl"),
-            "test": os.path.join(_URL, "test.jsonl"),
-            "validation": os.path.join(_URL, "validation.jsonl"),
-        }
+            "test": os.path.join(_URL,"test.jsonl"),
+            "validation": os.path.join(_URL,"validation.jsonl")
+             }
         downloaded_filepath = dl_manager.download(urls_to_download)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_filepath["validation"]}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_filepath["validation"]}),
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_filepath["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_filepath["test"]}),
-        ]
-
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_filepath["test"]}),      
+            ] 
+        
     def _generate_examples(self, filepath):
         """ Yields examples. """
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 yield id_, {
-                    "messages": (data["messages"]),
-                    "sender_labels": str(data["sender_labels"]),
-                    "receiver_labels": str(data["receiver_labels"]),
-                    "speakers": (data["speakers"]),
-                    "receivers": (data["receivers"]),
-                    "absolute_message_index": (data["absolute_message_index"]),
-                    "relative_message_index": (data["relative_message_index"]),
-                    "seasons": (data["seasons"]),
-                    "years": (data["years"]),
-                    "game_score": (data["game_score"]),
-                    "game_score_delta": (data["game_score_delta"]),
-                    "players": (data["players"]),
-                    "game_id": data["game_id"],
-                }
+                        "messages": (data["messages"]),
+                        "sender_labels": (data["sender_labels"]),
+                        "receiver_labels": (data["receiver_labels"]),
+                        "speakers": (data["speakers"]),
+                        "receivers": (data["receivers"]),
+                        "absolute_message_index": (data["absolute_message_index"]),
+                        "relative_message_index": (data["relative_message_index"]),
+                        "seasons": (data["seasons"]),
+                        "years": (data["years"]),
+                        "game_score": (data["game_score"]),
+                        "game_score_delta": (data["game_score_delta"]),
+                        "players": (data["players"]),
+                        "game_id": data["game_id"]
+                    }                             
