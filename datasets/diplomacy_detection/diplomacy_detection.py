@@ -62,7 +62,7 @@ class DiplomacyDetection(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "messages": datasets.Value("string"),
-                "sender_labels": datasets.Value("string"),
+                "sender_labels": datasets.ClassLabel(names=["deceptive", "truthful"]),
                 "receiver_labels": datasets.Value("string"),
                 "speakers": datasets.Value("string"),
                 "receivers": datasets.Value("string"),
