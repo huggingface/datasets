@@ -3,42 +3,57 @@ YAML tags:
 - copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Microsoft Research Sequential Question Answering
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
+
+- [Dataset Card for Microsoft Research Sequential Question Answering](#dataset-card-for-microsoft-research-sequential-question-answering)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:[Microsoft Research Sequential Question Answering (SQA) Dataset](https://msropendata.com/datasets/b25190ed-0f59-47b1-9211-5962858142c2)**
 - **Repository:**
-- **Paper:**
+- **Paper:[https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/acl17-dynsp.pdf](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/acl17-dynsp.pdf)**
 - **Leaderboard:**
 - **Point of Contact:**
+  - Scott Wen-tau Yih        scottyih@microsoft.com
+  - Mohit Iyyer              m.iyyer@gmail.com
+  - Ming-Wei Chang           minchang@microsoft.com
 
 ### Dataset Summary
 
-[More Information Needed]
+Recent work in semantic parsing for question answering has focused on long and complicated questions, many of which would seem unnatural if asked in a normal conversation between two humans. In an effort to explore a conversational QA setting, we present a more realistic task: answering sequences of simple but inter-related questions.
+
+We created SQA by asking crowdsourced workers to decompose 2,022 questions from WikiTableQuestions (WTQ)*, which contains highly-compositional questions about tables from Wikipedia. We had three workers decompose each WTQ question, resulting in a dataset of 6,066 sequences that contain 17,553 questions in total. Each question is also associated with answers in the form of cell locations in the tables.
+
+- Panupong Pasupat, Percy Liang. "Compositional Semantic Parsing on Semi-Structured Tables" ACL-2015.
+  [http://www-nlp.stanford.edu/software/sempre/wikitable/](http://www-nlp.stanford.edu/software/sempre/wikitable/)
 
 ### Supported Tasks and Leaderboards
 
@@ -46,7 +61,7 @@ YAML tags:
 
 ### Languages
 
-[More Information Needed]
+English
 
 ## Dataset Structure
 
@@ -56,7 +71,16 @@ YAML tags:
 
 ### Data Fields
 
-[More Information Needed]
+- id: question sequence id (the id is consistent with those in WTQ)
+- annotator: 0, 1, 2 (the 3 annotators who annotated the question intent)
+- position: the position of the question in the sequence
+- question: the question given by the annotator
+- table_file: the associated table
+- answer_coordinates: the table cell coordinates of the answers (0-based, where 0 is the first row after the table header)
+- answer_text: the content of the answer cells
+
+Note that some text fields may contain Tab or LF characters and thus start with quotes.
+It is recommended to use a CSV parser like the Python CSV package to process the data.
 
 ### Data Splits
 
