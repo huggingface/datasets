@@ -302,14 +302,12 @@ WiLI-2018, the Wikipedia language identification benchmark dataset, contains 235
 
 ### Data Instances
 
-* `x_train.txt`: 175000 lines of text. Each line belongs to one language.
-* `y_train.txt`: 175000 lines. Each line denotes the language of the same line
-                 in `x_train.txt`
-* `x_test.txt`: See `x_train.txt`
-* `y_test.txt`: See `y_train.txt`
-* `urls.txt`: A list of permanent URLs to all pages used for paragraph extraction
-* `labels.csv`: A header line plus one line per language
-* `README.txt`: This file
+```
+{
+    'label': 207,
+    'sentence': 'Ti Turkia ket maysa a demokrata, sekular, unitario, batay-linteg a republika nga addaan ti taga-ugma a tinawtawid a kultura. Ti Turkia ket umadadu a naipatipon iti Laud babaen ti panagkameng kadagiti organisasion a kas ti Konsilo iti Europa, NATO, OECD, OSCE ken ti G-20 a dagiti kangrunaan nga ekonomia. Ti Turkia ket nangrugi a nakitulag ti napno a panagkameng iti Kappon ti Europa idi 2005, nga isu ket maysa idin a kumaduaan a kameng iti Europeano a Komunidad ti Ekonomia manipud idi 1963 ken nakadanon ti maysa a tulagan ti kappon ti aduana idi 1995. Ti Turkia ket nagtaraken iti asideg a kultural, politikal, ekonomiko ken industria a panakibiang iti Tengnga a Daya, dagiti Turko nga estado iti Tengnga nga Asia ken dagiti pagilian ti Aprika babaen ti panagkameng kadagiti organisasion a kas ti Turko a Konsilo, Nagsaupan nga Administrasion iti Turko nga Arte ken Kultura, Organisasion iti Islamiko a Panagtitinnulong ken ti Organisasion ti Ekonomiko a Panagtitinnulong.'
+}
+```
 
 ### Data Fields
 
