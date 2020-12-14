@@ -94,7 +94,7 @@ Polish
 
 ### Data Splits
 
-No train/validation/test split provided. Current dataset splits point to 4 domain categories for the texts:
+No train/validation/test split provided. Current dataset configurations point to 4 domain categories for the texts:
 - tele
 - electro
 - cosmetics
