@@ -4,13 +4,13 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- en-to-ku
+  en-to-ku
   - en
   - ku
-- en-to-tr
+  en-to-tr
   - en
   - tr
-- ku-to-tr
+  ku-to-tr
   - ku
   - tr
 licenses:
