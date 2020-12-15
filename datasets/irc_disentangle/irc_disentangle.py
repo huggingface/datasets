@@ -17,9 +17,8 @@
 from __future__ import absolute_import, division, print_function
 
 import glob
-import csv
-import json
 import os
+from pathlib import Path
 
 import datasets
 
@@ -42,21 +41,12 @@ data      = {https://jkk.name/irc-disentanglement},
 """
 
 _DESCRIPTION = """\
-<<<<<<< HEAD
 Disentangling conversations mixed together in a single stream of messages is
 a difficult task, made harder by the lack of large manually annotated
 datasets. This new dataset of 77,563 messages manually annotated with
 reply-structure graphs that both disentangle conversations and define
 internal conversation structure. The dataset is 16 times larger than all
 previously released datasets combined, the first to include adjudication of
-=======
-Disentangling conversations mixed together in a single stream of messages is 
-a difficult task, made harder by the lack of large manually annotated 
-datasets. This new dataset of 77,563 messages manually annotated with 
-reply-structure graphs that both disentangle conversations and define 
-internal conversation structure. The dataset is 16 times larger than all 
-previously released datasets combined, the first to include adjudication of 
->>>>>>> added irc_disentangle.py, dummy data, and dataset_infos.json
 annotation disagreements, and the first to include context.
 """
 
@@ -196,8 +186,8 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         if self.config.name == "ubuntu":
             # run loop for each date
             all_files = sorted(glob.glob(os.path.join(filepath, "*.annotation.txt")))
-            all_dates = [Path(file.name)[:10] for file in all_files]
-            all_info = [Path(file.name)[10:-15] for file in all_files]
+            all_dates = [Path(file).name[:10] for file in all_files]
+            all_info = [Path(file).name[10:-15] for file in all_files]
 
         elif self.config.name == "channel_two":
             # run loop once (no dates for this config)
@@ -210,13 +200,14 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         for date, info in zip(all_dates, all_info):
 
             if self.config.name == "ubuntu":
-                # load file of given date and additional info
+                # load file of given date and additional info for each split
                 raw_path = os.path.join(filepath, f"{date}{info}.raw.txt")
                 ascii_path = os.path.join(filepath, f"{date}{info}.ascii.txt")
                 tok_path = os.path.join(filepath, f"{date}{info}.tok.txt")
                 annot_path = os.path.join(filepath, f"{date}{info}.annotation.txt")
 
             elif self.config.name == "channel_two":
+                # load files of different splits
                 raw_path = os.path.join(filepath, f"channel-two.{split}.raw.txt")
                 ascii_path = os.path.join(filepath, f"channel-two.{split}.ascii.txt")
                 tok_path = os.path.join(filepath, f"channel-two.{split}.tok.txt")
@@ -226,10 +217,11 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                 tok_path, encoding="utf-8"
             ) as f_tok, open(annot_path, encoding="utf-8") as f_annot:
 
+                # tokenize txt file
                 raw_sentences = f_raw.read().split("\n")
                 ascii_sentences = f_ascii.read().split("\n")
                 tok_sentences = f_tok.read().split("\n")
-                annot_sentences = f_annot.read().split("\n")
+                annot_lines = f_annot.read().split("\n")
 
             assert (
                 len(raw_sentences) == len(ascii_sentences) == len(tok_sentences)
@@ -240,28 +232,30 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
             )
 
             annotation_pairs = []
-            for annot in annot_sentences:
+
+            # for annotation lines, make annotation pairs
+            for annot in annot_lines:
                 line = annot.split(" ")
                 if len(line) > 1:
                     annotation_pairs.append((int(line[0]), int(line[1])))
 
             annotations = dict()
-
             for row in range(last_id, last_id + len(raw_sentences)):
                 annotations[row] = set()
 
             for (a, b) in annotation_pairs:
-                # required for building dummy
+                # required for dummy data creation
                 if last_id + a not in annotations:
                     annotations[last_id + a] = set()
                 if last_id + b not in annotations:
                     annotations[last_id + b] = set()
 
+                # add annotation 'b' to a's annotation set, and vice versa
                 annotations[last_id + a].add(last_id + b)
                 annotations[last_id + b].add(last_id + a)
 
             for i in range(len(raw_sentences)):
-                id_ += 1
+                # return all 3 kinds of chat messages, the date (if applicable), and the annotation set for that sentece
                 if self.config.name == "ubuntu":
                     yield id_, {
                         "raw": raw_sentences[i],
@@ -277,6 +271,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                         "tokenized": tok_sentences[i],
                         "connections": sorted(annotations[i]),
                     }
+                id_ += 1
 
             # continue counting from position last left off
             last_id = id_
