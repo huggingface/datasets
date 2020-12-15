@@ -13,7 +13,7 @@ multilinguality:
 size_categories:
 - n<1K
 source_datasets:
-- 'extended|other-OpenSubtitles2016
+- extended|other-OpenSubtitles2016
 task_categories:
 - text-classification
 task_ids:
