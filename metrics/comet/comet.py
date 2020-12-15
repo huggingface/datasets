@@ -14,8 +14,12 @@
 # limitations under the License.
 """ COMET metric. 
 
+Requirements:
+pip install unbabel-comet
+
 Usage:
 
+```python
 from datasets import load_metric
 comet_metric = load_metric('metrics/comet/comet.py')
 #comet_metric = load_metric('comet')
@@ -28,6 +32,7 @@ reference = ["They were able to control the fire.", "Schools and kindergartens o
 
 predictions = comet_metric.compute(predictions=hypothesis, references=reference, sources=source)
 predictions['scores']
+```
 """
 
 import os
