@@ -70,7 +70,7 @@ _URLS = {
 }
 
 
-class NQOpenV2Config(datasets.BuilderConfig):
+class NQOpenConfig(datasets.BuilderConfig):
     """BuilderConfig for NQ_Open."""
 
     def __init__(self, **kwargs):
@@ -78,20 +78,20 @@ class NQOpenV2Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(NQOpenV2Config, self).__init__(**kwargs)
+        super(NQOpenConfig, self).__init__(**kwargs)
 
 
 class NQOpen(datasets.GeneratorBasedBuilder):
     """ NQ_Open open domain question answering dataset. """
 
     BUILDER_CONFIGS = [
-        NQOpenV2Config(
+        NQOpenConfig(
             name="nq_open",
             version=datasets.Version("1.0.0", ""),
             description=f"NQ_Open open domain question answering dataset.",
         ),
     ]
-    BUILDER_CONFIG_CLASS = NQOpenV2Config
+    BUILDER_CONFIG_CLASS = NQOpenConfig
 
     def _info(self):
         return datasets.DatasetInfo(
