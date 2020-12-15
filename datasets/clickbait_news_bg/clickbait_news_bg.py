@@ -97,23 +97,22 @@ class ClickbaitNewsBG(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        if self.config.name == "default":
-            keys = [
-                "fake_news_score",
-                "click_bait_score",
-                "content_title",
-                "content_url",
-                "content_published_time",
-                "content",
-            ]
-            data = pd.read_excel(filepath)
-            for id_, row in enumerate(data.itertuples()):
-                row_dict = dict()
-                for key, value in zip(keys, row[1:]):
-                    if key == "fake_news_score":
-                        row_dict[key] = "legitimate" if value == 1 else "fake"
-                    elif key == "click_bait_score":
-                        row_dict[key] = "normal" if value == 1 else "clickbait"
-                    else:
-                        row_dict[key] = str(value)
-                yield id_, row_dict
+        keys = [
+            "fake_news_score",
+            "click_bait_score",
+            "content_title",
+            "content_url",
+            "content_published_time",
+            "content",
+        ]
+        data = pd.read_excel(filepath)
+        for id_, row in enumerate(data.itertuples()):
+            row_dict = dict()
+            for key, value in zip(keys, row[1:]):
+                if key == "fake_news_score":
+                    row_dict[key] = "legitimate" if value == 1 else "fake"
+                elif key == "click_bait_score":
+                    row_dict[key] = "normal" if value == 1 else "clickbait"
+                else:
+                    row_dict[key] = str(value)
+            yield id_, row_dict
