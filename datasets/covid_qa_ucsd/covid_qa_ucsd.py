@@ -204,8 +204,6 @@ class CovidQaUcsd(datasets.GeneratorBasedBuilder):
                             if des_flag:
                                 if sen == "":
                                     continue
-                                if sen[-1] not in ".。？，,?!！~～":
-                                    sen += "."
                                 if sen in check_list:
                                     last_conv["speaker"] = ""
                                     last_conv["utterance"] = ""
@@ -265,9 +263,6 @@ class CovidQaUcsd(datasets.GeneratorBasedBuilder):
                                 sen = line.rstrip()
                                 if sen == "":
                                     continue
-
-                                if sen[-1] not in ".。？，,?!！~～":
-                                    sen += "."
 
                                 if user == last_user:
                                     last_conv["utterance"] = last_conv["utterance"] + sen
