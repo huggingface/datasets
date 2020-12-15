@@ -154,16 +154,15 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         print(filepath)
         with open(filepath, encoding="utf-8") as f:
-            abstracts = json.load(f)
-            for id_, data in enumerate(abstracts):
-                # data = json.load(row)
+            for id_, line in enumerate(f):
+                data = json.loads(line)
                 yield id_, {
-                    "seq_id": data["seq_id"],
-                    "medline_ui": data["medline_ui"],
-                    "mesh_terms": data["mesh_terms"],
-                    "title": data["title"],
-                    "publication_type": data["publication_type"],
-                    "abstract": data["abstract"],
-                    "author": data["author"],
-                    "source": data["source"],
+                    "seq_id": str(data["seq_id"]),
+                    "medline_ui": str(data["medline_ui"]),
+                    "mesh_terms": str(data["mesh_terms"]),
+                    "title": str(data["title"]),
+                    "publication_type": str(data["publication_type"]),
+                    "abstract": str(data["abstract"]),
+                    "author": str(data["author"]),
+                    "source": str(data["source"]),
                 }
