@@ -142,7 +142,7 @@ instances (e.g., spotted only by one annotator, boundary discrepancies, label mi
 was designed after a pilot annotation stage, in which a relatively large number of snippets had been spotted
 by one annotator only. The annotation team consisted of six professional annotators from A Data Pro trained to spot and label the propaganda snippets from free text. The job was carried out on an instance of
 the Anafora annotation platform (Chen and Styler, 2013), which we tailored for our propaganda annotation
-task. Figure 2 shows an example of an article and its annotations.
+task.
 We evaluated the annotation process in terms of γ agreement (Mathet et al., 2015) between each of
 the annotators and the final gold labels. The γ agreement on the annotated articles is on average 0.6;
 see (Da San Martino et al., 2019b) for a more detailed discussion of inter-annotator agreement. The
