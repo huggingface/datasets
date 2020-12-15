@@ -17,8 +17,8 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import datasets
 
@@ -83,8 +83,8 @@ class Makhzan(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_dir):
         """ Yields examples. """
         data_dir_path = Path(data_dir)
-        data_dir_path = data_dir_path /'makhzan-master'/ 'text'
-        file_paths = data_dir_path.glob(r'*.xml')
+        data_dir_path = data_dir_path / "makhzan-master" / "text"
+        file_paths = data_dir_path.glob(r"*.xml")
         for id_, file_path in enumerate(file_paths):
             with file_path.open(encoding="utf-8") as f:
                 example = {
@@ -93,7 +93,7 @@ class Makhzan(datasets.GeneratorBasedBuilder):
                     "title": "",
                     "num-words": 0,
                     "contains-non-urdu-languages": "",
-                    "document_body": ""
+                    "document_body": "",
                 }
                 try:
                     tree = ET.parse(f)
