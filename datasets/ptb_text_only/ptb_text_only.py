@@ -143,4 +143,5 @@ class PtbTextOnly(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         with open(filepath, encoding="utf-8") as f:
             for id_, line in enumerate(f):
+                line = line.strip()
                 yield id_, {"sentence": line}
