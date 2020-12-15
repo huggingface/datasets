@@ -190,7 +190,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
             all_info = [Path(file).name[10:-15] for file in all_files]
 
         elif self.config.name == "channel_two":
-            # run loop once (no dates for this config)
+            # run loop once (there are no dates for this config)
             all_dates = ["_"]
             all_info = ["_"]
 
