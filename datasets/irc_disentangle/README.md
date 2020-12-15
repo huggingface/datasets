@@ -1,6 +1,27 @@
 ---
 YAML tags:
-{"task_categories": ["structure-prediction", "sequence-modeling"], "task_ids": ["coreference-resolution", "dialogue-modeling"], "multilinguality": ["monolingual"], "languages": ["en"], "language_creators": ["crowdsourced"], "annotations_creators": ["expert-generated"], "source_datasets": ["original"], "size_categories": ["100K<n<1M"], "licenses": ["cc-by-4.0"]}
+---
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+- structure-prediction
+task_ids:
+- coreference-resolution
+- dialogue-modeling
+---
 
 
 ---
