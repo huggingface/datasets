@@ -94,8 +94,8 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         features = datasets.Features(
             {
-                "seq_id": datasets.Value("string"),
-                "medline_ui": datasets.Value("string"),
+                "seq_id": datasets.Value("int64"),
+                "medline_ui": datasets.Value("int64"),
                 "mesh_terms": datasets.Value("string"),
                 "title": datasets.Value("string"),
                 "publication_type": datasets.Value("string"),
@@ -157,8 +157,8 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
             for id_, line in enumerate(f):
                 data = json.loads(line)
                 yield id_, {
-                    "seq_id": str(data["seq_id"]),
-                    "medline_ui": str(data["medline_ui"]),
+                    "seq_id": data["seq_id"],
+                    "medline_ui": data["medline_ui"],
                     "mesh_terms": str(data["mesh_terms"]),
                     "title": str(data["title"]),
                     "publication_type": str(data["publication_type"]),
