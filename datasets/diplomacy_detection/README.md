@@ -1,14 +1,22 @@
 ---
 YAML tags:
 annotations_creators: [no-annotation]
-language_creators: [found]
-languages: [en]
-licenses: [unknown]
-multilinguality: [monolingual]
-size_categories: [n<1K]
-source_datasets: [original]
-task_categories: [text-classification]
-task_ids: [intent-classification]
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- intent-classification
 ---
 
 # Dataset Card for HateOffensive
