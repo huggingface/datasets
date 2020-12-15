@@ -36,9 +36,10 @@ contains tokens from the 'manually-corrected' captions.
 
 _LICENSE = "MIT License"
 
+_RELEASE_TAG = "v1.0"
 _NUM_FILES = 4
 _URLS = [
-    f"https://raw.githubusercontent.com/2dot71mily/youtube_captions_corrections/main/data/transcripts/en/split/youtube_caption_corrections_{i}.json"
+    f"https://raw.githubusercontent.com/2dot71mily/youtube_captions_corrections/{_RELEASE_TAG}/data/transcripts/en/split/youtube_caption_corrections_{i}.json"
     for i in range(_NUM_FILES)
 ]
 

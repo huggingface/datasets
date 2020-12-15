@@ -22,7 +22,7 @@ task_ids:
 - slot-filling
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for YouTube Caption Corrections
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -79,7 +79,7 @@ English
 
 If `diff_type` is labeled greater than `0` at a given index, then the associated token in same index in the `default_seq` was found to have a difference to the token in the manually-corrected YouTube caption. The `correction_seq` is sparsely populated with tokens from the manually-corrected YouTube captions at those locations of differences.
 
-`diff_type` labelsnof tokens are as follows:
+`diff_type` labels for tokens are as follows:
 0: No difference
 1: Case based difference, e.g. `hello` vs `Hello`
 2: Punctuation difference, e.g. `hello` vs `hello`
@@ -144,15 +144,15 @@ All content publicly available on YouTube
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
