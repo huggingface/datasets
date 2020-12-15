@@ -45,10 +45,6 @@
 
 `🤗Datasets` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `datasets` and `tfds` can be found in the section [Main differences between `🤗Datasets` and `tfds`](#main-differences-between-🤗Datasets-and-tfds).
 
-# Contributors
-
-[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/0)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/0)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/1)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/1)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/2)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/2)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/3)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/3)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/4)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/4)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/5)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/5)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/6)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/6)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/7)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/7)
-
 # Installation
 
 `🤗Datasets` can be installed from PyPi and has to be installed in a virtual environment (venv or conda for instance)
