@@ -126,8 +126,6 @@ class NQOpen(datasets.GeneratorBasedBuilder):
         """Generate NQ_Open examples."""
 
         with open(datapath, encoding="utf-8") as json_file:
-            json_list = list(json_file)
-
-        for i, json_str in enumerate(json_list):
-            result = json.loads(json_str)
-            yield i, result
+            for i, json_str in enumerate(json_file):
+                result = json.loads(json_str)
+                yield i, result
