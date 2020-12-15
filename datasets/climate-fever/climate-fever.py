@@ -72,7 +72,6 @@ class ClimateFeverDataset(datasets.GeneratorBasedBuilder):
                         "evidence_label": datasets.Value("string"),
                         "article": datasets.Value("string"),
                         "evidence": datasets.Value("string"),
-                        "evidence_label": datasets.Value("string"),
                         "entropy": datasets.Value("float32"),
                         "votes": [datasets.Value("string")],
                     },
