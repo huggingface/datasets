@@ -58,7 +58,6 @@ Propagandistic news articles use specific techniques to convey their message, su
 
 ### Supported Tasks and Leaderboards
 
-For each of the tasks tagged for this dataset, give a brief description of the tag, metrics, and suggested models (with a link to their HuggingFace implementation if available). Give a similar description of tasks that were not covered by the structured tag set (repace the `task-category-tag` with an appropriate `other:other-task-name`).
 
 - `named-entity-recognition`: The dataset can be used to train a model for token classifcation for both a span identification task as well as a technique classification task. Success on this task is typically measured by achieving a high (micro-averaged)[f1](https://huggingface.co/metrics/f1) for the technique classification task. ([Roberta](https://huggingface.co/model_name) with an additional CRF layer currently achieves the a micro-averaged f1 of 0.637 on the TC task. This task has an active leaderboard which can be found [here](https://propaganda.qcri.org/ptc/leaderboard.php). 
 
