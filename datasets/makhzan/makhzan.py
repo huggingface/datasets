@@ -17,12 +17,12 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
+from pathlib import Path
 import xml.etree.ElementTree as ET
 
 import datasets
 
 
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @InProceedings{huggingface:dataset,
 title = {A great new dataset},
@@ -32,7 +32,6 @@ year={2020}
 }
 """
 
-# You can copy an official description
 _DESCRIPTION = """\
 An Urdu text corpus for machine learning, natural language processing and linguistic analysis.
 """
@@ -41,24 +40,13 @@ _HOMEPAGE = "https://matnsaz.net/en/makhzan"
 
 _LICENSE = "All files in the /text directory are covered under standard copyright. Each piece of text has been included in this repository with explicity permission of respective copyright holders, who are identified in the <meta> tag for each file. You are free to use this text for analysis, research and development, but you are not allowed to redistribute or republish this text. Some cases where a less restrictive license could apply to files in the /text directory are presented below. In some cases copyright free text has been digitally reproduced through the hard work of our collaborators. In such cases we have credited the appropriate people where possible in a notes field in the file's metadata, and we strongly encourage you to contact them before redistributing this text in any form. Where a separate license is provided along with the text, we have provided corresponding data in the publication field in a file's metadata."
 
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_BASE_URL = "https://raw.githubusercontent.com/zeerakahmed/makhzan/master/text/"
-_URLs = {"train": [_BASE_URL + "{:04d}.xml".format(i) for i in range(1, 5523)]}
+_DOWNLOAD_URL = "https://github.com/zeerakahmed/makhzan/archive/master.zip"
 
 
 class Makhzan(datasets.GeneratorBasedBuilder):
     """Makhzan - An Urdu text corpus for machine learning, natural language processing and linguistic analysis."""
 
     VERSION = datasets.Version("1.0.0")
-
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="train", version=VERSION, description="This part of my dataset covers a first domain"
-        )
-    ]
-
-    DEFAULT_CONFIG_NAME = "train"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         features = datasets.Features(
@@ -84,32 +72,34 @@ class Makhzan(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs[self.config.name]
-        dowloaded_files = dl_manager.download(my_urls)
+        data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"file_paths": dowloaded_files},
+                gen_kwargs={"data_dir": data_dir},
             )
         ]
 
-    def _generate_examples(self, file_paths):
+    def _generate_examples(self, data_dir):
         """ Yields examples. """
+        data_dir_path = Path(data_dir)
+        data_dir_path = data_dir_path /'makhzan-master'/ 'text'
+        file_paths = data_dir_path.glob(r'*.xml')
         for id_, file_path in enumerate(file_paths):
-            with open(file_path, encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 example = {
                     "file_id": "",
                     "metadata": "",
                     "title": "",
                     "num-words": 0,
                     "contains-non-urdu-languages": "",
+                    "document_body": ""
                 }
                 try:
                     tree = ET.parse(f)
                     root = tree.getroot()
                     if root.tag == "document":
-                        example["file_id"] = "{:04d}.xml".format(id_ + 1)
+                        example["file_id"] = file_path.name
                         metadata = root.find("meta")
                         if metadata:
                             example["metadata"] = ET.tostring(metadata, encoding="unicode")
@@ -123,6 +113,8 @@ class Makhzan(datasets.GeneratorBasedBuilder):
                         document_body = root.find("body")
                         if document_body:
                             example["document_body"] = ET.tostring(document_body, encoding="unicode")
+                        else:
+                            raise ValueError('Missing tag "<body>"')
                     else:
                         raise ValueError('Missing tag "<document>"')
                     yield id_, example
