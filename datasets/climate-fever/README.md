@@ -44,7 +44,7 @@ A dataset adopting the FEVER methodology that consists of 1,535 real-world claim
 
 ### Languages
 
-- en
+- en (English)
 
 ## Additional Information
 

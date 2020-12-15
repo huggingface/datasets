@@ -21,8 +21,6 @@ import os
 
 import datasets
 
-
-# TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @misc{diggelmann2020climatefever,
@@ -35,7 +33,6 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
 A dataset adopting the FEVER methodology that consists of 1,535 real-world claims regarding climate-change collected on the internet. Each claim is accompanied by five manually annotated evidence sentences retrieved from the English Wikipedia that support, refute or do not give enough information to validate the claim totalling in 7,675 claim-evidence pairs. The dataset features challenging claims that relate multiple facets and disputed cases of claims where both supporting and refuting evidence are present.
