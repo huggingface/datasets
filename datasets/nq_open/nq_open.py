@@ -108,17 +108,16 @@ class NQOpen(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        train_path = dl_manager.download_and_extract(_URLS["train"])
-        val_path = dl_manager.download_and_extract(_URLS["dev"])
+        paths = dl_manager.download_and_extract(_URLS)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": train_path},
+                gen_kwargs={"datapath": paths["train"]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"datapath": val_path},
+                gen_kwargs={"datapath": paths["dev"]},
             ),
         ]
 
