@@ -102,13 +102,14 @@ TESTS_REQUIRE = [
     'lxml',
     'mwparserfromhell',
     'nltk',
+    'py7zr',
     'pytest',
     'pytest-xdist',
     'tensorflow',
     'torch',
     'tldextract',
     'transformers',
-    'xlrd',
+    'xlrd==1.2.0',  # pinning to keep the xlsx support. We should eventually use something else
     'zstandard',
 ]
 

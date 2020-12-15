@@ -44,7 +44,7 @@ class Prachathai67kConfig(datasets.BuilderConfig):
 class Prachathai67k(datasets.GeneratorBasedBuilder):
     """`prachathai-67k`: News Article Corpus and Multi-label Text Classificdation from Prachathai.com"""
 
-    _DOWNLOAD_URL = "https://github.com/PyThaiNLP/prachathai-67k/raw/master/data.zip"
+    _DOWNLOAD_URL = "https://archive.org/download/prachathai67k/data.zip"
     _TRAIN_FILE = "train.jsonl"
     _VAL_FILE = "valid.jsonl"
     _TEST_FILE = "test.jsonl"
