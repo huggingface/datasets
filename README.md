@@ -21,27 +21,21 @@
     </a>
 </p>
 
-<h3 align="center">
-<p> Datasets and evaluation metrics for natural language processing and more
-<p> Compatible with NumPy, Pandas, PyTorch and TensorFlow
-</h3>
+`🤗Datasets` is a lightweight library providing two main features:
 
-🎓 **Documentation**: https://huggingface.co/docs/datasets/
+- **ready-to-use dataloaders** for ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets in 467 languages and dialects. With one line (`squad_dataset = load_datasets("squad")`) download and pre-process any of these public or private datasets to have it ready to use for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX), and
+- **an efficient dataset class** for simple, fast and reproducible data pre-processing optimized for ML model evaluation and training (see more below).
 
-🕹 **Colab demo**: https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb
-
-🔎 **Online dataset explorer**: https://huggingface.co/datasets/viewer
-
-`🤗Datasets` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP) and more.
+[🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab demo**](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb) [🔎 **Online dataset explorer**](https://huggingface.co/datasets/viewer)
 
 `🤗Datasets` has many interesting features (beside easy sharing and accessing datasets/metrics):
 
-- Built-in interoperability with NumPy, pandas, PyTorch and Tensorflow 2
-- Lightweight and fast with a transparent and pythonic API
-- Thrive on large datasets: `🤗Datasets` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
-- Smart caching: never wait for your data to process several times
+- Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
+- Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
+- Thrive on large datasets: `🤗Datasets` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive using an efficient zero-serialization cost backend (Apache Arrow).
+- Smart caching: never wait for your data to process several times.
 
-`🤗Datasets` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/datasets/viewer).
+`🤗Datasets` also provides access to +15 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/datasets/viewer).
 
 `🤗Datasets` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `datasets` and `tfds` can be found in the section [Main differences between `🤗Datasets` and `tfds`](#main-differences-between-🤗Datasets-and-tfds).
 
