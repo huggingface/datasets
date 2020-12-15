@@ -153,7 +153,6 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             abstracts = json.load(f)
             for id_, data in enumerate(abstracts):
-                # data = json.load(row)
                 yield id_, {
                     "seq_id": data["seq_id"],
                     "medline_ui": data["medline_ui"],
