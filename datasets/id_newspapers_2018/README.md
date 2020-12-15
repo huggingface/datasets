@@ -6,7 +6,7 @@ language_creators:
 languages:
 - id
 licenses:
-- other-my-license
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
