@@ -102,6 +102,7 @@ TESTS_REQUIRE = [
     'lxml',
     'mwparserfromhell',
     'nltk',
+    'py7zr',
     'pytest',
     'pytest-xdist',
     'tensorflow',

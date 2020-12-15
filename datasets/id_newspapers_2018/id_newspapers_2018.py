@@ -44,9 +44,9 @@ from the online news website
 
 _HOMEPAGE = "https://github.com/feryandi/Dataset-Artikel"
 
-_LICENSE = ""
+_LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International Public License"
 
-_URLs = ["http://cloud.uncool.ai/index.php/s/Do8ngbi9ZYjaLkf/download"]
+_URLs = ["http://cloud.uncool.ai/index.php/s/kF83dQHfGeS2LX2/download"]
 
 
 class IdNewspapers2018Config(datasets.BuilderConfig):
