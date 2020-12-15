@@ -14,7 +14,6 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-task_categories:
 - text-classification
 - structure-prediction
 task_ids:
