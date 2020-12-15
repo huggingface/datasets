@@ -46,7 +46,7 @@ _HOMEPAGE = "https://propaganda.qcri.org/ptc/index.html"
 _LICENSE = ""
 
 
-class SemEval2020Task11(datasets.GeneratorBasedBuilder):
+class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
     """Semeval 2020 task 11 propaganda detection dataset"""
 
     VERSION = datasets.Version("1.1.0")
