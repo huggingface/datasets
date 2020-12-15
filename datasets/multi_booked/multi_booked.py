@@ -119,48 +119,47 @@ class MultiBooked(datasets.GeneratorBasedBuilder):
         for id_, filepath in enumerate(sorted(Path(dirpath).iterdir())):
             example = defaultdict(lambda: defaultdict(list))
             with open(filepath, encoding="utf-8") as f:
-                try:
-                    for _, elem in ET.iterparse(f):
-                        if elem.tag == "text":
-                            for child in elem:
-                                example["text"]["wid"].append(child.attrib["wid"])
-                                example["text"]["sent"].append(child.attrib["sent"])
-                                example["text"]["para"].append(child.attrib["para"])
-                                example["text"]["word"].append(child.text)
-                        elif elem.tag == "terms":
-                            for child in elem:
-                                example["terms"]["tid"].append(child.attrib["tid"])
-                                example["terms"]["lemma"].append(child.attrib["lemma"])
-                                example["terms"]["morphofeat"].append(child.attrib["morphofeat"])
-                                example["terms"]["pos"].append(child.attrib["pos"])
-                                targets = []
-                                for target in child.findall("span/target"):
-                                    targets.append(target.attrib["id"])
-                                example["terms"]["target"].append(targets)
-                        elif elem.tag == "opinions":
-                            for child in elem:
-                                example["opinions"]["oid"].append(child.attrib["oid"])
-                                # Opinion holder
-                                opinion_holder = child.find("opinion_holder")
-                                targets = []
-                                for target in opinion_holder.findall("span/target"):
-                                    targets.append(target.attrib["id"])
-                                example["opinions"]["opinion_holder_target"].append(targets)
-                                # Opinion target
-                                opinion_target = child.find("opinion_target")
-                                targets = []
-                                for target in opinion_target.findall("span/target"):
-                                    targets.append(target.attrib["id"])
-                                example["opinions"]["opinion_target_target"].append(targets)
-                                # Opinion expression
-                                opinion_expression = child.find("opinion_expression")
-                                example["opinions"]["opinion_expression_polarity"].append(
-                                    opinion_expression.attrib["polarity"]
-                                )
-                                targets = []
-                                for target in opinion_expression.findall("span/target"):
-                                    targets.append(target.attrib["id"])
-                                example["opinions"]["opinion_expression_target"].append(targets)
-                except Exception:
-                    pass
+                for _, elem in ET.iterparse(f):
+                    if elem.tag == "text":
+                        for child in elem:
+                            # sometimes wid is missing in the eu configuration
+                            example["text"]["wid"].append(child.attrib.get("wid", ""))
+                            example["text"]["sent"].append(child.attrib["sent"])
+                            example["text"]["para"].append(child.attrib["para"])
+                            example["text"]["word"].append(child.text)
+                    elif elem.tag == "terms":
+                        for child in elem:
+                            # sometimes tid is missing in the eu configuration
+                            example["terms"]["tid"].append(child.attrib.get("tid", ""))
+                            example["terms"]["lemma"].append(child.attrib["lemma"])
+                            example["terms"]["morphofeat"].append(child.attrib["morphofeat"])
+                            example["terms"]["pos"].append(child.attrib["pos"])
+                            targets = []
+                            for target in child.findall("span/target"):
+                                targets.append(target.attrib["id"])
+                            example["terms"]["target"].append(targets)
+                    elif elem.tag == "opinions":
+                        for child in elem:
+                            example["opinions"]["oid"].append(child.attrib["oid"])
+                            # Opinion holder
+                            opinion_holder = child.find("opinion_holder")
+                            targets = []
+                            for target in opinion_holder.findall("span/target"):
+                                targets.append(target.attrib["id"])
+                            example["opinions"]["opinion_holder_target"].append(targets)
+                            # Opinion target
+                            opinion_target = child.find("opinion_target")
+                            targets = []
+                            for target in opinion_target.findall("span/target"):
+                                targets.append(target.attrib["id"])
+                            example["opinions"]["opinion_target_target"].append(targets)
+                            # Opinion expression
+                            opinion_expression = child.find("opinion_expression")
+                            example["opinions"]["opinion_expression_polarity"].append(
+                                opinion_expression.attrib["polarity"]
+                            )
+                            targets = []
+                            for target in opinion_expression.findall("span/target"):
+                                targets.append(target.attrib["id"])
+                            example["opinions"]["opinion_expression_target"].append(targets)
             yield id_, example
