@@ -20,7 +20,7 @@ task_ids:
 
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for ohsumed
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

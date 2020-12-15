@@ -67,7 +67,7 @@ _URLs = {"ohsumed": "https://storage.googleapis.com/corona-tweet/ohsumed.zip"}
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Ohsumed(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """OHSUMED: An Interactive Retrieval Evaluation and New Large Test Collection for Research."""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -84,7 +84,7 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="ohsumed", version=VERSION, description="This part of my dataset covers a first domain"
+            name="ohsumed", version=VERSION, description="Config for the entire ohsumed dataset. An Interactive Retrieval Evaluation and New Large Test Collection for Research"
         )
     ]
 
@@ -150,9 +150,11 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
+        print(filepath)
         with open(filepath, encoding="utf-8") as f:
             abstracts = json.load(f)
             for id_, data in enumerate(abstracts):
+                # data = json.load(row)
                 yield id_, {
                     "seq_id": data["seq_id"],
                     "medline_ui": data["medline_ui"],
