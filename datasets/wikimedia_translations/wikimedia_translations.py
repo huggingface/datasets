@@ -67,7 +67,7 @@ class WikiMediaTranslationsConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class WikiMediaTranslations(datasets.GeneratorBasedBuilder):
+class WikimediaTranslations(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WikiMediaTranslationsConfig(
             lang1=lang1,
