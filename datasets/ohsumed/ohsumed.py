@@ -84,7 +84,9 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="ohsumed", version=VERSION, description="Config for the entire ohsumed dataset. An Interactive Retrieval Evaluation and New Large Test Collection for Research"
+            name="ohsumed",
+            version=VERSION,
+            description="Config for the entire ohsumed dataset. An Interactive Retrieval Evaluation and New Large Test Collection for Research",
         )
     ]
 
