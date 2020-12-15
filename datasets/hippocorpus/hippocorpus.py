@@ -76,7 +76,7 @@ class Hippocorpus(datasets.GeneratorBasedBuilder):
                     "distracted": datasets.Value("float32"),
                     "draining": datasets.Value("float32"),
                     "frequency": datasets.Value("float32"),
-                    "importance": datasets.Value("string"),
+                    "importance": datasets.Value("float32"),
                     "logTimeSinceEvent": datasets.Value("string"),
                     "mainEvent": datasets.Value("string"),
                     "memType": datasets.Value("string"),

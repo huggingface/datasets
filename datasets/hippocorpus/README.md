@@ -13,16 +13,10 @@ size_categories:
 - 1K<n<10K
 source_datasets: 
 - original
-<<<<<<< HEAD
-task_categories:
-- text-retrieval
-task_ids:
-=======
 task_categories: 
-- text-retrieval
+- text-scoring
 task_ids: 
->>>>>>> 13ad4bc5e87470981a64f73b776d8b688e815bfb
-- document-retrieval
+- text-scoring-other-narrative-flow
 ---
 
 # Dataset Card for [Dataset Name]
