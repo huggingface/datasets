@@ -65,7 +65,7 @@ class SentiWS(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "word": datasets.Value("string"),
-                    "pos-tag": datasets.Value("string"),
+                    "pos-tag": datasets.ClassLabel(names=["NN", "VVINF", "ADJX", "ADV"]),
                 }
             )
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
@@ -107,10 +107,10 @@ class SentiWS(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "sourcefiles": sorted(
+                    "sourcefiles": [
                         os.path.join(data_dir[0], f)
                         for f in ["SentiWS_v2.0_Positive.txt", "SentiWS_v2.0_Negative.txt"]
-                    ),
+                    ],
                     "split": "train",
                 },
             ),

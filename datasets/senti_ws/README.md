@@ -1,7 +1,9 @@
 ---
-annotations_creators: []
+annotations_creators:
+- expert-generated
+- machine-generated
 language_creators:
-- other
+- found
 languages:
 - de
 licenses:
@@ -10,7 +12,8 @@ multilinguality:
 - monolingual
 size_categories:
 - n<1K
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - structure-prediction
 - text-scoring
@@ -68,29 +71,30 @@ German
 
 ### Data Instances
 For pos-tagging:
+```
 { 
 "word":"Abbau"
-"pos-tag": "NN"	
+"pos_tag": 0
 }
+```
 For sentiment-scoring:
+```
 {
 "word":"Abbau"
 "sentiment-score":-0.058
 }
+``` 
 
 ### Data Fields
 
 SentiWS is UTF8-encoded text.
 For pos-tagging:
-                {
-                    "word": datasets.Value("string"),
-                    "pos-tag": datasets.Value("string"),
-                }
+- word: one word as a string,
+- pos_tag: the part-of-speech tag of the word as an integer,
 For sentiment-scoring:
-                {
-                    "word": datasets.Value("string"),
-                    "sentiment-score": datasets.Value("float32"),
-                }
+- word: one word as a string,
+- sentiment-score: the sentiment score of the word as a float between -1 and 1,
+
 The POS tags are ["NN", "VVINF", "ADJX", "ADV"] -> ["noun", "verb", "adjective", "adverb"], and positive and negative polarity bearing words are weighted within the interval of [-1, 1].
 
 ### Data Splits
