@@ -163,7 +163,7 @@ class SemEval2020Task11(datasets.GeneratorBasedBuilder):
             tc_labels_dir = os.path.join(data_dir, f"{split}-labels-task-flc-tc")
 
         # Iterate through each article
-        for id_, key in enumerate(keys):
+        for id_, key in enumerate(sorted(keys)):
             text_path = os.path.join(articles_path, key + ".txt")
 
             # Read the text for the article
