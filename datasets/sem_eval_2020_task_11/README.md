@@ -14,9 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
+task_categories:
+- text-classification
 - structure-prediction
 task_ids:
-- named-entity-recognition
+- text-classification-other-propaganda-technique-classification
+- structure-prediction-other-propaganda-span-identification
 ---
 
 # Dataset Card Creation Guide
