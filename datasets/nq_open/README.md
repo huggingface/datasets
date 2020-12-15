@@ -72,15 +72,23 @@ EfficientQA Leaderboard: https://ai.google.com/research/NaturalQuestions/efficie
 
 ### Languages
 
-English
+English (`en`)
 
 ## Dataset Structure
 
 ### Data Instances
 
 {
-      "question": datasets.Value("string"),
-      "answer": datasets.Sequence(datasets.Value("string")),
+    "question": "names of the metropolitan municipalities in south africa",
+    "answer": [
+        "Mangaung Metropolitan Municipality",
+        "Nelson Mandela Bay Metropolitan Municipality",
+        "eThekwini Metropolitan Municipality",
+        "City of Tshwane Metropolitan Municipality",
+        "City of Johannesburg Metropolitan Municipality",
+        "Buffalo City Metropolitan Municipality",
+        "City of Ekurhuleni Metropolitan Municipality"
+    ]
 }
 
 ### Data Fields
