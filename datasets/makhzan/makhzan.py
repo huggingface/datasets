@@ -103,9 +103,7 @@ class Makhzan(datasets.GeneratorBasedBuilder):
                         metadata = root.find("meta")
                         if metadata:
                             example["metadata"] = ET.tostring(metadata, encoding="unicode")
-                            title = metadata.find("title")
-                            if title:
-                                example["title"] = title.text
+                            example["title"] = metadata.find("title").text
                             example["num-words"] = int(metadata.find("num-words").text)
                             example["contains-non-urdu-languages"] = metadata.find("contains-non-urdu-languages").text
                         else:
