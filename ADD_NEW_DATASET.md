@@ -23,6 +23,7 @@ This creates a copy of the code under your GitHub user account.
 	pip install -e ".[dev]"
 	```
 
+5. Prepare your tagging setup. You will need to clone the [tagging application repository](https://github.com/huggingface/datasets-tagging) and run the app with [Streamlit](https://www.streamlit.io/). You should also open the online form that will allow you to [create dataset cards](https://huggingface.co/datasets/card-creator/) in a browser window (courtesy of [Evrard t'Serstevens](https://huggingface.co/evrardts).)
 
 Now you are ready, each time you want to add a new dataset, follow the steps in the following section:
 
@@ -39,8 +40,8 @@ You are now ready to start the process of adding the dataset. We will create the
 
 - a **dataset script** which contains the code to download and pre-process the dataset: e.g. `squad.py`,
 - a **dataset card** with tags and information on the dataset in a `README.md`.
-- a **metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json` 
-- a **dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip` 
+- a **metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json`
+- a **dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip`
 
 2. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
@@ -58,21 +59,21 @@ You are now ready to start the process of adding the dataset. We will create the
 	mkdir ./datasets/<your_dataset_name>
 	```
 
-4. Create an empty dataset card in the folder by copying the template:
+4. Open a new online [dataset card form](https://huggingface.co/datasets/card-creator/) to fill out: you will be able to download it to your dataset folder with the `Export` button when you are done. Alternatively, you can also manually create and edit a dataset card in the folder by copying the template:
 
 	```bash
 	cp ./templates/README.md ./datasets/<your_dataset_name>/README.md
 	```
 
-5. Now explore a bit the dataset you have selected while completing some fields of the **dataset card** by the same occasion:
+5. Now explore the dataset you have selected while completing some fields of the **dataset card** while you are doing it:
 
 	- Find the research paper or description presenting the dataset you want to add
 	- Read the relevant part of the paper/description presenting the dataset
 	- Find the location of the data for your dataset
 	- Download/open the data to see how it looks like
-	- While you explore and read about the dataset, you can complete some sections of the dataset card (the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in you readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
+	- While you explore and read about the dataset, you can complete some sections of the dataset card (the online form or the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in your readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
 
-		If you need more informations on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+		If you need more information on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
 		There is a also a (very detailed) example here: https://github.com/huggingface/datasets/tree/master/datasets/eli5.
 
@@ -120,7 +121,7 @@ data = load_dataset('./datasets/<your_dataset_name>')
 
 This let you for instance use `print()` statements inside the script as well as seeing directly errors and the final dataset format.
 
-**What are confgurations and splits**
+**What are configurations and splits**
 
 Sometimes you need to use several *configurations* and/or *splits* (usually at least splits will be defined).
 
@@ -144,6 +145,12 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 ```bash
 python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 ```
+
+**Note:** If your dataset requires manually downloading the data and having the user provide the path to the dataset you can run the following command:
+```bash
+python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
+```
+To have the configs use the path from `--data_dir` when generating them.
 
 ### Automatically add code metadata
 
@@ -181,7 +188,7 @@ Go to the next step (open a Pull Request) and we'll help you cross the finish li
 	```bash
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
-	
+
 	On **Windows**, you may need to run:
 	```
 	$Env:RUN_SLOW = "1"
@@ -212,7 +219,26 @@ Here are the step to open the Pull-Request on the main repo.
 	flake8 datasets
 	```
 
-2. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
+	If you are on windows and `make style` doesn't work you can do the following steps instead:
+
+	```bash
+	pip install black
+	pip install isort
+	pip install flake8
+
+	black --line-length 119 --target-version py36 datasets/your_dataset
+	
+	isort datasets/your_dataset/your_dataset.py
+
+	flake8 datasets/your_dataset
+	```
+
+2. Make sure that you have a dataset card (more information in the [next section](#tag-the-dataset-and-write-the-dataset-card)) with:
+
+	1. **Required:** The YAML tags obtained with the [tagging app](https://github.com/huggingface/datasets-tagging) and a description of the various fields in your dataset.
+	2. Any relevant information you would like to share with users of your dataset in the appropriate paragraphs.
+
+3. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
 
 	```bash
 	git add datasets/<your_dataset_name>
@@ -253,21 +279,13 @@ Creating the dataset card goes in two steps:
 
 	Run the app with the command detailed in the readme: https://github.com/huggingface/datasets-tagging/blob/main/README.md
 
-	Find your dataset and tag it :-)
-
-	This will generate a JSON file with the tags for the dataset in the `saved_tags` folder.
+	Enter the full path to your dataset folder on the left, and tag the different configs :-) (And don't forget to save to file after you're done with a config!)
 
 2. **Copy the tags in the dataset card and complete the dataset card**
 
-	Copy the dataset card which is [here](https://github.com/huggingface/datasets/blob/master/templates/README.md) in your dataset folder.
+	- **Essential:** Once you have saved the tags for all configs, you can expand the **Show YAML output aggregating the tags** section on the right, which will show you a YAML formatted block to put in the relevant section of the [online form](https://huggingface.co/datasets/card-creator/) (or manually  paste into your README.md).
 
-	- **Essential:** Copy the tags that you have generated in step (1) inside the dataset card.
-
-		We’re using YAML for tags actually, not JSON (even though the datasets-tagging tool allows to save in JSON). On the right side of the app there is an option to "Show YAML output".  Once you've tagged and saved all of the configs, you can copy-paste the output of this field at the top of your README.
-
-	- **Very important as well:** Fill in the "Data Fields" section in the dataset card.
-
-		List the fields present in the features of the dataset. Briefly describe them and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
+	- **Very important as well:** On the right side of the tagging app, you will also find an expandable section called **Show Markdown Data Fields**. This gives you a starting point for the description of the fields in your dataset: you should paste it into the **Data Fields** section of the [online form](https://huggingface.co/datasets/card-creator/) (or your local README.md), then modify the description as needed. Briefly describe each of the fields and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
 
 		Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/master/datasets/eli5#data-fields):
 
@@ -284,6 +302,6 @@ Creating the dataset card goes in two steps:
 
 		If you don't know what to write in a field and can find it, write: `[More Information Needed]`
 
-Once your `README.md` is ok you have finished all the steps to add your dataset, congratulation your Pull Request can be merged.
+If you are using the online form, you can then click the `Export` button at the top to download a `README.md` file to your data folder. Once your `README.md` is ok you have finished all the steps to add your dataset, congratulation your Pull Request can be merged.
 
 **You have made another dataset super easy to access for everyone in the community! 🤯**

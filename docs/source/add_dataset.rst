@@ -67,7 +67,7 @@ Here is for instance the :func:`datasets.Dataset._info` for the SQuAD dataset fo
         )
 
 
-The :class:`datasets.Features` define the structure for each examples and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ and even directly inspected on the `datasets viewer <https://huggingface.co/nlp/viewer>`__.
+The :class:`datasets.Features` define the structure for each examples and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ and even directly inspected on the `datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 Here are the features of the SQuAD dataset for instance, which is taken from the `squad dataset loading script <https://github.com/huggingface/datasets/tree/master/datasets/squad/squad.py>`__:
 

@@ -54,7 +54,7 @@ Here is for instance the :func:`datasets.Metric._info` for the Sacrebleu metric 
         )
 
 
-The :class:`datasets.Features` define the type of the predictions and the references and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `metric scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/metrics>`__ and even in `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ or directly inspected on the `datasets viewer <https://huggingface.co/nlp/viewer>`__.
+The :class:`datasets.Features` define the type of the predictions and the references and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `metric scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/metrics>`__ and even in `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ or directly inspected on the `datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 Here are the features of the SQuAD metric for instance, which is taken from the `squad metric loading script <https://github.com/huggingface/datasets/tree/master/metrics/squad/squad.py>`__:
 

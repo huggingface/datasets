@@ -9,6 +9,7 @@ import gzip
 import json
 import lzma
 import os
+import re
 import shutil
 import sys
 import tarfile
@@ -142,6 +143,8 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch.cuda.manual_seed_all(seed)
 
     if set_tensorflow and _tf_available:
+        from tensorflow.python import context as tfpycontext
+
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
         tf.random.set_global_generator(temp_gen)
@@ -149,7 +152,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         if not tf.executing_eagerly():
             raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
 
-        tf_context = tf.python.context.context()  # eager mode context
+        tf_context = tfpycontext.context()  # eager mode context
         tf_seed = tf_context._seed
         tf_rng_initialized = hasattr(tf_context, "_rng")
         if tf_rng_initialized:
@@ -474,8 +477,13 @@ def get_from_cache(
                         cookies = response.cookies
                 connected = True
             # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (
-                response.status_code == 405 and "drive.google.com" in url
+            elif (
+                (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
+                or (response.status_code == 405 and "drive.google.com" in url)
+                or (
+                    response.status_code == 403
+                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                )
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
