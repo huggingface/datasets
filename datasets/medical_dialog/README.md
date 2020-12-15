@@ -78,7 +78,7 @@ Monolingual. The datasets are in English (EN) and Chinese (ZH)
 ### Data Instances
 #### For English:
 
-The data folder contains of multiple text files (.txt). Each of these text files has multiple consultations. Each consultation consists of the below:
+Each consultation consists of the below:
 - ID
 - URL
 - Description of patient’s medical condition
@@ -88,7 +88,7 @@ The dataset is built from [icliniq.com](https://www.icliniq.com/), [healthcarema
 
 #### For Chinese:
 
-The data folder contains of multiple text files (.txt). Each of these text files has multiple consultations. Each consultation consists of the below:
+Each consultation consists of the below:
 - ID
 - URL
 - Description of patient’s medical condition
@@ -96,6 +96,19 @@ The data folder contains of multiple text files (.txt). Each of these text files
 - (Optional) Diagnosis and suggestions.
 
 The dataset is built from [Haodf.com](https://www.haodf.com/) and all copyrights of the data belong to [Haodf.com](https://www.haodf.com/).
+
+One example for chinese is
+
+```
+{
+{'dialogue_id': 2,
+  'dialogue_turns': [{'speaker': '病人',
+    'utterance': '孩子哭闹时，鸡鸡旁边会肿起，情绪平静时肿块会消失，去一个私人诊所看过，说是疝气.如果确定是疝气，是不是一定要手术治疗？我孩子只有1岁10月，自愈的可能性大吗？如果一定要手术，这么小的孩子风险大吗？术后的恢复困难吗？谢谢.'},
+   {'speaker': '医生', 'utterance': '南方医的B超说得不清楚，可能是鞘膜积液，可到我医院复查一个B超。'}],
+  'dialogue_url': 'https://www.haodf.com/doctorteam/flow_team_6477251152.htm',
+  'file_name': '2020.txt'},
+}
+```
 
 
 ### Data Fields
@@ -111,17 +124,6 @@ These are arranged as below in the prepared dataset. Each item will be represent
 - "dialogue_id": int32 - the dialogue id
 - "dialogue_url": string - url of the conversation
 - "dialogue_turns": datasets.Sequence - sequence of dialogues between patient and the doctor.Consists ClassLabel(names=["病人", "医生"]), and "utterance"(string) for each turn. (ClassLable(names=["Patient", "Doctor"]) for english)
-
-```
-{
-{'dialogue_id': 2,
-  'dialogue_turns': [{'speaker': '病人',
-    'utterance': '孩子哭闹时，鸡鸡旁边会肿起，情绪平静时肿块会消失，去一个私人诊所看过，说是疝气.如果确定是疝气，是不是一定要手术治疗？我孩子只有1岁10月，自愈的可能性大吗？如果一定要手术，这么小的孩子风险大吗？术后的恢复困难吗？谢谢.'},
-   {'speaker': '医生', 'utterance': '南方医的B超说得不清楚，可能是鞘膜积液，可到我医院复查一个B超。'}],
-  'dialogue_url': 'https://www.haodf.com/doctorteam/flow_team_6477251152.htm',
-  'file_name': '2020.txt'},
-}
-```
 
 
 ### Data Splits
@@ -177,7 +179,6 @@ Medical dialogue systems are promising in assisting in telemedicine to increase 
 ### Dataset Curators
 
 [More Information Needed]
-
 
 ### Licensing Information
 
