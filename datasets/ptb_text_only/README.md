@@ -58,7 +58,7 @@ task_ids:
 ### Dataset Summary
 
 This is the Penn Treebank Project: Release 2 CDROM, featuring a million words of 1989 Wall Street Journal material. 
-The rare words in this version are already replaced with <unk> token.
+The rare words in this version are already replaced with <unk> token. The numbers are replaced with <N> token.
 
 ### Supported Tasks and Leaderboards
 
@@ -80,7 +80,7 @@ The text in the dataset is in American English
 
 ### Data Splits
 
-Train Valid Test: 929589 73760 82430 examples
+[Needs More Information]
 
 ## Dataset Creation
 

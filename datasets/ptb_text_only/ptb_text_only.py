@@ -98,7 +98,7 @@ class PtbTextOnly(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = datasets.Features({"tokens": datasets.Sequence(datasets.Value("string"))})
+        features = datasets.Features({"sentence": datasets.Value("string")})
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -141,12 +141,6 @@ class PtbTextOnly(datasets.GeneratorBasedBuilder):
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-        eos_token = "</s>"
         with open(filepath, encoding="utf-8") as f:
-            for line in f:
-                a = line.split()
-                a.append(eos_token)
-                feat = dict()
-                for id_, word in enumerate(a):
-                    feat["tokens"] = feat.get("tokens", []) + [word]
-                    yield id_, feat
+            for id_, line in enumerate(f):
+                yield id_, {"sentence": line}
