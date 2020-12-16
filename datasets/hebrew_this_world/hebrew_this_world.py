@@ -46,6 +46,8 @@ _TRAIN_DOWNLOAD_URLS = [
 class HebrewThisWorld(datasets.GeneratorBasedBuilder):
     """HebrewThisWorld: Corpus from the newspaper ThisWorld"""
 
+    VERSION = datasets.Version("0.1.0")
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
