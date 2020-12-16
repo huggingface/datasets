@@ -132,7 +132,7 @@ class Counter(datasets.GeneratorBasedBuilder):
 
         base_path = Path(data_dir)
         base_path = base_path / "COUNTER"
-        files = base_path.glob(r"[0-9][0-9][0-9][0-9].xml")
+        files = sorted(base_path.glob(r"[0-9][0-9][0-9][0-9].xml"))
         for _id, file in enumerate(files):
             example = {}
             with file.open(encoding="utf-8") as f:
