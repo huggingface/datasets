@@ -28,7 +28,6 @@ _URLs = {
 }
 
 
-<<<<<<< HEAD
 def sanitize_url(url):
     """Convert the url into correct format"""
     url = url.replace("https://drive.google.com/", "")
@@ -38,8 +37,6 @@ def sanitize_url(url):
     return url
 
 
-=======
->>>>>>> 7f9d0db874d186db6a8fc7685afd68ceb0001f2a
 def create():
     """Creates the dummy pickle file with a subset of data"""
     # 1. Download the google drive folder : https://drive.google.com/drive/folders/1PFvXUOsW_KSEzFm5ixB8J8BDB8zRRfHW
@@ -55,11 +52,7 @@ def create():
             data = pickle.load(f)
 
         data_subset = dict(itertools.islice(data.items(), 3))
-<<<<<<< HEAD
         fname = sanitize_url(_URLs[key])
-=======
-        fname = _URLs[key].replace("https://drive.google.com/", "").replace("=", "%3").replace("&", "%26")
->>>>>>> 7f9d0db874d186db6a8fc7685afd68ceb0001f2a
         dirname = pjoin(base_path, f"datasets/wiki_lingua/dummy/{key}/1.1.0/dummy_data")
         if not os.path.exists(dirname):
             print(f"created folder {dirname}")
@@ -83,12 +76,8 @@ def zip():
         print(f"Deleted folder {dirname}/dummy_data")
 
 
-<<<<<<< HEAD
 # Utility script to create the dummy data and zip the contents
 # 1. Create data
 create()
 # 2. Zip contents
-=======
-create()
->>>>>>> 7f9d0db874d186db6a8fc7685afd68ceb0001f2a
 zip()
