@@ -83,12 +83,12 @@ An example of fact checking instance looks as follows:
 ### Data Fields
 
 A data instance has the following fields:
-- `review_date`: the day the fact checking report was posted
+- `review_date`: the day the fact checking report was posted. Missing values are replaced with empty strings
 - `review_url`: URL for the full fact checking report
 - `reviewer_name`: the name of the fact checking service.
 - `claim_text`: the full text of the claim being reviewed.
-- `claim_author_name`: the author of the claim being reviewed
-- `claim_date` the date of the claim
+- `claim_author_name`: the author of the claim being reviewed. Missing values are replaced with empty strings
+- `claim_date` the date of the claim. Missing values are replaced with empty strings
 - `review_rating`: the judgments of the fact checker (under `alternateName`, names vary by fact checker)
 
 ### Data Splits
