@@ -62,8 +62,6 @@ from setuptools import setup
 DOCLINES = __doc__.split('\n')
 
 REQUIRED_PKGS = [
-    # For iterative parsing JSON files
-    "ijson",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     'numpy>=1.17',
     # Backend and serialization. Minimum 0.17.1 to support extension array
@@ -100,6 +98,7 @@ TESTS_REQUIRE = [
     'conllu',
     'elasticsearch',
     'faiss-cpu',
+    'ijson',
     'langdetect',
     'lxml',
     'mwparserfromhell',
