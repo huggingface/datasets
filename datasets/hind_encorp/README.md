@@ -89,11 +89,6 @@ Hindi, English
 ### Data Instances
 
 HindEncorp Columns:
-------------------
-
-The files hindencorp05.plaintext.gz and hindencorp05.export.gz each contain the
-parallel corpus and differ only in the processing of the corpus texts. The
-files have these columns:
 
 - source identifier (where do the segments come from)
 - alignment type (number of English segments - number of Hindi segments)
@@ -111,12 +106,11 @@ above.
 
 If there are more than one segments on a line (e.g. for lines with alignment
 type 2-1 where there are two English segments), then the segments are delimited
-with '<s>' in the text field.
+with `<s>` in the text field.
 
 ### Data Fields
 
 Plaintext vs. Export File Format
---------------------------------
 
 Both the monolingual and the parallel corpus come in a simple plain text format
 and in a tokenized, tagged and lemmatized format.
@@ -132,28 +126,17 @@ Danda in some sources), we escape it as 'pipe;'.
 There is exactly the same number of lines in the plaintext and export file
 formats.
 
+Only the plaintext format is available in the huggingface datasets library.
+
 ### Data Splits
 
 [More Information Needed]
 
 ## Dataset Creation
 
-### Properties of data 
------------------
-
-All the files are plain text:
-
-- compressed with gzip
-- encoded in UTF-8
-- with unix line breaks (LF)
-- with tab-delimited columns
-
-The monolingual and parallel corpora have different columns.
-
-The actual corpus text is stored in one (monolingual corpus) or two (parallel
-corpus) of the columns.
-
 ### Source Data
+
+[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
