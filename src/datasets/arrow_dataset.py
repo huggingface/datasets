@@ -75,7 +75,7 @@ class DatasetInfoMixin(object):
 
     @property
     def split(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property

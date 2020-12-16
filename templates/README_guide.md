@@ -150,7 +150,7 @@ Please discuss some of the ways you believe the use of this dataset will impact 
 
 The statement should include both positive outlooks, such as outlining how technologies developed through its use may improve people's lives, and discuss the accompanying risks. These risks may range from making important decisions more opaque to people who are affected by the technology, to reinforcing existing harmful biases (whose specifics should be discussed in the next section), among other considerations.
 
-Please also mention in this section if the proposed dataset contains a *low-resource* or under-represented language.
+Also describe in this section if the proposed dataset contains a low-resource or under-represented language. If this is the case or if this task has any impact on underserved communities, please elaborate here.
 
 ### Discussion of Biases
 
