@@ -40,7 +40,9 @@ _HOMEPAGE = "https://matnsaz.net/en/makhzan"
 
 _LICENSE = "All files in the /text directory are covered under standard copyright. Each piece of text has been included in this repository with explicity permission of respective copyright holders, who are identified in the <meta> tag for each file. You are free to use this text for analysis, research and development, but you are not allowed to redistribute or republish this text. Some cases where a less restrictive license could apply to files in the /text directory are presented below. In some cases copyright free text has been digitally reproduced through the hard work of our collaborators. In such cases we have credited the appropriate people where possible in a notes field in the file's metadata, and we strongly encourage you to contact them before redistributing this text in any form. Where a separate license is provided along with the text, we have provided corresponding data in the publication field in a file's metadata."
 
-_DOWNLOAD_URL = "https://github.com/zeerakahmed/makhzan/archive/master.zip"
+_SHA = "99db56552d6781dcd184bdd3466bce15fd0a1ec0"
+
+_DOWNLOAD_URL = "https://github.com/zeerakahmed/makhzan/archive/" + _SHA + ".zip"
 
 
 class Makhzan(datasets.GeneratorBasedBuilder):
@@ -83,7 +85,7 @@ class Makhzan(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_dir):
         """ Yields examples. """
         data_dir_path = Path(data_dir)
-        data_dir_path = data_dir_path / "makhzan-master" / "text"
+        data_dir_path = data_dir_path / ("makhzan-" + _SHA) / "text"
         file_paths = sorted(data_dir_path.glob(r"*.xml"))
         for id_, file_path in enumerate(file_paths):
             with file_path.open(encoding="utf-8") as f:
