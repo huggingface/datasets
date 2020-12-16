@@ -74,25 +74,37 @@ csv file with "," delimeter
 
 Sample:
 
-| issue\_num | page\_count | date       | date\_he        | year | href                               | pdf                                               | coverpage                                         | backpage                                          | content                                               | url                                    | 
-| ---------- | ----------- | ---------- | --------------- | ---- | ---------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------- | -------------------------------------- | 
-| 2403       | 72          | 1983-09-20 | 20 בספטמבר 1983 | 1983 | https://thisworld.online/1983/2403 | https://olam.eu-central-1.linodeobjects.com/pd... | https://olam.eu-central-1.linodeobjects.com/pa... | https://olam.eu-central-1.linodeobjects.com/pa... | ,י״ג תשרי תשמ״ד20.9.83 ,\\n\\nמיסטר 2403\\n\\nכתבת... | https://thisworld.online/api/1983/2403 |
+```json
+{
+  "issue_num": "637",
+  "page_count": "16",
+  "date": "1950-01-01",
+  "date_he": "1 בינואר 1950",
+  "year": "1950",
+  "href": "https://thisworld.online/1950/637",
+  "pdf": "https://olam.eu-central-1.linodeobjects.com/pdfs/B-I0637-D010150.pdf",
+  "coverpage": "https://olam.eu-central-1.linodeobjects.com/pages/637/t-1.png",
+  "backpage": "https://olam.eu-central-1.linodeobjects.com/pages/637/t-16.png",
+  "content": "\nלפיד\nהנוער ־ בירושלים צילומים :\n\nב. רותנברג\n\nוזהו הלפיד\n...",
+  "url": "https://thisworld.online/api/1950/637"
+}
 
 
+```
 
 ### Data Fields
 
-- `issue_num`: The modern hebrew inpput text.
-- `page_count`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `date`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `date_he`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `year`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `href`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `pdf`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `coverpage`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `backpage`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `content`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
-- `url`: The sentiment label. 0=positive , 1=negative, 2=off-topic.
+- `issue_num`: ID/Number of the issue 
+- `page_count`: Page count of the current issue
+- `date`: Published date
+- `date_he`: Published date in Hebrew
+- `year`: Year of the issue
+- `href`: URL to the issue to scan/print etc.
+- `pdf`:  URL to the issue to scan in pdf
+- `coverpage`:  URL to coverpage
+- `backpage`: URL to backpage
+- `content`: text content of the issue
+- `url`: URL 
 
 
 ### Data Splits

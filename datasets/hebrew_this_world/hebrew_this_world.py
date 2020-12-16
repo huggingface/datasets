@@ -51,8 +51,8 @@ class HebrewThisWorld(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "issue_num": datasets.Value("string"),
-                    "page_count": datasets.Value("string"),
+                    "issue_num": datasets.Value("int64"),
+                    "page_count": datasets.Value("int64"),
                     "date": datasets.Value("string"),
                     "date_he": datasets.Value("string"),
                     "year": datasets.Value("string"),
