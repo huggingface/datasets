@@ -84,7 +84,7 @@ class Makhzan(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         data_dir_path = Path(data_dir)
         data_dir_path = data_dir_path / "makhzan-master" / "text"
-        file_paths = data_dir_path.glob(r"*.xml")
+        file_paths = sorted(data_dir_path.glob(r"*.xml"))
         for id_, file_path in enumerate(file_paths):
             with file_path.open(encoding="utf-8") as f:
                 example = {
