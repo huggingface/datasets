@@ -124,8 +124,8 @@ class DiplomacyDetection(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "messages": datasets.Sequence(datasets.Value("string")),
-                "sender_labels": datasets.Sequence(datasets.ClassLabel(names=["true", "false"])),
-                "receiver_labels": datasets.Sequence(datasets.ClassLabel(names=["true", "false", "noannotation"])),
+                "sender_labels": datasets.Sequence(datasets.ClassLabel(names=["false", "true"])),
+                "receiver_labels": datasets.Sequence(datasets.ClassLabel(names=["false", "true", "noannotation"])),
                 "speakers": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
                 "receivers": datasets.Sequence(datasets.ClassLabel(names=_PLAYABLE_COUNTRIES)),
                 "absolute_message_index": datasets.Sequence(datasets.Value("int64")),
