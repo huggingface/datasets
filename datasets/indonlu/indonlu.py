@@ -44,7 +44,7 @@ _INDONLU_HOMEPAGE = "https://www.indobenchmark.com/"
 _INDONLU_LICENSE = "https://raw.githubusercontent.com/indobenchmark/indonlu/master/LICENSE"
 
 
-class IndoNluConfig(datasets.BuilderConfig):
+class IndonluConfig(datasets.BuilderConfig):
     """BuilderConfig for IndoNLU"""
 
     def __init__(
@@ -72,7 +72,7 @@ class IndoNluConfig(datasets.BuilderConfig):
           citation: `string`, citation for the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        super(IndoNluConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(IndonluConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
@@ -82,11 +82,11 @@ class IndoNluConfig(datasets.BuilderConfig):
         self.citation = citation
 
 
-class IndoNlu(datasets.GeneratorBasedBuilder):
+class Indonlu(datasets.GeneratorBasedBuilder):
     """Indonesian Natural Language Understanding (IndoNLU) benchmark"""
 
     BUILDER_CONFIGS = [
-        IndoNluConfig(
+        IndonluConfig(
             name="emot",
             description=textwrap.dedent(
                 """\
@@ -114,7 +114,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="smsa",
             description=textwrap.dedent(
                 """\
@@ -143,7 +143,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="casa",
             description=textwrap.dedent(
                 """\
@@ -172,7 +172,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="hoasa",
             description=textwrap.dedent(
                 """\
@@ -212,7 +212,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="wrete",
             description=textwrap.dedent(
                 """\
@@ -242,7 +242,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="posp",
             description=textwrap.dedent(
                 """\
@@ -296,7 +296,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="bapos",
             description=textwrap.dedent(
                 """\
@@ -373,7 +373,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="terma",
             description=textwrap.dedent(
                 """\
@@ -405,7 +405,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="keps",
             description=textwrap.dedent(
                 """\
@@ -434,7 +434,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="nergrit",
             description=textwrap.dedent(
                 """\
@@ -459,7 +459,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="nerp",
             description=textwrap.dedent(
                 """\
@@ -498,7 +498,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             ),
         ),
-        IndoNluConfig(
+        IndonluConfig(
             name="facqa",
             description=textwrap.dedent(
                 """\
