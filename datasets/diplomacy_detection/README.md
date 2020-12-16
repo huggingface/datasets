@@ -1,14 +1,22 @@
 ---
-YAML tags:
-annotations_creators: [found]
-language_creators: [found]
-languages: [en]
-licenses: [unknown]
-multilinguality: [monolingual]
-size_categories: [n<1K]
-source_datasets: [original]
-task_categories: [text-classification]
-task_ids: [intent-classification]
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- intent-classification
 ---
 
 # Dataset Card for HateOffensive
@@ -51,6 +59,8 @@ English
 
 ## Dataset Structure
 ### Data Instances
+
+```
 {
 "messages": 
 ["Greetings Sultan!\n\nAs your neighbor I would like to propose an alliance! What are your views on the board so far?", "I think an alliance would be great! Perhaps a dmz in the Black Sea would be a good idea to solidify this alliance?\n\nAs for my views on the board, my first moves will be Western into the Balkans and Mediterranean Sea.", "Sounds good lets call a dmz in the black sea", "What's our move this year?", "I've been away from the game for a while", "Not sure yet, what are your thoughts?", "Well I'm pretty worried about Germany attacking me (and Austria to a lesser extent) so im headed west. It looks like Italy's landing a army in Syr this fall unless you can stop it", "That sounds good to me. I'll move to defend against Italy while you move west. If it's not too much too ask, I'd like to request that you withdraw your fleet from bla.", "Oh sorry missed the msg to move out of bl sea ill do that this turn. I did bring my army down into Armenia, To help you expel the Italian. It looks like Austria and Italy are working together. If we have a chance in the region you should probably use smy to protect con. We can't afford to lose con.", "I'll defend con from both ank and smy.", "Hey sorry for stabbing you earlier, it was an especially hard choice since Turkey is usually my country of choice. It's cool we got to do this study huh?"], 
@@ -67,22 +77,22 @@ English
 "players": ["russia", "turkey"], 
 "game_id": 10
 }
+```
 
 ### Data Fields
-{
-speakers: the sender of the message (string format. Seven possible values: russia, turkey, england, austria, germany, france, italy)
-receivers: the receiver of the message (string format. Seven possible values: russia, turkey, england, austria, germany, france, italy)
-messages: the raw message string (string format. ranges in length from one word to paragraphs in length)
-sender_labels: indicates if the sender of the message selected that the message is truthful, true, or deceptive, false. This is used for our ACTUAL_LIE calculation (true/false which can be bool or string format)
-receiver_labels: indicates if the receiver of the message selected that the message is perceived as truthful, true, or deceptive, false. In <10% of the cases, no annotation was received. This is used for our SUSPECTED_LIE calculation (string format. true/false/"NOANNOTATION" )
-game_score: the current game score---supply centers---of the sender (string format that ranges can range from 0 to 18)
-game_score_delta: the current game score---supply centers---of the sender minus the game score of the recipient (string format that ranges from -18 to 18)
-absolute_message_index: the index the message is in the entire game, across all dialogs (int format)
-relative_message_index: the index of the message in the current dialog (int format)
-seasons: the season in Diplomacy, associated with the year (string format. Spring, Fall, Winter)
-years: the year in Diplomacy, associated with the season (string format. 1901 through 1918)
-game_id: which of the 12 games the dialog comes from (int format ranging from 1 to 12)
-}
+
+- speakers: the sender of the message (string format. Seven possible values: russia, turkey, england, austria, germany, france, italy)
+- receivers: the receiver of the message (string format. Seven possible values: russia, turkey, england, austria, germany, france, italy)
+- messages: the raw message string (string format. ranges in length from one word to paragraphs in length)
+- sender_labels: indicates if the sender of the message selected that the message is truthful, true, or deceptive, false. This is used for our ACTUAL_LIE calculation (true/false which can be bool or string format)
+- receiver_labels: indicates if the receiver of the message selected that the message is perceived as truthful, true, or deceptive, false. In <10% of the cases, no annotation was received. This is used for our SUSPECTED_LIE calculation (string format. true/false/"NOANNOTATION" )
+- game_score: the current game score---supply centers---of the sender (string format that ranges can range from 0 to 18)
+- game_score_delta: the current game score---supply centers---of the sender minus the game score of the recipient (string format that ranges from -18 to 18)
+- absolute_message_index: the index the message is in the entire game, across all dialogs (int format)
+- relative_message_index: the index of the message in the current dialog (int format)
+- seasons: the season in Diplomacy, associated with the year (string format. Spring, Fall, Winter)
+- years: the year in Diplomacy, associated with the season (string format. 1901 through 1918)
+- game_id: which of the 12 games the dialog comes from (int format ranging from 1 to 12)
 
 ### Data Splits
 Train, Test, Validation
@@ -136,7 +146,6 @@ Train, Test, Validation
 ### Dataset Curators
 
 [More Information Needed]
-
 
 ### Licensing Information
 Unknown
