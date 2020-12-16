@@ -15,8 +15,8 @@
 """TODO: Add a description here."""
 
 from __future__ import absolute_import, division, print_function
-import datasets
 
+import datasets
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -78,11 +78,10 @@ class HindEncorp(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "id": datasets.Value("string"),
-                "source": datasets.Sequence(datasets.Value("string")),
-                "alignment_type": datasets.Sequence(datasets.Value("string")),
-                "alignment_quality": datasets.Sequence(datasets.Value("string")),
-                "English": datasets.Sequence(datasets.Value("string")),
-                "Hindi": datasets.Sequence(datasets.Value("string"))
+                "source": datasets.Value("string"),
+                "alignment_type": datasets.Value("string"),
+                "alignment_quality": datasets.Value("string"),
+                "translation": datasets.features.Translation(languages=["en", "hi"])
                 # These are the features of your dataset like images, labels ...
             }
         )
@@ -131,43 +130,15 @@ class HindEncorp(datasets.GeneratorBasedBuilder):
 
         # for filepath in filepath:
         with open(filepath, encoding="utf-8") as f:
-            id_ = 0
-            source = []
-            alignment_type = []
-            alignment_quality = []
-            English = []
-            Hindi = []
-            for line in f:
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n" or line == "\t":
-                    if source:
-                        yield id_, {
-                            "id": str(id_),
-                            "source": source,
-                            "alignment_type": alignment_type,
-                            "alignment_quality": alignment_quality,
-                            "English": English,
-                            "Hindi": Hindi,
-                        }
-                        id_ += 1
-                        source = []
-                        alignment_type = []
-                        alignment_quality = []
-                        English = []
-                        Hindi = []
-                else:
-                    # conll2003 tokens are space separated
-                    splits = line.split("\t")
-                    source.append(splits[0])
-                    alignment_type.append(splits[1])
-                    alignment_quality.append(splits[2])
-                    English.append(splits[3])
-                    Hindi.append(splits[4])
-            # last exampleguid
-            yield id_, {
-                "id": str(id_),
-                "source": source,
-                "alignment_type": alignment_type,
-                "alignment_quality": alignment_quality,
-                "English": English,
-                "Hindi": Hindi,
-            }
+            for id_, line in enumerate(f):
+                    splits = line.strip().split("\t")
+                    yield id_, {
+                        "id": str(id_),
+                        "source": splits[0],
+                        "alignment_type": splits[1],
+                        "alignment_quality": splits[2],
+                        "translation": {
+                            "en": splits[3],
+                            "hi": splits[4]
+                        },
+                    }
