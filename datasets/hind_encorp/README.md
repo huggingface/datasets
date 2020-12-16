@@ -1,6 +1,22 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+- machine-generated
+languages:
+- en
+- hi
+licenses:
+- cc-by-nc-sa-3.0
+multilinguality:
+- translation
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories: []
+task_ids: []
 ---
 
 # Dataset Card for [Dataset Name]
@@ -109,7 +125,7 @@ given the diverse sources included in our corpus).
 The 'export' format is tokenized and represents each token as a '|'-delimited
 triple of: the word form, the lemma, and part-of-speech tag. If there was the
 character '|' (this character is also used instead of the proper Devanagari
-Danda in some sources), we escape it as '&pipe;'.
+Danda in some sources), we escape it as 'pipe;'.
 
 There is exactly the same number of lines in the plaintext and export file
 formats.]
