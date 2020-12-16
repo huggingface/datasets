@@ -111,5 +111,4 @@ class TedIwlst2013(datasets.GeneratorBasedBuilder):
                         "translation": {l1: x, l2: y},
                     },
                 )
-                sentence_counter += 1
                 yield result
