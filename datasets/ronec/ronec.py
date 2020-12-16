@@ -183,13 +183,20 @@ class RONEC(datasets.GeneratorBasedBuilder):
                     if splits[10].startswith("O") and not has_started:
                         continue
                     elif splits[10].startswith("B-"):
-                        begin = len(sent) - len(splits[1])
-                        last = len(sent)
+                        if splits[9] == "SpaceAfter=No":
+                            begin = len(sent) - len(splits[1])
+                            last = len(sent)
+                        else:
+                            begin = len(sent) - len(splits[1]) - 1
+                            last = len(sent) - 1
                         label = splits[10][2:]
                         has_started = True
                     elif splits[10].startswith("I-"):
-                        last = len(sent)
-                    elif splits[10].startswith("O") and begin:
+                        if splits[9] == "SpaceAfter=No":
+                            last = len(sent)
+                        else:
+                            last = len(sent) - 1
+                    elif splits[10].startswith("O") and has_started:
                         ronec_class.append(label)
                         start.append(begin)
                         end.append(last)

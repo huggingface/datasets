@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-retrieval
+- structure-prediction
 task_ids:
-- entity-linking-retrieval
+- named-entity-recognition
 ---
 
 # Dataset Card for [Needs More Information]
@@ -51,7 +51,7 @@ task_ids:
 - **Repository:** https://github.com/dumitrescustefan/ronec
 - **Paper:** https://arxiv.org/abs/1909.01247
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Point of Contact:** dumitrescu.stefan@gmail.com, avram.andreimarius@gmail.com
 
 ### Dataset Summary
 
@@ -64,13 +64,18 @@ belonging to 16 distinct classes. It represents the first initiative in the Roma
 
 ### Languages
 
-Romanian
+Romanian (`ro`)
 
 ## Dataset Structure
 
 ### Data Instances
 
-[Needs More Information]
+{'end': [19, 28, 42, 80], 
+ 'id': '1', 
+ 'ronec_class': [13, 4, 13, 8], 
+ 'sentence': ['Secretarul de stat al S.U.A., Colin Powell, începe un turneu în țările asiatice afectate de valurile seismice uriașe.'], 
+ 'start': [1, 22, 31, 72]
+}
 
 ### Data Fields
 
@@ -104,7 +109,7 @@ Romanian
 
 #### Annotation process
 
-[Needs More Information]
+The corpus creation process involved a small number ofpeople that have voluntarily joined the initiative, with theauthors of this paper directing the wor
 
 #### Who are the annotators?
 
@@ -140,4 +145,9 @@ MIT License
 
 ### Citation Information
 
-[Needs More Information]
+@article{dumitrescu2019introducing,
+  title={Introducing RONEC--the Romanian Named Entity Corpus},
+  author={Dumitrescu, Stefan Daniel and Avram, Andrei-Marius},
+  journal={arXiv preprint arXiv:1909.01247},
+  year={2019}
+}
