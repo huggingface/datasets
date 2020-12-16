@@ -129,6 +129,8 @@ An example of the data field will be:
 | sentiment_score | Sentiment score -1.0 to 1.0 |
 | subjectivity_score | Subjectivity scores 0 to 1 |
 
+Missing values are replaced with empty strings or -1 (-100 for missing sentiment_score).
+
 
 ### Data Splits
 
