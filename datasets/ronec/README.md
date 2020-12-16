@@ -55,8 +55,7 @@ task_ids:
 
 ### Dataset Summary
 
-The RONEC (Named Entity Corpus for the Romanian language) dataset  contains over 26000 entities in ~5000 annotated sentence,
-belonging to 16 distinct classes. It represents the first initiative in the Romanian language space specifically targeted for named entity recognition.
+We present RONEC - the Named Entity Corpus for the Romanian language. The corpus contains over 26000 entities in 5000 annotatedsentences, belonging to 16 distinct classes. The sentenceshave been extracted from a copy-right free newspaper, covering severalstyles. This corpus represents the first initiative in the Romanian language space specifically targeted for named entity recognition.
 
 ### Supported Tasks and Leaderboards
 
@@ -64,11 +63,13 @@ belonging to 16 distinct classes. It represents the first initiative in the Roma
 
 ### Languages
 
-Romanian (`ro`)
+The text dataset is in Romanian (`ro`)
 
 ## Dataset Structure
 
 ### Data Instances
+
+An example looks like this:
 
 {'end': [19, 28, 42, 80], 
  'id': '1', 
@@ -87,19 +88,21 @@ Romanian (`ro`)
 
 ### Data Splits
 
-[Needs More Information]
+The dataset was also split in train (80%), dev (10%) and test (10%) 
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+From the original paper:
+
+*The corpus, at its current version 1.0 is composed of5127 sentences, annotated with16 classes, for a totalof26377 annotated entities. The 16 classes are: PER-SON, NATRELPOL, ORG, GPE, LOC, FACILITY,PRODUCT,  EVENT,  LANGUAGE,  WORKOFART,DATETIME,  PERIOD,  MONEY,  QUANTITY,  NU-MERICVALUE and ORDINAL. It is based on copyright-free text extracted from SoutheastEuropean Times (SETimes) (Tyers and Alperen, 2010).The news portal has published10“news and views fromSoutheast Europe” in ten languages, including Romanian.SETimes has been used in the past for several annotatedcorpora, including parallel corpora for machine translation.For RONEC we have used a hand-picked11selection of sen-tences belonging to several categories* 
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+*The corpus creation process involved a small number ofpeople that have voluntarily joined the initiative, with theauthors of this paper directing the work.  Initially, wesearched for NER resources in Romanian, and found none.Then we looked at English resources and read the in-depthACE guide, out of which a 16-class draft evolved. We thenidentified a copy-right free text from which we hand-pickedsentences to maximize the amount of entities while main-taining style balance. The annotation process was a trial-and-error, with cycles composed of annotation, discussingconfusing entities, updating the annotation guide schematicand going through the corpus section again to correct enti-ties following guide changes.*
 
 #### Who are the source language producers?
 
@@ -109,7 +112,7 @@ Romanian (`ro`)
 
 #### Annotation process
 
-The corpus creation process involved a small number ofpeople that have voluntarily joined the initiative, with theauthors of this paper directing the wor
+*The corpus creation process involved a small number ofpeople that have voluntarily joined the initiative, with theauthors of this paper directing the work.  Initially, wesearched for NER resources in Romanian, and found none.Then we looked at English resources and read the in-depthACE guide, out of which a 16-class draft evolved. We thenidentified a copy-right free text from which we hand-pickedsentences to maximize the amount of entities while main-taining style balance. The annotation process was a trial-and-error, with cycles composed of annotation, discussingconfusing entities, updating the annotation guide schematicand going through the corpus section again to correct enti-ties following guide changes.*
 
 #### Who are the annotators?
 
