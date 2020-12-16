@@ -183,31 +183,31 @@ class DutchSocial(datasets.GeneratorBasedBuilder):
             tweets = json.load(f)
             for id_, data in enumerate(tweets):
                 yield id_, {
-                    "full_text": " " if not isinstance(data["full_text"], str) else data["full_text"],
-                    "text_translation": " "
+                    "full_text": "" if not isinstance(data["full_text"], str) else data["full_text"],
+                    "text_translation": ""
                     if not isinstance(data["text_translation"], str)
                     else data["text_translation"],
-                    "screen_name": " " if not isinstance(data["screen_name"], str) else data["screen_name"],
-                    "description": " " if not isinstance(data["description"], str) else data["description"],
-                    "desc_translation": " "
+                    "screen_name": "" if not isinstance(data["screen_name"], str) else data["screen_name"],
+                    "description": "" if not isinstance(data["description"], str) else data["description"],
+                    "desc_translation": ""
                     if not isinstance(data["desc_translation"], str)
                     else data["desc_translation"],
-                    "location": " " if not isinstance(data["location"], str) else data["location"],
+                    "location": "" if not isinstance(data["location"], str) else data["location"],
                     "weekofyear": -1 if data["weekofyear"] is None else data["weekofyear"],
                     "weekday": -1 if data["weekday"] is None else data["weekday"],
                     "month": -1 if data["month"] is None else data["month"],
                     "year": -1 if data["year"] is None else data["year"],
                     "day": -1 if data["day"] is None else data["day"],
-                    "point_info": " " if isinstance(data["point_info"], str) else data["point_info"],
-                    "point": " " if not isinstance(data["point"], str) else data["point"],
+                    "point_info": "" if isinstance(data["point_info"], str) else data["point_info"],
+                    "point": "" if not isinstance(data["point"], str) else data["point"],
                     "latitude": -1 if data["latitude"] is None else data["latitude"],
                     "longitude": -1 if data["longitude"] is None else data["longitude"],
                     "altitude": -1 if data["altitude"] is None else data["altitude"],
-                    "province": " " if not isinstance(data["province"], str) else data["province"],
-                    "hisco_standard": " " if not isinstance(data["hisco_standard"], str) else data["hisco_standard"],
-                    "hisco_code": " " if not isinstance(data["hisco_code"], str) else data["hisco_code"],
+                    "province": "" if not isinstance(data["province"], str) else data["province"],
+                    "hisco_standard": "" if not isinstance(data["hisco_standard"], str) else data["hisco_standard"],
+                    "hisco_code": "" if not isinstance(data["hisco_code"], str) else data["hisco_code"],
                     "industry": False if not isinstance(data["industry"], bool) else data["industry"],
-                    "sentiment_pattern": -1 if data["sentiment_pattern"] is None else data["sentiment_pattern"],
+                    "sentiment_pattern": -100 if data["sentiment_pattern"] is None else data["sentiment_pattern"],
                     "subjective_pattern": -1 if data["subjective_pattern"] is None else data["subjective_pattern"],
                     "label": data["label"],
                 }
