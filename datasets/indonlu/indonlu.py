@@ -634,11 +634,11 @@ class Indonlu(datasets.GeneratorBasedBuilder):
                         id_ += 1
                         tokens = []
                         seq_label = []
-                    # add last example
-                    if tokens:
-                        if self.config.name in txt_file:
-                            yield id_, {"tokens": tokens, "seq_label": seq_label}
-                        elif self.config.name in txt_file_pos:
-                            yield id_, {"tokens": tokens, "pos_tags": seq_label}
-                        elif self.config.name in txt_file_ner:
-                            yield id_, {"tokens": tokens, "ner_tags": seq_label}
+                # add last example
+                if tokens:
+                    if self.config.name in txt_file:
+                        yield id_, {"tokens": tokens, "seq_label": seq_label}
+                    elif self.config.name in txt_file_pos:
+                        yield id_, {"tokens": tokens, "pos_tags": seq_label}
+                    elif self.config.name in txt_file_ner:
+                        yield id_, {"tokens": tokens, "ner_tags": seq_label}

@@ -206,11 +206,11 @@ A data point consists of `sentence` and multi-label `ac`, `air_panas`, `bau`, `g
 
 5. `WreTE` dataset
 
-A data point consists of `sent_A`, `sent_B`, `category`, and `label`. An example from the train set looks as follows:
+A data point consists of `premise`, `hypothesis`, `category`, and `label`. An example from the train set looks as follows:
 ```
 {
-  'sent_A': 'Pada awalnya bangsa Israel hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kanan pada abad 18 SM .',
-  'sent_B': 'Pada awalnya bangsa Yahudi hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kanan pada abad 18 SM .'
+  'premise': 'Pada awalnya bangsa Israel hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kanan pada abad 18 SM .',
+  'hypothesis': 'Pada awalnya bangsa Yahudi hanya terdiri dari satu kelompok keluarga di antara banyak kelompok keluarga yang hidup di tanah Kanan pada abad 18 SM .'
   'category': 'menolak perubahan teks terakhir oleh istimewa kontribusi pengguna 141 109 98 87 141 109 98 87 dan mengembalikan revisi 6958053 oleh johnthorne',
   'label': 0,
 }
@@ -324,8 +324,8 @@ A data point consists of `question`, `passage`, and `seq_label`. An example from
 
 5. `WReTE` dataset
 
-- `sent_A`: a `string` feature.
-- `sent_B`: a `string` feature.
+- `premise`: a `string` feature.
+- `hypothesis`: a `string` feature.
 - `category`: a `string` feature.
 - `label`: a classification label, with possible values including `NotEntail`, `Entail_or_Paraphrase`.
 
