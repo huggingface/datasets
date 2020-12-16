@@ -84,7 +84,18 @@ The text is primarily in English. The BCP 47 code is `en`
 
 ### Data Instances
 
-[More Information Needed]
+"""
+{'seq_id': 7770,
+  'medline_ui': 87120420,
+  'mesh_terms': 'Adult; Aged; Aneurysm/CO; Arteriovenous Fistula/*TH; Carotid Arteries; Case Report; Female; Human; Jugular Veins; Male; Methods; Middle Age; Neck/*BS; Vertebral Artery.',
+  'title': 'Arteriovenous fistulas of the large vessels of the neck: nonsurgical percutaneous occlusion.',
+  'publication_type': 'JOURNAL ARTICLE.',
+  'abstract': 'We describe the nonsurgical treatment of arteriovenous fistulas of the large vessels in the neck using three different means of endovascular occlusion of these large lesions, which are surgically difficult to approach and treat.',
+  'author': 'Vitek JJ; Keller FS.',
+  'source': 'South Med J 8705; 80(2):196-200'}
+
+"""
+
 
 ### Data Fields
 
