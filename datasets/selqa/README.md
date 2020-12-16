@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -16,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+---
 
 # Dataset Card for SelQA
 
@@ -68,6 +70,7 @@ English
 ### Data Instances
 
 An example from the `answer selection` set:
+```
 {
         "section": "Museums",
         "question": "Where are Rockefeller Museum and LA Mayer Institute for Islamic Art?",
@@ -92,8 +95,10 @@ An example from the `answer selection` set:
             "where"
         ]
     }
+```
 
 An example from the `answer triggering` set:
+```
 {
         "section": "Museums",
         "question": "Where are Rockefeller Museum and LA Mayer Institute for Islamic Art?",
@@ -166,8 +171,10 @@ An example from the `answer triggering` set:
             "where"
         ]
     }
+```
 
 An example from any of the `experiments` data:
+```
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	The Israel Museum in Jerusalem is one of Israel 's most important cultural institutions and houses the Dead Sea scrolls , along with an extensive collection of Judaica and European art .	0
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	Israel 's national Holocaust museum , Yad Vashem , is the world central archive of Holocaust - related information .	0
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	Beth Hatefutsoth ( the Diaspora Museum ) , on the campus of Tel Aviv University , is an interactive museum devoted to the history of Jewish communities around the world .	0
@@ -177,13 +184,14 @@ Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	Several Is
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	The Rockefeller specializes in archaeological remains from the Ottoman and other periods of Middle East history .	0
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	It is also the home of the first hominid fossil skull found in Western Asia called Galilee Man .	0
 Where are Rockefeller Museum and LA Mayer Institute for Islamic Art ?	A cast of the skull is on display at the Israel Museum .	0
+```
 
 ### Data Fields
 
 #### Answer Selection
 ##### Data for Analysis
 
-JSON files, `selqa-ass-(train|dev|test).json`, are provided for analysis: 
+for analysis, the columns are: 
 
 * `question`: the question.
 * `article`: the Wikipedia article related to this question.
@@ -196,7 +204,7 @@ JSON files, `selqa-ass-(train|dev|test).json`, are provided for analysis:
 
 ##### Data for Experiments
 
-TSV files, `selqa-ass-(train|dev|test).tsv`, are provided for experiments, where each column gives:
+for experiments, each column gives:
 
 * `0`: a question where all tokens are separated.
 * `1`: a candidate of the question where all tokens are separated.
@@ -205,7 +213,7 @@ TSV files, `selqa-ass-(train|dev|test).tsv`, are provided for experiments, where
 #### Answer Triggering
 ##### Data for Analysis
 
-JSON files, `selqa-at-(train|dev|test).json` are provided for analysis: 
+for analysis, the columns are: 
 
 * `question`: the question.
 * `article`: the Wikipedia article related to this question.
@@ -221,7 +229,7 @@ JSON files, `selqa-at-(train|dev|test).json` are provided for analysis:
 
 ##### Data for Experiments
 
-TSV files, `selqa-at-(train|dev|test).tsv`, are provided for experiments, where each column gives:
+for experiments, each column gives:
 
 * `0`: a question where all tokens are separated.
 * `1`: a candidate of the question where all tokens are separated.
