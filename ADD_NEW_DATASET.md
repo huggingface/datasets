@@ -71,9 +71,9 @@ You are now ready to start the process of adding the dataset. We will create the
 	- Read the relevant part of the paper/description presenting the dataset
 	- Find the location of the data for your dataset
 	- Download/open the data to see how it looks like
-	- While you explore and read about the dataset, you can complete some sections of the dataset card (the online form or the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in you readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
+	- While you explore and read about the dataset, you can complete some sections of the dataset card (the online form or the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in your readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
 
-		If you need more informations on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+		If you need more information on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
 		There is a also a (very detailed) example here: https://github.com/huggingface/datasets/tree/master/datasets/eli5.
 
@@ -145,6 +145,12 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 ```bash
 python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 ```
+
+**Note:** If your dataset requires manually downloading the data and having the user provide the path to the dataset you can run the following command:
+```bash
+python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
+```
+To have the configs use the path from `--data_dir` when generating them.
 
 ### Automatically add code metadata
 
