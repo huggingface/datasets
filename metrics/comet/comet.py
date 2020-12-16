@@ -131,12 +131,8 @@ class COMET(datasets.Metric):
         else:
             self.scorer = download_model(self.config_name)
 
-    def _compute(
-        self, sources, predictions, references, cuda=True, show_progress=False
-    ):
+    def _compute(self, sources, predictions, references, cuda=True, show_progress=False):
         data = {"src": sources, "mt": predictions, "ref": references}
         data = [dict(zip(data, t)) for t in zip(*data.values())]
-        samples, scores = self.scorer.predict(
-            data, cuda=cuda, show_progress=show_progress
-        )
+        samples, scores = self.scorer.predict(data, cuda=cuda, show_progress=show_progress)
         return {"scores": scores, "samples": samples}
