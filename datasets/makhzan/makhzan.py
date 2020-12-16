@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -97,26 +97,39 @@ class Makhzan(datasets.GeneratorBasedBuilder):
                     "contains-non-urdu-languages": "",
                     "document_body": "",
                 }
-                try:
-                    tree = ET.parse(f)
-                    root = tree.getroot()
-                    if root.tag == "document":
-                        example["file_id"] = file_path.name
-                        metadata = root.find("meta")
-                        if metadata:
-                            example["metadata"] = ET.tostring(metadata, encoding="unicode")
-                            example["title"] = metadata.find("title").text
-                            example["num-words"] = int(metadata.find("num-words").text)
-                            example["contains-non-urdu-languages"] = metadata.find("contains-non-urdu-languages").text
-                        else:
-                            raise ValueError('Missing tag "<meta>"')
-                        document_body = root.find("body")
-                        if document_body:
-                            example["document_body"] = ET.tostring(document_body, encoding="unicode")
-                        else:
-                            raise ValueError('Missing tag "<body>"')
+                xml = self._fix_format(f.read())
+                root = ET.fromstring(xml)
+                if root.tag == "document":
+                    example["file_id"] = file_path.name
+                    metadata = root.find("meta")
+                    if metadata:
+                        example["metadata"] = ET.tostring(metadata, encoding="unicode")
+                        example["title"] = metadata.find("title").text
+                        example["num-words"] = int(metadata.find("num-words").text)
+                        example["contains-non-urdu-languages"] = metadata.find("contains-non-urdu-languages").text
                     else:
-                        raise ValueError('Missing tag "<document>"')
-                    yield id_, example
-                except ET.ParseError:
-                    logging.warning("{:04d}.xml could not be parsed.".format(id_ + 1))
+                        raise ValueError('Missing tag "<meta>"')
+                    document_body = root.find("body")
+                    if document_body:
+                        example["document_body"] = ET.tostring(document_body, encoding="unicode")
+                    else:
+                        raise ValueError('Missing tag "<body>"')
+                else:
+                    raise ValueError('Missing tag "<document>"')
+                yield id_, example
+
+    def _fix_format(self, xml):
+        if "</body>" not in xml:
+            # add missing closing body
+            xml = xml.replace("</document>", "</body></document>")
+        if "</document>" not in xml:
+            # add missing closing document
+            xml = xml.replace("</body>", "</body></document>")
+        if xml.count("section>") % 2 == 1:
+            # remove last closing section
+            xml = xml[::-1].replace("</section>"[::-1], "", 1)[::-1]
+        # fix bad heading
+        xml = re.sub(r"<heading>(.+)<heading>", r"<heading>\g<1></heading>", xml)
+        # fix bad annotation
+        xml = re.sub(r"<</p>/annotation>", r"</p></annotation>", xml)
+        return xml
