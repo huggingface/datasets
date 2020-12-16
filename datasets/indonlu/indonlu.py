@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import textwrap
+import ast
 
 import six
 
@@ -597,7 +598,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                         yield id_, {"sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
                     elif self.config.name == "facqa":
                         question, passage, seq_label = row
-                        yield id_, {"question": eval(question), "passage": eval(passage), "seq_label": eval(seq_label)}
+                        yield id_, {"question": ast.literal_eval(question), "passage": ast.literal_eval(passage), "seq_label": ast.literal_eval(seq_label)}
                     elif self.config.name == "casa" or self.config.name == "hoasa":
                         sentence, *labels = row
                         sentence = {"sentence": sentence}
