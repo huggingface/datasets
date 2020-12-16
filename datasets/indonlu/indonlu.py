@@ -222,8 +222,8 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             derived from the first one, and not entailed otherwise."""
             ),
             text_features={
-                "sent_A": "sent_A",
-                "sent_B": "sent_B",
+                "premise": "premise",
+                "hypothesis": "hypothesis",
                 "category": "category",
             },
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
@@ -594,8 +594,8 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                         label, tweet = row
                         yield id_, {"tweet": tweet, "label": label}
                     elif self.config.name == "wrete":
-                        sent_A, sent_B, category, label = row
-                        yield id_, {"sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
+                        premise, hypothesis, category, label = row
+                        yield id_, {"premise": premise, "hypothesis": hypothesis, "category": category, "label": label}
                     elif self.config.name == "facqa":
                         question, passage, seq_label = row
                         yield id_, {"question": ast.literal_eval(question), "passage": ast.literal_eval(passage), "seq_label": ast.literal_eval(seq_label)}
