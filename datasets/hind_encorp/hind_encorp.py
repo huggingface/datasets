@@ -17,6 +17,7 @@
 from __future__ import absolute_import, division, print_function
 
 import datasets
+
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -105,40 +106,26 @@ class HindEncorp(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         data_dir = dl_manager.download_and_extract(_URLs)
-        # data_paths = [os.path.join(pth, f)
-        # for pth, dirs, files in os.walk(data_dir) for f in files]
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": data_dir},
             ),
         ]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        # for filepath in filepath:
         with open(filepath, encoding="utf-8") as f:
             for id_, line in enumerate(f):
-                    splits = line.strip().split("\t")
-                    yield id_, {
-                        "id": str(id_),
-                        "source": splits[0],
-                        "alignment_type": splits[1],
-                        "alignment_quality": splits[2],
-                        "translation": {
-                            "en": splits[3],
-                            "hi": splits[4]
-                        },
-                    }
+                splits = line.strip().split("\t")
+                yield id_, {
+                    "id": str(id_),
+                    "source": splits[0],
+                    "alignment_type": splits[1],
+                    "alignment_quality": splits[2],
+                    "translation": {"en": splits[3], "hi": splits[4]},
+                }
