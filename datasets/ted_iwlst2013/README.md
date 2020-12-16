@@ -4,21 +4,48 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ar
-- de
-- en
-- es
-- fa
-- fr
-- it
-- nl
-- pl
-- pt
-- ro
-- ru
-- sl
-- tr
-- zh
+  ar-en:
+  - ar
+  - en
+  de-en:
+  - de
+  - en
+  en-es:
+  - en
+  - es
+  en-fa:
+  - en
+  - fa
+  en-fr:
+  - en
+  - fr
+  en-it:
+  - en
+  - it
+  en-nl:
+  - en
+  - nl
+  en-pl:
+  - en
+  - pl
+  en-pt:
+  - en
+  - pt
+  en-ro:
+  - en
+  - ro
+  en-ru:
+  - en
+  - ru
+  en-sl:
+  - en
+  - sl
+  en-tr:
+  - en
+  - tr
+  en-zh:
+  - en
+  - zh
 licenses:
 - unknown
 multilinguality:
@@ -82,8 +109,7 @@ task_ids:
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 
