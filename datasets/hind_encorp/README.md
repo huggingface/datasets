@@ -21,7 +21,7 @@ task_ids:
 - machine-translation
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for HindEnCorp
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
