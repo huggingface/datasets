@@ -16,9 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import pickle
-from glob import glob
 
 import datasets
 
@@ -166,17 +164,8 @@ class WikiLingua(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        # The domain specific files are all in pkl format so when
-        # the download manager downloads it, the path returned is
-        # the actual file path where in tests we get the dir
-        data_dir = dl_manager.download_and_extract(my_urls)
         # See create_dummy.py to create new dummy data
-        if os.path.isdir(data_dir):
-            files = glob(f"{data_dir}/*")
-            # Will pickup the 1st file. Not sure if this is fine though
-            train_fname = files[0]
-        else:
-            train_fname = data_dir
+        train_fname = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
