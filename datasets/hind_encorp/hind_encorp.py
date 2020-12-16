@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -80,8 +79,7 @@ class HindEncorp(datasets.GeneratorBasedBuilder):
                 "source": datasets.Value("string"),
                 "alignment_type": datasets.Value("string"),
                 "alignment_quality": datasets.Value("string"),
-                "translation": datasets.features.Translation(languages=["en", "hi"])
-                # These are the features of your dataset like images, labels ...
+                "translation": datasets.features.Translation(languages=["en", "hi"]),
             }
         )
 
