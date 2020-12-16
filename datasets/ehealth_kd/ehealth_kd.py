@@ -46,18 +46,18 @@ _LICENSE = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 _URL = "https://raw.githubusercontent.com/knowledge-learning/ehealthkd-2020/master/data/"
 _TRAIN_DIR = "training/"
 _DEV_DIR = "development/main/"
-_TEST_DIR = "testing/scenario1-main/"
+_TEST_DIR = "testing/scenario3-taskB/"
 _TEXT_FILE = "scenario.txt"
 _ANNOTATIONS_FILE = "scenario.ann"
 
 
 class EHealthKD(datasets.GeneratorBasedBuilder):
-    """The eHealth-KD 2020 dataset."""
+    """The eHealth-KD 2020 Corpus."""
 
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="ehealth_kd", version=VERSION, description="eHealth-KD dataset"),
+        datasets.BuilderConfig(name="ehealth_kd", version=VERSION, description="eHealth-KD Corpus"),
     ]
 
     def _info(self):
@@ -138,11 +138,18 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
             entities = []
             relations = []
 
+            annotations = ann_file.readlines()
+            last = annotations[-1]
+
             # Create a variable to keep track of the last annotation (entity or relation) to know when a sentence is fully annotated
             # In the annotations file, the entities are before the relations
             last_annotation = ""
 
-            for annotation in ann_file:
+            for annotation in annotations:
+                if annotation == last:
+                    sentence = txt_file.readline().strip()
+                    yield _id, {"sentence": sentence, "entities": entities, "relations": relations}
+
                 if annotation.startswith("T"):
                     if last_annotation == "relation":
                         sentence = txt_file.readline().strip()
@@ -168,10 +175,11 @@ class EHealthKD(datasets.GeneratorBasedBuilder):
 
                     last_annotation = "entity"
 
-                if annotation.startswith("R"):
+                else:
                     rel_id, rel_label, arg1, arg2 = annotation.strip().split()
-                    arg1 = arg1.split(":")[1]
-                    arg2 = arg2.split(":")[1]
+                    if annotation.startswith("R"):
+                        arg1 = arg1.split(":")[1]
+                        arg2 = arg2.split(":")[1]
 
                     relations.append({"rel_id": rel_id, "rel_label": rel_label, "arg1": arg1, "arg2": arg2})
 

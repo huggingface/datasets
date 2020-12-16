@@ -16,8 +16,8 @@ source_datasets:
 task_categories:
 - structure-prediction
 task_ids:
-- coreference-resolution
 - named-entity-recognition
+- structure-prediction-other-relation-prediction
 ---
 
 # Dataset Card for eHealth-KD
@@ -65,7 +65,7 @@ The eHealth-KD challenge proposes two computational subtasks:
 - `named-entity-recognition`: Given a sentence of an eHealth document written in Spanish, the goal of this subtask is to 
 identify all the entities and their types.
 
-- `relation-extraction`: The purpose of this subtask is to recognise all relevant semantic relationships between the entities recognised.
+- `relation-prediction`: The purpose of this subtask is to recognise all relevant semantic relationships between the entities recognised.
 
 For an analysis of the most successful approaches of this challenge, read the [eHealth-KD overview paper](http://ceur-ws.org/Vol-2664/eHealth-KD_overview.pdf).
 
@@ -144,11 +144,12 @@ For more information about the types of entities and relations, click [here](htt
 
 The data is split into a training, validation and test set. The split sizes are as follow:
 
-|                 | Tain   | Val   | Test |
+|                 | Train  | Val   | Test |
 | -----           | ------ | ----- | ---- |
-| eHealth-KD 2020 | 792    | 198   | 1500 |
+| eHealth-KD 2020 | 800    | 199   | 100  |
 
-In the challenge there are 4 different scenarios for testing. The test data of this dataset corresponds to the main scenario (`scenario1-main`).
+In the challenge there are 4 different scenarios for testing. The test data of this dataset corresponds to the third scenario.
+More information about the testing data [here](https://github.com/knowledge-learning/ehealthkd-2020/tree/master/data/testing).
 
 ## Dataset Creation
 
