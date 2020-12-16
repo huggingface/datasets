@@ -62,7 +62,7 @@ _LICENSE = "CC BY-NC 4.0"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = {"ohsumed": "https://storage.googleapis.com/corona-tweet/ohsumed.zip"}
+_URLs = {"ohsumed": "https://trec.nist.gov/data/filtering/t9.filtering.tar.gz"}
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
@@ -136,32 +136,95 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
+                    "filepath": os.path.join(data_dir, "ohsu-trec/trec9-train/ohsumed.87"),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
+                gen_kwargs={"filepath": os.path.join(data_dir, "ohsu-trec/trec9-test/ohsumed.88-91"), "split": "test"},
             ),
         ]
 
+    
+    
+    
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
+    
+        def ohsumed_dict():
+            """Returns a dict."""
+
+            data = {"seq_id": -1,
+                        "medline_ui": -1,
+                        "mesh_terms": "",
+                        "title": "",
+                        "publication_type": "",
+                        "abstract": "",
+                        "author": "",
+                        "source": ""}
+
+            return data
+
+        tag = ""
+        column_map = {
+                        ".I": "seq_id", ".U": "medline_ui", ".M": "mesh_terms", ".T": "title", 
+                        ".P": "publication_type", ".W": "abstract", ".A": "author",
+                        ".S": "source"
+                    }
+        
         with open(filepath, encoding="utf-8") as f:
-            for id_, line in enumerate(f):
-                data = json.loads(line)
-                yield id_, {
-                    "seq_id": data["seq_id"],
-                    "medline_ui": data["medline_ui"],
-                    "mesh_terms": str(data["mesh_terms"]),
-                    "title": str(data["title"]),
-                    "publication_type": str(data["publication_type"]),
-                    "abstract": str(data["abstract"]),
-                    "author": str(data["author"]),
-                    "source": str(data["source"]),
-                }
+            for line in f.readlines():
+                line = line.strip()
+                
+                if tag and not line.startswith("."):
+                    key = column_map[tag]
+                    data[key] = line
+                    #if print_tag == True:
+                    #    print(key, line)
+                
+                if line.startswith(".I"):
+                    tag = ".I"
+                    try:
+                        if data:
+                            yield id_, {
+                                "seq_id": data["seq_id"],
+                                "medline_ui": data["medline_ui"],
+                                "mesh_terms": str(data["mesh_terms"]),
+                                "title": str(data["title"]),
+                                "publication_type": str(data["publication_type"]),
+                                "abstract": str(data["abstract"]),
+                                "author": str(data["author"]),
+                                "source": str(data["source"]),
+                                }
+
+                    except:
+                        #do nothing 
+                        x= 1+1 
+                
+                    data = ohsumed_dict()
+                    line = line.replace(".I", "").strip()
+                    data['seq_id'] = line
+                    id_ = line
+
+                elif ".U" in line:
+                    tag = ".U"
+                elif ".M" in line:
+                    tag = ".M"
+                elif ".T" in line:
+                    tag = ".T"
+                elif ".P" in line:
+                    tag = ".P"
+                elif ".W" in line:
+                    tag = ".W"
+                elif ".A" in line:
+                    tag = ".A"
+                elif ".S" in line:
+                    tag = ".S"
+
+                
+                
