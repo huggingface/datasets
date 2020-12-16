@@ -1,6 +1,4 @@
 ---
-YAML tags:
----
 annotations_creators:
 - expert-generated
 language_creators:
@@ -26,7 +24,7 @@ task_ids:
 
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for IRC Disentanglement
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -75,11 +73,51 @@ English (en)
 
 ### Data Instances
 
-[More Information Needed]
+For Ubuntu:
+
+data["train"][1050]
+
+{
+
+  'ascii': "[03:57] <Xophe> (also, I'm guessing that this isn't a good place to report minor but annoying bugs... what is?)", 
+
+  'connections': [1048, 1054, 1055, 1072, 1073], 
+
+  'date': '2004-12-25', 
+
+  'raw': "[03:57] <Xophe> (also, I'm guessing that this isn't a good place to report minor but annoying bugs... what is?)", 
+
+  'tokenized': "<s> ( also , i 'm guessing that this is n't a good place to report minor but annoying bugs ... what is ?) </s>"
+
+}
+
+For Channel_two:
+
+data["train"][50]
+
+{
+
+  'ascii': "[01:04] <Felicia> Chanel: i don't know off hand sorry", 
+
+  'connections': [49, 53], 
+
+  'raw': "[01:04] <Felicia> Chanel: i don't know off hand sorry", 
+
+  'tokenized': "<s> <user> : i do n't know off hand sorry </s>"
+
+}
 
 ### Data Fields
 
-[More Information Needed]
+'raw' : The original message from the IRC log, as downloaded.
+
+'ascii' : The raw message converted to ascii (unconvertable characters are replaced with a special word).
+
+'tokenized' : The same message with automatic tokenisation and replacement of rare words with placeholder symbols.
+
+'connections' : The indices of linked messages.
+
+(only ubuntu) 'date' : The date the messages are from. The labelling for each date only start after the first 1000 messages of that date.
 
 ### Data Splits
 
