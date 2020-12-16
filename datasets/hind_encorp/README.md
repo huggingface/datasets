@@ -15,8 +15,10 @@ size_categories:
 - n<1K
 source_datasets:
 - original
-task_categories: []
-task_ids: []
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for [Dataset Name]
@@ -54,7 +56,7 @@ task_ids: []
 
 ### Dataset Summary
 
-[HindEnCorp parallel texts (sentence-aligned) come from the following sources:
+HindEnCorp parallel texts (sentence-aligned) come from the following sources:
 Tides, which contains 50K sentence pairs taken mainly from news articles. This dataset was originally col- lected for the DARPA-TIDES surprise-language con- test in 2002, later refined at IIIT Hyderabad and provided for the NLP Tools Contest at ICON 2008 (Venkatapathy, 2008).
 
 Commentaries by Daniel Pipes contain 322 articles in English written by a journalist Daniel Pipes and translated into Hindi.
@@ -72,7 +74,7 @@ The Indic multi-parallel corpus (Birch et al., 2011; Post et al., 2012) is a cor
 
 Launchpad.net is a software collaboration platform that hosts many open-source projects and facilitates also collaborative localization of the tools. We downloaded all revisions of all the hosted projects and extracted the localization (.po) files.
 
-Other smaller datasets. This time, we added Wikipedia entities as crawled in 2013 (including any morphological variants of the named entitity that appears on the Hindi variant of the Wikipedia page) and words, word examples and quotes from the Shabdkosh online dictionary.]
+Other smaller datasets. This time, we added Wikipedia entities as crawled in 2013 (including any morphological variants of the named entitity that appears on the Hindi variant of the Wikipedia page) and words, word examples and quotes from the Shabdkosh online dictionary.
 
 ### Supported Tasks and Leaderboards
 
@@ -80,13 +82,13 @@ Other smaller datasets. This time, we added Wikipedia entities as crawled in 201
 
 ### Languages
 
-[Hindi, English]
+Hindi, English
 
 ## Dataset Structure
 
 ### Data Instances
 
-[HindEnCorp Columns
+HindEncorp Columns:
 ------------------
 
 The files hindencorp05.plaintext.gz and hindencorp05.export.gz each contain the
@@ -109,11 +111,11 @@ above.
 
 If there are more than one segments on a line (e.g. for lines with alignment
 type 2-1 where there are two English segments), then the segments are delimited
-with '<s>' in the text field.]
+with '<s>' in the text field.
 
 ### Data Fields
 
-[Plaintext vs. Export File Format
+Plaintext vs. Export File Format
 --------------------------------
 
 Both the monolingual and the parallel corpus come in a simple plain text format
@@ -128,7 +130,7 @@ character '|' (this character is also used instead of the proper Devanagari
 Danda in some sources), we escape it as 'pipe;'.
 
 There is exactly the same number of lines in the plaintext and export file
-formats.]
+formats.
 
 ### Data Splits
 
@@ -137,8 +139,6 @@ formats.]
 ## Dataset Creation
 
 ### Properties of data 
-
-[
 -----------------
 
 All the files are plain text:
@@ -151,7 +151,7 @@ All the files are plain text:
 The monolingual and parallel corpora have different columns.
 
 The actual corpus text is stored in one (monolingual corpus) or two (parallel
-corpus) of the columns.]
+corpus) of the columns.
 
 ### Source Data
 
@@ -161,13 +161,13 @@ corpus) of the columns.]
 
 #### Who are the source language producers?
 
-[Daniel Pipes,Baker,Bojar,"Čermák and Rosen,2012","Birch et al., 2011; Post et al., 2012",]
+Daniel Pipes,Baker,Bojar,"Čermák and Rosen,2012","Birch et al., 2011; Post et al., 2012"
 
 ### Annotations
 
 #### Annotation process
 
-[the 1st part of data TIDES was originally col- lected for the DARPA-TIDES surprise-language con- test in 2002, later refined at IIIT Hyderabad and provided for the NLP Tools Contest at ICON 2008 (Venkatapathy, 2008).]
+the 1st part of data TIDES was originally col- lected for the DARPA-TIDES surprise-language con- test in 2002, later refined at IIIT Hyderabad and provided for the NLP Tools Contest at ICON 2008 (Venkatapathy, 2008).
 #### Who are the annotators?
 
 [More Information Needed]
@@ -194,15 +194,15 @@ corpus) of the columns.]
 
 ### Dataset Curators
 
-[     Bojar, Ondřej ; Diatka, Vojtěch ; Straňák, Pavel ; Tamchyna, Aleš ; Zeman, Daniel ]
+Bojar, Ondřej ; Diatka, Vojtěch ; Straňák, Pavel ; Tamchyna, Aleš ; Zeman, Daniel 
 
 ### Licensing Information
 
-[CC BY-NC-SA 3.0]
+CC BY-NC-SA 3.0
 
 ### Citation Information
 
-[@InProceedings{hindencorp05:lrec:2014,
+@InProceedings{hindencorp05:lrec:2014,
   author = {Ond{\v{r}}ej Bojar and Vojt{\v{e}}ch Diatka
             and Pavel Rychl{\'{y}} and Pavel Stra{\v{n}}{\'{a}}k
             and V{\'{\i}}t Suchomel and Ale{\v{s}} Tamchyna and Daniel Zeman},
@@ -220,5 +220,5 @@ corpus) of the columns.]
   publisher = {European Language Resources Association (ELRA)},
   isbn = {978-2-9517408-8-4},
   language = {english}
-}]
+}
 
