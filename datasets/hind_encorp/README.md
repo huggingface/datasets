@@ -88,6 +88,10 @@ Hindi, English
 
 ### Data Instances
 
+[More Information Needed]
+
+### Data Fields
+
 HindEncorp Columns:
 
 - source identifier (where do the segments come from)
@@ -107,26 +111,6 @@ above.
 If there are more than one segments on a line (e.g. for lines with alignment
 type 2-1 where there are two English segments), then the segments are delimited
 with `<s>` in the text field.
-
-### Data Fields
-
-Plaintext vs. Export File Format
-
-Both the monolingual and the parallel corpus come in a simple plain text format
-and in a tokenized, tagged and lemmatized format.
-
-The plaintext format preserves the original tokenization (as much as possible
-given the diverse sources included in our corpus).
-
-The 'export' format is tokenized and represents each token as a '|'-delimited
-triple of: the word form, the lemma, and part-of-speech tag. If there was the
-character '|' (this character is also used instead of the proper Devanagari
-Danda in some sources), we escape it as 'pipe;'.
-
-There is exactly the same number of lines in the plaintext and export file
-formats.
-
-Only the plaintext format is available in the huggingface datasets library.
 
 ### Data Splits
 
