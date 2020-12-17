@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- 'extended|other-Natural Questions '
+- 'extended|natural_questions'
 task_categories:
 - question-answering
 task_ids:
@@ -78,6 +78,7 @@ English (`en`)
 
 ### Data Instances
 
+```
 {
     "question": "names of the metropolitan municipalities in south africa",
     "answer": [
@@ -90,6 +91,7 @@ English (`en`)
         "City of Ekurhuleni Metropolitan Municipality"
     ]
 }
+```
 
 ### Data Fields
 
