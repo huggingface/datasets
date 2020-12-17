@@ -275,7 +275,7 @@ class PeerRead(datasets.GeneratorBasedBuilder):
                         "title": str(data.get("title", "")),
                         "authors": data.get("authors", [])
                         if isinstance(data.get("authors"), list)
-                        else [data.get("authors", "")],
+                        else ([data.get("authors")] if data.get("authors") else []),
                         "accepted": str(data.get("accepted", "")),
                         "abstract": str(data.get("abstract", "")),
                         "histories": self._parse_histories(data.get("histories", [])),
