@@ -86,7 +86,7 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
                     "edit2": datasets.Value("string"),
                     "grades2": datasets.Value("string"),
                     "meanGrade2": datasets.Value("float"),
-                    "label": datasets.ClassLabel(names=[0, 1, 2]),
+                    "label": datasets.ClassLabel(names=["equal", "sentence1", "sentence2"]),
                 }
             )
         return datasets.DatasetInfo(
@@ -137,6 +137,7 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
+        label_names = ["equal", "sentence1", "sentence2"]
 
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
@@ -166,5 +167,5 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
                         "edit2": edit2,
                         "grades2": grades2,
                         "meanGrade2": meanGrade2,
-                        "label": label,
+                        "label": label_names[int(label)],
                     }
