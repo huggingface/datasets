@@ -4,22 +4,42 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- ar
-- cs
-- de
-- es
-- fr
-- hi
-- id
-- it
-- ja
-- ko
-- nl
-- pt
-- th
-- tr
-- vi
-- zh
+  arabic:
+  - ar
+  chinese:
+  - zh
+  czech:
+  - cs
+  dutch:
+  - nl
+  english:
+  - en
+  french:
+  - fr
+  german:
+  - de
+  hindi:
+  - hi
+  indonesian:
+  - id
+  italian:
+  - it
+  japanese:
+  - ja
+  korean:
+  - ko
+  portuguese:
+  - pt
+  russian:
+  - ru
+  spanish:
+  - es
+  thai:
+  - th
+  turkish:
+  - tr
+  vietnamese:
+  - vi
 licenses:
 - cc-by-3.0
 multilinguality:
