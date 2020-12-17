@@ -51,7 +51,7 @@ _TEXT_FILE = "scenario.txt"
 _ANNOTATIONS_FILE = "scenario.ann"
 
 
-class EHealthKD(datasets.GeneratorBasedBuilder):
+class EhealthKD(datasets.GeneratorBasedBuilder):
     """The eHealth-KD 2020 Corpus."""
 
     VERSION = datasets.Version("1.1.0")
