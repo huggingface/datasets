@@ -1,13 +1,24 @@
 ---
-annotations_creators: [crowdsourced, other]
-language_creators: [found]
-languages: [en, ja]
-licenses: [cc-by-4.0]
-multilinguality: [translation]
-size_categories: [10K<n<100K]
-source_datasets: [original]
-task_categories: [conditional-text-generation]
-task_ids: [machine-translation]
+annotations_creators:
+- crowdsourced
+- other
+language_creators:
+- found
+languages:
+- en
+- ja
+licenses:
+- cc-by-4.0
+multilinguality:
+- translation
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for SNOW T15 and T23 (simplified Japanese corpus)
