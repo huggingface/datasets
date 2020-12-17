@@ -4,365 +4,365 @@ annotations_creators:
 language_creators:
 - found
 languages:
--ab
--acm
--ady
--af
--afb
--afh
--aii
--ain
--ajp
--akl
--aln
--am
--an
--ang
--aoz
--apc
--ar
--arq
--ary
--arz
--as
--ast
--avk
--awa
--ayl
--az
--ba
--bal
--bar
--be
--ber
--bg
--bho
--bjn
--bm
--bn
--bo
--br
--brx
--bs
--bua
--bvy
--bzt
--ca
--cay
--cbk
--ce
--ceb
--ch
--chg
--chn
--cho
--chr
--cjy
--ckb
--ckt
--cmn
--co
--cpi
--crh
--crk
--cs
--csb
--cv
--cy
--cycl
--da
--de
--dng
--drt
--dsb
--dtp
--dv
--dws
--ee
--egl
--el
--emx
--en
--enm
--eo
--es
--et
--eu
--ext
--fi
--fj
--fkv
--fo
--fr
--frm
--fro
--frr
--fuc
--fur
--fuv
--fy
--ga
--gag
--gan
--gbm
--gcf
--gd
--gil
--gl
--gn
--gom
--gos
--got
--grc
--gsw
--gu
--gv
--ha
--hak
--haw
--hbo
--he
--hi
--hif
--hil
--hnj
--hoc
--hr
--hrx
--hsb
--hsn
--ht
--hu
--hy
--ia
--iba
--id
--ie
--ig
--ii
--ike
--ilo
--io
--is
--it
--izh
--ja
--jam
--jbo
--jdt
--jpa
--jv
--ka
--kaa
--kab
--kam
--kek
--kha
--kjh
--kk
--kl
--km
--kmr
--kn
--ko
--koi
--kpv
--krc
--krl
--ksh
--ku
--kum
--kw
--kxi
--ky
--kzj
--la
--laa
--lad
--lb
--ldn
--lfn
--lg
--lij
--liv
--lkt
--lld
--lmo
--ln
--lo
--lt
--ltg
--lut
--lv
--lzh
--lzz
--mad
--mai
--max
--mdf
--mfe
--mg
--mgm
--mh
--mhr
--mi
--mic
--min
--mk
--ml
--mn
--mni
--mnw
--moh
--mr
--mt
--mvv
--mwl
--mww
--my
--myv
--na
--nah
--nan
--nb
--nch
--nds
--ngt
--ngu
--niu
--nl
--nlv
--nn
--nog
--non
--nov
--npi
--nst
--nus
--nv
--ny
--nys
--oar
--oc
--ofs
--ood
--or
--orv
--os
--osp
--ota
--otk
--pa
--pag
--pal
--pam
--pap
--pau
--pcd
--pdc
--pes
--phn
--pi
--pl
--pms
--pnb
--ppl
--prg
--ps
--pt
--qu
--quc
--qya
--rap
--rif
--rm
--rn
--ro
--rom
--ru
--rue
--rw
--sa
--sah
--sc
--scn
--sco
--sd
--sdh
--se
--sg
--sgs
--shs
--shy
--si
--sjn
--sl
--sm
--sma
--sn
--so
--sq
--sr
--stq
--su
--sux
--sv
--swg
--swh
--syc
--ta
--te
--tet
--tg
--th
--thv
--ti
--tig
--tk
--tl
--tlh
--tly
--tmr
--tmw
--tn
--to
--toi
--toki
--tpi
--tpw
--tr
--ts
--tt
--tts
--tvl
--ty
--tyv
--tzl
--udm
--ug
--uk
--umb
--ur
--uz
--vec
--vep
--vi
--vo
--vro
--wa
--war
--wo
--wuu
--xal
--xh
--xqa
--yi
--yo
--yue
--zlm
--zsm
--zu
--zza
+- ab
+- acm
+- ady
+- af
+- afb
+- afh
+- aii
+- ain
+- ajp
+- akl
+- aln
+- am
+- an
+- ang
+- aoz
+- apc
+- ar
+- arq
+- ary
+- arz
+- as
+- ast
+- avk
+- awa
+- ayl
+- az
+- ba
+- bal
+- bar
+- be
+- ber
+- bg
+- bho
+- bjn
+- bm
+- bn
+- bo
+- br
+- brx
+- bs
+- bua
+- bvy
+- bzt
+- ca
+- cay
+- cbk
+- ce
+- ceb
+- ch
+- chg
+- chn
+- cho
+- chr
+- cjy
+- ckb
+- ckt
+- cmn
+- co
+- cpi
+- crh
+- crk
+- cs
+- csb
+- cv
+- cy
+- cycl
+- da
+- de
+- dng
+- drt
+- dsb
+- dtp
+- dv
+- dws
+- ee
+- egl
+- el
+- emx
+- en
+- enm
+- eo
+- es
+- et
+- eu
+- ext
+- fi
+- fj
+- fkv
+- fo
+- fr
+- frm
+- fro
+- frr
+- fuc
+- fur
+- fuv
+- fy
+- ga
+- gag
+- gan
+- gbm
+- gcf
+- gd
+- gil
+- gl
+- gn
+- gom
+- gos
+- got
+- grc
+- gsw
+- gu
+- gv
+- ha
+- hak
+- haw
+- hbo
+- he
+- hi
+- hif
+- hil
+- hnj
+- hoc
+- hr
+- hrx
+- hsb
+- hsn
+- ht
+- hu
+- hy
+- ia
+- iba
+- id
+- ie
+- ig
+- ii
+- ike
+- ilo
+- io
+- is
+- it
+- izh
+- ja
+- jam
+- jbo
+- jdt
+- jpa
+- jv
+- ka
+- kaa
+- kab
+- kam
+- kek
+- kha
+- kjh
+- kk
+- kl
+- km
+- kmr
+- kn
+- ko
+- koi
+- kpv
+- krc
+- krl
+- ksh
+- ku
+- kum
+- kw
+- kxi
+- ky
+- kzj
+- la
+- laa
+- lad
+- lb
+- ldn
+- lfn
+- lg
+- lij
+- liv
+- lkt
+- lld
+- lmo
+- ln
+- lo
+- lt
+- ltg
+- lut
+- lv
+- lzh
+- lzz
+- mad
+- mai
+- max
+- mdf
+- mfe
+- mg
+- mgm
+- mh
+- mhr
+- mi
+- mic
+- min
+- mk
+- ml
+- mn
+- mni
+- mnw
+- moh
+- mr
+- mt
+- mvv
+- mwl
+- mww
+- my
+- myv
+- na
+- nah
+- nan
+- nb
+- nch
+- nds
+- ngt
+- ngu
+- niu
+- nl
+- nlv
+- nn
+- nog
+- non
+- nov
+- npi
+- nst
+- nus
+- nv
+- ny
+- nys
+- oar
+- oc
+- ofs
+- ood
+- or
+- orv
+- os
+- osp
+- ota
+- otk
+- pa
+- pag
+- pal
+- pam
+- pap
+- pau
+- pcd
+- pdc
+- pes
+- phn
+- pi
+- pl
+- pms
+- pnb
+- ppl
+- prg
+- ps
+- pt
+- qu
+- quc
+- qya
+- rap
+- rif
+- rm
+- rn
+- ro
+- rom
+- ru
+- rue
+- rw
+- sa
+- sah
+- sc
+- scn
+- sco
+- sd
+- sdh
+- se
+- sg
+- sgs
+- shs
+- shy
+- si
+- sjn
+- sl
+- sm
+- sma
+- sn
+- so
+- sq
+- sr
+- stq
+- su
+- sux
+- sv
+- swg
+- swh
+- syc
+- ta
+- te
+- tet
+- tg
+- th
+- thv
+- ti
+- tig
+- tk
+- tl
+- tlh
+- tly
+- tmr
+- tmw
+- tn
+- to
+- toi
+- toki
+- tpi
+- tpw
+- tr
+- ts
+- tt
+- tts
+- tvl
+- ty
+- tyv
+- tzl
+- udm
+- ug
+- uk
+- umb
+- ur
+- uz
+- vec
+- vep
+- vi
+- vo
+- vro
+- wa
+- war
+- wo
+- wuu
+- xal
+- xh
+- xqa
+- yi
+- yo
+- yue
+- zlm
+- zsm
+- zu
+- zza
 licenses:
 - cc-by-2.0
 multilinguality:
