@@ -102,7 +102,6 @@ class QaSrl(datasets.GeneratorBasedBuilder):
         dev_fpath = dl_manager.download(_URLs["wiki_dev"])
         test_fpath = dl_manager.download(_URLs["wiki_test"])
 
-        print("Exiting ::::::")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

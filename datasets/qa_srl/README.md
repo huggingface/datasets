@@ -5,7 +5,8 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
@@ -19,7 +20,7 @@ task_ids:
 - open-domain-qa
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for QA-SRL
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -70,7 +71,7 @@ This dataset is in english language.
 ### Data Instances
 
 
-We use question-answer pairs to model verbal predicate-argument structure. The questions start with wh-words (Who, What, Where, What, etc.) and contains a verb predicate in the sentence; the answers are phrases in the sentence. For example:<br>
+We use question-answer pairs to model verbal predicate-argument structure. The questions start with wh-words (Who, What, Where, What, etc.) and contains a verb predicate in the sentence; the answers are phrases in the sentence. For example:
 
 `UCD finished the 2006 championship as Dublin champions , by beating St Vincents in the final .`
 
