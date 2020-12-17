@@ -73,7 +73,7 @@ class GnomeConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class Gnome(datasets.GeneratorBasedBuilder):
+class OpusGnome(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         GnomeConfig(
             lang1=lang1,
