@@ -94,7 +94,7 @@ SNOW T23 is xlsx file with ID, "#日本語(原文)" (Japanese (original)), "#や
 
 ### Data Splits
 
-[N/A]
+The data is not split.
 
 ## Dataset Creation
 
@@ -135,21 +135,21 @@ Five students for SNOW T15, seven crowd workers for SNOW T23.
 
 ### Personal and Sensitive Information
 
-[N/A]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[N/A]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[N/A]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
