@@ -5,7 +5,10 @@ language_creators:
 - expert-generated
 - found
 languages:
-- en
+  en:
+  - en
+  zh:
+  - zh
 licenses:
 - unknown
 multilinguality:
@@ -76,18 +79,31 @@ Monolingual. The datasets are in English (EN) and Chinese (ZH)
 
 ### Data Instances
 
-The data folder contains of multiple text files (.txt). Each of these text files has multiple consultations. Each consultation consists of the below:
-- ID
-- URL
-- Description of patient’s medical condition
-- Dialogue
-- Diagnosis and suggestions (Optional, mostly for Chinese)
+An example of dialogue is:
+
+```
+{
+	'dialogue_id': 602, 
+	'dialogue_url': 'https://www.healthtap.com/member/fg?page=/search/covid', 
+	'dialogue_turns': [{'speaker': 'Patient', 
+			    'utterance': 'Can coronavirus symptoms be mild for some people versus severe? For example, could it just involve being very fatigued, low grade fever for a few days and not the extreme symptoms? Or is it always a full blown cold and struggle to breathe?Can coronavirus symptoms be mild for some people versus severe? For example, could it just involve being very fatigued, low grade fever for a few days and not the extreme symptoms? Or is it always a full blown cold and struggle to breathe?'}, 
+                           {'speaker': 'Doctor', 
+                            'utterance': 'In brief:   Symptoms vary.   Some may have no symptoms at all. Some can be life threatening.   Would you like to video or text chat with me?'}]
+}
+```
 
 The dataset is built from [icliniq.com](https://www.icliniq.com/), [healthcaremagic.com](https://www.healthcaremagic.com/), [healthtap.com](https://www.healthtap.com/) and all copyrights of the data belong to these websites. _(for English)_
 
 The dataset is built from [Haodf.com](https://www.haodf.com/) and all copyrights of the data belong to [Haodf.com](https://www.haodf.com/).  _(for Chinese)_
 
 ### Data Fields
+
+Each consultation consists of the below:
+- ID
+- URL
+- Description of patient’s medical condition
+- Dialogue
+- Diagnosis and suggestions (Optional, mostly for Chinese)
 
 For generating the QA only the below fields have been considered:
 - ID : Consultatation Identifier (restarts for each file)
@@ -100,17 +116,6 @@ These are arranged as below in the prepared dataset. Each item will be represent
 - "dialogue_id": int32 - the dialogue id
 - "dialogue_url": string - url of the conversation
 - "dialogue_turns": datasets.Sequence - sequence of dialogues between patient and the doctor.Consists ClassLabel(names=["病人", "医生"]), and "utterance"(string) for each turn. (ClassLable(names=["Patient", "Doctor"]) for english)
-
-```
-{
-	'dialogue_id': 602, 
-	'dialogue_url': 'https://www.healthtap.com/member/fg?page=/search/covid', 
-	'dialogue_turns': [{'speaker': 'Patient', 
-			    'utterance': 'Can coronavirus symptoms be mild for some people versus severe? For example, could it just involve being very fatigued, low grade fever for a few days and not the extreme symptoms? Or is it always a full blown cold and struggle to breathe?Can coronavirus symptoms be mild for some people versus severe? For example, could it just involve being very fatigued, low grade fever for a few days and not the extreme symptoms? Or is it always a full blown cold and struggle to breathe?'}, 
-                           {'speaker': 'Doctor', 
-                            'utterance': 'In brief:   Symptoms vary.   Some may have no symptoms at all. Some can be life threatening.   Would you like to video or text chat with me?'}]
-}
-```
 
 ### Data Splits
 
