@@ -67,7 +67,7 @@ class WikipediaConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class Wikipedia(datasets.GeneratorBasedBuilder):
+class OpusWikipedia(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WikipediaConfig(
             lang1=lang1,
@@ -124,5 +124,4 @@ class Wikipedia(datasets.GeneratorBasedBuilder):
                         "translation": {l1: x, l2: y},
                     },
                 )
-                sentence_counter += 1
                 yield result
