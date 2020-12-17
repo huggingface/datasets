@@ -4,7 +4,7 @@ task_categories:
 multilinguality:
 - multilingual
 task_ids:
-- other
+- text-classification-other-language-identification
 languages:
 - hi
 - awa
@@ -76,18 +76,21 @@ This datasets is introduced in a task which aimed at identifying 5 closely-relat
 
 ### Data Instances
 
-[More Information Needed]
+{
+    "language_id": 4,
+    "text": 'तभी बारिश हुई थी जिसका गीलापन इन मूर्तियों को इन तस्वीरों में एक अलग रूप देता है .'
+}
 
 ### Data Fields
 
-- `language_id`: a `string`
 - `text`: text which you want to classfiy
+- `language_id`: label for the text
 
 ### Data Splits
 
-|                            | Train   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Input Sentences            |   70351     |   9692    |  10329    |
+|                      | train | valid | test  |
+|----------------------|-------|-------|-------|
+| # of input sentences | 70351 | 9692  | 10329 |
 
 ## Dataset Creation
 

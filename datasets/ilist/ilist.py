@@ -37,7 +37,8 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-This datasets in introduced as task which aimed at identifying 5 closely-related languages of Indo-Aryan language family – Hindi (also known as Khari Boli), Braj Bhasha, Awadhi, Bhojpuri and Magahi. These languages form part of a continuum starting from Western Uttar Pradesh (Hindi and Braj Bhasha) to Eastern Uttar Pradesh (Awadhi and Bhojpuri) and the neighbouring Eastern state of Bihar (Bhojpuri and Magahi). For this task, participants were provided with a dataset of approximately 15,000 sentences in each language, mainly from the domain of literature, published over the web as well as in print.
+This dataset is introduced in a task which aimed at identifying 5 closely-related languages of Indo-Aryan language family –
+Hindi (also known as Khari Boli), Braj Bhasha, Awadhi, Bhojpuri, and Magahi.
 """
 
 _URL = "https://raw.githubusercontent.com/kmi-linguistics/vardial2018/master/dataset/{}.txt"
@@ -47,37 +48,46 @@ class Ilist(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"language_id": datasets.Value("string"), "text": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "language_id": datasets.ClassLabel(names=["AWA", "BRA", "MAG", "BHO", "HIN"]),
+                    "text": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage="https://github.com/kmi-linguistics/vardial2018",
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        tr_file = dl_manager.download_and_extract(_URL.format("train"))
-        tst_file = dl_manager.download_and_extract(_URL.format("gold"))
-        dev_file = dl_manager.download_and_extract(_URL.format("dev"))
+        filepaths = dl_manager.download_and_extract(
+            {
+                "train": _URL.format("train"),
+                "test": _URL.format("gold"),
+                "dev": _URL.format("dev"),
+            }
+        )
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": tr_file,
+                    "filepath": filepaths["train"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": tst_file,
+                    "filepath": filepaths["test"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": dev_file,
+                    "filepath": filepaths["dev"],
                 },
             ),
         ]
@@ -85,9 +95,8 @@ class Ilist(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """ Yields examples. """
         with open(filepath, "r", encoding="utf-8") as file:
-            reader = file.read().split("\n")
-            for idx, row in enumerate(reader):
-                row = row.split("\t")
+            for idx, row in enumerate(file):
+                row = row.strip("\n").split("\t")
                 if len(row) == 1:
                     continue
                 yield idx, {"language_id": row[1], "text": row[0]}
