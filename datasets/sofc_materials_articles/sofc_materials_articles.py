@@ -308,7 +308,7 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
         # Start the processing loop
         # For each text file, we'll load all of the
         # associated annotation files
-        for id_, name in enumerate(names):
+        for id_, name in enumerate(sorted(names)):
 
             # Load the main source text
             textfile_path = os.path.join(textfile_base_path, name + ".txt")
