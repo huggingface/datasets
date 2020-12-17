@@ -27,7 +27,7 @@ import datasets
 
 _CITATION = """\
 @misc{kulkarni2020aquamuse,
-      title={AQuaMuSe: Automatically Generating Datasets for Query-Based Multi-Document Summarization}, 
+      title={AQuaMuSe: Automatically Generating Datasets for Query-Based Multi-Document Summarization},
       author={Sayali Kulkarni and Sheide Chammas and Wan Zhu and Fei Sha and Eugene Ie},
       year={2020},
       eprint={2010.12694},
