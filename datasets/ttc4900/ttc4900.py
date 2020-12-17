@@ -109,8 +109,6 @@ class TTC4900(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate TTC4900 examples."""
         logging.info("⏳ Generating examples from = %s", filepath)
-        print("filepath", filepath)
-
         with open(filepath, encoding="utf-8") as f:
             rdr = csv.reader(f, delimiter=",")
             next(rdr)
