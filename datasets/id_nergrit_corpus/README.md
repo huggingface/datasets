@@ -46,17 +46,16 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Nergrit](https://ner.grit.id/)
+- **Homepage:** [PT Gria Inovasi Teknologi](https://grit.id/)
 - **Repository:** [Nergrit Corpus](https://github.com/grit-id/nergrit-corpus)
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [Taufiqur Rohman](mailto:taufiq@grit.id)
 
 ### Dataset Summary
 
 Nergrit Corpus is a dataset collection of Indonesian Named Entity Recognition, Statement Extraction, 
-and Sentiment Analysis developed by [Gria Inovasi Teknologi (GRIT)](https://grit.id/). 
-This `id_nergrit_ner` dataset contains the Named Entity Recognition part of the collection.
+and Sentiment Analysis developed by [PT Gria Inovasi Teknologi (GRIT)](https://grit.id/). 
 
 ### Supported Tasks and Leaderboards
 
@@ -69,11 +68,12 @@ Indonesian
 ## Dataset Structure
 
 A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+```
 {'id': '0',
+ 'tokens': ['Gubernur', 'Bank', 'Indonesia', 'menggelar', 'konferensi', 'pers'],
  'ner_tags': [9, 28, 28, 38, 38, 38],
- 'tokens': ['Gubernur', 'Bank', 'Indonesia', 'menggelar', 'konferensi', 'pers']
 }
-
+```
 ### Data Instances
 
 [More Information Needed]
@@ -83,14 +83,15 @@ A data point consists of sentences seperated by empty line and tab-seperated tok
 - `tokens`: the tokens of the example text
 - `ner_tags`: the NER tags of each token
 
-The NER tags correspond to this list:
+#### Named Entity Recognition
+The ner_tags correspond to this list:
 ```
 "B-CRD", "B-DAT", "B-EVT", "B-FAC", "B-GPE", "B-LAN", "B-LAW", "B-LOC", "B-MON", "B-NOR", 
 "B-ORD", "B-ORG", "B-PER", "B-PRC", "B-PRD", "B-QTY", "B-REG", "B-TIM", "B-WOA",
 "I-CRD", "I-DAT", "I-EVT", "I-FAC", "I-GPE", "I-LAN", "I-LAW", "I-LOC", "I-MON", "I-NOR",
 "I-ORD", "I-ORG", "I-PER", "I-PRC", "I-PRD", "I-QTY", "I-REG", "I-TIM", "I-WOA", "O",
 ```
-The NER tags have the same format as in the CoNLL shared task: a B denotes the first item of a phrase and an I any 
+The ner_tags have the same format as in the CoNLL shared task: a B denotes the first item of a phrase and an I any 
 non-initial word. The dataset contains 19 following entities
 ```
     'CRD': Cardinal
@@ -113,6 +114,23 @@ non-initial word. The dataset contains 19 following entities
     'WOA': Work of Art
     'LAN': Language
 ```
+#### Sentiment Analysis
+The ner_tags correspond to this list:
+```
+"B-NEG", "B-NET", "B-POS",
+"I-NEG", "I-NET", "I-POS",
+"O",
+```
+
+#### Statement Extraction
+The ner_tags correspond to this list:
+```
+"B-BREL", "B-FREL", "B-STAT", "B-WHO",
+"I-BREL", "I-FREL", "I-STAT", "I-WHO", 
+"O"
+```
+The ner_tags have the same format as in the CoNLL shared task: a B denotes the first item of a phrase and an I any 
+non-initial word.
 
 ### Data Splits
 

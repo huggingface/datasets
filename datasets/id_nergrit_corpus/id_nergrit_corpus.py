@@ -23,7 +23,7 @@ import datasets
 
 
 _CITATION = """\
-@inproceedings{id_nergrit_ner,
+@inproceedings{id_nergrit_corpus,
   author    = {Gria Inovasi Teknologi},
   title     = {NERGRIT CORPUS},
   year      = {2019},
@@ -33,7 +33,7 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 Nergrit Corpus is a dataset collection for Indonesian Named Entity Recognition, Statement Extraction, and Sentiment
-Analysis. id_nergrit_ner is the Named Entity Recognition of this dataset collection which contains 18 entities as
+Analysis. id_nergrit_corpus is the Named Entity Recognition of this dataset collection which contains 18 entities as
 follow:
     'CRD': Cardinal
     'DAT': Date
@@ -66,25 +66,97 @@ _URLs = [
 ]
 
 
-class IdNergritNerConfig(datasets.BuilderConfig):
-    """BuilderConfig for IdNergritNer"""
+class IdNergritCorpusConfig(datasets.BuilderConfig):
+    """BuilderConfig for IdNergritCorpus"""
 
-    def __init__(self, **kwargs):
-        """BuilderConfig for IdNergritNer.
+    def __init__(self, label_classes=None, **kwargs):
+        """BuilderConfig for IdNergritCorpus.
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(IdNergritNerConfig, self).__init__(**kwargs)
+        super(IdNergritCorpusConfig, self).__init__(**kwargs)
+        self.label_classes = label_classes
 
 
-class IdNergritNer(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version("1.0.0")
+class IdNergritCorpus(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        IdNergritNerConfig(
-            name="id_nergrit_ner",
+        IdNergritCorpusConfig(
+            name="ner",
             version=VERSION,
-            description="IdNergritNer dataset",
+            description="Named Entity Recognition dataset of Nergrit Corpus",
+            label_classes=[
+                "B-CRD",
+                "B-DAT",
+                "B-EVT",
+                "B-FAC",
+                "B-GPE",
+                "B-LAN",
+                "B-LAW",
+                "B-LOC",
+                "B-MON",
+                "B-NOR",
+                "B-ORD",
+                "B-ORG",
+                "B-PER",
+                "B-PRC",
+                "B-PRD",
+                "B-QTY",
+                "B-REG",
+                "B-TIM",
+                "B-WOA",
+                "I-CRD",
+                "I-DAT",
+                "I-EVT",
+                "I-FAC",
+                "I-GPE",
+                "I-LAN",
+                "I-LAW",
+                "I-LOC",
+                "I-MON",
+                "I-NOR",
+                "I-ORD",
+                "I-ORG",
+                "I-PER",
+                "I-PRC",
+                "I-PRD",
+                "I-QTY",
+                "I-REG",
+                "I-TIM",
+                "I-WOA",
+                "O",
+            ],
+        ),
+        IdNergritCorpusConfig(
+            name="sentiment",
+            version=VERSION,
+            description="Sentiment Analysis dataset of Nergrit Corpus",
+            label_classes=[
+                "B-NEG",
+                "B-NET",
+                "B-POS",
+                "I-NEG",
+                "I-NET",
+                "I-POS",
+                "O",
+            ],
+        ),
+        IdNergritCorpusConfig(
+            name="statement",
+            version=VERSION,
+            description="Statement Extraction dataset of Nergrit Corpus",
+            label_classes=[
+                "B-BREL",
+                "B-FREL",
+                "B-STAT",
+                "B-WHO",
+                "I-BREL",
+                "I-FREL",
+                "I-STAT",
+                "I-WHO",
+                "O",
+            ],
         ),
     ]
 
@@ -93,51 +165,7 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
             {
                 "id": datasets.Value("string"),
                 "tokens": datasets.Sequence(datasets.Value("string")),
-                "ner_tags": datasets.Sequence(
-                    datasets.features.ClassLabel(
-                        names=[
-                            "B-CRD",
-                            "B-DAT",
-                            "B-EVT",
-                            "B-FAC",
-                            "B-GPE",
-                            "B-LAN",
-                            "B-LAW",
-                            "B-LOC",
-                            "B-MON",
-                            "B-NOR",
-                            "B-ORD",
-                            "B-ORG",
-                            "B-PER",
-                            "B-PRC",
-                            "B-PRD",
-                            "B-QTY",
-                            "B-REG",
-                            "B-TIM",
-                            "B-WOA",
-                            "I-CRD",
-                            "I-DAT",
-                            "I-EVT",
-                            "I-FAC",
-                            "I-GPE",
-                            "I-LAN",
-                            "I-LAW",
-                            "I-LOC",
-                            "I-MON",
-                            "I-NOR",
-                            "I-ORD",
-                            "I-ORG",
-                            "I-PER",
-                            "I-PRC",
-                            "I-PRD",
-                            "I-QTY",
-                            "I-REG",
-                            "I-TIM",
-                            "I-WOA",
-                            "O",
-                        ]
-                    )
-                ),
+                "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes)),
             }
         )
         return datasets.DatasetInfo(
@@ -156,21 +184,27 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "nergrit-corpus/ner/data/train_corrected.txt"),
+                    "filepath": os.path.join(
+                        data_dir, "nergrit-corpus/{}/data/train_corrected.txt".format(self.config.name)
+                    ),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "nergrit-corpus/ner/data/test_corrected.txt"),
+                    "filepath": os.path.join(
+                        data_dir, "nergrit-corpus/{}/data/test_corrected.txt".format(self.config.name)
+                    ),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "nergrit-corpus/ner/data/valid_corrected.txt"),
+                    "filepath": os.path.join(
+                        data_dir, "nergrit-corpus/{}/data/valid_corrected.txt".format(self.config.name)
+                    ),
                     "split": "dev",
                 },
             ),
@@ -183,7 +217,7 @@ class IdNergritNer(datasets.GeneratorBasedBuilder):
             tokens = []
             ner_tags = []
             for line in f:
-                splits = line.split()
+                splits = line.strip().split()
                 if len(splits) != 2:
                     if tokens:
                         assert len(tokens) == len(ner_tags), "word len doesn't match label length"
