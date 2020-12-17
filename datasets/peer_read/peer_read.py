@@ -57,12 +57,12 @@ class PeerRead(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(
             name="parsed_pdfs",
             version=VERSION,
-            description="This part of my dataset covers a first domain",
+            description="Research paper drafts",
         ),
         datasets.BuilderConfig(
             name="reviews",
             version=VERSION,
-            description="This part of my dataset covers a second domain",
+            description="Accept/reject decisions in top-tier venues including ACL, NIPS and ICLR",
         ),
     ]
 
