@@ -72,7 +72,7 @@ class UbuntuConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class Ubuntu(datasets.GeneratorBasedBuilder):
+class OpusUbuntu(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         UbuntuConfig(
             lang1=lang1,
