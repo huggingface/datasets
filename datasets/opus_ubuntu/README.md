@@ -317,8 +317,7 @@ E.g.
 
 ### Data Instances
 
-Here are some examples of questions and facts:
-
+[More Information Needed]
 
 ### Data Fields
 
