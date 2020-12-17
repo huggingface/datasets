@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
-
 ---
 
 # Dataset Card for ohsumed
@@ -84,7 +83,7 @@ The text is primarily in English. The BCP 47 code is `en`
 
 ### Data Instances
 
-"""
+```
 {'seq_id': 7770,
   'medline_ui': 87120420,
   'mesh_terms': 'Adult; Aged; Aneurysm/CO; Arteriovenous Fistula/*TH; Carotid Arteries; Case Report; Female; Human; Jugular Veins; Male; Methods; Middle Age; Neck/*BS; Vertebral Artery.',
@@ -94,23 +93,23 @@ The text is primarily in English. The BCP 47 code is `en`
   'author': 'Vitek JJ; Keller FS.',
   'source': 'South Med J 8705; 80(2):196-200'}
 
-"""
+```
 
 
 ### Data Fields
 
 Here are the field definitions:
 
- .I      sequential identifier 
+- seg_id: sequential identifier 
    (important note: documents should be processed in this order)
- .U      MEDLINE identifier (UI) 
+- medline_ui: MEDLINE identifier (UI) 
    (<DOCNO> used for relevance judgements)
- .M      Human-assigned MeSH terms (MH)
- .T      Title (TI)
- .P      Publication type (PT)
- .W      Abstract (AB)
- .A      Author (AU)
- .S      Source (SO)
+ - mesh_terms: Human-assigned MeSH terms (MH)
+- title: Title (TI)
+- publication_type : Publication type (PT)
+- abstract: Abstract (AB)
+- author: Author (AU)
+- source: Source (SO)
 
 Note: some abstracts are truncated at 250 words and some references
 have no abstracts at all (titles only). We do not have access to the
