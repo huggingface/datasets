@@ -58,7 +58,7 @@ PearRead is a dataset of scientific peer reviews available to help researchers s
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+[More Information Needed]
 
 ### Languages
 
@@ -68,59 +68,59 @@ en-English
 
 ### Data Instances
 
-[Needs More Information]
+[More Information Needed]
 
 ### Data Fields
 
-[Needs More Information]
+[More Information Needed]
 
 ### Data Splits
 
-[Needs More Information]
+[More Information Needed]
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
@@ -130,7 +130,7 @@ Dongyeop Kang, Waleed Ammar, Bhavana Dalvi Mishra, Madeleine van Zuylen, Sebasti
 
 ### Licensing Information
 
-[Needs More Information]
+[More Information Needed]
 
 ### Citation Information
 
