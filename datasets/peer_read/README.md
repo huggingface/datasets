@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - expert-generated
 language_creators:
@@ -15,7 +16,8 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- acceptability-classification
+- text-classification-other-acceptability-classification
+---
 
 # Dataset Card for peer_read
 
