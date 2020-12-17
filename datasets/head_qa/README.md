@@ -134,13 +134,13 @@ An example from the HEAD-QA dataset looks as follows:
 
 ### Data Fields
 
-- `qid`: question identifier (string)
-- `category`: category of the text: "medicine", "nursing", "psychology", "chemistry", "pharmacology", "biology"
+- `qid`: question identifier (int)
+- `category`: category of the question: "medicine", "nursing", "psychology", "chemistry", "pharmacology", "biology"
 - `qtext`: question text
 - `answers`: list of possible answers. Each element of the list is a dictionary with 2 keys:
     - `aid`: answer identifier (int)
     - `atext`: answer text
-- `ra`: `aid` of the right answer (string)
+- `ra`: `aid` of the right answer (int)
 - `image`: optional, some of the questions refer to an image
 - `name`: name of the exam from which the question was extracted
 - `year`: year in which the exam took place

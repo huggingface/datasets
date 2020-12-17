@@ -79,9 +79,9 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                     "name": datasets.Value("string"),
                     "year": datasets.Value("string"),
                     "category": datasets.Value("string"),
-                    "qid": datasets.Value("string"),
+                    "qid": datasets.Value("int32"),
                     "qtext": datasets.Value("string"),
-                    "ra": datasets.Value("string"),
+                    "ra": datasets.Value("int32"),
                     "image": datasets.Value("string"),
                     "answers": [
                         {
@@ -127,9 +127,9 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                 year = content["year"].strip()
                 category = content["category"].strip()
                 for question in content["data"]:
-                    id_ = question["qid"].strip()
+                    id_ = int(question["qid"].strip())
                     qtext = question["qtext"].strip()
-                    ra = question["ra"].strip()
+                    ra = int(question["ra"].strip())
                     image = question["image"].strip()
 
                     aids = [answer["aid"] for answer in question["answers"]]
