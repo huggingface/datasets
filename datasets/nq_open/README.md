@@ -141,14 +141,9 @@ Natural Questions contains question from aggregated queries to Google Search (Kw
 
 ### Discussion of Biases
 
-Evaluating on this diverse set of question-answer
-pairs is crucial, because all existing datasets have
-inherent biases that are problematic for open domain QA systems with learned retrieval. 
+Evaluating on this diverse set of question-answer pairs is crucial, because all existing datasets have inherent biases that are problematic for open domain QA systems with learned retrieval. 
 In the Natural Questions dataset the question askers do not already know the answer. This accurately reflects a distribution of genuine information-seeking questions.
-However, annotators must separately find correct
-answers, which requires assistance from automatic
-tools and can introduce a moderate bias towards
-results from the tool.
+However, annotators must separately find correct answers, which requires assistance from automatic tools and can introduce a moderate bias towards results from the tool.
 
 ### Other Known Limitations
 
