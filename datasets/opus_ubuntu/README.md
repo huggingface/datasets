@@ -389,7 +389,7 @@ Here are some examples of questions and facts:
 ### Citation Information
 
 @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
+  author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
