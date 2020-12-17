@@ -73,7 +73,7 @@ class CovidQaUcsd(datasets.GeneratorBasedBuilder):
                 (for the Chinese Dialog).
 
                 To load the dataset, simple pass the folder where the file is saved to the 'data_dir' param in the datasets.load_dataset(...) option.
-                The <path/to/file> can e.g. be "/Downloads/".
+                The data directory can e.g. be "/Downloads/".
                 The data can then be loaded using the below command:\n
                 `datasets.load_dataset("covid_qa_ucsd", name="en", data_dir="/Downloads/")`.
 
