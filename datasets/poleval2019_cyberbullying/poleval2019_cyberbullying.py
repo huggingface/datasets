@@ -40,6 +40,18 @@ _URL_TRAIN_TASK1 = "http://2019.poleval.pl/task6/task_6-1.zip"
 _URL_TRAIN_TASK2 = "http://2019.poleval.pl/task6/task_6-2.zip"
 _URL_TEST = "http://2019.poleval.pl/task6/task6_test.zip"
 
+_CITATION = """\
+@proceedings{ogr:kob:19:poleval,
+  editor    = {Maciej Ogrodniczuk and Łukasz Kobyliński},
+  title     = {{Proceedings of the PolEval 2019 Workshop}},
+  year      = {2019},
+  address   = {Warsaw, Poland},
+  publisher = {Institute of Computer Science, Polish Academy of Sciences},
+  url       = {http://2019.poleval.pl/files/poleval2019.pdf},
+  isbn      = "978-83-63159-28-3"}
+}
+"""
+
 
 class Poleval2019CyberBullyingConfig(datasets.BuilderConfig):
     """BuilderConfig for Poleval2019CyberBullying."""
@@ -83,6 +95,7 @@ class Poleval2019CyberBullying(datasets.GeneratorBasedBuilder):
             features=datasets.Features(features),
             supervised_keys=("text", "label"),
             homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -134,14 +147,7 @@ class Poleval2019CyberBullying(datasets.GeneratorBasedBuilder):
                 text_path = os.path.join(filepath, "test_set_only_text.txt")
                 label_path = os.path.join(filepath, "test_set_only_tags.txt")
 
-        with open(text_path, encoding="utf-8") as file:
-            text = file.readlines()
-
-        with open(label_path, encoding="utf-8") as file:
-            labels = file.readlines()
-
-        for i in range(len(text)):
-            try:
-                yield i, {"text": text[i].replace("\n", ""), "label": labels[i].replace("\n", "")}
-            except ValueError:
-                pass
+        with open(text_path, encoding="utf-8") as text_file:
+            with open(label_path, encoding="utf-8") as label_file:
+                for id_, (text, label) in enumerate(zip(text_file, label_file)):
+                    yield id_, {"text": text.strip(), "label": int(label.strip())}
