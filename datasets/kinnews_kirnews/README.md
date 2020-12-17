@@ -54,7 +54,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Needs More Information]
+- **Homepage:** [More Information Needed]
 - **Repository:** https://github.com/Andrews2017/KINNEWS-and-KIRNEWS-Corpus
 - **Paper:** [KINNEWS and KIRNEWS: Benchmarking Cross-Lingual Text Classification for Kinyarwanda and Kirundi](https://arxiv.org/abs/2010.12174)
 - **Leaderboard:** NA
@@ -65,8 +65,21 @@ task_ids:
 Kinyarwanda and Kirundi news classification datasets (KINNEWS and KIRNEWS,respectively), which were both collected from Rwanda and Burundi news websites and newspapers, for low-resource monolingual and cross-lingual multiclass classification tasks.
 
 ### Supported Tasks and Leaderboards
+This dataset can be used for text classification of news articles in Kinyarwadi and Kirundi languages. Each news article can be classified into one of the 14 possible classes. The classes are 
 
-NA
+-politics
+-sport
+-economy
+-health
+-entertainment
+-history
+-technology
+-culture
+-religion
+-environment
+-education
+-relationship
+
 
 ### Languages
 
@@ -76,22 +89,23 @@ Kinyarwanda and Kirundi
 
 ### Data Instances
 
-Each dataset is in comma-separated-value (csv) format, with columns that are described bellow (Note that in the cleaned versions we only remain with 'label','title', and 'content' columns):
-| Field | Description |
+| Field | Value |
 | ----- | ----------- |
-| label | Numerical labels that range from 1 to 14 |
-| en_label | English labels |
-| kin_label | Kinyarwanda labels |
-| kir_label | Kirundi labels |
-| url | The link to the news source |
-| title | The title of the news article |
-| content | The full content of the news article |
+| label | 1 |
+| kin_label/kir_label | 'inkino' |
+| url | 'https://nawe.bi/Primus-Ligue-Imirwi-igiye-guhura-gute-ku-ndwi-ya-6-y-ihiganwa.html' |
+| title | 'Primus Ligue\xa0: Imirwi igiye guhura gute ku ndwi ya 6 y’ihiganwa\xa0?'|
+| content | ' Inkino zitegekanijwe kuruno wa gatandatu igenekerezo rya 14 Nyakanga umwaka wa 2019...'|
+| en_label| 'sport'|
+
+
+
 
 ### Data Fields
 
 The raw version of the data for Kinyarwanda language consists of these fields
 -label: The category of the news article
--kin_label: The associated label in Kinyarwanda language
+-kin_label/kir_label: The associated label in Kinyarwanda/Kirundi language
 -en_label: The associated label in English
 -url: The URL of the news article
 -title: The title of the news article
@@ -104,64 +118,66 @@ The cleaned version contains only the `label`, `title` and the `content` fields
 
 Lang| Train | Test |
 |---| ----- | ---- |
-|Kinyarwanda|17014|4254|
-|Kirundi|3689|923|
+|Kinyarwandai Raw|17014|4254|
+|Kinyarwandai Clean|17014|4254|
+|Kirundi Raw|3689|923|
+|Kirundi Clean|3689|923|
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+[More Information Needed]
 
 ### Licensing Information
 
-[Needs More Information]
+[More Information Needed]
 
 ### Citation Information
 
-[Needs More Information]
-i
+[More Information Needed]
+

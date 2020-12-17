@@ -55,13 +55,30 @@ class KinnewsKirnews(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="kirnews_raw", description="Dataset for Kirundi language"),
         datasets.BuilderConfig(name="kirnews_cleaned", description="Cleaned dataset for Kirundi language"),
     ]
+    class_labels = [
+        "politics",
+        "sport",
+        "economy",
+        "health",
+        "entertainment",
+        "history",
+        "technology",
+        "tourism",
+        "culture",
+        "fashion",
+        "religion",
+        "environment",
+        "education",
+        "relationship",
+    ]
+    label_columns = {"kinnews_raw": "kin_label", "kirnews_raw": "kir_label"}
 
     def _info(self):
         if "raw" in self.config.name:
             features = datasets.Features(
                 {
-                    "label": datasets.Value("int32"),
-                    "kin_label": datasets.Value("string"),
+                    "label": datasets.ClassLabel(names=self.class_labels),
+                    self.label_columns[self.config.name]: datasets.Value("string"),
                     "en_label": datasets.Value("string"),
                     "url": datasets.Value("string"),
                     "title": datasets.Value("string"),
@@ -71,7 +88,7 @@ class KinnewsKirnews(datasets.GeneratorBasedBuilder):
         else:
             features = datasets.Features(
                 {
-                    "label": datasets.Value("int32"),
+                    "label": datasets.ClassLabel(names=self.class_labels),
                     "title": datasets.Value("string"),
                     "content": datasets.Value("string"),
                 }
@@ -116,10 +133,10 @@ class KinnewsKirnews(datasets.GeneratorBasedBuilder):
 
             for id_, row in enumerate(csv_reader):
                 if "raw" in self.config.name:
-                    label, kin_label, en_label, url, title, content = row
+                    label, k_label, en_label, url, title, content = row
                     yield id_, {
-                        "label": label,
-                        "kin_label": kin_label,
+                        "label": self.class_labels[int(label) - 1],
+                        self.label_columns[self.config.name]: k_label,
                         "en_label": en_label,
                         "url": url,
                         "title": title,
@@ -128,7 +145,7 @@ class KinnewsKirnews(datasets.GeneratorBasedBuilder):
                 else:
                     label, title, content = row
                     yield id_, {
-                        "label": label,
+                        "label": self.class_labels[int(label) - 1],
                         "title": title,
                         "content": content,
                     }
