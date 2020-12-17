@@ -89,7 +89,7 @@ _URLs = {
 }
 
 
-class SnowJapanese(datasets.GeneratorBasedBuilder):
+class SnowSimplifiedJapaneseCorpus(datasets.GeneratorBasedBuilder):
     """SNOW T15 and T23: "Japanese Simplified Corpus with Core Vocabulary" and ''Crowdsourced Corpus of Sentence Simplification with Core Vocabulary"."""
 
     VERSION = datasets.Version("1.1.0")
