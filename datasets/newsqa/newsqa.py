@@ -182,14 +182,13 @@ class Newsqa(datasets.GeneratorBasedBuilder):
         combined_file_json = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.json")
         split_files = os.path.join(path_to_manual_folder, "split_data")
 
-
         if not os.path.exists(path_to_manual_folder):
             raise FileNotFoundError(
                 "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsqa', data_dir=...)` that includes files from the Manual download instructions: {}".format(
                     path_to_manual_folder, self.manual_download_instructions
                 )
             )
-            
+
         if self.config.name == "combined-csv":
             return [
                 datasets.SplitGenerator(
