@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import copy
 import logging
-import xml
+import xml.etree.ElementTree as etree
 
 import datasets
 
@@ -42,10 +42,11 @@ _LICENSE = ""
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = [f"ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed20n{i:04d}.xml.gz" for i in range(1, 1016)]
+_URLs = [f"ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed21n{i:04d}.xml.gz" for i in range(1, 1063)]
 
 
 # Copyright Ferry Boender, released under the MIT license.
+# Modified by @Narsil to handle more oddities
 def deepupdate(target, src):
     """Deep update target dict with src
     For each k,v in src: if k doesn't exist in target, it is deep copied from
@@ -60,22 +61,46 @@ def deepupdate(target, src):
     {'name': 'Ferry', 'hobbies': ['programming', 'sci-fi', 'gaming']}
     """
     for k, v in src.items():
+        if k in target and isinstance(target[k], int) and isinstance(v, str):
+            try:
+                v = int(v)
+            except Exception:
+                pass
+        if k in target and type(target[k]) != type(v):
+            logger.warning(f"Ignoring field {k} it's a {type(v)} and we expect a {type(target[k])}")
+            continue
+
         if type(v) == list:
             if k not in target:
                 target[k] = copy.deepcopy(v)
-            else:
+            elif isinstance(target[k], list):
                 target[k].extend(v)
+            elif isinstance(target[k], str):
+                # Very special case to handle `AbstractText` which sometimes end up
+                # being a list.
+                new_v = " ".join(el for el in v if isinstance(el, str))
+                target[k] = new_v
+            else:
+                logger.warning(f"Ignoring field {k} it's a {type(v)} and we expect a {type(target[k])}")
         elif type(v) == dict:
             if k not in target:
                 target[k] = copy.deepcopy(v)
-            else:
+            elif isinstance(target[k], dict):
                 deepupdate(target[k], v)
+            else:
+                logger.warning(f"Ignoring field {k} it's a {type(v)} and we expect a {type(target[k])}")
         elif type(v) == set:
             if k not in target:
                 target[k] = v.copy()
-            else:
+            elif isinstance(target[k], set):
                 target[k].update(v.copy())
+            else:
+                logger.warning(f"Ignoring field {k} it's a {type(v)} and we expect a {type(target[k])}")
         else:
+            if isinstance(target[k], (list, tuple, dict)):
+                logger.warning(f"Ignoring field {k} it's a {type(v)} and we expect a {type(target[k])}")
+                continue
+
             target[k] = copy.copy(v)
 
 
@@ -111,7 +136,7 @@ def default_article():
             "CitationSubset": "",
             "MeshHeadingList": {"MeshHeading": []},
         },
-        "PubmedData": {"ArticleIdList": {"ArticleId": []}, "PublicationStatus": "", "History": {"PubMedPubDate": []}},
+        "PubmedData": {"ArticleIdList": [{"ArticleId": []}], "PublicationStatus": "", "History": {"PubMedPubDate": []}, 'ReferenceList': []},
     }
 
 
@@ -119,7 +144,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
     """Pubmed citations records"""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="2020", description="The 2020 annual record", version=datasets.Version("1.0.0")),
+        datasets.BuilderConfig(name="2021", description="The 2021 annual record", version=datasets.Version("1.0.0")),
     ]
 
     # FILLED automatically from features
@@ -139,6 +164,14 @@ class Pubmed(datasets.GeneratorBasedBuilder):
 
     def xml_to_dictionnary(self, parentElement):
         data = {}
+        if parentElement.tag in {'AbstractText', 'ArticleTitle'}:
+            # XXX 
+            # Very special case, it will contain html leading to having very odd structure
+            tag = parentElement.tag
+            string = etree.tostring(parentElement).decode('utf-8').strip()
+            inner_string = string[len(f'<{tag}>'):-len(f'</{tag}>')]
+            return {parentElement.tag:inner_string}
+
         for child in list(parentElement):
             child.text = child.text if (child.text is not None) else " "
             key = child.tag
@@ -198,6 +231,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
 
         MedlineJournalInfo = {
             "Country": datasets.Value("string"),
+            # Too inconsistent
             # 'MedlineTA': datasets.Value('string'),
             # 'NlmUniqueID': datasets.Value('string'),
             # 'ISSNLinking': datasets.Value('string'),
@@ -206,6 +240,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             "RegistryNumber": datasets.Value("string"),
             "NameOfSubstance": datasets.Value("string"),
         }
+        # Too inconsistent in the data to be used
         # Journal = {
         #         'ISSN': datasets.Value('string'),
         #         'JournalIssue': {
@@ -222,6 +257,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             "Initials": datasets.Value("string"),
             "CollectiveName": datasets.Value("string"),
         }
+        Reference = {
+            'Citation': datasets.Value('string'),
+            "CitationId": datasets.Value("int32"),
+        }
         Grant = {
             "GrantID": datasets.Value("string"),
             "Agency": datasets.Value("string"),
@@ -231,6 +270,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             # 'Journal': Journal,
             "Abstract": {"AbstractText": datasets.Value("string")},
             "ArticleTitle": datasets.Value("string"),
+            # Too inconistent
             # 'Pagination': {'MedlinePgn': datasets.Value('string')},
             "AuthorList": {"Author": datasets.Sequence(Author)},
             "Language": datasets.Value("string"),
@@ -255,9 +295,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
                     },
                 },
                 "PubmedData": {
-                    "ArticleIdList": {"ArticleId": datasets.Sequence(datasets.Value("string"))},
+                    "ArticleIdList": datasets.Sequence({"ArticleId": datasets.Sequence(datasets.Value("string"))}),
                     "PublicationStatus": datasets.Value("string"),
                     "History": {"PubMedPubDate": datasets.Sequence(Date)},
+                    "ReferenceList": datasets.Sequence(Reference),
                 },
             }
         )
@@ -290,15 +331,64 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             ),
         ]
 
+    def update_citation(self, article):
+        """
+        ArticleId and ArticleIdList are already used field name so we rewrite and
+        flatten those as {Citation, CitationId}.
+        """
+        citations = []
+        try:
+            list_ = article['PubmedData']['ReferenceList']
+        except Exception:
+            return 
+
+        for ref in list_:
+            if 'Reference' not in ref:
+                continue
+            for re in ref['Reference']:
+                if 'Citation' not in re:
+                    continue
+                citation = re['Citation']
+                if 'ArticleIdList' not in re:
+                    continue
+                for r in re['ArticleIdList']:
+                    if 'ArticleId' not in r:
+                        continue
+                    for rr in r['ArticleId']:
+                        try:
+                            citation = {'Citation': citation, 'CitationId': int(rr)}
+                        except Exception:
+                            continue
+                        citations.append(citation)
+        article['PubmedData']['ReferenceList'] = citations
+
     def _generate_examples(self, filenames):
         """ Yields examples. """
         id_ = 0
         for filename in filenames:
-            tree = xml.etree.ElementTree.parse(filename)
-            root = tree.getroot()
-            xmldict = self.xml_to_dictionnary(root)
+            print(filename)
+            try:
+                tree = etree.parse(filename)
+                root = tree.getroot()
+                xmldict = self.xml_to_dictionnary(root)
+            except etree.ParseError:
+                logger.error(f"Ignoring file {filename}, it is malformed")
+                continue
+
             for article in xmldict["PubmedArticleSet"]["PubmedArticle"]:
+                self.update_citation(article)
                 new_article = default_article()
-                deepupdate(new_article, article)
+
+                try:
+                    deepupdate(new_article, article)
+                except Exception:
+                    logger.error(f"Ignoring article {article}, it is malformed")
+                    continue
+
+                try:
+                    example = self.info.features.encode_example(new_article)
+                except Exception as e:
+                    logger.warning(f"Ignore example because {e}")
+                    continue
                 yield id_, new_article
                 id_ += 1
