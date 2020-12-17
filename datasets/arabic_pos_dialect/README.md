@@ -5,7 +5,8 @@ language_creators:
 - found
 languages:
 - ar
-licenses: [apache-2.0]
+licenses:
+- apache-2.0
 multilinguality:
 - multilingual
 size_categories:
@@ -13,9 +14,9 @@ size_categories:
 source_datasets:
 - extended
 task_categories:
-- text-classification
+- structure-prediction
 task_ids:
-- multi-class-classification
+- structure-prediction-other-pos-tagging
 ---
 
 # Dataset Card for Arabic POS Dialect
