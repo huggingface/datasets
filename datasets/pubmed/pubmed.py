@@ -391,7 +391,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
                     continue
 
                 try:
-                    example = self.info.features.encode_example(new_article)
+                    _ = self.info.features.encode_example(new_article)
                 except Exception as e:
                     logger.warning(f"Ignore example because {e}")
                     continue
