@@ -29,7 +29,7 @@ total number of sentence fragments: 1.12G
 _HOMEPAGE_URL = "http://opus.nlpl.eu/ParaCrawl.php"
 _CITATION = """\
 @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
+  author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
@@ -72,7 +72,7 @@ class ParaCrawlConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class ParaCrawl(datasets.GeneratorBasedBuilder):
+class OpusParaCrawl(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         ParaCrawlConfig(
             lang1=lang1,
@@ -129,5 +129,4 @@ class ParaCrawl(datasets.GeneratorBasedBuilder):
                         "translation": {l1: x, l2: y},
                     },
                 )
-                sentence_counter += 1
                 yield result
