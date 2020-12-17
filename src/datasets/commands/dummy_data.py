@@ -170,8 +170,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         try:
             import ijson
         except ModuleNotFoundError:
-            error_msg = "Not found module 'ijson'. " \
-                        "To generate JSON dummy data you must first install it: pip install ijson"
+            error_msg = (
+                "Not found module 'ijson'. To generate JSON dummy data you must first install it: pip install ijson"
+            )
             logger.error(error_msg)
             sys.exit(error_msg)
         with open(src_path, "r", encoding=encoding) as src_file:
