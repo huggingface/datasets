@@ -85,8 +85,9 @@ This datasets is introduced in a task which aimed at identifying 5 closely-relat
 
 ### Data Fields
 
-- `text`: text which you want to classfiy
-- `language_id`: label for the text
+- `text`: text which you want to classify
+- `language_id`: label for the text as an integer from 0 to 4
+The language ids correspond to the following languages: "AWA", "BRA", "MAG", "BHO", "HIN".
 
 ### Data Splits
 
