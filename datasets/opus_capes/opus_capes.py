@@ -29,7 +29,7 @@ total number of sentence fragments: 2.32M
 _HOMEPAGE_URL = "http://opus.nlpl.eu/CAPES.php"
 _CITATION = """\
 @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
+  author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
@@ -62,7 +62,7 @@ class CapesConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class Capes(datasets.GeneratorBasedBuilder):
+class OpusCapes(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         CapesConfig(
             lang1=lang1,
@@ -119,5 +119,4 @@ class Capes(datasets.GeneratorBasedBuilder):
                         "translation": {l1: x, l2: y},
                     },
                 )
-                sentence_counter += 1
                 yield result
