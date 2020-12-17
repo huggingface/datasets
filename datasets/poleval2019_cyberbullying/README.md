@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - found
 language_creators:
@@ -16,8 +17,9 @@ task_categories:
 - text-classification
 task_ids:
 - intent-classification
+---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Poleval 2019 cyberbullying
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -83,8 +85,8 @@ Polish
 ### Data Fields
 
 - text: the provided tweet
-- label: for task 6-1 the label can 0 (non-harmful) or 1 (harmful)
-         for task 6-2 the label can 0 (non-harmful), 1 (cyberbullying) or 2 (hate-speech)
+- label: for task 6-1 the label can be 0 (non-harmful) or 1 (harmful)
+         for task 6-2 the label can be 0 (non-harmful), 1 (cyberbullying) or 2 (hate-speech)
 
 ### Data Splits
 
@@ -145,3 +147,15 @@ Train and Test
 [More Information Needed]
 
 ### Citation Information
+
+```
+@proceedings{ogr:kob:19:poleval,
+  editor    = {Maciej Ogrodniczuk and Łukasz Kobyliński},
+  title     = {{Proceedings of the PolEval 2019 Workshop}},
+  year      = {2019},
+  address   = {Warsaw, Poland},
+  publisher = {Institute of Computer Science, Polish Academy of Sciences},
+  url       = {http://2019.poleval.pl/files/poleval2019.pdf},
+  isbn      = "978-83-63159-28-3"}
+}
+```
