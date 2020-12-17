@@ -7,13 +7,15 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
 - 1K<n<10K
 source_datasets:
-- extended|other-Google-Natural-Questions-and-Common-Crawl
+- extended|natural_questions
+- extended|other-Common-Crawl
 - original
 task_categories:
 - other
@@ -68,7 +70,7 @@ This dataset contains versions of automatically generated datasets for abstracti
 
 ### Languages
 
-    en : English
+en : English
 
 ## Dataset Structure
 
@@ -81,9 +83,15 @@ This dataset contains versions of automatically generated datasets for abstracti
 
 Example: 
 
-    {'input_urls': ['https://boxofficebuz.com/person/19653-charles-michael-davis'],
+```
+{
+    'input_urls': ['https://boxofficebuz.com/person/19653-charles-michael-davis'],
      'query': 'who is the actor that plays marcel on the originals',
-     'target': "In February 2013, it was announced that Davis was cast in a lead role on The CW's new show The Originals, a spinoff of The Vampire Diaries, centered on the Original Family as they move to New Orleans, where Davis' character (a vampire named Marcel) currently rules."}
+     'target': "In February 2013, it was announced that Davis was cast in a lead role on The CW's new show The 
+Originals, a spinoff of The Vampire Diaries, centered on the Original Family as they move to New Orleans, where 
+Davis' character (a vampire named Marcel) currently rules."
+}
+```
 
 ### Data Fields
 
@@ -156,12 +164,11 @@ The dataset curator is [sayalikulkarni](https://github.com/google-research-datas
 
 ### Citation Information
 
-    @misc{kulkarni2020aquamuse,
-          title={AQuaMuSe: Automatically Generating Datasets for Query-Based Multi-Document Summarization}, 
-          author={Sayali Kulkarni and Sheide Chammas and Wan Zhu and Fei Sha and Eugene Ie},
-          year={2020},
-          eprint={2010.12694},
-          archivePrefix={arXiv},
-          primaryClass={cs.CL}
-    }
-
+@misc{kulkarni2020aquamuse,
+      title={AQuaMuSe: Automatically Generating Datasets for Query-Based Multi-Document Summarization}, 
+      author={Sayali Kulkarni and Sheide Chammas and Wan Zhu and Fei Sha and Eugene Ie},
+      year={2020},
+      eprint={2010.12694},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}

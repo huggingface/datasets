@@ -25,7 +25,16 @@ import tensorflow as tf
 import datasets
 
 
-_CITATION = """@misc{kulkarni2020aquamuse,title={AQuaMuSe: Automatically Generating Datasets for Query-Based Multi-Document Summarization}, author={Sayali Kulkarni and Sheide Chammas and Wan Zhu and Fei Sha and Eugene Ie}, year={2020}, eprint={2010.12694}, archivePrefix={arXiv}, primaryClass={cs.CL}}"""
+_CITATION = """\
+@misc{kulkarni2020aquamuse,
+      title={AQuaMuSe: Automatically Generating Datasets for Query-Based Multi-Document Summarization}, 
+      author={Sayali Kulkarni and Sheide Chammas and Wan Zhu and Fei Sha and Eugene Ie},
+      year={2020},
+      eprint={2010.12694},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+"""
 
 _DESCRIPTION = """AQuaMuSe is a novel scalable approach to automatically mine dual query based multi-document summarization datasets for extractive and abstractive summaries using question answering dataset (Google Natural Questions) and large document corpora (Common Crawl)"""
 
@@ -75,7 +84,6 @@ class Aquamuse(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "abstractive":
             data_dir = dl_manager.download_and_extract(zipped_data_url)
-            print(data_dir)
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
