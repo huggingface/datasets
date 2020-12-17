@@ -65,20 +65,20 @@ task_ids:
 Kinyarwanda and Kirundi news classification datasets (KINNEWS and KIRNEWS,respectively), which were both collected from Rwanda and Burundi news websites and newspapers, for low-resource monolingual and cross-lingual multiclass classification tasks.
 
 ### Supported Tasks and Leaderboards
-This dataset can be used for text classification of news articles in Kinyarwadi and Kirundi languages. Each news article can be classified into one of the 14 possible classes. The classes are 
+This dataset can be used for text classification of news articles in Kinyarwadi and Kirundi languages. Each news article can be classified into one of the 14 possible classes. The classes are:
 
--politics
--sport
--economy
--health
--entertainment
--history
--technology
--culture
--religion
--environment
--education
--relationship
+- politics
+- sport
+- economy
+- health
+- entertainment
+- history
+- technology
+- culture
+- religion
+- environment
+- education
+- relationship
 
 
 ### Languages
@@ -88,6 +88,8 @@ Kinyarwanda and Kirundi
 ## Dataset Structure
 
 ### Data Instances
+
+Here is an example from the dataset:
 
 | Field | Value |
 | ----- | ----------- |
@@ -104,12 +106,12 @@ Kinyarwanda and Kirundi
 ### Data Fields
 
 The raw version of the data for Kinyarwanda language consists of these fields
--label: The category of the news article
--kin_label/kir_label: The associated label in Kinyarwanda/Kirundi language
--en_label: The associated label in English
--url: The URL of the news article
--title: The title of the news article
--content: The content of the news article
+- label: The category of the news article
+- kin_label/kir_label: The associated label in Kinyarwanda/Kirundi language
+- en_label: The associated label in English
+- url: The URL of the news article
+- title: The title of the news article
+- content: The content of the news article
 
 The cleaned version contains only the `label`, `title` and the `content` fields
  
@@ -180,4 +182,3 @@ Lang| Train | Test |
 ### Citation Information
 
 [More Information Needed]
-
