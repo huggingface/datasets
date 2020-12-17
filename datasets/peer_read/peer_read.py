@@ -209,7 +209,7 @@ class PeerRead(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepaths, split):
         """ Yields examples. """
-        for id_, filepath in enumerate(filepaths):
+        for id_, filepath in enumerate(sorted(filepaths)):
             with open(filepath, encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
                 if self.config.name == "parsed_pdfs":
