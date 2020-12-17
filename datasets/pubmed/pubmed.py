@@ -136,7 +136,12 @@ def default_article():
             "CitationSubset": "",
             "MeshHeadingList": {"MeshHeading": []},
         },
-        "PubmedData": {"ArticleIdList": [{"ArticleId": []}], "PublicationStatus": "", "History": {"PubMedPubDate": []}, 'ReferenceList': []},
+        "PubmedData": {
+            "ArticleIdList": [{"ArticleId": []}],
+            "PublicationStatus": "",
+            "History": {"PubMedPubDate": []},
+            "ReferenceList": [],
+        },
     }
 
 
@@ -164,13 +169,13 @@ class Pubmed(datasets.GeneratorBasedBuilder):
 
     def xml_to_dictionnary(self, parentElement):
         data = {}
-        if parentElement.tag in {'AbstractText', 'ArticleTitle'}:
-            # XXX 
+        if parentElement.tag in {"AbstractText", "ArticleTitle"}:
+            # XXX
             # Very special case, it will contain html leading to having very odd structure
             tag = parentElement.tag
-            string = etree.tostring(parentElement).decode('utf-8').strip()
-            inner_string = string[len(f'<{tag}>'):-len(f'</{tag}>')]
-            return {parentElement.tag:inner_string}
+            string = etree.tostring(parentElement).decode("utf-8").strip()
+            inner_string = string[len(f"<{tag}>") : -len(f"</{tag}>")]
+            return {parentElement.tag: inner_string}
 
         for child in list(parentElement):
             child.text = child.text if (child.text is not None) else " "
@@ -258,7 +263,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             "CollectiveName": datasets.Value("string"),
         }
         Reference = {
-            'Citation': datasets.Value('string'),
+            "Citation": datasets.Value("string"),
             "CitationId": datasets.Value("int32"),
         }
         Grant = {
@@ -338,29 +343,29 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         """
         citations = []
         try:
-            list_ = article['PubmedData']['ReferenceList']
+            list_ = article["PubmedData"]["ReferenceList"]
         except Exception:
-            return 
+            return
 
         for ref in list_:
-            if 'Reference' not in ref:
+            if "Reference" not in ref:
                 continue
-            for re in ref['Reference']:
-                if 'Citation' not in re:
+            for re in ref["Reference"]:
+                if "Citation" not in re:
                     continue
-                citation = re['Citation']
-                if 'ArticleIdList' not in re:
+                citation = re["Citation"]
+                if "ArticleIdList" not in re:
                     continue
-                for r in re['ArticleIdList']:
-                    if 'ArticleId' not in r:
+                for r in re["ArticleIdList"]:
+                    if "ArticleId" not in r:
                         continue
-                    for rr in r['ArticleId']:
+                    for rr in r["ArticleId"]:
                         try:
-                            citation = {'Citation': citation, 'CitationId': int(rr)}
+                            citation = {"Citation": citation, "CitationId": int(rr)}
                         except Exception:
                             continue
                         citations.append(citation)
-        article['PubmedData']['ReferenceList'] = citations
+        article["PubmedData"]["ReferenceList"] = citations
 
     def _generate_examples(self, filenames):
         """ Yields examples. """
