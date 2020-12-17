@@ -72,8 +72,61 @@ en-English
 
 ### Data Fields
 
-[More Information Needed]
+#### parsed_pdfs
+- `name`: `string` Filename in the dataset
+- `metadata`: `dict` Paper metadata
+    - `source`: `string` Paper source
+    - `authors`: `list<string>` List of paper authors
+    - `title`: `string` Paper title
+    - `sections`: `list<dict>` List of section heading and corresponding description
+        - `heading`: `string` Section heading
+        - `text`: `string` Section description
+    - `references`: `string` List of references
+        - `title`: `string` Title of reference paper
+        - `author`: `list<string>` List of reference paper authors
+        - `venue`: `string` Reference venue
+        - `citeRegEx`: `string` Reference citeRegEx
+        - `shortCiteRegEx`: `string` Reference shortCiteRegEx
+        - `year`: `int` Reference publish year
+    - `referenceMentions`: `list<string>` List of reference mentions
+        - `referenceID`: `int` Reference mention ID
+        - `context`: `string` Reference mention context
+        - `startOffset`: `int` Reference startOffset
+        - `endOffset`: `int` Reference endOffset
+    - `year`: `int` Paper publish year
+    - `abstractText`: `string` Paper abstract
+    - `creator`: `string` Paper creator
 
+#### reviews
+- `id`: `int` Review ID
+- `conference`: `string` Conference name
+- `comments`: `string` Review comments
+- `subjects`: `string` Review subjects
+- `version`: `string` Review version
+- `date_of_submission`: `string`  Submission date
+- `title`: `string` Paper title
+- `authors`: `list<string>` List of paper authors
+- `accepted`: `bool` Paper accepted flag
+- `abstract`: `string` Paper abstract
+- `histories`: `list<string>` Paper details with link
+- `reviews`: `dict` Paper reviews
+    - `date`: `string` Date of review
+    - `title`: `string` Paper title
+    - `other_keys`: `string` Reviewer other details
+    - `originality`: `string` Originality score
+    - `comments`: `string` Reviewer comments
+    - `is_meta_review`: `bool` Review type flag
+    - `recommendation`: `string` Reviewer recommendation
+    - `replicability`: `string` Replicability score
+    - `presentation_format`: `string` Presentation type
+    - `clarity`: `string` Clarity score
+    - `meaningful_comparison`: `string` Meaningful comparison score
+    - `substance`: `string` Substance score
+    - `reviewer_confidence`: `string` Reviewer confidence score
+    - `soundness_correctness`: `string` Soundness correctness score
+    - `appropriateness`: `string` Appropriateness score
+    - `impact`: `string` Impact score
+    
 ### Data Splits
 
 [More Information Needed]
