@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
 import os
 
 import datasets
@@ -147,70 +146,67 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    
-    
-    
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-    
+
         def ohsumed_dict():
             """Returns a dict."""
 
-            data = {"seq_id": -1,
-                        "medline_ui": -1,
-                        "mesh_terms": "",
-                        "title": "",
-                        "publication_type": "",
-                        "abstract": "",
-                        "author": "",
-                        "source": ""}
+            data = {
+                "seq_id": -1,
+                "medline_ui": -1,
+                "mesh_terms": "",
+                "title": "",
+                "publication_type": "",
+                "abstract": "",
+                "author": "",
+                "source": "",
+            }
 
             return data
 
         tag = ""
         column_map = {
-                        ".I": "seq_id", ".U": "medline_ui", ".M": "mesh_terms", ".T": "title", 
-                        ".P": "publication_type", ".W": "abstract", ".A": "author",
-                        ".S": "source"
-                    }
-        
+            ".I": "seq_id",
+            ".U": "medline_ui",
+            ".M": "mesh_terms",
+            ".T": "title",
+            ".P": "publication_type",
+            ".W": "abstract",
+            ".A": "author",
+            ".S": "source",
+        }
+
         with open(filepath, encoding="utf-8") as f:
+            data = ohsumed_dict()
+
             for line in f.readlines():
                 line = line.strip()
-                
-                if tag and not line.startswith("."):
-                    key = column_map[tag]
-                    data[key] = line
-                    #if print_tag == True:
-                    #    print(key, line)
-                
+
                 if line.startswith(".I"):
                     tag = ".I"
-                    try:
-                        if data:
-                            yield id_, {
-                                "seq_id": data["seq_id"],
-                                "medline_ui": data["medline_ui"],
-                                "mesh_terms": str(data["mesh_terms"]),
-                                "title": str(data["title"]),
-                                "publication_type": str(data["publication_type"]),
-                                "abstract": str(data["abstract"]),
-                                "author": str(data["author"]),
-                                "source": str(data["source"]),
-                                }
-
-                    except:
-                        #do nothing 
-                        x= 1+1 
-                
-                    data = ohsumed_dict()
-                    line = line.replace(".I", "").strip()
-                    data['seq_id'] = line
-                    id_ = line
-
+                    if data["medline_ui"] != -1:
+                        id_ = data["seq_id"]
+                        yield id_, {
+                            "seq_id": data["seq_id"],
+                            "medline_ui": data["medline_ui"],
+                            "mesh_terms": str(data["mesh_terms"]),
+                            "title": str(data["title"]),
+                            "publication_type": str(data["publication_type"]),
+                            "abstract": str(data["abstract"]),
+                            "author": str(data["author"]),
+                            "source": str(data["source"]),
+                        }
+                    else:
+                        data = ohsumed_dict()
+                        line = line.replace(".I", "").strip()
+                        data["seq_id"] = line
+                elif tag and not line.startswith("."):
+                    key = column_map[tag]
+                    data[key] = line
                 elif ".U" in line:
                     tag = ".U"
                 elif ".M" in line:
@@ -225,6 +221,3 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
                     tag = ".A"
                 elif ".S" in line:
                     tag = ".S"
-
-                
-                
