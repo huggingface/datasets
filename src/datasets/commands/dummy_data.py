@@ -2,13 +2,12 @@ import fnmatch
 import json
 import os
 import shutil
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
-
-import ijson
 
 from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
@@ -191,6 +190,13 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
 
     @staticmethod
     def _create_json_dummy_data(src_path, dst_path, json_field, n_lines=5, encoding=DEFAULT_ENCODING):
+        try:
+            import ijson
+        except ModuleNotFoundError:
+            error_msg = "Not found module 'ijson'. " \
+                        "To generate JSON dummy data you must first install it: pip install ijson"
+            logger.error(error_msg)
+            sys.exit(error_msg)
         with open(src_path, "r", encoding=encoding) as src_file:
             prefix = f"{json_field}.item" if json_field else ""
             items = ijson.items(src_file, prefix)
