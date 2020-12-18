@@ -56,7 +56,7 @@ task_ids:
 
 ### Dataset Summary
 
-The DBRD (pronounced *dee-bird*) dataset contains over 110k book reviews of which 22k have associated binary sentiment polarity labels. It is intended as a benchmark for sentiment classification in Dutch and created due to a lack of annotated datasets in Dutch that are suitable for this task.
+The DBRD (pronounced *dee-bird*) dataset contains over 110k book reviews of which 22k have associated binary sentiment polarity labels. It is intended as a benchmark for sentiment classification in Dutch and was created due to a lack of annotated datasets in Dutch that are suitable for this task.
 
 ### Supported Tasks and Leaderboards
 
@@ -71,7 +71,7 @@ Non-Dutch reviews were filtered out using [langdetect](https://github.com/Mimino
 
 ### Data Instances
 
-The dataset contains three subsets: train, test and unsupervised. The `train` and `test` sets contain labels, while the `unsupervised` set doesn't (the label value is -1 for each instance in `unsupervised`). Here's an example of a positive review, indicated with a label value of `1`. 
+The dataset contains three subsets: train, test, and unsupervised. The `train` and `test` sets contain labels, while the `unsupervised` set doesn't (the label value is -1 for each instance in `unsupervised`). Here's an example of a positive review, indicated with a label value of `1`. 
 
 ```
 {
@@ -83,15 +83,16 @@ The dataset contains three subsets: train, test and unsupervised. The `train` an
 ### Data Fields
 
 - `label`: either 0 (negative) or 1 (positive) in the supervised sets `train` and `test`. These are always -1 for the unsupervised set.
-- `text`: book review as utf-8 encoded string. 
+- `text`: book review as a utf-8 encoded string. 
 
 ### Data Splits
 
-The `train` and `test` sets were constructed by extracting all non-neutral reviews, because we want to assign either a positive or negative polarity label to each instance. Furthermore, the positive (pos) and negative (neg) labels were balanced in both train and test sets. The remainder was added to the unsupervised set.
+The `train` and `test` sets were constructed by extracting all non-neutral reviews because we want to assign either a positive or negative polarity label to each instance. Furthermore, the positive (pos) and negative (neg) labels were balanced in both train and test sets. The remainder was added to the unsupervised set.
 
-|                            | Train  | Valid | Test   |
-| -----                      | ------ | ----- | ------ |
-| # No. texts                | 20028  | 2224  | 96264  |
+|                            | Train  | Test  | Unsupervised |
+| -----                      | ------ | ----- | -----------  |
+| # No. texts                | 20028  | 2224  | 96264        |
+| % of total                 | 16.9%  | 1.9%  | 81.2%        |
 
 ## Dataset Creation
 
@@ -113,7 +114,7 @@ The reviews are written by users of [Hebban](https://www.hebban.nl) and are of v
 
 ### Annotations
 
-Each book review was accompanied by a 1 to 5-star rating. The annotations are produced by mapping the user-provided ratings to either positive or negative label. 1 and 2-star ratings are given the negative label `0` and 4 and 5-star ratings the positive label `1`. Reviews with a rating of 3 stars are considered neutral and left out of the `train`/`test` sets and added to the unsupervised set.
+Each book review was accompanied by a 1 to 5-star rating. The annotations are produced by mapping the user-provided ratings to either a positive or negative label. 1 and 2-star ratings are given the negative label `0` and 4 and 5-star ratings the positive label `1`. Reviews with a rating of 3 stars are considered neutral and left out of the `train`/`test` sets and added to the unsupervised set.
 
 #### Annotation process
 
@@ -121,7 +122,7 @@ Users of [Hebban](https://www.hebban.nl) were unaware that their reviews would b
 
 #### Who are the annotators?
 
-The annotators are the [Hebban](https://www.hebban.nl) users who wrote the book review associated with the annotation. Anyone can register on [Hebban](https://www.hebban.nl) and it's impossible to know the demographics of this group. 
+The annotators are the [Hebban](https://www.hebban.nl) users who wrote the book reviews associated with the annotation. Anyone can register on [Hebban](https://www.hebban.nl) and it's impossible to know the demographics of this group. 
 
 ### Personal and Sensitive Information
 
@@ -131,7 +132,7 @@ The book reviews and ratings are publicly available on [Hebban](https://www.hebb
 
 ### Social Impact of Dataset
 
-While prediciting sentiment of book reviews in itself is not that interesting on its own, the value of this dataset lies in its capability for benchmarking models. The dataset contains some challenges that are common to outings on the internet, such as spelling mistakes and other errors. It is therefore very useful for validating models for their real-world performance. These datasets are abundant for English, but are harder to find for Dutch, making it a valuable resource for ML tasks in this language.
+While predicting sentiment of book reviews in itself is not that interesting, the value of this dataset lies in its usage for benchmarking models. The dataset contains some challenges that are common to outings on the internet, such as spelling mistakes and other errors. It is therefore very useful for validating models for their real-world performance. These datasets are abundant for English but are harder to find for Dutch, making them a valuable resource for ML tasks in this language.
 
 ### Discussion of Biases
 
@@ -139,7 +140,7 @@ While prediciting sentiment of book reviews in itself is not that interesting on
 
 ### Other Known Limitations
 
-Reviews on [Hebban](https://www.hebban.nl) are usually written in Dutch, but some have been written in English and possibly in other languages. While we've done our best to filter out non-Dutch texts, it's hard to do this without errors. For example, some reviews are in multiple languages, and these might slip through. Also be aware that some commercial outings can appear in the text, making them different from other reviews and influencing your models. While this doesn't pose a major issue in most cases, I just wanted to mention it briefly.
+Reviews on [Hebban](https://www.hebban.nl) are usually written in Dutch, but some have been written in English and possibly in other languages. While we've done our best to filter out non-Dutch texts, it's hard to do this without errors. For example, some reviews are in multiple languages, and these might slip through. Also be aware that some commercial outings can appear in the text, making them different from other reviews and influencing your models. While this doesn't pose a major issue in most cases, we just wanted to mention it briefly.
 
 ## Additional Information
 
