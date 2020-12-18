@@ -86,6 +86,34 @@ class PeerRead(datasets.GeneratorBasedBuilder):
         return histories
 
     @staticmethod
+    def _parse_reviews(data):
+        reviews = []
+        for review in data.get("metadata", {}).get("reviews", []):
+            if isinstance(review, dict):
+                reviews.append(
+                    {
+                        "date": str(review.get("date", "")),
+                        "title": str(review.get("title", "")),
+                        "other_keys": str(review.get("other_keys", "")),
+                        "originality": str(review.get("originality", "")),
+                        "comments": str(review.get("comments", "")),
+                        "is_meta_review": str(review.get("is_meta_review", "")),
+                        "is_annotated": str(review.get("is_annotated", "")),
+                        "recommendation": str(review.get("recommendation", "")),
+                        "replicability": str(review.get("replicability", "")),
+                        "presentation_format": str(review.get("presentation_format", "")),
+                        "clarity": str(review.get("clarity", "")),
+                        "meaningful_comparison": str(review.get("meaningful_comparison", "")),
+                        "substance": str(review.get("substance", "")),
+                        "reviewer_confidence": str(review.get("reviewer_confidence", "")),
+                        "soundness_correctness": str(review.get("soundness_correctness", "")),
+                        "appropriateness": str(review.get("appropriateness", "")),
+                        "impact": str(review.get("impact")),
+                    }
+                )
+        return reviews
+
+    @staticmethod
     def _decode(text):
         return str(text).encode("utf-8", "replace").decode("utf-8")
 
@@ -279,28 +307,5 @@ class PeerRead(datasets.GeneratorBasedBuilder):
                         "accepted": str(data.get("accepted", "")),
                         "abstract": str(data.get("abstract", "")),
                         "histories": self._parse_histories(data.get("histories", [])),
-                        "reviews": [
-                            {
-                                "date": str(review.get("date", "")),
-                                "title": str(review.get("title", "")),
-                                "other_keys": str(review.get("other_keys", "")),
-                                "originality": str(review.get("originality", "")),
-                                "comments": str(review.get("comments", "")),
-                                "is_meta_review": str(review.get("is_meta_review", "")),
-                                "is_annotated": str(review.get("is_annotated", "")),
-                                "recommendation": str(review.get("recommendation", "")),
-                                "replicability": str(review.get("replicability", "")),
-                                "presentation_format": str(review.get("presentation_format", "")),
-                                "clarity": str(review.get("clarity", "")),
-                                "meaningful_comparison": str(review.get("meaningful_comparison", "")),
-                                "substance": str(review.get("substance", "")),
-                                "reviewer_confidence": str(review.get("reviewer_confidence", "")),
-                                "soundness_correctness": str(review.get("soundness_correctness", "")),
-                                "appropriateness": str(review.get("appropriateness", "")),
-                                "impact": str(review.get("impact")),
-                            }
-                            if isinstance(review, dict)
-                            else {}
-                            for review in data.get("metadata", {}).get("reviews", [])
-                        ],
+                        "reviews": self._parse_reviews(data),
                     }
