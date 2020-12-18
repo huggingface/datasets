@@ -82,7 +82,7 @@ class Polsum(datasets.GeneratorBasedBuilder):
                 "body": datasets.Value("string"),
                 "summaries": datasets.features.Sequence(
                     {
-                        "ratio": datasets.Value("string"),
+                        "ratio": datasets.Value("int32"),
                         "type": datasets.Value("string"),
                         "author": datasets.Value("string"),
                         "body": datasets.Value("string"),
@@ -136,7 +136,7 @@ class Polsum(datasets.GeneratorBasedBuilder):
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        for i, xml_path in enumerate(filepaths):
+        for i, xml_path in enumerate(sorted(filepaths)):
             root = ET.parse(xml_path).getroot()
             text_id = root.get("id")
             date_tag = root.find("date")
@@ -152,7 +152,7 @@ class Polsum(datasets.GeneratorBasedBuilder):
             summaries_tag = root.find("summaries")
             summaries = []
             for summary_tag in summaries_tag.iterfind("summary"):
-                sratio = summary_tag.get("ratio")
+                sratio = int(summary_tag.get("ratio"))
                 stype = summary_tag.get("type")
                 sauthor = summary_tag.get("author")
                 sbody_tag = summary_tag.find("body")
