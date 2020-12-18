@@ -67,7 +67,13 @@ class Counter(datasets.GeneratorBasedBuilder):
                     "number_of_words_with_swr": datasets.Value("int64"),
                     "newspaper": datasets.Value("string"),
                     "newsdate": datasets.Value("string"),
-                    "domain": datasets.Value("string"),
+                    "domain": datasets.ClassLabel(names=[
+                        "Business",
+                        "Sports",
+                        "National",
+                        "Foreign",
+                        "Showbiz",
+                    ]),
                     "classification": datasets.ClassLabel(
                         num_classes=3, names=["WD", "PD", "ND"], names_file=None, id=None
                     ),
