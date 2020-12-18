@@ -117,6 +117,7 @@ For each pair of source and derived documents. we have the following fields:
 ```newsdate(str)```: The date on which the news item is published DD.MM.YY
 
 ```domain(str)```: The category of news item, e.g sports. business or showbiz
+
 ```classification (str)```: Three classes of reuse i.e.Wholly Derived (WD), Partially Derived (PD) and Non Derived (ND)
 
 ### Data Splits
