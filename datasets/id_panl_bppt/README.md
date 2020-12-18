@@ -79,7 +79,6 @@ Indonesian
 - `translation`: the parallel sentence english-indonesian
 - `topic`: the topic of the sentence
 
-```
 
 ### Data Splits
 
