@@ -61,7 +61,7 @@ class TedTalksConfig(datasets.BuilderConfig):
         self.lang2 = lang2
 
 
-class OpusTedTalks(datasets.GeneratorBasedBuilder):
+class OpusTedtalks(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         TedTalksConfig(
             lang1=lang1,
