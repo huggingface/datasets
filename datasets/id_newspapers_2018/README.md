@@ -51,7 +51,8 @@ task_ids:
 - **Repository:** [Indonesian Newspapers](https://github.com/feryandi/Dataset-Artikel)
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:** [feryandi.n@gmail.com](mailto:feryandi.n@gmail.com)
+- **Point of Contact:** [feryandi.n@gmail.com](mailto:feryandi.n@gmail.com), 
+[cahya.wirawan@gmail.com](mailto:cahya.wirawan@gmail.com)
 
 ### Dataset Summary
 
@@ -60,7 +61,8 @@ CNN Indonesia, Sindo, Republika and Poskota. The articles are dated between 1st 
 (with few exceptions dated earlier). The size of uncompressed 500K json files (newspapers-json.tgz) is around 2.2GB,
 and the cleaned uncompressed in a big text file (newspapers.txt.gz) is about 1GB. The original source in Google Drive
 contains also a dataset in html format which include raw data (pictures, css, javascript, ...)
-from the online news website
+from the online news website. A copy of the original dataset is available at
+https://cloud.uncool.ai/index.php/s/mfYEAgKQoY3ebbM
 
 ### Supported Tasks and Leaderboards
 
