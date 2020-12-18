@@ -22,8 +22,8 @@ import datasets
 
 
 _CITATION = """\
-@article{nadeem2020stereoset,
-  title={StereoSet: Measuring stereotypical bias in pretrained language models},
+@article{nadeem2020Stereoset,
+  title={Stereoset: Measuring stereotypical bias in pretrained language models},
   author={Nadeem, Moin and Bethke, Anna and Reddy, Siva},
   journal={arXiv preprint arXiv:2004.09456},
   year={2020}
@@ -31,14 +31,14 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-StereoSet is a dataset that measures stereotype bias in language models. StereoSet consists of 17,000 sentences that
+Stereoset is a dataset that measures stereotype bias in language models. Stereoset consists of 17,000 sentences that
 measures model preferences across gender, race, religion, and profession.
 """
 
 _LICENSE = "CC BY-SA 4.0"
 
 
-class StereoSetConfig(datasets.BuilderConfig):
+class StereosetConfig(datasets.BuilderConfig):
     """BuilderConfig"""
 
     def __init__(self, **kwargs):
@@ -47,19 +47,19 @@ class StereoSetConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(StereoSetConfig, self).__init__(**kwargs)
+        super(StereosetConfig, self).__init__(**kwargs)
 
 
-class StereoSet(datasets.GeneratorBasedBuilder):
+class Stereoset(datasets.GeneratorBasedBuilder):
 
-    _DOWNLOAD_URL = "https://github.com/moinnadeem/StereoSet/raw/master/data/dev.json"
+    _DOWNLOAD_URL = "https://github.com/moinnadeem/Stereoset/raw/master/data/dev.json"
 
     BUILDER_CONFIGS = [
-        StereoSetConfig(
-            name="intersentence", version=datasets.Version("1.0.0"), description="intersentence task for StereoSet"
+        StereosetConfig(
+            name="intersentence", version=datasets.Version("1.0.0"), description="intersentence task for Stereoset"
         ),
-        StereoSetConfig(
-            name="intrasentence", version=datasets.Version("1.0.0"), description="intrasentence task for StereoSet"
+        StereosetConfig(
+            name="intrasentence", version=datasets.Version("1.0.0"), description="intrasentence task for Stereoset"
         ),
     ]
 
@@ -80,11 +80,13 @@ class StereoSet(datasets.GeneratorBasedBuilder):
                             "id": datasets.Value("string"),
                             "labels": datasets.features.Sequence(
                                 {
-                                    "label": datasets.Value("string"),
+                                    "label": datasets.ClassLabel(
+                                        names=["anti-stereotype", "stereotype", "unrelated", "related"]
+                                    ),
                                     "human_id": datasets.Value("string"),
                                 }
                             ),
-                            "gold_label": datasets.Value("string"),
+                            "gold_label": datasets.ClassLabel(names=["anti-stereotype", "stereotype", "unrelated"]),
                         }
                     ),
                     # These are the features of your dataset like images, labels ...
@@ -95,7 +97,7 @@ class StereoSet(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://stereoset.mit.edu/",
+            homepage="https://Stereoset.mit.edu/",
             citation=_CITATION,
             license=_LICENSE,
         )
