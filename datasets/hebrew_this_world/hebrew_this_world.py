@@ -80,22 +80,7 @@ class HebrewThisWorld(datasets.GeneratorBasedBuilder):
         """Generate Hebrew ThisWorld examples."""
         for file in filepath:
             with open(file, encoding="utf-8") as csv_file:
-                csv_reader = csv.DictReader(
-                    csv_file,
-                    fieldnames=[
-                        "issue_num",
-                        "page_count",
-                        "date",
-                        "date_he",
-                        "year",
-                        "href",
-                        "pdf",
-                        "coverpage",
-                        "backpage",
-                        "content",
-                        "url",
-                    ],
-                )
+                csv_reader = csv.DictReader(csv_file)
                 for data in csv_reader:
                     id_ = data["issue_num"]
                     yield id_, {
