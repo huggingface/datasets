@@ -21,13 +21,6 @@ import csv
 import datasets
 
 
-<<<<<<< HEAD
-=======
-# import json
-# import os
-
-
->>>>>>> 4ab01f21137425a8c57a3f0cf72ed6d1fe07aff5
 _CITATION = """\
 @InProceedings{10.1007/978-3-319-18117-2_2,
 author="ElSahar, Hady
@@ -62,7 +55,7 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "polarity": datasets.Value("string"),
+                    "polarity": datasets.ClassLabel(names=["-1", "1"]),
                     "text": datasets.Value("string"),
                     "restaurant_id": datasets.Value("string"),
                     "user_id": datasets.Value("string"),
@@ -83,6 +76,7 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate arabic restaurant reviews examples."""
         with open(filepath, encoding="utf-8") as csv_file:
+            csv_file = csv_file.readlines()[1:]
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
