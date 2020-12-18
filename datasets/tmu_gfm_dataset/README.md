@@ -70,10 +70,18 @@ English
 
 ### Data Instances
 
-An example from the TMU-FGM-Dataset test set looks as follows:
+An example from the TMU-FGM-Dataset looks as follows:
 
 ```
-Afterall there will be an endless battle between the technology and human mentality.,"After all, there will be an endless battle between the technology and human mentality.","3,4,3,4,3","3,4,3,4,3","3,4,4,4,3","lstm,cnn",3.4,3.4,3.6
+{'ave_f': 3.4000000953674316,
+ 'ave_g': 3.4000000953674316,
+ 'ave_m': 3.5999999046325684,
+ 'fluency': [3, 4, 3, 4, 3],
+ 'grammer': [3, 4, 3, 4, 3],
+ 'meaning': [3, 4, 4, 4, 3],
+ 'output': 'After all, there will be an endless battle between the technology and human mentality.',
+ 'source': 'Afterall there will be an endless battle between the technology and human mentality.',
+ 'system': 'lstm,cnn'}
 ```
 
 ### Data Fields
