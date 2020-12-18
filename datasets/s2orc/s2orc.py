@@ -109,13 +109,13 @@ class S2ORC(datasets.GeneratorBasedBuilder):
         _MANIFEST_URL = _ROOT_URL + "manifest.txt"
         manifest_file = dl_manager.download_and_extract(_MANIFEST_URL)
 
-        file = open(manifest_file, "r")
+        file = open(manifest_file, "r", encoding="utf-8")
         train_names = file.read().splitlines()
 
         r = re.compile("(?s:s2\\-corpus\\-.*\\.gz)\\Z")  # files are of the form 's2-corpus-*.gz'
         train_names = list(filter(r.match, train_names))
 
-        train_names = train_names[:101]
+        train_names = train_names[:101]  # comment this line to run on all 6000 files
 
         train_names = [dl_manager.download_and_extract(_ROOT_URL + x) for x in train_names]
 
