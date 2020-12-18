@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- conditional-text-generation
 task_ids:
-- language-modeling
+- machine-translation
 ---
 
 # Dataset Card for [Dataset Name]
