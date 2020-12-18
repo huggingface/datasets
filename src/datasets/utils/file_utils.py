@@ -393,9 +393,19 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
 
 
 def _request_with_retry(
-    verb: str, url: str, max_retries: int = 0, time_between_tries: int = 1, **params
+    verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
 ) -> requests.Response:
-    """Wrapper around requests to retry in case it fails with a ConnectTimeout"""
+    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff
+
+    Args:
+        verb (str): HTTP verb, such as 'GET' or 'HEAD'
+        url (str): The URL of the ressource to fetch
+        max_retries (int): Maximum number of retries, defaults to 0 (no retries)
+        base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
+            retries then grows exponentially, capped by max_wait_time.
+        max_wait_time (float): Maximum amount of time between two retries, in seconds
+        **params: Params to pass to `requests.request`
+    """
     tries, success = 0, False
     while not success:
         tries += 1
@@ -407,7 +417,8 @@ def _request_with_retry(
                 raise err
             else:
                 logger.info(f"{verb} request to {url} timed out, retrying... [{tries/max_retries}]")
-                time.sleep(time_between_tries)
+                sleep_time = max(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
+                time.sleep(sleep_time)
     return response
 
 
