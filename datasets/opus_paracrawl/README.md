@@ -1,68 +1,68 @@
 ---
 annotations_creators:
-- found
+  - found
 language_creators:
-- found
+  - found
 languages:
-- bg
-- ca
-- cs
-- da
-- de
-- el
-- en
-- es
-- et
-- eu
-- fi
-- fr
-- ga
-- gl
-- ha
-- hr
-- hu
-- ig
-- is
-- it
-- km
-- lt
-- lv
-- mt
-- my
-- nb
-- ne
-- nl
-- nn
-- pl
-- pt
-- ro
-- ru
-- si
-- sk
-- sl
-- so
-- sv
-- sw
-- tl
-
+  - bg
+  - ca
+  - cs
+  - da
+  - de
+  - el
+  - en
+  - es
+  - et
+  - eu
+  - fi
+  - fr
+  - ga
+  - gl
+  - ha
+  - hr
+  - hu
+  - ig
+  - is
+  - it
+  - km
+  - lt
+  - lv
+  - mt
+  - my
+  - nb
+  - ne
+  - nl
+  - nn
+  - pl
+  - pt
+  - ro
+  - ru
+  - si
+  - sk
+  - sl
+  - so
+  - sv
+  - sw
+  - tl
 
 licenses:
-- unknown
+  - cc0-1.0
 multilinguality:
-- multilingual
+  - multilingual
 size_categories:
-- 10K<n<100K
+  - 10K<n<100K
 source_datasets:
-- original
+  - original
 task_categories:
-- conditional-text-generation
+  - conditional-text-generation
 task_ids:
-- machine-translation
+  - machine-translation
 ---
 
 # Dataset Card Creation Guide
 
 ## Table of Contents
+
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks](#supported-tasks-and-leaderboards)
@@ -95,13 +95,11 @@ task_ids:
 
 ### Dataset Summary
 
-
 To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/ParaCrawl.php
 E.g.
 
 `dataset = load_dataset("paracrawl", lang1="en", lang2="so")`
-
 
 ### Supported Tasks and Leaderboards
 
@@ -181,20 +179,20 @@ E.g.
 
 ### Licensing Information
 
-[More Information Needed]
+- Creative commons CC0 (no rights reserved)
 
 ### Citation Information
 
 @InProceedings{TIEDEMANN12.463,
-  author = {J{\"o}rg Tiedemann},
-  title = {Parallel Data, Tools and Interfaces in OPUS},
-  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
-  year = {2012},
-  month = {may},
-  date = {23-25},
-  address = {Istanbul, Turkey},
-  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
-  publisher = {European Language Resources Association (ELRA)},
-  isbn = {978-2-9517408-7-7},
-  language = {english}
- }
+author = {J{\"o}rg Tiedemann},
+title = {Parallel Data, Tools and Interfaces in OPUS},
+booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
+year = {2012},
+month = {may},
+date = {23-25},
+address = {Istanbul, Turkey},
+editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+publisher = {European Language Resources Association (ELRA)},
+isbn = {978-2-9517408-7-7},
+language = {english}
+}
