@@ -19,7 +19,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for SrWac
+# Dataset Card for BsWac
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
