@@ -77,7 +77,11 @@ Indonesian
 ### Data Fields
 - `id`: id of the sample
 - `translation`: the parallel sentence english-indonesian
-- `topic`: the topic of the sentence
+- `topic`: the topic of the sentence. It could be one of the following:
+  - Economic
+  - International
+  - Science and Technology
+  - Sport
 
 
 ### Data Splits
