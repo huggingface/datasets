@@ -124,6 +124,7 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
                 tgt = f2.read().split("\n")[:-1]
                 for idx, (s, t) in enumerate(zip(src, tgt)):
                     yield idx, {
+                        "id": str(idx),
                         "translation": {self.config.src_tag: s, self.config.tgt_tag: t},
                         "topic": topic["name"],
                     }
