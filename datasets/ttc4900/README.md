@@ -66,9 +66,16 @@ The dataset is based on Turkish.
 
 A text classification dataset with 7 different news category. 
 
+**Category:** siyaset
+
+**Text:** paris teki infaz imralı ile başlayan sürece bir darbe mi elif_çakır ın sunduğu söz_bitmeden in bugünkü konuğu gazeteci melih altınok oldu programdan satıbaşları imralı ile görüşmeler hangi aşamada bundan sonra ne olacak hangi kesimler sürece engel oluyor psikolojik mayınlar neler türk solu bu dönemde evrensel sorumluluğunu yerine getirebiliyor mu elif_çakır sordu melih altınok söz_bitmeden de yanıtladı elif_çakır pkk nın silahsızlandırılmasına yönelik olarak öcalan ile görüşme sonrası 3 kadının infazı enteresan çünkü kurucu isimlerden birisi sen nasıl okudun bu infazı melih altınok herkesin ciddi anlamda şüpheleri var şu an yürüttüğümüz herşey bir delile dayanmadığı için komple teorisinden ibaret kalacak ama şöyle bir durum var imralı görüşmelerin ilk defa bir siyasi iktidar tarafından açıkça söylendiği bir dönem ardından geliyor bu sürecin gerçekleşmemesini isteyen kesimler yaptırmıştır dedi
+
+
 ### Data Fields
 
-[More Information Needed]
+- **category** : Indicates to which category the news text belongs.
+(Such as "politics", "world", "economy", "culture", "health", "sports", "technology".)
+- **text** : Contains the text of the news.
 
 ### Data Splits
 
