@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - expert-generated
 language_creators:
@@ -29,8 +30,9 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-offensive-language
+---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for Offenseval Dravidian
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -106,15 +108,15 @@ An example from the Kannada dataset looks as follows:
 
 Tamil
 - `text`: Tamil-English code mixed comment.
-- `label`: list of the possible values: "Not_offensive", "Offensive_Untargetede", "Offensive_Targeted_Insult_Individual",  "Offensive_Targeted_Insult_Group", "Offensive_Targeted_Insult_Other", "not-Tamil"
+- `label`: integer from 0 to 5 that corresponds to these values: "Not_offensive", "Offensive_Untargetede", "Offensive_Targeted_Insult_Individual",  "Offensive_Targeted_Insult_Group", "Offensive_Targeted_Insult_Other", "not-Tamil"
 
 Malayalam
 - `text`: Malayalam-English code mixed comment.
-- `label`: list of the possible values: "Not_offensive", "Offensive_Untargetede", "Offensive_Targeted_Insult_Individual",  "Offensive_Targeted_Insult_Group", "Offensive_Targeted_Insult_Other", "not-malayalam"
+- `label`: integer from 0 to 5 that corresponds to these values: "Not_offensive", "Offensive_Untargetede", "Offensive_Targeted_Insult_Individual",  "Offensive_Targeted_Insult_Group", "Offensive_Targeted_Insult_Other", "not-malayalam"
 
 Kannada
 - `text`: Kannada-English code mixed comment.
-- `label`: list of the possible values: "Not_offensive", "Offensive_Untargetede", "Offensive_Targeted_Insult_Individual",  "Offensive_Targeted_Insult_Group", "Offensive_Targeted_Insult_Other", "not-Kannada"
+- `label`: integer from 0 to 5 that corresponds to these values: "Not_offensive", "Offensive_Untargetede", "Offensive_Targeted_Insult_Individual",  "Offensive_Targeted_Insult_Group", "Offensive_Targeted_Insult_Other", "not-Kannada"
 
 
 ### Data Splits
