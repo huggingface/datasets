@@ -66,16 +66,16 @@ English
 {
 "article_number": 102 ,
 "url_of_article": https://newslo.com/roger-stone-blames-obama-possibility-trump-alzheimers-attacks-president-caused-severe-stress/ ,
-"fake_or_satire": Fake ,
+"fake_or_satire": 1,  # Fake
 "url_of_rebutting_article": https://www.snopes.com/fact-check/donald-trumps-intelligence-quotient/
 }
 ```
 
 ### Data Fields
-article_number- An integer used as an index for each row
-url_of_article- A string which contains URL of an article to be assessed and classified as either Fake or Satire
-fake_or_satire- A classlabel for the above variable which can take two values- Fake and String
-url_of_rebutting_article- A string which contains a URL of the article used to refute the article in question (present in url_of_article)
+- article_number: An integer used as an index for each row
+- url_of_article: A string which contains URL of an article to be assessed and classified as either Fake or Satire
+- fake_or_satire: A classlabel for the above variable which can take two values- Fake (1) and Satire (0)
+- url_of_rebutting_article: A string which contains a URL of the article used to refute the article in question (present - in url_of_article)
 
 ### Data Splits
 This dataset is not split, only the train split is available
