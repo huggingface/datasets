@@ -66,7 +66,26 @@ class Wrbsc(datasets.GeneratorBasedBuilder):
             {
                 "sentence1": datasets.Value("string"),
                 "sentence2": datasets.Value("string"),
-                "relationship": datasets.Value("string"),
+                "relationship": datasets.ClassLabel(
+                    names=[
+                        "Krzyżowanie_się",
+                        "Tło_historyczne",
+                        "Źródło",
+                        "Dalsze_informacje",
+                        "Zawieranie",
+                        "Opis",
+                        "Uszczegółowienie",
+                        "Parafraza",
+                        "Spełnienie",
+                        "Mowa_zależna",
+                        "Zmiana_poglądu",
+                        "Streszczenie",
+                        "Tożsamość",
+                        "Sprzeczność",
+                        "Modalność",
+                        "Cytowanie",
+                    ]
+                ),
             }
         )
         return datasets.DatasetInfo(

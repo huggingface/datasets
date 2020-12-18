@@ -67,14 +67,35 @@ Polish
 ## Dataset Structure
 
 ### Data Instances
+An example contains two related sentences and a class representing the type of relationship between those sentences. 
 
-[Needs More Information]
+```
+{'relationship': 0,
+ 'sentence1': 'Znajdujące się w Biurze Bezpieczeństwa Narodowego akta Komisji Weryfikacyjnej WSI zostały przewiezione do siedziby Służby Kontrwywiadu Wojskowego.',
+ 'sentence2': '2008-07-03: Wywiezienie akt dotyczących WSI – sprawa dla prokuratury?'}
+```
 
 ### Data Fields
 
-- `sentence1`: a `string` feature.
-- `sentence2`: a `string` feature.
-- `relationship`: a `string` feature.
+- `sentence1`: the first sentence being compared (`string`)
+- `sentence2`: the second sentence being compared (`string`)
+- `relationship`: the type of relationship between those sentences. Can be one of 16 classes listed below:
+  - `Krzyżowanie_się`: crossing
+  - `Tło_historyczne`: historical background
+  - `Źródło`: source
+  - `Dalsze_informacje`: additional information
+  - `Zawieranie`: inclusion
+  - `Opis`: description
+  - `Uszczegółowienie`: further detail 
+  - `Parafraza`: paraphrase
+  - `Spełnienie`: fulfillment
+  - `Mowa_zależna`: passive voice
+  - `Zmiana_poglądu`: change of opinion
+  - `Streszczenie`: summarization
+  - `Tożsamość`: identity
+  - `Sprzeczność`: conflict
+  - `Modalność`: modality
+  - `Cytowanie`: quotation
 
 ### Data Splits
 
@@ -132,7 +153,7 @@ Single train split
 
 ### Licensing Information
 
-[Needs More Information]
+Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
 
 ### Citation Information
 ```
