@@ -260,7 +260,7 @@ def prepare_module(
         local_path = path
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
-        head_hf_s3(path, filename=name, dataset=dataset)
+        head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
         script_version = str(script_version) if script_version is not None else None
         file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
         try:

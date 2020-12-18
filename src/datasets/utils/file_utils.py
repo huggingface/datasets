@@ -14,6 +14,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -200,8 +201,11 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> requests.Response:
-    return http_head(hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset))
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0) -> requests.Response:
+    return http_head(
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        max_retries=max_retries,
+    )
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
@@ -250,7 +254,7 @@ class DownloadConfig:
             file in a folder along the archive.
         force_extract: if True when extract_compressed_file is True and the archive was already extracted,
             re-extract the archive and overide the folder where it was extracted.
-
+        max_retries: the number of times to retry an HTTP request if it fails. Defaults to 1.
 
     """
 
@@ -264,6 +268,7 @@ class DownloadConfig:
     force_extract: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
+    max_retries: int = 1
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -310,6 +315,7 @@ def cached_path(
             user_agent=download_config.user_agent,
             local_files_only=download_config.local_files_only,
             use_etag=download_config.use_etag,
+            max_retries=download_config.max_retries,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -386,11 +392,32 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
+def _request_with_retry(
+    verb: str, url: str, max_retries: int = 0, time_between_tries: int = 1, **params
+) -> requests.Response:
+    """Wrapper around requests to retry in case it fails with a ConnectTimeout"""
+    tries, success = 0, False
+    while not success:
+        tries += 1
+        try:
+            response = requests.request(verb.upper(), url, **params)
+            success = True
+        except requests.exceptions.ConnectTimeout as err:
+            if tries > max_retries:
+                raise err
+            else:
+                logger.info(f"{verb} request to {url} timed out, retrying... [{tries/max_retries}]")
+                time.sleep(time_between_tries)
+    return response
+
+
+def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
-    response = requests.get(url, stream=True, proxies=proxies, headers=headers, cookies=cookies)
+    response = _request_with_retry(
+        verb="GET", url=url, stream=True, proxies=proxies, headers=headers, cookies=cookies, max_retries=max_retries
+    )
     if response.status_code == 416:  # Range not satisfiable
         return
     content_length = response.headers.get("Content-Length")
@@ -411,10 +438,19 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
     progress.close()
 
 
-def http_head(url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10) -> requests.Response:
+def http_head(
+    url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
+) -> requests.Response:
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
-    response = requests.head(
-        url, proxies=proxies, headers=headers, cookies=cookies, allow_redirects=allow_redirects, timeout=timeout
+    response = _request_with_retry(
+        verb="HEAD",
+        url=url,
+        proxies=proxies,
+        headers=headers,
+        cookies=cookies,
+        allow_redirects=allow_redirects,
+        timeout=timeout,
+        max_retries=max_retries,
     )
     return response
 
@@ -429,6 +465,7 @@ def get_from_cache(
     user_agent=None,
     local_files_only=False,
     use_etag=True,
+    max_retries=0,
 ) -> Optional[str]:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -467,7 +504,9 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         try:
-            response = http_head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+            response = http_head(
+                url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
+            )
             if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
@@ -540,7 +579,15 @@ def get_from_cache(
             logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
 
             # GET file object
-            http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies)
+            http_get(
+                url,
+                temp_file,
+                proxies=proxies,
+                resume_size=resume_size,
+                user_agent=user_agent,
+                cookies=cookies,
+                max_retries=max_retries,
+            )
 
         logger.info("storing %s in cache at %s", url, cache_path)
         shutil.move(temp_file.name, cache_path)
