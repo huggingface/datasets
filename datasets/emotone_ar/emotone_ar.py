@@ -44,7 +44,7 @@ _HOMEPAGE = "https://github.com/AmrMehasseb/Emotional-Tone"
 _DOWNLOAD_URL = "https://raw.githubusercontent.com/AmrMehasseb/Emotional-Tone/master/Emotional-Tone-Dataset.csv"
 
 
-class EmoToneAr(datasets.GeneratorBasedBuilder):
+class EmotoneAr(datasets.GeneratorBasedBuilder):
     """Dataset of 10065 tweets in Arabic for Emotions detection in Arabic text"""
 
     def _info(self):
@@ -52,9 +52,10 @@ class EmoToneAr(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "ID": datasets.Value("string"),
-                    " TWEET": datasets.Value("string"),
-                    " LABEL": datasets.Value("string"),
+                    "tweet": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(
+                        names=["none", "anger", "joy", "sadness", "love", "sympathy", "surprise", "fear"]
+                    ),
                 }
             ),
             homepage=_HOMEPAGE,
@@ -64,20 +65,15 @@ class EmoToneAr(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir}),
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir})]
 
     def _generate_examples(self, filepath):
         """Generate labeled arabic tweets examples for emoptions detection."""
-        with open(filepath, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(
-                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
+        with open(filepath, encoding="utf-8", mode="r") as csv_file:
+            csv_file = csv_file.readlines()
+            csv_file.pop(0)
+            csv_reader = csv.reader(csv_file, quotechar='"', delimiter=",")
+
             for id_, row in enumerate(csv_reader):
-                (
-                    id,
-                    tweet,
-                    label,
-                ) = row
-                yield id_, {"ID": id, " TWEET": tweet, " LABEL": label}
+                _, tweet, label = row
+                yield id_, {"tweet": tweet, "label": label}

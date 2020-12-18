@@ -66,39 +66,29 @@ The dataset is based on Arabic.
 
 ### Data Instances
 
-A typical data point comprises of the following:
-
-- "ID": row ID    
-
-- " TWEET": plain text tweet in Arabic
-
-- " LABEL": emotion class label
-
 example: 
 ```
-    >>> {' LABEL': 'love', ' TWEET': 'والقلبُ متلهّفٌ؛ لنعيمٍ سرمدي❤️', 'ID': '100'}
+    >>> {'label': 0, 'tweet': 'الاوليمبياد الجايه هكون لسه ف الكليه ..'}
 ```
+
 ### Data Fields
 
-- "ID": row ID    
+- "tweet": plain text tweet in Arabic
 
-- " TWEET": plain text tweet in Arabic
-
-- " LABEL": emotion class label
+- "label": emotion class label
 
 the dataset distribution and balance for each class looks like the following
 
-|Label    |  Count    |
-|---------|  -------  | 
-|none     |   1550    |
-|anger    |   1444    |
-|joy      |   1281    |
-|sadness  |   1256    |
-|love     |   1220    |
-|fear     |   1207    |
-|sympathy |   1062    |
-|surprise |   1045    |
-
+|label||Label description |  Count    |
+|---------|---------|  -------  | 
+|0        |none     |   1550    |
+|1        |anger    |   1444    |
+|2        |joy      |   1281    |
+|3        |sadness  |   1256    |
+|4        |love     |   1220    |
+|5        |sympathy |   1062    |
+|6        |surprise |   1045    |
+|7        |fear     |   1207    |
 
 ### Data Splits
 
