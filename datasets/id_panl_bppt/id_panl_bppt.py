@@ -77,6 +77,7 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
             ],
         ),
     ]
+    BUILDER_CONFIG_CLASS = IdPanlBpptConfig
 
     def _info(self):
         features = datasets.Features(
