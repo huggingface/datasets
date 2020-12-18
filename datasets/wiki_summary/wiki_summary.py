@@ -92,7 +92,7 @@ class WikiSummary(datasets.GeneratorBasedBuilder):
         """Generate Wiki summary examples."""
         with open(filepath, encoding="utf8") as csv_file:
             csv_reader = csv.reader(
-                csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_ALL, skipinitialspace=True
+                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
             for id_, row in enumerate(csv_reader):
                 row = row[0].split("\t")
