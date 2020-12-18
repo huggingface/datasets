@@ -78,7 +78,7 @@ Portuguese
 - `doc_id`: The document ID
 - `title`: The document title
 - `uri`: URI where the document was extracted from
-- `paragraphs`: A list of document paragraphs (with a list of sentences in it)
+- `paragraphs`: A list of document paragraphs (with a list of sentences in it as a list of strings)
 
 ### Data Splits
 

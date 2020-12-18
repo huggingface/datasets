@@ -54,9 +54,9 @@ class Brwac(datasets.GeneratorBasedBuilder):
         return """
         You need to
         1. Manually download `brwac.vert.gz` from https://www.inf.ufrgs.br/pln/wiki/index.php?title=BrWaC
-        2. Extract the brwac.vert.gz; this will result in the file brwac.vert
+        2. Extract the brwac.vert.gz in; this will result in the file brwac.vert in a folder <path/to/folder>
         The <path/to/folder> can e.g. be `~/Downloads`.
-        BrWaC can then be loaded using the following command `datasets.load_dataset("brwac", data_dir="<path/to/download>")`.
+        BrWaC can then be loaded using the following command `datasets.load_dataset("brwac", data_dir="<path/to/folder>")`.
         """
 
     def _info(self):
