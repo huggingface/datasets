@@ -53,7 +53,7 @@ _URLs = {
 }
 
 
-class TMUGFMDataset(datasets.GeneratorBasedBuilder):
+class TmuGfmDataset(datasets.GeneratorBasedBuilder):
     """TMU-GFM-Dataset."""
 
     VERSION = datasets.Version("1.1.0")

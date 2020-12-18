@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- other
+- conditional-text-generation-other-grammatical-error-correction
 ---
 
 # Dataset Card for TMU-GFM-Dataset
