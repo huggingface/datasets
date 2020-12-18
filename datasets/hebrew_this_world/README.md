@@ -76,8 +76,8 @@ Sample:
 
 ```json
 {
-  "issue_num": "637",
-  "page_count": "16",
+  "issue_num": 637,
+  "page_count": 16,
   "date": "1950-01-01",
   "date_he": "1 בינואר 1950",
   "year": "1950",
@@ -88,8 +88,6 @@ Sample:
   "content": "\nלפיד\nהנוער ־ בירושלים צילומים :\n\nב. רותנברג\n\nוזהו הלפיד\n...",
   "url": "https://thisworld.online/api/1950/637"
 }
-
-
 ```
 
 ### Data Fields
