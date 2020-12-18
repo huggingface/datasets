@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import os
 
 import datasets
 
@@ -39,10 +38,6 @@ _CITATION = """\
 }
 """
 
-_TRAIN_FILENAME = "train.csv"
-_TEST_FILENAME = "test.csv"
-_DEV_FILENAME = "dev.csv"
-
 _ID = "id"
 _LINK = "link"
 _TITLE = "title"
@@ -51,23 +46,15 @@ _HIGHLIGHTS = "highlights"
 
 _HOMEPAGE = "https://github.com/m3hrdadfi/wiki-summary"
 
+_TRAIN_DOWNLOAD_URL = "https://drive.google.com/u/0/uc?id=1-CaP3xHgZxOGjQ3pXC5tr9YnIajmel-t&export=download"
+_TEST_DOWNLOAD_URL = "https://drive.google.com/u/0/uc?id=1-9G4yYP6YO8oMA-o4cTe9NJpEyr7x5jg&export=download"
+_DEV_DOWNLOAD_URL = "https://drive.google.com/u/0/uc?id=1-2g2gkDeNaN-vth-8Mgit_ovmSkVh91u&export=download"
+
 
 class WikiSummary(datasets.GeneratorBasedBuilder):
     """Wiki Summary"""
 
     VERSION = datasets.Version("1.1.0")
-
-    @property
-    def manual_download_instructions(self):
-        return """\
-    You need to go to https://github.com/m3hrdadfi/wiki-summary,
-    and manually download Version 1.0.0 Train Set, Dev Set, Test Set. Once it is completed,
-    3 files named train.csv, dev.csv and test.csv will appear in your Downloads folder
-    or whichever folder your browser chooses to save files to.
-    You can then move those files under <path/to/folder>.
-    The <path/to/folder> can e.g. be "~/manual_data".
-    wiki_summary can then be loaded using the following command `datasets.load_dataset("wiki_summary", data_dir="<path/to/folder>")`.
-    """
 
     def _info(self):
         feature_names = [_ID, _LINK, _TITLE, _ARTICLE, _HIGHLIGHTS]
@@ -79,9 +66,9 @@ class WikiSummary(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        path_train = os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _TRAIN_FILENAME)
-        path_test = os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _DEV_FILENAME)
-        path_dev = os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _TEST_FILENAME)
+        path_train = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
+        path_test = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
+        path_dev = dl_manager.download_and_extract(_DEV_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": path_train}),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": path_test}),
