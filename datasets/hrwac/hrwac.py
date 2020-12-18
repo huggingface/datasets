@@ -84,5 +84,5 @@ class Hrwac(datasets.GeneratorBasedBuilder):
             with open(fp, encoding="utf8") as f:
                 for id_, row in enumerate(f):
                     yield id_, {
-                        "sentence": row,
+                        "sentence": row.strip(),
                     }

@@ -19,7 +19,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for SrWac
+# Dataset Card for HrWac
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -72,7 +72,7 @@ Dataset is monolingual in Croatian language.
 
 ### Data Fields
 
-[More Information Needed]
+- sentence: sentences as strings
 
 ### Data Splits
 
