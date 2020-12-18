@@ -26,7 +26,7 @@ task_ids:
 - text-simplification
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for WikiSummary
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
