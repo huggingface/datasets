@@ -68,11 +68,14 @@ class ParaCrawlConfig(datasets.BuilderConfig):
             name=f"{lang1}-{lang2}",
             **kwargs,
         )
+        assert (
+            lang1 != lang2
+        ), "'language 1' & 'language 2' should be different from each other"
         self.lang1 = lang1
         self.lang2 = lang2
 
 
-class OpusParaCrawl(datasets.GeneratorBasedBuilder):
+class ParaCrawl(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         ParaCrawlConfig(
             lang1=lang1,
@@ -90,7 +93,9 @@ class OpusParaCrawl(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "translation": datasets.Translation(languages=(self.config.lang1, self.config.lang2)),
+                    "translation": datasets.Translation(
+                        languages=(self.config.lang1, self.config.lang2)
+                    ),
                 },
             ),
             supervised_keys=None,
@@ -99,10 +104,7 @@ class OpusParaCrawl(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        def _base_url(lang1, lang2):
-            return _BASE_URL.format(lang1, lang2)
-
-        download_url = _base_url(self.config.lang1, self.config.lang2)
+        download_url = _BASE_URL.format(self.config.lang1, self.config.lang2)
         path = dl_manager.download_and_extract(download_url)
         return [
             datasets.SplitGenerator(
@@ -118,7 +120,9 @@ class OpusParaCrawl(datasets.GeneratorBasedBuilder):
         l2_file = _BASE_NAME.format(folder, l2)
         l1_path = os.path.join(datapath, l1_file)
         l2_path = os.path.join(datapath, l2_file)
-        with open(l1_path, encoding="utf-8") as f1, open(l2_path, encoding="utf-8") as f2:
+        with open(l1_path, encoding="utf-8") as f1, open(
+            l2_path, encoding="utf-8"
+        ) as f2:
             for sentence_counter, (x, y) in enumerate(zip(f1, f2)):
                 x = x.strip()
                 y = y.strip()
