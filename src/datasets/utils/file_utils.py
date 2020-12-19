@@ -78,6 +78,18 @@ try:
 except ImportError:
     _beam_available = False  # pylint: disable=invalid-name
 
+try:
+    USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
+    if USE_RAR in ("1", "ON", "YES", "AUTO"):
+        import rarfile
+
+        _rarfile_available = True  # pylint: disable=invalid-name
+        logger.info("rarfile available.")
+    else:
+        logger.info("Disabling rarfile because USE_RAR is set to False")
+        _rarfile_available = False
+except ImportError:
+    _rarfile_available = False  # pylint: disable=invalid-name
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
@@ -143,6 +155,8 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch.cuda.manual_seed_all(seed)
 
     if set_tensorflow and _tf_available:
+        from tensorflow.python import context as tfpycontext
+
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
         tf.random.set_global_generator(temp_gen)
@@ -150,7 +164,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         if not tf.executing_eagerly():
             raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
 
-        tf_context = tf.python.context.context()  # eager mode context
+        tf_context = tfpycontext.context()  # eager mode context
         tf_seed = tf_context._seed
         tf_rng_initialized = hasattr(tf_context, "_rng")
         if tf_rng_initialized:
@@ -183,6 +197,10 @@ def is_torch_available():
 
 def is_tf_available():
     return _tf_available
+
+
+def is_rarfile_available():
+    return _rarfile_available
 
 
 def is_remote_url(url_or_filename):
@@ -320,11 +338,13 @@ def cached_path(
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
     if download_config.extract_compressed_file and output_path is not None:
+
         if (
             not is_zipfile(output_path)
             and not tarfile.is_tarfile(output_path)
             and not is_gzip(output_path)
             and not is_xz(output_path)
+            and not is_rarfile(output_path)
         ):
             return output_path
 
@@ -363,6 +383,13 @@ def cached_path(
                 with lzma.open(output_path) as compressed_file:
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
+            elif is_rarfile(output_path):
+                if _rarfile_available:
+                    rf = rarfile.RarFile(output_path)
+                    rf.extractall(output_path_extracted)
+                    rf.close()
+                else:
+                    raise EnvironmentError("Please pip install rarfile")
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
@@ -573,3 +600,16 @@ def is_xz(path: str) -> bool:
             return True
         else:
             return False
+
+
+def is_rarfile(path: str) -> bool:
+    """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
+    RAR_ID = b"Rar!\x1a\x07\x00"
+    RAR5_ID = b"Rar!\x1a\x07\x01\x00"
+
+    with open(path, "rb", 1024) as fd:
+        buf = fd.read(len(RAR5_ID))
+    if buf.startswith(RAR_ID) or buf.startswith(RAR5_ID):
+        return True
+    else:
+        return False

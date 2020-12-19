@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import itertools
 import os
 import xml.etree.cElementTree as ET
 from collections import defaultdict
@@ -84,7 +85,7 @@ def et_to_dict(tree):
     return dct
 
 
-def parse_entry(entry):
+def parse_entry(entry, config_name):
     """Takes the dictionary corresponding to an entry and returns a dictionary with:
     - Proper feature naming
     - Default values
@@ -97,21 +98,36 @@ def parse_entry(entry):
     res["category"] = entry["category"]
     res["eid"] = entry["eid"]
     res["size"] = int(entry["size"])
+    lex = entry["lex"]
+    # Some entries are misformed, with None instead of the sorted triplet information.
+    entry_triples = [
+        ex["sortedtripleset"][0] if ex["sortedtripleset"][0] is not None else {"sentence": []} for ex in lex
+    ]
+    # the xml structure is inconsistent; sorted triplets are often separated in several dictionaries, so we sum them.
+    sorted_triples = [
+        list(itertools.chain.from_iterable(item.get("striple", []) for item in entry["sentence"]))
+        for entry in entry_triples
+    ]
     res["lex"] = {
-        "comment": [ex.get("comment", "") for ex in entry.get("lex", [])],
-        "lid": [ex.get("lid", "") for ex in entry.get("lex", [])],
-        # all of the sequence are within their own 1-element sublist, else the [0]
-        "text": [ex.get("text", "")[0] for ex in entry.get("lex", [])],
+        "comment": [ex.get("comment", "") for ex in lex],
+        "lid": [ex.get("lid", "") for ex in lex],
+        # all of the sequence are within their own 1-element sublist, thus the [0]
+        "text": [ex.get("text", [""])[0] for ex in lex],
+        "template": [ex.get("template", [""])[0] for ex in lex],
+        "sorted_triple_sets": sorted_triples,
     }
+    # only present in the en version
+    if config_name == "en":
+        res["lex"]["lexicalization"] = [ex.get("lexicalization", [""])[0] for ex in lex]
     res["shape"] = entry.get("shape", "")
     res["shape_type"] = entry.get("shape_type", "")
     return res
 
 
-def xml_file_to_examples(filename):
+def xml_file_to_examples(filename, config_name):
     tree = ET.parse(filename).getroot()
     examples = et_to_dict(tree)["benchmark"]["entries"][0]["entry"]
-    return [parse_entry(entry) for entry in examples]
+    return [parse_entry(entry, config_name) for entry in examples]
 
 
 class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
@@ -125,28 +141,58 @@ class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = datasets.Features(
-            {
-                "category": datasets.Value("string"),
-                "size": datasets.Value("int32"),
-                "eid": datasets.Value("string"),
-                "original_triple_sets": datasets.Sequence(
-                    {"otriple_set": datasets.Sequence(datasets.Value("string"))}
-                ),
-                "modified_triple_sets": datasets.Sequence(
-                    {"mtriple_set": datasets.Sequence(datasets.Value("string"))}
-                ),
-                "shape": datasets.Value("string"),
-                "shape_type": datasets.Value("string"),
-                "lex": datasets.Sequence(
-                    {
-                        "comment": datasets.Value("string"),
-                        "lid": datasets.Value("string"),
-                        "text": datasets.Value("string"),
-                    }
-                ),
-            }
-        )
+        if self.config.name == "en":
+            features = datasets.Features(
+                {
+                    "category": datasets.Value("string"),
+                    "size": datasets.Value("int32"),
+                    "eid": datasets.Value("string"),
+                    "original_triple_sets": datasets.Sequence(
+                        {"otriple_set": datasets.Sequence(datasets.Value("string"))}
+                    ),
+                    "modified_triple_sets": datasets.Sequence(
+                        {"mtriple_set": datasets.Sequence(datasets.Value("string"))}
+                    ),
+                    "shape": datasets.Value("string"),
+                    "shape_type": datasets.Value("string"),
+                    "lex": datasets.Sequence(
+                        {
+                            "comment": datasets.Value("string"),
+                            "lid": datasets.Value("string"),
+                            "text": datasets.Value("string"),
+                            "template": datasets.Value("string"),
+                            "sorted_triple_sets": datasets.Sequence(datasets.Value("string")),
+                            # only present in the en version
+                            "lexicalization": datasets.Value("string"),
+                        }
+                    ),
+                }
+            )
+        else:
+            features = datasets.Features(
+                {
+                    "category": datasets.Value("string"),
+                    "size": datasets.Value("int32"),
+                    "eid": datasets.Value("string"),
+                    "original_triple_sets": datasets.Sequence(
+                        {"otriple_set": datasets.Sequence(datasets.Value("string"))}
+                    ),
+                    "modified_triple_sets": datasets.Sequence(
+                        {"mtriple_set": datasets.Sequence(datasets.Value("string"))}
+                    ),
+                    "shape": datasets.Value("string"),
+                    "shape_type": datasets.Value("string"),
+                    "lex": datasets.Sequence(
+                        {
+                            "comment": datasets.Value("string"),
+                            "lid": datasets.Value("string"),
+                            "text": datasets.Value("string"),
+                            "template": datasets.Value("string"),
+                            "sorted_triple_sets": datasets.Sequence(datasets.Value("string")),
+                        }
+                    ),
+                }
+            )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -186,6 +232,6 @@ class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
         id_ = 0
         for xml_location in filedirs:
             for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
-                for exple_dict in xml_file_to_examples(xml_file):
+                for exple_dict in xml_file_to_examples(xml_file, self.config.name):
                     id_ += 1
                     yield id_, exple_dict

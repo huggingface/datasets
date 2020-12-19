@@ -102,6 +102,7 @@ TESTS_REQUIRE = [
     'lxml',
     'mwparserfromhell',
     'nltk',
+    'py7zr',
     'pytest',
     'pytest-xdist',
     'tensorflow',
@@ -110,6 +111,7 @@ TESTS_REQUIRE = [
     'transformers',
     'xlrd==1.2.0',  # pinning to keep the xlsx support. We should eventually use something else
     'zstandard',
+    'rarfile',
 ]
 
 if os.name == "nt":  # windows
