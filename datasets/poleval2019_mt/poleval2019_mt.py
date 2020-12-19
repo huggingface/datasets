@@ -132,8 +132,8 @@ class Poleval2019Mt(datasets.GeneratorBasedBuilder):
 
         files = {}
         for split in ("train", "dev"):
-            dl_file_src = dl_manager.download(urls[split + "." + source])
-            dl_file_dst = dl_manager.download(urls[split + "." + target])
+            dl_file_src = dl_manager.download_and_extract(urls[split + "." + source])
+            dl_file_dst = dl_manager.download_and_extract(urls[split + "." + target])
 
             files[split] = {
                 "source_file": dl_file_src,
