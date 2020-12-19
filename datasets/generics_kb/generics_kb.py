@@ -46,7 +46,6 @@ _URL = "https://drive.google.com/u/0/uc?id={0}&export=download"
 
 _FILEPATHS = {
     "generics_kb_best": _URL.format("12DfIzoWyHIQqssgUgDvz3VG8_ScSh6ng"),
-    "default": _URL.format("12DfIzoWyHIQqssgUgDvz3VG8_ScSh6ng"),
     "generics_kb": _URL.format("1UOIEzQTid7SzKx2tbwSSPxl7g-CjpoZa"),
     "generics_kb_simplewiki": _URL.format("1SpN9Qc7XRy5xs4tIfXkcLOEAP2IVaK15"),
     "generics_kb_waterloo": "cskb-waterloo-06-21-with-bert-scores.jsonl",
@@ -79,28 +78,26 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    # @property
-    # def manual_download_instructions(self):
-    #     return """\
-    #   You need to manually download the files needed for the dataset config generics_kb_waterloo.
-    #   The <path/to/folder> can e.g. be `~/Downloads/GenericsKB`. Download the following required files from https://drive.google.com/drive/folders/1vqfVXhJXJWuiiXbUa4rZjOgQoJvwZUoT
-    #   For working on "generics_kb_waterloo" data,
-    #     1. Manually download 'GenericsKB-Waterloo-WithContext.jsonl.zip' into your <path/to/folder>.Please ensure the filename is as is.
-    #        The Waterloo is also generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences). The Waterloo generics are the majority of GenericsKB. This zip file is 1.4GB expanding to 5.5GB.
-    #     2. Extract the GenericsKB-Waterloo-WithContext.jsonl.zip; It will create a file of 5.5 GB called cskb-waterloo-06-21-with-bert-scores.jsonl.
-    #        Ensure you move this file into your <path/to/folder>.
-    #
-    #   generics_kb can then be loaded using the following commands based on which data you want to work on. Data files must be present in the <path/to/folder> if using "generics_kb_waterloo" config.
-    #   1. `datasets.load_dataset("generics_kb","generics_kb_best")`.
-    #   2. `datasets.load_dataset("generics_kb","generics_kb")`
-    #   3. `datasets.load_dataset("generics_kb","generics_kb_simplewiki")`
-    #   4. `datasets.load_dataset("generics_kb","generics_kb_waterloo", data_dir="<path/to/folder>")`
-    #
-    #   """
+    @property
+    def manual_download_instructions(self):
+        return """\
+      You need to manually download the files needed for the dataset config generics_kb_waterloo.
+      The <path/to/folder> can e.g. be `~/Downloads/GenericsKB`. Download the following required files from https://drive.google.com/drive/folders/1vqfVXhJXJWuiiXbUa4rZjOgQoJvwZUoT
+      For working on "generics_kb_waterloo" data,
+        1. Manually download 'GenericsKB-Waterloo-WithContext.jsonl.zip' into your <path/to/folder>.Please ensure the filename is as is.
+           The Waterloo is also generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences). The Waterloo generics are the majority of GenericsKB. This zip file is 1.4GB expanding to 5.5GB.
+        2. Extract the GenericsKB-Waterloo-WithContext.jsonl.zip; It will create a file of 5.5 GB called cskb-waterloo-06-21-with-bert-scores.jsonl.
+           Ensure you move this file into your <path/to/folder>.
 
-    DEFAULT_CONFIG_NAME = (
-        "generics_kb_best"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
+      generics_kb can then be loaded using the following commands based on which data you want to work on. Data files must be present in the <path/to/folder> if using "generics_kb_waterloo" config.
+      1. `datasets.load_dataset("generics_kb","generics_kb_best")`.
+      2. `datasets.load_dataset("generics_kb","generics_kb")`
+      3. `datasets.load_dataset("generics_kb","generics_kb_simplewiki")`
+      4. `datasets.load_dataset("generics_kb","generics_kb_waterloo", data_dir="<path/to/folder>")`
+
+      """
+
+    DEFAULT_CONFIG_NAME = "generics_kb_best"
 
     def _info(self):
         if self.config.name == "generics_kb_waterloo" or self.config.name == "generics_kb_simplewiki":
@@ -121,7 +118,7 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
 
             features = datasets.Features(featuredict)
 
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        else:
 
             features = datasets.Features(
                 {
@@ -170,6 +167,7 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
                 )
         else:
             filepath = dl_manager.download(_FILEPATHS[self.config.name])
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
