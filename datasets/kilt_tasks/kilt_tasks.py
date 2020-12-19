@@ -100,7 +100,7 @@ _DATA_URLS = {
         "validation": "http://dl.fbaipublicfiles.com/KILT/hotpotqa-dev-kilt.jsonl",
         "test": "http://dl.fbaipublicfiles.com/KILT/hotpotqa-test_without_answers-kilt.jsonl",
     },
-    "triviaqa": {
+    "triviaqa_support_only": {
         "train": "http://dl.fbaipublicfiles.com/KILT/triviaqa-train_id-kilt.jsonl",
         "validation": "http://dl.fbaipublicfiles.com/KILT/triviaqa-dev_id-kilt.jsonl",
         "test": "http://dl.fbaipublicfiles.com/KILT/triviaqa-test_id_without_answers-kilt.jsonl",
@@ -118,30 +118,23 @@ _DATA_URLS = {
 }
 
 
-class KILTTasksConfig(datasets.BuilderConfig):
-    """BuilderConfig for KILTTasks."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for KILTTasks.
-
-            Args:
-        .
-              **kwargs: keyword arguments forwarded to super.
-        """
-        super(KILTTasksConfig, self).__init__(
-            version=datasets.Version("1.0.0", "KILT tasks training and evaluation data"), **kwargs
-        )
-
-
-class KILTTasks(datasets.GeneratorBasedBuilder):
-    """WikipediaKILT: Wikipedia pre-processed for KILT. Version 1.0."""
+class KiltTasks(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        KILTTasksConfig(
-            name="all_tasks",
-            description="All KILT tasks traiing and evaluation data",
-        ),
+        datasets.BuilderConfig(
+            name="triviaqa_support_only",
+            version=datasets.Version("1.0.0"),
+            description="Supporting paragraphs information for the TriviaQA task",
+        )
+    ] + [
+        datasets.BuilderConfig(
+            name=k, version=datasets.Version("1.0.0"), description=f"Task data and supporting paragraphs for {k}"
+        )
+        for k in _DATA_URLS
+        if k != "triviaqa_support_only"
     ]
+
+    DEFAULT_CONFIG_NAME = "nq"
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -150,89 +143,65 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "input": datasets.Value("string"),
-                    "meta": datasets.Features(
-                        {
-                            "left_context": datasets.Value("string"),
-                            "mention": datasets.Value("string"),
-                            "right_context": datasets.Value("string"),
-                            "partial_evidence": datasets.features.Sequence(
-                                {
-                                    "start_paragraph_id": datasets.Value("int32"),
-                                    "end_paragraph_id": datasets.Value("int32"),
-                                    "title": datasets.Value("string"),
-                                    "section": datasets.Value("string"),
-                                    "wikipedia_id": datasets.Value("string"),
-                                    "meta": datasets.features.Sequence(
-                                        {
-                                            "evidence_span": datasets.Value("string"),
-                                        }
-                                    ),
-                                }
-                            ),
-                            "obj_surface": datasets.features.Sequence({"text": datasets.Value("string")}),
-                            "sub_surface": datasets.features.Sequence({"text": datasets.Value("string")}),
-                            "subj_aliases": datasets.features.Sequence({"text": datasets.Value("string")}),
-                            "template_questions": datasets.features.Sequence({"text": datasets.Value("string")}),
-                        }
-                    ),
-                    "output": datasets.features.Sequence(
+                    "meta": {
+                        "left_context": datasets.Value("string"),
+                        "mention": datasets.Value("string"),
+                        "right_context": datasets.Value("string"),
+                        "partial_evidence": [
+                            {
+                                "start_paragraph_id": datasets.Value("int32"),
+                                "end_paragraph_id": datasets.Value("int32"),
+                                "title": datasets.Value("string"),
+                                "section": datasets.Value("string"),
+                                "wikipedia_id": datasets.Value("string"),
+                                "meta": {"evidence_span": [datasets.Value("string")]},
+                            }
+                        ],
+                        "obj_surface": [datasets.Value("string")],
+                        "sub_surface": [datasets.Value("string")],
+                        "subj_aliases": [datasets.Value("string")],
+                        "template_questions": [datasets.Value("string")],
+                    },
+                    "output": [
                         {
                             "answer": datasets.Value("string"),
-                            "meta": datasets.Features({"score": datasets.Value("int32")}),
-                            "provenance": datasets.features.Sequence(
+                            "meta": {"score": datasets.Value("int32")},
+                            "provenance": [
                                 {
                                     "bleu_score": datasets.Value("float32"),
                                     "start_character": datasets.Value("int32"),
                                     "start_paragraph_id": datasets.Value("int32"),
                                     "end_character": datasets.Value("int32"),
                                     "end_paragraph_id": datasets.Value("int32"),
-                                    "meta": datasets.Features(
-                                        {
-                                            "fever_page_id": datasets.Value("string"),
-                                            "fever_sentence_id": datasets.Value("int32"),
-                                            "annotation_id": datasets.Value("string"),  # int runs into overflow issues
-                                            "yes_no_answer": datasets.Value("string"),
-                                            "evidence_span": datasets.features.Sequence(
-                                                {"text": datasets.Value("string")}
-                                            ),
-                                        }
-                                    ),
+                                    "meta": {
+                                        "fever_page_id": datasets.Value("string"),
+                                        "fever_sentence_id": datasets.Value("int32"),
+                                        "annotation_id": datasets.Value("string"),  # int runs into overflow issues
+                                        "yes_no_answer": datasets.Value("string"),
+                                        "evidence_span": [datasets.Value("string")],
+                                    },
                                     "section": datasets.Value("string"),
                                     "title": datasets.Value("string"),
                                     "wikipedia_id": datasets.Value("string"),
                                 }
-                            ),
+                            ],
                         }
-                    ),
+                    ],
                 }
             ),
-            # No default supervised_keys (as we have to pass both premise
-            # and hypothesis as input).
             supervised_keys=None,
             homepage="https://github.com/facebookresearch/KILT",
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        file_paths = {}
-        for task_name, task_urls in _DATA_URLS.items():
-            file_paths[task_name] = dl_manager.download_and_extract(task_urls)
-
+        file_paths = dl_manager.download_and_extract(_DATA_URLS[self.config.name])
         return [
-            datasets.SplitGenerator(name=split + "_" + task, gen_kwargs={"filepath": downloaded_path})
-            for task, split_paths in file_paths.items()
-            for split, downloaded_path in split_paths.items()
+            datasets.SplitGenerator(name=split, gen_kwargs={"filepath": downloaded_path})
+            for split, downloaded_path in file_paths.items()
         ]
 
     def _generate_examples(self, filepath):
-        """Generate Wikipedia articles for KILT.
-
-        Args:
-          filepath: a string
-
-        Yields:
-          dictionaries representing article data and metadata
-        """
         logging.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             for idx, line in enumerate(f):
@@ -243,49 +212,47 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                 for k in ["left_context", "mention", "right_context"]:
                     article["meta"][k] = article["meta"].get(k, "")
                 for k in ["obj_surface", "sub_surface", "subj_aliases", "template_questions"]:
-                    article["meta"][k] = {"text": article["meta"].get(k, [])}
-                article["meta"]["partial_evidence"] = article["meta"].get("partial_evidence", [])
-                if "partial_evidence" in article["meta"]:
-                    dct_list = {}
-                    for k in ["start_paragraph_id", "end_paragraph_id"]:
-                        dct_list[k] = [dct.get(k, -1) for dct in article["meta"]["partial_evidence"]]
-                    for k in ["title", "section", "wikipedia_id"]:
-                        dct_list[k] = [dct.get(k, "") for dct in article["meta"]["partial_evidence"]]
-                    if any(["meta" in dct for dct in article["meta"]["partial_evidence"]]):
-                        dct_list["meta"] = [dct.get("meta", {}) for dct in article["meta"]["partial_evidence"]]
-                        for meta in dct_list["meta"]:
-                            meta["evidence_span"] = meta.get("evidence_span", [])
-                    else:
-                        dct_list["meta"] = []
-                    article["meta"]["partial_evidence"] = dct_list
+                    article["meta"][k] = article["meta"].get(k, [])
+                # partial evidence
+                article["meta"]["partial_evidence"] = [
+                    {
+                        "start_paragraph_id": partial.get("start_paragraph_id", -1),
+                        "end_paragraph_id": partial.get("end_paragraph_id", -1),
+                        "title": partial.get("title", ""),
+                        "section": partial.get("section", ""),
+                        "wikipedia_id": partial.get("wikipedia_id", ""),
+                        "meta": {"evidence_span": partial.get("meta", {}).get("evidence_span", [])},
+                    }
+                    for partial in article["meta"].get("partial_evidence", [])
+                ]
                 # output
-                article["output"] = article.get("output", [])
-                dct_list = {}
-                dct_list["answer"] = [dct.get("answer", "") for dct in article["output"]]
-                if any(["meta" in dct for dct in article["output"]]):
-                    dct_list["meta"] = [dct.get("meta", {"score": 0}) for dct in article["output"]]
-                else:
-                    dct_list["meta"] = []
-                dct_list["provenance"] = []
-                for dct in article["output"]:
-                    if "provenance" in dct:
-                        prov_list = dct["provenance"]
-                        prov_dct_list = {}
-                        prov_dct_list["bleu_score"] = [prov.get("bleu_score", 0.0) for prov in prov_list]
-                        if any(["meta" in prov for prov in prov_list]):
-                            prov_dct_list["meta"] = [prov.get("meta", {}) for prov in prov_list]
-                            for meta_dct in prov_dct_list["meta"]:
-                                meta_dct["fever_page_id"] = meta_dct.get("fever_page_id", "")
-                                meta_dct["fever_sentence_id"] = meta_dct.get("fever_sentence_id", -1)
-                                meta_dct["yes_no_answer"] = meta_dct.get("yes_no_answer", "")
-                                meta_dct["annotation_id"] = str(meta_dct.get("annotation_id", -1))
-                                meta_dct["evidence_span"] = {"text": meta_dct.get("evidence_span", [])}
-                        else:
-                            prov_dct_list["meta"] = []
-                        for k in ["start_character", "start_paragraph_id", "end_character", "end_paragraph_id"]:
-                            prov_dct_list[k] = [prov.get(k, -1) for prov in prov_list]
-                        for k in ["section", "title", "wikipedia_id"]:
-                            prov_dct_list[k] = [prov.get(k, "") for prov in prov_list]
-                        dct_list["provenance"] += [prov_dct_list]
-                article["output"] = dct_list
+                article["output"] = [
+                    {
+                        "answer": output.get("answer", ""),
+                        "meta": output.get("meta", {"score": -1}),
+                        "provenance": [
+                            {
+                                "bleu_score": provenance.get("bleu_score", -1.0),
+                                "start_character": provenance.get("start_character", -1),
+                                "start_paragraph_id": provenance.get("start_paragraph_id", -1),
+                                "end_character": provenance.get("end_character", -1),
+                                "end_paragraph_id": provenance.get("end_paragraph_id", -1),
+                                "meta": {
+                                    "fever_page_id": provenance.get("meta", {}).get("fever_page_id", ""),
+                                    "fever_sentence_id": provenance.get("meta", {}).get("fever_sentence_id", -1),
+                                    "annotation_id": str(
+                                        provenance.get("meta", {}).get("annotation_id", -1)
+                                    ),  # int runs into overflow issues
+                                    "yes_no_answer": provenance.get("meta", {}).get("yes_no_answer", ""),
+                                    "evidence_span": provenance.get("meta", {}).get("evidence_span", []),
+                                },
+                                "section": provenance.get("section", ""),
+                                "title": provenance.get("title", ""),
+                                "wikipedia_id": provenance.get("wikipedia_id", ""),
+                            }
+                            for provenance in output.get("provenance", [])
+                        ],
+                    }
+                    for output in article.get("output", [])
+                ]
                 yield idx, article

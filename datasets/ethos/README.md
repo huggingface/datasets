@@ -18,12 +18,12 @@ task_categories:
 - text-classification
 task_ids:
   binary:
-- sentiment-classification
-- text-classification-other-Hate Speech Detection
+  - sentiment-classification
+  - text-classification-other-Hate Speech Detection
   multilabel:
-- multi-label-classification
-- sentiment-classification
-- text-classification-other-Hate Speech Detection
+  - multi-label-classification
+  - sentiment-classification
+  - text-classification-other-Hate Speech Detection
 ---
 
 # Dataset Card for Ethos

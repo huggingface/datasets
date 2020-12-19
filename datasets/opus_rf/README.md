@@ -15,7 +15,7 @@ languages:
   - fr
   de-sv:
   - de
-  -sv
+  - sv
   en-es:
   - en
   - es
