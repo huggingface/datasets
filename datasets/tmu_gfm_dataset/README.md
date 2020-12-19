@@ -70,7 +70,7 @@ English
 
 ### Data Instances
 
-An example from the TMU-FGM-Dataset looks as follows:
+An example from the TMU-GFM-Dataset looks as follows:
 
 ```
 {'ave_f': 3.4000000953674316,
