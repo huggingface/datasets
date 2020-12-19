@@ -111,6 +111,7 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_dir, split):
         logging.info("⏳ Generating %s examples from = %s", split, data_dir)
+        id = 0
         for topic in self.config.topics:
             src_path = "PANL-BPPT-{}-{}-{}w.txt".format(
                 topic["name"][:3].upper(), self.config.src_tag.upper(), topic["words"]
@@ -124,8 +125,9 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
                 src = f1.read().split("\n")[:-1]
                 tgt = f2.read().split("\n")[:-1]
                 for idx, (s, t) in enumerate(zip(src, tgt)):
-                    yield idx, {
-                        "id": str(idx),
+                    yield id, {
+                        "id": str(id),
                         "translation": {self.config.src_tag: s, self.config.tgt_tag: t},
                         "topic": topic["name"],
                     }
+                    id += 1
