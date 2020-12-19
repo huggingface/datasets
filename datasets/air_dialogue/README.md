@@ -20,7 +20,6 @@ task_ids:
 - conditional-text-generation-other-dialogue-generation
 - dialogue-modeling
 - language-modeling
-
 ---
 
 # Dataset Card for air_dialogue
@@ -96,22 +95,25 @@ BuilderConfig: `air_dialogue_kb`
 ### Data Fields
 
 BuilderConfig: `air_dialogue_data`:
+Provides for customer context, dialogue states and environment
 
 key name | Description |
 |---|---|
-|'action' |
-|'intent' |
-|'timestamps' | 
-|'dialogue' | 
-|'expected_action' |
-|'correct_sample' |
+|'search_action' | search action performed by customer |
+|'action' | Action taken by the agent |
+|'intent' | Intents from the conversation |
+|'timestamps' | Timestamp for each of the dialogues |
+|'dialogue' | Dialogue recorded between agent & customer |
+|'expected_action' | Expected action from agent (human-annotated)|
+|'correct_sample' | whether action performed by agent was same as expected_action |
 
 BuilderConfig: `air_dialogue_kb`:
+Provides for the Agent Context _ca_ = (_db_, _r_ )
 
 key name | Description |
 |---|---|
-|'kb' |
-|'reservation' |
+|'kb' | Available flights in the database |
+|'reservation' | whether customer has an existing reservation|
 
 
 ### Data Splits
