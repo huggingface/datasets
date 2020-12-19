@@ -78,7 +78,7 @@ class MacMorpho(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "pos": datasets.Sequence(
+                    "pos_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
                                 "PREP+PROADJ",
@@ -156,15 +156,15 @@ class MacMorpho(datasets.GeneratorBasedBuilder):
                 chunks = re.split(r"\s+", line)
 
                 tokens = []
-                pos = []
+                pos_tags = []
                 for chunk in chunks:
                     token, tag = chunk.rsplit("_", 1)
                     tokens.append(token)
-                    pos.append(tag)
+                    pos_tags.append(tag)
 
                 yield id_, {
                     "id": str(id_),
                     "tokens": tokens,
-                    "pos": pos,
+                    "pos_tags": pos_tags,
                 }
                 id_ += 1

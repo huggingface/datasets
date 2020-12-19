@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - structure-prediction
 task_ids:
-- part-of-speech-tagging
+- structure-prediction-other-part-of-speech-tagging
 ---
 
 # Dataset Card for Mac-Morpho
@@ -86,7 +86,13 @@ Portuguese
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+    "id": "0",
+    "pos_tags": [14, 19, 14, 15, 22, 7, 14, 9, 14, 9, 3, 15, 3, 3, 24],
+    "tokens": ["Jersei", "atinge", "média", "de", "Cr$", "1,4", "milhão", "na", "venda", "da", "Pinhal", "em", "São", "Paulo", "."]
+}
+```
 
 ### Data Fields
 
@@ -160,6 +166,7 @@ The PoS tags correspond to this list:
 
 ### Citation Information
 
+```
 @article{fonseca2015evaluating,
   title={Evaluating word embeddings and a revised corpus for part-of-speech tagging in Portuguese},
   author={Fonseca, Erick R and Rosa, Jo{\~a}o Lu{\'\i}s G and Alu{\'\i}sio, Sandra Maria},
@@ -170,3 +177,4 @@ The PoS tags correspond to this list:
   year={2015},
   publisher={Springer}
 }
+```
