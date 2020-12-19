@@ -49,6 +49,8 @@ _DOWNLOAD_URL = "http://ucrel.lancs.ac.uk/textreuse/COUNTER.zip"
 
 _NUM_EXAMPLES = 600
 
+_CLASS_NAME_MAP = {"WD": "wholly_derived", "PD": "partially_derived", "ND": "not_derived"}
+
 
 class Counter(datasets.GeneratorBasedBuilder):
     """Corpus of Urdu News Text Reuse"""
@@ -67,15 +69,17 @@ class Counter(datasets.GeneratorBasedBuilder):
                     "number_of_words_with_swr": datasets.Value("int64"),
                     "newspaper": datasets.Value("string"),
                     "newsdate": datasets.Value("string"),
-                    "domain": datasets.ClassLabel(names=[
-                        "Business",
-                        "Sports",
-                        "National",
-                        "Foreign",
-                        "Showbiz",
-                    ]),
+                    "domain": datasets.ClassLabel(
+                        names=[
+                            "business",
+                            "sports",
+                            "national",
+                            "foreign",
+                            "showbiz",
+                        ]
+                    ),
                     "classification": datasets.ClassLabel(
-                        num_classes=3, names=["WD", "PD", "ND"], names_file=None, id=None
+                        names=["wholly_derived", "partially_derived", "not_derived"]
                     ),
                 },
                 "derived": {
@@ -87,9 +91,17 @@ class Counter(datasets.GeneratorBasedBuilder):
                     "number_of_words_with_swr": datasets.Value("int64"),
                     "newspaper": datasets.Value("string"),
                     "newsdate": datasets.Value("string"),
-                    "domain": datasets.Value("string"),
+                    "domain": datasets.ClassLabel(
+                        names=[
+                            "business",
+                            "sports",
+                            "national",
+                            "foreign",
+                            "showbiz",
+                        ]
+                    ),
                     "classification": datasets.ClassLabel(
-                        num_classes=3, names=["WD", "PD", "ND"], names_file=None, id=None
+                        names=["wholly_derived", "partially_derived", "not_derived"]
                     ),
                 },
             }
@@ -132,7 +144,7 @@ class Counter(datasets.GeneratorBasedBuilder):
                 "newspaper": attributes["newspaper"],
                 "newsdate": attributes["newsdate"],
                 "domain": attributes["domain"],
-                "classification": attributes["classification"],
+                "classification": _CLASS_NAME_MAP[attributes["classification"]],
             }
             return parsed
 
