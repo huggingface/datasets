@@ -91,7 +91,7 @@ The fields in GenericsKB-Best.tsv and GenericsKB.tsv are as follows:
 - `GENERIC SENTENCE`: is the sentence itself.
 - `SCORE`: Is the BERT-trained score, measuring the degree to which the generic represents a "useful, general truth" about the world (as judged by crowdworkers). Score ranges from 0 (worst) to 1 (best). Sentences with scores below 0.23 (corresponding to an "unsure" vote by crowdworkers) are in GenericsKB, but are not part of GenericsKB-Best due to their unreliability.
 - `QUANTIFIER_FREQUENCY`:For generics with explicit quantifiers (all, most, etc.) the quantifier is listed - Frequency contains values  such as 'usually', 'often', 'frequently'
-- `QUANTIFIER_NUMBER`: For generics with explicit quantifiers (all, most, etc.) with values such as 'all'|'any'|'most'|'much'|'some' etc..
+- `QUANTIFIER_NUMBER`: For generics with explicit quantifiers (all, most, etc.) with values such as 'all'|'any'|'most'|'much'|'some' etc...
 
 The SimpleWiki/Waterloo generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences). The Waterloo generics are the majority of GenericsKB. This zip file is 1.4GB expanding to 5.5GB.
 There is a json representation for every generic statement in the Generics KB. The generic statement is stored under the `sentence` field within the `knowledge` object. There is also a `bert_score` associated with each sentence which is the BERT-based classifier's score for the 'genericness' of the statement. This score is meant to reflect how much generalized world knowledge/commonsense the statement captures vs only being contextually meaningful.
