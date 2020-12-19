@@ -43,6 +43,23 @@ _HOMEPAGE = "http://2019.poleval.pl/"
 # Licence
 _LICENSE = ""
 
+# All the urls for train data download
+_TRAIN_URL = {
+    "ru-pl": {
+        "dev.pl": "https://drive.google.com/u/0/uc?id=1mwx_zyQeTZzkXEWMPoj4yghcbFq4ETWx&export=download",
+        "dev.ru": "https://drive.google.com/u/0/uc?id=1-z09ntfDYo6j3TBTpxqu6htE_a7IAWte&export=download",
+        "train.pl": "https://drive.google.com/u/0/uc?id=11EBGHMAswT5JDO60xh7gnZfYjpMQs7h7&export=download",
+        "train.ru": "https://drive.google.com/u/0/uc?id=1H7FphKVVCYoH49sUXl79CuztEfJLaKoF&export=download",
+    },
+    "en-pl": {
+        "dev.en": "https://drive.google.com/u/0/uc?id=1L6qQiO6kPLFj8BUK9XFNUH7bNyJVA7FC&export=download",
+        "dev.pl": "https://drive.google.com/u/0/uc?id=1CP3oHL04qE1nfu3h_zmaxz5fmEtlwzLs&export=download",
+        "train.en": "https://drive.google.com/u/0/uc?id=1NAeuWLgYBzLwU5jCdkrtj4_PRUocuvlb&export=download",
+        "train.pl": "https://drive.google.com/u/0/uc?id=13ZyFc2qepAYSg9WIFaeJ9y402gblsl2e&export=download",
+    },
+}
+
+
 # All the tsv files are present in the below link.
 _TEST_URL = "http://2019.poleval.pl/task4/task4_test.zip"
 
@@ -86,27 +103,6 @@ class PolevalMTConfig(datasets.BuilderConfig):
 class Poleval2019Mt(datasets.GeneratorBasedBuilder):
     """Polish Translation Dataset"""
 
-    @property
-    def manual_download_instructions(self):
-        return """\
-    \n    You need to go to https://drive.google.com/drive/folders/1nl98B8I_xlKa_t4RFOLmIkCVuF-WEe4B,
-    and manually download the dataset from GDrive. English-To-Polish-<timestamp>.zip will appear in your Downloads folder(
-    or whichever folder your browser chooses to save files to). Unzip the folder to obtain
-    a folder named "English-To-Polish" will be created having dev and train files for both English and Polish.
-
-    You can then specify the path to this folder for the data_dir argument in the
-    datasets.load_dataset(...) option.
-
-    The <path/to/folder> can e.g. be "/Downloads/English-To-Polish".
-    The data can then be loaded using the following command `datasets.load_dataset("poleval2019_mt", name="en-pl", data_dir="/Downloads/English-To-Polish")`.
-    Name can also be set as "pl-en" when Polish to English dataset is required.
-
-    For Russian to Polish (or vice versa) the link to download the folder is https://drive.google.com/drive/folders/14bpulmsyaou5RPMeGW_u5zmHQamcNQxU
-    Follow the same as above but change the name to "ru-pl" or "pl-ru".
-
-    NOTE: A test set will be automatically downloaded. However it is unavailable for Polish to English task (Not part of Poleval 2019 tasks).
-    """
-
     BUILDER_CONFIGS = [PolevalMTConfig(language_pair=(key, "pl")) for key, val in _SUPPORTED_LANGUAGES.items()] + [
         PolevalMTConfig(language_pair=("pl", key)) for key, val in _SUPPORTED_LANGUAGES.items()
     ]
@@ -124,27 +120,24 @@ class Poleval2019Mt(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-
-        path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        if not os.path.exists(path_to_manual_file):
-            raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('poleval2019_mt', name= .., data_dir=...)` where name can be {} Manual download instructions: {})".format(
-                    path_to_manual_file, "en-pl/pl-en/pl-ru/ru-pl", self.manual_download_instructions
-                )
-            )
-
         source, target = self.config.language_pair
 
-        # Train & Dev and test path templates
-        path_tmpl = "{dl_dir}/{split}.{lang}"
-        test_tmpl = "{dl_dir}/task4_test/tst_to_{target}.{source}"  # Hardcode alert
+        if "en" in self.config.language_pair:
+            urls = _TRAIN_URL["en-pl"]
+        else:
+            urls = _TRAIN_URL["ru-pl"]
+
+        # Test path templates
+        test_tmpl = "tst_to_{target}.{source}"  # Hardcode alert
 
         files = {}
-
         for split in ("train", "dev"):
+            dl_file_src = dl_manager.download(urls[split + "." + source])
+            dl_file_dst = dl_manager.download(urls[split + "." + target])
+
             files[split] = {
-                "source_file": path_tmpl.format(dl_dir=path_to_manual_file, split=split, lang=source),
-                "target_file": path_tmpl.format(dl_dir=path_to_manual_file, split=split, lang=target),
+                "source_file": dl_file_src,
+                "target_file": dl_file_dst,
                 "split": split,
             }
 
@@ -152,12 +145,12 @@ class Poleval2019Mt(datasets.GeneratorBasedBuilder):
         # This is because there is no Polish to English test file that is available in the default set
         if "en" == source:
             dl_dir_test = dl_manager.download_and_extract(_TEST_URL)
-            test_file = "{dl_dir}/task4_test/tst.en".format(dl_dir=dl_dir_test)
+            test_file = os.path.join(dl_dir_test, "task4_test", "tst.en")
         elif "en" == target:
             test_file = ""
         else:
             dl_dir_test = dl_manager.download_and_extract(_TEST_URL)
-            test_file = test_tmpl.format(dl_dir=dl_dir_test, target=target.upper(), source=source)
+            test_file = os.path.join(dl_dir_test, "task4_test", test_tmpl.format(target=target.upper(), source=source))
 
         files["test"] = {"source_file": test_file, "target_file": "", "split": "test"}
 
@@ -202,5 +195,4 @@ class Poleval2019Mt(datasets.GeneratorBasedBuilder):
             for idx, (l1, l2) in enumerate(zip(source_sentences, target_sentences)):
                 result = {"translation": {source: l1, target: l2}}
                 # Make sure that both translations are non-empty.
-                if all(result.values()):
-                    yield idx, result
+                yield idx, result
