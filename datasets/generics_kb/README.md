@@ -19,7 +19,7 @@ task_ids:
 - other-other-knowledge-base
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Generics KB
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -75,12 +75,14 @@ The GENERICSKB contains 3,433,000 sentences. GENERICS-KB-BEST comprises of GENER
 SimpleWikipedia is a filtered scrape of SimpleWikipedia pages (simple.wikipedia.org). The Waterloo corpus is 280GB of English plain text, gathered by Charles Clarke (Univ. Waterloo) using a webcrawler in 2001 from .edu domains.
 
 ###### Sample SimpleWikipedia/ Waterloo config look like this
+```
 {'source_name': 'SimpleWikipedia', 'sentence': 'Sepsis happens when the bacterium enters the blood and make it form tiny clots.', 'sentences_before': [], 'sentences_after': [], 'concept_name': 'sepsis', 'quantifiers': {}, 'id': 'SimpleWikipedia--tmp-sw-rs1-with-bug-fixes-initialprocessing-inputs-articles-with-clean-sentences-jsonl-c27816b298e1e0b5326916ee4e2fd0f1603caa77-100-Bubonic-plague--Different-kinds-of-the-same-disease--Septicemic-plague-0-0-039fbe9c11adde4ff9a829376ca7e0ed-1560874903-47882-/Users/chloea/Documents/aristo/commonsense/kbs/simplewikipedia/commonsense-filtered-good-rs1.jsonl-1f33b1e84018a2b1bfdf446f9a6491568b5585da-1561086091.8220549', 'bert_score': 0.8396177887916565}
-
+```
 ###### Sample instance for Generics KB datasets look like this:
+```
 {'source': 'Waterloo', 'term': 'aardvark', 'quantifier_frequency': '', 'quantifier_number': '', 'generic_sentence': 'Aardvarks are very gentle animals.', 'score': '0.36080607771873474'}
 {'source': 'TupleKB', 'term': 'aardvark', 'quantifier_frequency': '', 'quantifier_number': '', 'generic_sentence': 'Aardvarks dig burrows.', 'score': '1.0'}
-
+```
 ### Data Fields
 
 The fields in GenericsKB-Best.tsv and GenericsKB.tsv are as follows:
