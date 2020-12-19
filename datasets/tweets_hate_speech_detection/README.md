@@ -1,6 +1,23 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- gpl-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 ---
 
 # Dataset Card for [Dataset Name]
@@ -12,8 +29,8 @@ YAML tags:
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -30,63 +47,68 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage: [Home](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis)
+- **Repository:[Repo](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/train_tweet.csv)
+- **Paper:
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:[Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
-[More Information Needed]
+The objective of this task is to detect hate speech in tweets. For the sake of simplicity, we say a tweet contains hate speech if it has a racist or sexist sentiment associated with it. So, the task is to classify racist or sexist tweets from other tweets.
+
+Formally, given a training sample of tweets and labels, where label ‘1’ denotes the tweet is racist/sexist and label ‘0’ denotes the tweet is not racist/sexist, your objective is to predict the labels on the given test dataset.
 
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
 
 ### Languages
-
-[More Information Needed]
+The tweets are primarily in English Language
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+The dataset contains a label denoting is the tweet a hate speech or not
+
+{'label': 0,
+ 'tweet': ' @user when a father is dysfunctional and is so selfish he drags his kids into his dysfunction.   #run'}
+
 
 ### Data Fields
 
-[More Information Needed]
+* label : 1 - it is a hate specch, 0 - not a hate speech 
 
 ### Data Splits
-
-[More Information Needed]
+ 
+The data contains training data with :31962 entries
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Crowdsourced from tweets of users 
 
 #### Who are the source language producers?
 
-[More Information Needed]
+Cwodsourced from twitter
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+The data has been precprocessed and a model has been trained to assign the relevant label to the tweet 
 
 #### Who are the annotators?
 
-[More Information Needed]
+The data has been provided by Roshan Sharma 
 
 ### Personal and Sensitive Information
 
@@ -96,11 +118,11 @@ YAML tags:
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+With the help of this dataset, one can understand more about the human sentiments and also analye the situations when a particular person intends to make use of   hatred/racist comments 
 
 ### Discussion of Biases
 
-[More Information Needed]
+The data could be cleaned up further for additional purposes such as applying a better feature extraction techniques
 
 ### Other Known Limitations
 
@@ -110,12 +132,12 @@ YAML tags:
 
 ### Dataset Curators
 
-[More Information Needed]
+Roshan Sharma 
 
 ### Licensing Information
 
-[More Information Needed]
+[Information](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/LICENSE)
 
 ### Citation Information
 
-[More Information Needed]
+[Citation](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/CONTRIBUTING.md)
