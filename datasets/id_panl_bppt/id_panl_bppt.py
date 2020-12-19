@@ -82,6 +82,7 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
+                "id": datasets.Value("string"),
                 "translation": datasets.features.Translation(languages=[self.config.src_tag, self.config.tgt_tag]),
                 "topic": datasets.features.ClassLabel(names=[topic["name"] for topic in self.config.topics]),
             }

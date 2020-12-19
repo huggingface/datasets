@@ -75,12 +75,13 @@ Indonesian
 An example of the dataset:
 ```
 { 
-  'topic': 0, 
-  'translation': 
+  'id': '0',
+  'topic': 0,
+  'translation':
     { 
       'en': 'Minister of Finance Sri Mulyani Indrawati said that a sharp correction of the composite
 inde x by up to 4 pct in Wedenesday?s trading was a mere temporary effect of regional factors like
-decline in plantation commodity prices and the financial crisis in Thailand.', 
+decline in plantation commodity prices and the financial crisis in Thailand.',
       'id': 'Menteri Keuangan Sri Mulyani mengatakan koreksi tajam pada Indeks Harga Saham Gabungan
 IHSG hingga sekitar 4 persen dalam perdagangan Rabu 10/1 hanya efek sesaat dari faktor-faktor regional
 seperti penurunan harga komoditi perkebunan dan krisis finansial di Thailand.'
