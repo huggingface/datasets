@@ -42,11 +42,13 @@ _HOMEPAGE = "https://allenai.org/data/genericskb"
 
 _LICENSE = "cc-by-4.0"
 
+_URL = "https://drive.google.com/u/0/uc?id={0}&export=download"
+
 _FILEPATHS = {
-    "generics_kb_best": "GenericsKB-Best.tsv",
-    "default": "GenericsKB-Best.tsv",
-    "generics_kb": "GenericsKB.tsv",
-    "generics_kb_simplewiki": "GenericsKB-SimpleWiki-With-Context.jsonl",
+    "generics_kb_best": _URL.format("12DfIzoWyHIQqssgUgDvz3VG8_ScSh6ng"),
+    "default": _URL.format("12DfIzoWyHIQqssgUgDvz3VG8_ScSh6ng"),
+    "generics_kb": _URL.format("1UOIEzQTid7SzKx2tbwSSPxl7g-CjpoZa"),
+    "generics_kb_simplewiki": _URL.format("1SpN9Qc7XRy5xs4tIfXkcLOEAP2IVaK15"),
     "generics_kb_waterloo": "cskb-waterloo-06-21-with-bert-scores.jsonl",
 }
 
@@ -77,33 +79,24 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    @property
-    def manual_download_instructions(self):
-        return """\
-      You need to manually download the files needed for the dataset.
-      The <path/to/folder> can e.g. be `~/Downloads/GenericsKB`. Download the following required files from https://drive.google.com/drive/folders/1vqfVXhJXJWuiiXbUa4rZjOgQoJvwZUoT
-      For working on "generics_kb_best" data,
-        Manually download `GenericsKB-Best.tsv` into your <path/to/folder>. Please ensure the filename is as is.
-        It is the recommended starting point and file to use. This contains the best, standalone generics (~1M), a subset of GenericsKB.tsv
-      For working on "generics_kb" data,
-        Manually download `GenericsKB.tsv` into your <path/to/folder>. Please ensure the filename is as is.
-        It contains 3.4M generics culled from three main corpora (Waterloo, SimpleWikipedia, or the ARC corpus), or synthesized from WordNet, ConceptNet, or TupleKB
-      For working on "generics_kb_simplewiki" data,
-        Manually download 'GenericsKB-SimpleWiki-WithContext.jsonl' into your <path/to/folder>.Please ensure the filename is as is.
-        The SimpleWiki is generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences).
-      For working on "generics_kb_waterloo" data,
-        1. Manually download 'GenericsKB-Waterloo-WithContext.jsonl.zip' into your <path/to/folder>.Please ensure the filename is as is.
-           The Waterloo is also generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences). The Waterloo generics are the majority of GenericsKB. This zip file is 1.4GB expanding to 5.5GB.
-        2. Extract the GenericsKB-Waterloo-WithContext.jsonl.zip; It will create a file of 5.5 GB called cskb-waterloo-06-21-with-bert-scores.jsonl.
-           Ensure you move this file into your <path/to/folder>.
-
-      generics_kb can then be loaded using the following commands based on which data you want to work on. Respective data files must be present in the <path/to/folder>
-      1. `datasets.load_dataset("generics_kb","generics_kb_best", data_dir="<path/to/folder>")`.
-      2. `datasets.load_dataset("generics_kb","generics_kb", data_dir="<path/to/folder>")`
-      3. `datasets.load_dataset("generics_kb","generics_kb_simplewiki", data_dir="<path/to/folder>")`
-      4. `datasets.load_dataset("generics_kb","generics_kb_waterloo", data_dir="<path/to/folder>")`
-
-      """
+    # @property
+    # def manual_download_instructions(self):
+    #     return """\
+    #   You need to manually download the files needed for the dataset config generics_kb_waterloo.
+    #   The <path/to/folder> can e.g. be `~/Downloads/GenericsKB`. Download the following required files from https://drive.google.com/drive/folders/1vqfVXhJXJWuiiXbUa4rZjOgQoJvwZUoT
+    #   For working on "generics_kb_waterloo" data,
+    #     1. Manually download 'GenericsKB-Waterloo-WithContext.jsonl.zip' into your <path/to/folder>.Please ensure the filename is as is.
+    #        The Waterloo is also generics from GenericsKB.tsv, but expanded to also include their surrounding context (before/after sentences). The Waterloo generics are the majority of GenericsKB. This zip file is 1.4GB expanding to 5.5GB.
+    #     2. Extract the GenericsKB-Waterloo-WithContext.jsonl.zip; It will create a file of 5.5 GB called cskb-waterloo-06-21-with-bert-scores.jsonl.
+    #        Ensure you move this file into your <path/to/folder>.
+    #
+    #   generics_kb can then be loaded using the following commands based on which data you want to work on. Data files must be present in the <path/to/folder> if using "generics_kb_waterloo" config.
+    #   1. `datasets.load_dataset("generics_kb","generics_kb_best")`.
+    #   2. `datasets.load_dataset("generics_kb","generics_kb")`
+    #   3. `datasets.load_dataset("generics_kb","generics_kb_simplewiki")`
+    #   4. `datasets.load_dataset("generics_kb","generics_kb_waterloo", data_dir="<path/to/folder>")`
+    #
+    #   """
 
     DEFAULT_CONFIG_NAME = (
         "generics_kb_best"  # It's not mandatory to have a default configuration. Just use one if it make sense.
@@ -160,21 +153,23 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        # check if manual folder exists
-        if not os.path.exists(data_dir):
-            raise FileNotFoundError(
-                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('generics_kb', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
-            )
+        if self.config.name == "generics_kb_waterloo":
+            data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+            # check if manual folder exists
+            if not os.path.exists(data_dir):
+                raise FileNotFoundError(
+                    f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('generics_kb', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
+                )
 
-        # Check if required files exist in the folder
-        filepath = os.path.join(data_dir, _FILEPATHS[self.config.name])
+            # Check if required files exist in the folder
+            filepath = os.path.join(data_dir, _FILEPATHS[self.config.name])
 
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(
-                f"{filepath} does not exist. Make sure you required files are present in {data_dir} `. Manual download instructions: {self.manual_download_instructions})"
-            )
-
+            if not os.path.exists(filepath):
+                raise FileNotFoundError(
+                    f"{filepath} does not exist. Make sure you required files are present in {data_dir} `. Manual download instructions: {self.manual_download_instructions})"
+                )
+        else:
+            filepath = dl_manager.download(_FILEPATHS[self.config.name])
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
