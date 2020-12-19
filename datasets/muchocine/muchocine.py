@@ -63,7 +63,7 @@ class Muchocine(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepaths": glob.glob(os.path.join(data_dir, "corpusCriticasCine", "*.xml")),
+                    "filepaths": sorted(glob.glob(os.path.join(data_dir, "corpusCriticasCine", "*.xml"))),
                     "split": "train",
                 },
             ),
