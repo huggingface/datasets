@@ -263,7 +263,7 @@ class HAREM(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         id_ = 0
-        
+
         for filepath in filepaths:
 
             logging.info("⏳ Generating examples from = %s", filepath)
