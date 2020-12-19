@@ -22,7 +22,7 @@ task_ids:
 - semantic-similarity-scoring
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for ClimateFever
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
