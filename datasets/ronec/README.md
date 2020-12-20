@@ -71,20 +71,18 @@ The text dataset is in Romanian (`ro`)
 
 An example looks like this:
 
-{'end': [19, 28, 42, 80], 
- 'id': '1', 
- 'ronec_class': [13, 4, 13, 8], 
- 'sentence': ['Secretarul de stat al S.U.A., Colin Powell, începe un turneu în țările asiatice afectate de valurile seismice uriașe.'], 
- 'start': [1, 22, 31, 72]
+```
+{'id': '1',
+ 'ner_tags': [13, 29, 29, 0, 4, 0, 13, 29, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0],
+ 'tokens': ['Secretarul', 'de', 'stat', 'al', 'S.U.A.', ',', 'Colin', 'Powell', ',', 'începe', 'un', 'turneu', 'în', 'țările', 'asiatice', 'afectate', 'de', 'valurile', 'seismice', 'uriașe', '.']
 }
+```
 
 ### Data Fields
 
 - `id`: a `string` feature describing the index of the sentence in the dataset
-- `sentence`: a `list` of `string` features.
-- `start`: a `list` of `int32` features describing the start positions of each label in a sentence. Since a sentence can have more than one label, start will be a list with the starting offset of each label.
-- `end`: a `list` of `int32` features describing the start positions of each label in a sentence. Since a sentence can have more than one label, start will be a list with the starting offset of each label.
-- `ronec_class`: a `list` of classification labels, with possible values including `O`, `DATETIME`, `EVENT`, `FACILITY`, `GPE` etc.
+- `tokens`: a `list` of `string` features.
+- `ner_tags`: a `list` of classification labels, with possible values including `O`, `B-DATETIME`, `B-EVENT`, `B-FACILITY`, `B-GPE`, `B-LANGUAGE`, `B-LOC`, `B-MONEY`, `B-NAT_REL_POL`, `B-NUMERIC_VALUE`, `B-ORDINAL`, `B-ORGANIZATION`, `B-PERIOD`, `B-PERSON`, `B-PRODUCT`, `B-QUANTITY`, `B-WORK_OF_ART`, `I-DATETIME`, `I-EVENT`, `I-FACILITY`, `I-GPE`, `I-LANGUAGE`, `I-LOC`, `I-MONEY`, `I-NAT_REL_POL`, `I-NUMERIC_VALUE`, `I-ORDINAL`, `I-ORGANIZATION`, `I-PERIOD`, `I-PERSON`, `I-PRODUCT`, `I-QUANTITY`, `I-WORK_OF_ART`.
 
 ### Data Splits
 

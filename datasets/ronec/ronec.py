@@ -71,29 +71,43 @@ class RONEC(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "id": datasets.Value("string"),
-                "sentence": datasets.Sequence(datasets.Value("string")),
-                "start": datasets.Sequence(datasets.Value("int32")),
-                "end": datasets.Sequence(datasets.Value("int32")),
-                "ronec_class": datasets.Sequence(
+                "tokens": datasets.Sequence(datasets.Value("string")),
+                "ner_tags": datasets.Sequence(
                     datasets.features.ClassLabel(
                         names=[
                             "O",
-                            "DATETIME",
-                            "EVENT",
-                            "FACILITY",
-                            "GPE",
-                            "LANGUAGE",
-                            "LOC",
-                            "MONEY",
-                            "NAT_REL_POL",
-                            "NUMERIC_VALUE",
-                            "ORDINAL",
-                            "ORGANIZATION",
-                            "PERIOD",
-                            "PERSON",
-                            "PRODUCT",
-                            "QUANTITY",
-                            "WORK_OF_ART",
+                            "B-DATETIME",
+                            "B-EVENT",
+                            "B-FACILITY",
+                            "B-GPE",
+                            "B-LANGUAGE",
+                            "B-LOC",
+                            "B-MONEY",
+                            "B-NAT_REL_POL",
+                            "B-NUMERIC_VALUE",
+                            "B-ORDINAL",
+                            "B-ORGANIZATION",
+                            "B-PERIOD",
+                            "B-PERSON",
+                            "B-PRODUCT",
+                            "B-QUANTITY",
+                            "B-WORK_OF_ART",
+                            "I-DATETIME",
+                            "I-EVENT",
+                            "I-FACILITY",
+                            "I-GPE",
+                            "I-LANGUAGE",
+                            "I-LOC",
+                            "I-MONEY",
+                            "I-NAT_REL_POL",
+                            "I-NUMERIC_VALUE",
+                            "I-ORDINAL",
+                            "I-ORGANIZATION",
+                            "I-PERIOD",
+                            "I-PERSON",
+                            "I-PRODUCT",
+                            "I-QUANTITY",
+                            "I-WORK_OF_ART",
                         ]
                     )
                 ),
@@ -148,65 +162,27 @@ class RONEC(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
-            sentence = []
-            ronec_class = []
-            start = []
-            end = []
-            sent = ""
-            has_started = False
+            tokens = []
+            ner_tags = []
             for line in f:
                 if "#" in line or line == "\n":
-                    if sent:
-                        sentence.append(sent)
+                    if tokens:
                         yield guid, {
                             "id": str(guid),
-                            "sentence": sentence,
-                            "start": start,
-                            "end": end,
-                            "ronec_class": ronec_class,
+                            "tokens": tokens,
+                            "ner_tags": ner_tags,
                         }
                         guid += 1
-                        sentence = []
-                        start = []
-                        end = []
-                        ronec_class = []
-                        sent = ""
+                        tokens = []
+                        ner_tags = []
                 else:
-                    # ronec words are tab separated
-                    line = line.replace("\n", "")
+                    # conll2003 tokens are space separated
                     splits = line.split("\t")
-                    if splits[9] == "SpaceAfter=No":
-                        sent += splits[1]
-                    else:
-                        sent += splits[1] + " "
-
-                    if splits[10].startswith("O") and not has_started:
-                        continue
-                    elif splits[10].startswith("B-"):
-                        if splits[9] == "SpaceAfter=No":
-                            begin = len(sent) - len(splits[1])
-                            last = len(sent)
-                        else:
-                            begin = len(sent) - len(splits[1]) - 1
-                            last = len(sent) - 1
-                        label = splits[10][2:]
-                        has_started = True
-                    elif splits[10].startswith("I-"):
-                        if splits[9] == "SpaceAfter=No":
-                            last = len(sent)
-                        else:
-                            last = len(sent) - 1
-                    elif splits[10].startswith("O") and has_started:
-                        ronec_class.append(label)
-                        start.append(begin)
-                        end.append(last)
-                        has_started = False
-
+                    tokens.append(splits[1])
+                    ner_tags.append(splits[10].rstrip())
             # last example
             yield guid, {
                 "id": str(guid),
-                "sentence": sentence,
-                "start": start,
-                "end": end,
-                "ronec_class": ronec_class,
+                "tokens": tokens,
+                "ner_tags": ner_tags,
             }
