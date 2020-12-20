@@ -20,7 +20,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for RONEC
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
