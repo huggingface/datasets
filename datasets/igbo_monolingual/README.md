@@ -69,7 +69,7 @@ task_ids:
 
 ### Dataset Summary
 
-[More Information Needed]
+A dataset is a collection of Monolingual Igbo sentences.
 
 ### Supported Tasks and Leaderboards
 
@@ -77,7 +77,7 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Igbo (ig)
 
 ## Dataset Structure
 
@@ -87,11 +87,56 @@ task_ids:
 
 ### Data Fields
 
-[More Information Needed]
+For config 'eze_goes_to_school':
+  - format, title, chapters
+
+For config 'bbc-igbo' :
+  - source, title, description, date (Missing date values replaced with empty strings), headline, content, tags (Missing tags replaced with empty list)
+
+For config 'igbo-radio':
+  - source, headline, author, date, description, content
+
+For config 'jw-ot-igbo':
+  - format, title, chapters
+
+For config 'jw-nt-igbo':
+  - format, title, chapters
+
+For config 'jw-books': 
+  - title, content, format, date (Missing date values replaced with empty strings)
+
+For config 'jw-teta': 
+  -  title, content, format, date (Missing date values replaced with empty strings)
+
+For config 'jw-ulo_nche': 
+  - title, content, format, date (Missing date values replaced with empty strings)
+
+For config 'jw-ulo_nche_naamu':
+  - title, content, format, date (Missing date values replaced with empty strings)
+
 
 ### Data Splits
 
-[More Information Needed]
+---
+bbc-igbo:
+- 1K<n<10K
+eze_goes_to_school:
+- n<1K
+igbo-radio:
+- n<1K
+jw-books:
+- n<1K
+jw-nt-igbo:
+- n<1K
+jw-ot-igbo:
+- n<1K
+jw-teta:
+- n<1K
+jw-ulo_nche:
+- n<1K
+jw-ulo_nche_naamu:
+- n<1K
+---
 
 ## Dataset Creation
 
