@@ -103,14 +103,14 @@ class IgboNer(datasets.GeneratorBasedBuilder):
         with open(filepath, "r", encoding="utf-8-sig") as f:
             if self.config.name == "ner_data":
                 for id_, row in enumerate(f):
-                    row = row.split("\t")
+                    row = row.strip().split("\t")
                     content_n = row[0]
                     if content_n in dictionary.keys():
                         (dictionary[content_n]["sentences"]).append(row[1])
                     else:
                         dictionary[content_n] = {}
                         dictionary[content_n]["named_entity"] = row[1]
-                        dictionary[content_n]["sentences"] = []
+                        dictionary[content_n]["sentences"] = [row[1]]
                     yield id_, {
                         "content_n": content_n,
                         "named_entity": dictionary[content_n]["named_entity"],
@@ -119,5 +119,5 @@ class IgboNer(datasets.GeneratorBasedBuilder):
             else:
                 for id_, row in enumerate(f):
                     yield id_, {
-                        "sentences": row,
+                        "sentences": row.strip(),
                     }

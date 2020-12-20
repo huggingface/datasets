@@ -66,11 +66,13 @@ task_ids:
 
 ### Data Instances
 
-[More Information Needed]
+{'content_n': 'content_0', 'named_entity': 'Ike Ekweremmadụ', 'sentences': ['Ike Ekweremmadụ', "Ike ịda jụụ otụ nkeji banyere oke ogbugbu na-eme n'ala Naijiria agwụla Ekweremmadụ"]}
 
 ### Data Fields
 
-[More Information Needed]
+content_n : ID 
+named_entity : Name of the entity 
+sentences : List of sentences for the entity 
 
 ### Data Splits
 
