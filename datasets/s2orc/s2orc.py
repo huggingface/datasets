@@ -119,8 +119,7 @@ class S2ORC(datasets.GeneratorBasedBuilder):
 
         train_names = [dl_manager.download_and_extract(_ROOT_URL + x) for x in train_names]
 
-        _CONCAT_TRAIN_FILE = "output_file.txt"
-        with open(_CONCAT_TRAIN_FILE, "wb") as wfd:
+        with open(manifest_file, "wb") as wfd:  # added all the data to already downloaded manifest file
             for f in train_names:
                 with open(f, "rb") as fd:
                     shutil.copyfileobj(fd, wfd)
@@ -130,7 +129,7 @@ class S2ORC(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": _CONCAT_TRAIN_FILE,
+                    "filepath": manifest_file,
                     "split": "train",
                 },
             ),
