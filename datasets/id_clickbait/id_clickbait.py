@@ -16,8 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import glob
 import csv
+import glob
 import logging
 import os
 
@@ -34,7 +34,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The CLICK-ID dataset is a collection of Indonesian news headlines that was collected from 12 local online news 
+The CLICK-ID dataset is a collection of Indonesian news headlines that was collected from 12 local online news
 publishers; detikNews, Fimela, Kapanlagi, Kompas, Liputan6, Okezone, Posmetro-Medan, Republika, Sindonews, Tempo,
 Tribunnews, and Wowkeren. This dataset is comprised of mainly two parts; (i) 46,119 raw article data, and (ii)
 15,000 clickbait annotated sample headlines. Annotation was conducted with 3 annotator examining each headline.
@@ -70,24 +70,16 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
             name="annotated",
             version=VERSION,
             description="Annotated clickbait dataset",
-            label_classes=[
-                "non-clickbait",
-                "clickbait"
-            ],
-            path="annotated/csv"
+            label_classes=["non-clickbait", "clickbait"],
+            path="annotated/csv",
         ),
-        IdClickbaitConfig(
-            name="raw",
-            version=VERSION,
-            description="Raw dataset",
-            path="raw/csv"
-        ),
+        IdClickbaitConfig(name="raw", version=VERSION, description="Raw dataset", path="raw/csv"),
     ]
 
     BUILDER_CONFIG_CLASS = IdClickbaitConfig
 
     def _info(self):
-        if(self.config.name == "annotated"):
+        if self.config.name == "annotated":
             features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -105,7 +97,7 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
                     "category": datasets.Value("string"),
                     "sub-category": datasets.Value("string"),
                     "content": datasets.Value("string"),
-                    "url": datasets.Value("string")
+                    "url": datasets.Value("string"),
                 }
             )
         return datasets.DatasetInfo(
@@ -134,10 +126,10 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
         for path in sorted(glob.glob(os.path.join(article_dir, "**/*.csv"), recursive=True)):
-            with open(path, encoding="utf-8-sig", newline='') as f:
+            with open(path, encoding="utf-8-sig", newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    if(self.config.name == "annotated"):
+                    if self.config.name == "annotated":
                         yield id, {
                             "id": str(id),
                             "title": row["title"],
@@ -152,7 +144,6 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
                             "category": row["category"],
                             "sub-category": row["sub-category"],
                             "content": row["content"],
-                            "url": row["url"]
+                            "url": row["url"],
                         }
                     id += 1
-
