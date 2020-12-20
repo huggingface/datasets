@@ -5,7 +5,8 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses: [other-google-llc]
+licenses: 
+- other-google-llc
 multilinguality:
 - monolingual
 size_categories:
