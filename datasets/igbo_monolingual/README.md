@@ -116,27 +116,9 @@ For config 'jw-ulo_nche_naamu':
 
 
 ### Data Splits
-
----
-bbc-igbo:
-- 1K<n<10K
-eze_goes_to_school:
-- n<1K
-igbo-radio:
-- n<1K
-jw-books:
-- n<1K
-jw-nt-igbo:
-- n<1K
-jw-ot-igbo:
-- n<1K
-jw-teta:
-- n<1K
-jw-ulo_nche:
-- n<1K
-jw-ulo_nche_naamu:
-- n<1K
----
+| bbc-igbo  | eze_goes_to_school |igbo-radio| jw-books|jw-nt-igbo| jw-ot-igbo | jw-teta |jw-ulo_nche |jw-ulo_nche_naamu
+| ------------- |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+| 1K<n<10K      |n<1K     |n<1K    |n<1K     |n<1K     |n<1K|n<1K|n<1K|n<1K
 
 ## Dataset Creation
 
