@@ -134,19 +134,16 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
         for path in sorted(glob.glob(os.path.join(article_dir, "**/*.csv"), recursive=True)):
-            newsCounter = 0
             with open(path, encoding="utf-8-sig", newline='') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if(self.config.name == "annotated"):
-                        # print("row:", row)
                         yield id, {
                             "id": str(id),
                             "title": row["title"],
                             "label": row["label"],
                         }
                     else:
-                        # print("row:", path, row)
                         yield id, {
                             "id": str(id),
                             "title": row["title"],
@@ -158,6 +155,4 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
                             "url": row["url"]
                         }
                     id += 1
-                    newsCounter += 1
-            print("articles", path, newsCounter)
 
