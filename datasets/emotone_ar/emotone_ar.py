@@ -70,7 +70,7 @@ class EmotoneAr(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate labeled arabic tweets examples for emoptions detection."""
         with open(filepath, encoding="utf-8", mode="r") as csv_file:
-            nex(csv_file)  # skip header
+            next(csv_file)  # skip header
             csv_reader = csv.reader(csv_file, quotechar='"', delimiter=",")
 
             for id_, row in enumerate(csv_reader):
