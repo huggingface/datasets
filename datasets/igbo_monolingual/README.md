@@ -83,7 +83,16 @@ Igbo (ig)
 
 ### Data Instances
 
-[More Information Needed]
+Here is an example from the bb-igbo config:
+```
+{'content': 'Ike Ekweremmadụ\n\nIke ịda jụụ otụ nkeji banyere oke ogbugbu na-eme n\'ala Naijiria agwụla Ekweremmadụ\n\nOsote onye-isi ndị ome-iwu Naịjirịa bụ Ike Ekweremadu ekwuola na ike agwụla ndị Sịnatị iji otu nkeji darajụụ akwanyere ndị egburu n\'ime oke ọgbaghara dị na Naịjirịa oge ọ bula.\n\nEkweremadu  katọrọ mwakpọ na ogbugbu ndị Naịjirịa aka ha dị ọcha nke ndị Fulani na-achị ehi mere, kwuo na ike agwụla ndị ome- iwu ịkwanyere ha ugwu n\'otu nkeji\'\n\nCheta n\'otu ịzụka gara-aga ka emere akwam ozu mmadụ ruru iri asaa egburu na Local Gọọmenti Logo na Guma nke Benue Steeti, e be ihe kariri mmadụ iri ise ka akụkọ kwuru n\'egburu na Taraba Steeti.\n\nEkweremadu gosiri iwe gbasara ogbugbu ndị mmadụ na nzukọ ndị ome-iwu n\'ụbọchị taa, kwuo na Naịjirịa ga-ebu ụzọ nwe udo na nchekwa, tupu e kwuowa okwu iwulite obodo.\n\nỌ sịrị:  "Ndị ome-iwu abụghị sọ ọsọ ndị ihe a metụtara, kama ndị Naịjirịa niile.\n\n\'Ike agwụla anyị iji otu nkeji dị jụụ maka nkwanye ugwu. Ihe anyị chọrọ bụ udo na nchekwa tupu echewa echịchị nwuli obodo."',
+ 'date': '2018-01-19T17:07:38Z',
+ 'description': "N'ihi oke ogbugbu ndị mmadụ na Naịjirịa gbagburu gburu, osota onyeisi ndị ome-iwu Naịjirịa bụ Ike Ekweremadu ekwuola na ihe Naịjiria chọrọ bụ nchekwa tara ọchịchị, tupu ekwuwa okwu ihe ọzọ.",
+ 'headline': 'Ekweremadu: Ike agwụla ndị ụlọ ome iwu',
+ 'source': 'https://www.bbc.com/igbo/42712250',
+ 'tags': [],
+ 'title': 'Ekweremadu: Ike agwụla ndị ụlọ ome iwu'}
+```
 
 ### Data Fields
 
@@ -118,7 +127,7 @@ For config 'jw-ulo_nche_naamu':
 ### Data Splits
 | bbc-igbo  | eze_goes_to_school |igbo-radio| jw-books|jw-nt-igbo| jw-ot-igbo | jw-teta |jw-ulo_nche |jw-ulo_nche_naamu
 | ------------- |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
-| 1K<n<10K      |n<1K     |n<1K    |n<1K     |n<1K     |n<1K|n<1K|n<1K|n<1K
+|  1297     | 1     | 440   | 48     | 27     | 39 | 37 | 55 | 88
 
 ## Dataset Creation
 
