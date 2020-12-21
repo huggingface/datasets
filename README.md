@@ -84,7 +84,10 @@ squad_metric = load_metric('squad')
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
 
-# Process the dataset - tokenize the context texts
+# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗 transformers library)
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
