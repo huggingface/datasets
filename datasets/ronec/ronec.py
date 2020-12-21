@@ -176,7 +176,7 @@ class RONEC(datasets.GeneratorBasedBuilder):
                         tokens = []
                         ner_tags = []
                 else:
-                    # conll2003 tokens are space separated
+                    # ronec tokens are tab separated
                     splits = line.split("\t")
                     tokens.append(splits[1])
                     ner_tags.append(splits[10].rstrip())
