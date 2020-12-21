@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -72,13 +71,16 @@ The tweets are primarily in English Language
 
 The dataset contains a label denoting is the tweet a hate speech or not
 
-{'label': 0,
+```
+{'label': 0,  # not a hate speech
  'tweet': ' @user when a father is dysfunctional and is so selfish he drags his kids into his dysfunction.   #run'}
+```
 
 
 ### Data Fields
 
 * label : 1 - it is a hate specch, 0 - not a hate speech 
+* tweet: content of the tweet as a string
 
 ### Data Splits
  
@@ -88,7 +90,7 @@ The data contains training data with :31962 entries
 
 ### Curation Rationale
 
-
+[More Information Needed]
 
 ### Source Data
 
@@ -123,6 +125,9 @@ With the help of this dataset, one can understand more about the human sentiment
 ### Discussion of Biases
 
 The data could be cleaned up further for additional purposes such as applying a better feature extraction techniques
+
+
+[More Information Needed]
 
 ### Other Known Limitations
 
