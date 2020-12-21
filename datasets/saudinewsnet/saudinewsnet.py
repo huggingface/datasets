@@ -15,10 +15,8 @@
 """The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata, extracted from various online Saudi newspapers."""
 
 from __future__ import absolute_import, division, print_function
-
 import json
 import os
-
 import datasets
 
 
@@ -28,10 +26,8 @@ _CITATION = """\
 """
 
 
-_DESCRIPTION = """\
-The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata, \
-extracted from various online Saudi newspapers and written in MSA. 
-"""
+_DESCRIPTION = """The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata, \
+extracted from various online Saudi newspapers and written in MSA."""
 
 
 _HOMEPAGE = "https://github.com/parallelfold/SaudiNewsNet"
@@ -51,23 +47,32 @@ class SaudiNewsNet(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "source": datasets.Value("string"), #A string identifief of the newspaper from which the article was extracted. 
-                    "url": datasets.Value("string"), #The full URL from which the article was extracted.
-                    "date_extracted": datasets.Value("string"), #The timestamp of the date on which the article was extracted.
-                    "title": datasets.Value("string"), #The title of the article. Can be empty.
-                    "author": datasets.Value("string"), #The author of the article. Can be empty.
-                    "content": datasets.Value("string") #The content of the article.
+                    "source": datasets.Value(
+                        "string"
+                    ),  # A string identifief of the newspaper from which the article was extracted.
+                    "url": datasets.Value("string"),  # The full URL from which the article was extracted.
+                    "date_extracted": datasets.Value(
+                        "string"
+                    ),  # The timestamp of the date on which the article was extracted.
+                    "title": datasets.Value("string"),  # The title of the article. Can be empty.
+                    "author": datasets.Value("string"),  # The author of the article. Can be empty.
+                    "content": datasets.Value("string"),  # The content of the article.
                 }
             ),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            supervised_keys=None
+            supervised_keys=None,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         datadir = dl_manager.download_and_extract(_URL)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(datadir, "2015-07-21.json"), "split":"train"})]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(datadir, "2015-07-21.json"), "split": "train"},
+            )
+        ]
 
     def _generate_examples(self, filepath, split):
         """Generates examples"""
@@ -87,6 +92,5 @@ class SaudiNewsNet(datasets.GeneratorBasedBuilder):
                     "date_extracted": dt,
                     "url": link,
                     "author": author,
-                    "content": content
+                    "content": content,
                 }
-                
