@@ -48,7 +48,7 @@ pip install datasets
 
 For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation.html
 
-## Using with PyTorch/TensorFlow/pandas
+## Installation to use with PyTorch/TensorFlow/pandas
 
 If you plan to use `🤗Datasets` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, TensorFlow or pandas.
 
@@ -80,6 +80,12 @@ print(list_metrics())
 
 # Load a metric
 squad_metric = load_metric('squad')
+
+# Process the dataset - add a column with the length of the context texts
+dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
+
+# Process the dataset - tokenize the context texts
+tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
 For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on
