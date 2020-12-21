@@ -144,10 +144,6 @@ class WikiAsp(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    # Using Plant as default because of its small size (286MB)
-    # The full dataset is 28GB
-    DEFAULT_CONFIG_NAME = "plant"
-
     def _info(self):
         features = datasets.Features(
             {
