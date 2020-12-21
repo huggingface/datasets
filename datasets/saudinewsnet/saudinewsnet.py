@@ -15,8 +15,10 @@
 """The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata, extracted from various online Saudi newspapers."""
 
 from __future__ import absolute_import, division, print_function
+
 import json
 import os
+
 import datasets
 
 
