@@ -181,8 +181,9 @@ class RONEC(datasets.GeneratorBasedBuilder):
                     tokens.append(splits[1])
                     ner_tags.append(splits[10].rstrip())
             # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "ner_tags": ner_tags,
-            }
+            if tokens:
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "ner_tags": ner_tags,
+                }
