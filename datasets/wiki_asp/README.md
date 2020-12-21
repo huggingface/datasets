@@ -66,6 +66,7 @@ task_ids:
 
 ### Data Instances
 
+An example from the "plant" configuration:
 ```
 {
     'exid': 'train-78-8',
