@@ -81,7 +81,7 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-      You need to manually download the files needed for the dataset config generics_kb_waterloo.
+      You need to manually download the files needed for the dataset config generics_kb_waterloo. The other configs like generics_kb_best don't need manual downloads.
       The <path/to/folder> can e.g. be `~/Downloads/GenericsKB`. Download the following required files from https://drive.google.com/drive/folders/1vqfVXhJXJWuiiXbUa4rZjOgQoJvwZUoT
       For working on "generics_kb_waterloo" data,
         1. Manually download 'GenericsKB-Waterloo-WithContext.jsonl.zip' into your <path/to/folder>.Please ensure the filename is as is.
