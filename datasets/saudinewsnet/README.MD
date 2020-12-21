@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -19,7 +19,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for SaudiNewsNet
+# Dataset Card for Saudi Newspapers Corpus (SaudiNewsNet)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -52,8 +52,25 @@ task_ids:
 
 ### Dataset Summary
 
-The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata,
+The dataset contains a set of 31,030 Arabic newspaper articles alongwith metadata,
 extracted from various online Saudi newspapers and written in MSA. 
+
+The dataset currently contains **31,030** Arabic articles (with a total number of **8,758,976 words**). The articles were extracted from the following Saudi newspapers (sorted by number of articles):
+
+ - [Al-Riyadh](http://www.alriyadh.com/) (4,852 articles)
+ - [Al-Jazirah](http://al-jazirah.com/) (3,690 articles)
+ - [Al-Yaum](http://alyaum.com/) (3,065 articles)
+ - [Al-Eqtisadiya](http://aleqt.com/) (2,964 articles)
+ - [Al-Sharq Al-Awsat](http://aawsat.com/) (2,947 articles)
+ - [Okaz](http://www.okaz.com.sa/) (2,846 articles)
+ - [Al-Watan](http://alwatan.com.sa/) (2,279 articles)
+ - [Al-Madina](http://www.al-madina.com/) (2,252 articles)
+ - [Al-Weeam](http://alweeam.com.sa/) (2,090 articles)
+ - [Ain Alyoum](http://3alyoum.com/) (2,080 articles)
+ - [Sabq](http://sabq.org/) (1,411 articles)
+ - [Saudi Press Agency](http://www.spa.gov.sa) (369 articles)
+ - [Arreyadi](http://www.arreyadi.com.sa/) (133 articles)
+ - [Arreyadiyah](http://www.arreyadiyah.com/) (52 articles)
 
 ### Supported Tasks and Leaderboards
 
