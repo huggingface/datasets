@@ -19,7 +19,7 @@ task_ids:
 - sentiment-classification
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for ArRestReviews
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

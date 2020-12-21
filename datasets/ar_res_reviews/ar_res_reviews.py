@@ -55,7 +55,7 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "polarity": datasets.ClassLabel(names=["-1", "1"]),
+                    "polarity": datasets.ClassLabel(names=["negative", "positive"]),
                     "text": datasets.Value("string"),
                     "restaurant_id": datasets.Value("string"),
                     "user_id": datasets.Value("string"),
@@ -76,10 +76,11 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate arabic restaurant reviews examples."""
         with open(filepath, encoding="utf-8") as csv_file:
-            csv_file = csv_file.readlines()[1:]
+            next(csv_file)
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
             for id_, row in enumerate(csv_reader):
                 polarity, text, restaurant_id, user_id = row
+                polarity = "negative" if polarity == "-1" else "positive"
                 yield id_, {"polarity": polarity, "text": text, "restaurant_id": restaurant_id, "user_id": user_id}
