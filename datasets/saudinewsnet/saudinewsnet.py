@@ -40,30 +40,7 @@ _HOMEPAGE = "https://github.com/parallelfold/SaudiNewsNet"
 _LICENSE = "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License."
 
 
-#_URL = "https://github.com/parallelfold/SaudiNewsNet/blob/master/dataset/"
-
-_URL = "https://github.com/parallelfold/SaudiNewsNet/blob/master/dataset/"
-
-_URLs = {
-    "batch1": _URL + "2015-07-21.zip",
-    "batch2": _URL + "2015-07-22.zip",
-    "batch3": _URL + "2015-07-23.zip",
-    "batch4": _URL + "2015-07-24.zip",
-    "batch5": _URL + "2015-07-25.zip",
-    "batch6": _URL + "2015-07-26.zip",
-    "batch7": _URL + "2015-07-27.zip",
-    "batch8": _URL + "2015-07-31.zip",
-    "batch9": _URL + "2015-08-01.zip",
-    "batch10": _URL + "2015-08-02.zip",
-    "batch11": _URL + "2015-08-03.zip",
-    "batch12": _URL + "2015-08-04.zip",
-    "batch13": _URL + "2015-08-06.zip",
-    "batch14": _URL + "2015-08-07.zip",
-    "batch15": _URL + "2015-08-08.zip",
-    "batch16": _URL + "2015-08-09.zip",
-    "batch17": _URL + "2015-08-10.zip",
-    "batch18": _URL + "2015-08-11.zip"
-}
+_URL = "https://github.com/parallelfold/SaudiNewsNet/raw/master/dataset/2015-07-21.zip"
 
 
 class SaudiNewsNet(datasets.GeneratorBasedBuilder):
@@ -89,24 +66,14 @@ class SaudiNewsNet(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs
-        datadir = dl_manager.download_and_extract(my_urls)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": datadir,
-                    "split": "train",
-                },
-            ),
-        ]
+        datadir = dl_manager.download_and_extract(_URL)
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(datadir, "2015-07-21.json"), "split":"train"})]
 
     def _generate_examples(self, filepath, split):
         
         #logging.info("generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8").read() as f:
-            articles = json.loads(f)
+        with open(filepath, encoding="utf-8") as f:
+            articles = json.load(f)
             for article in articles:
                 title = article.get("title", "").strip()
                 source = article.get("source", "").strip()
@@ -115,7 +82,7 @@ class SaudiNewsNet(datasets.GeneratorBasedBuilder):
                 author = article.get("author", "").strip()
                 content = article.get("content", "").strip()
 
-                yield id_, {
+                yield {
                     "title": title,
                     "source": source,
                     "date": date,
