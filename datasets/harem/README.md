@@ -59,6 +59,9 @@ documents are the validation set and the miniHAREM corpus (with about 65k words)
 a version that has a total of 10 different named entity classes (Person, Organization, Location, Value, Date, Title, Thing, Event, 
 Abstraction, and Other) and a "selective" version with only 5 classes (Person, Organization, Location, Value, and Date).
 
+It's important to note that the original version of the HAREM dataset has 2 levels of NER details, namely "Category" and "Sub-type".
+The dataset version processed here ONLY USE the "Category" level of the original dataset.
+
 [1] Souza, Fábio, Rodrigo Nogueira, and Roberto Lotufo. "BERTimbau: Pretrained BERT Models for Brazilian Portuguese." Brazilian Conference on Intelligent Systems. Springer, Cham, 2020.
 
 ### Supported Tasks and Leaderboards
@@ -67,13 +70,22 @@ Abstraction, and Other) and a "selective" version with only 5 classes (Person, O
 
 ### Languages
 
-[More Information Needed]
+Portuguese
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  "id": "HAREM-871-07800",
+  "ner_tags": [3, 0, 0, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+  ],
+  "tokens": [
+    "Abraço", "Página", "Principal", "ASSOCIAÇÃO", "DE", "APOIO", "A", "PESSOAS", "COM", "VIH", "/", "SIDA"
+  ]
+}
+```
 
 ### Data Fields
 
@@ -148,9 +160,11 @@ The NER tags have the same format as in the CoNLL shared task: a B denotes the f
 
 ### Citation Information
 
+```
 @inproceedings{santos2006harem,
   title={Harem: An advanced ner evaluation contest for portuguese},
   author={Santos, Diana and Seco, Nuno and Cardoso, Nuno and Vilela, Rui},
   booktitle={quot; In Nicoletta Calzolari; Khalid Choukri; Aldo Gangemi; Bente Maegaard; Joseph Mariani; Jan Odjik; Daniel Tapias (ed) Proceedings of the 5 th International Conference on Language Resources and Evaluation (LREC'2006)(Genoa Italy 22-28 May 2006)},
   year={2006}
 }
+```
