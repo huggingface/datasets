@@ -60,10 +60,8 @@ class RONEC(datasets.GeneratorBasedBuilder):
     """RONEC dataset"""
 
     VERSION = datasets.Version("1.0.0")
-    DEFAULT_CONFIG_NAME = "ronec"
-
     BUILDER_CONFIGS = [
-        RONECConfig(name=DEFAULT_CONFIG_NAME, version=VERSION, description="RONEC dataset"),
+        RONECConfig(name="ronec", version=VERSION, description="RONEC dataset"),
     ]
 
     def _info(self):
