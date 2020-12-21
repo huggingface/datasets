@@ -201,7 +201,6 @@ The ``csv`` loading script provides a few simple access options to control parsi
 
     - :obj:`skip_rows` (int) - Number of first rows in the file to skip (default is 0)
     - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
-    - :obj:`autogenerate_column_names` (bool) – Whether to autogenerate column names if column_names is empty. If true, column names will be of the form “f0”, “f1”… If false, column names will be read from the first CSV row after skip_rows (default False).
     - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
     - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default '"').
     - :obj:`quoting` (bool) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to pandas.read_csv documentation for more details).
@@ -338,5 +337,4 @@ You can use a local loading script just by providing its path instead of the usu
     >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
 
 We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__.
-
 
