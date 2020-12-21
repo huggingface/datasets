@@ -68,7 +68,7 @@ The dataset is based on Arabic.
 
 A typical data point comprises of the following:
 
-- "polarity": which is a string value of either -1 or 1 indicating the sentiment around the review    
+- "polarity": which is a string value of either 0 or 1 indicating the sentiment around the review    
 
 - "text": is the review plain text of a restaurant in Arabic
 
@@ -78,12 +78,17 @@ A typical data point comprises of the following:
 
 example:
 ``` 
-    >>> {'polarity': '-1', 'restaurant_id': '1412', 'text': 'عادي جدا مامن زود', 'user_id': '21294'}
+{
+    'polarity': 0,  # negative
+    'restaurant_id': '1412',
+    'text': 'عادي جدا مامن زود',
+    'user_id': '21294'
+}
 ```
 
 ### Data Fields
 
-- "polarity": is a string value of either -1 or 1 indicating the sentiment around the review    
+- "polarity": is a string value of either 0 or 1 indicating the sentiment around the review    
 
 - "text": is the review plain text of a restaurant in Arabic
 
@@ -162,8 +167,4 @@ publisher="Springer International Publishing",
 address="Cham",
 pages="23--34",
 isbn="978-3-319-18117-2"
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 4ab01f21137425a8c57a3f0cf72ed6d1fe07aff5
