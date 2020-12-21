@@ -20,7 +20,6 @@ import os
 
 import datasets
 
-
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -44,7 +43,7 @@ _CITATION = """\
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-The dataset includes 250,015 tokens and 7,682 Persian sentences in total. It is available in 3 folds to be used in turn as training and test sets. Each file contains one token, along with its manually annotated named-entity tag, per line. Each sentence is separated with a newline. The NER tags are in IOB format.
+The dataset includes 250,015 tokens and 7,682 Persian sentences in total. It is available in 3 folds to be used in turn as training and test sets. The NER tags are in IOB format.
 """
 
 # TODO: Add a link to an official homepage for the dataset here
