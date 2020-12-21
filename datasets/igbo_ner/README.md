@@ -66,13 +66,16 @@ task_ids:
 
 ### Data Instances
 
+Here is an example from the dataset:
+```
 {'content_n': 'content_0', 'named_entity': 'Ike Ekweremmadụ', 'sentences': ['Ike Ekweremmadụ', "Ike ịda jụụ otụ nkeji banyere oke ogbugbu na-eme n'ala Naijiria agwụla Ekweremmadụ"]}
+```
 
 ### Data Fields
 
-content_n : ID 
-named_entity : Name of the entity 
-sentences : List of sentences for the entity 
+- content_n : ID 
+- named_entity : Name of the entity 
+- sentences : List of sentences for the entity 
 
 ### Data Splits
 
