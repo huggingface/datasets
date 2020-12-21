@@ -40,6 +40,9 @@ documents are the validation set and the miniHAREM corpus (with about 65k words)
 a version that has a total of 10 different named entity classes (Person, Organization, Location, Value, Date, Title, Thing, Event,
 Abstraction, and Other) and a "selective" version with only 5 classes (Person, Organization, Location, Value, and Date).
 
+It's important to note that the original version of the HAREM dataset has 2 levels of NER details, namely "Category" and "Sub-type".
+The dataset version processed here ONLY USE the "Category" level of the original dataset.
+
 [1] Souza, Fábio, Rodrigo Nogueira, and Roberto Lotufo. "BERTimbau: Pretrained BERT Models for Brazilian Portuguese." Brazilian Conference on Intelligent Systems. Springer, Cham, 2020.
 """
 
@@ -168,19 +171,9 @@ class HAREM(datasets.GeneratorBasedBuilder):
             description="All the tags (PESSOA, ORGANIZACAO, LOCAL, TEMPO, VALOR, ABSTRACCAO, ACONTECIMENTO, COISA, OBRA, OUTRO) will be used",
         ),
         datasets.BuilderConfig(
-            name="default_raw",
-            version=VERSION,
-            description="All the tags (PESSOA, ORGANIZACAO, LOCAL, TEMPO, VALOR, ABSTRACCAO, ACONTECIMENTO, COISA, OBRA, OUTRO) will be used (raw HAREM version i.e. without train/dev/test[miniHAREM] split)",
-        ),
-        datasets.BuilderConfig(
             name="selective",
             version=VERSION,
             description="Only a subset of the tags (PESSOA, ORGANIZACAO, LOCAL, TEMPO, VALOR) will be used",
-        ),
-        datasets.BuilderConfig(
-            name="selective_raw",
-            version=VERSION,
-            description="Only a subset of the tags (PESSOA, ORGANIZACAO, LOCAL, TEMPO, VALOR) will be used (raw HAREM version i.e. without train/dev/test[miniHAREM] split)",
         ),
     ]
 
@@ -202,7 +195,7 @@ class HAREM(datasets.GeneratorBasedBuilder):
             "I-VALOR",
         ]
 
-        if self.config.name.startswith("default"):
+        if self.config.name == "default":
             tags += [
                 "B-ABSTRACCAO",
                 "I-ABSTRACCAO",
@@ -235,93 +228,84 @@ class HAREM(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        my_urls = _URLs[self.config.name.split("_")[0]]
+        my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
-
-        is_raw_dataset = self.config.name.endswith("raw")
-
-        train_paths = [data_dir["train"], data_dir["dev"]] if is_raw_dataset else [data_dir["train"]]
-        test_paths = [] if is_raw_dataset else [data_dir["test"]]
-        dev_paths = [] if is_raw_dataset else [data_dir["dev"]]
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": train_paths, "split": "train"},
+                gen_kwargs={"filepath": data_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepaths": test_paths, "split": "test"},
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": dev_paths, "split": "dev"},
+                gen_kwargs={"filepath": data_dir["dev"], "split": "dev"},
             ),
         ]
 
-    def _generate_examples(self, filepaths, split):
+    def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        id_ = 0
+        logging.info("⏳ Generating examples from = %s", filepath)
 
-        for filepath in filepaths:
+        with open(filepath, "r", encoding="utf-8") as f:
 
-            logging.info("⏳ Generating examples from = %s", filepath)
+            input_data = json.load(f)
+            id_ = 0
 
-            with open(filepath, "r", encoding="utf-8") as f:
+            for document in input_data:
+                doc_text = document["doc_text"]
+                doc_id = document["doc_id"]
 
-                input_data = json.load(f)
+                doc_tokens, char_to_word_offset = tokenize(doc_text)
+                tags = ["O"] * len(doc_tokens)
 
-                for document in input_data:
-                    doc_text = document["doc_text"]
-                    doc_id = document["doc_id"]
-
-                    doc_tokens, char_to_word_offset = tokenize(doc_text)
-                    tags = ["O"] * len(doc_tokens)
-
-                    def set_label(index, tag):
-                        if tags[index] != "O":
-                            logging.warning(
-                                "Overwriting tag %s at position %s to %s",
-                                tags[index],
-                                index,
-                                tag,
-                            )
-                        tags[index] = tag
-
-                    for entity in document["entities"]:
-                        entity_text = entity["text"]
-                        entity_type = entity["label"]
-                        start_token = None
-                        end_token = None
-
-                        entity_start_offset = entity["start_offset"]
-                        entity_end_offset = entity["end_offset"]
-                        start_token = char_to_word_offset[entity_start_offset]
-
-                        # end_offset is NOT inclusive to the text, e.g.,
-                        # entity_text == doc_text[start_offset:end_offset]
-                        end_token = char_to_word_offset[entity_end_offset - 1]
-
-                        assert start_token <= end_token, "End token cannot come before start token."
-                        reconstructed_text = reconstruct_text_from_tokens(doc_tokens[start_token : (end_token + 1)])
-                        assert (
-                            entity_text.strip() == reconstructed_text
-                        ), "Entity text and reconstructed text are not equal: %s != %s" % (
-                            entity_text,
-                            reconstructed_text,
+                def set_label(index, tag):
+                    if tags[index] != "O":
+                        logging.warning(
+                            "Overwriting tag %s at position %s to %s",
+                            tags[index],
+                            index,
+                            tag,
                         )
+                    tags[index] = tag
 
-                        for token_index in range(start_token, end_token + 1):
-                            if token_index == start_token:
-                                tag = "B-" + entity_type
-                            else:
-                                tag = "I-" + entity_type
-                            set_label(token_index, tag)
+                for entity in document["entities"]:
+                    entity_text = entity["text"]
+                    entity_type = entity["label"]
+                    start_token = None
+                    end_token = None
 
-                    yield id_, {
-                        "id": doc_id,
-                        "tokens": [x.text for x in doc_tokens],
-                        "ner_tags": tags,
-                    }
-                    id_ += 1
+                    entity_start_offset = entity["start_offset"]
+                    entity_end_offset = entity["end_offset"]
+                    start_token = char_to_word_offset[entity_start_offset]
+
+                    # end_offset is NOT inclusive to the text, e.g.,
+                    # entity_text == doc_text[start_offset:end_offset]
+                    end_token = char_to_word_offset[entity_end_offset - 1]
+
+                    assert start_token <= end_token, "End token cannot come before start token."
+                    reconstructed_text = reconstruct_text_from_tokens(doc_tokens[start_token : (end_token + 1)])
+                    assert (
+                        entity_text.strip() == reconstructed_text
+                    ), "Entity text and reconstructed text are not equal: %s != %s" % (
+                        entity_text,
+                        reconstructed_text,
+                    )
+
+                    for token_index in range(start_token, end_token + 1):
+                        if token_index == start_token:
+                            tag = "B-" + entity_type
+                        else:
+                            tag = "I-" + entity_type
+                        set_label(token_index, tag)
+
+                yield id_, {
+                    "id": doc_id,
+                    "tokens": [x.text for x in doc_tokens],
+                    "ner_tags": tags,
+                }
+                id_ += 1
