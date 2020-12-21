@@ -60,7 +60,20 @@ class Cifar10(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "img": datasets.Array3D(shape=(32, 32, 3), dtype="uint8"),
-                    "label": datasets.features.ClassLabel(names=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]),
+                    "label": datasets.features.ClassLabel(
+                        names=[
+                            "airplane",
+                            "automobile",
+                            "bird",
+                            "cat",
+                            "deer",
+                            "dog",
+                            "frog",
+                            "horse",
+                            "ship",
+                            "truck",
+                        ]
+                    ),
                 }
             ),
             supervised_keys=("img", "label"),
@@ -79,8 +92,6 @@ class Cifar10(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """This function returns the examples in the raw (text) form."""
-
-        # names=["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
 
         if split == "train":
             batches = ["data_batch_1", "data_batch_2", "data_batch_3", "data_batch_4", "data_batch_5"]
