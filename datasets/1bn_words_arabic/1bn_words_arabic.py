@@ -46,7 +46,7 @@ _URLs = {
     "Almasryalyoum":_URL + "Almasryalyoum_XML_utf_8.rar",
     "Almustaqbal":_URL + "Almustaqbal_XML_utf_8.rar",
     "Alqabas":_URL + "Alqabas_XML_utf_8.rar",
-    "choroukonline":_URL + "Echoroukonline_XML_utf_8.rar",
+    "Echoroukonline":_URL + "Echoroukonline_XML_utf_8.rar",
     "Ryiadh":_URL +"Ryiadh_XML_utf_8.rar",
     "Sabanews":_URL +"Sabanews_XML_utf_8.rar",
     "SaudiYoum":_URL +"SaudiYoum_XML_utf_8.rar",
@@ -54,6 +54,13 @@ _URLs = {
     "Youm7":_URL +"Youm7_XML_utf_8.rar"
 }
 
+#some tags are misspelled 
+MISS_SPELLED_TAGS={
+    'Dateline': ['Dateline', 'dateline'],
+    'Headline': ['Headline', 'Healine'],
+    'Text': ['Text'],
+    'URL' : ['URL']
+}
 class BillionWords(datasets.GeneratorBasedBuilder):
     """1.5 billion words Arabic Corpus"""
 
@@ -104,9 +111,14 @@ class BillionWords(datasets.GeneratorBasedBuilder):
         ]
 
     def _extract_tags(self, sample, tag):
-        pattern = f'<{tag}>(.*?)</{tag}>'
-        return re.findall(r''+pattern,sample.group(0), re.MULTILINE | re.DOTALL)[0]
-
+        
+        #check if the tag is misspelled
+        for tg in MISS_SPELLED_TAGS[tag]:
+            pattern = f'<{tg}>(.*?)</{tg}>'
+            out = re.findall(r''+pattern,sample.group(0), re.MULTILINE | re.DOTALL)
+            if len(out) > 0:
+                break
+        return out[0]
     def _clean_text(self, text):
         return text.replace('?', '')
 
@@ -115,7 +127,6 @@ class BillionWords(datasets.GeneratorBasedBuilder):
         current_multi_line = ''
         _idx = 0
         data_tag = self.config.name
-        print('<=========>',data_tag, filepath)
         with open(filepath, mode='r') as f:
             for i, line in enumerate(f):
                 if i == 0:
@@ -124,11 +135,17 @@ class BillionWords(datasets.GeneratorBasedBuilder):
                 if i % 8 == 0:
                     pattern = f'<{data_tag}(.*?)</{data_tag}>'
                     data = re.finditer(r''+pattern,current_multi_line, re.MULTILINE | re.DOTALL)
+                    text, url, head_line, date = ['', '', '', '']
                     for _, record in enumerate(data):
-                        text = self._clean_text(self._extract_tags(record, 'Text'))
-                        url = self._extract_tags(record, 'URL')
-                        head_line = self._clean_text(self._extract_tags(record, 'Headline'))
-                        date = self._extract_tags(record,'Dateline')
+                        try:
+                            text = self._clean_text(self._extract_tags(record, 'Text'))
+                            url = self._extract_tags(record, 'URL')
+                            head_line = self._clean_text(self._extract_tags(record, 'Headline'))
+                            date = self._extract_tags(record,'Dateline')
+                        except:
+                            #ignore wrong records
+                            continue
                         yield str(_idx), {'url':url, 'head_line':head_line, 'date':date,'text': text}
+                        _idx += 1
                     current_multi_line = ''
-                    _idx += 1
+                   
