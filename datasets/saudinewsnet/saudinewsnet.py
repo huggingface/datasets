@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""The dataset contains a set of 31,030 Arabic newspaper articles alongwith metadata, extracted from various online Saudi newspapers."""
+"""The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata, extracted from various online Saudi newspapers."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -29,7 +29,7 @@ _CITATION = """\
 
 
 _DESCRIPTION = """\
-The dataset contains a set of 31,030 Arabic newspaper articles alongwith metadata, \
+The dataset contains a set of 2,972 Arabic newspaper articles alongwith metadata, \
 extracted from various online Saudi newspapers and written in MSA. 
 """
 
@@ -44,7 +44,7 @@ _URL = "https://github.com/parallelfold/SaudiNewsNet/raw/master/dataset/2015-07-
 
 
 class SaudiNewsNet(datasets.GeneratorBasedBuilder):
-    """a set of 31,030 Arabic newspaper articles along with metadata"""
+    """a set of 2972 Arabic newspaper articles along with metadata"""
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -70,23 +70,22 @@ class SaudiNewsNet(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(datadir, "2015-07-21.json"), "split":"train"})]
 
     def _generate_examples(self, filepath, split):
-        
-        #logging.info("generating examples from = %s", filepath)
+        """Generates examples"""
         with open(filepath, encoding="utf-8") as f:
             articles = json.load(f)
-            for article in articles:
+            for _id, article in enumerate(articles):
                 title = article.get("title", "").strip()
                 source = article.get("source", "").strip()
-                date = article.get("date_extracted", "").strip()
+                dt = article.get("date_extracted", "").strip()
                 link = article.get("url", "").strip()
                 author = article.get("author", "").strip()
                 content = article.get("content", "").strip()
 
-                yield {
+                yield _id, {
                     "title": title,
                     "source": source,
-                    "date": date,
-                    "link": link,
+                    "date_extracted": dt,
+                    "url": link,
                     "author": author,
                     "content": content
                 }
