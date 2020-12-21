@@ -23,8 +23,12 @@ import datasets
 
 
 _CITATION = """\
-@misc{hagrima2015, author = "M. Alhagri", title = "Saudi Newspapers Arabic Corpus \
-(SaudiNewsNet)", year = 2015, url = "http://github.com/ParallelMazen/SaudiNewsNet" }
+@misc{hagrima2015,
+author = "M. Alhagri",
+title = "Saudi Newspapers Arabic Corpus (SaudiNewsNet)",
+year = 2015,
+url = "http://github.com/ParallelMazen/SaudiNewsNet"
+}
 """
 
 
@@ -81,12 +85,12 @@ class SaudiNewsNet(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             articles = json.load(f)
             for _id, article in enumerate(articles):
-                title = article.get("title", "").strip()
-                source = article.get("source", "").strip()
-                dt = article.get("date_extracted", "").strip()
-                link = article.get("url", "").strip()
-                author = article.get("author", "").strip()
-                content = article.get("content", "").strip()
+                title = article.get("title", "")
+                source = article["source"]
+                dt = article["date_extracted"]
+                link = article["url"]
+                author = article.get("author", "").strip("&nbsp;")
+                content = article["content"].strip("/n")
 
                 yield _id, {
                     "title": title,
