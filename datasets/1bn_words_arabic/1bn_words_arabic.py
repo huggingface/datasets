@@ -149,7 +149,7 @@ class BillionWords(datasets.GeneratorBasedBuilder):
         current_multi_line = ""
         _idx = 0
         data_tag = self.config.name
-        with open(filepath, mode="r") as f:
+        with open(filepath, mode="r", encoding="utf-8") as f:
             for i, line in enumerate(f):
                 if i == 0:
                     continue
