@@ -153,6 +153,8 @@ class PersianNER(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         with open(filepath, "r", encoding="utf-8") as f:
+            for line in f:
+                print(line)
             id_ = 0
             tokens = []
             ner_labels = []
