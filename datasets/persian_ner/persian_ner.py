@@ -86,10 +86,9 @@ class PersianNER(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "tokens": datasets.Sequence(datasets.Value("string")),
-                "ner_labels": datasets.Sequence(
+                "ner_tags": datasets.Sequence(
                     datasets.ClassLabel(
                         names=[
-                            "",
                             "O",
                             "I-event",
                             "I-fac",
@@ -112,7 +111,7 @@ class PersianNER(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
-            supervised_keys=("tokens", "ner_labels"),
+            supervised_keys=("tokens", "ner_tags"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
@@ -153,7 +152,7 @@ class PersianNER(datasets.GeneratorBasedBuilder):
                     if len(tokens) > 0 and len(ner_labels) > 0:
                         yield id_, {
                             "tokens": tokens,
-                            "ner_labels": ner_labels,
+                            "ner_tags": ner_labels,
                         }
                     else:
                         # Do not yield if tokens or ner_labels is empty
