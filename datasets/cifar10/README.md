@@ -1,3 +1,21 @@
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages: []
+licenses:
+- unknown
+multilinguality: []
+size_categories:
+- n<1K
+source_datasets:
+- extended|other-80-Million-Tiny-Images
+task_categories:
+- other
+task_ids:
+- other-other-image-classification
+---
 
 # Dataset Card for CIFAR-10
 
