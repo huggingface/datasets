@@ -70,15 +70,6 @@ sample, our annotation shows 6,290 clickbait and 8,710 non-clickbait.
 Indonesian
 
 ## Dataset Structure
-```
-{
-  'id': 'string',
-  'url': 'string',
-  'date': 'string',
-  'title': 'string',
-  'content': 'string'
-}
-```
 ### Data Instances
 An example of the annotated article:
 ```
