@@ -448,11 +448,22 @@ def _request_with_retry(
     return response
 
 
-def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
-    logger.info(f"Getting through FTP {url} into {temp_file.name}")
-    print(f"Getting through FTP {url} into {temp_file.name}")
-    with closing(urllib.request.urlopen(url)) as r:
-        shutil.copyfileobj(r, temp_file)
+def ftp_head(url, timeout=2.0):
+    try:
+        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
+            r.read(1)
+    except Exception:
+        return False
+    return True
+
+
+def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, timeout=2.0):
+    try:
+        logger.info(f"Getting through FTP {url} into {temp_file.name}")
+        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
+            shutil.copyfileobj(r, temp_file)
+    except urllib.error.URLError as e:
+        raise ConnectionError(e)
 
 
 def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
@@ -548,9 +559,7 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
-            with closing(urllib.request.urlopen(url)) as r:
-                r.read(1)
-                connected = True
+            connected = ftp_head(url)
         try:
             response = http_head(
                 url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries

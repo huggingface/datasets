@@ -57,7 +57,7 @@ def deepupdate(target, src):
     Examples:
     >>> t = {'name': 'Ferry', 'hobbies': ['programming', 'sci-fi']}
     >>> deepupdate(t, {'hobbies': ['gaming']})
-    >>> print t
+    >>> print(t)
     {'name': 'Ferry', 'hobbies': ['programming', 'sci-fi', 'gaming']}
     """
     for k, v in src.items():
@@ -371,13 +371,12 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         id_ = 0
         for filename in filenames:
-            print(filename)
             try:
                 tree = etree.parse(filename)
                 root = tree.getroot()
                 xmldict = self.xml_to_dictionnary(root)
             except etree.ParseError:
-                logger.error(f"Ignoring file {filename}, it is malformed")
+                logger.warning(f"Ignoring file {filename}, it is malformed")
                 continue
 
             for article in xmldict["PubmedArticleSet"]["PubmedArticle"]:
@@ -387,7 +386,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
                 try:
                     deepupdate(new_article, article)
                 except Exception:
-                    logger.error(f"Ignoring article {article}, it is malformed")
+                    logger.warning(f"Ignoring article {article}, it is malformed")
                     continue
 
                 try:

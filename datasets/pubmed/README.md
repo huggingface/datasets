@@ -104,13 +104,13 @@ Author has been kept and contains either "ForeName", "LastName", "Initials", or 
             "GrantList": {
                 "Grant": [],
             },
-            "PublicationTypeList": {"PublicationType": [])},
+            "PublicationTypeList": {"PublicationType": []},
         },
         "MedlineJournalInfo": {"Country": "France"},
-        "ChemicalList": {"Chemical": [
+        "ChemicalList": {"Chemical": [{
             "RegistryNumber": "XX",
             "NameOfSubstance": "Methanol"
-        ]},
+        }]},
         "CitationSubset": "AIM",
         "MeshHeadingList": {
             "MeshHeading": [],
