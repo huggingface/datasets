@@ -20,8 +20,6 @@ import os
 
 import datasets
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{poostchi-etal-2016-personer,
     title = "{P}erso{NER}: {P}ersian Named-Entity Recognition",
@@ -46,15 +44,10 @@ _DESCRIPTION = """\
 The dataset includes 250,015 tokens and 7,682 Persian sentences in total. It is available in 3 folds to be used in turn as training and test sets. The NER tags are in IOB format.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = ""
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = "Creative Commons Attribution 4.0 International License"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://github.com/HaniehP/PersianNER/raw/master/ArmanPersoNERCorpus.zip"
 
 
@@ -126,12 +119,7 @@ class PersianNER(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URL
         data_dir = dl_manager.download_and_extract(my_urls)
 
@@ -153,8 +141,6 @@ class PersianNER(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         with open(filepath, "r", encoding="utf-8") as f:
-            for line in f:
-                print(line)
             id_ = 0
             tokens = []
             ner_labels = []
