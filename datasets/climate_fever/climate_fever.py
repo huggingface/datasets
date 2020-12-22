@@ -63,11 +63,11 @@ class ClimateFever(datasets.GeneratorBasedBuilder):
             {
                 "claim_id": datasets.Value("string"),
                 "claim": datasets.Value("string"),
-                "claim_label": datasets.Value("string"),
+                "claim_label": datasets.ClassLabel(names=["SUPPORTS", "REFUTES", "NOT_ENOUGH_INFO", "DISPUTED"]),
                 "evidences": [
                     {
                         "evidence_id": datasets.Value("string"),
-                        "evidence_label": datasets.Value("string"),
+                        "evidence_label": datasets.ClassLabel(names=["SUPPORTS", "REFUTES", "NOT_ENOUGH_INFO"]),
                         "article": datasets.Value("string"),
                         "evidence": datasets.Value("string"),
                         "entropy": datasets.Value("float32"),

@@ -6,12 +6,15 @@ language_creators:
 - found
 languages:
 - en
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
 - 1K<n<10K
-source_datasets: []
+source_datasets:
+- extended|wikipedia
+- original
 task_categories:
 - text-classification
 - text-retrieval
@@ -156,12 +159,13 @@ The text in the dataset is in English, as found in real-world claims about clima
 - `claim_id`: a `string` feature, unique claim identifier.
 - `claim`: a `string` feature, claim text.
 - `claim_label`: a `string` feature, overall label assigned to claim (based on evidence majority vote).
-- `evidence_id`: a `string` feature,  unique evidence identifier.
-- `evidence_label`: a `string` feature, micro-verdict label.
-- `article`: a `string` feature, title of source article (Wikipedia page).
-- `evidence`: a `string` feature, evidence sentence.
-- `entropy`: a `float32` feature, entropy reflecting uncertainty of `evidence_label`.
-- `votes`: a `list` of `string` features, corresponding to individual votes.
+- `evidences`: a list of evidences with fields:
+ - `evidence_id`: a `string` feature,  unique evidence identifier.
+ - `evidence_label`: a `string` feature, micro-verdict label.
+ - `article`: a `string` feature, title of source article (Wikipedia page).
+ - `evidence`: a `string` feature, evidence sentence.
+ - `entropy`: a `float32` feature, entropy reflecting uncertainty of `evidence_label`.
+ - `votes`: a `list` of `string` features, corresponding to individual votes.
 
 ### Data Splits
 
