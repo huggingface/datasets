@@ -74,7 +74,7 @@ The text in the dataset is in English, as found in real-world claims about clima
 
 ### Data Instances
 
-```json
+```
 {
   "claim_id": "0",
   "claim": "Global warming is driving polar bears toward extinction",
