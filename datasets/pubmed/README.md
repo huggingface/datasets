@@ -120,6 +120,7 @@ Author has been kept and contains either "ForeName", "LastName", "Initials", or 
         "ArticleIdList": {"ArticleId": "10.1002/bjs.1800650203"},
         "PublicationStatus": "ppublish",
         "History": {"PubMedPubDate": [{"Year": 0, "Month": 0, "Day": 0}]},
+        "ReferenceList": [{"Citation": "Somejournal", "CitationId": 01}],
     },
 }
 ```
