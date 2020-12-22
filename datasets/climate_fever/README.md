@@ -78,11 +78,11 @@ The text in the dataset is in English, as found in real-world claims about clima
 {
   "claim_id": "0",
   "claim": "Global warming is driving polar bears toward extinction",
-  "claim_label": "SUPPORTS",
+  "claim_label": 1,  # "SUPPORTS"
   "evidences": [
     {
      "evidence_id": "Extinction risk from global warming:170",
-     "evidence_label": "NOT_ENOUGH_INFO",
+     "evidence_label": 2,  # "NOT_ENOUGH_INFO"
      "article": "Extinction risk from global warming",
      "evidence": "\"Recent Research Shows Human Activity Driving Earth Towards Global Extinction Event\".",
      "entropy": 0.6931471805599453,
@@ -96,7 +96,7 @@ The text in the dataset is in English, as found in real-world claims about clima
     },
     {
      "evidence_id": "Global warming:14",
-     "evidence_label": "SUPPORTS",
+     "evidence_label": 1,  # "SUPPORTS"
      "article": "Global warming",
      "evidence": "Environmental impacts include the extinction or relocation of many species as their ecosystems change, most immediately the environments of coral reefs, mountains, and the Arctic.",
      "entropy": 0.0,
@@ -110,7 +110,7 @@ The text in the dataset is in English, as found in real-world claims about clima
     },
     {
      "evidence_id": "Global warming:178",
-     "evidence_label": "NOT_ENOUGH_INFO",
+     "evidence_label": 2,  # "NOT_ENOUGH_INFO"
      "article": "Global warming",
      "evidence": "Rising temperatures push bees to their physiological limits, and could cause the extinction of bee populations.",
      "entropy": 0.6931471805599453,
@@ -124,7 +124,7 @@ The text in the dataset is in English, as found in real-world claims about clima
     },
     {
      "evidence_id": "Habitat destruction:61",
-     "evidence_label": "SUPPORTS",
+     "evidence_label": 1,  # "SUPPORTS"
      "article": "Habitat destruction",
      "evidence": "Rising global temperatures, caused by the greenhouse effect, contribute to habitat destruction, endangering various species, such as the polar bear.",
      "entropy": 0.0,
@@ -138,7 +138,7 @@ The text in the dataset is in English, as found in real-world claims about clima
     },
     {
      "evidence_id": "Polar bear:1328",
-     "evidence_label": "NOT_ENOUGH_INFO",
+     "evidence_label": 2,  # "NOT_ENOUGH_INFO"
      "article": "Polar bear",
      "evidence": "\"Bear hunting caught in global warming debate\".",
      "entropy": 0.6931471805599453,
@@ -158,10 +158,10 @@ The text in the dataset is in English, as found in real-world claims about clima
 
 - `claim_id`: a `string` feature, unique claim identifier.
 - `claim`: a `string` feature, claim text.
-- `claim_label`: a `string` feature, overall label assigned to claim (based on evidence majority vote).
+- `claim_label`: a `int` feature, overall label assigned to claim (based on evidence majority vote). The label correspond to 0: "refutes", 1: "supports" and 2: "not enough info"
 - `evidences`: a list of evidences with fields:
  - `evidence_id`: a `string` feature,  unique evidence identifier.
- - `evidence_label`: a `string` feature, micro-verdict label.
+ - `evidence_label`: a `int` feature, micro-verdict label. The label correspond to 0: "refutes", 1: "supports" and 2: "not enough info"
  - `article`: a `string` feature, title of source article (Wikipedia page).
  - `evidence`: a `string` feature, evidence sentence.
  - `entropy`: a `float32` feature, entropy reflecting uncertainty of `evidence_label`.
