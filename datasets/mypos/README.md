@@ -10,13 +10,13 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - structure-prediction
 task_ids:
-- structure-prediction-other-pos-tagging
+- named-entity-recognition
 ---
 
 # Dataset Card for mypos
@@ -54,7 +54,7 @@ task_ids:
 
 ### Dataset Summary
 
-[Needs More Information]
+myPOS Corpus (Myanmar Part-of-Speech Corpus) for Myanmar language NLP Research and Developments
 
 ### Supported Tasks and Leaderboards
 
@@ -72,7 +72,9 @@ task_ids:
 
 ### Data Fields
 
-[Needs More Information]
+- `id`: a `string` feature.
+- `tokens`: a `list` of `string` features.
+- `pos_tags`: a `list` of classification labels, with possible values including `abb`, `adj`, `adv`, `conj`, `fw`.
 
 ### Data Splits
 
