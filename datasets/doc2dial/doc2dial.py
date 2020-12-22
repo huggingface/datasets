@@ -257,7 +257,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         all_consecutive_tss = []
         consecutive_tss = []
         for id_, ref in sorted(refs.items(), key=lambda x: int(x[0])):
-            id_int = int(id_)
             if not consecutive_tss or int(id_) == int(consecutive_tss[-1]) + 1:
                 consecutive_tss.append(id_)
             else:
