@@ -1,4 +1,3 @@
-#@title
 ---
 annotations_creators:
 - found
@@ -76,7 +75,11 @@ Arabic
 
 ### Data Fields
 
-[More Information Needed]
+The data fields are:
+- "url": string, original url of the article,
+- "head_line": string, headline of the article,
+- "date": string, date of the article,
+- "text": string, text content of the article,
 
 ### Data Splits
 
