@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9"""
+"""Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9.0"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -93,7 +93,12 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "turn_id": datasets.Value("int32"),
                             "role": datasets.Value("string"),
                             "da": datasets.Value("string"),
-                            "reference": [{"keys": datasets.Value("string"), "values": datasets.Value("string"),}],
+                            "reference": [
+                                {
+                                    "keys": datasets.Value("string"),
+                                    "values": datasets.Value("string"),
+                                }
+                            ],
                             "utterance": datasets.Value("string"),
                         }
                     ],
@@ -171,7 +176,11 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -198,7 +207,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/doc2dial_doc.json"),},
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.9/data/doc2dial_doc.json"),
+                    },
                 )
             ]
         elif self.config.name == "doc2dial_rc":
@@ -215,7 +226,12 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(
-                            data_dir, "doc2dial", "v0.9", "data", "woOOD", "doc2dial_dial_train.json",
+                            data_dir,
+                            "doc2dial",
+                            "v0.9",
+                            "data",
+                            "woOOD",
+                            "doc2dial_dial_train.json",
                         ),
                     },
                 ),
@@ -266,7 +282,10 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             for doc_id, dials in d_doc_dials.items():
                 qas = []
                 doc = doc_data[domain][doc_id]
-                (start_pos_char_candidates, end_pos_char_candidates,) = self._get_start_end_candidates_rc(doc["spans"])
+                (
+                    start_pos_char_candidates,
+                    end_pos_char_candidates,
+                ) = self._get_start_end_candidates_rc(doc["spans"])
                 for dial in dials:
                     all_prev_utterances = []
                     all_prev_turns = []
@@ -343,7 +362,10 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         "role": i["role"],
                                         "da": i["da"],
                                         "reference": [
-                                            {"keys": ref, "values": str(i["reference"][ref]),}
+                                            {
+                                                "keys": ref,
+                                                "values": str(i["reference"][ref]),
+                                            }
                                             for ref in i["reference"]
                                         ],
                                         "utterance": i["utterance"],
