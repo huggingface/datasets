@@ -25,7 +25,7 @@ import datasets
 
 
 _DESCRIPTION = """\
-    This dataset contains turkish movie reviews.
+This data set is a dataset from kaggle consisting of Turkish movie reviews and scored between 0-5.
 """
 
 _CITATION = ""

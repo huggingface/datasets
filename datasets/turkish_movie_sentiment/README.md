@@ -51,7 +51,7 @@ task_ids:
 
 ### Dataset Summary
 
-This data set is a dataset consisting of Turkish movie reviews and scored between 0-5.
+This data set is a dataset from kaggle consisting of Turkish movie reviews and scored between 0-5.
 
 ### Languages
 
@@ -76,7 +76,6 @@ The dataset is based on Turkish.
 **Film_name:** Cinderella Man,
 
 **Point:** 2,5
-
 
 ### Data Fields
 
