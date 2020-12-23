@@ -44,7 +44,10 @@ class KorSarcasm(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"tokens": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["0", "1"])}
+                {
+                    "tokens": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["no_sarcasm", "sarcasm"]),
+                }
             ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
@@ -70,4 +73,4 @@ class KorSarcasm(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(data):
                 row = row[1:3]
                 tokens, label = row
-                yield id_, {"tokens": tokens, "label": label}
+                yield id_, {"tokens": tokens, "label": int(label)}
