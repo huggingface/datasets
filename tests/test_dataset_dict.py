@@ -289,6 +289,7 @@ class DatasetDictTest(TestCase):
             dsets_shuffled_alias = dsets.shuffle(seed=42)
             dsets_shuffled_none = dsets.shuffle()
             self.assertEqual(len(dsets_shuffled_int["train"]), 30)
+            self.assertEqual(len(dsets_shuffled_alias["train"]), 30)
             self.assertEqual(len(dsets_shuffled_none["train"]), 30)
 
             del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
