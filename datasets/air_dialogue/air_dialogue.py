@@ -118,7 +118,7 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                         "name": datasets.Value("string"),
                         "return_airport": datasets.Value("string"),
                     },
-                    "timestamps": datasets.features.Sequence(datasets.Value("int32")),
+                    "timestamps": datasets.features.Sequence(datasets.Value("int64")),
                     "dialogue": datasets.features.Sequence(datasets.Value("string")),
                     "expected_action": {
                         "status": datasets.Value("string"),
@@ -130,7 +130,7 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                             "button_name": datasets.Value("string"),
                             "field_name": datasets.Value("string"),
                             "field_value": datasets.Value("string"),
-                            "timestmamp": datasets.Value("int32"),
+                            "timestmamp": datasets.Value("int64"),
                         },
                     ],
                     "correct_sample": datasets.Value("bool_"),
@@ -154,7 +154,7 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                             "return_day": datasets.Value("string"),
                             "return_month": datasets.Value("string"),
                             "return_time_num": datasets.Value("int32"),
-                        }
+                        },
                     ],
                     "reservation": datasets.Value("int32"),
                 }
@@ -252,19 +252,12 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                         if "search_info" not in data
                         else [
                             {
-                                "button_name": ""
-                                if "button_name" not in data["search_info"]
-                                else data["search_info"]["button_name"],
-                                "field_name": ""
-                                if "field_name" not in data["search_info"]
-                                else data["search_info"]["field_name"],
-                                "field_value": ""
-                                if "field_value" not in data["search_info"]
-                                else data["search_info"]["field_value"],
-                                "timestmamp": -1
-                                if "timestmamp" not in data["search_info"]
-                                else data["search_info"]["timestmamp"],
-                            },
+                                "button_name": "" if "button_name" not in search_info else search_info["button_name"],
+                                "field_name": "" if "field_name" not in search_info else search_info["field_name"],
+                                "field_value": "" if "field_value" not in search_info else search_info["field_value"],
+                                "timestmamp": -1 if "timestmamp" not in search_info else search_info["timestmamp"],
+                            }
+                            for search_info in data["search_info"]
                         ]
                     )
 
@@ -282,32 +275,21 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
 
                     kb = [
                         {
-                            "airline": "" if "airline" not in data["kb"] else data["kb"]["airline"],
-                            "class": "" if "class" not in data["kb"] else data["kb"]["class"],
-                            "departure_airport": ""
-                            if "departure_airport" not in data["kb"]
-                            else data["kb"]["departure_airport"],
-                            "departure_day": "" if "departure_day" not in data["kb"] else data["kb"]["departure_day"],
-                            "departure_month": ""
-                            if "departure_month" not in data["kb"]
-                            else data["kb"]["departure_month"],
-                            "departure_time_num": -1
-                            if "departure_time_num" not in data["kb"]
-                            else data["kb"]["departure_time_num"],
-                            "flight_number": -1 if "flight_number" not in data["kb"] else data["kb"]["flight_number"],
-                            "num_connections": -1
-                            if "num_connections" not in data["kb"]
-                            else data["kb"]["num_connections"],
-                            "price": -1 if "price" not in data["kb"] else data["kb"]["price"],
-                            "return_airport": ""
-                            if "return_airport" not in data["kb"]
-                            else data["kb"]["return_airport"],
-                            "return_day": "" if "return_day" not in data["kb"] else data["kb"]["return_day"],
-                            "return_month": "" if "return_month" not in data["kb"] else data["kb"]["return_month"],
-                            "return_time_num": -1
-                            if "return_time_num" not in data["kb"]
-                            else data["kb"]["return_time_num"],
+                            "airline": "" if "airline" not in kb else kb["airline"],
+                            "class": "" if "class" not in kb else kb["class"],
+                            "departure_airport": "" if "departure_airport" not in kb else kb["departure_airport"],
+                            "departure_day": "" if "departure_day" not in kb else kb["departure_day"],
+                            "departure_month": "" if "departure_month" not in kb else kb["departure_month"],
+                            "departure_time_num": -1 if "departure_time_num" not in kb else kb["departure_time_num"],
+                            "flight_number": -1 if "flight_number" not in kb else kb["flight_number"],
+                            "num_connections": -1 if "num_connections" not in kb else kb["num_connections"],
+                            "price": -1 if "price" not in kb else kb["price"],
+                            "return_airport": "" if "return_airport" not in kb else kb["return_airport"],
+                            "return_day": "" if "return_day" not in kb else kb["return_day"],
+                            "return_month": "" if "return_month" not in kb else kb["return_month"],
+                            "return_time_num": -1 if "return_time_num" not in kb else kb["return_time_num"],
                         }
+                        for kb in data["kb"]
                     ]
 
                     yield id_, {
