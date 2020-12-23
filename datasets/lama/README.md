@@ -84,7 +84,7 @@ configs for each of "google_re", "trex", "conceptnet" and "squad",
 respectively.
 
 The dataset includes some cleanup, and addition of a masked sentence
-and assocaited answers for the [MASK] token. The accuracy in
+and associated answers for the [MASK] token. The accuracy in
 predicting the [MASK] token shows how well the language model knows
 facts and common sense information. The [MASK] tokens are only for the
 "object" slots.
@@ -110,73 +110,28 @@ The trex config has the following fields:
 
 
 ``
-{
-	'uuid': ...,
-	'obj_uri': ...,
-	'obj_label': ...,
-	'sub_uri': ...,
-	'sub_label': ...,
-	'predicate_id': ...,
-	'sub_surface': ...
-	'obj_surface': ...
-	'masked_sentence': ...
-	'template': ...
-	'template_negated': ...
-	'label': ...
-	'description': ...
-	'type': ...
-}
+{'description': 'the item (an institution, law, public office ...) or statement belongs to or has power over or applies to the value (a territorial jurisdiction: a country, state, municipality, ...)', 'label': 'applies to jurisdiction', 'masked_sentence': 'It is known as a principality as it is a monarchy headed by two Co-Princes – the Spanish/Roman Catholic Bishop of Urgell and the President of [MASK].', 'obj_label': 'France', 'obj_surface': 'France', 'obj_uri': 'Q142', 'predicate_id': 'P1001', 'sub_label': 'president of the French Republic', 'sub_surface': 'President', 'sub_uri': 'Q191954', 'template': '[X] is a legal term in [Y] .', 'template_negated': '[X] is not a legal term in [Y] .', 'type': 'N-M', 'uuid': '3fe3d4da-9df9-45ba-8109-784ce5fba38a'}
 ``
 
 The conceptnet config has the following fields:
 
 
 ``
-{
-	'uuid': ...,
-	'sub': ...,
-	'obj': ...,
-	'pred': ...,
-	'obj_label': ...,
-	'masked_sentence': ...,
-	'negated': ...
-}
+{'masked_sentence': 'One of the things you do when you are alive is [MASK].', 'negated': '', 'obj': 'think', 'obj_label': 'think', 'pred': 'HasSubevent', 'sub': 'alive', 'uuid': 'd4f11631dde8a43beda613ec845ff7d1'}
 ``
 
 The squad config has the following fields:
 
 
 ``
-{
-	'id': ...,
-	'sub_label': ...,
-	'obj_label': ...,
-	'negated': ...,
-	'masked_sentence': ...,
-}
+{'id': '56be4db0acb8001400a502f0_0', 'masked_sentence': 'To emphasize the 50th anniversary of the Super Bowl the [MASK] color was used.', 'negated': "['To emphasize the 50th anniversary of the Super Bowl the [MASK] color was not used.']", 'obj_label': 'gold', 'sub_label': 'Squad'}
 ``
 
 The google_re config has the following fields:
 
 
 ``
-{
-	'pred': ...,
-	'sub': ...,
-	'obj': ...,
-	'evidences': ...,
-	'judgments': ...,
-	'sub_q': ...,
-	'sub_label': ...
-	'sub_aliases': ...
-	'obj_w': ...
-	'obj_label': ...
-	'obj_aliases': ...
-	'uuid': ...
-	'masked_sentence': ...
-	'template': ...
-	'template_negated': ...
-}
+{'evidences': '[{\'url\': \'http://en.wikipedia.org/wiki/Peter_F._Martin\', \'snippet\': "Peter F. Martin (born 1941) is an American politician who is a Democratic member of the Rhode Island House of Representatives. He has represented the 75th District Newport since 6 January 2009. He is currently serves on the House Committees on Judiciary, Municipal Government, and Veteran\'s Affairs. During his first term of office he served on the House Committees on Small Business and Separation of Powers & Government Oversight. In August 2010, Representative Martin was appointed as a Commissioner on the Atlantic States Marine Fisheries Commission", \'considered_sentences\': [\'Peter F Martin (born 1941) is an American politician who is a Democratic member of the Rhode Island House of Representatives .\']}]', 'judgments': "[{'rater': '18349444711114572460', 'judgment': 'yes'}, {'rater': '17595829233063766365', 'judgment': 'yes'}, {'rater': '4593294093459651288', 'judgment': 'yes'}, {'rater': '7387074196865291426', 'judgment': 'yes'}, {'rater': '17154471385681223613', 'judgment': 'yes'}]", 'masked_sentence': 'Peter F Martin (born [MASK]) is an American politician who is a Democratic member of the Rhode Island House of Representatives .', 'obj': '1941', 'obj_aliases': '[]', 'obj_label': '1941', 'obj_w': 'None', 'pred': '/people/person/date_of_birth', 'sub': '/m/09gb0bw', 'sub_aliases': '[]', 'sub_label': 'Peter F. Martin', 'sub_w': 'None', 'template': '[X] (born [Y]).', 'template_negated': '[X] (not born [Y]).', 'uuid': '18af2dac-21d3-4c42-aff5-c247f245e203'}
 ``
 
 ### Data Fields
@@ -191,20 +146,20 @@ The trex config has the following fields:
 * sub_surface: the surface text for the subject
 * obj_surface: The surface text for the object. This is the word that should be predicted by the [MASK] token.
 * masked_sentence: The masked sentence used to probe, with the object word replaced with [MASK]
-* template: A pattern of text for extracting the relationship, object and subject of the form "[X] some text [Y]", where [X] and [Y] are the subject and object slots respectively. 
-* template_negated: Same as above, except the [Y] is not the object.
-* label: the label for the relationship/predicate
-* description': a description of the relationship/predicate
-* type: a type id for the relationship/predicate
+* template: A pattern of text for extracting the relationship, object and subject of the form "[X] some text [Y]", where [X] and [Y] are the subject and object slots respectively. template may be missing and replaced with an empty string.
+* template_negated: Same as above, except the [Y] is not the object. template_negated may be missing and replaced with empty strings.
+* label: the label for the relationship/predicate. label may be missing and replaced with an empty string.
+* description': a description of the relationship/predicate. description may be missing and replaced with an empty string.
+* type: a type id for the relationship/predicate. type may be missing and replaced with an empty string.
 
 The conceptnet config has the following fields:
 * uuid: the id
-* sub: the subject
-* obj: the object to be predicted.
+* sub: the subject. subj may be missing and replaced with an empty string.
+* obj: the object to be predicted. obj may be missing and replaced with an empty string.
 * pred: the predicate/relationship
 * obj_label: the object label
 * masked_sentence: The masked sentence used to probe, with the object word replaced with [MASK]
-* negated: same as above, except [MASK] should predict something that is not the object word.
+* negated: same as above, except [MASK] is replaced by something that is not the object word. negated may be missing and replaced with empty strings.
 
 
 The squad config has the following fields:
@@ -212,15 +167,15 @@ The squad config has the following fields:
 * sub_label: the subject label
 * obj_label: the object label that is being predicted
 * masked_sentence: The masked sentence used to probe, with the object word replaced with [MASK]
-* negated: same as above, except [MASK] should predict something that is not the object word.
+* negated: same as above, except [MASK] is replaced by something that is not the object word. negated may be missing and replaced with empty strings.
 
 
 The google_re config has the following fields:
 
 * uuid: the id
 * pred: the predicate
-* sub: the subject
-* obj: the object
+* sub: the subject. subj may be missing and replaced with an empty string.
+* obj: the object. obj may be missing and replaced with an empty string.
 * evidences: flattened json string that provides evidence for predicate. parse this json string to get more 'snippet' information.
 * judgments: data about judgments
 * sub_q: unknown
@@ -231,7 +186,7 @@ The google_re config has the following fields:
 * obj_aliases: unknown
 * masked_sentence: The masked sentence used to probe, with the object word replaced with [MASK]
 * template: A pattern of text for extracting the relationship, object and subject of the form "[X] some text [Y]", where [X] and [Y] are the subject and object slots respectively. 
-* template_negated: Same as above, except the [Y] is not the object.
+* template_negated: Same as above, except the [Y] is not the object. 
 
 
 ### Data Splits
@@ -280,6 +235,8 @@ The goal for the work is to probe the understanding of language models.
 
 Since the data is from human annotators, there is likely to be baises. 
 
+[More Information Needed]
+
 ### Other Known Limitations
 
 The original documentation for the datafields are limited.
@@ -310,5 +267,4 @@ The Creative Commons Attribution-Noncommercial 4.0 International License. see ht
   year={2020},
   url={https://openreview.net/forum?id=025X0zPfn}
 }
-
 

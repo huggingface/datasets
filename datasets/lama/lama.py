@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import glob
 import json
 import os
 
@@ -28,7 +29,6 @@ _CITATION = """@inproceedings{petroni2019language,
   booktitle={In: Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP), 2019},
   year={2019}
 }
-
 @inproceedings{petroni2020how,
   title={How Context Affects Language Models' Factual Predictions},
   author={Fabio Petroni and Patrick Lewis and Aleksandra Piktus and Tim Rockt{\"a}schel and Yuxiang Wu and Alexander H. Miller and Sebastian Riedel},
@@ -176,53 +176,8 @@ class Lama(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": [
-                            os.path.join(data_dir, *f.split("/"))
-                            for f in [
-                                "relations.jsonl",
-                                "Trex/P1001.jsonl",
-                                "Trex/P101.jsonl",
-                                "Trex/P103.jsonl",
-                                "Trex/P106.jsonl",
-                                "Trex/P108.jsonl",
-                                "Trex/P127.jsonl",
-                                "Trex/P1303.jsonl",
-                                "Trex/P131.jsonl",
-                                "Trex/P136.jsonl",
-                                "Trex/P1376.jsonl",
-                                "Trex/P138.jsonl",
-                                "Trex/P140.jsonl",
-                                "Trex/P1412.jsonl",
-                                "Trex/P159.jsonl",
-                                "Trex/P17.jsonl",
-                                "Trex/P176.jsonl",
-                                "Trex/P178.jsonl",
-                                "Trex/P19.jsonl",
-                                "Trex/P190.jsonl",
-                                "Trex/P20.jsonl",
-                                "Trex/P264.jsonl",
-                                "Trex/P27.jsonl",
-                                "Trex/P276.jsonl",
-                                "Trex/P279.jsonl",
-                                "Trex/P30.jsonl",
-                                "Trex/P31.jsonl",
-                                "Trex/P36.jsonl",
-                                "Trex/P361.jsonl",
-                                "Trex/P364.jsonl",
-                                "Trex/P37.jsonl",
-                                "Trex/P39.jsonl",
-                                "Trex/P407.jsonl",
-                                "Trex/P413.jsonl",
-                                "Trex/P449.jsonl",
-                                "Trex/P463.jsonl",
-                                "Trex/P47.jsonl",
-                                "Trex/P495.jsonl",
-                                "Trex/P527.jsonl",
-                                "Trex/P530.jsonl",
-                                "Trex/P740.jsonl",
-                                "Trex/P937.jsonl",
-                            ]
-                        ],
+                        "filepath": [os.path.join(data_dir, "relations.jsonl")]
+                        + list(glob.glob(os.path.join(data_dir, "TREx", "*"))),
                         "split": "train",
                     },
                 ),
