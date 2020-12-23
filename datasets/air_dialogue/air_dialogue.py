@@ -225,26 +225,16 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                 if self.config.name == "air_dialogue_data":
 
                     intent = {
-                        "return_month": "" if "return_month" not in data["intent"] else data["intent"]["return_month"],
-                        "return_day": "" if "return_day" not in data["intent"] else data["intent"]["return_day"],
-                        "max_price": -1 if "max_price" not in data["intent"] else data["intent"]["max_price"],
-                        "departure_airport": ""
-                        if "departure_airport" not in data["intent"]
-                        else data["intent"]["departure_airport"],
-                        "max_connections": -1
-                        if "max_connections" not in data["intent"]
-                        else data["intent"]["max_connections"],
-                        "departure_day": ""
-                        if "departure_day" not in data["intent"]
-                        else data["intent"]["departure_day"],
-                        "goal": "" if "goal" not in data["intent"] else data["intent"]["goal"],
-                        "departure_month": ""
-                        if "departure_month" not in data["intent"]
-                        else data["intent"]["departure_month"],
-                        "name": "" if "name" not in data["intent"] else data["intent"]["name"],
-                        "return_airport": ""
-                        if "return_airport" not in data["intent"]
-                        else data["intent"]["return_airport"],
+                        "return_month": data["intent"]["return_month"],
+                        "return_day": data["intent"]["return_day"],
+                        "max_price": data["intent"]["max_price"],
+                        "departure_airport": data["intent"]["departure_airport"],
+                        "max_connections": data["intent"].get("max_connections", -1),
+                        "departure_day": data["intent"]["departure_day"],
+                        "goal": data["intent"]["goal"],
+                        "departure_month": data["intent"]["departure_month"],
+                        "name": data["intent"]["name"],
+                        "return_airport": data["intent"]["return_airport"],
                     }
 
                     search_info = (
@@ -252,10 +242,10 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                         if "search_info" not in data
                         else [
                             {
-                                "button_name": "" if "button_name" not in search_info else search_info["button_name"],
-                                "field_name": "" if "field_name" not in search_info else search_info["field_name"],
-                                "field_value": "" if "field_value" not in search_info else search_info["field_value"],
-                                "timestmamp": -1 if "timestmamp" not in search_info else search_info["timestmamp"],
+                                "button_name": search_info.get("button_name", ""),
+                                "field_name": search_info.get("field_name", ""),
+                                "field_value": search_info.get("field_value", ""),
+                                "timestmamp": search_info["timestmamp"],
                             }
                             for search_info in data["search_info"]
                         ]
@@ -275,24 +265,24 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
 
                     kb = [
                         {
-                            "airline": "" if "airline" not in kb else kb["airline"],
-                            "class": "" if "class" not in kb else kb["class"],
-                            "departure_airport": "" if "departure_airport" not in kb else kb["departure_airport"],
-                            "departure_day": "" if "departure_day" not in kb else kb["departure_day"],
-                            "departure_month": "" if "departure_month" not in kb else kb["departure_month"],
-                            "departure_time_num": -1 if "departure_time_num" not in kb else kb["departure_time_num"],
-                            "flight_number": -1 if "flight_number" not in kb else kb["flight_number"],
-                            "num_connections": -1 if "num_connections" not in kb else kb["num_connections"],
-                            "price": -1 if "price" not in kb else kb["price"],
-                            "return_airport": "" if "return_airport" not in kb else kb["return_airport"],
-                            "return_day": "" if "return_day" not in kb else kb["return_day"],
-                            "return_month": "" if "return_month" not in kb else kb["return_month"],
-                            "return_time_num": -1 if "return_time_num" not in kb else kb["return_time_num"],
+                            "airline": kb["airline"],
+                            "class": kb["class"],
+                            "departure_airport": kb["departure_airport"],
+                            "departure_day": kb["departure_day"],
+                            "departure_month": kb["departure_month"],
+                            "departure_time_num": kb["departure_time_num"],
+                            "flight_number": kb["flight_number"],
+                            "num_connections": kb["num_connections"],
+                            "price": kb["price"],
+                            "return_airport": kb["return_airport"],
+                            "return_day": kb["return_day"],
+                            "return_month": kb["return_month"],
+                            "return_time_num": kb["return_time_num"],
                         }
                         for kb in data["kb"]
                     ]
 
                     yield id_, {
                         "kb": kb,
-                        "reservation": -1 if "reservation" not in data else data["reservation"],
+                        "reservation": data["reservation"],
                     }
