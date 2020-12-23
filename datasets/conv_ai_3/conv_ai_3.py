@@ -89,7 +89,6 @@ class ConvAi_3(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate examples."""
         with open(filepath, encoding="utf-8") as f:
-            print(filepath)
             csv_reader = csv.reader(f, delimiter="\t")
             next(csv_reader)  # skip header
             for id_, row in enumerate(csv_reader):
