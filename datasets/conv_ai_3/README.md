@@ -78,6 +78,7 @@ Here are a few examples from the dataset:
 {'topic_id': 8,
 'facet_id': 'F0968',
 'initial_request': 'I want to know about appraisals.',
+'topic_desc': 'Find information about the appraisals in nearby companies.',
 'clarification_need': 2,
 'question_id': 'F0001',
 'question': 'are you looking for a type of appraiser',
@@ -91,6 +92,7 @@ Here are a few examples from the dataset:
 {'topic_id': 8,
 'facet_id': 'F0969',
 'initial_request': 'I want to know about appraisals.',
+'topic_desc': 'Find information about the type of appraisals.',
 'clarification_need': 2,
 'question_id': 'F0005',
 'question': 'are you looking for a type of appraiser',
@@ -104,6 +106,7 @@ Here are a few examples from the dataset:
 {'topic_id': 293,
 'facet_id': 'F0729',
 'initial_request': 'Tell me about the educational advantages of social networking sites.',
+'topic_desc': 'Find information about the educational benefits of the social media sites',
 'clarification_need': 2,
 'question_id': 'F0009'
 'question': 'which social networking sites would you like information on',
