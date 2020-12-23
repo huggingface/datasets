@@ -133,45 +133,38 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         elif self.config.name == "doc2dial_rc":
             features = datasets.Features(
                 {
-                    "title": datasets.Value("string"),
-                    "paragraphs": datasets.features.Sequence(
+                    "id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
                         {
-                            "qas": datasets.features.Sequence(
-                                {
-                                    "id": datasets.Value("string"),
-                                    "dial_history": datasets.features.Sequence(
-                                        {
-                                            "turn_id": datasets.Value("int32"),
-                                            "role": datasets.Value("string"),
-                                            "da": datasets.Value("string"),
-                                            "utterance": datasets.Value("string"),
-                                            "references": datasets.features.Sequence(
-                                                {
-                                                    "text": datasets.Value("string"),
-                                                    "answer_start": datasets.Value("int32"),
-                                                    "answer_end": datasets.Value("int32"),
-                                                    "SP_ID": datasets.features.Sequence(datasets.Value("string")),
-                                                }
-                                            ),
-                                        }
-                                    ),
-                                    "question": datasets.Value("string"),
-                                    "answers": datasets.features.Sequence(
-                                        {
-                                            "text": datasets.Value("string"),
-                                            "answer_start": datasets.Value("int32"),
-                                            "answer_end": datasets.Value("int32"),
-                                            "SP_ID": datasets.features.Sequence(datasets.Value("string")),
-                                        }
-                                    ),
-                                    "is_impossible": datasets.Value("bool"),
-                                }
-                            ),
-                            "context": datasets.Value("string"),
-                            "start_candidates": datasets.features.Sequence(datasets.Value("int32")),
-                            "end_candidates": datasets.features.Sequence(datasets.Value("int32")),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                            "answer_end": datasets.Value("int32"),
+                            "sp_id": datasets.features.Sequence(datasets.Value("string")),
                         }
                     ),
+                    "is_impossible": datasets.Value("bool"),
+                    "dial_context": datasets.features.Sequence(
+                        {
+                            "turn_id": datasets.Value("int32"),
+                            "role": datasets.Value("string"),
+                            "da": datasets.Value("string"),
+                            "utterance": datasets.Value("string"),
+                            "references": datasets.features.Sequence(
+                                {
+                                    "text": datasets.Value("string"),
+                                    "answer_start": datasets.Value("int32"),
+                                    "answer_end": datasets.Value("int32"),
+                                    "sp_id": datasets.features.Sequence(datasets.Value("string")),
+                                }
+                            ),
+                        }
+                    ),
+                    "doc_context": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "domain": datasets.Value("string"),
+                    "start_candidates": datasets.features.Sequence(datasets.Value("int32")),
+                    "end_candidates": datasets.features.Sequence(datasets.Value("int32")),
                 }
             )
 
@@ -243,102 +236,39 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             data = json.load(f)["doc_data"]
         return data
 
-    def _get_start_end_candidates_rc(self, tss):
+    def _get_start_end_candidates_rc(self, spans):
+        """Get the start and end positions of all the spans"""
         start_candidates, end_candidates = [], []
-        for ts_id, ts in tss.items():
-            start_candidates.append(ts["start_sp"])
-            end_candidates.append(ts["end_sp"])
+        for _, sp in spans.items():
+            start_candidates.append(sp["start_sp"])
+            end_candidates.append(sp["end_sp"])
         return start_candidates, end_candidates
 
-    def _create_answers_merging_text_ref_rc(self, refs, tss, doc_text):
+    def _create_answers_merging_text_ref_rc(self, refs, spans, doc_text):
+        """Combine the consecutive spans. Create answers with the start and end position of merged spans and corresponding text content in the document."""
         output = []
         if not refs:
             return output
-        all_consecutive_tss = []
-        consecutive_tss = []
-        for id_, ref in sorted(refs.items(), key=lambda x: int(x[0])):
-            if not consecutive_tss or int(id_) == int(consecutive_tss[-1]) + 1:
-                consecutive_tss.append(id_)
+        all_consecutive_spans = []
+        consecutive_spans = []
+        for id_, _ in sorted(refs.items(), key=lambda x: int(x[0])):
+            if not consecutive_spans or int(id_) == int(consecutive_spans[-1]) + 1:
+                consecutive_spans.append(id_)
             else:
-                all_consecutive_tss.append(consecutive_tss)
-                consecutive_tss = [id_]
-        all_consecutive_tss.append(consecutive_tss)
-        if len(all_consecutive_tss) > 1:
-            all_consecutive_tss.reverse()
-        for con_tss in all_consecutive_tss:
+                all_consecutive_spans.append(consecutive_spans)
+                consecutive_spans = [id_]
+        all_consecutive_spans.append(consecutive_spans)
+        if len(all_consecutive_spans) > 1:
+            all_consecutive_spans.reverse()
+        for con_spans in all_consecutive_spans:
             answer = {
-                "answer_start": tss[con_tss[0]]["start_sp"],
-                "answer_end": tss[con_tss[-1]]["end_sp"],
-                "text": doc_text[tss[con_tss[0]]["start_sp"] : tss[con_tss[-1]]["end_sp"]],
-                "SP_ID": con_tss,
+                "answer_start": spans[con_spans[0]]["start_sp"],
+                "answer_end": spans[con_spans[-1]]["end_sp"],
+                "text": doc_text[spans[con_spans[0]]["start_sp"] : spans[con_spans[-1]]["end_sp"]],
+                "sp_id": con_spans,
             }
             output.append(answer)
         return output
-
-    def _load_dial_data_rc(self, dial_data, doc_data, role_to_predict):
-        data = []
-        for domain, d_doc_dials in dial_data.items():
-            for doc_id, dials in d_doc_dials.items():
-                qas = []
-                doc = doc_data[domain][doc_id]
-                (
-                    start_pos_char_candidates,
-                    end_pos_char_candidates,
-                ) = self._get_start_end_candidates_rc(doc["spans"])
-                for dial in dials:
-                    all_prev_utterances = []
-                    all_prev_turns = []
-                    for idx, turn in enumerate(dial["turns"]):
-                        all_prev_utterances.append(turn["utterance"])
-                        if "references" not in turn:
-                            turn["references"] = self._create_answers_merging_text_ref_rc(
-                                turn["reference"], doc["spans"], doc["doc_text"]
-                            )
-                        turn.pop("reference", None)
-                        all_prev_turns.append(turn)
-                        if turn["role"] == "agent":
-                            continue
-                        if role_to_predict == "user":
-                            turn_to_predict = turn
-                        elif role_to_predict == "agent":
-                            if idx + 1 < len(dial["turns"]):
-                                if dial["turns"][idx + 1]["role"] == "agent":
-                                    turn_to_predict = dial["turns"][idx + 1]
-                                else:
-                                    continue
-                        else:
-                            assert role_to_predict in ["user", "agent"]
-                        question = " ".join(list(reversed(all_prev_utterances)))
-                        qa = {
-                            "question": question,
-                            "dial_history": all_prev_turns,
-                            "id": dial["dial_id"] + "_" + str(turn["turn_id"]),
-                        }
-                        # if there is a in-list, use it to filter
-                        # if qa_ids_to_include and qa["id"] not in qa_ids_to_include:
-                        #     continue
-                        if "references" not in turn_to_predict:
-                            turn_to_predict["references"] = self._create_answers_merging_text_ref_rc(
-                                turn_to_predict["reference"], doc["spans"], doc["doc_text"]
-                            )
-                        if not turn_to_predict["references"]:
-                            qa["is_impossible"] = True
-                            qa["answers"] = []
-                        else:
-                            qa["is_impossible"] = False
-                            qa["answers"] = turn_to_predict["references"]
-                            if len(qa["answers"]) < 1:
-                                assert len((qa["answers"])) >= 1
-                        qas.append(qa)
-
-                paragraph = {
-                    "qas": qas,
-                    "context": doc["doc_text"],
-                    "start_candidates": start_pos_char_candidates,
-                    "end_candidates": end_pos_char_candidates,
-                }
-                data.append((doc_id, {"title": doc_id, "paragraphs": [paragraph]}))
-        return data
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
@@ -411,9 +341,62 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
                             }
         elif self.config.name == "doc2dial_rc":
+            """Load dialog data in the reading comprehension task setup, where context is the grounding document,
+            input query is dialog history in reversed order, and output to predict is the next agent turn."""
+
             logging.info("generating examples from = %s", filepath)
+
             doc_data = self._load_doc_data_rc(filepath)
             with open(filepath, encoding="utf-8") as f:
                 dial_data = json.load(f)["dial_data"]
-                for ele in self._load_dial_data_rc(dial_data, doc_data, "agent"):
-                    yield ele
+                for domain, d_doc_dials in dial_data.items():
+                    for doc_id, dials in d_doc_dials.items():
+                        doc = doc_data[domain][doc_id]
+                        (
+                            start_pos_char_candidates,
+                            end_pos_char_candidates,
+                        ) = self._get_start_end_candidates_rc(doc["spans"])
+                        for dial in dials:
+                            all_prev_utterances = []
+                            all_prev_turns = []
+                            for idx, turn in enumerate(dial["turns"]):
+                                all_prev_utterances.append(turn["utterance"])
+                                if "references" not in turn:
+                                    turn["references"] = self._create_answers_merging_text_ref_rc(
+                                        turn["reference"], doc["spans"], doc["doc_text"]
+                                    )
+                                turn.pop("reference", None)
+                                all_prev_turns.append(turn)
+                                if turn["role"] == "agent":
+                                    continue
+                                if idx + 1 < len(dial["turns"]):
+                                    if dial["turns"][idx + 1]["role"] == "agent":
+                                        turn_to_predict = dial["turns"][idx + 1]
+                                    else:
+                                        continue
+                                question = " ".join(list(reversed(all_prev_utterances)))
+                                id_ = dial["dial_id"] + "_" + str(turn["turn_id"])
+                                qa = {
+                                    "id": id_,
+                                    "question": question,
+                                    "answers": [],
+                                    "dial_context": all_prev_turns,
+                                    "doc_context": doc["doc_text"],
+                                    "title": doc_id,
+                                    "domain": domain,
+                                    "start_candidates": start_pos_char_candidates,
+                                    "end_candidates": end_pos_char_candidates,
+                                }
+                                if "references" not in turn_to_predict:
+                                    turn_to_predict["references"] = self._create_answers_merging_text_ref_rc(
+                                        turn_to_predict["reference"], doc["spans"], doc["doc_text"]
+                                    )
+                                if not turn_to_predict["references"]:
+                                    qa["is_impossible"] = True
+                                else:
+                                    qa["is_impossible"] = False
+                                    qa["answers"] = turn_to_predict["references"]
+                                    """ Ensure the answers are not empty if the question is answerable."""
+                                    if len(qa["answers"]) < 1:
+                                        assert len((qa["answers"])) >= 1
+                                yield id_, qa
