@@ -286,11 +286,13 @@ class DatasetDictTest(TestCase):
 
             # other input types
             dsets_shuffled_int = dsets.shuffle(42)
+            dsets_shuffled_alias = dsets.shuffle(seed=42)
             dsets_shuffled_none = dsets.shuffle()
             self.assertEqual(len(dsets_shuffled_int["train"]), 30)
             self.assertEqual(len(dsets_shuffled_none["train"]), 30)
 
-            del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3, dsets_shuffled_int, dsets_shuffled_none
+            del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
+            del dsets_shuffled_int, dsets_shuffled_alias, dsets_shuffled_none
 
     def test_check_values_type(self):
         dsets = self._create_dummy_dataset_dict()
