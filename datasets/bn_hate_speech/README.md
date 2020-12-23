@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- topic-classification
+- text-classification-other-hate-speech-topic-classification
 ---
 
 # Dataset Card for Bengali Hate Speech Dataset
@@ -68,7 +68,11 @@ The text in the dataset is in Bengali and the associated BCP-47 code is `bn`.
 
 ### Data Instances
 
-A data instance takes the form of a news article and its associated label. An example looks like this:
+A data instance takes the form of a news article and its associated label. 
+
+🚨 Beware that the following example contains extremely offensive content! 
+
+An example looks like this:
 
 ```
 {"text": "রেন্ডিয়াকে পৃথীবির মানচিএ থেকে মুচে ফেলতে হবে",
@@ -112,21 +116,21 @@ Three native Bengali speakers and two linguists annotated the dataset which was 
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+The dataset contains very sensitive and highly offensive comments in a religious, political and gendered context. Some of the comments are directed towards contemporary public figures like politicians, religious leaders, celebrities and athletes.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-The purpose of the dataset is to improve hate speech detection in Bengali. The growth of social media has enabled people to express hate freely online and there has been a lot of focus on detecting hate speech for highly resourced languages like English.
+The purpose of the dataset is to improve hate speech detection in Bengali. The growth of social media has enabled people to express hate freely online and there has been a lot of focus on detecting hate speech for highly resourced languages like English. The use of hate speech is pervasive, like any other major language, which can have serious and deadly consequences. Failure to react to hate speech renders targeted minorities more vulnerable to attack and it can also create indifference towards their treatment from majority populations. 
 
 ### Discussion of Biases
 
-[More Information Needed]
+The dataset was collected using a bootstrapping approach. An initial search was made for specific types of texts, articles and tweets containing common harassment directed at targeting characteristics. As a result, this dataset contains **extremely** offensive content that is disturbing. In addition, Facebook pages and newspaper sources were emphasized because they are well-known for having hate and harassment issues.
 
 ### Other Known Limitations
 
-The dataset contains racist, sexist, homophobic and offensive comments.
+The dataset contains racist, sexist, homophobic and offensive comments. It is collected and annotated for research related purposes only.
 
 ## Additional Information
 

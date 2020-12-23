@@ -39,7 +39,7 @@ newspaper sources because they attract close to 50 million followers and is a co
 and hate speech. The raw text corpus contains 250 million articles and the full dataset is being prepared
 for release. This is a subset of the full dataset.
 
-This dataset was prepared for text classification benchmark on Bengali, an under-resourced language.
+This dataset was prepared for hate-speech text classification benchmark on Bengali, an under-resourced language.
 """
 
 _HOMEPAGE = "https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset"
