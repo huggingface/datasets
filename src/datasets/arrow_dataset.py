@@ -528,7 +528,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def shape(self) -> Tuple[int]:
         """Shape of the dataset (number of columns, number of rows)."""
         if self._indices is not None:
-            return tuple(self._indices.num_rows, self._data.num_columns)
+            return (self._indices.num_rows, self._data.num_columns)
         return self._data.shape
 
     def unique(self, column: str) -> List[Any]:
