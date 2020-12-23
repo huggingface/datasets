@@ -6,7 +6,85 @@ language_creators:
 languages:
 - af
 - an
+- ar
 - az
+- be
+- bg
+- bn
+- br
+- bs
+- ca
+- cs
+- cy
+- da
+- de
+- el
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fo
+- fr
+- fy
+- ga
+- gd
+- gl
+- gu
+- he
+- hi
+- hr
+- ht
+- hu
+- hy
+- ia
+- id
+- io
+- is
+- it
+- ka
+- km
+- kn
+- ko
+- ku
+- ky
+- la
+- lb
+- lt
+- lv
+- mk
+- mr
+- ms
+- mt
+- nl
+- nn
+- no
+- pl
+- pt
+- rm
+- ro
+- ru
+- sk
+- sl
+- sq
+- sr
+- sv
+- sw
+- ta
+- te
+- th
+- tk
+- tl
+- tr
+- uk
+- ur
+- uz
+- vi
+- vo
+- wa
+- yi
+- zh
 licenses:
 - gpl-3.0
 multilinguality:
@@ -48,9 +126,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://wortschatz.uni-leipzig.de/en/download
-- **Repository:** [Needs More Information]
-- **Paper:** http://www.lrec-conf.org/proceedings/lrec2010/pdf/490_Paper.pdf
+- **Homepage:** https://sites.google.com/site/datascienceslab/projects/multilingualsentiment
+- **Repository:** https://www.kaggle.com/rtatman/sentiment-lexicons-for-81-languages
+- **Paper:** [Needs More Information]
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
@@ -152,15 +230,15 @@ Chinese
 
 ```
 {
-"word":"die"
-"sentimen":"negative"
+"word":"die",
+"sentiment": 0, #"negative"
 }
 ``` 
 
 ### Data Fields
 
 - word: one word as a string,
-- sentiment-score: the sentiment classifcation of the word as a string either negative or positive
+- sentiment-score: the sentiment classification of the word as a string either negative (0) or positive (1)
 
 ### Data Splits
 

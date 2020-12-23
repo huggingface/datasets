@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 
 import datasets
@@ -192,27 +190,37 @@ class SentiLex(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepaths_dict": [
+                    "filepaths": [
                         [
                             os.path.join(data_dir, "sentiment-lexicons/" + i)
-                            for i in os.listdir(data_dir + "/sentiment-lexicons")
-                            if j in i
+                            for i in os.listdir(os.path.join(data_dir, "sentiment-lexicons"))
+                            if (j + ".txt") == i.split("_")[len(i.split("_")) - 1]
                         ]
                         for j in LANGS
-                    ]
+                    ],
+                    "data_dir": data_dir,
                 },
             ),
         ]
 
-    def _generate_examples(self, filepaths_dict):
+    def _generate_examples(self, filepaths, data_dir):
         """ Yields examples. """
 
-        filepaths_dict = [i for i in filepaths_dict if self.config.name in i]
-        print(filepaths_dict)
-        for filepath in filepaths_dict:
-            print(filepath)
+        filepaths = [
+            i
+            for i in filepaths
+            if [
+                os.path.join(data_dir, "sentiment-lexicons/negative_words_" + self.config.name + ".txt"),
+                os.path.join(data_dir, "sentiment-lexicons/positive_words_" + self.config.name + ".txt"),
+            ]
+            == sorted(i)
+        ]
+
+        for filepath in filepaths[0]:
+
             with open(filepath, encoding="utf-8") as f:
-                for line in f:
+
+                for id_, line in enumerate(f):
 
                     if "negative" in filepath:
                         yield id_, {
