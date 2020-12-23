@@ -73,31 +73,41 @@ The Conv AI 3 challenge is organized as part of the Search-oriented Conversation
 
 ### Data Instances
 
+```
 {2287: {'topic_id': 8,
 'facet_id': 'F0968',
 'initial_request': 'I want to know about appraisals.',
+'clarification_need': 2,
+'question_id': 'F0001',
 'question': 'are you looking for a type of appraiser',
 'answer': 'im looking for nearby companies that do home appraisals',
+'facet_desc': 'Get the TYPE of Appraisals'
 'conversation_context': [],
 'context_id': 968},
 2288: {'topic_id': 8,
 'facet_id': 'F0969',
 'initial_request': 'I want to know about appraisals.',
+'clarification_need': 2,
+'question_id': 'F0005',
 'question': 'are you looking for a type of appraiser',
+'facet_desc': 'Get the TYPE of Appraisals'
 'answer': 'yes jewelry',
 'conversation_context': [],
 'context_id': 969},
 1570812: {'topic_id': 293,
 'facet_id': 'F0729',
 'initial_request': 'Tell me about the educational advantages of social networking sites.',
+'clarification_need': 2,
+'question_id': 'F0009'
 'question': 'which social networking sites would you like information on',
 'answer': 'i don have a specific one in mind just overall educational benefits to social media sites',
+'facet_desc': 'Detailed information about the Networking Sites.'
 'conversation_context': [{'question': 'what level of schooling are you interested in gaining the advantages to social networking sites',
 'answer': 'all levels'},
 {'question': 'what type of educational advantages are you seeking from social networking',
 'answer': 'i just want to know if there are any'}],
 'context_id': 976573}
-
+```
 ### Data Fields
 
 - `topic_id`: the ID of the topic (`initial_request`).
