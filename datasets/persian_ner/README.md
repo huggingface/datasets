@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100K<n<1M
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -68,29 +68,16 @@ The dataset includes 7,682 Persian sentences, split into 250,015 tokens and thei
 
 ### Data Instances
 
- ```
-{'ner_labels': [1,
-  12,
-  6,
-  1,
-  8],
- 'tokens': ['دکتر',
-  'اکبر',
-  'میرعرب',
-  'در',
-  'همایش']}
- ```
 
 ### Data Fields
 
 - `id`: id of the sample
  - `tokens`: the tokens of the example text
- - `ner_labels`: the NER tags of each token
+ - `ner_tags`: the NER tags of each token
 
 The NER tags correspond to this list:
  ```
-"","I-pers","B-fac","I-pro", "I-org", "O", "I-event", "B-pers",
-"I-fac","B-org", "B-pro", "B-loc","B-event","I-loc",
+"O", "I-event", "I-fac", "I-loc", "I-org", "I-pers", "I-pro", "B-event", "B-fac", "B-loc", "B-org", "B-pers", "B-pro"
  ```
 
 ### Data Splits
