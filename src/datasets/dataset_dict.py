@@ -420,7 +420,7 @@ class DatasetDict(dict):
 
     def shuffle(
         self,
-        seeds: Optional[Dict[str, int]] = None,
+        seeds: Optional[Union[int, Dict[str, int]]] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
@@ -453,6 +453,8 @@ class DatasetDict(dict):
         self._check_values_type()
         if seeds is None:
             seeds = {k: None for k in self}
+        elif isinstance(seeds, int):
+            seeds = {k: seeds for k in self}
         if generators is None:
             generators = {k: None for k in self}
         if indices_cache_file_names is None:
