@@ -83,6 +83,8 @@ data["train"][1050]
 
   'date': '2004-12-25', 
 
+  'id': 1050,
+
   'raw': "[03:57] <Xophe> (also, I'm guessing that this isn't a good place to report minor but annoying bugs... what is?)", 
 
   'tokenized': "<s> ( also , i 'm guessing that this is n't a good place to report minor but annoying bugs ... what is ?) </s>"
@@ -101,6 +103,8 @@ data["train"][50]
 
   'connections': [49, 53], 
 
+  'id': 50,
+
   'raw': "[01:04] <Felicia> Chanel: i don't know off hand sorry", 
 
   'tokenized': "<s> <user> : i do n't know off hand sorry </s>"
@@ -109,6 +113,8 @@ data["train"][50]
 ```
 
 ### Data Fields
+
+'id' : The id of the message, this is the value that would be in the 'connections' of associated messages.
 
 'raw' : The original message from the IRC log, as downloaded.
 

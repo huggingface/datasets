@@ -81,6 +81,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         if self.config.name == "ubuntu":
             features = datasets.Features(
                 {
+                    "id": datasets.Value("int32"),
                     "raw": datasets.Value("string"),
                     "ascii": datasets.Value("string"),
                     "tokenized": datasets.Value("string"),
@@ -91,6 +92,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         elif self.config.name == "channel_two":
             features = datasets.Features(
                 {
+                    "id": datasets.Value("int32"),
                     "raw": datasets.Value("string"),
                     "ascii": datasets.Value("string"),
                     "tokenized": datasets.Value("string"),
@@ -258,6 +260,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                 # return all 3 kinds of chat messages, the date (if applicable), and the annotation set for that sentece
                 if self.config.name == "ubuntu":
                     yield id_, {
+                        "id": id_,
                         "raw": raw_sentences[i],
                         "ascii": ascii_sentences[i],
                         "tokenized": tok_sentences[i],
@@ -266,6 +269,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                     }
                 elif self.config.name == "channel_two":
                     yield id_, {
+                        "id": id_,
                         "raw": raw_sentences[i],
                         "ascii": ascii_sentences[i],
                         "tokenized": tok_sentences[i],
