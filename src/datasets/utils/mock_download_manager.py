@@ -171,7 +171,11 @@ class MockDownloadManager(object):
     def create_dummy_data_list(self, path_to_dummy_data, data_url):
         dummy_data_list = []
         # trick: if there are many shards named like `data.txt-000001-of-00300`, only use the first one
-        if all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url):
+        is_tf_records = all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url)
+        is_pubmed_records = all(
+            url.startswith("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed21n") for url in data_url
+        )
+        if is_tf_records or is_pubmed_records:
             data_url = [data_url[0]] * len(data_url)
         for single_url in data_url:
             for download_callback in self.download_callbacks:
