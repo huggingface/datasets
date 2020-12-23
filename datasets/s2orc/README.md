@@ -160,16 +160,16 @@ Academic papers are an increasingly important textual domain for natural languag
 
 #### Initial Data Collection and Normalization
 
-To construct S2ORC, we must overcome challenges in (i) paper metadata aggregation, (ii) identifying open access publications, and (iii) clustering papers, in addition to identifying, extracting, and cleaning the full text and bibliometric annota- tions associated with each paper. The pipeline for creating S2ORC is:
+To construct S2ORC, we must overcome challenges in (i) paper metadata aggregation, (ii) identifying open access publications, and (iii) clustering papers, in addition to identifying, extracting, and cleaning the full text and bibliometric annotations associated with each paper. The pipeline for creating S2ORC is:
 
 1) Process PDFs and LATEX sources to derive metadata, clean full text, inline citations and references, and bibliography entries,
 2) Select the best metadata and full text parses for each paper cluster,
-3) Filter paper clusters with insufficient meta- data or content, and
+3) Filter paper clusters with insufficient metadata or content, and
 4) Resolve bibliography links between paper clusters in the corpus.
 
 #### Who are the source language producers?
 
-S2ORC is constructed using data from the Se- mantic Scholar literature corpus (Ammar et al., 2018). Papers in Semantic Scholar are derived from numerous sources: obtained directly from publishers, from resources such as MAG, from various archives such as arXiv or PubMed, or crawled from the open Internet. Semantic Scholar clusters these papers based on title similarity and DOI overlap, resulting in an initial set of approxi- mately 200M paper clusters.
+S2ORC is constructed using data from the Semantic Scholar literature corpus (Ammar et al., 2018). Papers in Semantic Scholar are derived from numerous sources: obtained directly from publishers, from resources such as MAG, from various archives such as arXiv or PubMed, or crawled from the open Internet. Semantic Scholar clusters these papers based on title similarity and DOI overlap, resulting in an initial set of approximately 200M paper clusters.
 
 ### Annotations
 
@@ -203,22 +203,21 @@ S2ORC is constructed using data from the Se- mantic Scholar literature corpus (A
 
 ### Dataset Curators
 
-List the people involved in collecting the dataset and their affiliation(s). If funding information is known, include it here.
+[More Information Needed]
 
 ### Licensing Information
 
-Provide the license and link to the license webpage if available.
+Semantic Scholar Open Research Corpus is licensed under ODC-BY.
 
 ### Citation Information
 
-Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset. For example:
 ```
-@article{article_id,
-  author    = {Author List},
-  title     = {Dataset Paper Title},
-  journal   = {Publication Venue},
-  year      = {2525}
+@misc{lo2020s2orc,
+      title={S2ORC: The Semantic Scholar Open Research Corpus},
+      author={Kyle Lo and Lucy Lu Wang and Mark Neumann and Rodney Kinney and Dan S. Weld},
+      year={2020},
+      eprint={1911.02782},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 ```
-
-If the dataset has a [DOI](https://www.doi.org/), please provide it here.

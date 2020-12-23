@@ -18,21 +18,19 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import re
-import shutil
 
 import datasets
 
 
 _CITATION = """\
-{"@inproceedings{ammar:18,"}
-    {"title={Construction of the Literature Graph in Semantic Scholar},"}
-    {"author={Waleed Ammar and Dirk Groeneveld and Chandra Bhagavatula and Iz Beltagy and Miles Crawford and Doug Downey"}
-    {" and Jason Dunkelberger and Ahmed Elgohary and Sergey Feldman and Vu Ha and Rodney Kinney"}
-    {" and Sebastian Kohlmeier and Kyle Lo and Tyler Murray and Hsu-Han Ooi and Matthew Peters and Joanna Power"}
-    {" and Sam Skjonsberg and Lucy Lu Wang and Chris Wilhelm and Zheng Yuan and Madeleine van Zuylen and Oren Etzioni},"}
-    {"booktitle={NAACL},"}
-    {"year={2018},"}
-    {"url={https://www.semanticscholar.org/paper/09e3cf5704bcb16e6657f6ceed70e93373a54618}"}
+@misc{lo2020s2orc,
+      title={S2ORC: The Semantic Scholar Open Research Corpus},
+      author={Kyle Lo and Lucy Lu Wang and Mark Neumann and Rodney Kinney and Dan S. Weld},
+      year={2020},
+      eprint={1911.02782},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
 """
 
 _DESCRIPTION = """\
@@ -51,7 +49,7 @@ _LICENSE = "Semantic Scholar Open Research Corpus is licensed under ODC-BY."
 _ROOT_URL = "https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/open-corpus/2020-12-01/"
 
 
-class S2ORC(datasets.GeneratorBasedBuilder):
+class S2orc(datasets.GeneratorBasedBuilder):
     """Semantic Scholar's records for research papers published in all fields"""
 
     VERSION = datasets.Version("1.1.0")
@@ -115,31 +113,25 @@ class S2ORC(datasets.GeneratorBasedBuilder):
         r = re.compile("(?s:s2\\-corpus\\-.*\\.gz)\\Z")  # files are of the form 's2-corpus-*.gz'
         train_names = list(filter(r.match, train_names))
 
-        train_names = train_names[:101]  # comment this line to run on all 6000 files
-
-        train_names = [dl_manager.download_and_extract(_ROOT_URL + x) for x in train_names]
-
-        with open(manifest_file, "wb") as wfd:  # added all the data to already downloaded manifest file
-            for f in train_names:
-                with open(f, "rb") as fd:
-                    shutil.copyfileobj(fd, wfd)
+        train_filepaths = dl_manager.download_and_extract([_ROOT_URL + x for x in train_names])
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": manifest_file,
+                    "filepaths": train_filepaths,
                     "split": "train",
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepaths, split):
         """ Yields examples. """
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if type(data["year"]) != int:
-                    data["year"] = -1
-                yield id_, data
+        for train_files in filepaths:
+            with open(train_files, encoding="utf-8") as f:
+                for id_, row in enumerate(f):
+                    data = json.loads(row)
+                    if type(data["year"]) != int:
+                        data["year"] = -1
+                    yield id_, data
