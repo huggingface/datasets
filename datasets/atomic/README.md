@@ -84,19 +84,7 @@ The atomic dataset has the following fields:
 
 
 `` 
-{'event': "PersonX uses PersonX's ___ to obtain", 
-'oEffect': '[]',
-'oReact': '"[""annoyed""', 
-'oWant': ' ""angry""', 
-'prefix': ' ""to get out of trouble""]"', 
-'split': '[]', 
-'xAttr': ' ""worried""]"',
-'xEffect': '[]', 
-'xIntent': '[]', 
-'xNeed': '[]', 
-'xReact': '"[""to have an advantage""', 
-'xWant': ' ""to fulfill a desire""'}
-
+{'event': "PersonX uses PersonX's ___ to obtain", 'oEffect': '[]', 'oReact': "['annoyed', 'angry', 'worried']", 'oWant': '[]', 'prefix': "['uses', 'obtain']", 'split': 'trn', 'xAttr': '[]', 'xEffect': '[]', 'xIntent': "['to have an advantage', 'to fulfill a desire', 'to get out of trouble']", 'xNeed': '[]', 'xReact': "['pleased', 'smug', 'excited']", 'xWant': '[]'}
 ``
 
 
@@ -105,9 +93,9 @@ The atomic dataset has the following fields:
 Notes from the authors:
 
 * event: just a string representation of the event.
-* oEffect,oReact,oWant,xAttr,xEffect,xIntent,xNeed,xReact,xWant: annotations for each of the dimensions, stored in a json-dumped list of strings.
-  Note: [""none""] means the worker explicitly responded with the empty response, whereas [] means the worker did not annotate this dimension.
-* prefix: json-dumped list that represents the prefix of content words (used to make a better trn/dev/tst split).
+* oEffect,oReact,oWant,xAttr,xEffect,xIntent,xNeed,xReact,xWant: annotations for each of the dimensions, stored in a json-dumped string.
+  Note: "none" means the worker explicitly responded with the empty response, whereas [] means the worker did not annotate this dimension.
+* prefix: json-dumped string that represents the prefix of content words (used to make a better trn/dev/tst split).
 * split: string rep of which split the event belongs to.
 
 ### Data Splits
