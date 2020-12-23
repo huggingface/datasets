@@ -21,9 +21,6 @@ task_ids:
 - dialogue-modeling
 ---
 
-
----
-
 # Dataset Card for IRC Disentanglement
 
 ## Table of Contents
@@ -77,6 +74,7 @@ For Ubuntu:
 
 data["train"][1050]
 
+```
 {
 
   'ascii': "[03:57] <Xophe> (also, I'm guessing that this isn't a good place to report minor but annoying bugs... what is?)", 
@@ -90,11 +88,13 @@ data["train"][1050]
   'tokenized': "<s> ( also , i 'm guessing that this is n't a good place to report minor but annoying bugs ... what is ?) </s>"
 
 }
+```
 
 For Channel_two:
 
 data["train"][50]
 
+```
 {
 
   'ascii': "[01:04] <Felicia> Chanel: i don't know off hand sorry", 
@@ -106,6 +106,7 @@ data["train"][50]
   'tokenized': "<s> <user> : i do n't know off hand sorry </s>"
 
 }
+```
 
 ### Data Fields
 
