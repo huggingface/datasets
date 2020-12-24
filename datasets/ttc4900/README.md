@@ -51,10 +51,9 @@ Savaş Yıldırım](mailto:savasy@gmail.com)
 
 ### Dataset Summary
 
-The data set is taken from kemik group
-http://www.kemik.yildiz.edu.tr/
-The data are pre-processed for the text categorization, collocations are found, character set is corrected, and so forth.
-We named TTC4900 by mimicking the name convention of TTC 3600 dataset shared by the study http://journals.sagepub.com/doi/abs/10.1177/0165551515620551
+The data set is taken from kemik group http://www.kemik.yildiz.edu.tr/
+The data are pre-processed (noun phrase chunking etc.) for the text categorization problem by the study "A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014"  https://link.springer.com/chapter/10.1007/978-3-642-54903-8_36
+It is named TTC4900 by mimicking the name convention of TTC 3600 dataset shared by the study http://journals.sagepub.com/doi/abs/10.1177/0165551515620551
 
 ### Languages
 
