@@ -40,7 +40,7 @@ _DEV_FILE = "dev.txt"
 _TEST_FILE = "test.txt"
 
 
-class myPOS2017Config(datasets.BuilderConfig):
+class MyposConfig(datasets.BuilderConfig):
     """BuilderConfig for myPOS2017"""
 
     def __init__(self, **kwargs):
@@ -49,14 +49,14 @@ class myPOS2017Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(myPOS2017Config, self).__init__(**kwargs)
+        super(MyposConfig, self).__init__(**kwargs)
 
 
 class Mypos(datasets.GeneratorBasedBuilder):
     """myPOS2017 dataset."""
 
     BUILDER_CONFIGS = [
-        myPOS2017Config(name="myPOS2017", version=datasets.Version("1.0.0"), description="myPOS2017 dataset"),
+        MyposConfig(name="myPOS2017", version=datasets.Version("1.0.0"), description="myPOS2017 dataset"),
     ]
 
     def _info(self):
