@@ -84,6 +84,7 @@ LANGS = [
     "io",
     "is",
     "it",
+    "ja",
     "ka",
     "km",
     "kn",
@@ -126,6 +127,7 @@ LANGS = [
     "wa",
     "yi",
     "zh",
+    "zhw",
 ]
 
 
@@ -190,33 +192,20 @@ class SentiLex(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepaths": [
-                        [
-                            os.path.join(data_dir, "sentiment-lexicons/" + i)
-                            for i in os.listdir(os.path.join(data_dir, "sentiment-lexicons"))
-                            if (j + ".txt") == i.split("_")[len(i.split("_")) - 1]
-                        ]
-                        for j in LANGS
-                    ],
                     "data_dir": data_dir,
                 },
             ),
         ]
 
-    def _generate_examples(self, filepaths, data_dir):
+    def _generate_examples(self, data_dir):
         """ Yields examples. """
 
         filepaths = [
-            i
-            for i in filepaths
-            if [
-                os.path.join(data_dir, "sentiment-lexicons/negative_words_" + self.config.name + ".txt"),
-                os.path.join(data_dir, "sentiment-lexicons/positive_words_" + self.config.name + ".txt"),
-            ]
-            == sorted(i)
+            os.path.join(data_dir, "sentiment-lexicons", "negative_words_" + self.config.name + ".txt"),
+            os.path.join(data_dir, "sentiment-lexicons", "positive_words_" + self.config.name + ".txt"),
         ]
 
-        for filepath in filepaths[0]:
+        for filepath in filepaths:
 
             with open(filepath, encoding="utf-8") as f:
 

@@ -43,6 +43,7 @@ languages:
 - io
 - is
 - it
+- ja
 - ka
 - km
 - kn
@@ -85,6 +86,7 @@ languages:
 - wa
 - yi
 - zh
+- zhw
 licenses:
 - gpl-3.0
 multilinguality:
@@ -181,6 +183,7 @@ Indonesian
 Ido
 Icelandic
 Italian
+Japanese
 Georgian
 Khmer
 Kannada
@@ -223,6 +226,7 @@ Volapük
 Walloon
 Yiddish
 Chinese
+Zhoa
 
 ## Dataset Structure
 
