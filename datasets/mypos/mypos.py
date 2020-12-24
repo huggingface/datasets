@@ -52,7 +52,7 @@ class myPOS2017Config(datasets.BuilderConfig):
         super(myPOS2017Config, self).__init__(**kwargs)
 
 
-class myPOS2017(datasets.GeneratorBasedBuilder):
+class Mypos(datasets.GeneratorBasedBuilder):
     """myPOS2017 dataset."""
 
     BUILDER_CONFIGS = [
