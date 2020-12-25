@@ -18,21 +18,22 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
+
 import datasets
 
+
 _CITATION = """\
-@article{pnSummary,
-  title={Leveraging ParsBERT and Pretrained mT5 for Persian Abstractive Text Summarization}, 
-  author={Mehrdad Farahani, Mohammad Gharachorloo, Mohammad Manthouri},
-  year={2020},
-  eprint={2012.11204},
-  archivePrefix={arXiv},
-  primaryClass={cs.CL}
+@article{pnSummary, title={Leveraging ParsBERT and Pretrained mT5 for Persian Abstractive Text Summarization},
+author={Mehrdad Farahani, Mohammad Gharachorloo, Mohammad Manthouri},
+year={2020},
+eprint={2012.11204},
+archivePrefix={arXiv},
+primaryClass={cs.CL}
 }
 """
 
 _DESCRIPTION = """\
-A well-structured summarization dataset for the Persian language consists of 93,207 records. It is prepared for Abstractive/Extractive tasks (like cnn_dailymail for English). It can also be used in other scopes like Text Generation, Title Generation, and News Category Classification. 
+A well-structured summarization dataset for the Persian language consists of 93,207 records. It is prepared for Abstractive/Extractive tasks (like cnn_dailymail for English). It can also be used in other scopes like Text Generation, Title Generation, and News Category Classification.
 """
 
 _HOMEPAGE = "https://github.com/hooshvare/pn-summary"
