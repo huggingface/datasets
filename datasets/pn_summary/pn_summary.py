@@ -41,16 +41,7 @@ _LICENSE = "MIT License"
 _URLs = {
     "1.0.0": {
         "data": "https://drive.google.com/u/0/uc?id=11wz8cKuTfGpNWIgRypD3rUmpaBeYU4NL&export=download",
-        "features": [
-            "id",
-            "title",
-            "article",
-            "summary",
-            "category",
-            "categories",
-            "network",
-            "link"
-        ]
+        "features": ["id", "title", "article", "summary", "category", "categories", "network", "link"],
     }
 }
 
@@ -66,24 +57,21 @@ class PnSummaryConfig(datasets.BuilderConfig):
 
 class PnSummary(datasets.GeneratorBasedBuilder):
     """A well-structured summarization dataset for the Persian language: pn_summary"""
+
     BUILDER_CONFIGS = [
         PnSummaryConfig(
-            name="1.0.0",
-            version=datasets.Version("1.0.0"),
-            description="The first version of pn_summary"),
+            name="1.0.0", version=datasets.Version("1.0.0"), description="The first version of pn_summary"
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "1.0.0"
 
     def _info(self):
-        feature_names = _URLs[self.config.name]['features']
+        feature_names = _URLs[self.config.name]["features"]
         features = datasets.Features({fn: datasets.Value("string") for fn in feature_names})
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            citation=_CITATION
+            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, citation=_CITATION
         )
 
     def _split_generators(self, dl_manager):
@@ -96,27 +84,27 @@ class PnSummary(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "pn_summary", "train.csv"),
                     "split": "train",
-                }
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "pn_summary", "dev.csv"),
                     "split": "validation",
-                }
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "pn_summary", "test.csv"),
                     "split": "test",
-                }
+                },
             ),
         ]
 
     def _generate_examples(self, filepath, split):
-        features = _URLs[self.config.name]['features']
-        with open(filepath, encoding='utf-8') as csv_file:
+        features = _URLs[self.config.name]["features"]
+        with open(filepath, encoding="utf-8") as csv_file:
             reader = csv.DictReader(csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_ALL)
 
             for _id, row in enumerate(reader):
