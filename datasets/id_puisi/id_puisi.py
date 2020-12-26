@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""ID Puisi: A Datasest for Indonesian Poem"""
+"""ID Puisi: A Dataset for Indonesian Poem"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -31,7 +31,7 @@ _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/ilhamfp/puisi-pantun-ge
 
 
 class IDPuisi(datasets.GeneratorBasedBuilder):
-    """ID Puisi: A Datasest for Indonesian Poem"""
+    """ID Puisi: A Datases for Indonesian Poem"""
 
     def _info(self):
         return datasets.DatasetInfo(
