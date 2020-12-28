@@ -102,7 +102,11 @@ The NER tags have the same format as in the CoNLL shared task: a B denotes the f
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into train, validation and test set for each of the two versions (default and selective). The split sizes are as follow:
+
+| Train  | Val   | Test |
+| ------ | ----- | ---- |
+| 121    | 8     | 128  |
 
 ## Dataset Creation
 
