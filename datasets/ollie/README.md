@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- other-university-of-washington-academic
 multilinguality:
 - monolingual
 size_categories:
