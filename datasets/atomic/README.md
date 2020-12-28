@@ -80,11 +80,11 @@ en
 
 ### Data Instances
 
-The atomic dataset has the following fields:
+Here is one example from the atomic dataset:
 
 
 `` 
-{'event': "PersonX uses PersonX's ___ to obtain", 'oEffect': '[]', 'oReact': "['annoyed', 'angry', 'worried']", 'oWant': '[]', 'prefix': "['uses', 'obtain']", 'split': 'trn', 'xAttr': '[]', 'xEffect': '[]', 'xIntent': "['to have an advantage', 'to fulfill a desire', 'to get out of trouble']", 'xNeed': '[]', 'xReact': "['pleased', 'smug', 'excited']", 'xWant': '[]'}
+{'event': "PersonX uses PersonX's ___ to obtain", 'oEffect': [], 'oReact': ['annoyed', 'angry', 'worried'], 'oWant': [], 'prefix': ['uses', 'obtain'], 'split': 'trn', 'xAttr': [], 'xEffect': [], 'xIntent': ['to have an advantage', 'to fulfill a desire', 'to get out of trouble'], 'xNeed': [], 'xReact': ['pleased', 'smug', 'excited'], 'xWant': []}
 ``
 
 

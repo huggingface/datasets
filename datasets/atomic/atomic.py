@@ -65,22 +65,20 @@ class Atomic(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="atomic", version=VERSION, description="The Atomic dataset"),
     ]
 
-    DEFAULT_CONFIG_NAME = "atomic"
-
     def _info(self):
         features = datasets.Features(
             {
                 "event": datasets.Value("string"),
-                "oEffect": datasets.Value("string"),
-                "oReact": datasets.Value("string"),
-                "oWant": datasets.Value("string"),
-                "xAttr": datasets.Value("string"),
-                "xEffect": datasets.Value("string"),
-                "xIntent": datasets.Value("string"),
-                "xNeed": datasets.Value("string"),
-                "xReact": datasets.Value("string"),
-                "xWant": datasets.Value("string"),
-                "prefix": datasets.Value("string"),
+                "oEffect": datasets.Sequence(datasets.Value("string")),
+                "oReact": datasets.Sequence(datasets.Value("string")),
+                "oWant": datasets.Sequence(datasets.Value("string")),
+                "xAttr": datasets.Sequence(datasets.Value("string")),
+                "xEffect": datasets.Sequence(datasets.Value("string")),
+                "xIntent": datasets.Sequence(datasets.Value("string")),
+                "xNeed": datasets.Sequence(datasets.Value("string")),
+                "xReact": datasets.Sequence(datasets.Value("string")),
+                "xWant": datasets.Sequence(datasets.Value("string")),
+                "prefix": datasets.Sequence(datasets.Value("string")),
                 "split": datasets.Value("string"),
             }
         )
@@ -137,15 +135,15 @@ class Atomic(datasets.GeneratorBasedBuilder):
                 row = json.loads(row)
                 yield id_, {
                     "event": str(row[0]),
-                    "oEffect": str(row[1]),
-                    "oReact": str(row[2]),
-                    "oWant": str(row[3]),
-                    "xAttr": str(row[4]),
-                    "xEffect": str(row[5]),
-                    "xIntent": str(row[6]),
-                    "xNeed": str(row[7]),
-                    "xReact": str(row[8]),
-                    "xWant": str(row[9]),
-                    "prefix": str(row[10]),
+                    "oEffect": row[1],
+                    "oReact": row[2],
+                    "oWant": row[3],
+                    "xAttr": row[4],
+                    "xEffect": row[5],
+                    "xIntent": row[6],
+                    "xNeed": row[7],
+                    "xReact": row[8],
+                    "xWant": row[9],
+                    "prefix": row[10],
                     "split": str(row[11]),
                 }
