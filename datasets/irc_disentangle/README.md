@@ -128,7 +128,9 @@ data["train"][50]
 
 ### Data Splits
 
-[More Information Needed]
+ubuntu: This data split is a new dataset introduced by the authors which labels connected messages in an online chatroom about ubuntu.
+
+channel_two: This data split is a re-analysis of prior work on IRC-Disentanglement where issues about the previous data are resolved. The previous dataset is outlined in https://www.aclweb.org/anthology/P08-1095.pdf.
 
 ## Dataset Creation
 
