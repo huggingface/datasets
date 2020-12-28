@@ -54,7 +54,7 @@ licenses:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [GitHub](https://github.com/kmi-linguistics/vardial2018)
 - **Repository:** [GitHub](https://github.com/kmi-linguistics/vardial2018)
 - **Paper:** [Link](https://www.aclweb.org/anthology/W18-3900/)
 - **Leaderboard:**

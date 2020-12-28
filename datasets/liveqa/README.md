@@ -46,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/PKU-TANGENT/LiveQA)
+- **Repository:** [Github](https://github.com/PKU-TANGENT/LiveQA)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.ccl-1.98)
 - **Leaderboard:**
 - **Point of Contact:**
 

@@ -48,7 +48,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [hkcancor](http://compling.hss.ntu.edu.sg/hkcancor/)
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**

@@ -47,9 +47,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/keisks/jfleg)
+- **Repository:** [Github](https://github.com/keisks/jfleg)
+- **Paper:** [Aclweb](http://www.aclweb.org/anthology/E17-2037)
 - **Leaderboard:**
 - **Point of Contact:**
 

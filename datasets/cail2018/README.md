@@ -45,9 +45,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/thunlp/CAIL/blob/master/README_en.md)
+- **Repository:** [Github](https://github.com/thunlp/CAIL)
+- **Paper:** [Arxiv](https://arxiv.org/abs/1807.02478)
 - **Leaderboard:**
 - **Point of Contact:**
 

@@ -51,10 +51,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** 
+- **Homepage:**  [boschresearch/sofc-exp_textmining_resources](https://github.com/boschresearch/sofc-exp_textmining_resources)
 - **Repository:** [boschresearch/sofc-exp_textmining_resources](https://github.com/boschresearch/sofc-exp_textmining_resources)
 - **Paper:** [The SOFC-Exp Corpus and Neural Approaches to Information Extraction in the Materials Science Domain](https://arxiv.org/abs/2006.03039)
-- **Leaderboard:** 
+- **Leaderboard:**
 - **Point of Contact:** [Annemarie Friedrich](annemarie.friedrich@de.bosch.com)
 
 ### Dataset Summary

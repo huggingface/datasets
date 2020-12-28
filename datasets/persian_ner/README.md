@@ -46,11 +46,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** 
-- **Repository:** https://github.com/HaniehP/PersianNER
-- **Paper:** https://www.aclweb.org/anthology/C16-1319.pdf
+- **Homepage:** [Github](https://github.com/HaniehP/PersianNER)
+- **Repository:** [Github](https://github.com/HaniehP/PersianNER)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/C16-1319)
 - **Leaderboard:**
-- **Point of Contact:** 
+- **Point of Contact:**
 
 ### Dataset Summary
 

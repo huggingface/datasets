@@ -46,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Pedro.ai](https://www.pedro.ai/curiosity)
 - **Repository:**
-- **Paper:**
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.emnlp-main.655/)
 - **Leaderboard:**
 - **Point of Contact:**
 

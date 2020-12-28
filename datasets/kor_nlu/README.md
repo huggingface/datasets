@@ -50,9 +50,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/kakaobrain/KorNLUDatasets)
+- **Repository:** [Github](https://github.com/kakaobrain/KorNLUDatasets)
+- **Paper:** [Arxiv](https://arxiv.org/abs/2004.03289)
 - **Leaderboard:**
 - **Point of Contact:**
 
