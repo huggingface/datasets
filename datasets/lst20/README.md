@@ -17,7 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 - structure-prediction-other-clause-segmentation
 - structure-prediction-other-sentence-segmentation
 - structure-prediction-other-word-segmentation
