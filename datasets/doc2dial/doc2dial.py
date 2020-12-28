@@ -396,7 +396,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 else:
                                     qa["is_impossible"] = False
                                     qa["answers"] = turn_to_predict["references"]
-                                    """ Ensure the answers are not empty if the question is answerable."""
-                                    if len(qa["answers"]) < 1:
-                                        assert len((qa["answers"])) >= 1
+                                    assert (
+                                        len((qa["answers"])) >= 1
+                                    ), "Ensure the answers are not empty if the question is answerable"
                                 yield id_, qa
