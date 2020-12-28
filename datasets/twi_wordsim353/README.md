@@ -135,5 +135,22 @@ Only the test data is available
 [More Information Needed]
 
 ### Citation Information
-
-[More Information Needed]
+```
+@inproceedings{alabi-etal-2020-massive,
+    title = "Massive vs. Curated Embeddings for Low-Resourced Languages: the Case of {Y}or{\`u}b{\'a} and {T}wi",
+    author = "Alabi, Jesujoba  and
+      Amponsah-Kaakyire, Kwabena  and
+      Adelani, David  and
+      Espa{\~n}a-Bonet, Cristina",
+    booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources Association",
+    url = "https://www.aclweb.org/anthology/2020.lrec-1.335",
+    pages = "2754--2762",
+    abstract = "The success of several architectures to learn semantic representations from unannotated text and the availability of these kind of texts in online multilingual resources such as Wikipedia has facilitated the massive and automatic creation of resources for multiple languages. The evaluation of such resources is usually done for the high-resourced languages, where one has a smorgasbord of tasks and test sets to evaluate on. For low-resourced languages, the evaluation is more difficult and normally ignored, with the hope that the impressive capability of deep learning architectures to learn (multilingual) representations in the high-resourced setting holds in the low-resourced setting too. In this paper we focus on two African languages, Yor{\`u}b{\'a} and Twi, and compare the word embeddings obtained in this way, with word embeddings obtained from curated corpora and a language-dependent processing. We analyse the noise in the publicly available corpora, collect high quality and noisy data for the two languages and quantify the improvements that depend not only on the amount of data but on the quality too. We also use different architectures that learn word representations both from surface forms and characters to further exploit all the available information which showed to be important for these languages. For the evaluation, we manually translate the wordsim-353 word pairs dataset from English into Yor{\`u}b{\'a} and Twi. We extend the analysis to contextual word embeddings and evaluate multilingual BERT on a named entity recognition task. For this, we annotate with named entities the Global Voices corpus for Yor{\`u}b{\'a}. As output of the work, we provide corpora, embeddings and the test suits for both languages.",
+    language = "English",
+    ISBN = "979-10-95546-34-4",
+}
+```
