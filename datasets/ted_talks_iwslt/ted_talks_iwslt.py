@@ -16,9 +16,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
+import xml.etree.ElementTree as ET
+import zipfile
+from collections import defaultdict
 
 import datasets
 
@@ -60,41 +61,178 @@ _LICENSE = "CC-BY-NC-4.0"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = {
-    # Data needs to be downloaded manually
-}
+_URLs = "https://drive.google.com/file/d/1Cz1Un9p8Xn9IpEMMrg2kXSDt0dnjxc4z/view?usp=sharing"
+
+_LANGUAGES = (
+    "sr",
+    "fil",
+    "mt",
+    "mr",
+    "cnh",
+    "tt",
+    "ig",
+    "ast",
+    "ro",
+    "tr",
+    "oc",
+    "ko",
+    "cs",
+    "vi",
+    "ne",
+    "sh",
+    "sq",
+    "lt",
+    "pa",
+    "gl",
+    "sk",
+    "is",
+    "km",
+    "mk",
+    "nn",
+    "si",
+    "ceb",
+    "bg",
+    "ca",
+    "az",
+    "ga",
+    "ta",
+    "fr-ca",
+    "srp",
+    "sv",
+    "art-x-bork",
+    "ug",
+    "be",
+    "tg",
+    "lo",
+    "ka",
+    "as",
+    "la",
+    "mn",
+    "mg",
+    "fi",
+    "id",
+    "ltg",
+    "ht",
+    "th",
+    "it",
+    "ja",
+    "sw",
+    "ms",
+    "hy",
+    "zh-tw",
+    "ky",
+    "ur",
+    "nl",
+    "de",
+    "eo",
+    "kk",
+    "arq",
+    "ps",
+    "pt",
+    "pt-br",
+    "uz",
+    "zh",
+    "ru",
+    "el",
+    "hu",
+    "af",
+    "hup",
+    "fr",
+    "hr",
+    "zh-cn",
+    "am",
+    "lb",
+    "kn",
+    "szl",
+    "tlh",
+    "bs",
+    "inh",
+    "te",
+    "rup",
+    "en",
+    "es",
+    "eu",
+    "gu",
+    "ku",
+    "hi",
+    "ha",
+    "bi",
+    "ar",
+    "so",
+    "lv",
+    "fa",
+    "my",
+    "sl",
+    "da",
+    "pl",
+    "uk",
+    "he",
+    "bn",
+    "ml",
+    "bo",
+    "tl",
+    "et",
+    "nb",
+)
+
+
+class TedTalksIWSLTConfig(datasets.BuilderConfig):
+    """"Builder Config for the TedTalks IWSLT dataset"""
+
+    def __init__(self, language_pair=(None, None), **kwargs):
+        """BuilderConfig for TedTalks IWSLT dataset.
+        Args:
+            for the `datasets.features.text.TextEncoder` used for the features feature.
+            language_pair: pair of languages that will be used for translation. Should
+            contain 2-letter coded strings. First will be used at source and second
+            as target in supervised mode. For example: ("pl", "en").
+          **kwargs: keyword arguments forwarded to super.
+        """
+        # Validate language pair.
+        name = "%s_%s" % (language_pair[0], language_pair[1])
+        source, target = language_pair
+        assert source in _LANGUAGES, ("Invalid source language in pair: %s", source)
+        assert target in _LANGUAGES, ("Invalid source language in pair: %s", source)
+
+        description = f"Translation Ted Talks dataset (IWSLT) between {source} and {target}"
+        super(TedTalksIWSLTConfig, self).__init__(
+            name=name,
+            description=description,
+            version=datasets.Version("1.1.0", ""),
+            **kwargs,
+        )
+
+        self.language_pair = language_pair
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """TedTalks IWSLT Dataset. 109 language translations"""
 
     VERSION = datasets.Version("1.1.0")
 
     @property
     def manual_download_instructions(self):
         return """\
-    \n    
-    The file can be downloaded from: https://drive.google.com/file/d/1Cz1Un9p8Xn9IpEMMrg2kXSDt0dnjxc4z/view?usp=sharing
-    Unzip the folder to obtain folder: XML_releases
-    The folder structure is like this: 
-    
-    XML_releases
-        |
-        |---xml
-        |    |---ted_af-20160408.zip
-        |    |---ted_am-20160408.zip
-        |    ...
-        |    ...   
-        |---xml-20150616
-        |---xml-20140120
-        |---wit3_data
+        \nThe file can be downloaded from: https://drive.google.com/file/d/1Cz1Un9p8Xn9IpEMMrg2kXSDt0dnjxc4z/view?usp=sharing
+        Unzip the file to obtain folder: XML_releases
+        The folder structure is similar to this:
 
-    You can then specify the path to this folder for the `data_dir` argument in the datasets.load_dataset(...).
-    The data can then be loaded using the following command: 
-    `datasets.load_dataset("ted_talks_iwslt", data_dir="XML_releases", "ted_talks_2016_all")`
+        XML_releases
+            |
+            |---xml
+            |    |---ted_af-20160408.zip
+            |    |---ted_am-20160408.zip
+            |     ....
+            |     ....
+            |---xml-20150616
+            |---xml-20140120
+            |---wit3_data
 
-    """
+        You can then specify the path to this folder for the __data_dir__ argument in the __datasets.load_dataset(...)__
+        The data can then be loaded using the following command:
+        __datasets.load_dataset("ted_talks_iwslt", data_dir="XML_releases", "en-hi")__
+        """
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
@@ -108,40 +246,18 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="ted_talks_2016_all",
-            version=VERSION,
-            description="This part of the dataset covers all data files from April 2016",
-        ),
-        # datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        TedTalksIWSLTConfig(language_pair=(source, target)) for source in _LANGUAGES for target in _LANGUAGES
     ]
 
-    DEFAULT_CONFIG_NAME = (
-        "ted_talks_2016_all"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
+    # DEFAULT_CONFIG_NAME = (
+    #     "ted_talks_2016_all"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    # )
 
-    def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if (
-            self.config.name == "ted_talks_2016_all"
-        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
-            features = datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                    "option1": datasets.Value("string"),
-                    "answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
-                }
-            )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
-            features = datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                    "option2": datasets.Value("string"),
-                    "second_domain_answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
-                }
-            )
+    def _info(self, language_pair=(None, None), **kwargs):
+        features = datasets.Features(
+            {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+        )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -167,34 +283,46 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+
+        language_pair = self.config.name.split("_")
+        path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('poleval2019_mt', name= .., data_dir=...)` where name can be {} Manual download instructions: {})".format(
-                    path_to_manual_file, "en-pl/pl-en/pl-ru/ru-pl", self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual directory",
+                self.manual_download_instructions,
             )
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "xml-20140120/"),
+                    "filepath": [
+                        os.path.join(path_to_manual_file, f"xml-20140120/ted_{language_pair[0]}-20140120.zip"),
+                        os.path.join(path_to_manual_file, f"xml-20140120/ted_{language_pair[1]}-20140120.zip"),
+                    ],
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "xml/"), "split": "test"},
+                gen_kwargs={
+                    "filepath": [
+                        os.path.join(path_to_manual_file, f"xml/ted_{language_pair[0]}-20160408.zip"),
+                        os.path.join(path_to_manual_file, f"xml/ted_{language_pair[1]}-20160408.zip"),
+                    ],
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "xml-20150120/"),
+                    "filepath": [
+                        os.path.join(path_to_manual_file, f"xml-20150616/ted_{language_pair[0]}-20150530.zip"),
+                        os.path.join(path_to_manual_file, f"xml-20150616/ted_{language_pair[1]}-20150530.zip"),
+                    ],
                     "split": "dev",
                 },
             ),
@@ -205,19 +333,101 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
+        source = filepath[0]
+        target = filepath[1]
 
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "first_domain":
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
-                    }
+        language_pair = self.config.name.split("_")
+
+        def et_to_dict(tree):
+            """This is used to convert the xml to a list of dicts"""
+
+            dct = {tree.tag: {} if tree.attrib else None}
+            children = list(tree)
+            if children:
+                dd = defaultdict(list)
+                for dc in map(et_to_dict, children):
+                    for k, v in dc.items():
+                        dd[k].append(v)
+                dct = {tree.tag: dd}
+            if tree.attrib:
+                dct[tree.tag].update((k, v) for k, v in tree.attrib.items())
+            if tree.text:
+                text = tree.text.strip()
+                if children or tree.attrib:
+                    if text:
+                        dct[tree.tag]["text"] = text
                 else:
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+                    dct[tree.tag] = text
+            return dct
+
+        with zipfile.ZipFile(source) as zf_source:
+            with zipfile.ZipFile(target) as zf_target:
+                tree_source = ET.parse(zf_source.open(source.split("/")[-1][:-3] + "xml"))
+                root_source = tree_source.getroot()
+                source_talks = et_to_dict(root_source).get("xml").get("file")
+
+                tree_target = ET.parse(zf_target.open(target.split("/")[-1][:-3] + "xml"))
+                root_target = tree_target.getroot()
+                target_talks = et_to_dict(root_target).get("xml").get("file")
+
+        source_ids = [talk.get("head")[0].get("talkid") for talk in source_talks]
+        target_ids = [talk.get("head")[0].get("talkid") for talk in target_talks]
+
+        comm_talkids = [talkid for talkid in target_ids if talkid in source_ids]
+
+        translation = list()
+
+        for talkid in comm_talkids:
+            source = list(filter(lambda talk: talk.get("head")[0].get("talkid") == talkid, source_talks))
+            target = list(filter(lambda talk: talk.get("head")[0].get("talkid") == talkid, target_talks))
+
+            if len(source) == 0 or len(target) == 0:
+                pass
+            else:
+                source = source[0]
+                target = target[0]
+
+            if source["head"][0]["description"][0]:
+                if target["head"][0]["description"]:
+                    if target["head"][0]["description"][0]:
+
+                        temp_dict = dict()
+                        temp_dict["id"] = source.get("head")[0].get("talkid")[0] + "_1"
+                        temp_dict[language_pair[0]] = (
+                            source.get("head")[0]
+                            .get("description")[0]
+                            .replace("TED Talk Subtitles and Transcript: ", "")
+                        )
+                        temp_dict[language_pair[1]] = (
+                            target.get("head")[0]
+                            .get("description")[0]
+                            .replace("TED Talk Subtitles and Transcript: ", "")
+                        )
+                        translation.append(temp_dict)
+
+            if "description" in source.get("head")[0]:
+                if "description" in target.get("head")[0]:
+                    temp_dict = dict()
+                    temp_dict["id"] = source.get("head")[0].get("talkid")[0] + "_2"
+                    temp_dict[language_pair[0]] = source.get("head")[0].get("title")[0]
+                    temp_dict[language_pair[1]] = target.get("head")[0].get("title")[0]
+                    translation.append(temp_dict)
+
+            source_transc = source.get("head")[0].get("transcription")[0].get("seekvideo")
+            target_transc = target.get("head")[0].get("transcription")[0].get("seekvideo")
+
+            transc = zip(source_transc, target_transc)
+            transcriptions = [
+                {"id": s.get("id"), language_pair[0]: s.get("text"), language_pair[1]: t.get("text")}
+                for s, t in transc
+            ]
+            translation.extend(transcriptions)
+
+        for talk_segment in translation:
+            result = {
+                "translation": {
+                    language_pair[0]: talk_segment[language_pair[0]],
+                    language_pair[1]: talk_segment[language_pair[1]],
+                }
+            }
+            yield talk_segment["id"], result
