@@ -130,21 +130,21 @@ An example of an ollie_patterned record:
 ### Data Fields
 
 For ollie_lemmagrep:
-* rel: the first argument in the relationship. This may be empty, which represents the "be" relationship.
-* arg1: the second argument in the relationship
-* arg2: the third argument in the relationship.
-* arg4: the fourth argument in the relationship, which might be empty.
+* rel: the relationship phrase/verb phrase. This may be empty, which represents the "be" relationship.
+* arg1: the first argument in the relationship
+* arg2: the second argument in the relationship.
 * chunk: a tag of each token in the sentence, showing the pos chunks
 * pos: part of speech tagging of the sentence
 * sentence: the sentence
 * sentence_cnt: the number of copies of this sentence encountered
+* search_query: a combintion of rel, arg1, arg2
 * words: the lemma of the words of the sentence separated by commas
 
 For ollie_patterned:
-* rel: The may be the relationship phrase/verb phrase.
-* arg1: the second argument in the relationship
-* arg2: the third argument in the relationship.
-* slot0: the fourth argument in the relationship, which might be empty.
+* rel: the relationship phrase/verb phrase.
+* arg1: the first argument in the relationship
+* arg2: the second argument in the relationship.
+* slot0: the third argument in the relationship, which might be empty.
 * pattern: a parse pattern for the relationship
 * parse: a dependency parse forthe sentence
 * search_query: a combintion of rel, arg1, arg2
