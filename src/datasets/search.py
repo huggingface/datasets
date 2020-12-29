@@ -1,5 +1,6 @@
 import os
 import tempfile
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
@@ -75,12 +76,12 @@ class BaseIndex:
             total_indices.append(indices)
         return BatchedSearchResults(total_scores, total_indices)
 
-    def save(self, file: str):
+    def save(self, file: Union[str, PurePath]):
         """Serialize the index on disk"""
         raise NotImplementedError
 
     @classmethod
-    def load(cls, file: str) -> "BaseIndex":
+    def load(cls, file: Union[str, PurePath]) -> "BaseIndex":
         """Deserialize the index from disk"""
         raise NotImplementedError
 
@@ -309,7 +310,7 @@ class FaissIndex(BaseIndex):
         scores, indices = self.faiss_index.search(queries, k)
         return BatchedSearchResults(scores, indices.astype(int))
 
-    def save(self, file: str):
+    def save(self, file: Union[str, PurePath]):
         """Serialize the FaissIndex on disk"""
         if (
             hasattr(self.faiss_index, "device")
@@ -319,17 +320,17 @@ class FaissIndex(BaseIndex):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
-        faiss.write_index(index, file)
+        faiss.write_index(index, str(file))
 
     @classmethod
     def load(
         cls,
-        file: str,
+        file: Union[str, PurePath],
         device: Optional[int] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         faiss_index = cls(device=device)
-        index = faiss.read_index(file)
+        index = faiss.read_index(str(file))
         if faiss_index.device is not None and faiss_index.device > -1:
             faiss_index.faiss_res = faiss.StandardGpuResources()
             index = faiss.index_cpu_to_gpu(faiss_index.faiss_res, faiss_index.device, index)
@@ -436,7 +437,7 @@ class IndexableMixin:
             external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
         )
 
-    def save_faiss_index(self, index_name: str, file: str):
+    def save_faiss_index(self, index_name: str, file: Union[str, PurePath]):
         """Save a FaissIndex on disk
 
         Args:
@@ -452,7 +453,7 @@ class IndexableMixin:
     def load_faiss_index(
         self,
         index_name: str,
-        file: str,
+        file: Union[str, PurePath],
         device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
