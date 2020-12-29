@@ -86,6 +86,8 @@ Portuguese
 
 ### Data Instances
 
+An example from the Mac-Morpho dataset looks as follows:
+
 ```
 {
     "id": "0",
@@ -108,7 +110,11 @@ The PoS tags correspond to this list:
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into train, validation and test set. The split sizes are as follow:
+
+| Train  | Val   | Test  |
+| ------ | ----- | ----- |
+| 37948  | 1997  | 9987  |
 
 ## Dataset Creation
 
