@@ -73,7 +73,7 @@ English (`en`)
  "hate_speech_annotation": 0,
  "offensive_language_annotation": 0,
  "neither_annotation": 3,
- "label": "neither",
+ "label": 2,  # "neither"
  "tweet": "!!! RT @mayasolovely: As a woman you shouldn't complain about cleaning up your house. &amp; as a man you should always take the trash out...")
 }
 ```
@@ -84,7 +84,7 @@ count: (Integer) number of users who coded each tweet (min is 3, sometimes more 
 hate_speech_annotation: (Integer) number of users who judged the tweet to be hate speech,
 offensive_language_annotation: (Integer) number of users who judged the tweet to be offensive,
 neither_annotation: (Integer) number of users who judged the tweet to be neither offensive nor non-offensive,
-label: (Class Label) class label for majority of CF users ('hate-speech', 'offensive-language' or 'neither'),
+label: (Class Label) class label for majority of CF users (0: 'hate-speech', 1: 'offensive-language' or 2: 'neither'),
 tweet: (string)
 ```
 
