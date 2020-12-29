@@ -74,18 +74,16 @@ English, Finnish
 ## Dataset Structure
 
 ### Data Instances
-
-Example (English):
-{ "sentence": "A confession that you hired [PERSON] ... and are responsible for my father's murder ."
-   "label":	1, 6
+```
+{ "sentence": "A confession that you hired [PERSON] ... and are responsible for my father's murder."
+   "labels":	1, 6
 }
+```
 
 ### Data Fields
 
-The files are formatted as follows:
-
-sentence1\tlabel1,label2
-sentence2\tlabel2,label3,label4...
+- sentence: a line from the dataset
+- labels: labels corresponding to the emotion
 
 Where the number indicates the emotion in ascending alphabetical order: anger:1, anticipation:2, disgust:3, fear:4, joy:5, sadness:6, surprise:7, trust:8, with neutral:0 where applicable. 
 
@@ -151,4 +149,9 @@ License: Creative Commons Attribution 4.0 International License (CC-BY)
 
 ### Citation Information
 
-[Needs More Information]
+@inproceedings{ohman2020xed,
+  title={XED: A Multilingual Dataset for Sentiment Analysis and Emotion Detection},
+  author={{\"O}hman, Emily and P{\`a}mies, Marc and Kajava, Kaisla and Tiedemann, J{\"o}rg},
+  booktitle={The 28th International Conference on Computational Linguistics (COLING 2020)},
+  year={2020}
+}
