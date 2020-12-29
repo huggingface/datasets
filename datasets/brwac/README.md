@@ -71,7 +71,42 @@ Portuguese
 
 ### Data Instances
 
-[More Information Needed]
+An example from the BrWaC dataset looks as follows:
+
+```
+{
+  "doc_id": "netg-1afc73",
+  "paragraphs": {
+    "sentences": [
+      [
+        "Conteúdo recente"
+      ],
+      [
+        "ESPUMA MARROM CHAMADA \"NINGUÉM MERECE\""
+      ],
+      [
+        "31 de Agosto de 2015, 7:07 , por paulo soavinski - | No one following this article yet."
+      ],
+      [
+        "Visualizado 202 vezes"
+      ],
+      [
+        "JORNAL ELETRÔNICO DA ILHA DO MEL"
+      ],
+      [
+        "Uma espuma marrom escuro tem aparecido com frequência na Praia de Fora.",
+        "Na faixa de areia ela aparece disseminada e não chama muito a atenção.",
+        "No Buraco do Aipo, com muitas pedras, ela aparece concentrada.",
+        "É fácil saber que esta espuma estranha está lá, quando venta.",
+        "Pequenos algodões de espuma começam a flutuar no espaço, pertinho da Praia do Saquinho.",
+        "Quem pode ajudar na coleta deste material, envio a laboratório renomado e pagamento de análises, favor entrar em contato com o site."
+      ]
+    ]
+  },
+  "title": "ESPUMA MARROM CHAMADA ‟NINGUÃÂM MERECE‟ - paulo soavinski",
+  "uri": "http://blogoosfero.cc/ilhadomel/pousadasilhadomel.com.br/espuma-marrom-chamada-ninguem-merece"
+}
+```
 
 ### Data Fields
 
@@ -82,7 +117,7 @@ Portuguese
 
 ### Data Splits
 
-[More Information Needed]
+The data is only split into train set with size of 3530796 samples.
 
 ## Dataset Creation
 
@@ -140,9 +175,11 @@ Portuguese
 
 ### Citation Information
 
+```
 @inproceedings{wagner2018brwac,
   title={The brwac corpus: A new open resource for brazilian portuguese},
   author={Wagner Filho, Jorge A and Wilkens, Rodrigo and Idiart, Marco and Villavicencio, Aline},
   booktitle={Proceedings of the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)},
   year={2018}
 }
+```
