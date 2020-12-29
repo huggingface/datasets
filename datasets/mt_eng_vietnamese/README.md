@@ -75,7 +75,13 @@ English, Vietnamese
 
 ### Data Instances
 
-[More Information Needed]
+{
+  'translation': {
+    'en': 'In 4 minutes , atmospheric chemist Rachel Pike provides a glimpse of the massive scientific effort behind the bold headlines on climate change , with her team -- one of thousands who contributed -- taking a risky flight over the rainforest in pursuit of data on a key molecule .', 
+    'vi': 'Trong 4 phút , chuyên gia hoá học khí quyển Rachel Pike giới thiệu sơ lược về những nỗ lực khoa học miệt mài đằng sau những tiêu đề táo bạo về biến đổi khí hậu , cùng với đoàn nghiên cứu của mình -- hàng ngàn người đã cống hiến cho dự án này -- một chuyến bay mạo hiểm qua rừng già để tìm kiếm thông tin về một phân tử then chốt .'
+    }
+}
+
 
 ### Data Fields
 
@@ -86,7 +92,7 @@ English, Vietnamese
 
 ### Data Splits
 
-train, dev, test
+train: 133318, validation: 1269, test: 1269
 
 ## Dataset Creation
 
@@ -144,4 +150,12 @@ train, dev, test
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{Luong-Manning:iwslt15,
+        Address = {Da Nang, Vietnam}
+        Author = {Luong, Minh-Thang  and Manning, Christopher D.},
+        Booktitle = {International Workshop on Spoken Language Translation},
+        Title = {Stanford Neural Machine Translation Systems for Spoken Language Domain},
+        Year = {2015}}
+
+```
