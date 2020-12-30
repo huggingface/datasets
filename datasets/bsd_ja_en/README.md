@@ -47,11 +47,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** https://github.com/tsuruoka-lab/BSD
+- **Repository:** https://github.com/tsuruoka-lab/BSD
+- **Paper:** [Rikters et al., 2019](https://www.aclweb.org/anthology/D19-5204)
+- **Leaderboard:** N/A
+- **Point of Contact:** Matīss Rikters
 
 ### Dataset Summary
 This is the Business Scene Dialogue (BSD) dataset, 
