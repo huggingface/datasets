@@ -63,116 +63,117 @@ _LICENSE = "CC-BY-NC-4.0"
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = "https://drive.google.com/file/d/1Cz1Un9p8Xn9IpEMMrg2kXSDt0dnjxc4z/view?usp=sharing"
 
+
 _LANGUAGES = (
-    "sr",
-    "fil",
-    "mt",
     "mr",
-    "cnh",
-    "tt",
+    "eu",
+    "hr",
+    "rup",
+    "szl",
+    "lo",
+    "ms",
+    "ht",
+    "hy",
+    "mg",
+    "arq",
+    "uk",
+    "ku",
     "ig",
-    "ast",
-    "ro",
-    "tr",
-    "oc",
-    "ko",
-    "cs",
-    "vi",
+    "sr",
+    "ug",
     "ne",
-    "sh",
+    "pt-br",
     "sq",
-    "lt",
-    "pa",
-    "gl",
-    "sk",
-    "is",
+    "af",
     "km",
-    "mk",
-    "nn",
+    "en",
+    "tt",
+    "ja",
+    "inh",
+    "mn",
+    "eo",
+    "ka",
+    "nb",
+    "fil",
+    "uz",
+    "fi",
+    "tl",
+    "el",
+    "tg",
+    "bn",
     "si",
+    "gu",
+    "sk",
+    "kn",
+    "ar",
+    "hup",
+    "zh-tw",
+    "sl",
+    "be",
+    "bo",
+    "fr",
+    "ps",
+    "tr",
+    "ltg",
+    "la",
+    "ko",
+    "lv",
+    "nl",
+    "fa",
+    "ru",
+    "et",
+    "vi",
+    "pa",
+    "my",
+    "sw",
+    "az",
+    "sv",
+    "ga",
+    "sh",
+    "it",
+    "da",
+    "lt",
+    "kk",
+    "mk",
+    "tlh",
+    "he",
     "ceb",
     "bg",
-    "ca",
-    "az",
-    "ga",
-    "ta",
     "fr-ca",
-    "srp",
-    "sv",
-    "art-x-bork",
-    "ug",
-    "be",
-    "tg",
-    "lo",
-    "ka",
-    "as",
-    "la",
-    "mn",
-    "mg",
-    "fi",
-    "id",
-    "ltg",
-    "ht",
-    "th",
-    "it",
-    "ja",
-    "sw",
-    "ms",
-    "hy",
-    "zh-tw",
-    "ky",
-    "ur",
-    "nl",
-    "de",
-    "eo",
-    "kk",
-    "arq",
-    "ps",
-    "pt",
-    "pt-br",
-    "uz",
-    "zh",
-    "ru",
-    "el",
-    "hu",
-    "af",
-    "hup",
-    "fr",
-    "hr",
-    "zh-cn",
-    "am",
-    "lb",
-    "kn",
-    "szl",
-    "tlh",
-    "bs",
-    "inh",
-    "te",
-    "rup",
-    "en",
-    "es",
-    "eu",
-    "gu",
-    "ku",
-    "hi",
     "ha",
-    "bi",
-    "ar",
-    "so",
-    "lv",
-    "fa",
-    "my",
-    "sl",
-    "da",
-    "pl",
-    "uk",
-    "he",
-    "bn",
     "ml",
-    "bo",
-    "tl",
-    "et",
-    "nb",
+    "mt",
+    "as",
+    "pt",
+    "zh-cn",
+    "cnh",
+    "ro",
+    "hi",
+    "es",
+    "id",
+    "bs",
+    "so",
+    "cs",
+    "te",
+    "ky",
+    "hu",
+    "th",
+    "pl",
+    "nn",
+    "ca",
+    "is",
+    "ta",
+    "de",
+    "srp",
+    "ast",
+    "bi",
+    "lb",
+    "art-x-bork",
+    "am",
+    "oc",
+    "zh",
+    "ur",
+    "gl",
 )
 
 
@@ -193,8 +194,9 @@ class TedTalksIWSLTConfig(datasets.BuilderConfig):
         source, target = language_pair
         assert source in _LANGUAGES, ("Invalid source language in pair: %s", source)
         assert target in _LANGUAGES, ("Invalid source language in pair: %s", source)
+        assert source != target, ("Source(%s) and Target(%s) language pairs cannot be the same!", source, target)
 
-        description = f"Translation Ted Talks dataset (IWSLT) between {source} and {target}"
+        description = f"Translation Ted Talks dataset (WIT3) between {source} and {target}"
         super(TedTalksIWSLTConfig, self).__init__(
             name=name,
             description=description,
@@ -246,7 +248,10 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        TedTalksIWSLTConfig(language_pair=(source, target)) for source in _LANGUAGES for target in _LANGUAGES
+        TedTalksIWSLTConfig(language_pair=(source, target))
+        for source in _LANGUAGES
+        for target in _LANGUAGES
+        if source != target
     ]
 
     # DEFAULT_CONFIG_NAME = (
@@ -285,6 +290,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
 
         language_pair = self.config.name.split("_")
+        print(language_pair)
         path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         if not os.path.exists(path_to_manual_file):
@@ -336,6 +342,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         source = filepath[0]
         target = filepath[1]
 
+        print(filepath)
         language_pair = self.config.name.split("_")
 
         def et_to_dict(tree):
@@ -360,18 +367,30 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
                     dct[tree.tag] = text
             return dct
 
-        with zipfile.ZipFile(source) as zf_source:
-            with zipfile.ZipFile(target) as zf_target:
-                tree_source = ET.parse(zf_source.open(source.split("/")[-1][:-3] + "xml"))
-                root_source = tree_source.getroot()
-                source_talks = et_to_dict(root_source).get("xml").get("file")
+        if os.path.exists(source) and os.path.exists(target):
 
-                tree_target = ET.parse(zf_target.open(target.split("/")[-1][:-3] + "xml"))
-                root_target = tree_target.getroot()
-                target_talks = et_to_dict(root_target).get("xml").get("file")
+            with zipfile.ZipFile(source) as zf_source:
+                with zipfile.ZipFile(target) as zf_target:
+                    try:
+                        tree_source = ET.parse(zf_source.open(source.split("/")[-1][:-3] + "xml"))
+                        root_source = tree_source.getroot()
+                        source_talks = et_to_dict(root_source).get("xml").get("file")
 
-        source_ids = [talk.get("head")[0].get("talkid") for talk in source_talks]
-        target_ids = [talk.get("head")[0].get("talkid") for talk in target_talks]
+                        tree_target = ET.parse(zf_target.open(target.split("/")[-1][:-3] + "xml"))
+                        root_target = tree_target.getroot()
+                        target_talks = et_to_dict(root_target).get("xml").get("file")
+
+                        source_ids = [talk.get("head")[0].get("talkid") for talk in source_talks]
+                        target_ids = [talk.get("head")[0].get("talkid") for talk in target_talks]
+                    except Exception as pe:
+                        print(f"ERROR: {pe}")
+                        print(f"Which likely means that you have a malformed XML file!\nEither {source} or {target}\n")
+                        source_ids = list()
+                        target_ids = list()
+        else:
+            print(f"File doesn't exist {source} or {target}")
+            source_ids = list()
+            target_ids = list()
 
         comm_talkids = [talkid for talkid in target_ids if talkid in source_ids]
 
@@ -384,45 +403,43 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
             if len(source) == 0 or len(target) == 0:
                 pass
             else:
+                #                 print(f"Source: {len(source)}")
+                #                 print(f"Target: {len(target)}")
+
                 source = source[0]
                 target = target[0]
 
-            if source["head"][0]["description"][0]:
-                if target["head"][0]["description"]:
-                    if target["head"][0]["description"][0]:
+            if source.get("head")[0].get("description") and target.get("head")[0].get("description"):
+                if source.get("head")[0].get("description")[0] and target.get("head")[0].get("description")[0]:
+                    temp_dict = dict()
+                    temp_dict["id"] = source.get("head")[0].get("talkid")[0] + "_1"
+                    temp_dict[language_pair[0]] = (
+                        source.get("head")[0].get("description")[0].replace("TED Talk Subtitles and Transcript: ", "")
+                    )
+                    temp_dict[language_pair[1]] = (
+                        target.get("head")[0].get("description")[0].replace("TED Talk Subtitles and Transcript: ", "")
+                    )
+                    translation.append(temp_dict)
 
-                        temp_dict = dict()
-                        temp_dict["id"] = source.get("head")[0].get("talkid")[0] + "_1"
-                        temp_dict[language_pair[0]] = (
-                            source.get("head")[0]
-                            .get("description")[0]
-                            .replace("TED Talk Subtitles and Transcript: ", "")
-                        )
-                        temp_dict[language_pair[1]] = (
-                            target.get("head")[0]
-                            .get("description")[0]
-                            .replace("TED Talk Subtitles and Transcript: ", "")
-                        )
-                        translation.append(temp_dict)
-
-            if "description" in source.get("head")[0]:
-                if "description" in target.get("head")[0]:
+            if source.get("head")[0].get("title") and target.get("head")[0].get("title"):
+                if source.get("head")[0].get("title")[0] and target.get("head")[0].get("title")[0]:
                     temp_dict = dict()
                     temp_dict["id"] = source.get("head")[0].get("talkid")[0] + "_2"
                     temp_dict[language_pair[0]] = source.get("head")[0].get("title")[0]
                     temp_dict[language_pair[1]] = target.get("head")[0].get("title")[0]
                     translation.append(temp_dict)
 
-            source_transc = source.get("head")[0].get("transcription")[0].get("seekvideo")
-            target_transc = target.get("head")[0].get("transcription")[0].get("seekvideo")
+            if source.get("head")[0].get("seekvideo") and target.get("head")[0].get("seekvideo"):
+                source_transc = source.get("head")[0].get("transcription")[0].get("seekvideo")
+                target_transc = target.get("head")[0].get("transcription")[0].get("seekvideo")
 
-            transc = zip(source_transc, target_transc)
-            transcriptions = [
-                {"id": s.get("id"), language_pair[0]: s.get("text"), language_pair[1]: t.get("text")}
-                for s, t in transc
-            ]
-            translation.extend(transcriptions)
-
+                transc = zip(source_transc, target_transc)
+                transcriptions = [
+                    {"id": s.get("id"), language_pair[0]: s.get("text"), language_pair[1]: t.get("text")}
+                    for s, t in transc
+                ]
+                translation.extend(transcriptions)
+        # print(translation)
         for talk_segment in translation:
             result = {
                 "translation": {
