@@ -150,7 +150,7 @@ English
 #### Config - `Ade_corpos_v2_drug_ade_relation`
 
 - `text` - Input text.
-- `label` - Whether the adverse drug effect(ADE) related or not.
+- `label` - Whether the adverse drug effect(ADE) related (1) or not (0).
 - 
 #### Config - `Ade_corpos_v2_drug_ade_relation`
 
