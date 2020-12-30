@@ -76,7 +76,7 @@ English, Finnish
 ### Data Instances
 ```
 { "sentence": "A confession that you hired [PERSON] ... and are responsible for my father's murder."
-   "labels":	1, 6
+   "labels": [1, 6]
 }
 ```
 
