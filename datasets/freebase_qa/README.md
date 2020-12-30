@@ -1,6 +1,21 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses: []
+multilinguality:
+- monolingual
+size_categories:
+- n<1K
+source_datasets:
+- extended|other-trivia-qa
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
 ---
 
 # Dataset Card for FreebaseQA
@@ -52,11 +67,50 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  "Questions": [
+    {
+      "Question-ID": "FreebaseQA-eval-0", 
+      "RawQuestion": "Who is the female presenter of the Channel 4 quiz show '1001 things you should know'?", 
+      "ProcessedQuestion": "who is the female presenter of the channel 4 quiz show '1001 things you should know'", 
+      "Parses": [
+        {
+          "Parse-Id": "FreebaseQA-eval-0.P0", 
+          "PotentialTopicEntityMention": "1001 things you should know", 
+          "TopicEntityName": "1001 things you should know", 
+          "TopicEntityMid": "m.0nd3t34", 
+          "InferentialChain": "tv.tv_program.regular_personal_appearances..tv.tv_regular_personal_appearance.person", 
+          "Answers": [
+            {
+              "AnswersMid": "m.0216y_", 
+              "AnswersName": [
+                "sandi toksvig"
+              ]
+            }
+          ]
+        }
+      ]
+    }, 
+   ...
+  ]
+}
+```
 
 ### Data Fields
-
-[More Information Needed]
+Questions: The set of unique questions in this data set
+Question-ID: The unique ID of each question
+RawQuestion: The original question collected from data sources
+ProcessedQuestion: The question processed with some operations such as removal of trailing question mark and decapitalization
+Parses: The semantic parse(s) for the question
+Parse-Id: The ID of each semantic parse
+PotentialTopicEntityMention: The potential topic entity mention in the question
+TopicEntityName: The name or alias of the topic entity in the question from Freebase
+TopicEntityMid: The Freebase MID of the topic entity in the question
+InferentialChain: The path from the topic entity node to the answer node in Freebase, labeled as a predicate
+Answers: The answer found from this parse
+AnswersMid: The Freebase MID of the answer
+AnswersName: The answer string from the original question-answer pair
 
 ### Data Splits
 This data set contains 28,348 unique questions that are divided into three subsets: train (20,358), dev (3,994) and eval (3,996), formatted as JSON files: FreebaseQA-[train|dev|eval].json
