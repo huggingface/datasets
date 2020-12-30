@@ -69,13 +69,42 @@ class XedEnFi(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
-                    "labels": datasets.Sequence(datasets.features.ClassLabel(names=["neutral", "anger", "anticipation", "disgust", "fear", "joy", "sadness", "surprise", "trust"]))
+                    "labels": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "neutral",
+                                "anger",
+                                "anticipation",
+                                "disgust",
+                                "fear",
+                                "joy",
+                                "sadness",
+                                "surprise",
+                                "trust",
+                            ]
+                        )
+                    )
                     # the number indicates the emotion in ascending alphabetical order: neutral:0, anger:1, anticipation:2, disgust:3, fear:4, joy:5, #sadness:6, surprise:7, trust:8 in the text.
                 }
             )
         else:
             features = datasets.Features(
-                {"sentence": datasets.Value("string"), "labels": datasets.features.ClassLabel(names=["neutral", "anger", "anticipation", "disgust", "fear", "joy", "sadness", "surprise", "trust"])}
+                {
+                    "sentence": datasets.Value("string"),
+                    "labels": datasets.features.ClassLabel(
+                        names=[
+                            "neutral",
+                            "anger",
+                            "anticipation",
+                            "disgust",
+                            "fear",
+                            "joy",
+                            "sadness",
+                            "surprise",
+                            "trust",
+                        ]
+                    ),
+                }
             )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
