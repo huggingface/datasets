@@ -93,15 +93,65 @@ English
 
 ### Data Instances
 
-[Needs More Information]
+#### Config - `Ade_corpos_v2_classificaion`
+```
+{
+      'label': 1, 
+      'text': 'Intravenous azithromycin-induced ototoxicity.'
+}
+
+```
+
+#### Config - `Ade_corpos_v2_drug_ade_relation`
+
+```
+{ 
+    'drug': 'azithromycin', 
+    'effect': 'ototoxicity', 
+    'indexes': {
+                  'drug': {
+                            'end_char': [24], 
+                            'start_char': [12]
+                          }, 
+                  'effect': {
+                            'end_char': [44], 
+                            'start_char': [33]
+                            }
+                }, 
+    'text': 'Intravenous azithromycin-induced ototoxicity.'
+    
+}
+
+```
+
+#### Config - `Ade_corpos_v2_drug_dosage_relation`
+
+```
+{
+    'dosage': '4 times per day', 
+    'drug': 'insulin', 
+    'indexes': {
+                'dosage': {
+                            'end_char': [56], 
+                            'start_char': [41]
+                        }, 
+                'drug': {
+                          'end_char': [40], 
+                          'start_char': [33]}
+                        }, 
+    'text': 'She continued to receive regular insulin 4 times per day over the following 3 years with only occasional hives.'
+}
+
+```
+
 
 ### Data Fields
 
-
-#### Config - `Ade_corpos_v2_classificaion`
+#### Config - `Ade_corpos_v2_drug_ade_relation`
 
 - `text` - Input text.
-- `label` - Whether the adverse drug effect(ADE) related or not.
+- `label` - Whether the adverse drug effect(ADE) related (1) or not (0).
+- 
 #### Config - `Ade_corpos_v2_drug_ade_relation`
 
 - `text` - Input text.
