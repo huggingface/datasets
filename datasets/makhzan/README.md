@@ -63,7 +63,7 @@ An Urdu text corpus for machine learning, natural language processing and lingui
 
 ### Languages
 
-[More Information Needed]
+ur
 
 ## Dataset Structure
 
