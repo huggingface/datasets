@@ -41,8 +41,8 @@ _REPO = "https://raw.githubusercontent.com/kelvin-jiang/FreebaseQA/master/"
 
 _URLs = {
     "train": _REPO + "FreebaseQA-train.json",
-    "eval": _REPO + "FreebaseQA-dev.json",
-    "test": _REPO + "FreebaseQA-eval.json",
+    "eval": _REPO + "FreebaseQA-eval.json",
+    "dev": _REPO + "FreebaseQA-dev.json",
 }
 
 
@@ -53,22 +53,24 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {
-                "Question-ID": datasets.Value("string"),
-                "RawQuestion": datasets.Value("string"),
-                "ProcessedQuestion": datasets.Value("string"),
-                "Parses": datasets.Sequence({
-                    "Parse-Id": datasets.Value("string"),
-                    "PotentialTopicEntityMention": datasets.Value("string"),
-                    "TopicEntityName": datasets.Value("string"),
-                    "TopicEntityMid": datasets.Value("string"),
-                    "InferentialChain": datasets.Value("string"),
-                    "Answers": datasets.Sequence({
-                        "AnswersMid": datasets.Value("string"),
-                        "AnswersName": datasets.Sequence([datasets.Value("string")]),
+            {"Questions": datasets.Sequence(
+                {
+                    "Question-ID": datasets.Value("string"),
+                    "RawQuestion": datasets.Value("string"),
+                    "ProcessedQuestion": datasets.Value("string"),
+                    "Parses": datasets.Sequence({
+                        "Parse-Id": datasets.Value("string"),
+                        "PotentialTopicEntityMention": datasets.Value("string"),
+                        "TopicEntityName": datasets.Value("string"),
+                        "TopicEntityMid": datasets.Value("string"),
+                        "InferentialChain": datasets.Value("string"),
+                        "Answers": datasets.Sequence({
+                            "AnswersMid": datasets.Value("string"),
+                            "AnswersName": datasets.Sequence(datasets.Value("string")),
+                        }),
                     }),
-                }),
-            }
+                }
+            )}
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -94,7 +96,7 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": data_dir["test"],
+                    "filepath": data_dir["dev"],
                     "split": "test",
                 },
             ),
@@ -102,7 +104,7 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": data_dir["eval"],
-                    "split": "dev",
+                    "split": "eval",
                 },
             ),
         ]
@@ -114,9 +116,11 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
             dataset = json.load(f)
 
             if "Questions" in dataset:
+                questions = []
                 for data in dataset["Questions"]:
                     id_ = data["Question-ID"]
                     parses = []
+
                     for item in data["Parses"]:
                         answers = [answer for answer in item["Answers"]]
 
@@ -131,9 +135,14 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
                             },
                         )
 
-                    yield id_, {
+                    question = {
                         "Question-ID": data["Question-ID"],
                         "RawQuestion": data["RawQuestion"],
                         "ProcessedQuestion": data["ProcessedQuestion"],
                         "Parses": parses
                     }
+                    questions.append(question)
+
+            yield id_, {
+                "Questions": questions
+            }
