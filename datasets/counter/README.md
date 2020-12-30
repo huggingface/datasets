@@ -64,7 +64,7 @@ other:text-reuse
 
 ### Languages
 
-[More Information Needed]
+ur
 
 ## Dataset Structure
 
