@@ -77,24 +77,32 @@ A record consists of 8 features:
 ```python
 record = ['id','title', 'article', 'summary', 'category', 'categories', 'network', 'link']
 ```
-In the following table, you can a few examples of `pn_summmary`.
+In the following, you can see an example of `pn_summmary`.
 
-|   | id              | title                                            | article                                                                                                                                                                                                                                                                                                                                                                              | summary                                                                                                                                                                                                | category   | categories | network | link                      |
-|---|-----------------|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|------------|---------|---------------------------|
-| 1 | 738e296491f ... | مدیریت فروش نفت در دوران تحریم هوشمندانه عمل کرد | به گزارش شانا، علی کاردر امروز (۲۷ دی ماه) در مراسم تودیع محسن قمصری، مدیر سابق امور بین الملل شرکت ملی نفت ایران و معارفه سعید خوشرو، مدیر جدید امور بین الملل این شرکت، گفت: مدیریت امور بین‎الملل به عنوان یکی از تاثیرگذارترین مدیریت‌های شرکت ملی نفت ایران در دوران تحریم‌های ظالمانه غرب علیه کشورمان بسیار هوشمندانه عمل کرد و ما توانستیم به خوبی از عهده تحریم‌ها برآییم (...) | مدیرعامل شرکت ملی نفت، عملکرد مدیریت امور بین‎الملل این شرکت را در دوران تحریم بسیار هوشمندانه خواند و گفت: امور بین الملل در دوران پس از تحریم‎ها نیز می‌تواند نقش بزرگی در تسریع روند توسعه داشته باشد. | Oil-Energy | نفت        | Shana   | https://www.shana.ir/ ... |
-| 2 | 00fa692a17 ...  | سبد محصولات پتروشیمی متنوع می‌شود                 | به گزارش شانا به نقل از شرکت ملی صنایع پتروشیمی، علی‌اصغر گودرزی‌فراهانی با اشاره به اینکه همه طرح‌های در حال اجرای صنعت پتروشیمی براساس پیشرفت فیزیکی و پیش‌بینی زمان راه‌اندازی در قالب طرح‌های جهش دوم و سوم تقسیم‌بندی شده‌اند، اظهار کرد: انتظار داریم که طرح‌های جهش دوم صنعت پتروشیمی که پیشرفت‌های (...)                                                                               | سرپرست مدیریت برنامه‌ریزی و توسعه شرکت ملی صنایع پتروشیمی گفت: تنوع محصولات پتروشیمی ایران با بهره‌برداری از طرح‌های جهش دوم و سوم صنعت پتروشیمی افزایش می‌یابد.                                           | Oil-Energy | پتروشیمی   | Shana   | https://www.shana.ir ...  |
+```json
+{
+    "article": "به گزارش شانا، علی کاردر امروز (۲۷ دی ماه) در مراسم تودیع محسن قمصری، مدیر سابق امور بین الملل شرکت ملی نفت ایران و معارفه سعید خوشرو، مدیر جدید امور بین الملل این شرکت، گفت: مدیریت امور بین\u200eالملل به عنوان یکی از تاثیرگذارترین مدیریت\u200cهای شرکت ملی نفت ایران در دوران تحریم\u200cهای ظالمانه غرب علیه کشورمان بسیار هوشمندانه عمل کرد و ما توانستیم به خوبی از عهده تحریم\u200cها برآییم. [n] وی افزود: مجموعه امور بین الملل در همه دوران\u200cها با سختی\u200cها و مشکلات بسیاری مواجه بوده است، به ویژه در دوره اخیر به دلیل مسائل پیرامون تحریم وظیفه سنگینی بر عهده داشت که با تدبیر مدیریت خوب این مجموعه سربلند از آن بیرون آمد. [n] کاردر با قدردانی از زحمات محسن قمصری، به سلامت مدیریت امور بین الملل این شرکت اشاره کرد و افزود: محوریت کار مدیریت اموربین الملل سلامت مالی بوده است. [n] وی بر ضرورت نهادینه سازی جوانگرایی در مدیریت شرکت ملی نفت ایران تاکید کرد و گفت: مدیریت امور بین الملل در پرورش نیروهای زبده و کارآزموده آنچنان قوی عملکرده است که برای انتخاب مدیر جدید مشکلی وجود نداشت. [n] کاردر، حرفه\u200eای\u200eگری و کار استاندارد را از ویژگی\u200cهای مدیران این مدیریت برشمرد و گفت: نگاه جامع، خلاقیت و نوآوری و بکارگیری نیروهای جوان باید همچنان مد نظر مدیریت جدید امور بین الملل شرکت ملی نفت ایران باشد.",
+    "categories": "نفت",
+    "category": 5,
+    "id": "738e296491f8b24c5aa63e9829fd249fb4428a66",
+    "link": "https://www.shana.ir/news/275284/%D9%85%D8%AF%DB%8C%D8%B1%DB%8C%D8%AA-%D9%81%D8%B1%D9%88%D8%B4-%D9%86%D9%81%D8%AA-%D8%AF%D8%B1-%D8%AF%D9%88%D8%B1%D8%A7%D9%86-%D8%AA%D8%AD%D8%B1%DB%8C%D9%85-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF%D8%A7%D9%86%D9%87-%D8%B9%D9%85%D9%84-%DA%A9%D8%B1%D8%AF",
+    "network": 2,
+    "summary": "مدیرعامل شرکت ملی نفت، عملکرد مدیریت امور بین\u200eالملل این شرکت را در دوران تحریم بسیار هوشمندانه خواند و گفت: امور بین الملل در دوران پس از تحریم\u200eها نیز می\u200cتواند نقش بزرگی در تسریع روند توسعه داشته باشد.",
+    "title": "مدیریت فروش نفت در دوران تحریم هوشمندانه عمل کرد"
+}
+```
 
 
 ### Data Fields
 
-- `id`: (`string`), id of the news.
-- `title`: (`string`), the title of the news.
-- `article`: (`string`) the article of the news.
-- `summary`: (`string`), the summary of the news.
-- `category`: (`classification label`), the category of news in English, with possible values including `Economy`, `Roads-Urban`, `Banking-Insurance`, `Agriculture`, `International`..
-- `categories`: (`string`), the category and sub-category of the news in Persian.
-- `network`: (`classification label`), the name of the news agency, with possible values including `Tahlilbazaar`, `Imna`, `Shana`, `Mehr`, `Irna`..
-- `link`: (`string`), the link of the news.
+- `id (string)`: ID of the news.
+- `title (string)`: The title of the news.
+- `article (string)`: The article of the news.
+- `summary (string)`: The summary of the news.
+- `category (int)`: The category of news in English (index of categories), including `Economy`, `Roads-Urban`, `Banking-Insurance`, `Agriculture`, `International`, `Oil-Energy`, `Industry`, `Transportation`, `Science-Technology`, `Local`, `Sports`, `Politics`, `Art-Culture`, `Society`, `Health`, `Research`, `Education-University`, `Tourism`.
+- `categories (string)`: The category and sub-category of the news in Persian.
+- `network (int)`: The news agency name (index of news agencies), including `Tahlilbazaar`, `Imna`, `Shana`, `Mehr`, `Irna`, `Khabaronline`.
+- `link (string)`: The link of the news.
 
 The category in English includes 18 different article categories from economy to tourism. 
 
