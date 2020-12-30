@@ -21,7 +21,6 @@ import os
 
 import datasets
 
-
 _CITATION = """\
 @article{pnSummary, title={Leveraging ParsBERT and Pretrained mT5 for Persian Abstractive Text Summarization},
 author={Mehrdad Farahani, Mohammad Gharachorloo, Mohammad Manthouri},
@@ -34,6 +33,7 @@ primaryClass={cs.CL}
 
 _DESCRIPTION = """\
 A well-structured summarization dataset for the Persian language consists of 93,207 records. It is prepared for Abstractive/Extractive tasks (like cnn_dailymail for English). It can also be used in other scopes like Text Generation, Title Generation, and News Category Classification.
+It is imperative to consider that the newlines were replaced with the `[n]` symbol. Please interpret them into normal newlines (for ex. `t.replace("[n]", "\n")`) and then use them for your purposes.
 """
 
 _HOMEPAGE = "https://github.com/hooshvare/pn-summary"
@@ -41,8 +41,44 @@ _LICENSE = "MIT License"
 
 _URLs = {
     "1.0.0": {
-        "data": "https://drive.google.com/u/0/uc?id=11wz8cKuTfGpNWIgRypD3rUmpaBeYU4NL&export=download",
-        "features": ["id", "title", "article", "summary", "category", "categories", "network", "link"],
+        "data": "https://drive.google.com/u/0/uc?id=16OgJ_OrfzUF_i3ftLjFn9kpcyoi7UJeO&export=download",
+        "features": [
+            {"name": "id", "type": datasets.Value("string")},
+            {"name": "title", "type": datasets.Value("string")},
+            {"name": "article", "type": datasets.Value("string")},
+            {"name": "summary", "type": datasets.Value("string")},
+            {
+                "name": "category",
+                "type": datasets.ClassLabel(
+                    names=[
+                        "Economy",
+                        "Roads-Urban",
+                        "Banking-Insurance",
+                        "Agriculture",
+                        "International",
+                        "Oil-Energy",
+                        "Industry",
+                        "Transportation",
+                        "Science-Technology",
+                        "Local",
+                        "Sports",
+                        "Politics",
+                        "Art-Culture",
+                        "Society",
+                        "Health",
+                        "Research",
+                        "Education-University",
+                        "Tourism",
+                    ]
+                ),
+            },
+            {"name": "categories", "type": datasets.Value("string")},
+            {
+                "name": "network",
+                "type": datasets.ClassLabel(names=["Tahlilbazaar", "Imna", "Shana", "Mehr", "Irna", "Khabaronline"]),
+            },
+            {"name": "link", "type": datasets.Value("string")},
+        ],
     }
 }
 
@@ -65,11 +101,9 @@ class PnSummary(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "1.0.0"
-
     def _info(self):
-        feature_names = _URLs[self.config.name]["features"]
-        features = datasets.Features({fn: datasets.Value("string") for fn in feature_names})
+        feature_names_types = _URLs[self.config.name]["features"]
+        features = datasets.Features({f["name"]: f["type"] for f in feature_names_types})
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, citation=_CITATION
@@ -104,9 +138,10 @@ class PnSummary(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        features = _URLs[self.config.name]["features"]
+        feature_names_types = _URLs[self.config.name]["features"]
+        features = [f["name"] for f in feature_names_types]
         with open(filepath, encoding="utf-8") as csv_file:
-            reader = csv.DictReader(csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_ALL)
+            reader = csv.DictReader(csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_MINIMAL)
 
             for _id, row in enumerate(reader):
                 if len(row) == len(features):

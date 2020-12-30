@@ -52,12 +52,13 @@ task_ids:
 - **Homepage:** https://github.com/hooshvare/pn-summary/
 - **Repository:** https://github.com/hooshvare/pn-summary/
 - **Paper:** https://arxiv.org/abs/2012.11204
-- **Leaderboard:** [Needs More Information]
+- **Leaderboard:** [More Information Needed]
 - **Point of Contact:** [Mehrdad Farahani](mailto:m3hrdadfphi@gmail.com)
 
 ### Dataset Summary
 
 A well-structured summarization dataset for the Persian language consists of 93,207 records. It is prepared for Abstractive/Extractive tasks (like cnn_dailymail for English). It can also be used in other scopes like Text Generation, Title Generation, and News Category Classification.
+It is imperative to consider that the newlines were replaced with the `[n]` symbol. Please interpret them into normal newlines (for ex. `t.replace("[n]", "\n")`) and then use them for your purposes.
 
 ### Supported Tasks and Leaderboards
 
@@ -74,16 +75,7 @@ The dataset covers Persian mostly and somewhere a combination with English.
 A record consists of 8 features:
 
 ```python
-record = {
-    'id': 'string',
-    'title': 'string',
-    'article': 'string',
-    'summary': 'string',
-    'category': 'string',
-    'categories': 'string',
-    'network': 'string',
-    'link': 'string',
-}
+record = ['id','title', 'article', 'summary', 'category', 'categories', 'network', 'link']
 ```
 In the following table, you can a few examples of `pn_summmary`.
 
@@ -95,14 +87,14 @@ In the following table, you can a few examples of `pn_summmary`.
 
 ### Data Fields
 
-- `id`: id of the news.
-- `title`: the title of the news.
-- `article`: the article of the news.
-- `summary`: the summary of the news.
-- `category`: the category of news in English.
-- `categories`: the category and sub-category of the news in Persian.
-- `network`: the name of the news agency.
-- `link`: the link of the news.
+- `id`: (`string`), id of the news.
+- `title`: (`string`), the title of the news.
+- `article`: (`string`) the article of the news.
+- `summary`: (`string`), the summary of the news.
+- `category`: (`classification label`), the category of news in English, with possible values including `Economy`, `Roads-Urban`, `Banking-Insurance`, `Agriculture`, `International`..
+- `categories`: (`string`), the category and sub-category of the news in Persian.
+- `network`: (`classification label`), the name of the news agency, with possible values including `Tahlilbazaar`, `Imna`, `Shana`, `Mehr`, `Irna`..
+- `link`: (`string`), the link of the news.
 
 The category in English includes 18 different article categories from economy to tourism. 
 
@@ -118,13 +110,13 @@ Training (82,022 records, 8 features), validation (5,592 records, 8 features), a
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
@@ -142,21 +134,21 @@ The dataset was organized by [Mehrdad Farahani](https://github.com/m3hrdadfi), [
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
