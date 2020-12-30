@@ -50,18 +50,17 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Needs More Information]
-- **Repository:** https://github.com/Helsinki-NLP/XED
-- **Paper:** https://arxiv.org/pdf/2011.01612.pdf
-- **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Homepage:**
+- **Repository:** [Github](https://github.com/Helsinki-NLP/XED)
+- **Paper:** [Arxiv](https://arxiv.org/abs/2011.01612)
+- **Leaderboard:**
+- **Point of Contact:**
 
 ### Dataset Summary
 
 This is the XED dataset. The dataset consists of emotion annotated movie subtitles from OPUS. We use Plutchik's 8 core emotions to annotate. The data is multilabel. The original annotations have been sourced for mainly English and Finnish.
 For the English data we used Stanford NER (named entity recognition) (Finkel et al., 2005) to replace names and locations with the tags: [PERSON] and [LOCATION] respectively.
 For the Finnish data, we replaced names and locations using the Turku NER corpus (Luoma et al., 2020).
-
 
 ### Supported Tasks and Leaderboards
 
@@ -74,74 +73,79 @@ English, Finnish
 ## Dataset Structure
 
 ### Data Instances
+
 ```
 { "sentence": "A confession that you hired [PERSON] ... and are responsible for my father's murder."
-   "labels": [1, 6]
+   "labels": [1, 6]  # anger, sadness
 }
 ```
 
 ### Data Fields
 
 - sentence: a line from the dataset
-- labels: labels corresponding to the emotion
+- labels: labels corresponding to the emotion as an integer
 
-Where the number indicates the emotion in ascending alphabetical order: anger:1, anticipation:2, disgust:3, fear:4, joy:5, sadness:6, surprise:7, trust:8, with neutral:0 where applicable. 
+Where the number indicates the emotion in ascending alphabetical order: anger:1, anticipation:2, disgust:3, fear:4, joy:5, sadness:6, surprise:7, trust:8, with neutral:0 where applicable.
 
 ### Data Splits
 
 For English:
-Number of unique data points:	17530 + 6420 (neutral)
-Number of emotions:	8 (+pos, neg, neu)
+Number of unique data points: 17528 ('en_annotated' config) + 9675 ('en_neutral' config)
+Number of emotions: 8 (+neutral)
+
+For Finnish:
+Number of unique data points: 14449 ('fi_annotated' config) + 10794 ('fi_neutral' config)
+Number of emotions: 8 (+neutral)
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[Needs More Information]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[Needs More Information]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[Needs More Information]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+[More Information Needed]
 
 ### Licensing Information
 
