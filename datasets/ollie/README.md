@@ -14,12 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- text-retrieval
+- other
 task_ids:
-- entity-linking-retrieval
-- fact-checking-retrieval
 - other-stuctured-to-text
+- other-other-relation-extraction
 ---
 
 # Dataset Card for Ollie
@@ -49,17 +47,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-https://knowitall.github.io/ollie/
-- **Repository:**
-https://knowitall.github.io/ollie/
-- **Paper:**
-@inproceedings{ollie-emnlp12,
-  author = {Mausam and Michael Schmitz and Robert Bart and Stephen Soderland and Oren Etzioni},
-  title = {Open Language Learning for Information Extraction},
-  booktitle = {Proceedings of Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning (EMNLP-CONLL)},
-  year = {2012}
-}
+- **Homepage:** [Ollie](https://knowitall.github.io/ollie/)
+- **Repository:** [Github](https://github.com/knowitall/ollie)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/D12-1048/)
 
 ### Dataset Summary
 
