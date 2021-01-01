@@ -290,7 +290,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
 
         language_pair = self.config.name.split("_")
-        print(language_pair)
+        #print(language_pair)
         path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         if not os.path.exists(path_to_manual_file):
@@ -342,7 +342,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         source = filepath[0]
         target = filepath[1]
 
-        print(filepath)
+        #print(filepath)
         language_pair = self.config.name.split("_")
 
         def et_to_dict(tree):
@@ -368,7 +368,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
             return dct
 
         if os.path.exists(source) and os.path.exists(target):
-
+            
             with zipfile.ZipFile(source) as zf_source:
                 with zipfile.ZipFile(target) as zf_target:
                     try:
