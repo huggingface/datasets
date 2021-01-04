@@ -98,7 +98,9 @@ Utterances marked as Non-verbal ('x' tags) are removed i.e. 'Laughter' or 'Throa
 Utterances marked as Interrupted ('+' tags) and continued later are concatenated to make un-interrupted sentences.
 All disfluency annotations are removed i.e. '#', '<', '>', etc.
 
-## Dialogue Acts
+
+The different dialog acts and their counts are registered in this table:
+
 Dialogue Act                   |        Labels        |  Count   |    %     |   Train Count   | Train %  |   Test Count    |  Test %  |    Val Count    |  Val %  
 --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---:
 Statement-non-opinion          |          sd          |  75136   |  37.62   |      72549      |  37.71   |      1317       |  32.30   |      1270       |  38.81  
