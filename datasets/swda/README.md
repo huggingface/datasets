@@ -12,14 +12,7 @@ multilinguality:
 size_categories:
 - n<1K
 source_datasets:
-- extended|other-The Switchboard Dialog Act Corpus (SwDA) extends the Switchboard-1
-  Telephone Speech Corpus, Release 2 with  turn/utterance-level dialog-act tags. The
-  tags summarize syntactic, semantic, and pragmatic information about the  associated
-  turn. The SwDA project was undertaken at UC Boulder in the late 1990s. The SwDA
-  is not inherently linked to the Penn Treebank 3 parses of Switchboard, and it is
-  far from straightforward to  align the two resources. In addition, the SwDA is not
-  distributed with the Switchboard's tables of metadata about the  conversations and
-  their participants.
+- extended|other-Switchboard-1 Telephone Speech Corpus, Release 2
 task_categories:
 - text-classification
 task_ids:
