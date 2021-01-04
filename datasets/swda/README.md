@@ -84,24 +84,67 @@ Utterance are tagged with the [SWBD-DAMSL](https://web.stanford.edu/~jurafsky/ws
 
 ### Data Instances
 
-A|What is the nature of your company's business?|qw
-
-B|Well, it's actually, uh,|^h
-
-B|we do oil well services.|sd
+`{'dialogue_act_tag': 17, 'speaker': 0, 'utterance_text': 'Okay.'}`
 
 ### Data Fields
+`speaker` - Refers to the current speaker talking. It is used to detect when a speaker change occurs.
+There are two values for speaker: `A` and `B`. This does not mean we only have tow speakers in the whole datasets. 
+It's only used to signal if next utterance is from same speaker or from next speaker. Since we encoded all labels 
+`A=0` and `B=1`.
 
-Utterances are written one per line in the format Speaker | Utterance Text | Dialogue Act Tag.
-Setting the utterance_only_flag == True, will change the default output to only one utterance per line i.e. no speaker or DA tags.
-Utterances marked as Non-verbal ('x' tags) are removed i.e. 'Laughter' or 'Throat_clearing'.
-Utterances marked as Interrupted ('+' tags) and continued later are concatenated to make un-interrupted sentences.
-All disfluency annotations are removed i.e. '#', '<', '>', etc.
+`utterance_text` - Text that a speaker says.
+
+`dialogue_act_tag` - Dialogue act label associated with the `utterance_text`. There are 41 dialogue act labels for this
+dataset. Each dialogue act label has a specific meaning:
+
+| Dialogue Act                 	| Labels          	|
+|------------------------------	|-----------------	|
+| Statement-non-opinion        	| sd              	|
+| Acknowledge (Backchannel)    	| b               	|
+| Statement-opinion            	| sv              	|
+| Uninterpretable              	| %               	|
+| Agree/Accept                 	| aa              	|
+| Appreciation                 	| ba              	|
+| Yes-No-Question              	| qy              	|
+| Yes Answers                  	| ny              	|
+| Conventional-closing         	| fc              	|
+| Wh-Question                  	| qw              	|
+| No Answers                   	| nn              	|
+| Response Acknowledgement     	| bk              	|
+| Hedge                        	| h               	|
+| Declarative Yes-No-Question  	| qy^d            	|
+| Backchannel in Question Form 	| bh              	|
+| Quotation                    	| ^q              	|
+| Summarize/Reformulate        	| bf              	|
+| Other                        	| fo_o_fw_"_by_bc 	|
+| Affirmative Non-yes Answers  	| na              	|
+| Action-directive             	| ad              	|
+| Collaborative Completion     	| ^2              	|
+| Repeat-phrase                	| b^m             	|
+| Open-Question                	| qo              	|
+| Rhetorical-Question          	| qh              	|
+| Hold Before Answer/Agreement 	| ^h              	|
+| Reject                       	| ar              	|
+| Negative Non-no Answers      	| ng              	|
+| Signal-non-understanding     	| br              	|
+| Other Answers                	| no              	|
+| Conventional-opening         	| fp              	|
+| Or-Clause                    	| qrr             	|
+| Dispreferred Answers         	| arp_nd          	|
+| 3rd-party-talk               	| t3              	|
+| Offers, Options Commits      	| oo_co_cc        	|
+| Maybe/Accept-part            	| aap_am          	|
+| Downplayer                   	| t1              	|
+| Self-talk                    	| bd              	|
+| Tag-Question                 	| ^g              	|
+| Declarative Wh-Question      	| qw^d            	|
+| Apology                      	| fa              	|
+| Thanking                     	| ft              	|                      |          ft          |    78    |   0.04   |       67        |   0.03   |        7        |   0.17   |        4        |   0.12  
 
 
-The different dialog acts and their counts are registered in this table:
+## Data Stats
 
-Dialogue Act                   |        Labels        |  Count   |    %     |   Train Count   | Train %  |   Test Count    |  Test %  |    Val Count    |  Val %  
+|Dialogue Act                   |        Labels        |  Count   |    %     |   Train Count   | Train %  |   Test Count    |  Test %  |    Val Count    |  Val %  
 --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---:
 Statement-non-opinion          |          sd          |  75136   |  37.62   |      72549      |  37.71   |      1317       |  32.30   |      1270       |  38.81  
 Acknowledge (Backchannel)      |          b           |  38281   |  19.17   |      36950      |  19.21   |       764       |  18.73   |       567       |  17.33  
@@ -145,7 +188,8 @@ Declarative Wh-Question        |         qw^d         |    80    |   0.04   |   
 Apology                        |          fa          |    79    |   0.04   |       76        |   0.04   |        2        |   0.05   |        1        |   0.03  
 Thanking                       |          ft          |    78    |   0.04   |       67        |   0.03   |        7        |   0.17   |        4        |   0.12  
 
-![Label Frequencies](swda_data/metadata/Swda%20Label%20Frequency%20Distributions.png)
+
+![Label Frequencies](https://raw.githubusercontent.com/NathanDuran/Switchboard-Corpus/master/swda_data/metadata/Swda%20Label%20Frequency%20Distributions.png)
 
 ### Data Splits
 
