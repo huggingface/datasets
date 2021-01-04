@@ -62,7 +62,7 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
     >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
     >>>
     >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
-    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.max_len]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
+    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
     >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["label"])).batch(32)
     >>> next(iter(tfdataset))
     ({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=

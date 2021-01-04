@@ -12,7 +12,7 @@ In this section we study each option.
 From the HuggingFace Hub
 -------------------------------------------------
 
-Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/nlp/viewer>`__.
+Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 .. note::
 
@@ -42,7 +42,7 @@ All the datasets currently available on the `Hub <https://huggingface.co/dataset
 
 To load a dataset from the Hub we use the :func:`datasets.load_dataset` command and give it the short name of the dataset you would like to load as listed above or on the `Hub <https://huggingface.co/datasets>`__.
 
-Let's load the **SQuAD dataset for Question Answering**. You can explore this dataset and find more details about it `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=squad>`__ (which is actually just a wrapper on top of the :class:`datasets.Dataset` we will now create):
+Let's load the **SQuAD dataset for Question Answering**. You can explore this dataset and find more details about it `on the online viewer here <https://huggingface.co/datasets/viewer/?dataset=squad>`__ (which is actually just a wrapper on top of the :class:`datasets.Dataset` we will now create):
 
 .. code-block::
 
@@ -201,9 +201,9 @@ The ``csv`` loading script provides a few simple access options to control parsi
 
     - :obj:`skip_rows` (int) - Number of first rows in the file to skip (default is 0)
     - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
-    - :obj:`autogenerate_column_names` (bool) – Whether to autogenerate column names if column_names is empty. If true, column names will be of the form “f0”, “f1”… If false, column names will be read from the first CSV row after skip_rows (default False).
     - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
-    - :obj:`quote_char` (1-character string or False) – The character used optionally for quoting CSV values (False if quoting is not allowed, default '"').
+    - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default '"').
+    - :obj:`quoting` (bool) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to pandas.read_csv documentation for more details).
 
 If you want more control, the ``csv`` script provide full control on reading, parsong and convertion through the Apache Arrow `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__, `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ and `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__
 
@@ -337,5 +337,4 @@ You can use a local loading script just by providing its path instead of the usu
     >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
 
 We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__.
-
 

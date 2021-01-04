@@ -30,8 +30,8 @@ FN: False negative
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Ground truth labels.
-    references: Predicted labels, as returned by a model.
+    predictions: Predicted labels, as returned by a model.
+    references: Ground truth labels.
     normalize: If False, return the number of correctly classified samples.
         Otherwise, return the fraction of correctly classified samples.
     sample_weight: Sample weights.

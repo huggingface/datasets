@@ -420,7 +420,8 @@ class DatasetDict(dict):
 
     def shuffle(
         self,
-        seeds: Optional[Dict[str, int]] = None,
+        seeds: Optional[Union[int, Dict[str, int]]] = None,
+        seed: Optional[int] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
@@ -434,10 +435,11 @@ class DatasetDict(dict):
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seeds (Optional `Dict[str, int]`): A seed to initialize the default BitGenerator if ``generator=None``.
+            seeds (Optional `Dict[str, int]` or `int`): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-                You have to provide one :obj:`seed` per dataset in the dataset dictionary.
+                You can provide one :obj:`seed` per dataset in the dataset dictionary.
+            seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``. Alias for seeds (the seed argument has priority over seeds if both arguments are provided).
             generators (Optional `Dict[str, np.random.Generator]`): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                 You have to provide one :obj:`generator` per dataset in the dataset dictionary.
@@ -451,8 +453,13 @@ class DatasetDict(dict):
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
         self._check_values_type()
+        if seed is not None and seeds is not None:
+            raise ValueError("Please specify seed or seeds, but not both")
+        seeds = seed if seed is not None else seeds
         if seeds is None:
             seeds = {k: None for k in self}
+        elif not isinstance(seeds, dict):
+            seeds = {k: seeds for k in self}
         if generators is None:
             generators = {k: None for k in self}
         if indices_cache_file_names is None:
