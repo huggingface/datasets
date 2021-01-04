@@ -30,7 +30,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
-                    "sentiment": datasets.ClassLabel(names=["positive", "negative"]),
+                    "sentiment": datasets.ClassLabel(names=["negative", "positive"]),
                 }
             ),
             citation=_CITATION,
@@ -50,7 +50,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, filenames):
         """Generate TurkishProductReviews examples."""
         logging.info("⏳ Generating examples from = %s", filepath)
-        for f in filenames:
+        for f in sorted(filenames):
             filename, file_extension = os.path.splitext(f)
             label = "negative" if file_extension == "neg" else "positive"
 

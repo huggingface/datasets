@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<300K
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -76,7 +76,7 @@ The dataset is based on Turkish.
 ### Data Fields
 
 - **sentence**(string) : Contatins turkish product review
-- **sentiment**(string) : Positive or negative
+- **sentiment**(int) : 0 (negative) or 1 (positive)
 
 ### Data Splits
 
