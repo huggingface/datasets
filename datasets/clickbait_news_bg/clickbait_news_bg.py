@@ -17,6 +17,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
 
 import datasets
@@ -105,14 +106,15 @@ class ClickbaitNewsBG(datasets.GeneratorBasedBuilder):
             "content_published_time",
             "content",
         ]
-        data = pd.read_excel(filepath)
-        for id_, row in enumerate(data.itertuples()):
-            row_dict = dict()
-            for key, value in zip(keys, row[1:]):
-                if key == "fake_news_score":
-                    row_dict[key] = "legitimate" if value == 1 else "fake"
-                elif key == "click_bait_score":
-                    row_dict[key] = "normal" if value == 1 else "clickbait"
-                else:
-                    row_dict[key] = str(value)
-            yield id_, row_dict
+        with open(filepath, "rb") as f:
+            data = pd.read_excel(f, engine="openpyxl")
+            for id_, row in enumerate(data.itertuples()):
+                row_dict = dict()
+                for key, value in zip(keys, row[1:]):
+                    if key == "fake_news_score":
+                        row_dict[key] = "legitimate" if value == 1 else "fake"
+                    elif key == "click_bait_score":
+                        row_dict[key] = "normal" if value == 1 else "clickbait"
+                    else:
+                        row_dict[key] = str(value)
+                yield id_, row_dict
