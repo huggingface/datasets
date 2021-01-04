@@ -102,6 +102,7 @@ TESTS_REQUIRE = [
     'lxml',
     'mwparserfromhell',
     'nltk',
+    'openpyxl',
     'py7zr',
     'pytest',
     'pytest-xdist',
@@ -109,7 +110,6 @@ TESTS_REQUIRE = [
     'torch',
     'tldextract',
     'transformers',
-    'xlrd==1.2.0',  # pinning to keep the xlsx support. We should eventually use something else
     'zstandard',
     'rarfile',
 ]
