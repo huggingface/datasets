@@ -52,14 +52,16 @@ task_ids:
 - **Point of Contact** : 
 
 ### Dataset Summary
+This dataset contains pairwise conversations annotated by the sender and the receiver for deception (and conversely truthfulness). The 17,289 messages are gathered from 12 games.
+
 ### Supported Tasks and Leaderboards
 [More Information Needed]
+
 ### Languages
 English
 
 ## Dataset Structure
 ### Data Instances
-
 ```
 {
 "messages": 
@@ -80,7 +82,6 @@ English
 ```
 
 ### Data Fields
-
 - speakers: the sender of the message (string format. Seven possible values: russia, turkey, england, austria, germany, france, italy)
 - receivers: the receiver of the message (string format. Seven possible values: russia, turkey, england, austria, germany, france, italy)
 - messages: the raw message string (string format. ranges in length from one word to paragraphs in length)
@@ -95,7 +96,7 @@ English
 - game_id: which of the 12 games the dialog comes from (int format ranging from 1 to 12)
 
 ### Data Splits
-Train, Test, Validation
+Train, Test and Validation splits
 
 ## Dataset Creation
 

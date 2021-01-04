@@ -46,8 +46,6 @@ Thai
 
 Designated train (40,000 reviews) and test (6,204) sets.
 
-Test splits do not have a star rating disclosed, so -1 will be returned.
-
 ### Source Data
 
 #### Initial Data Collection and Normalization

@@ -47,11 +47,12 @@ task_ids:
 ## Dataset Description
 - **Homepage: https://dl.acm.org/doi/10.1145/3201064.3201100** 
 - **Repository: https://github.com/jgolbeck/fakenews/**
-- **Paper: https://doi.org/10.1145/3201064.3201100 **
-- **Leaderboard: **
+- **Paper: https://doi.org/10.1145/3201064.3201100**
+- **Leaderboard:**
 - **Point of Contact: Jennifer Golbeck (http://www.jengolbeck.com)**
 
 ### Dataset Summary
+This dataset contains URLs of news articles classified as either fake or satire. The articles classified as fake also have the URL of a rebutting article.
 
 ### Supported Tasks and Leaderboards
 [More Information Needed]
@@ -78,7 +79,7 @@ English
 - url_of_rebutting_article: A string which contains a URL of the article used to refute the article in question (present - in url_of_article)
 
 ### Data Splits
-This dataset is not split, only the train split is available
+This dataset is not split, only the train split is available.
 
 ## Dataset Creation
 
