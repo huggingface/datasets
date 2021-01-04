@@ -45,9 +45,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/nlpdata/dialogre)
+- **Repository:** [Github](https://github.com/nlpdata/dialogre)
+- **Paper:** [Arxiv](https://arxiv.org/abs/2004.08056v1)
 - **Leaderboard:**
 - **Point of Contact:**
 

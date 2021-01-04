@@ -46,8 +46,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/ljos/navnkjenner)
+- **Repository:** [Github](https://github.com/ljos/navnkjenner)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**

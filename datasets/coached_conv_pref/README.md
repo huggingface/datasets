@@ -46,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Google Research](https://research.google/tools/datasets/coached-conversational-preference-elicitation/)
 - **Repository:**
-- **Paper:**
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/W19-5941/)
 - **Leaderboard:**
 - **Point of Contact:**
 

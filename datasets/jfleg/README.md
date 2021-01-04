@@ -47,10 +47,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/keisks/jfleg
-- **Repository:** https://github.com/keisks/jfleg
+- **Homepage:** [Github](https://github.com/keisks/jfleg)
+- **Repository:** [Github](https://github.com/keisks/jfleg)
 - **Paper:** [Napoles et al., 2020](https://www.aclweb.org/anthology/E17-2037/)
-- **Leaderboard:** https://github.com/keisks/jfleg
+- **Leaderboard:** [Leaderboard](https://github.com/keisks/jfleg#leader-board-published-results)
 - **Point of Contact:** Courtney Napoles, Keisuke Sakaguchi
 
 ### Dataset Summary

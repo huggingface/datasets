@@ -47,8 +47,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/kmounlp/NER)
+- **Repository:** [Github](https://github.com/kmounlp/NER)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**

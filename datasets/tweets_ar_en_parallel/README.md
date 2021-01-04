@@ -48,9 +48,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Bilingual Corpus of Arabic-English Parallel Tweets](https://alt.qcri.org/resources/bilingual_corpus_of_parallel_tweets)
 - **Repository:**
-- **Paper:**
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.bucc-1.3/)
 - **Leaderboard:**
 - **Point of Contact:**
 

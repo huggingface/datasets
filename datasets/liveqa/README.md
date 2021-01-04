@@ -46,8 +46,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/PKU-TANGENT/LiveQA
-- **Repository:** https://github.com/PKU-TANGENT/LiveQA
+- **Homepage:** [Github](https://github.com/PKU-TANGENT/LiveQA)
+- **Repository:** [Github](https://github.com/PKU-TANGENT/LiveQA)
 - **Paper:** [Liu et al., 2020](https://www.aclweb.org/anthology/2020.ccl-1.98.pdf)
 - **Leaderboard:** N/A
 - **Point of Contact:** Qianying Liu

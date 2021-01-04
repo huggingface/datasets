@@ -46,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/mpsilfve/finer-data)
+- **Repository:** [Github](https://github.com/mpsilfve/finer-data)
+- **Paper:** [Arxiv](https://arxiv.org/abs/1908.04212)
 - **Leaderboard:**
 - **Point of Contact:**
 
