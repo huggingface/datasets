@@ -68,7 +68,6 @@ _URLs = {
     "fin|2": "https://raw.githubusercontent.com/unimorph/fin/master/fin.2",
     "fur": "https://raw.githubusercontent.com/unimorph/fur/master/fur",
     "gal": "https://raw.githubusercontent.com/unimorph/gal/master/gal",
-    "got": "https://raw.githubusercontent.com/unimorph/got/master/got",
     "ell": "https://raw.githubusercontent.com/unimorph/ell/master/ell",
     "kal": "https://raw.githubusercontent.com/unimorph/kal/master/kal",
     "izh": "https://raw.githubusercontent.com/unimorph/izh/master/izh",
@@ -80,7 +79,6 @@ _URLs = {
     "kjh": "https://raw.githubusercontent.com/unimorph/kjh/master/kjh",
     "lld": "https://raw.githubusercontent.com/unimorph/lld/master/lld",
     "liv": "https://raw.githubusercontent.com/unimorph/liv/master/liv",
-    "nds": "https://raw.githubusercontent.com/unimorph/nds/master/nds",
     "mlt": "https://raw.githubusercontent.com/unimorph/mlt/master/mlt",
     "glv": "https://raw.githubusercontent.com/unimorph/glv/master/glv",
     "arn": "https://raw.githubusercontent.com/unimorph/arn/master/arn",
@@ -422,7 +420,7 @@ class UniversalMorphologies(datasets.GeneratorBasedBuilder):
         for language_iso in _LANGUAGES
     ]
 
-    DEFAULT_CONFIG_NAME = "eng"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = "ady"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         features = datasets.Features(
@@ -451,7 +449,8 @@ class UniversalMorphologies(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLs)
+        config_urls = dict([(ln, f_url) for ln, f_url in _URLs.items() if ln.split("|")[0] == self.config.name])
+        data_dir = dl_manager.download_and_extract(config_urls)
         if self.config.name in _SPLITS:
             return [
                 datasets.SplitGenerator(
