@@ -1,8 +1,8 @@
 ---
 annotations_creators:
-- other
+- found
 language_creators:
-- other
+- found
 languages:
 - fa
 licenses:
