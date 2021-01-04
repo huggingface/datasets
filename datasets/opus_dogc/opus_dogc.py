@@ -99,3 +99,4 @@ class OpusDogc(datasets.GeneratorBasedBuilder):
                         "translation": {"ca": ca_sentence, "es": es_sentence},
                     }
                     id_ += 1
+                    elem.clear()

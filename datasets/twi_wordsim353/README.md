@@ -135,6 +135,7 @@ Only the test data is available
 [More Information Needed]
 
 ### Citation Information
+
 ```
 @inproceedings{alabi-etal-2020-massive,
     title = "Massive vs. Curated Embeddings for Low-Resourced Languages: the Case of {Y}or{\`u}b{\'a} and {T}wi",
