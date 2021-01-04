@@ -64,13 +64,13 @@ The dataset is based on Turkish.
 
 **sentence:** beklentimin altında bir ürün kaliteli değil
 
-**sentiment:** negative
+**sentiment:** 0 (negative)
 
 **Example 2:**
 
 **sentence:** fiyat ve performans olarak gayet iyi
 
-**sentiment:** positive
+**sentiment:** 1 (positive)
 
 
 ### Data Fields
