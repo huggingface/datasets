@@ -32,7 +32,7 @@ The reviews are in 5 classes ranging from 1 to 5 stars.
 
 _LICENSE = "LGPL-3.0"
 
-_URLs = {"default": "https://github.com/wongnai/wongnai-corpus/raw/master/review/review_dataset.zip"}
+_URLs = {"default": "https://archive.org/download/wongnai_reviews/wongnai_reviews_withtest.zip"}
 
 
 class WongnaiReviews(datasets.GeneratorBasedBuilder):
@@ -42,7 +42,7 @@ class WongnaiReviews(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "review_body": datasets.Value("string"),
-                "star_rating": datasets.Value("int32"),
+                "star_rating": datasets.features.ClassLabel(names=["1", "2", "3", "4", "5"]),
             }
         )
         return datasets.DatasetInfo(
@@ -64,21 +64,12 @@ class WongnaiReviews(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "test_file.csv"), "split": "test"},
+                gen_kwargs={"filepath": os.path.join(data_dir, "w_review_test.csv"), "split": "test"},
             ),
         ]
 
     def _generate_examples(self, filepath, split):
         with open(filepath, encoding="utf-8") as f:
-            rdr = csv.reader(f, delimiter=";")
-            if split == "test":
-                # drop test header
-                next(rdr)
-            rownum = 0
-            for row in rdr:
-                rownum += 1
-                id = row[0] if split == "test" else rownum
-                yield id, {
-                    "review_body": row[1] if split == "test" else row[0],
-                    "star_rating": -1 if split == "test" else int(row[1]),
-                }
+            spamreader = csv.reader(f, delimiter=";", quotechar='"')
+            for id_, row in enumerate(spamreader):
+                yield id_, {"review_body": row[0], "star_rating": row[1]}

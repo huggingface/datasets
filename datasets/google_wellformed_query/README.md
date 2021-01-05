@@ -50,11 +50,11 @@ licenses:
 
 ## Dataset Description
 
-- **Homepage:** 
+- **Homepage:** [GitHub](https://github.com/google-research-datasets/query-wellformedness)
 - **Repository:** [GitHub](https://github.com/google-research-datasets/query-wellformedness)
 - **Paper:** [ARXIV](https://arxiv.org/abs/1808.09419)
-- **Leaderboard:** 
-- **Point of Contact:** 
+- **Leaderboard:**
+- **Point of Contact:**
 
 ### Dataset Summary
 

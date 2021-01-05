@@ -48,11 +48,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** http://compling.hss.ntu.edu.sg/hkcancor/
+- **Repository:** https://github.com/fcbond/hkcancor
+- **Paper:** [Luke and Wang, 2015](https://github.com/fcbond/hkcancor/blob/master/data/LukeWong_Hong-Kong-Cantonese-Corpus.pdf)
+- **Leaderboard:** N/A
+- **Point of Contact:** Luke Kang Kwong
 
 ### Dataset Summary
 The Hong Kong Cantonese Corpus (HKCanCor) comprise transcribed conversations recorded 
@@ -98,12 +98,16 @@ For example:
  ```
 
 ### Data Fields
-
-[More Information Needed]
+- conversation_id: unique dialogue-level id
+- pos_tags_prf: POS tag using the PRF format at token-level
+- pos_tag_ud: POS tag using the UD2.0 format at token-level
+- speaker: unique speaker id within dialogue
+- transcriptions: token-level romanisation in the LSHK format
+- turn_number: turn number in dialogue
+- tokens: Chinese word or punctuation at token-level
 
 ### Data Splits
-
-[More Information Needed]
+There are no specified splits in this dataset.
 
 ## Dataset Creation
 

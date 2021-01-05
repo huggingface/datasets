@@ -53,7 +53,7 @@ class CovidTweetsJapanese(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "tweet_id": datasets.Value("string"),
-                "assessment_option_id": datasets.Value("string"),
+                "assessment_option_id": datasets.ClassLabel(names=["63", "64", "65", "66", "67", "68"]),
             }
         )
         return datasets.DatasetInfo(
