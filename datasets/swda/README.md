@@ -84,7 +84,12 @@ Utterance are tagged with the [SWBD-DAMSL](https://web.stanford.edu/~jurafsky/ws
 
 ### Data Instances
 
+
+An example from the dataset is:
+
 `{'dialogue_act_tag': 17, 'speaker': 0, 'utterance_text': 'Okay.'}`
+
+where 17 correspond to `fo_o_fw_"_by_bc` (Other)
 
 ### Data Fields
 `speaker` - Refers to the current speaker talking. It is used to detect when a speaker change occurs.
@@ -97,49 +102,49 @@ It's only used to signal if next utterance is from same speaker or from next spe
 `dialogue_act_tag` - Dialogue act label associated with the `utterance_text`. There are 41 dialogue act labels for this
 dataset. Each dialogue act label has a specific meaning:
 
-| Dialogue Act                 	| Labels          	|
-|------------------------------	|-----------------	|
-| Statement-non-opinion        	| sd              	|
-| Acknowledge (Backchannel)    	| b               	|
-| Statement-opinion            	| sv              	|
-| Uninterpretable              	| %               	|
-| Agree/Accept                 	| aa              	|
-| Appreciation                 	| ba              	|
-| Yes-No-Question              	| qy              	|
-| Yes Answers                  	| ny              	|
-| Conventional-closing         	| fc              	|
-| Wh-Question                  	| qw              	|
-| No Answers                   	| nn              	|
-| Response Acknowledgement     	| bk              	|
-| Hedge                        	| h               	|
-| Declarative Yes-No-Question  	| qy^d            	|
-| Backchannel in Question Form 	| bh              	|
-| Quotation                    	| ^q              	|
-| Summarize/Reformulate        	| bf              	|
-| Other                        	| fo_o_fw_"_by_bc 	|
-| Affirmative Non-yes Answers  	| na              	|
-| Action-directive             	| ad              	|
-| Collaborative Completion     	| ^2              	|
-| Repeat-phrase                	| b^m             	|
-| Open-Question                	| qo              	|
-| Rhetorical-Question          	| qh              	|
-| Hold Before Answer/Agreement 	| ^h              	|
-| Reject                       	| ar              	|
-| Negative Non-no Answers      	| ng              	|
-| Signal-non-understanding     	| br              	|
-| Other Answers                	| no              	|
-| Conventional-opening         	| fp              	|
-| Or-Clause                    	| qrr             	|
-| Dispreferred Answers         	| arp_nd          	|
-| 3rd-party-talk               	| t3              	|
-| Offers, Options Commits      	| oo_co_cc        	|
-| Maybe/Accept-part            	| aap_am          	|
-| Downplayer                   	| t1              	|
-| Self-talk                    	| bd              	|
-| Tag-Question                 	| ^g              	|
-| Declarative Wh-Question      	| qw^d            	|
-| Apology                      	| fa              	|
-| Thanking                     	| ft              	|                      |          ft          |    78    |   0.04   |       67        |   0.03   |        7        |   0.17   |        4        |   0.12  
+| Int | Dialogue Act                 	| Labels          	|
+|--	|------------------------------	|-----------------	|
+| 0 	| Statement-non-opinion        	| sd              	|
+| 1 	| Acknowledge (Backchannel)    	| b               	|
+| 2 	| Statement-opinion            	| sv              	|
+| 3 	| Uninterpretable              	| %               	|
+| 4 	| Agree/Accept                 	| aa              	|
+| 5 	| Appreciation                 	| ba              	|
+| 6 	| Yes-No-Question              	| qy              	|
+| 7 	| Yes Answers                  	| ny              	|
+| 8 	| Conventional-closing         	| fc              	|
+| 9 	| Wh-Question                  	| qw              	|
+| 10 	| No Answers                   	| nn              	|
+| 11 	| Response Acknowledgement     	| bk              	|
+| 12	| Hedge                        	| h               	|
+| 13	| Declarative Yes-No-Question  	| qy^d            	|
+| 14	| Backchannel in Question Form 	| bh              	|
+| 15	| Quotation                    	| ^q              	|
+| 16	| Summarize/Reformulate        	| bf              	|
+| 17	| Other                        	| fo_o_fw_"_by_bc 	|
+| 18	| Affirmative Non-yes Answers  	| na              	|
+| 19	| Action-directive             	| ad              	|
+| 20	| Collaborative Completion     	| ^2              	|
+| 21	| Repeat-phrase                	| b^m             	|
+| 22	| Open-Question                	| qo              	|
+| 23	| Rhetorical-Question          	| qh              	|
+| 24	| Hold Before Answer/Agreement 	| ^h              	|
+| 25	| Reject                       	| ar              	|
+| 26	| Negative Non-no Answers      	| ng              	|
+| 27	| Signal-non-understanding     	| br              	|
+| 28	| Other Answers                	| no              	|
+| 29	| Conventional-opening         	| fp              	|
+| 30	| Or-Clause                    	| qrr             	|
+| 31	| Dispreferred Answers         	| arp_nd          	|
+| 32	| 3rd-party-talk               	| t3              	|
+| 33	| Offers, Options Commits      	| oo_co_cc        	|
+| 34	| Maybe/Accept-part            	| aap_am          	|
+| 35	| Downplayer                   	| t1              	|
+| 36	| Self-talk                    	| bd              	|
+| 37	| Tag-Question                 	| ^g              	|
+| 38	| Declarative Wh-Question      	| qw^d            	|
+| 39	| Apology                      	| fa              	|
+| 40	| Thanking                     	| ft              	|
 
 
 ## Data Stats
