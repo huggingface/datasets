@@ -24,6 +24,7 @@ import numpy as np
 from PIL import Image
 
 import datasets
+from tqdm import tqdm
 
 _DESCRIPTION = """\
 Parallel Corpus of Sign Language Video, Gloss and Translation
@@ -89,7 +90,9 @@ class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     # sequence of frames
-                    "video": datasets.features.Sequence(datasets.features.Array3D(shape=(260, 210, 3), dtype="uint8")),
+                    # "video": datasets.features.Sequence(datasets.features.Array3D(shape=(260, 210, 3), dtype="uint8")),
+                    "id": datasets.Value("string"),  # signer ID
+                    "video": datasets.Value("string"),
                     "signer": datasets.Value("string"),  # signer ID
                     "gloss": datasets.Value("string"),  # German sign language gloss
                     "text": datasets.Value("string"),  # German translation
@@ -128,18 +131,20 @@ class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
 
         with open(filepath, "r", encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="|", quoting=csv.QUOTE_NONE)
-            for row in data:
-                np_frames = []
-                if self.config.load_images:
-                    frames_path = os.path.join(images_path, row["video"])[:-7]
-                    for frame_name in os.listdir(frames_path):
-                        frame_path = os.path.join(frames_path, frame_name)
-                        im = Image.open(frame_path)
-                        np_frames.append(np.asarray(im))
-                        im.close()
+            for row in tqdm(data):
+                # np_frames = []
+                # if self.config.load_images:
+                #     frames_path = os.path.join(images_path, row["video"])[:-7]
+                #     for frame_name in os.listdir(frames_path):
+                #         frame_path = os.path.join(frames_path, frame_name)
+                #         im = Image.open(frame_path)
+                #         np_frames.append(np.asarray(im))
+                #         im.close()
+                frames_path = os.path.join(images_path, row["video"])[:-7]
 
                 yield row["name"], {
-                    "video": np_frames,
+                    "id": row["name"],
+                    "video": frames_path,
                     "signer": row["speaker"],
                     "gloss": row["orth"],
                     "text": row["translation"],
