@@ -13,12 +13,12 @@ if TYPE_CHECKING:
     from .arrow_dataset import Dataset  # noqa: F401
 
     try:
-        from elasticsearch import Elasticsearch
+        from elasticsearch import Elasticsearch  # noqa: F401
 
     except ImportError:
         pass
     try:
-        import faiss
+        import faiss  # noqa: F401
 
     except ImportError:
         pass
@@ -111,7 +111,7 @@ class ElasticSearchIndex(BaseIndex):
         port = port or 9200
 
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
-        from elasticsearch import Elasticsearch
+        from elasticsearch import Elasticsearch  # noqa: F114
 
         self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
         self.es_index_name = (
@@ -233,7 +233,7 @@ class FaissIndex(BaseIndex):
         Add vectors to the index.
         If the arrays are inside a certain column, you can specify it using the `column` argument.
         """
-        import faiss
+        import faiss  # noqa: F114
 
         # Create index
         if self.faiss_index is None:
@@ -316,7 +316,7 @@ class FaissIndex(BaseIndex):
 
     def save(self, file: str):
         """Serialize the FaissIndex on disk"""
-        import faiss
+        import faiss  # noqa: F114
 
         if (
             hasattr(self.faiss_index, "device")
@@ -335,7 +335,7 @@ class FaissIndex(BaseIndex):
         device: Optional[int] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
-        import faiss
+        import faiss  # noqa: F114
 
         faiss_index = cls(device=device)
         index = faiss.read_index(file)
