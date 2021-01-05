@@ -83,7 +83,7 @@ CSV file with the 1st column is Twitter ID and the 2nd column is assessment opti
 
 ### Data Splits
 
-[More Information Needed]
+No information about data splits is provided for now.
 
 ## Dataset Creation
 
@@ -142,4 +142,4 @@ CC-BY-ND 4.0
 ### Citation Information
 
 A related paper has not yet published.
-The author shows how to cite as「鈴木 優: COVID-19 日本語 Twitter データセット（http://www.db.info.gifu-u.ac.jp/data/Data_5f02db873363f976fce930d1）」.
+The author shows how to cite as「鈴木 優: COVID-19 日本語 Twitter データセット （ http://www.db.info.gifu-u.ac.jp/data/Data_5f02db873363f976fce930d1 ） 」.
