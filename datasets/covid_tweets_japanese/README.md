@@ -83,7 +83,7 @@ CSV file with the 1st column is Twitter ID and the 2nd column is assessment opti
 
 ### Data Splits
 
-No information about data splits is provided for now.
+No articles have been published for this dataset, and it appears that the author of the dataset is willing to publish an article (it is not certain that the splitting information will be included). Therefore, at this time, information on data splits is not provided.
 
 ## Dataset Creation
 
