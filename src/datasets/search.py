@@ -1,3 +1,4 @@
+import importlib
 import os
 import tempfile
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
@@ -11,22 +12,19 @@ from .utils.logging import WARNING, get_logger
 if TYPE_CHECKING:
     from .arrow_dataset import Dataset  # noqa: F401
 
+    try:
+        from elasticsearch import Elasticsearch
 
-try:
-    import elasticsearch as es
-    import elasticsearch.helpers
-    from elasticsearch import Elasticsearch
+    except ImportError:
+        pass
+    try:
+        import faiss
 
-    _has_elasticsearch = True
-except ImportError:
-    _has_elasticsearch = False
+    except ImportError:
+        pass
 
-try:
-    import faiss
-
-    _has_faiss = True
-except ImportError:
-    _has_faiss = False
+_has_elasticsearch = importlib.util.find_spec("elasticsearch") is not None
+_has_faiss = importlib.util.find_spec("faiss") is not None
 
 
 logger = get_logger(__name__)
@@ -111,6 +109,10 @@ class ElasticSearchIndex(BaseIndex):
         ), "Please specify either `es_client` or `(host, port)`, but not both."
         host = host or "localhost"
         port = port or 9200
+
+        import elasticsearch.helpers  # noqa: need this to properly load all the es features
+        from elasticsearch import Elasticsearch
+
         self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
         self.es_index_name = (
             es_index_name
@@ -151,6 +153,8 @@ class ElasticSearchIndex(BaseIndex):
                     yield {"text": example, "_id": i}
 
         # create the ES index
+        import elasticsearch as es
+
         for ok, action in es.helpers.streaming_bulk(
             client=self.es_client,
             index=index_name,
@@ -229,6 +233,7 @@ class FaissIndex(BaseIndex):
         Add vectors to the index.
         If the arrays are inside a certain column, you can specify it using the `column` argument.
         """
+        import faiss
 
         # Create index
         if self.faiss_index is None:
@@ -311,6 +316,8 @@ class FaissIndex(BaseIndex):
 
     def save(self, file: str):
         """Serialize the FaissIndex on disk"""
+        import faiss
+
         if (
             hasattr(self.faiss_index, "device")
             and self.faiss_index.device is not None
@@ -328,6 +335,8 @@ class FaissIndex(BaseIndex):
         device: Optional[int] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
+        import faiss
+
         faiss_index = cls(device=device)
         index = faiss.read_index(file)
         if faiss_index.device is not None and faiss_index.device > -1:
