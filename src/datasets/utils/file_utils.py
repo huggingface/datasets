@@ -26,6 +26,7 @@ from zipfile import ZipFile, is_zipfile
 
 import importlib_metadata
 import numpy as np
+import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
@@ -410,6 +411,7 @@ def cached_path(
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
+    ua += "; pyarrow/{}".format(pa.__version__)
     if is_torch_available():
         ua += "; torch/{}".format(_torch_version)
     if is_tf_available():
