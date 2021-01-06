@@ -58,6 +58,19 @@ if int(pa.__version__.split(".")[0]) == 0:
 else:
     PYARROW_V0 = False
 
+# When applying transforms on a dataset, the data are stored in cache files.
+# The caching mechanism allows to reload an existing cache file if it's already been computed.
+# If the caching is disabled, cache files will always be recreated.
+_CACHING_ENABLED = True
+
+
+def set_caching_enabled(boolean: bool):
+    """
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = bool(boolean)
+
 
 class DatasetInfoMixin(object):
     """This base class exposes some attributes of DatasetInfo
@@ -1128,7 +1141,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1160,7 +1173,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                 results of the computation instead of the automatically generated cache file name.
@@ -1198,6 +1211,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             input_column, self._data.column_names
                         )
                     )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else _CACHING_ENABLED
 
         if fn_kwargs is None:
             fn_kwargs = dict()
@@ -1333,7 +1348,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1366,7 +1381,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                 results of the computation instead of the automatically generated cache file name.
@@ -1404,6 +1419,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     self._data.column_names,
                 )
             )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else _CACHING_ENABLED
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]

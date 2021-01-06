@@ -1,20 +1,42 @@
 import json
 import os
+import random
 from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Union
 
 import numpy as np
 import pyarrow as pa
 import xxhash
 
 from .info import DatasetInfo
+from .utils.logging import get_logger
 from .utils.py_utils import dumps
+
+
+logger = get_logger(__name__)
+
+
+# Fingerprinting allows to have one deterministic fingerprint per dataset state.
+# A dataset fingerprint is updated after each transform.
+# Re-running the same transforms on a dataset in a different session results in the same fingerprint.
+# Disabling the fingerprinting mechanism makes all the fingerprints random.
+_FINGERPRINTING_ENABLED = True
 
 
 if TYPE_CHECKING:
     from .arrow_dataset import Dataset
+
+
+def set_fingerprinting_enabled(boolean: bool):
+    """
+    If disabled, the library will use random dataset fingerprint instead of computing them by hashing the transforms that are applied.
+    Since the caching mechanism uses fingerprints to name the cache filescache file names will be different.
+    Therefore disabling fingerprinting will prevent the caching mechanism from reloading datasets files that have already been computed.
+    """
+    global _FINGERPRINTING_ENABLED
+    _FINGERPRINTING_ENABLED = bool(boolean)
 
 
 def hashregister(t):
@@ -34,7 +56,7 @@ class Hasher:
         self.m = xxhash.xxh64()
 
     @classmethod
-    def hash_bytes(cls, value):
+    def hash_bytes(cls, value: Union[bytes, List[bytes]]) -> str:
         value = [value] if isinstance(value, bytes) else value
         m = xxhash.xxh64()
         for x in value:
@@ -42,21 +64,23 @@ class Hasher:
         return m.hexdigest()
 
     @classmethod
-    def hash_default(cls, value):
+    def hash_default(cls, value: Any) -> str:
         return cls.hash_bytes(dumps(value))
 
     @classmethod
-    def hash(cls, value):
+    def hash(cls, value: Any) -> str:
         if type(value) in cls.dispatch:
             return cls.dispatch[type(value)](cls, value)
         else:
             return cls.hash_default(value)
 
-    def update(self, value):
-        self.m.update(f"=={type(value)}==".encode("utf8"))
-        self.m.update(self.hash(value).encode("utf-8"))
+    def update(self, value: Any) -> None:
+        header_for_update = f"=={type(value)}=="
+        value_for_update = self.hash(value)
+        self.m.update(header_for_update.encode("utf8"))
+        self.m.update(value_for_update.encode("utf-8"))
 
-    def hexdigest(self):
+    def hexdigest(self) -> str:
         return self.m.hexdigest()
 
 
@@ -69,9 +93,9 @@ class Hasher:
 def _hash_pa_table(hasher, value):
     def _hash_pa_array(value):
         if isinstance(value, pa.ChunkedArray):
-            return hasher.hash_bytes(c.to_string() for c in value.chunks)
+            return hasher.hash_bytes(c.to_string().encode("utf-8") for c in value.chunks)
         else:
-            return hasher.hash_bytes(value)
+            return hasher.hash_bytes(value.to_string().encode("utf-8"))
 
     value = "-".join(col + "-" + _hash_pa_array(value[col]) for col in sorted(value.column_names))
     return hasher.hash_bytes(value.encode("utf-8"))
@@ -82,7 +106,9 @@ def _hash_dataset_info(hasher, value):
     return hasher.hash_bytes(json.dumps(asdict(value), sort_keys=True).encode("utf-8"))
 
 
-def generate_fingerprint(dataset):
+def generate_fingerprint(dataset) -> str:
+    if not _FINGERPRINTING_ENABLED:
+        return generate_random_fingerprint()
     state = dataset.__getstate__()
     hasher = Hasher()
     for key in sorted(state):
@@ -96,13 +122,35 @@ def generate_fingerprint(dataset):
     return hasher.hexdigest()
 
 
+def generate_random_fingerprint(nbits=64) -> str:
+    return f"{random.getrandbits(nbits):0{nbits//4}x}"
+
+
 def update_fingerprint(fingerprint, transform, transform_args):
+    if not _FINGERPRINTING_ENABLED:
+        return generate_random_fingerprint()
     hasher = Hasher()
     hasher.update(fingerprint)
-    hasher.update(transform)
+    try:
+        hasher.update(transform)
+    except:  # noqa various errors might raise here from pickle or dill
+        logger.warning(
+            f"Transform {transform} couldn't be hashed properly, a random hash was used instead. "
+            "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
+            "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything."
+        )
+        return generate_random_fingerprint()
     for key in sorted(transform_args):
         hasher.update(key)
-        hasher.update(transform_args[key])
+        try:
+            hasher.update(transform_args[key])
+        except:  # noqa various errors might raise here from pickle or dill
+            logger.warning(
+                f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. "
+                "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
+                "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything."
+            )
+            return generate_random_fingerprint()
     return hasher.hexdigest()
 
 
