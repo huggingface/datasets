@@ -81,7 +81,9 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess"
+    "multiprocess",
+    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
+    "importlib_metadata"
 ]
 
 BENCHMARKS_REQUIRE = [
