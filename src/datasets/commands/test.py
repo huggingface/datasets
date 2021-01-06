@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 from shutil import copyfile, rmtree
@@ -127,7 +127,9 @@ class TestCommand(BaseTransformersCLICommand):
             if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
                 for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
                     if i % self._num_proc == self._proc_rank:
-                        yield builder_cls(name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
+                        yield builder_cls(
+                            name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir
+                        )
             else:
                 if self._proc_rank == 0:
                     yield builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
