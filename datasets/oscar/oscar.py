@@ -49,7 +49,7 @@ _LICENSE = """
     * Clearly identify the copyrighted work claimed to be infringed.
     * Clearly identify the material that is claimed to be infringing and \
     information reasonably sufficient to allow us to locate the material.
-    
+
     We will comply to legitimate requests by removing the affected sources \
     from the next release of the corpus. \
 """
@@ -59,7 +59,7 @@ _CITATION = """\
     title = "A Monolingual Approach to Contextualized Word Embeddings for Mid-Resource Languages",
     author = "Ortiz Su{\'a}rez, Pedro Javier  and
       Romary, Laurent  and
-      Sagot, Beno{\^\i}t",
+      Sagot, Benoit",
     booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
     month = jul,
     year = "2020",
@@ -71,7 +71,7 @@ _CITATION = """\
 }
 
 @inproceedings{OrtizSuarezSagotRomary2019,
-  author    = {Pedro Javier {Ortiz Su{\´a}rez} and Beno{\^i}t Sagot and Laurent Romary},
+  author    = {Pedro Javier {Ortiz Su{\'a}rez} and Benoit Sagot and Laurent Romary},
   title     = {Asynchronous pipelines for processing huge corpora on medium to low resource infrastructures},
   series = {Proceedings of the Workshop on Challenges in the Management of Large Corpora (CMLC-7) 2019. Cardiff, 22nd July 2019},
   editor    = {Piotr Bański and Adrien Barbaresi and Hanno Biber and Evelyn Breiteneder and Simon Clematide and Marc Kupietz and Harald L{\"u}ngen and Caroline Iliadi},
