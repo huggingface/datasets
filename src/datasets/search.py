@@ -1,4 +1,4 @@
-import importlib
+import importlib.util
 import os
 import tempfile
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
