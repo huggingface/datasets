@@ -1662,7 +1662,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint_transform(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -1738,7 +1738,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint_transform(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name"])
     def select(
         self,
         indices: Iterable,
@@ -1897,7 +1897,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint_transform(inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
+    @fingerprint_transform(
+        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+    )
     def shuffle(
         self,
         seed: Optional[int] = None,
@@ -1973,7 +1975,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"], ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"]
+        inplace=False,
+        randomized_function=True,
+        fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
+        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
     )
     def train_test_split(
         self,
