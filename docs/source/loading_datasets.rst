@@ -135,7 +135,7 @@ After you've downloaded the files, you can point to the folder hosting them loca
 
 Apart from :obj:`name` and :obj:`split`, the :func:`datasets.load_dataset` method provide a few arguments which can be used to control where the data is cached (:obj:`cache_dir`), some options for the download process it-self like the proxies and whether the download cache should be used (:obj:`download_config`, :obj:`download_mode`).
 
-These use of these arguments is discussed in the ``Cache management and integrity verifications`` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
+These use of these arguments is discussed in the :ref:`Cache management and integrity verifications` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
 
 
 .. _loading-from-local-files:
