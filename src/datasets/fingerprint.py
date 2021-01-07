@@ -154,7 +154,7 @@ def update_fingerprint(fingerprint, transform, transform_args):
     return hasher.hexdigest()
 
 
-def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=None, randomized_function=None):
+def fingerprint_transform(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=None, randomized_function=None):
     assert use_kwargs is None or isinstance(use_kwargs, list), "use_kwargs is supposed to be a list, not {}".format(
         type(use_kwargs)
     )
@@ -166,7 +166,7 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
 
     def _fingerprint(func):
 
-        assert inplace or all(
+        assert inplace or all(  # check that not in-place functions require fingerprint parameters
             name in func.__code__.co_varnames for name in fingerprint_names
         ), "function {} is missing parameters {} in signature".format(func, fingerprint_names)
         if randomized_function:  # randomized function have seed and generator parameters

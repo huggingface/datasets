@@ -40,7 +40,7 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
+from .fingerprint import fingerprint_transform, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -568,7 +568,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
@@ -589,7 +589,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """Flatten the Table.
         Each column with a struct type is flattened into one column per struct field.
@@ -606,7 +606,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
         Cast the dataset to a new set of features.
@@ -631,7 +631,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) in the dataset and
@@ -658,7 +658,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
@@ -754,7 +754,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         finally:
             self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
@@ -1337,7 +1337,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1570,7 +1570,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -1662,7 +1662,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False)
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -1738,7 +1738,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False)
     def select(
         self,
         indices: Iterable,
@@ -1819,7 +1819,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
         column: str,
@@ -1897,7 +1897,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False, randomized_function=True)
+    @fingerprint_transform(inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def shuffle(
         self,
         seed: Optional[int] = None,
@@ -1972,8 +1972,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(
-        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+    @fingerprint_transform(
+        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"], ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"]
     )
     def train_test_split(
         self,
