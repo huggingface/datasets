@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - expert-generated
 language_creators:
@@ -15,6 +16,7 @@ task_categories:
 - other
 task_ids:
 - other-other-relation-extraction
+---
 
 # Dataset Card for [DialogRE]
 
