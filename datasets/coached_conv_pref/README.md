@@ -15,8 +15,12 @@ source_datasets:
 - original
 task_categories:
 - other
+- sequence-modeling
+- structure-prediction
 task_ids:
 - other-other-Conversational Recommendation
+- dialogue-modeling
+- parsing
 ---
 
 # Dataset Card for Coached Conversational Preference Elicitation
