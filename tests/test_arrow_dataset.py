@@ -681,22 +681,26 @@ class BaseDatasetTest(TestCase):
                 with self._caplog.at_level(logging.WARNING):
                     dset = self._create_dummy_dataset(in_memory, tmp_dir)
                     dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                    dset_test1_data_files = list(dset_test1._data_files)
+                    del dset_test1
                     dset_test2 = dset.map(lambda x: {"foo": "bar"})
-                    self.assertEqual(dset_test1._data_files, dset_test1._data_files)
-                    self.assertEqual(len(dset_test1._data_files), 1 - int(in_memory))
+                    self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                    self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
                     self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
-                    del dset, dset_test1, dset_test2
+                    del dset, dset_test2
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 self._caplog.clear()
                 with self._caplog.at_level(logging.WARNING):
                     dset = self._create_dummy_dataset(in_memory, tmp_dir)
                     dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                    dset_test1_data_files = list(dset_test1._data_files)
+                    del dset_test1
                     dset_test2 = dset.map(lambda x: {"foo": "bar"}, load_from_cache_file=False)
-                    self.assertEqual(dset_test1._data_files, dset_test1._data_files)
-                    self.assertEqual(len(dset_test1._data_files), 1 - int(in_memory))
+                    self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                    self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
                     self.assertNotIn("Loading cached processed dataset", self._caplog.text)
-                    del dset, dset_test1, dset_test2
+                    del dset, dset_test2
 
             try:
                 self._caplog.clear()
@@ -705,11 +709,13 @@ class BaseDatasetTest(TestCase):
                         dset = self._create_dummy_dataset(in_memory, tmp_dir)
                         datasets.arrow_dataset.set_caching_enabled(False)
                         dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                        dset_test1_data_files = list(dset_test1._data_files)
+                        del dset_test1
                         dset_test2 = dset.map(lambda x: {"foo": "bar"})
-                        self.assertEqual(dset_test1._data_files, dset_test1._data_files)
-                        self.assertEqual(len(dset_test1._data_files), 1 - int(in_memory))
+                        self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                        self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
-                        del dset, dset_test1, dset_test2
+                        del dset, dset_test2
             finally:
                 datasets.arrow_dataset.set_caching_enabled(True)
         finally:
