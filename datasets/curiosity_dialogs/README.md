@@ -46,23 +46,22 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Pedro.ai](https://www.pedro.ai/curiosity)
-- **Repository:**
-- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.emnlp-main.655/)
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Curiosity Dataset Homepage](https://www.pedro.ai/curiosity)
+- **Repository:** [Curiosity Dataset Repository](https://github.com/facebookresearch/curiosity)
+- **Paper:** [ACL Anthology](https://www.aclweb.org/anthology/2020.emnlp-main.655/)
+- **Point of Contact:** [Pedro Rodriguez](https://mailhide.io/e/wbfjM)
 
 ### Dataset Summary
 
-[More Information Needed]
+Curiosity dataset consists of 14K English dialogs (181K utterances) where users and assistants converse about geographic topics like geopolitical entities and locations. This dataset is annotated with pre-existing user knowledge, message-level dialog acts, grounding to Wikipedia, and user reactions to messages.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+* `sequence-modeling-other-conversational-curiosity`: The dataset can be used to train a model for Conversational Curiosity, which consists in the testing of the hypothesis that engagement increases when users are presented with facts related to what they know. Success on this task is typically measured by achieving a *high* [Accuracy](https://huggingface.co/metrics/accuracy) and [F1 Score](https://huggingface.co/metrics/f1).
 
 ### Languages
 
-[More Information Needed]
+The text in the dataset is in English. The associated BCP-47 code is `en`.
 
 ## Dataset Structure
 
@@ -130,8 +129,16 @@ task_ids:
 
 ### Licensing Information
 
-[More Information Needed]
+[Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/legalcode)
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{rodriguez2020curiosity,
+    title = {Information Seeking in the Spirit of Learning: a Dataset for Conversational Curiosity},
+    author = {Pedro Rodriguez and Paul Crook and Seungwhan Moon and Zhiguang Wang},
+    year = 2020,
+    booktitle = {Empirical Methods in Natural Language Processing}
+}
+```
+
