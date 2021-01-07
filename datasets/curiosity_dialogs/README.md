@@ -184,7 +184,7 @@ An example from the Curiosity Dataset train set looks as follows:
   * `liked`: List of values indicating whether each dialog was liked
   * `message`: List of dialogs (messages) between the user and the assistant
   * `message_id`: Message ID
-  * `sender`:  
+  * `sender`:  Message author ID (numeric)
 * `known_entities`:  Rooted facts about entities the user knows
 * `focus_entity` : Entity in focus in the dialogs
 * `dialog_id `: Dialog ID
@@ -198,13 +198,13 @@ An example from the Curiosity Dataset train set looks as follows:
 * `tag`: Conversation tag
 * `user_id`: User ID
 * `assistant_id`: Assistant ID
-* `is_annotated`:  
-* `user_dialog_rating`:  
-* `user_other_agent_rating`: 
-* `assistant_dialog_rating`: 
-* `assistant_other_agent_rating`: 
-* `reported`: Whther the dialog was reported inappropriate
-* `annotated`: 
+* `is_annotated`:  0 or 1 (More Information Needed)
+* `user_dialog_rating`:  1 - 5 (More Information Needed)
+* `user_other_agent_rating`: 1 - 5 (More Information Needed)
+* `assistant_dialog_rating`: 1 - 5 (More Information Needed)
+* `assistant_other_agent_rating`: 1 - 5 (More Information Needed)
+* `reported`: Whether the dialog was reported inappropriate
+* `annotated`: 0 or 1 (More Information Needed)
 
 ### Data Splits
 
