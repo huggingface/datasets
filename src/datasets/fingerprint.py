@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 def set_fingerprinting_enabled(boolean: bool):
     """
     If disabled, the library will use random dataset fingerprint instead of computing them by hashing the transforms that are applied.
-    Since the caching mechanism uses fingerprints to name the cache filescache file names will be different.
+    Since the caching mechanism uses fingerprints to name the cache files, then cache file names will be different.
     Therefore disabling fingerprinting will prevent the caching mechanism from reloading datasets files that have already been computed.
     """
     global _FINGERPRINTING_ENABLED
