@@ -217,7 +217,7 @@ def prepare_module(
         path (str):
             path to the dataset or metric script, can be either:
                 - a path to a local directory containing the dataset processing python script
-                - an url to a S3 directory with a dataset processing python script
+                - an url to a github or S3 directory with a dataset processing python script
         script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
