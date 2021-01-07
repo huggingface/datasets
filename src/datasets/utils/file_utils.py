@@ -24,7 +24,6 @@ from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
-import importlib_metadata
 import numpy as np
 import pyarrow as pa
 import requests
@@ -36,6 +35,13 @@ from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
+
+_PY_VERSION: str = sys.version.split()[0]
+
+if int(_PY_VERSION.split(".")[0]) == 3 and int(_PY_VERSION.split(".")[1]) < 8:
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -410,7 +416,7 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
+    ua = "datasets/{}; python/{}".format(__version__, _PY_VERSION)
     ua += "; pyarrow/{}".format(pa.__version__)
     if is_torch_available():
         ua += "; torch/{}".format(_torch_version)
