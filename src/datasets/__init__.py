@@ -23,7 +23,7 @@ __version__ = "1.2.0"
 import pyarrow
 from pyarrow import total_allocated_bytes
 
-from .arrow_dataset import Dataset, concatenate_datasets
+from .arrow_dataset import Dataset, concatenate_datasets, set_caching_enabled
 from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
@@ -40,6 +40,7 @@ from .features import (
     TranslationVariableLanguages,
     Value,
 )
+from .fingerprint import set_fingerprinting_enabled
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,
