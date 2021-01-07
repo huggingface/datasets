@@ -15,11 +15,9 @@ source_datasets:
 task_categories:
 - other
 - sequence-modeling
-- structure-prediction
 task_ids:
 - other-other-relation-extraction
 - dialogue-modeling
-- parsing
 ---
 
 # Dataset Card for [DialogRE]
