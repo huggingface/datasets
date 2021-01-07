@@ -228,8 +228,8 @@ Entity types are marked as belonging to one of four categories:
 
 * `MOVIE_GENRE_OR_CATEGORY` (0): For genres or general descriptions that capture a particular type or style of movie.
 * `MOVIE_OR_SERIES` (1): For the full or partial name of a movie or series of movies.
-* `PERSON`(2): For the full or partial name of an actual person.
-* `SOMETHING_ELSE`(3):  For other important proper nouns, such as the names of characters or locations.
+* `PERSON` (2): For the full or partial name of an actual person.
+* `SOMETHING_ELSE ` (3):  For other important proper nouns, such as the names of characters or locations.
 
 ### Data Splits
 
