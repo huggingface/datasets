@@ -84,7 +84,7 @@ See the [README.md] file at https://unbabel.github.io/COMET/html/models.html for
 """
 
 _KWARGS_DESCRIPTION = """
-BLEURT score.
+COMET score.
 
 Args:
 
@@ -98,8 +98,8 @@ Args:
 `model`: COMET model to be used. Will default to `wmt-large-da-estimator-1719` if None.
 
 Returns:
-    `predictions`: List of dictionaries with `src`, `mt`, `ref` and `score`.
-    'scores': List of scores.
+    `samples`: List of dictionaries with `src`, `mt`, `ref` and `score`.
+    `scores`: List of scores.
 """
 
 
