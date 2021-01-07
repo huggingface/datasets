@@ -59,19 +59,19 @@ import sys
 from setuptools import find_packages
 from setuptools import setup
 
-DOCLINES = __doc__.split('\n')
+DOCLINES = __doc__.split("\n")
 
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    'numpy>=1.17',
+    "numpy>=1.17",
     # Backend and serialization. Minimum 0.17.1 to support extension array
-    'pyarrow>=0.17.1',
+    "pyarrow>=0.17.1",
     # For smart caching dataset processing
-    'dill',
+    "dill",
     # For performance gains with apache arrow
-    'pandas',
+    "pandas",
     # for downloading datasets over HTTPS
-    'requests>=2.19.0',
+    "requests>=2.19.0",
     # progress bars in download and scripts
     # tqdm 4.50.0 introduced permission errors on windows
     # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
@@ -81,37 +81,42 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess"
+    "multiprocess",
+    # for saving datsets to local or s3
+    "fsspec",
+    "fsspec[s3]",
+    # for getting credentials from aws_profile
+    "boto3",
 ]
 
 BENCHMARKS_REQUIRE = [
-    'numpy==1.18.5',
-    'tensorflow==2.3.0',
-    'torch==1.6.0',
-    'transformers==3.0.2',
+    "numpy==1.18.5",
+    "tensorflow==2.3.0",
+    "torch==1.6.0",
+    "transformers==3.0.2",
 ]
 
 TESTS_REQUIRE = [
-    'apache-beam',
-    'absl-py',
-    'bs4',
-    'conllu',
-    'elasticsearch',
-    'faiss-cpu',
-    'langdetect',
-    'lxml',
-    'mwparserfromhell',
-    'nltk',
-    'openpyxl',
-    'py7zr',
-    'pytest',
-    'pytest-xdist',
-    'tensorflow',
-    'torch',
-    'tldextract',
-    'transformers',
-    'zstandard',
-    'rarfile',
+    "apache-beam",
+    "absl-py",
+    "bs4",
+    "conllu",
+    "elasticsearch",
+    "faiss-cpu",
+    "langdetect",
+    "lxml",
+    "mwparserfromhell",
+    "nltk",
+    "openpyxl",
+    "py7zr",
+    "pytest",
+    "pytest-xdist",
+    "tensorflow",
+    "torch",
+    "tldextract",
+    "transformers",
+    "zstandard",
+    "rarfile",
 ]
 
 if os.name == "nt":  # windows
@@ -126,34 +131,36 @@ QUALITY_REQUIRE = [
 
 
 EXTRAS_REQUIRE = {
-    'apache-beam': ['apache-beam'],
-    'tensorflow': ['tensorflow>=2.2.0'],
-    'tensorflow_gpu': ['tensorflow-gpu>=2.2.0'],
-    'torch': ['torch'],
-    'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
-    'tests': TESTS_REQUIRE,
-    'quality': QUALITY_REQUIRE,
-    'benchmarks': BENCHMARKS_REQUIRE,
-    'docs': ["recommonmark", "sphinx==3.1.2", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
+    "apache-beam": ["apache-beam"],
+    "tensorflow": ["tensorflow>=2.2.0"],
+    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
+    "torch": ["torch"],
+    "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
+    "tests": TESTS_REQUIRE,
+    "quality": QUALITY_REQUIRE,
+    "benchmarks": BENCHMARKS_REQUIRE,
+    "docs": [
+        "recommonmark",
+        "sphinx==3.1.2",
+        "sphinx-markdown-tables",
+        "sphinx-rtd-theme==0.4.3",
+        "sphinx-copybutton",
+    ],
 }
 
 setup(
-    name='datasets',
+    name="datasets",
     version="1.2.0",
     description=DOCLINES[0],
-    long_description='\n'.join(DOCLINES[2:]),
-    author='HuggingFace Inc.',
-    author_email='thomas@huggingface.co',
-    url='https://github.com/huggingface/datasets',
-    download_url='https://github.com/huggingface/datasets/tags',
-    license='Apache 2.0',
+    long_description="\n".join(DOCLINES[2:]),
+    author="HuggingFace Inc.",
+    author_email="thomas@huggingface.co",
+    url="https://github.com/huggingface/datasets",
+    download_url="https://github.com/huggingface/datasets/tags",
+    license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={
-        'datasets': [
-            'scripts/templates/*',
-        ],
-    },
+    package_data={"datasets": ["scripts/templates/*",],},
     scripts=["datasets-cli"],
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
@@ -169,5 +176,5 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords='datasets machine learning datasets metrics',
+    keywords="datasets machine learning datasets metrics",
 )

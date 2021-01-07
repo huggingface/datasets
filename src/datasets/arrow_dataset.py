@@ -31,6 +31,7 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -424,17 +425,41 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
-    def save_to_disk(self, dataset_path: str):
+    def save_to_disk(
+        self, dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None
+    ):
         """
-        Save the dataset in a dataset directory
+        Save the dataset in a dataset directory or to a s3 bucket
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be saved to
+            dataset_path (``str``): path or s3 uri of the dataset directory where the dataset will be saved to
+            aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for uploading the data to s3
+            aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
+            aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
         """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
         self = pickle.loads(pickle.dumps(self))
+        # checks if dataset_path is s3 uri
+        if dataset_path.startswith("s3://"):
+            dataset_path = dataset_path.replace("s3://", "")
+            if aws_secret_access_key is not None and aws_secret_access_key is not None:
+                fs = fsspec.filesystem("s3", anon=False, key=aws_access_key_id, secret=aws_secret_access_key)
+            else:
+                from boto3 import Session
+
+                # Credentials are refreshable, so accessing your access key / secret key
+                # separately can lead to a race condition. Use this to get an actual matched
+                # set.
+                credentials = Session(profile_name=aws_profile).get_credentials().get_frozen_credentials()
+                fs = fsspec.filesystem(
+                    "s3", anon=False, key=credentials.aws_access_key_id, secret=credentials.aws_secret_access_key
+                )
+
+        else:
+            fs = fsspec.filesystem("file")
+
         os.makedirs(dataset_path, exist_ok=True)
         # Write indices if needed
         if self._indices is not None:
@@ -454,12 +479,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             self._inplace_history = [{"transforms": []}]
         # Copy all files into the dataset directory
         for data_file in self._data_files + self._indices_data_files:
-            # Copy file to destination directory
             src = data_file["filename"]
             filename = Path(src).name
             dest = os.path.join(dataset_path, filename)
-            if src != dest:
-                shutil.copy(src, dest)
+            if "s3" in fs.protocol:
+                fs.put(src, dest)
+            else:
+                if src != dest:
+                    shutil.copy(src, dest)
             # Change path to relative path from inside the destination directory
             data_file["filename"] = filename
         # Get state
@@ -471,9 +498,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
         ), "in-place history needs to be empty"
         # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
+        with fs.open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -1848,8 +1875,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not isinstance(column, str) or column not in self._data.column_names:
             raise ValueError(
                 "Column '{}' not found in the dataset. Please provide a column selected in: {}".format(
-                    column,
-                    self._data.column_names,
+                    column, self._data.column_names,
                 )
             )
 
@@ -2205,9 +2231,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def export(
-        self,
-        filename: str,
-        format: str = "tfrecord",
+        self, filename: str, format: str = "tfrecord",
     ):
         """Writes the Arrow dataset to a TFRecord file.
 
@@ -2481,9 +2505,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
 
 def concatenate_datasets(
-    dsets: List[Dataset],
-    info: Optional[Any] = None,
-    split: Optional[Any] = None,
+    dsets: List[Dataset], info: Optional[Any] = None, split: Optional[Any] = None,
 ):
     """
     Converts a list of :obj:``datasets.Dataset`` with the same schema into a single :obj:``datasets.Dataset``.
