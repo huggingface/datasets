@@ -453,9 +453,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # separately can lead to a race condition. Use this to get an actual matched
                 # set.
                 credentials = Session(profile_name=aws_profile).get_credentials().get_frozen_credentials()
-                fs = fsspec.filesystem(
-                    "s3", anon=False, key=credentials.aws_access_key_id, secret=credentials.aws_secret_access_key
-                )
+                fs = fsspec.filesystem("s3", anon=False, key=credentials.access_key, secret=credentials.secret_key)
 
         else:
             fs = fsspec.filesystem("file")
@@ -482,11 +480,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             src = data_file["filename"]
             filename = Path(src).name
             dest = os.path.join(dataset_path, filename)
-            if "s3" in fs.protocol:
+            if src != dest:
                 fs.put(src, dest)
-            else:
-                if src != dest:
-                    shutil.copy(src, dest)
             # Change path to relative path from inside the destination directory
             data_file["filename"] = filename
         # Get state
@@ -505,15 +500,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str) -> "Dataset":
+    def load_from_disk(
+        dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None
+    ) -> "Dataset":
         """Load the dataset from a dataset directory
 
         Args:
             dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
         """
-        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
+        # checks if dataset_path is s3 uri
+        if dataset_path.startswith("s3://"):
+            dataset_path = dataset_path.replace("s3://", "")
+            if aws_secret_access_key is not None and aws_secret_access_key is not None:
+                fs = fsspec.filesystem("s3", anon=False, key=aws_access_key_id, secret=aws_secret_access_key)
+            else:
+                from boto3 import Session
+
+                # Credentials are refreshable, so accessing your access key / secret key
+                # separately can lead to a race condition. Use this to get an actual matched
+                # set.
+                credentials = Session(profile_name=aws_profile).get_credentials().get_frozen_credentials()
+                fs = fsspec.filesystem("s3", anon=False, key=credentials.access_key, secret=credentials.secret_key)
+
+        else:
+            fs = fsspec.filesystem("file")
+
+        with fs.open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with fs.open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})

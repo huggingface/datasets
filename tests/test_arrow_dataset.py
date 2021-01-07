@@ -150,6 +150,19 @@ class BaseDatasetTest(TestCase):
     def test_dummy_dataset_serialize(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
+            # s3 test
+            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
+            dataset_path = "s3://sagemaker-eu-central-1-558105141721/datasets/test3"
+            dset.save_to_disk(dataset_path, aws_profile="hf-sm")
+            dset = dset.load_from_disk(dataset_path, aws_profile="hf-sm")
+
+            self.assertEqual(len(dset), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
+            del dset
+
+            # disk test
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
             dataset_path = os.path.join(tmp_dir, "my_dataset")
             dset.save_to_disk(dataset_path)
@@ -568,8 +581,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
+                dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
@@ -583,8 +595,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
+                dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 3)
             self.assertListEqual(dset_test["id"], list(range(30)))
@@ -598,8 +609,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
+                dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
@@ -613,8 +623,7 @@ class BaseDatasetTest(TestCase):
             dset_test_with_indices = dset.map(lambda x, i: {"label": i % 2}, with_indices=True, features=features)
             self.assertEqual(len(dset_test_with_indices), 30)
             self.assertDictEqual(
-                dset_test_with_indices.features,
-                features,
+                dset_test_with_indices.features, features,
             )
             del dset, dset_test_with_indices
 
@@ -899,19 +908,11 @@ class BaseDatasetTest(TestCase):
             bad_indices[3] = "foo"
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             self.assertRaises(
-                Exception,
-                dset.select,
-                indices=bad_indices,
-                indices_cache_file_name=tmp_file,
-                writer_batch_size=2,
+                Exception, dset.select, indices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2,
             )
             self.assertFalse(os.path.exists(tmp_file))
             dset.set_format("numpy")
-            dset_select_five = dset.select(
-                range(5),
-                indices_cache_file_name=tmp_file,
-                writer_batch_size=2,
-            )
+            dset_select_five = dset.select(range(5), indices_cache_file_name=tmp_file, writer_batch_size=2,)
             self.assertTrue(os.path.exists(tmp_file))
             self.assertEqual(len(dset_select_five), 5)
             self.assertEqual(dset_select_five.format["type"], "numpy")
