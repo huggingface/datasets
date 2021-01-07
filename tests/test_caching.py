@@ -2,7 +2,7 @@ import pickle
 from hashlib import md5
 from types import CodeType, FunctionType
 from unittest import TestCase
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import datasets
 from datasets.fingerprint import Hasher
