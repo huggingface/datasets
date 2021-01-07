@@ -71,15 +71,15 @@ task_ids:
   - language-modeling
   tagged_ca:
   - structure-prediction-other-lemmatization
-  - structure-prediction-other-pos-tagging
+  - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
   tagged_en:
   - structure-prediction-other-lemmatization
-  - structure-prediction-other-pos-tagging
+  - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
   tagged_es:
   - structure-prediction-other-lemmatization
-  - structure-prediction-other-pos-tagging
+  - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
 ---
 

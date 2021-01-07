@@ -54,9 +54,9 @@ _DOWNLOAD_URL = "https://raw.githubusercontent.com/trunghlt/AdverseDrugReaction/
 
 # Different usage configs/
 configs = {
-    "classification": "Ade_corpos_v2_classificaion",
-    "RE_ade": "Ade_corpos_v2_drug_ade_relation",
-    "RE_dosage": "Ade_corpos_v2_drug_dosage_relation",
+    "classification": "Ade_corpus_v2_classification",
+    "RE_ade": "Ade_corpus_v2_drug_ade_relation",
+    "RE_dosage": "Ade_corpus_v2_drug_dosage_relation",
 }
 
 
@@ -76,17 +76,17 @@ class ADECorpusV2(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         ADE_Corpus_V2Config(
-            name="Ade_corpos_v2_classificaion",
+            name="Ade_corpus_v2_classification",
             version=datasets.Version("1.0.0"),
             description="ADE_Corpus_V2 Dataset for Classification if a sentence is ADE-related or not.",
         ),
         ADE_Corpus_V2Config(
-            name="Ade_corpos_v2_drug_ade_relation",
+            name="Ade_corpus_v2_drug_ade_relation",
             version=datasets.Version("1.0.0"),
             description="ADE_Corpus_V2 Dataset for Relation Extraction between Adverse Drug Event and Drug.",
         ),
         ADE_Corpus_V2Config(
-            name="Ade_corpos_v2_drug_dosage_relation",
+            name="Ade_corpus_v2_drug_dosage_relation",
             version=datasets.Version("1.0.0"),
             description="ADE_Corpus_V2 Dataset for Relation Extraction between Drug dosage and Drug.",
         ),

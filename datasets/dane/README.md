@@ -16,6 +16,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+- part-of-speech-tagging
 ---
 
 # Dataset Card for [Dataset Name]
@@ -45,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/alexandrainst/danlp/blob/master/docs/docs/datasets.md#dane)
+- **Repository:** [Github](https://github.com/alexandrainst/danlp)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.lrec-1.565)
 - **Leaderboard:**
 - **Point of Contact:**
 

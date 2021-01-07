@@ -47,8 +47,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/songys/Question_pair)
+- **Repository:** [Github](https://github.com/songys/Question_pair)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**

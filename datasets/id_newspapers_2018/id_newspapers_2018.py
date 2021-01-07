@@ -111,7 +111,7 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
                 data = json.load(f)
                 yield id, {
                     "id": str(id),
-                    "url": data["date"],
+                    "url": data["url"],
                     "date": data["date"],
                     "title": data["title"],
                     "content": data["content"],

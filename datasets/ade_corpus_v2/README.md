@@ -10,27 +10,27 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
   - 10K<n<100K
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
   - 1K<n<10K
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
   - n<1K
 source_datasets:
 - original
 task_categories:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
     - text-classification
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
     - structure-prediction
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
     - structure-prediction
 task_ids:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
     - fact-checking
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
     - coreference-resolution
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
     - coreference-resolution
 ---
 
@@ -93,16 +93,66 @@ English
 
 ### Data Instances
 
-[Needs More Information]
+#### Config - `Ade_corpus_v2_classification`
+```
+{
+      'label': 1, 
+      'text': 'Intravenous azithromycin-induced ototoxicity.'
+}
+
+```
+
+#### Config - `Ade_corpus_v2_drug_ade_relation`
+
+```
+{ 
+    'drug': 'azithromycin', 
+    'effect': 'ototoxicity', 
+    'indexes': {
+                  'drug': {
+                            'end_char': [24], 
+                            'start_char': [12]
+                          }, 
+                  'effect': {
+                            'end_char': [44], 
+                            'start_char': [33]
+                            }
+                }, 
+    'text': 'Intravenous azithromycin-induced ototoxicity.'
+    
+}
+
+```
+
+#### Config - `Ade_corpus_v2_drug_dosage_relation`
+
+```
+{
+    'dosage': '4 times per day', 
+    'drug': 'insulin', 
+    'indexes': {
+                'dosage': {
+                            'end_char': [56], 
+                            'start_char': [41]
+                        }, 
+                'drug': {
+                          'end_char': [40], 
+                          'start_char': [33]}
+                        }, 
+    'text': 'She continued to receive regular insulin 4 times per day over the following 3 years with only occasional hives.'
+}
+
+```
+
 
 ### Data Fields
 
-
-#### Config - `Ade_corpos_v2_classificaion`
+#### Config - `Ade_corpus_v2_classification`
 
 - `text` - Input text.
-- `label` - Whether the adverse drug effect(ADE) related or not.
-#### Config - `Ade_corpos_v2_drug_ade_relation`
+- `label` - Whether the adverse drug effect(ADE) related (1) or not (0).
+- 
+#### Config - `Ade_corpus_v2_drug_ade_relation`
 
 - `text` - Input text.
 - `drug` - Name of drug.
@@ -112,7 +162,7 @@ English
 - `indexes.effect.start_char` - Start index of `effect` string in text.
 - `indexes.effect.end_char` - End index of `effect` string in text.
 
-#### Config - `Ade_corpos_v2_drug_dosage_relation`
+#### Config - `Ade_corpus_v2_drug_dosage_relation`
 
 - `text` - Input text.
 - `drug` - Name of drug.

@@ -99,7 +99,7 @@ The POS tags are ["NN", "VVINF", "ADJX", "ADV"] -> ["noun", "verb", "adjective",
 
 ### Data Splits
 
-[Needs More Information]
+ train: 1,650 negative and 1,818 positive words
 
 ## Dataset Creation
 

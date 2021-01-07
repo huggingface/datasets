@@ -81,7 +81,9 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess"
+    "multiprocess",
+    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
+    "importlib_metadata"
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -102,6 +104,7 @@ TESTS_REQUIRE = [
     'lxml',
     'mwparserfromhell',
     'nltk',
+    'openpyxl',
     'py7zr',
     'pytest',
     'pytest-xdist',
@@ -109,8 +112,8 @@ TESTS_REQUIRE = [
     'torch',
     'tldextract',
     'transformers',
-    'xlrd==1.2.0',  # pinning to keep the xlsx support. We should eventually use something else
     'zstandard',
+    'rarfile',
 ]
 
 if os.name == "nt":  # windows
@@ -138,7 +141,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='datasets',
-    version="1.1.3",
+    version="1.2.0",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',

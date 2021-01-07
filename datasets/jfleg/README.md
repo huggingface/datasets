@@ -47,20 +47,17 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Github](https://github.com/keisks/jfleg)
+- **Repository:** [Github](https://github.com/keisks/jfleg)
+- **Paper:** [Napoles et al., 2020](https://www.aclweb.org/anthology/E17-2037/)
+- **Leaderboard:** [Leaderboard](https://github.com/keisks/jfleg#leader-board-published-results)
+- **Point of Contact:** Courtney Napoles, Keisuke Sakaguchi
 
 ### Dataset Summary
-
-[More Information Needed]
+JFLEG (JHU FLuency-Extended GUG) is an English grammatical error correction (GEC) corpus. It is a gold standard benchmark for developing and evaluating GEC systems with respect to fluency (extent to which a text is native-sounding) as well as grammaticality. For each source document, there are four human-written corrections.
 
 ### Supported Tasks and Leaderboards
 Grammatical error correction.
-
-[More Information Needed]
 
 ### Languages
 English (native as well as L2 writers)
