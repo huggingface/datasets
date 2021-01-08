@@ -117,6 +117,7 @@ TESTS_REQUIRE = [
     "transformers",
     "zstandard",
     "rarfile",
+    "moto[s3]",
 ]
 
 if os.name == "nt":  # windows

@@ -150,19 +150,6 @@ class BaseDatasetTest(TestCase):
     def test_dummy_dataset_serialize(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            # s3 test
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            dataset_path = "s3://sagemaker-eu-central-1-558105141721/datasets/test3"
-            dset.save_to_disk(dataset_path, aws_profile="hf-sm")
-            dset = dset.load_from_disk(dataset_path, aws_profile="hf-sm")
-
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
-
-            # disk test
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
             dataset_path = os.path.join(tmp_dir, "my_dataset")
             dset.save_to_disk(dataset_path)
@@ -184,6 +171,23 @@ class BaseDatasetTest(TestCase):
             dset.save_to_disk(dataset_path)
             dset = dset.load_from_disk(dataset_path)
 
+            self.assertEqual(len(dset), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
+            del dset
+
+    def test_dummy_dataset_load_and_save_from_s3(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            # s3 test
+            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
+            dataset_path = "s3://sagemaker-eu-central-1-558105141721/datasets/test3"
+            dset.save_to_disk(dataset_path, aws_profile="hf-sm")
+            try:
+                dset = dset.load_from_disk(dataset_path, aws_profile="hf-sm")
+            except Exception as e:
+                x = e
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
