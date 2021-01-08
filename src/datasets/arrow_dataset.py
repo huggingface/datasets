@@ -486,6 +486,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dest = os.path.join(dataset_path, filename)
             if src != dest:
                 fs.put(src, dest)
+            elif fs.protocol != "file":
+                fs.put(src, dest)
             # Change path to relative path from inside the destination directory
             data_file["filename"] = filename
         # Get state
@@ -542,7 +544,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
             data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
         dataset.__setstate__(state)
-
+        
         if s3_dataset_path is not None:
             tmp_dir.cleanup()
         return dataset

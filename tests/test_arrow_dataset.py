@@ -3,11 +3,13 @@ import pickle
 import tempfile
 from functools import partial
 from unittest import TestCase
+from moto import mock_s3
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 from absl.testing import parameterized
+import boto3
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, load_from_disk, temp_seed
@@ -177,17 +179,29 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["filename"][0], "my_name-train_0")
             del dset
 
-    def test_dummy_dataset_load_and_save_from_s3(self, in_memory):
+    @mock_s3
+    def test_dummy_dataset_serialize_s3(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
+            s3 = boto3.client("s3", region_name="us-east-1")
+            mock_bucket = "moto-mock-s3-bucket"
+            # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+            s3.create_bucket(Bucket=mock_bucket)
 
-            # s3 test
+            if in_memory:
+                prefix = "datasets/memory"
+            else:
+                prefix = "datasets/disk"
+
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            dataset_path = "s3://sagemaker-eu-central-1-558105141721/datasets/test3"
-            dset.save_to_disk(dataset_path, aws_profile="hf-sm")
-            try:
-                dset = dset.load_from_disk(dataset_path, aws_profile="hf-sm")
-            except Exception as e:
-                x = e
+            dataset_path = f"s3://{mock_bucket}/{prefix}"
+
+            dset.save_to_disk(
+                dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
+            )
+            dset = dset.load_from_disk(
+                dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
+            )
+
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
