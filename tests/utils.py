@@ -1,5 +1,6 @@
 import os
 import unittest
+from contextlib import contextmanager
 from distutils.util import strtobool
 
 from datasets.utils.file_utils import _tf_available, _torch_available
@@ -166,3 +167,21 @@ def for_all_test_methods(*decorators):
         return cls
 
     return decorate
+
+
+@contextmanager
+def offline(exception_cls=None):
+    """inspired from https://stackoverflow.com/a/18601897"""
+    import socket
+
+    online_socket = socket.socket
+
+    def guard(*args, **kwargs):
+        error = exception_cls if exception_cls is not None else socket.error
+        raise error("Offline mode is enabled.")
+
+    try:
+        socket.socket = guard
+        yield
+    finally:
+        socket.socket = online_socket
