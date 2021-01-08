@@ -313,6 +313,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
+        requests.exceptions.ConnectionError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -341,7 +342,7 @@ def cached_path(
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
         # File, but it doesn't exist.
-        # On unix the scheme of a local paht is empty, while on windows the scheme is the drive name (ex: "c")
+        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
         # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
