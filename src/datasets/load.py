@@ -27,6 +27,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
+from requests.exceptions import ConnectionError as requests_ConnectionError
+
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
@@ -247,6 +249,11 @@ def prepare_module(
     # Short name is name without the '.py' at the end (for the module)
     short_name = name[:-3]
 
+    if force_local_path is None:
+        main_folder_path = os.path.join(DATASETS_PATH if dataset else METRICS_PATH, short_name)
+    else:
+        main_folder_path = force_local_path
+
     # We have three ways to find the processing file:
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
@@ -260,30 +267,45 @@ def prepare_module(
         local_path = path
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
-        head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
-        script_version = str(script_version) if script_version is not None else None
-        file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
         try:
-            local_path = cached_path(file_path, download_config=download_config)
-        except FileNotFoundError:
-            if script_version is not None:
-                raise ValueError(
-                    "Couldn't find remote file with version {} at {}\nPlease provide a valid version and a valid {} name".format(
-                        script_version, file_path, "dataset" if dataset else "metric"
-                    )
-                )
-            github_file_path = file_path
-            file_path = hf_bucket_url(path, filename=name, dataset=dataset)
+            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+            script_version = str(script_version) if script_version is not None else None
+            file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
             try:
                 local_path = cached_path(file_path, download_config=download_config)
             except FileNotFoundError:
-                raise FileNotFoundError(
-                    "Couldn't find file locally at {}, or remotely at {} or {}.\n"
-                    'If the {} was added recently, you may need to to pass script_version="master" to find '
-                    "the loading script on the master branch.".format(
-                        combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
+                if script_version is not None:
+                    raise ValueError(
+                        "Couldn't find remote file with version {} at {}\nPlease provide a valid version and a valid {} name".format(
+                            script_version, file_path, "dataset" if dataset else "metric"
+                        )
                     )
-                )
+                github_file_path = file_path
+                file_path = hf_bucket_url(path, filename=name, dataset=dataset)
+                try:
+                    local_path = cached_path(file_path, download_config=download_config)
+                except FileNotFoundError:
+                    raise FileNotFoundError(
+                        "Couldn't find file locally at {}, or remotely at {} or {}.\n"
+                        'If the {} was added recently, you may need to to pass script_version="master" to find '
+                        "the loading script on the master branch.".format(
+                            combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
+                        )
+                    )
+        except:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
+            if os.path.isdir(main_folder_path):
+                hashes = [h for h in os.listdir(main_folder_path) if len(h) == 64]
+                if hashes:
+                    # get most recent
+                    def _get_modification_time(module_hash):
+                        return (Path(main_folder_path) / module_hash / name).stat().st_mtime
+
+                    hash = sorted(hashes, key=_get_modification_time)[-1]
+                    module_path = ".".join(
+                        [DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name]
+                    )
+                    return module_path, hash
+            raise
 
     # Load the module in two steps:
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
@@ -352,10 +374,8 @@ def prepare_module(
     hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
 
     if force_local_path is None:
-        main_folder_path = os.path.join(DATASETS_PATH if dataset else METRICS_PATH, short_name)
         hash_folder_path = os.path.join(main_folder_path, hash)
     else:
-        main_folder_path = force_local_path
         hash_folder_path = force_local_path
 
     local_file_path = os.path.join(hash_folder_path, name)
