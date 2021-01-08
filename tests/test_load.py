@@ -1,14 +1,13 @@
-from unittest import TestCase
-import tempfile
-import os
 import importlib
+import os
+import tempfile
 from hashlib import sha256
+from unittest import TestCase
 
 import datasets
 
 
 class LoadTest(TestCase):
-
     def test_prepare_module(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             dummy_module_name = "__dummy_module_name__"
