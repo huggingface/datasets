@@ -83,7 +83,7 @@ REQUIRED_PKGS = [
     # for better multiprocessing
     "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
-    "importlib_metadata"
+    "importlib_metadata;python_version<'3.8'"
 ]
 
 BENCHMARKS_REQUIRE = [
