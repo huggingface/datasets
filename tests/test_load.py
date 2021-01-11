@@ -6,6 +6,7 @@ from unittest import TestCase
 
 import pytest
 import requests
+import shutil
 
 import datasets
 
@@ -17,7 +18,14 @@ class LoadTest(TestCase):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
+    def setUp(self):
+        for dir_name in os.listdir(datasets.load.DATASETS_PATH):
+            dir_path = os.path.join(datasets.load.DATASETS_PATH, dir_name)
+            if os.path.isdir(dir_path) and dir_name.startswith("__"):
+                shutil.rmtree(dir_path)
+
     def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
+        assert dummy_module_name.startswith("__")
         module_dir = os.path.join(modules_dir, dummy_module_name)
         os.makedirs(module_dir, exist_ok=True)
         module_path = os.path.join(module_dir, dummy_module_name + ".py")
