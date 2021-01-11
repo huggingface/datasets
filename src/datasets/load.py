@@ -27,8 +27,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-from requests.exceptions import ConnectionError as requests_ConnectionError
-
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
