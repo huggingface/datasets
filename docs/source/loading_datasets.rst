@@ -372,11 +372,22 @@ By default, this parameter is set to ``"reuse_dataset_if_exists"``. The :func:`d
 
 There following table describes the three available modes for download:
 
-|  :obj:`download_mode` parameter value   | Downloads | Dataset |
-| ----------------------------------------|-----------|---------|
-| ``"reuse_dataset_if_exists"`` (default) | Reuse     | Reuse   |
-| ``"reuse_cache_if_exists"``             | Reuse     | Fresh   |
-| ``"force_redownload"``                  | Fresh     | Fresh   |
+.. list-table:: Behavior of :func:`datasets.load_dataset` depending on :obj:`download_mode`
+   :header-rows: 1
+
+   * - :obj:`download_mode` parameter value
+     - Downloaded files (raw data)
+     - Dataset object
+   * - ``"reuse_dataset_if_exists"`` (default)
+     - Reuse
+     - Reuse
+   * - ``"reuse_cache_if_exists"``
+     - Reuse
+     - Fresh
+   * - ``"force_redownload"``  
+     - Fresh
+     - Fresh
+
 
 Integrity verifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
