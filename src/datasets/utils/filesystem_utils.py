@@ -1,5 +1,5 @@
-import boto3
 import fsspec
+from boto3 import Session
 
 
 def get_filesystem_from_dataset_path(
@@ -24,7 +24,6 @@ def get_filesystem_from_dataset_path(
             # The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible
             fs = fsspec.filesystem("s3", anon=True)
         else:
-            from boto3 import Session
 
             # Credentials are refreshable, so accessing your access key / secret key
             # separately can lead to a race condition. Use this to get an actual matched
