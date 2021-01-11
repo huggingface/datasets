@@ -35,7 +35,15 @@ from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
+from .utils.file_utils import (
+    HF_MODULES_CACHE,
+    DownloadConfig,
+    cached_path,
+    head_hf_s3,
+    hf_bucket_url,
+    hf_github_url,
+    init_hf_modules,
+)
 from .utils.filelock import FileLock
 from .utils.logging import get_logger
 from .utils.version import Version
@@ -43,18 +51,23 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-DYNAMIC_MODULES_PATH = os.path.join(HF_MODULES_CACHE, "datasets_modules")
-DATASETS_PATH = os.path.join(DYNAMIC_MODULES_PATH, "datasets")
-DATASETS_MODULE = "datasets_modules.datasets"
-METRICS_PATH = os.path.join(DYNAMIC_MODULES_PATH, "metrics")
-METRICS_MODULE = "datasets_modules.metrics"
+MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
 
-def init_dynamic_modules():
-    os.makedirs(DYNAMIC_MODULES_PATH, exist_ok=True)
-    if not os.path.exists(os.path.join(DYNAMIC_MODULES_PATH, "__init__.py")):
-        with open(os.path.join(DYNAMIC_MODULES_PATH, "__init__.py"), "w"):
+def init_dynamic_modules(name: str, hf_modules_cache: Optional[str] = None):
+    """
+    Create a module with name `name` in which you can add dynamic modules
+    such as metrics or datasets. The module can be imported using its name.
+    The module is created in the HF_MODULE_CACHE directory by default (~/.cache/huggingface/modules) but it can
+    be overriden by specifying a path to another directory in `hf_modules_cache`.
+    """
+    hf_modules_cache = init_hf_modules(hf_modules_cache)
+    dynamic_modules_path = os.path.join(hf_modules_cache, name)
+    os.makedirs(dynamic_modules_path, exist_ok=True)
+    if not os.path.exists(os.path.join(dynamic_modules_path, "__init__.py")):
+        with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
             pass
+    return dynamic_modules_path
 
 
 def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
@@ -204,6 +217,7 @@ def prepare_module(
     download_mode: Optional[GenerateMode] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
+    dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> Tuple[str, str]:
     r"""
@@ -225,6 +239,9 @@ def prepare_module(
         dataset (bool): True if the script to load is a dataset, False if the script is a metric.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
+        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
+            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
+            By default the datasets and metrics are stored inside the `datasets_modules` module.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Return: Tuple[``str``, ``str``] with
@@ -233,7 +250,17 @@ def prepare_module(
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/datasets/datasets/squad/squad.py'
         2. A hash string computed from the content of the dataset loading script.
     """
-    init_dynamic_modules()
+    dynamic_modules_path = (
+        dynamic_modules_path
+        if dynamic_modules_path is not None
+        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=HF_MODULES_CACHE)
+    )
+    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
+    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
+    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
+    metrics_modules_path = os.path.join(dynamic_modules_path, "metric")
+    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
+
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
@@ -248,7 +275,7 @@ def prepare_module(
     short_name = name[:-3]
 
     if force_local_path is None:
-        main_folder_path = os.path.join(DATASETS_PATH if dataset else METRICS_PATH, short_name)
+        main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name)
     else:
         main_folder_path = force_local_path
 
@@ -300,7 +327,7 @@ def prepare_module(
 
                     hash = sorted(hashes, key=_get_modification_time)[-1]
                     module_path = ".".join(
-                        [DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name]
+                        [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
                     )
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} since it "
@@ -467,7 +494,9 @@ def prepare_module(
                 raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
-        module_path = ".".join([DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name])
+        module_path = ".".join(
+            [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
+        )
     else:
         module_path = local_file_path
 
