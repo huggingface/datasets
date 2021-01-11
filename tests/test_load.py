@@ -1,12 +1,12 @@
 import importlib
 import os
+import shutil
 import tempfile
 from hashlib import sha256
 from unittest import TestCase
 
 import pytest
 import requests
-import shutil
 
 import datasets
 
