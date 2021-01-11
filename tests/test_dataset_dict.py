@@ -337,3 +337,17 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
+
+    # TODO: Implement test
+    def test_save_and_load_to_s3(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir)
+            del dsets
+            dsets = load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(dsets), ["test", "train"])
+            self.assertEqual(len(dsets["train"]), 30)
+            self.assertListEqual(dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(dsets["test"]), 30)
+            self.assertListEqual(dsets["test"].column_names, ["filename"])
+            del dsets

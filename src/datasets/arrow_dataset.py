@@ -45,9 +45,8 @@ from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import map_nested
+from .utils import map_nested, is_remote_filesystem, get_filesystem_from_dataset_path
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
-
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
@@ -426,7 +425,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             self._indices = reader._read_files(self._indices_data_files)
 
     def save_to_disk(
-        self, dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None, anon=False
+        self, dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None
     ):
         """
         Save the dataset in a dataset directory or to a s3 bucket
@@ -436,32 +435,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for uploading the data to s3
             aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
             aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
-            anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
         """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
         self = pickle.loads(pickle.dumps(self))
-        # checks if dataset_path is s3 uri
-        if dataset_path.startswith("s3://"):
-            dataset_path = dataset_path.replace("s3://", "")
-            if aws_secret_access_key is not None and aws_secret_access_key is not None:
-                fs = fsspec.filesystem("s3", anon=False, key=aws_access_key_id, secret=aws_secret_access_key)
-            elif anon == True:
-                # The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible
-                fs = fsspec.filesystem("s3", anon=True)
-            else:
-                from boto3 import Session
-
-                # Credentials are refreshable, so accessing your access key / secret key
-                # separately can lead to a race condition. Use this to get an actual matched
-                # set.
-                credentials = Session(profile_name=aws_profile).get_credentials().get_frozen_credentials()
-                fs = fsspec.filesystem("s3", anon=False, key=credentials.access_key, secret=credentials.secret_key)
-
-        else:
-            fs = fsspec.filesystem("file")
-
+        # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
+        fs, dataset_path = get_filesystem_from_dataset_path(
+            dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key
+        )
         os.makedirs(dataset_path, exist_ok=True)
         # Write indices if needed
         if self._indices is not None:
@@ -507,29 +489,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @staticmethod
     def load_from_disk(
-        dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None
+        dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None, anon=False
     ) -> "Dataset":
         """Load the dataset from a dataset directory
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
+            dataset_path (``str``): path or s3 uri of the dataset directory where the dataset will be loaded from
+            aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for downloading the data to s3
+            aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for downloading the data to s3
+            aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for downloading the data to s3
+            anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
         """
-        # checks if dataset_path is s3 uri
-        if dataset_path.startswith("s3://"):
-            dataset_path = dataset_path.replace("s3://", "")
-            if aws_secret_access_key is not None and aws_secret_access_key is not None:
-                fs = fsspec.filesystem("s3", anon=False, key=aws_access_key_id, secret=aws_secret_access_key)
-            else:
-                from boto3 import Session
-
-                # Credentials are refreshable, so accessing your access key / secret key
-                # separately can lead to a race condition. Use this to get an actual matched
-                # set.
-                credentials = Session(profile_name=aws_profile).get_credentials().get_frozen_credentials()
-                fs = fsspec.filesystem("s3", anon=False, key=credentials.access_key, secret=credentials.secret_key)
-            # loads currently the files from s3 to local disk and datsets loads it from disk
+        # copies file from filesystem if it is s3 to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(dataset_path):
+            # gets filesystem from dataset, either s3:// or file://
+            fs, s3_dataset_path = get_filesystem_from_dataset_path(
+                dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon
+            )
             tmp_dir = tempfile.TemporaryDirectory()
-            s3_dataset_path = dataset_path
             dataset_path = os.path.join(tmp_dir.name, s3_dataset_path)
             fs.download(s3_dataset_path, dataset_path, recursive=True)
 
@@ -544,7 +521,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
             data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
         dataset.__setstate__(state)
-        
+
         if s3_dataset_path is not None:
             tmp_dir.cleanup()
         return dataset
