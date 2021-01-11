@@ -160,11 +160,12 @@ def transmit_format(func):
         for dataset in datasets:
             new_format = dict(self_format)
             if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
-                new_format["columns"] = list(set(dataset.column_names) - unformatted_columns)
+                # sort the columns to have a deterministic list of columns that we can compare with `out_format`
+                new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
             out_format = {
                 "type": dataset._format_type,
                 "format_kwargs": dataset._format_kwargs,
-                "columns": dataset._format_columns,
+                "columns": sorted(dataset._format_columns) if dataset._format_columns is not None else None,
                 "output_all_columns": dataset._output_all_columns,
             }
             if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
