@@ -491,16 +491,18 @@ class DatasetDict(dict):
             aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
             aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
         """
-        fs, dataset_dict_path = get_filesystem_from_dataset_path(
+        fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
             dataset_dict_path, aws_profile, aws_access_key_id, aws_secret_access_key
         )
         os.makedirs(dataset_dict_path, exist_ok=True)
         json.dump(
             {"splits": list(self)},
-            fs.open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8"),
+            fs.open(os.path.join(proc_dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(os.path.join(dataset_dict_path, k))
+            dataset.save_to_disk(
+                os.path.join(dataset_dict_path, k), aws_profile, aws_access_key_id, aws_secret_access_key
+            )
 
     @staticmethod
     def load_from_disk(
@@ -518,18 +520,13 @@ class DatasetDict(dict):
         
         """
         dataset_dict = DatasetDict()
-        fs, dataset_dict_path = get_filesystem_from_dataset_path(
+        fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
             dataset_dict_path, aws_profile, aws_access_key_id, aws_secret_access_key
         )
-        for k in fs.from_json(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8")["splits"]:
-            # for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))[
-            #     "splits"
-            # ]:
+        for k in json.load(fs.open(os.path.join(proc_dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))[
+            "splits"
+        ]:
             dataset_dict[k] = Dataset.load_from_disk(
-                os.path.join(dataset_dict_path, k),
-                aws_profile="default",
-                aws_access_key_id=None,
-                aws_secret_access_key=None,
-                anon=False,
+                os.path.join(dataset_dict_path, k), aws_profile, aws_access_key_id, aws_secret_access_key, anon,
             )
         return dataset_dict

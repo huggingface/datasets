@@ -1,6 +1,8 @@
 import os
 import tempfile
 from unittest import TestCase
+from moto import mock_s3
+import boto3
 
 import numpy as np
 import pandas as pd
@@ -338,13 +340,27 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
 
-    # TODO: Implement test
+    @mock_s3
     def test_save_and_load_to_s3(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
+            s3 = boto3.client("s3", region_name="us-east-1")
+            mock_bucket = "moto-mock-s3-bucket"
+            # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+            s3.create_bucket(Bucket=mock_bucket)
+            dataset_path = f"s3://{mock_bucket}/datasets/dict"
+
             dsets = self._create_dummy_dataset_dict()
-            dsets.save_to_disk(tmp_dir)
+            dsets.save_to_disk(
+                dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
+            )
+
             del dsets
-            dsets = load_from_disk(tmp_dir)
+            try:
+                dsets = load_from_disk(
+                    dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
+                )
+            except Exception as e:
+                x = e
             self.assertListEqual(sorted(dsets), ["test", "train"])
             self.assertEqual(len(dsets["train"]), 30)
             self.assertListEqual(dsets["train"].column_names, ["filename"])

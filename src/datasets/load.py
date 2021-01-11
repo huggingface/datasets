@@ -39,6 +39,7 @@ from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, hea
 from .utils.filelock import FileLock
 from .utils.logging import get_logger
 from .utils.version import Version
+from .utils import is_remote_filesystem, get_filesystem_from_dataset_path
 
 
 logger = get_logger(__name__)
@@ -612,25 +613,34 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str) -> Union[Dataset, DatasetDict]:
+def load_from_disk(
+    dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None, anon=False,
+) -> Union[Dataset, DatasetDict]:
     """
-    Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)``.
+    Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from s3 or local filesystem.
 
     Args:
         dataset_path (``str``): path of a Dataset directory or a DatasetDict directory
-
+        aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for downloading the data to s3
+        aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for downloading the data to s3
+        aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for downloading the data to s3
+        anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
+    
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
             if `dataset_path` is a path of a dataset directory: the dataset requested,
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
     """
-    # TODO: fs.exist and fs.open + args and docu
-    if not os.path.isdir(dataset_path):
+    # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
+    fs, proc_dataset_path = get_filesystem_from_dataset_path(
+        dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key
+    )
+    if not fs.exists(proc_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if os.path.exists(os.path.join(dataset_path, "dataset_info.json")):
-        return Dataset.load_from_disk(dataset_path)
-    elif os.path.exists(os.path.join(dataset_path, "dataset_dict.json")):
-        return DatasetDict.load_from_disk(dataset_path)
+    if fs.isfile(os.path.join(proc_dataset_path, "dataset_info.json")):
+        return Dataset.load_from_disk(dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon)
+    elif fs.isfile(os.path.join(proc_dataset_path, "dataset_dict.json")):
+        return DatasetDict.load_from_disk(dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon)
     else:
         raise FileNotFoundError(
             "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
