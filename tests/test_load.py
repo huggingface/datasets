@@ -4,12 +4,19 @@ import tempfile
 from hashlib import sha256
 from unittest import TestCase
 
+import pytest
+import requests
+
 import datasets
 
 from .utils import offline
 
 
 class LoadTest(TestCase):
+    @pytest.fixture(autouse=True)
+    def inject_fixtures(self, caplog):
+        self._caplog = caplog
+
     def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
         module_dir = os.path.join(modules_dir, dummy_module_name)
         os.makedirs(module_dir, exist_ok=True)
@@ -35,6 +42,10 @@ class LoadTest(TestCase):
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
+            # missing module
+            with offline():
+                with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
+                    datasets.load.prepare_module("__missing_dummy_module_name__")
 
     def test_offline_prepare_module(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -45,22 +56,28 @@ class LoadTest(TestCase):
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
             importable_module_path2, _ = datasets.load.prepare_module(module_dir)
         with offline():
-            # allow provide the module name without an explicit path to remote or local actual file
-            importable_module_path3, _ = datasets.load.prepare_module("__dummy_module_name2__")
-            # it loads the most recent version of the module
-            self.assertEqual(importable_module_path2, importable_module_path3)
-            self.assertNotEqual(importable_module_path1, importable_module_path3)
-            assert "offline, reusing latest version of the module" in caplog.text  # TODO(QL): add + test logging
+            self._caplog.clear()
+            try:
+                datasets.utils.logging.enable_propagation()
+                # allow provide the module name without an explicit path to remote or local actual file
+                importable_module_path3, _ = datasets.load.prepare_module("__dummy_module_name2__")
+                # it loads the most recent version of the module
+                self.assertEqual(importable_module_path2, importable_module_path3)
+                self.assertNotEqual(importable_module_path1, importable_module_path3)
+                self.assertIn("Using the latest cached version of the module", self._caplog.text)
+            finally:
+                datasets.utils.logging.disable_propagation()
 
     def test_load_dataset(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_code = """
 import os
 
-from datasets import DatasetInfo, Features, GeneratorBasedBuilder, Split, SplitGenerator, Value
+import datasets
+from datasets import DatasetInfo, Features, Split, SplitGenerator, Value
 
 
-class __DummyDataset1__(GeneratorBasedBuilder):
+class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 
     def _info(self) -> DatasetInfo:
         return DatasetInfo(features=Features({"text": Value("string")}))
@@ -68,7 +85,7 @@ class __DummyDataset1__(GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         return [
             SplitGenerator(Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
-            SplitGenerator(Split.TEST, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
+            SplitGenerator(Split.TEST, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "test.txt")}),
         ]
 
     def _generate_examples(self, filepath, **kwargs):
@@ -82,5 +99,11 @@ class __DummyDataset1__(GeneratorBasedBuilder):
                 f.write("bar\n" * 10)
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_dataset1__", dummy_code)
             self.assertTrue(len(datasets.load_dataset(module_dir, data_dir=tmp_dir)), 2)
-            with offline():
+        with offline():
+            self._caplog.clear()
+            try:
+                datasets.utils.logging.enable_propagation()
                 self.assertTrue(len(datasets.load_dataset("__dummy_dataset1__", data_dir=tmp_dir)), 2)
+                self.assertIn("Using the latest cached version of the module", self._caplog.text)
+            finally:
+                datasets.utils.logging.disable_propagation()
