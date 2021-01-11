@@ -53,7 +53,7 @@ class BaseDatasetTest(TestCase):
 
     def _create_dummy_dataset(self, in_memory: bool, tmp_dir: str, multiple_columns=False) -> Dataset:
         if multiple_columns:
-            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
@@ -84,7 +84,9 @@ class BaseDatasetTest(TestCase):
             del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
+            )
             self.assertEqual(dset[0]["col_1"], 3)
             self.assertEqual(dset["col_1"][0], 3)
             del dset
@@ -221,7 +223,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset.format["output_all_columns"], False)
 
             dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 2)
+            self.assertEqual(len(dset[0]), 3)
             self.assertIsInstance(dset[0]["col_2"], str)
             self.assertEqual(dset[0]["col_2"], "a")
 
@@ -244,7 +246,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_1"].item(), 3)
 
             dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 2)
+            self.assertEqual(len(dset[0]), 3)
             self.assertIsInstance(dset[0]["col_2"], str)
             self.assertEqual(dset[0]["col_2"], "a")
 
@@ -266,7 +268,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
 
             dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 2)
+            self.assertEqual(len(dset[0]), 3)
             self.assertIsInstance(dset[0]["col_2"], str)
             self.assertEqual(dset[0]["col_2"], "a")
 
@@ -289,6 +291,23 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_2"].item(), "a")
             del dset
 
+    def test_transmit_format(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            transform = datasets.arrow_dataset.transmit_format(lambda x: x)
+            # make sure identity transform doesn't apply unnecessary format
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            dset.set_format(**dset.format)
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            # check lists comparisons
+            dset.set_format(columns=["col_1"])
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            dset.set_format(columns=["col_1", "col_2"])
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            dset.set_format("numpy", columns=["col_1", "col_2"])
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            del dset
+
     def test_cast_(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
@@ -297,7 +316,7 @@ class BaseDatasetTest(TestCase):
             features = Features({k: features[k] for k in list(features)[::-1]})
             fingerprint = dset._fingerprint
             dset.cast_(features)
-            self.assertEqual(dset.num_columns, 2)
+            self.assertEqual(dset.num_columns, 3)
             self.assertEqual(dset.features["col_1"], Value("float64"))
             self.assertIsInstance(dset[0]["col_1"], float)
             self.assertNotEqual(dset._fingerprint, fingerprint)
@@ -308,12 +327,12 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
             dset.remove_columns_(column_names="col_1")
-            self.assertEqual(dset.num_columns, 1)
-            self.assertListEqual(list(dset.column_names), ["col_2"])
+            self.assertEqual(dset.num_columns, 2)
+            self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
             del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.remove_columns_(column_names=["col_1", "col_2"])
+            dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
             self.assertEqual(dset.num_columns, 0)
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
@@ -323,8 +342,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
             dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-            self.assertEqual(dset.num_columns, 2)
-            self.assertListEqual(list(dset.column_names), ["new_name", "col_2"])
+            self.assertEqual(dset.num_columns, 3)
+            self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
 
@@ -555,7 +574,7 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset_test["col_1"], np.ndarray)
             self.assertIsInstance(dset_test["col_1_plus_one"], np.ndarray)
             self.assertListEqual(sorted(dset_test[0].keys()), ["col_1", "col_1_plus_one"])
-            self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2"])
+            self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2", "col_3"])
             del dset, dset_test
 
     def test_map_multiprocessing(self, in_memory):
