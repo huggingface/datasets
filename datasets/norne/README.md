@@ -1,0 +1,150 @@
+---
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+languages:
+- no
+licenses:
+- other-national-library-of-norway
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- structure-prediction
+task_ids:
+- named-entity-recognition
+---
+
+# Dataset Card for NorNE: Norwegian Named Entities
+
+## Table of Contents
+
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+
+## Dataset Description
+
+- **Homepage:** [NorNE](https://github.com/ltgoslo/norne/)
+- **Repository:** [Github](https://github.com/ltgoslo/norne/)
+- **Paper:** https://arxiv.org/abs/1911.12146
+- **Leaderboard:**
+- **Point of Contact:**
+
+### Dataset Summary
+
+NorNE is a manually annotated corpus of named entities which extends the annotation of the existing Norwegian Dependency Treebank. Comprising both of the official standards of written Norwegian (Bokmål and Nynorsk), the corpus contains around 600,000 tokens and annotates a rich set of entity types including persons,organizations, locations, geo-political entities, products, and events, in addition to a class corresponding to nominals derived from names.
+
+### Supported Tasks and Leaderboards
+
+NorNE ads named entity annotations on top of the Norwegian Dependency Treebank.
+
+### Languages
+
+Both Norwegian Bokmål (`bookmal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset.
+
+## Dataset Creation
+
+### Curation Rationale
+
+1. A _name_ in this context is close to [Saul Kripke's definition of a name](https://en.wikipedia.org/wiki/Saul_Kripke#Naming_and_Necessity),
+in that a name has a unique reference and its meaning is constant (there are exceptions in the annotations, e.g. "Regjeringen" (en. "Government")).
+2. It is the usage of a name that determines the entity type, not the default/literal sense of the name,
+3. If there is an ambiguity in the type/sense of a name, then the the default/literal sense of the name is chosen
+(following [Markert and Nissim, 2002](http://www.lrec-conf.org/proceedings/lrec2002/pdf/11.pdf)).
+
+For more details, see the "Annotation Guidelines.pdf" distributed with the corpus.
+
+### Source Data
+
+Data was collected using blogs and newspapers in Norwegian, as well as parliament speeches and governamental reports.
+
+#### Initial Data Collection and Normalization
+
+The texts in the Norwegian Dependency Treebank (NDT) are manually annotated with morphological features, syntactic functions
+and hierarchical structure. The formalism used for the syntactic annotation is dependency grammar.
+
+The treebanks consists of two parts, one part in Norwegian Bokmål (`nob`) and one part in Norwegian Nynorsk (`nno`).
+Both parts contain around 300.000 tokens, and are a mix of different non-fictional genres.
+
+See the [NDT webpage](https://www.nb.no/sprakbanken/show?serial=sbr-10) for more details.
+
+### Annotations
+
+The following types of entities are annotated:
+
+- **Person (`PER`):** Real or fictional characters and animals
+- **Organization (`ORG`):** Any collection of people, such as firms, institutions, organizations, music groups,
+ sports teams, unions, political parties etc.
+- **Location (`LOC`):** Geographical places, buildings and facilities
+- **Geo-political entity (`GPE`):** Geographical regions defined by political and/or social groups.
+A GPE entity subsumes and does not distinguish between a nation, its region, its government, or its people
+- **Product (`PROD`):** Artificially produced entities are regarded products. This may include more abstract entities, such as speeches,
+radio shows, programming languages, contracts, laws and ideas.
+- **Event (`EVT`):** Festivals, cultural events, sports events, weather phenomena, wars, etc. Events are bounded in time and space.
+- **Derived (`DRV`):** Words (and phrases?) that are dervied from a name, but not a name in themselves. They typically contain a full name and are capitalized, but are not proper nouns. Examples (fictive) are "Brann-treneren" ("the Brann coach") or "Oslo-mannen" ("the man from Oslo").
+- **Miscellaneous (`MISC`):** Names that do not belong in the other categories. Examples are animals species and names of medical conditions. Entities that are manufactured or produced are of type Products, whereas thing naturally or spontaneously occurring are of type Miscellaneous.
+
+Furthermore, all `GPE` entities are additionally sub-categorized as being either `ORG` or `LOC`, with the two annotation levels separated by an underscore:
+
+- `GPE_LOC`: Geo-political entity, with a locative sense (e.g. "John lives in _Spain_")
+- `GPE_ORG`: Geo-political entity, with an organisation sense (e.g. "_Spain_ declined to meet with Belgium")
+
+The two special types `GPE_LOC` and `GPE_ORG` can easily be altered depending on the task, choosing either the more general `GPE` tag or the more specific `LOC`/`ORG` tags, conflating them with the other annotations of the same type. This means that the following sets of entity types can be derived:
+
+- 7 types, deleting `_GPE`: **`ORG`**, **`LOC`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`
+- 8 types, deleting `LOC_` and `ORG_`: **`ORG`**, **`LOC`**, **`GPE`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`
+- 9 types, keeping all types: **`ORG`**, **`LOC`**, **`GPE_LOC`**, **`GPE_ORG`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`
+
+The class distribution is as follows, broken down across the data splits of the UD version of NDT, and sorted by total counts (i.e. the number of examples, not tokens within the spans of the annotatons):
+
+| Type     | Train  | Dev    | Test   |  Total |
+| :--------|-------:|-------:|-------:|-------:|
+| `PER`    |   4033 |    607 |    560 |   5200 |
+| `ORG`    |   2828 |    400 |    283 |   3511 |
+| `GPE_LOC`|   2132 |    258 |    257 |   2647 |
+| `PROD`   |    671 |    162 |     71 |    904 |
+| `LOC`    |    613 |    109 |    103 |    825 |
+| `GPE_ORG`|    388 |     55 |     50 |    493 |
+| `DRV`    |    519 |     77 |     48 |    644 |
+| `EVT`    |    131 |      9 |      5 |    145 |
+| `MISC`   |      8 |      0 |      0 |      0 |
+
+## Additional Information
+
+### Dataset Curators
+
+NorNE was created as a collaboration between [Schibsted Media Group](https://schibsted.com/), [Språkbanken](https://www.nb.no/forskning/sprakbanken/) at the [National Library of Norway](https://www.nb.no) and the [Language Technology Group](https://www.mn.uio.no/ifi/english/research/groups/ltg/) at the University of Oslo.
+
+NorNE was added to Huggingface Datasets by the AI-Lab at the National Library of Norway.
+
+### Licensing Information
+
+The NorNE corpus is published under the same [license](https://github.com/ltgoslo/norne/blob/master/LICENSE_NDT.txt) as the Norwegian Dependency Treebank
+
+### Citation Information
+
+This dataset is described in the paper _NorNE: Annotating Named Entities for Norwegian_ by
+Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg, Lilja Øvrelid, and Erik Velldal, accepted for LREC 2020 and available as pre-print here: https://arxiv.org/abs/1911.12146.
