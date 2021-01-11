@@ -135,7 +135,7 @@ After you've downloaded the files, you can point to the folder hosting them loca
 
 Apart from :obj:`name` and :obj:`split`, the :func:`datasets.load_dataset` method provide a few arguments which can be used to control where the data is cached (:obj:`cache_dir`), some options for the download process it-self like the proxies and whether the download cache should be used (:obj:`download_config`, :obj:`download_mode`).
 
-These use of these arguments is discussed in the :ref:`load_dataset_cache_management` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
+The use of these arguments is discussed in the :ref:`load_dataset_cache_management` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
 
 
 .. _loading-from-local-files:
@@ -348,7 +348,7 @@ Cache directory
 
 To avoid re-downloading the whole dataset every time you use it, the `datasets` library caches the data on your computer.
 
-By default, the `datasets` library caches the downloaded files and extracted datasets under the following directory: `~/.cache/huggingface/datasets`.
+By default, the `datasets` library caches the datasets and the downloaded data files under the following directory: `~/.cache/huggingface/datasets`.
 
 If you want to change the location where the datasets cache is stored, simply set the `HF_DATASETS_CACHE` environment variable. For example, if you're using linux:
 
@@ -356,7 +356,7 @@ If you want to change the location where the datasets cache is stored, simply se
 
     $ export HF_DATASETS_CACHE="/path/to/another/directory"
 
-You also have the option to control where the data is cached when invoking the loading script, by setting the :obj:`cache_dir` parameter:
+In addition, you can control where the data is cached when invoking the loading script, by setting the :obj:`cache_dir` parameter:
 
 .. code-block::
 
@@ -368,9 +368,9 @@ Download mode
 
 You can control the way the the :func:`datasets.load_dataset` function handles already downloaded data by setting its :obj:`download_mode` parameter.
 
-By default, this parameter is set to ``"reuse_dataset_if_exists"``. The :func:`datasets.load_dataset` function will reuse both raw downloads and the prepared dataset, if they exist in the cache directory.
+By default, :obj:`download_mode` is set to ``"reuse_dataset_if_exists"``. The :func:`datasets.load_dataset` function will reuse both raw downloads and the prepared dataset, if they exist in the cache directory.
 
-There following table describes the three available modes for download:
+The following table describes the three available modes for download:
 
 .. list-table:: Behavior of :func:`datasets.load_dataset` depending on :obj:`download_mode`
    :header-rows: 1
@@ -388,6 +388,13 @@ There following table describes the three available modes for download:
      - Fresh
      - Fresh
 
+For example, you can run the following if you want to force the re-download of the SQuAD raw data files:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('squad', download_mode="force_redownload")
+
 
 Integrity verifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -402,3 +409,10 @@ When downlaoding a dataset from the 🤗 dataset hub, the :func:`datasets.load_d
 You can disable these verifications by setting the :obj:`ignore_verifications` parameter to ``True``.
 
 You have the possibility to locally override the informations used to perform the integrity verifications by setting the :obj:`save_infos` parameter to ``True``.
+
+For example, run the following to skip integrity verifications when loading the IMDB dataset:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('imdb', ignore_verifications=True)
