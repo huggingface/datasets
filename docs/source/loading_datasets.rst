@@ -135,7 +135,7 @@ After you've downloaded the files, you can point to the folder hosting them loca
 
 Apart from :obj:`name` and :obj:`split`, the :func:`datasets.load_dataset` method provide a few arguments which can be used to control where the data is cached (:obj:`cache_dir`), some options for the download process it-self like the proxies and whether the download cache should be used (:obj:`download_config`, :obj:`download_mode`).
 
-These use of these arguments is discussed in the :ref:`Cache management and integrity verifications` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
+These use of these arguments is discussed in the :ref:`load_dataset_cache_management` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
 
 
 .. _loading-from-local-files:
@@ -337,6 +337,8 @@ You can use a local loading script just by providing its path instead of the usu
     >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
 
 We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__.
+
+.. _load_dataset_cache_management:
 
 Cache management and integrity verifications
 -----------------------------------------------------------
