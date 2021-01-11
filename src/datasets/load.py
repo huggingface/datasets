@@ -292,7 +292,7 @@ def prepare_module(
                             combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
                         )
                     )
-        except:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
+        except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
             if os.path.isdir(main_folder_path):
                 hashes = [h for h in os.listdir(main_folder_path) if len(h) == 64]
                 if hashes:
@@ -303,6 +303,10 @@ def prepare_module(
                     hash = sorted(hashes, key=_get_modification_time)[-1]
                     module_path = ".".join(
                         [DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name]
+                    )
+                    logger.warning(
+                        f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} since it "
+                        f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
                     )
                     return module_path, hash
             raise
