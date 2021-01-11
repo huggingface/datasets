@@ -1,4 +1,24 @@
-[Needs More Information]
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- open-domain-qa
+---
 
 # Dataset Card for adversarialQA
 
