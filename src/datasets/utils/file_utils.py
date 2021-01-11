@@ -345,8 +345,10 @@ def cached_path(
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
-    elif urlparse(url_or_filename).scheme == "":
+    elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
         # File, but it doesn't exist.
+        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
+        # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
