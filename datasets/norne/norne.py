@@ -19,7 +19,9 @@
 try:
     import conllu
 except ImportError:
-    raise ImportError("Please, 'pip install conllu' to use the NorNE dataset")
+    import sys
+
+    print("Please, 'pip install conllu' to use the NorNE dataset", file=sys.stderr)
 
 import datasets
 
@@ -27,7 +29,8 @@ import datasets
 _CITATION = """\
 @inproceedings{johansen2019ner,
   title={NorNE: Annotating Named Entities for Norwegian},
-  author={Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg, Lilja Øvrelid, and Erik Velldal},
+  author={Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg,
+          Lilja Øvrelid, and Erik Velldal},
   booktitle={LREC 2020},
   year={2020},
   url={https://arxiv.org/abs/1911.12146}
@@ -35,7 +38,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-NorNE. NorNE is a manually annotated
+NorNE is a manually annotated
 corpus of named entities which extends the annotation of the existing
 Norwegian Dependency Treebank. Comprising both of the official standards of
 written Norwegian (Bokmål and Nynorsk), the corpus contains around 600,000
@@ -73,7 +76,9 @@ class Norne(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         NorneConfig(name="bokmaal", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset"),
         NorneConfig(name="nynorsk", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset"),
-        NorneConfig(name="combined", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset"),
+        NorneConfig(
+            name="combined", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset"
+        ),
     ]
 
     def _info(self):
@@ -148,29 +153,39 @@ class Norne(datasets.GeneratorBasedBuilder):
         test_filepaths = []
         langs = []
         if self.config.name in ("bokmaal", "combined"):
-            downloaded_files = dl_manager.download_and_extract({
-                "train": f"{_URL}{_BOKMAAL_TRAIN}",
-                "dev": f"{_URL}{_BOKMAAL_DEV}",
-                "test": f"{_URL}{_BOKMAAL_TEST}",
-            })
+            downloaded_files = dl_manager.download_and_extract(
+                {
+                    "train": f"{_URL}{_BOKMAAL_TRAIN}",
+                    "dev": f"{_URL}{_BOKMAAL_DEV}",
+                    "test": f"{_URL}{_BOKMAAL_TEST}",
+                }
+            )
             train_filepaths.append(downloaded_files["train"])
             dev_filepaths.append(downloaded_files["dev"])
             test_filepaths.append(downloaded_files["test"])
             langs.append("bokmaal")
         if self.config.name in ("nynorsk", "combined"):
-            downloaded_files = dl_manager.download_and_extract({
-                "train": f"{_URL}{_NYNORSK_TRAIN}",
-                "dev": f"{_URL}{_NYNORSK_DEV}",
-                "test": f"{_URL}{_NYNORSK_TEST}",
-            })
+            downloaded_files = dl_manager.download_and_extract(
+                {
+                    "train": f"{_URL}{_NYNORSK_TRAIN}",
+                    "dev": f"{_URL}{_NYNORSK_DEV}",
+                    "test": f"{_URL}{_NYNORSK_TEST}",
+                }
+            )
             train_filepaths.append(downloaded_files["train"])
             dev_filepaths.append(downloaded_files["dev"])
             test_filepaths.append(downloaded_files["test"])
             langs.append("nynorsk")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": train_filepaths, "langs": langs}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": dev_filepaths, "langs": langs}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepaths": test_filepaths, "langs": langs}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepaths": train_filepaths, "langs": langs}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": dev_filepaths, "langs": langs}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepaths": test_filepaths, "langs": langs}
+            ),
         ]
 
     def _generate_examples(self, filepaths, langs):
