@@ -34,12 +34,12 @@ from .features import Features
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
+from .utils import get_filesystem_from_dataset_path, is_remote_filesystem
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
 from .utils.filelock import FileLock
 from .utils.logging import get_logger
 from .utils.version import Version
-from .utils import is_remote_filesystem, get_filesystem_from_dataset_path
 
 
 logger = get_logger(__name__)
@@ -295,7 +295,10 @@ def prepare_module(
 
     # Download the dataset infos file if available
     try:
-        local_dataset_infos_path = cached_path(dataset_infos, download_config=download_config,)
+        local_dataset_infos_path = cached_path(
+            dataset_infos,
+            download_config=download_config,
+        )
     except (FileNotFoundError, ConnectionError):
         local_dataset_infos_path = None
 
@@ -322,7 +325,10 @@ def prepare_module(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(url_or_filename, download_config=download_config,)
+        local_import_path = cached_path(
+            url_or_filename,
+            download_config=download_config,
+        )
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -602,7 +608,9 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
-        download_config=download_config, download_mode=download_mode, ignore_verifications=ignore_verifications,
+        download_config=download_config,
+        download_mode=download_mode,
+        ignore_verifications=ignore_verifications,
     )
 
     # Build dataset for splits
@@ -614,7 +622,11 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None, anon=False,
+    dataset_path: str,
+    aws_profile="default",
+    aws_access_key_id=None,
+    aws_secret_access_key=None,
+    anon=False,
 ) -> Union[Dataset, DatasetDict]:
     """
     Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from s3 or local filesystem.
@@ -625,7 +637,7 @@ def load_from_disk(
         aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for downloading the data to s3
         aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for downloading the data to s3
         anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
-    
+
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
             if `dataset_path` is a path of a dataset directory: the dataset requested,

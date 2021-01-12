@@ -1,9 +1,10 @@
-import pytest
 import os
-from moto import mock_s3
-import boto3
 
-from datasets.utils import is_remote_filesystem, get_filesystem_from_dataset_path
+import boto3
+import pytest
+from moto import mock_s3
+
+from datasets.utils import get_filesystem_from_dataset_path, is_remote_filesystem
 
 
 @mock_s3

@@ -45,8 +45,9 @@ from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import map_nested, is_remote_filesystem, get_filesystem_from_dataset_path
+from .utils import get_filesystem_from_dataset_path, is_remote_filesystem, map_nested
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
+
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
@@ -472,7 +473,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             elif fs.protocol != "file":
                 fs.put(src, dest)
             # Change path to relative path from inside the destination directory
-            data_file["filename"] = filename    
+            data_file["filename"] = filename
         # Get state
         state = self.__getstate__()
         dataset_info = json.loads(state.pop("_info"))
@@ -488,7 +489,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
         # removes temp empty directory if files are uploaded to s3
-        if 's3' in fs.protocol:
+        if "s3" in fs.protocol:
             shutil.rmtree(dataset_path.split("/")[0])
 
     @staticmethod
@@ -1881,7 +1882,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not isinstance(column, str) or column not in self._data.column_names:
             raise ValueError(
                 "Column '{}' not found in the dataset. Please provide a column selected in: {}".format(
-                    column, self._data.column_names,
+                    column,
+                    self._data.column_names,
                 )
             )
 
@@ -2237,7 +2239,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def export(
-        self, filename: str, format: str = "tfrecord",
+        self,
+        filename: str,
+        format: str = "tfrecord",
     ):
         """Writes the Arrow dataset to a TFRecord file.
 
@@ -2511,7 +2515,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
 
 def concatenate_datasets(
-    dsets: List[Dataset], info: Optional[Any] = None, split: Optional[Any] = None,
+    dsets: List[Dataset],
+    info: Optional[Any] = None,
+    split: Optional[Any] = None,
 ):
     """
     Converts a list of :obj:``datasets.Dataset`` with the same schema into a single :obj:``datasets.Dataset``.

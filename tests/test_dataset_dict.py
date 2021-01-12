@@ -1,11 +1,11 @@
 import os
 import tempfile
 from unittest import TestCase
-from moto import mock_s3
-import boto3
 
+import boto3
 import numpy as np
 import pandas as pd
+from moto import mock_s3
 
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset

@@ -9,7 +9,7 @@ import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .utils import is_remote_filesystem, get_filesystem_from_dataset_path
+from .utils import get_filesystem_from_dataset_path, is_remote_filesystem
 
 
 class DatasetDict(dict):
@@ -486,7 +486,7 @@ class DatasetDict(dict):
         Save the dataset dict in a dataset dict directory or to a s3 bucket
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to            
+            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to
             aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for uploading the data to s3
             aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
             aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
@@ -517,7 +517,7 @@ class DatasetDict(dict):
             aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
             aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
             anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
-        
+
         """
         dataset_dict = DatasetDict()
         fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
@@ -527,6 +527,10 @@ class DatasetDict(dict):
             "splits"
         ]:
             dataset_dict[k] = Dataset.load_from_disk(
-                os.path.join(dataset_dict_path, k), aws_profile, aws_access_key_id, aws_secret_access_key, anon,
+                os.path.join(dataset_dict_path, k),
+                aws_profile,
+                aws_access_key_id,
+                aws_secret_access_key,
+                anon,
             )
         return dataset_dict
