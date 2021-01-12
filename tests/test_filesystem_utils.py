@@ -1,4 +1,5 @@
 import os
+import pytest  # noqa: needed for moto to work
 
 import boto3
 from moto import mock_s3
