@@ -341,7 +341,7 @@ class DatasetDictTest(TestCase):
             del dsets
 
     @mock_s3
-    def test_save_and_load_to_s3(self, s3):
+    def test_save_and_load_to_s3(self):
         # Mocked AWS Credentials for moto.
         os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
         os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
