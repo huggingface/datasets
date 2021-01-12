@@ -73,6 +73,7 @@ class Norne(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         NorneConfig(name="bokmaal", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset"),
         NorneConfig(name="nynorsk", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset"),
+        NorneConfig(name="combined", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset"),
     ]
 
     def _info(self):
@@ -81,6 +82,7 @@ class Norne(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "idx": datasets.Value("string"),
+                    "lang": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "lemmas": datasets.Sequence(datasets.Value("string")),
@@ -141,34 +143,49 @@ class Norne(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        if self.config.name == "bokmaal":
-            urls_to_download = {
+        train_filepaths = []
+        dev_filepaths = []
+        test_filepaths = []
+        langs = []
+        if self.config.name in ("bokmaal", "combined"):
+            downloaded_files = dl_manager.download_and_extract({
                 "train": f"{_URL}{_BOKMAAL_TRAIN}",
                 "dev": f"{_URL}{_BOKMAAL_DEV}",
                 "test": f"{_URL}{_BOKMAAL_TEST}",
-            }
-        elif self.config.name == "nynorsk":
-            urls_to_download = {
+            })
+            train_filepaths.append(downloaded_files["train"])
+            dev_filepaths.append(downloaded_files["dev"])
+            test_filepaths.append(downloaded_files["test"])
+            langs.append("bokmaal")
+        if self.config.name in ("nynorsk", "combined"):
+            downloaded_files = dl_manager.download_and_extract({
                 "train": f"{_URL}{_NYNORSK_TRAIN}",
                 "dev": f"{_URL}{_NYNORSK_DEV}",
                 "test": f"{_URL}{_NYNORSK_TEST}",
-            }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+            })
+            train_filepaths.append(downloaded_files["train"])
+            dev_filepaths.append(downloaded_files["dev"])
+            test_filepaths.append(downloaded_files["test"])
+            langs.append("nynorsk")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": train_filepaths, "langs": langs}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": dev_filepaths, "langs": langs}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepaths": test_filepaths, "langs": langs}),
         ]
 
-    def _generate_examples(self, filepath):
-        with open(filepath, "r", encoding="utf-8") as data_file:
-            tokens = list(conllu.parse_incr(data_file))
-            for idx, sent in enumerate(tokens):
-                yield idx, {
-                    "idx": sent.metadata["sent_id"],
-                    "text": sent.metadata["text"],
-                    "tokens": [token["form"] for token in sent],
-                    "lemmas": [token["lemma"] for token in sent],
-                    "pos_tags": [token["upos"] for token in sent],
-                    "ner_tags": [token["misc"].get("name", "O") for token in sent],
-                }
+    def _generate_examples(self, filepaths, langs):
+        idx = 0
+        for filepath, lang in zip(filepaths, langs):
+            with open(filepath, "r", encoding="utf-8") as data_file:
+                tokens = list(conllu.parse_incr(data_file))
+                for sent in tokens:
+                    yield idx, {
+                        "idx": sent.metadata["sent_id"],
+                        "lang": lang,
+                        "text": sent.metadata["text"],
+                        "tokens": [token["form"] for token in sent],
+                        "lemmas": [token["lemma"] for token in sent],
+                        "pos_tags": [token["upos"] for token in sent],
+                        "ner_tags": [token["misc"].get("name", "O") for token in sent],
+                    }
+                    idx += 1
