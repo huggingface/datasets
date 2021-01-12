@@ -86,7 +86,9 @@ REQUIRED_PKGS = [
     "fsspec",
     "fsspec[s3]",
     # for getting credentials from aws_profile
-    "boto3",
+    # "boto3",
+    "boto3==1.16.43",
+    "botocore==1.19.43",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
 ]
@@ -119,7 +121,7 @@ TESTS_REQUIRE = [
     "transformers",
     "zstandard",
     "rarfile",
-    "moto[s3]",
+    "moto[s3]==1.3.16",
 ]
 
 if os.name == "nt":  # windows
@@ -163,7 +165,11 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["scripts/templates/*",],},
+    package_data={
+        "datasets": [
+            "scripts/templates/*",
+        ],
+    },
     scripts=["datasets-cli"],
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
