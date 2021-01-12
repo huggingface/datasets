@@ -1,7 +1,7 @@
 import os
-import pytest  # noqa: needed for moto to work
 
 import boto3
+import pytest  # noqa: needed for moto to work
 from moto import mock_s3
 
 from datasets.utils import get_filesystem_from_dataset_path, is_remote_filesystem
