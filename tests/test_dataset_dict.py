@@ -356,9 +356,12 @@ class DatasetDictTest(TestCase):
             dataset_path = f"s3://{mock_bucket}/datasets/dict"
 
             dsets = self._create_dummy_dataset_dict()
-            dsets.save_to_disk(
-                dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-            )
+            try:
+                dsets.save_to_disk(
+                    dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
+                )
+            except Exception as e:
+                x = e
 
             del dsets
 

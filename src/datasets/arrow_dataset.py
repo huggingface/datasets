@@ -445,7 +445,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         fs, dataset_path = get_filesystem_from_dataset_path(
             dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key
         )
-        fs.makedirs(dataset_path, exist_ok=True)
+        os.makedirs(dataset_path, exist_ok=True)
         # Write indices if needed
         if self._indices is not None:
             if not self._indices_data_files:
@@ -472,7 +472,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             elif fs.protocol != "file":
                 fs.put(src, dest)
             # Change path to relative path from inside the destination directory
-            data_file["filename"] = filename
+            data_file["filename"] = filename    
         # Get state
         state = self.__getstate__()
         dataset_info = json.loads(state.pop("_info"))
@@ -487,6 +487,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with fs.open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
+        # removes temp empty directory if files are uploaded to s3
+        if 's3' in fs.protocol:
+            shutil.rmtree(dataset_path.split("/")[0])
 
     @staticmethod
     def load_from_disk(

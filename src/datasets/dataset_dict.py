@@ -494,7 +494,7 @@ class DatasetDict(dict):
         fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
             dataset_dict_path, aws_profile, aws_access_key_id, aws_secret_access_key
         )
-        fs.makedirs(proc_dataset_dict_path, exist_ok=True)
+        os.makedirs(proc_dataset_dict_path, exist_ok=True)
         json.dump(
             {"splits": list(self)},
             fs.open(os.path.join(proc_dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8"),
