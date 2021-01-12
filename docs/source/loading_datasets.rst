@@ -399,16 +399,17 @@ For example, you can run the following if you want to force the re-download of t
 Integrity verifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When downlaoding a dataset from the 🤗 dataset hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
+When downloading a dataset from the 🤗 dataset hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
 
-- Verifying the number and size in bytes of the downloaded files
+- Verifying the list of downloaded files
+- Verifying the number of bytes of the downloaded files
 - Verifying the SHA256 checksums of the downloaded files
 - Verifying the number of splits in the generated `DatasetDict`
 - Verifying the number of samples in each split of the generated `DatasetDict`
 
 You can disable these verifications by setting the :obj:`ignore_verifications` parameter to ``True``.
 
-You have the possibility to locally override the informations used to perform the integrity verifications by setting the :obj:`save_infos` parameter to ``True``.
+You also have the possibility to locally override the informations used to perform the integrity verifications by setting the :obj:`save_infos` parameter to ``True``.
 
 For example, run the following to skip integrity verifications when loading the IMDB dataset:
 
