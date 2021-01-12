@@ -503,12 +503,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # copies file from filesystem if it is s3 to local filesystem and modifies dataset_path to temp directory containing local copies
         if is_remote_filesystem(dataset_path):
             # gets filesystem from dataset, either s3:// or file://
-            fs, s3_dataset_path = get_filesystem_from_dataset_path(
+            fs, proc_dataset_path = get_filesystem_from_dataset_path(
                 dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon
             )
             tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = os.path.join(tmp_dir.name, s3_dataset_path)
-            fs.download(s3_dataset_path, dataset_path, recursive=True)
+            dataset_path = os.path.join(tmp_dir.name, proc_dataset_path)
+            fs.download(proc_dataset_path, dataset_path, recursive=True)
 
         with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
@@ -522,7 +522,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
         dataset.__setstate__(state)
 
-        if s3_dataset_path is not None:
+        if proc_dataset_path is not None:
             tmp_dir.cleanup()
         return dataset
 
