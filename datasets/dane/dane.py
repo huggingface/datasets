@@ -269,15 +269,16 @@ class Dane(datasets.GeneratorBasedBuilder):
                     dep_labels.append(splits[7])
                     ner_tags.append(splits[9].rstrip().replace("name=", "").split("|")[0])
             # last example
-            yield guid, {
-                "sent_id": sent_id,
-                "text": text,
-                "tok_ids": tok_ids,
-                "tokens": tokens,
-                "lemmas": lemmas,
-                "pos_tags": pos_tags,
-                "morph_tags": morph_tags,
-                "dep_ids": dephead_ids,
-                "dep_labels": dep_labels,
-                "ner_tags": ner_tags,
-            }
+            if tok_ids:
+                yield guid, {
+                    "sent_id": sent_id,
+                    "text": text,
+                    "tok_ids": tok_ids,
+                    "tokens": tokens,
+                    "lemmas": lemmas,
+                    "pos_tags": pos_tags,
+                    "morph_tags": morph_tags,
+                    "dep_ids": dephead_ids,
+                    "dep_labels": dep_labels,
+                    "ner_tags": ner_tags,
+                }

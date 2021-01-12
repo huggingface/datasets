@@ -87,6 +87,8 @@ REQUIRED_PKGS = [
     "fsspec[s3]",
     # for getting credentials from aws_profile
     "boto3",
+    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
+    "importlib_metadata;python_version<'3.8'",
 ]
 
 BENCHMARKS_REQUIRE = [

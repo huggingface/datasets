@@ -24,10 +24,10 @@ import datasets
 
 
 _DESCRIPTION = """\
-Dutch Book Review Dataset
-The DBRD (pronounced dee-bird) dataset contains over 110k book reviews along \
-with associated binary sentiment polarity labels and is intended as a \
-benchmark for sentiment classification in Dutch.
+The Dutch Book Review Dataset (DBRD) contains over 110k book reviews of which \
+22k have associated binary sentiment polarity labels. It is intended as a \
+benchmark for sentiment classification in Dutch and created due to a lack of \
+annotated datasets in Dutch that are suitable for this task.
 """
 
 _CITATION = """\
@@ -48,7 +48,7 @@ _CITATION = """\
 }
 """
 
-_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1k5UMoqoB3RT4kK9FI5Xyl7RmWWyBSwux"
+_DOWNLOAD_URL = "https://github.com/benjaminvdb/DBRD/releases/download/v3.0/DBRD_v3.tgz"
 
 
 class DBRDConfig(datasets.BuilderConfig):

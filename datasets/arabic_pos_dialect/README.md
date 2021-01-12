@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - structure-prediction
 task_ids:
-- structure-prediction-other-pos-tagging
+- part-of-speech-tagging
 ---
 
 # Dataset Card for Arabic POS Dialect

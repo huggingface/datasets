@@ -341,32 +341,32 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                     elif line.startswith("<TOPICS>"):
                         if line.replace("\n", "") != "<TOPICS></TOPICS>":
                             line = line.split("<D>")
-                            topics = [topic.replace("</D>", "") for topic in line[1:-1]]
-                            topics = [topic.replace("</TOPICS>", "") for topic in topics]
+                            topics = [topic.replace("</D>", "") for topic in line[1:]]
+                            topics = [topic.replace("</TOPICS>\n", "") for topic in topics]
                         line = f.readline()
                     elif line.startswith("<PLACES>"):
                         if line.replace("\n", "") != "<PLACES></PLACES>":
                             line = line.split("<D>")
-                            places = [place.replace("</D>", "") for place in line[1:-1]]
-                            places = [place.replace("</PLACES>", "") for place in places]
+                            places = [place.replace("</D>", "") for place in line[1:]]
+                            places = [place.replace("</PLACES>\n", "") for place in places]
                         line = f.readline()
                     elif line.startswith("<PEOPLE>"):
                         if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
                             line = line.split("<D>")
-                            people = [p.replace("</D>", "") for p in line[1:-1]]
-                            people = [p.replace("</PEOPLE>", "") for p in people]
+                            people = [p.replace("</D>", "") for p in line[1:]]
+                            people = [p.replace("</PEOPLE>\n", "") for p in people]
                         line = f.readline()
                     elif line.startswith("<ORGS>"):
                         if line.replace("\n", "") != "<ORGS></ORGS>":
                             line = line.split("<D>")
-                            orgs = [org.replace("</D>", "") for org in line[1:-1]]
-                            orgs = [org.replace("</ORGS>", "") for org in orgs]
+                            orgs = [org.replace("</D>", "") for org in line[1:]]
+                            orgs = [org.replace("</ORGS>\n", "") for org in orgs]
                         line = f.readline()
                     elif line.startswith("<EXCHANGES>"):
                         if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
                             line = line.split("<D>")
-                            exchanges = [ex.replace("</D>", "") for ex in line[1:-1]]
-                            exchanges = [ex.replace("</EXCHANGES>", "") for ex in exchanges]
+                            exchanges = [ex.replace("</D>", "") for ex in line[1:]]
+                            exchanges = [ex.replace("</EXCHANGES>\n", "") for ex in exchanges]
                         line = f.readline()
                     elif line.startswith("<DATE>"):
                         date = line.replace("\n", "")
