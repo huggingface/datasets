@@ -573,7 +573,7 @@ class DatasetBuilder:
         Args:
             dl_manager: (DownloadManager) `DownloadManager` used to download and cache
                 data.
-            verify_infos: bool, if True, do not perform checksums and size tests.
+            verify_infos: bool, if False, do not perform checksums and size tests.
             prepare_split_kwargs: Additional options.
         """
         # Generating data for all splits
