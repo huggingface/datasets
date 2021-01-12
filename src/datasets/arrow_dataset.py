@@ -445,7 +445,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         fs, dataset_path = get_filesystem_from_dataset_path(
             dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key
         )
-        os.makedirs(dataset_path, exist_ok=True)
+        fs.makedirs(dataset_path, exist_ok=True)
         # Write indices if needed
         if self._indices is not None:
             if not self._indices_data_files:
