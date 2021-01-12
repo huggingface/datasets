@@ -145,9 +145,9 @@ def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
     if hf_modules_cache not in sys.path:
         sys.path.append(hf_modules_cache)
 
-        os.makedirs(HF_MODULES_CACHE, exist_ok=True)
-        if not os.path.exists(os.path.join(HF_MODULES_CACHE, "__init__.py")):
-            with open(os.path.join(HF_MODULES_CACHE, "__init__.py"), "w"):
+        os.makedirs(hf_modules_cache, exist_ok=True)
+        if not os.path.exists(os.path.join(hf_modules_cache, "__init__.py")):
+            with open(os.path.join(hf_modules_cache, "__init__.py"), "w"):
                 pass
     return hf_modules_cache
 

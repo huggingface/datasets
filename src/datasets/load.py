@@ -75,7 +75,6 @@ def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric
     - a DatasetBuilder if dataset is True
     - a Metric if dataset is False
     """
-    importlib.invalidate_caches()
     module = importlib.import_module(module_path)
 
     if dataset:
@@ -500,6 +499,8 @@ def prepare_module(
     else:
         module_path = local_file_path
 
+    # make the new module to be noticed by the import system
+    importlib.invalidate_caches()
     return module_path, hash
 
 
