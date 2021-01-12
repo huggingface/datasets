@@ -43,7 +43,7 @@ _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/warnikchow/3i4k/master/
 _TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/warnikchow/3i4k/master/data/train_val_test/fci_test.txt"
 
 
-class Kor3i4K(datasets.GeneratorBasedBuilder):
+class Kor_3i4k(datasets.GeneratorBasedBuilder):
     """Intonation-aided intention identification for Korean"""
 
     VERSION = datasets.Version("1.1.0")

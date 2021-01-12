@@ -78,7 +78,7 @@ An example data instance contains a short utterance and it's label:
 
 ### Data Fields
 
-* `label`: determines the intention of the utterance and can be one of `fragment`, `statement`, `question`, `command`, `rhetorical question`, `rhetorical command` and `intonation-depedent utterance`
+* `label`: determines the intention of the utterance and can be one of `fragment` (0), `statement` (1), `question` (2), `command` (3), `rhetorical question` (4), `rhetorical command` (5) and `intonation-depedent utterance` (6).
 * `text`: the text in Korean about common topics like housework, weather, transportation, etc.
 
 ### Data Splits
