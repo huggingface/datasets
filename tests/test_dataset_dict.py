@@ -5,7 +5,6 @@ from unittest import TestCase
 import boto3
 import numpy as np
 import pandas as pd
-import pytest
 from moto import mock_s3
 
 from datasets import Features, Sequence, Value, load_from_disk
@@ -13,21 +12,6 @@ from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 
 from .utils import require_tf, require_torch
-
-
-@pytest.fixture(scope="function")
-def aws_credentials():
-    """Mocked AWS Credentials for moto."""
-    os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
-    os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
-    os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
-
-
-@pytest.fixture(scope="function")
-def s3(aws_credentials):
-    with mock_s3():
-        yield boto3.client("s3", region_name="us-east-1")
 
 
 class DatasetDictTest(TestCase):
@@ -357,8 +341,14 @@ class DatasetDictTest(TestCase):
             del dsets
 
     @mock_s3
-    @pytest.fixture(autouse=True)
     def test_save_and_load_to_s3(self, s3):
+        # Mocked AWS Credentials for moto.
+        os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+        os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+        os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
+
+        s3 = boto3.client("s3", region_name="us-east-1")
         mock_bucket = "moto-mock-s3-bucket"
         # We need to create the bucket since this is all in Moto's 'virtual' AWS account
         s3.create_bucket(Bucket=mock_bucket)
