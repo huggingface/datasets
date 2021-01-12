@@ -1,7 +1,6 @@
 import os
 
 import boto3
-import pytest
 from moto import mock_s3
 
 from datasets.utils import get_filesystem_from_dataset_path, is_remote_filesystem
@@ -25,13 +24,13 @@ def test_get_filesystem_from_dataset_path():
         dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
     )
     assert "s3" in fs.protocol
-    assert dataset_path.startswith("s3://") == False
+    assert dataset_path.startswith("s3://") is False
 
     dataset_path = f"./local/path"
     fs, new_dataset_path = get_filesystem_from_dataset_path(
         dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
     )
-    assert not "s3" in fs.protocol
+    assert "s3" not in fs.protocol
     assert dataset_path == new_dataset_path
 
 
@@ -39,8 +38,8 @@ def test_get_filesystem_from_dataset_path():
 def test_is_remote_filesystem():
     dataset_path = f"s3://moto-mock-s3-bucket"
     is_remote = is_remote_filesystem(dataset_path)
-    assert is_remote == True
+    assert is_remote is True
 
     dataset_path = f"./local/path"
     is_remote = is_remote_filesystem(dataset_path)
-    assert is_remote == False
+    assert is_remote is False

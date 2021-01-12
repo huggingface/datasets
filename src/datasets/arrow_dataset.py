@@ -31,7 +31,6 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
-import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa

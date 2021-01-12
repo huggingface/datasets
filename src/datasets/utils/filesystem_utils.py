@@ -20,7 +20,7 @@ def get_filesystem_from_dataset_path(
         dataset_path = dataset_path.replace("s3://", "")
         if aws_secret_access_key is not None and aws_secret_access_key is not None:
             fs = fsspec.filesystem("s3", anon=False, key=aws_access_key_id, secret=aws_secret_access_key)
-        elif anon == True:
+        elif anon is True:
             # The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible
             fs = fsspec.filesystem("s3", anon=True)
         else:

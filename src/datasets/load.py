@@ -34,7 +34,7 @@ from .features import Features
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
-from .utils import get_filesystem_from_dataset_path, is_remote_filesystem
+from .utils import get_filesystem_from_dataset_path
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
 from .utils.filelock import FileLock

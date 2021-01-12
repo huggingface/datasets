@@ -9,7 +9,7 @@ import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .utils import get_filesystem_from_dataset_path, is_remote_filesystem
+from .utils import get_filesystem_from_dataset_path
 
 
 class DatasetDict(dict):
