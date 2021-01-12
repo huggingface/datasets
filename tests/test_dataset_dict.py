@@ -343,6 +343,12 @@ class DatasetDictTest(TestCase):
     @mock_s3
     def test_save_and_load_to_s3(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
+            # Mocked AWS Credentials for moto.
+            os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+            os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+            os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+            os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
+
             s3 = boto3.client("s3", region_name="us-east-1")
             mock_bucket = "moto-mock-s3-bucket"
             # We need to create the bucket since this is all in Moto's 'virtual' AWS account
@@ -355,12 +361,11 @@ class DatasetDictTest(TestCase):
             )
 
             del dsets
-            try:
-                dsets = load_from_disk(
-                    dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-                )
-            except Exception as e:
-                x = e
+
+            dsets = load_from_disk(
+                dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
+            )
+
             self.assertListEqual(sorted(dsets), ["test", "train"])
             self.assertEqual(len(dsets["train"]), 30)
             self.assertListEqual(dsets["train"].column_names, ["filename"])

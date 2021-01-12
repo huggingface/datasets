@@ -184,6 +184,12 @@ class BaseDatasetTest(TestCase):
     @mock_s3
     def test_dummy_dataset_serialize_s3(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
+            # Mocked AWS Credentials for moto.
+            os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+            os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+            os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+            os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
+
             s3 = boto3.client("s3", region_name="us-east-1")
             mock_bucket = "moto-mock-s3-bucket"
             # We need to create the bucket since this is all in Moto's 'virtual' AWS account

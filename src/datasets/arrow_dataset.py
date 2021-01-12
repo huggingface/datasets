@@ -523,7 +523,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
         dataset.__setstate__(state)
 
-        if proc_dataset_path is not None:
+        if "tmp_dir" in vars():
             tmp_dir.cleanup()
         return dataset
 
