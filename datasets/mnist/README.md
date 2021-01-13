@@ -8,7 +8,7 @@ licenses:
 - MIT
 multilinguality: []
 size_categories:
-- n<1K
+- 10K<n<100K
 source_datasets:
 - extended|other-nist
 task_categories:
