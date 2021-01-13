@@ -59,7 +59,7 @@ _URL_LIST += [
 _URLs = dict(_URL_LIST)
 
 
-class Asset(datasets.GeneratorBasedBuilder):
+class TurkCorpus(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
