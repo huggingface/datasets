@@ -516,16 +516,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dataset_path = Path(tmp_dir.name).joinpath(proc_dataset_path)
             fs.download(proc_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(Path(proc_dataset_path).joinpath("state.json"), "r", encoding="utf-8") as state_file:
+        with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(Path(proc_dataset_path).joinpath("dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
         # Change path to absolute path
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"])
+            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"]).as_posix()
         dataset.__setstate__(state)
 
         if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):

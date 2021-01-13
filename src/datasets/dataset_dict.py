@@ -10,7 +10,7 @@ import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .utils import get_filesystem_from_dataset_path
+from .utils import get_filesystem_from_dataset_path, is_remote_filesystem
 
 
 class DatasetDict(dict):
@@ -527,8 +527,13 @@ class DatasetDict(dict):
         for k in json.load(
             fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
+            dataset_dict_split_path = (
+                dataset_dict_path.split("://")[0] + "://" + Path(proc_dataset_dict_path).joinpath(k).as_posix()
+                if is_remote_filesystem(dataset_dict_path)
+                else Path(proc_dataset_dict_path).joinpath(k).as_posix()
+            )
             dataset_dict[k] = Dataset.load_from_disk(
-                Path(dataset_dict_path).joinpath(k).as_posix(),
+                dataset_dict_split_path,
                 aws_profile,
                 aws_access_key_id,
                 aws_secret_access_key,
