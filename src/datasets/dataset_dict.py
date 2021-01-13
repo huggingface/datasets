@@ -528,7 +528,7 @@ class DatasetDict(dict):
             fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
             dataset_dict[k] = Dataset.load_from_disk(
-                os.path.join(dataset_dict_path, k),
+                Path(dataset_dict_path).joinpath(k).as_posix(),
                 aws_profile,
                 aws_access_key_id,
                 aws_secret_access_key,
