@@ -204,9 +204,7 @@ class BaseDatasetTest(TestCase):
         dset = self._create_dummy_dataset(in_memory, tmp_dir.name).select(range(10))
         dataset_path = f"s3://{mock_bucket}/{prefix}"
 
-        dset.save_to_disk(
-            dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-        )
+        dset.save_to_disk(dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key")
         dset = dset.load_from_disk(
             dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
         )

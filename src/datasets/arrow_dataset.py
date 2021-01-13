@@ -22,7 +22,6 @@ import json
 import os
 import pickle
 import shutil
-import stat
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
@@ -485,7 +484,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Serialize state
         with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(
+            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
+        ) as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
         # removes temp empty directory if files are uploaded to s3
