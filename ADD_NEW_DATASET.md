@@ -247,11 +247,20 @@ Here are the step to open the Pull-Request on the main repo.
 
 	It is a good idea to sync your copy of the code with the original
 	repository regularly. This way you can quickly account for changes:
+	
+	- If you haven't pushed your branch yet, you can rebase on upstream/master:
 
-	```bash
-	git fetch upstream
-	git rebase upstream/master
-    ```
+	  ```bash
+	  git fetch upstream
+	  git rebase upstream/master
+	  ```
+	  
+	- If you have already pushed your branch, do not rebase but merge instead:
+	
+	  ```bash
+	  git fetch upstream
+	  git merge upstream/master
+	  ```
 
    Push the changes to your account using:
 

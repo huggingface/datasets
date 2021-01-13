@@ -47,10 +47,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/tsuruoka-lab/BSD
-- **Repository:** https://github.com/tsuruoka-lab/BSD
+- **Homepage:** [Github](https://raw.githubusercontent.com/tsuruoka-lab/BSD/)
+- **Repository:** [Github](https://raw.githubusercontent.com/tsuruoka-lab/BSD/)
 - **Paper:** [Rikters et al., 2019](https://www.aclweb.org/anthology/D19-5204)
-- **Leaderboard:** N/A
+- **Leaderboard:**
 - **Point of Contact:** Matīss Rikters
 
 ### Dataset Summary

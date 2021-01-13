@@ -50,7 +50,7 @@ as a resource to train sentence simplification systems. The authors first crowd-
 between sentences in a subset of the Simple English Wikipedia and their corresponding versions in English Wikipedia
 (this corresponds to the `manual` config), then trained a neural CRF system to predict these alignments.
 The trained model was then applied to the other articles in Simple English Wikipedia with an English counterpart to
-create a larger corpus of aligned sentences (corresponding to the `auto` and `auto_acl` configs here).
+create a larger corpus of aligned sentences (corresponding to the `auto`, `auto_acl`, `auto_full_no_split`, and `auto_full_with_split`  configs here).
 """
 
 # TODO: Add the licence for the dataset here if you can find it
@@ -68,6 +68,14 @@ _URLs = {
     "auto_acl": {
         "normal": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/ACL2020/train.src",
         "simple": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/ACL2020/train.dst",
+    },
+    "auto_full_no_split": {
+        "normal": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_no_split/train.src",
+        "simple": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_no_split/train.dst",
+    },
+    "auto_full_with_split": {
+        "normal": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/train.src",
+        "simple": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/train.dst",
     },
     "auto": {
         "part_1": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/all_data/wiki-auto-part-1-data.json",
@@ -89,7 +97,19 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
             description="A set of 10K Wikipedia sentence pairs aligned by crowd workers.",
         ),
         datasets.BuilderConfig(
-            name="auto_acl", version=VERSION, description="Sentence pairs aligned to train the ACL2020 system."
+            name="auto_acl",
+            version=VERSION,
+            description="Automatically aligned and filtered sentence pairs used to train the ACL2020 system.",
+        ),
+        datasets.BuilderConfig(
+            name="auto_full_no_split",
+            version=VERSION,
+            description="All automatically aligned sentence pairs without sentence splitting.",
+        ),
+        datasets.BuilderConfig(
+            name="auto_full_with_split",
+            version=VERSION,
+            description="All automatically aligned sentence pairs with sentence splitting.",
         ),
         datasets.BuilderConfig(
             name="auto", version=VERSION, description="A large set of automatically aligned sentence pairs."
@@ -109,7 +129,11 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
                     "simple_sentence": datasets.Value("string"),
                 }
             )
-        elif self.config.name == "auto_acl":
+        elif (
+            self.config.name == "auto_acl"
+            or self.config.name == "auto_full_no_split"
+            or self.config.name == "auto_full_with_split"
+        ):
             features = datasets.Features(
                 {
                     "normal_sentence": datasets.Value("string"),
@@ -201,7 +225,11 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
                     values = line.strip().split("\t")
                     assert len(values) == 5, f"Not enough fields in ---- {line} --- {values}"
                     yield id_, dict([(k, val) for k, val in zip(keys, values)])
-        elif self.config.name == "auto_acl":
+        elif (
+            self.config.name == "auto_acl"
+            or self.config.name == "auto_full_no_split"
+            or self.config.name == "auto_full_with_split"
+        ):
             with open(filepaths["normal"], encoding="utf-8") as fi:
                 with open(filepaths["simple"], encoding="utf-8") as fo:
                     for id_, (norm_se, simp_se) in enumerate(zip(fi, fo)):

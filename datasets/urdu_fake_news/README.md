@@ -48,11 +48,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:** https://github.com/MaazAmjad/Datasets-for-Urdu-news
+- **Homepage:** [Github](https://github.com/MaazAmjad/Datasets-for-Urdu-news/)
+- **Repository:** [Github](https://github.com/MaazAmjad/Datasets-for-Urdu-news/)
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:** <a href="https://github.com/MaazAmjad">Maaz Amjad</a>
+- **Point of Contact:** [Maaz Amjad](https://github.com/MaazAmjad)
 
 ### Dataset Summary
 

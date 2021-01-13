@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
+import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
 
 import datasets
@@ -80,11 +81,12 @@ class FakeNewsEnglish(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        f = pd.read_excel(filepath)
-        for id_, row in f.iterrows():
-            yield id_, {
-                "article_number": row["Article Number"],
-                "url_of_article": str(row["URL of article"]),
-                "fake_or_satire": str(row["Fake or Satire?"]),
-                "url_of_rebutting_article": str(row["URL of rebutting article"]),
-            }
+        with open(filepath, "rb") as f:
+            f = pd.read_excel(f, engine="openpyxl")
+            for id_, row in f.iterrows():
+                yield id_, {
+                    "article_number": row["Article Number"],
+                    "url_of_article": str(row["URL of article"]),
+                    "fake_or_satire": str(row["Fake or Satire?"]),
+                    "url_of_rebutting_article": str(row["URL of rebutting article"]),
+                }

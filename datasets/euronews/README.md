@@ -48,9 +48,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/EuropeanaNewspapers/ner-corpora)
+- **Repository:** [Github](https://github.com/EuropeanaNewspapers/ner-corpora)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/L16-1689/)
 - **Leaderboard:**
 - **Point of Contact:**
 

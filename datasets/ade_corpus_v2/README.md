@@ -10,27 +10,27 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
   - 10K<n<100K
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
   - 1K<n<10K
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
   - n<1K
 source_datasets:
 - original
 task_categories:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
     - text-classification
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
     - structure-prediction
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
     - structure-prediction
 task_ids:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
     - fact-checking
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
     - coreference-resolution
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
     - coreference-resolution
 ---
 
@@ -93,7 +93,7 @@ English
 
 ### Data Instances
 
-#### Config - `Ade_corpos_v2_classificaion`
+#### Config - `Ade_corpus_v2_classification`
 ```
 {
       'label': 1, 
@@ -102,7 +102,7 @@ English
 
 ```
 
-#### Config - `Ade_corpos_v2_drug_ade_relation`
+#### Config - `Ade_corpus_v2_drug_ade_relation`
 
 ```
 { 
@@ -124,7 +124,7 @@ English
 
 ```
 
-#### Config - `Ade_corpos_v2_drug_dosage_relation`
+#### Config - `Ade_corpus_v2_drug_dosage_relation`
 
 ```
 {
@@ -147,12 +147,12 @@ English
 
 ### Data Fields
 
-#### Config - `Ade_corpos_v2_drug_ade_relation`
+#### Config - `Ade_corpus_v2_classification`
 
 - `text` - Input text.
 - `label` - Whether the adverse drug effect(ADE) related (1) or not (0).
 - 
-#### Config - `Ade_corpos_v2_drug_ade_relation`
+#### Config - `Ade_corpus_v2_drug_ade_relation`
 
 - `text` - Input text.
 - `drug` - Name of drug.
@@ -162,7 +162,7 @@ English
 - `indexes.effect.start_char` - Start index of `effect` string in text.
 - `indexes.effect.end_char` - End index of `effect` string in text.
 
-#### Config - `Ade_corpos_v2_drug_dosage_relation`
+#### Config - `Ade_corpus_v2_drug_dosage_relation`
 
 - `text` - Input text.
 - `drug` - Name of drug.

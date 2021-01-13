@@ -50,9 +50,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/Elbria/xling-SemDiv/tree/master/REFreSD)
+- **Repository:** [Github](https://github.com/Elbria/xling-SemDiv/)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.emnlp-main.121)
 - **Leaderboard:**
 - **Point of Contact:**
 

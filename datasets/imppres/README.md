@@ -46,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository: https://github.com/facebookresearch/Imppres**
-- **Paper: https://www.aclweb.org/anthology/2020.acl-main.768.pdf**
+- **Homepage:** [Github](https://github.com/facebookresearch/Imppres)
+- **Repository:** [Github](https://github.com/facebookresearch/Imppres)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.acl-main.768)
 - **Leaderboard:**
 - **Point of Contact:**
 

@@ -25,6 +25,7 @@ from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
 import numpy as np
+import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
@@ -35,63 +36,67 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-try:
-    USE_TF = os.environ.get("USE_TF", "AUTO").upper()
-    USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
-    if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
-        import torch
+_PY_VERSION: str = sys.version.split()[0]
 
-        _torch_available = True  # pylint: disable=invalid-name
-        logger.info("PyTorch version {} available.".format(torch.__version__))
-    else:
-        logger.info("Disabling PyTorch because USE_TF is set")
-        _torch_available = False
-except ImportError:
-    _torch_available = False  # pylint: disable=invalid-name
+if int(_PY_VERSION.split(".")[0]) == 3 and int(_PY_VERSION.split(".")[1]) < 8:
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
-try:
-    USE_TF = os.environ.get("USE_TF", "AUTO").upper()
-    USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
+USE_TF = os.environ.get("USE_TF", "AUTO").upper()
+USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
-    if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-        import tensorflow as tf
+_torch_version = "N/A"
+_torch_available = False
+if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
+    try:
+        _torch_version = importlib_metadata.version("torch")
+        _torch_available = True
+        logger.info("PyTorch version {} available.".format(_torch_version))
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling PyTorch because USE_TF is set")
 
-        assert hasattr(tf, "__version__") and int(tf.__version__[0]) >= 2
-        _tf_available = True  # pylint: disable=invalid-name
-        logger.info("TensorFlow version {} available.".format(tf.__version__))
-    else:
-        logger.info("Disabling Tensorflow because USE_TORCH is set")
-        _tf_available = False
-except (ImportError, AssertionError):
-    _tf_available = False  # pylint: disable=invalid-name
+_tf_version = "N/A"
+_tf_available = False
+if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
+    try:
+        _tf_version = importlib_metadata.version("tensorflow")
+        _tf_available = True
+        logger.info("TensorFlow version {} available.".format(_tf_version))
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling Tensorflow because USE_TORCH is set")
+
+USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
+_beam_version = "N/A"
+_beam_available = False
+if USE_BEAM in ("1", "ON", "YES", "AUTO"):
+    try:
+        _beam_version = importlib_metadata.version("apache_beam")
+        _beam_available = True
+        logger.info("Apache Beam version {} available.".format(_beam_version))
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
-try:
-    USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
-    if USE_BEAM in ("1", "ON", "YES", "AUTO"):
-        import apache_beam  # noqa: F401
-
-        _beam_available = True  # pylint: disable=invalid-name
-        logger.info("Apache Beam available.")
-    else:
-        logger.info("Disabling Apache Beam because USE_BEAM is set to False")
-        _beam_available = False
-except ImportError:
-    _beam_available = False  # pylint: disable=invalid-name
-
-try:
-    USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
-    if USE_RAR in ("1", "ON", "YES", "AUTO"):
-        import rarfile
-
-        _rarfile_available = True  # pylint: disable=invalid-name
+USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
+_rarfile_version = "N/A"
+_rarfile_available = False
+if USE_RAR in ("1", "ON", "YES", "AUTO"):
+    try:
+        _rarfile_version = importlib_metadata.version("apache_beam")
+        _rarfile_available = True
         logger.info("rarfile available.")
-    else:
-        logger.info("Disabling rarfile because USE_RAR is set to False")
-        _rarfile_available = False
-except ImportError:
-    _rarfile_available = False  # pylint: disable=invalid-name
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling rarfile because USE_RAR is set to False")
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
@@ -149,6 +154,8 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     np.random.seed(seed)
 
     if set_pytorch and _torch_available:
+        import torch
+
         torch_state = torch.random.get_rng_state()
         torch.random.manual_seed(seed)
 
@@ -157,6 +164,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch.cuda.manual_seed_all(seed)
 
     if set_tensorflow and _tf_available:
+        import tensorflow as tf
         from tensorflow.python import context as tfpycontext
 
         tf_state = tf.random.get_global_generator()
@@ -337,8 +345,10 @@ def cached_path(
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
-    elif urlparse(url_or_filename).scheme == "":
+    elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
         # File, but it doesn't exist.
+        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
+        # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
@@ -392,6 +402,8 @@ def cached_path(
                         shutil.copyfileobj(compressed_file, extracted_file)
             elif is_rarfile(output_path):
                 if _rarfile_available:
+                    import rarfile
+
                     rf = rarfile.RarFile(output_path)
                     rf.extractall(output_path_extracted)
                     rf.close()
@@ -406,11 +418,14 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
+    ua = "datasets/{}; python/{}".format(__version__, _PY_VERSION)
+    ua += "; pyarrow/{}".format(pa.__version__)
     if is_torch_available():
-        ua += "; torch/{}".format(torch.__version__)
+        ua += "; torch/{}".format(_torch_version)
     if is_tf_available():
-        ua += "; tensorflow/{}".format(tf.__version__)
+        ua += "; tensorflow/{}".format(_tf_version)
+    if is_beam_available():
+        ua += "; apache_beam/{}".format(_beam_version)
     if isinstance(user_agent, dict):
         ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
     elif isinstance(user_agent, str):
