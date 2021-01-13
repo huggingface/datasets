@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-
 import datasets
 
 
@@ -44,8 +42,14 @@ _HOMEPAGE = "https://github.com/cocoxu/simplification"
 _LICENSE = "GNU General Public License v3.0"
 
 _URL_LIST = [
-    ("test.8turkers.tok.norm", "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/test.8turkers.tok.norm"),
-    ("tune.8turkers.tok.norm", "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/tune.8turkers.tok.norm"),
+    (
+        "test.8turkers.tok.norm",
+        "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/test.8turkers.tok.norm",
+    ),
+    (
+        "tune.8turkers.tok.norm",
+        "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/tune.8turkers.tok.norm",
+    ),
 ]
 _URL_LIST += [
     (
