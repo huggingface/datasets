@@ -83,7 +83,7 @@ REQUIRED_PKGS = [
     # for better multiprocessing
     "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
-    "importlib_metadata"
+    "importlib_metadata;python_version<'3.8'"
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -141,7 +141,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='datasets',
-    version="1.2.0",
+    version="1.2.1",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',

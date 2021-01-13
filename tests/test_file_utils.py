@@ -1,6 +1,9 @@
+import os
+from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
+import pytest
 
 from datasets.utils.file_utils import DownloadConfig, cached_path, temp_seed
 
@@ -69,3 +72,23 @@ def test_cached_path_extract(xz_file, tmp_path, text_file):
     with open(text_file) as f:
         expected_file_content = f.read()
     assert extracted_file_content == expected_file_content
+
+
+def test_cached_path_local(text_file):
+    # absolute path
+    text_file = str(Path(text_file).resolve())
+    assert cached_path(text_file) == text_file
+    # relative path
+    text_file = str(Path(__file__).resolve().relative_to(Path(os.getcwd())))
+    assert cached_path(text_file) == text_file
+
+
+def test_cached_path_missing_local(tmp_path):
+    # absolute path
+    missing_file = str(tmp_path.resolve() / "__missing_file__.txt")
+    with pytest.raises(FileNotFoundError):
+        cached_path(missing_file)
+    # relative path
+    missing_file = "./__missing_file__.txt"
+    with pytest.raises(FileNotFoundError):
+        cached_path(missing_file)
