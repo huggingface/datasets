@@ -179,12 +179,9 @@ _LANGUAGES = (
 # Please note that only few pairs are shown here. You can use config to generate data for all language pairs
 _LANGUAGE_PAIRS = [
     ("eu", "ca"),
-    ("da", "it"),
     ("nl", "en"),
     ("nl", "hi"),
     ("de", "ja"),
-    ("es", "de"),
-    ("fr", "nl"),
     ("fr-ca", "hi"),
 ]
 
