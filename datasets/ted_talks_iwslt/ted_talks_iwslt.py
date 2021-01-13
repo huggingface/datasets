@@ -347,7 +347,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
                     except Exception as pe:
                         logging.warning(f"ERROR: {pe}")
                         logging.warning(
-                            f"Which likely means that you have a malformed XML file!\nEither {source} or {target}\n"
+                            f"This likely means that you have a malformed XML file!\nEither {source} or {target}\n"
                         )
                         source_ids = list()
                         target_ids = list()
