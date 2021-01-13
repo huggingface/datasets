@@ -123,3 +123,16 @@ If you are familiar with the great `Tensorflow Datasets`, here are the main diff
 Similar to `TensorFlow Datasets`, `🤗Datasets` is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
+
+## BibTeX
+If you want to cite this framework you can use this:
+
+```bibtex
+@article{2020HuggingFace-datasets,
+  title={Datasets},
+  author={Thomas Wolf and Quentin Lhoest and Patrick von Platen and Yacine Jernite and Mariama Drame and Julien Plu and Julien Chaumond and Clement Delangue and Clara Ma and Abhishek Thakur and Suraj Patil and Joe Davison and Teven Le Scao and Victor Sanh and Canwen Xu and Nicolas Patry and Angie McMillan-Major and Simon Brandeis and Sylvain Gugger and François Lagunas and Lysandre Debut and Morgan Funtowicz and Anthony Moi and Sasha Rush and Philipp Schmidd and Pierric Cistac and Victor Muštar and Jeff Boudier and Anna Tordjmann},
+  journal={GitHub. Note: https://github.com/huggingface/datasets},
+  volume={1},
+  year={2020}
+}
+```

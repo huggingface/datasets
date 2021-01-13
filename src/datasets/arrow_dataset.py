@@ -1197,7 +1197,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1403,7 +1403,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1624,7 +1624,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1694,7 +1694,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1770,7 +1770,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             `indices` (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
             `keep_in_memory` (`bool`, default: `False`): Keep the indices mapping in memory instead of writing it to a cache file.
-            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
             `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1864,7 +1864,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 sorted indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
@@ -1940,7 +1940,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the shuffled indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 shuffled indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -2032,9 +2032,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the splits indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
-            train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 train split indices instead of the automatically generated cache file name.
-            test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -2217,7 +2217,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
