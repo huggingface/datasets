@@ -516,9 +516,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dataset_path = Path(tmp_dir.name).joinpath(proc_dataset_path)
             fs.download(proc_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(Path(dataset_path).joinpath("state.json"), "r", encoding="utf-8") as state_file:
+        with open(Path(proc_dataset_path).joinpath("state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path).joinpath("dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with open(Path(proc_dataset_path).joinpath("dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
