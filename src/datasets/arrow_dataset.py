@@ -22,6 +22,7 @@ import json
 import os
 import pickle
 import shutil
+import stat
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
@@ -464,15 +465,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             self._inplace_history = [{"transforms": []}]
         # Copy all files into the dataset directory
         for data_file in self._data_files + self._indices_data_files:
-            src = data_file["filename"]
-            filename = Path(src).name
-            dest = os.path.join(dataset_path, filename)
-            if src != dest:
-                fs.put(src, dest)
+            src = Path(data_file["filename"])
+            # file_path = Path(src)
+            dest = Path(dataset_path).joinpath(src.name)
+            if src.as_posix() != dest.as_posix():
+                fs.put(src.as_posix(), dest.as_posix())
             elif fs.protocol != "file":
-                fs.put(src, dest)
+                fs.put(src.as_posix(), dest.as_posix())
             # Change path to relative path from inside the destination directory
-            data_file["filename"] = filename
+            data_file["filename"] = src.name
         # Get state
         state = self.__getstate__()
         dataset_info = json.loads(state.pop("_info"))
@@ -482,14 +483,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
         ), "in-place history needs to be empty"
         # Serialize state
-        with fs.open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
+        with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
         # removes temp empty directory if files are uploaded to s3
         if "s3" in fs.protocol:
-            shutil.rmtree(dataset_path.split("/")[0])
+            shutil.rmtree(list(src.parents)[-2])
 
     @staticmethod
     def load_from_disk(
@@ -511,23 +512,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon
             )
             tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = os.path.join(tmp_dir.name, proc_dataset_path)
-            fs.download(proc_dataset_path, dataset_path, recursive=True)
+            dataset_path = Path(tmp_dir.name).joinpath(proc_dataset_path)
+            fs.download(proc_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
+        with open(Path(dataset_path).joinpath("state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with open(Path(dataset_path).joinpath("dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
         # Change path to absolute path
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
+            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"])
         dataset.__setstate__(state)
 
-        if "tmp_dir" in vars():
-            tmp_dir.cleanup()
+        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
+            shutil.rmtree(tmp_dir.name, ignore_errors=True)
         return dataset
 
     @property
