@@ -649,9 +649,9 @@ def load_from_disk(
     )
     if not fs.exists(proc_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if fs.isfile(os.path.join(proc_dataset_path, "dataset_info.json")):
+    if fs.isfile(Path(proc_dataset_path).joinpath("dataset_info.json").as_posix()):
         return Dataset.load_from_disk(dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon)
-    elif fs.isfile(os.path.join(proc_dataset_path, "dataset_dict.json")):
+    elif fs.isfile(Path(proc_dataset_path).joinpath("dataset_dict.json").as_posix()):
         return DatasetDict.load_from_disk(dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon)
     else:
         raise FileNotFoundError(

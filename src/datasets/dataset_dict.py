@@ -2,6 +2,7 @@ import contextlib
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -497,7 +498,7 @@ class DatasetDict(dict):
         os.makedirs(proc_dataset_dict_path, exist_ok=True)
         json.dump(
             {"splits": list(self)},
-            fs.open(os.path.join(proc_dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8"),
+            fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
             dataset.save_to_disk(
@@ -523,9 +524,9 @@ class DatasetDict(dict):
         fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
             dataset_dict_path, aws_profile, aws_access_key_id, aws_secret_access_key
         )
-        for k in json.load(fs.open(os.path.join(proc_dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))[
-            "splits"
-        ]:
+        for k in json.load(
+            fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+        )["splits"]:
             dataset_dict[k] = Dataset.load_from_disk(
                 os.path.join(dataset_dict_path, k),
                 aws_profile,
