@@ -38,7 +38,7 @@ predictions['scores']
 import os
 from logging import getLogger
 
-from comet.models import download_model, load_checkpoint
+from comet.models import download_model, load_checkpoint  # From: unbabel-comet
 
 import datasets
 
