@@ -104,7 +104,7 @@ class Tlc(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_path = dl_manager.download_and_extract(_URLs[self.config.name])
-        
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
