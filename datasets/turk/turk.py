@@ -63,7 +63,7 @@ _URL_LIST += [
 _URLs = dict(_URL_LIST)
 
 
-class TurkCorpus(datasets.GeneratorBasedBuilder):
+class Turk(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
@@ -75,17 +75,13 @@ class TurkCorpus(datasets.GeneratorBasedBuilder):
         )
     ]
 
-    DEFAULT_CONFIG_NAME = "simplification"
-
     def _info(self):
-        features = None
-        if self.config.name == "simplification":
-            features = datasets.Features(
-                {
-                    "original": datasets.Value("string"),
-                    "simplifications": datasets.Sequence(datasets.Value("string")),
-                }
-            )
+        features = datasets.Features(
+            {
+                "original": datasets.Value("string"),
+                "simplifications": datasets.Sequence(datasets.Value("string")),
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -97,28 +93,26 @@ class TurkCorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URLs)
-        if self.config.name == "simplification":
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepaths": data_dir,
-                        "split": "valid",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={"filepaths": data_dir, "split": "test"},
-                ),
-            ]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepaths": data_dir,
+                    "split": "valid",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepaths": data_dir, "split": "test"},
+            ),
+        ]
 
     def _generate_examples(self, filepaths, split):
         """ Yields examples. """
-        if self.config.name == "simplification":
-            if split == "valid":
-                split = "tune"
-            files = [open(filepaths[f"{split}.8turkers.tok.norm"], encoding="utf-8")] + [
-                open(filepaths[f"{split}.8turkers.tok.turk.{i}"], encoding="utf-8") for i in range(8)
-            ]
-            for id_, lines in enumerate(zip(*files)):
-                yield id_, {"original": lines[0].strip(), "simplifications": [line.strip() for line in lines[1:]]}
+        if split == "valid":
+            split = "tune"
+        files = [open(filepaths[f"{split}.8turkers.tok.norm"], encoding="utf-8")] + [
+            open(filepaths[f"{split}.8turkers.tok.turk.{i}"], encoding="utf-8") for i in range(8)
+        ]
+        for id_, lines in enumerate(zip(*files)):
+            yield id_, {"original": lines[0].strip(), "simplifications": [line.strip() for line in lines[1:]]}

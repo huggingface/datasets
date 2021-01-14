@@ -1,7 +1,22 @@
 ---
-title: 'TURKCorpus'
-type: Simplification
-motivation: TURKCorpus is a high-quality simplification dataset where each source sentence is associated with 8 human-written simplifications.
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- gnu-gpl-v3.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- text-simplification
 ---
 
 # Dataset Card for TURK
@@ -32,7 +47,7 @@ motivation: TURKCorpus is a high-quality simplification dataset where each sourc
 ## Dataset Description
 
 - **Homepage:** None 
-- **Repository:** [TURKCorpus](https://github.com/cocoxu/simplification)
+- **Repository:** [TURK](https://github.com/cocoxu/simplification)
 - **Paper:** [Optimizing Statistical Machine Translation for Text Simplification](https://www.aclweb.org/anthology/Q16-1029/)
 - **Leaderboard:** N/A
 - **Point of Contact:** [Wei Xu](mailto:wei.xu@cc.gatech.edu)
@@ -40,7 +55,7 @@ motivation: TURKCorpus is a high-quality simplification dataset where each sourc
 
 ### Dataset Summary
 
-TURKCorpus is a multi-reference dataset for the evaluation of sentence simplification in English. The dataset consists of 2,359 sentences from the [Parallel Wikipedia Simplification (PWKP) corpus](https://www.aclweb.org/anthology/C10-1152/). Each sentence is associated with 8 crowdsourced simplifications that focus on only lexical paraphrasing (no sentence splitting or deletion).
+TURK is a multi-reference dataset for the evaluation of sentence simplification in English. The dataset consists of 2,359 sentences from the [Parallel Wikipedia Simplification (PWKP) corpus](https://www.aclweb.org/anthology/C10-1152/). Each sentence is associated with 8 crowdsourced simplifications that focus on only lexical paraphrasing (no sentence splitting or deletion).
 
 ### Supported Tasks and Leaderboards
 
@@ -48,13 +63,19 @@ No Leaderboard for the task.
 
 ### Languages
 
-TURKCorpus contains English text only (BCP-47: `en`).
+TURK contains English text only (BCP-47: `en`).
 
 ## Dataset Structure
 
 ### Data Instances
 
-- `simplification` configuration: an instance consists of an original sentence and 8 possible reference simplifications that focus on lexical paraphrasing.
+An instance consists of an original sentence and 8 possible reference simplifications that focus on lexical paraphrasing.
+
+```
+{'original': 'one side of the armed conflicts is composed mainly of the sudanese military and the janjaweed , a sudanese militia group recruited mostly from the afro-arab abbala tribes of the northern rizeigat region in sudan .',
+ 'simplifications': ['one side of the armed conflicts is made of sudanese military and the janjaweed , a sudanese militia recruited from the afro-arab abbala tribes of the northern rizeigat region in sudan .', 'one side of the armed conflicts consist of the sudanese military and the sudanese militia group janjaweed .', 'one side of the armed conflicts is mainly sudanese military and the janjaweed , which recruited from the afro-arab abbala tribes .', 'one side of the armed conflicts is composed mainly of the sudanese military and the janjaweed , a sudanese militia group recruited mostly from the afro-arab abbala tribes in sudan .', 'one side of the armed conflicts is made up mostly of the sudanese military and the janjaweed , a sudanese militia group whose recruits mostly come from the afro-arab abbala tribes from the northern rizeigat region in sudan .', 'the sudanese military and the janjaweed make up one of the armed conflicts , mostly from the afro-arab abbal tribes in sudan .', 'one side of the armed conflicts is composed mainly of the sudanese military and the janjaweed , a sudanese militia group recruited mostly from the afro-arab abbala tribes of the northern rizeigat regime in sudan .', 'one side of the armed conflicts is composed mainly of the sudanese military and the janjaweed , a sudanese militia group recruited mostly from the afro-arab abbala tribes of the northern rizeigat region in sudan .']}
+```
+
 
 ### Data Fields
 
@@ -63,7 +84,7 @@ TURKCorpus contains English text only (BCP-47: `en`).
 
 ### Data Splits
 
-TURKCorpus does not contain a training set; many models use [WikiLarge](https://github.com/XingxingZhang/dress) (Zhang and Lapata, 2017) or [Wiki-Auto](https://github.com/chaojiang06/wiki-auto) (Jiang et. al 2020) for training. 
+TURK does not contain a training set; many models use [WikiLarge](https://github.com/XingxingZhang/dress) (Zhang and Lapata, 2017) or [Wiki-Auto](https://github.com/chaojiang06/wiki-auto) (Jiang et. al 2020) for training. 
 
 Each input sentence has 8 associated reference simplified sentences. 2,359 input sentences are randomly split into 2,000 validation and 359 test sentences.
 
@@ -77,7 +98,7 @@ Each input sentence has 8 associated reference simplified sentences. 2,359 input
 
 ### Curation Rationale
 
-The TurkCorpus dataset was constructed to evaluate the task of text simplification.  It contains multiple human-written references that focus on only lexical simplification. 
+The TURK dataset was constructed to evaluate the task of text simplification.  It contains multiple human-written references that focus on only lexical simplification. 
 
 ### Source Data
 
@@ -87,7 +108,7 @@ The TurkCorpus dataset was constructed to evaluate the task of text simplificati
 
 #### Who are the source language producers?
 
-The references are crowdsourced from Amazon Mechanical Turk. The annotators were asked to provide simplifications without losing any information or splitting the input sentence. No other demographic or compensation information is provided in the TURKCorpus paper.
+The references are crowdsourced from Amazon Mechanical Turk. The annotators were asked to provide simplifications without losing any information or splitting the input sentence. No other demographic or compensation information is provided in the paper.
 
 ### Annotations
 
@@ -122,7 +143,7 @@ Since the dataset contains only 2,359 sentences that are derived from Wikipedia,
 
 ### Dataset Curators
 
-TURKCorpus was developed by researchers at the University of Pennsylvania. The work was  supported by the NSF under grant IIS-1430651 and the NSF GRFP under grant 1232825. 
+TURK was developed by researchers at the University of Pennsylvania. The work was  supported by the NSF under grant IIS-1430651 and the NSF GRFP under grant 1232825. 
 
 ### Licensing Information
 
