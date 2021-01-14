@@ -93,13 +93,28 @@ Args:
 `references` (list of str): reference translations
 `cuda` (bool): If set to True, runs COMET using GPU
 `show_progress` (bool): Shows progress
-
-
 `model`: COMET model to be used. Will default to `wmt-large-da-estimator-1719` if None.
 
 Returns:
     `samples`: List of dictionaries with `src`, `mt`, `ref` and `score`.
     `scores`: List of scores.
+
+
+Usage:
+```python
+from datasets import load_metric
+comet_metric = load_metric('metrics/comet/comet.py')
+#comet_metric = load_metric('comet')
+#comet_metric = load_metric('comet', 'wmt-large-hter-estimator')
+
+
+source = ["Dem Feuer konnte Einhalt geboten werden", "Schulen und Kindergärten wurden eröffnet."]
+hypothesis = ["The fire could be stopped", "Schools and kindergartens were open"]
+reference = ["They were able to control the fire.", "Schools and kindergartens opened"]
+
+predictions = comet_metric.compute(predictions=hypothesis, references=reference, sources=source)
+predictions['scores']
+```
 """
 
 
