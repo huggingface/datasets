@@ -175,7 +175,7 @@ If the extensions of the raw data files of your dataset are in this list, then y
 If your data files are not in the supported format, you can run the same command without the `--auto_generate` flag. It should give you instructions on the files to manually create (basically, the same ones as for the real dataset but with only five items).
 
 	```bash
- 	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+ 	python datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 
 If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
