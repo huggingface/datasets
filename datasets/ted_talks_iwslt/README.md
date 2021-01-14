@@ -168,7 +168,6 @@ task_ids:
 The Web Inventory Talk is a collection of the original Ted talks and their translated version. The translations are available in more than 109+ languages, though the distribution is not uniform. 
 
 To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
-You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/GNOME.php
 E.g.
 
 `dataset = load_dataset("ted_talks_iwslt", language_pair=("it", "pl"), year="2014")`
