@@ -47,8 +47,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/e9t/nsmc/)
+- **Repository:** [Github](https://github.com/e9t/nsmc/)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**

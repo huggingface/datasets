@@ -131,6 +131,7 @@ class DownloadManager(object):
                 url_or_urls.
         """
         cache_dir = self._download_config.cache_dir or os.path.join(HF_DATASETS_CACHE, "downloads")
+        max_retries = self._download_config.max_retries
 
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
@@ -140,13 +141,17 @@ class DownloadManager(object):
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             try:
-                get_from_cache(url, cache_dir=cache_dir, local_files_only=True, use_etag=False)
+                get_from_cache(
+                    url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
+                )
                 cached = True
             except FileNotFoundError:
                 cached = False
             if not cached or self._download_config.force_download:
                 custom_download(url, path)
-                get_from_cache(url, cache_dir=cache_dir, local_files_only=True, use_etag=False)
+                get_from_cache(
+                    url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
+                )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 

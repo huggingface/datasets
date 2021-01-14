@@ -46,8 +46,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/OYE93/Chinese-NLP-Corpus/tree/master/NER/MSRA)
+- **Repository:** [Github](https://github.com/OYE93/Chinese-NLP-Corpus)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**

@@ -19,7 +19,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 ---
 
 # Dataset Card for `thainer`

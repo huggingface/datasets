@@ -81,7 +81,9 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess"
+    "multiprocess",
+    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
+    "importlib_metadata;python_version<'3.8'"
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -102,14 +104,16 @@ TESTS_REQUIRE = [
     'lxml',
     'mwparserfromhell',
     'nltk',
+    'openpyxl',
+    'py7zr',
     'pytest',
     'pytest-xdist',
     'tensorflow',
     'torch',
     'tldextract',
     'transformers',
-    'xlrd',
     'zstandard',
+    'rarfile',
 ]
 
 if os.name == "nt":  # windows
@@ -137,7 +141,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='datasets',
-    version="1.1.3",
+    version="1.2.1",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',

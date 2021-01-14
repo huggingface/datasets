@@ -46,9 +46,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/clinc/oos-eval/)
+- **Repository:** [Github](https://github.com/clinc/oos-eval/)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/D19-1131)
 - **Leaderboard:**
 - **Point of Contact:**
 

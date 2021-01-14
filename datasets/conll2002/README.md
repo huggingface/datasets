@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- es:
+  es:
   - es
-- nl:
+  nl:
   - nl
 licenses:
 - unknown
@@ -20,7 +20,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 ---
 
 # Dataset Card Creation Guide

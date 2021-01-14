@@ -51,7 +51,7 @@ def make_qid_to_has_ans(dataset):
     for article in dataset:
         for p in article["paragraphs"]:
             for qa in p["qas"]:
-                qid_to_has_ans[qa["id"]] = bool(qa["answers"])
+                qid_to_has_ans[qa["id"]] = bool(qa["answers"]["text"])
     return qid_to_has_ans
 
 
@@ -108,7 +108,7 @@ def get_raw_scores(dataset, preds):
         for p in article["paragraphs"]:
             for qa in p["qas"]:
                 qid = qa["id"]
-                gold_answers = [a["text"] for a in qa["answers"] if normalize_answer(a["text"])]
+                gold_answers = [t for t in qa["answers"]["text"] if normalize_answer(t)]
                 if not gold_answers:
                     # For unanswerable questions, only correct answer is empty string
                     gold_answers = [""]

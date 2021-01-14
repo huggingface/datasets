@@ -135,7 +135,7 @@ After you've downloaded the files, you can point to the folder hosting them loca
 
 Apart from :obj:`name` and :obj:`split`, the :func:`datasets.load_dataset` method provide a few arguments which can be used to control where the data is cached (:obj:`cache_dir`), some options for the download process it-self like the proxies and whether the download cache should be used (:obj:`download_config`, :obj:`download_mode`).
 
-You can find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
+The use of these arguments is discussed in the :ref:`load_dataset_cache_management` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
 
 
 .. _loading-from-local-files:
@@ -201,9 +201,9 @@ The ``csv`` loading script provides a few simple access options to control parsi
 
     - :obj:`skip_rows` (int) - Number of first rows in the file to skip (default is 0)
     - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
-    - :obj:`autogenerate_column_names` (bool) – Whether to autogenerate column names if column_names is empty. If true, column names will be of the form “f0”, “f1”… If false, column names will be read from the first CSV row after skip_rows (default False).
     - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
-    - :obj:`quote_char` (1-character string or False) – The character used optionally for quoting CSV values (False if quoting is not allowed, default '"').
+    - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default '"').
+    - :obj:`quoting` (bool) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to pandas.read_csv documentation for more details).
 
 If you want more control, the ``csv`` script provide full control on reading, parsong and convertion through the Apache Arrow `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__, `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ and `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__
 
@@ -338,4 +338,82 @@ You can use a local loading script just by providing its path instead of the usu
 
 We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__.
 
+.. _load_dataset_cache_management:
 
+Cache management and integrity verifications
+-----------------------------------------------------------
+
+Cache directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To avoid re-downloading the whole dataset every time you use it, the `datasets` library caches the data on your computer.
+
+By default, the `datasets` library caches the datasets and the downloaded data files under the following directory: `~/.cache/huggingface/datasets`.
+
+If you want to change the location where the datasets cache is stored, simply set the `HF_DATASETS_CACHE` environment variable. For example, if you're using linux:
+
+.. code-block::
+
+    $ export HF_DATASETS_CACHE="/path/to/another/directory"
+
+In addition, you can control where the data is cached when invoking the loading script, by setting the :obj:`cache_dir` parameter:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('LOADING_SCRIPT', cache_dir="PATH/TO/MY/CACHE/DIR")
+
+Download mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can control the way the the :func:`datasets.load_dataset` function handles already downloaded data by setting its :obj:`download_mode` parameter.
+
+By default, :obj:`download_mode` is set to ``"reuse_dataset_if_exists"``. The :func:`datasets.load_dataset` function will reuse both raw downloads and the prepared dataset, if they exist in the cache directory.
+
+The following table describes the three available modes for download:
+
+.. list-table:: Behavior of :func:`datasets.load_dataset` depending on :obj:`download_mode`
+   :header-rows: 1
+
+   * - :obj:`download_mode` parameter value
+     - Downloaded files (raw data)
+     - Dataset object
+   * - ``"reuse_dataset_if_exists"`` (default)
+     - Reuse
+     - Reuse
+   * - ``"reuse_cache_if_exists"``
+     - Reuse
+     - Fresh
+   * - ``"force_redownload"``  
+     - Fresh
+     - Fresh
+
+For example, you can run the following if you want to force the re-download of the SQuAD raw data files:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('squad', download_mode="force_redownload")
+
+
+Integrity verifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When downloading a dataset from the 🤗 dataset hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
+
+- Verifying the list of downloaded files
+- Verifying the number of bytes of the downloaded files
+- Verifying the SHA256 checksums of the downloaded files
+- Verifying the number of splits in the generated `DatasetDict`
+- Verifying the number of samples in each split of the generated `DatasetDict`
+
+You can disable these verifications by setting the :obj:`ignore_verifications` parameter to ``True``.
+
+You also have the possibility to locally override the informations used to perform the integrity verifications by setting the :obj:`save_infos` parameter to ``True``.
+
+For example, run the following to skip integrity verifications when loading the IMDB dataset:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('imdb', ignore_verifications=True)

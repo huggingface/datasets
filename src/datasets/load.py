@@ -270,7 +270,7 @@ def prepare_module(
         local_path = path
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
-        head_hf_s3(path, filename=name, dataset=dataset)
+        head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
         script_version = str(script_version) if script_version is not None else None
         file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
         try:
@@ -288,8 +288,10 @@ def prepare_module(
                 local_path = cached_path(file_path, download_config=download_config)
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {}, or remotely at {} or {}".format(
-                        combined_path, github_file_path, file_path
+                    "Couldn't find file locally at {}, or remotely at {} or {}.\n"
+                    'If the {} was added recently, you may need to to pass script_version="master" to find '
+                    "the loading script on the master branch.".format(
+                        combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
                     )
                 )
 

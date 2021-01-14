@@ -52,8 +52,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [NCBI](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3951655/)
+- **Repository:** [Github](https://github.com/spyysalo/ncbi-disease)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
