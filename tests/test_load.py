@@ -2,6 +2,7 @@ import importlib
 import os
 import shutil
 import tempfile
+import time
 from hashlib import sha256
 from unittest import TestCase
 
@@ -69,6 +70,7 @@ class LoadTest(TestCase):
             importable_module_path1, _ = datasets.load.prepare_module(
                 module_dir, dynamic_modules_path=self.dynamic_modules_path
             )
+            time.sleep(0.1)  # make sure there's a difference in the OS update time of the python file
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
             importable_module_path2, _ = datasets.load.prepare_module(

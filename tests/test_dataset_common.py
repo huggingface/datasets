@@ -340,7 +340,7 @@ class DistributedDatasetTest(TestCase):
         num_workers = 5
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_name = "csv"
-            data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data.zip")
+            data_base_path = os.path.join("datasets", data_name, "dummy", "0.0.0", "dummy_data.zip")
             local_path = cached_path(
                 data_base_path, cache_dir=tmp_dir, extract_compressed_file=True, force_extract=True
             )
