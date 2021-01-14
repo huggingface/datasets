@@ -124,10 +124,8 @@ source_datasets:
 - original
 task_categories:
 - conditional-text-generation
-- other
 task_ids:
 - machine-translation
-- other-other-machine-translation
 ---
 
 # Dataset Card for Web Inventory of Transcribed & Translated(WIT) Ted Talks
@@ -169,6 +167,16 @@ task_ids:
 
 The Web Inventory Talk is a collection of the original Ted talks and their translated version. The translations are available in more than 109+ languages, though the distribution is not uniform. 
 
+To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
+You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/GNOME.php
+E.g.
+
+`dataset = load_dataset("ted_talks_iwslt", language_pair=("it", "pl"), year="2014")`
+
+The full list of languages is: 'af', 'am', 'ar', 'arq', 'art-x-bork', 'as', 'ast', 'az', 'be', 'bg', 'bi', 'bn', 'bo', 'bs', 'ca', 'ceb', 'cnh', 'cs', 'da', 'de', 'el', 'en', 'eo', 'es', 'et', 'eu', 'fa', 'fi', 'fil', 'fr', 'fr-ca', 'ga', 'gl', 'gu', 'ha', 'he', 'hi', 'hr', 'ht', 'hu', 'hup', 'hy', 'id', 'ig', 'inh', 'is', 'it', 'ja', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'la', 'lb', 'lo', 'lt', 'ltg', 'lv', 'mg', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'my', 'nb', 'ne', 'nl', 'nn', 'oc', 'pa', 'pl', 'ps', 'pt', 'pt-br', 'ro', 'ru', 'rup', 'sh', 'si', 'sk', 'sl', 'so', 'sq', 'sr', 'srp', 'sv', 'sw', 'szl', 'ta', 'te', 'tg', 'th', 'tl', 'tlh', 'tr', 'tt', 'ug', 'uk', 'ur', 'uz', 'vi', 'zh', 'zh-cn', 'zh-tw'.
+
+The full list of years is: '2014', '2015', '2016'.
+
 ### Supported Tasks and Leaderboards
 
 machine learning task, language modeling and generation
@@ -181,12 +189,14 @@ Ted talks are mostly held in English (`en`). Almost all of the talks have been t
 
 ### Data Instances
 
+One example from the dataset is:
+
 ```
 {'translation': {'hi': 'जब मार्च २०१४ में इबोला का प्रकोप छाया, पर्डिस सबेटी और उनकी टीम को वाइरस के जीनोम का अनुक्रमण करना था, सीखना था कि यह कैसे परवतिर्त होते हैं और फैलते हैं। सबेटी ने तुरंत ही अपने अनुसंधान को वेब में जारी किया, ताकि दुनिया भर के वाइरस ट्रैकर्स और वैज्ञानिक इस तत्काल लड़ाई में शामिल हो सकें। इस बातचीत में, वह दिखाती हैं कि सबका सहयोग ही कुंजी है वाइरस को रोकने के लिए--और लड़ने के लिए आगे आने वाले हमलों से। सबेटी ने कहा,"हमने खुले तौर पर काम किया, साझा किया और साथ काम किया"। "हमे दुनिया को एक वाइरस के विनाश से नहीं, पर अरबों दिलों और दिमागों की एकता से परिभाषित करना है"।',
   'nl': 'Toen Ebola in maart 2014 uitbrak, zijn Pardis Sabeti en haar team aan het werk gegaan om het genoom in kaart te brengen. Zo ontdekten ze hoe het virus zich verspreidde en muteerde. Sabeti zette direct haar onderzoek op het internet, zodat wereldwijd virus-jagers en wetenschappers mee konden werken aan de strijd. In deze talk laat ze zien hoe die openheid geholpen heeft bij het stoppen van het virus en hoe het kan helpen bij de strijd tegen het volgende virus. "We moesten transparant werken, delen en samenwerken". Sabeti zegt:"Laat de wereld niet ten onder gaan aan een virus, maar verlicht worden door miljoenen harten en geesten die samenwerken."'}}
 ```
 
-The original XML file has the following data instances:
+The original XML files are formatted like this example:
 
 
 ```
@@ -226,7 +236,12 @@ The original XML file has the following data instances:
 ```
 
 ### Data Fields
+The fields of the dataset are:
+- translation:
+  - <lang1>: text in <lang1>
+  - <lang2>L translated text in <lang2> 
 
+Information about the original data files:
 
 For each language, a single XML file is generated which includes all talks subtitled in 
 that language. Each talk is enclosed in tags `<file id="int">` and `</file>` and includes, among other tags: 
