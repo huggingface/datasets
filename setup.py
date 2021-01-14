@@ -107,6 +107,7 @@ TESTS_REQUIRE = [
     'openpyxl',
     'py7zr',
     'pytest',
+    'pytest-datadir',
     'pytest-xdist',
     'tensorflow',
     'torch',
