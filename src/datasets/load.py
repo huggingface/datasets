@@ -22,7 +22,6 @@ import json
 import os
 import re
 import shutil
-from hashlib import sha256
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -33,6 +32,7 @@ from .dataset_dict import DatasetDict
 from .features import Features
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
+from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
@@ -111,22 +111,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     for file_path in to_use_files:
         with open(file_path, mode="r", encoding="utf-8") as f:
             lines.extend(f.readlines())
-    filtered_lines = []
-    for line in lines:
-        line.replace("\n", "")  # remove line breaks, white space and comments
-        line.replace(" ", "")
-        line.replace("\t", "")
-        line = re.sub(r"#.*", "", line)
-        if line:
-            filtered_lines.append(line)
-    file_str = "\n".join(filtered_lines)
-
-    # Make a hash from all this code
-    file_bytes = file_str.encode("utf-8")
-    file_hash = sha256(file_bytes)
-    filename = file_hash.hexdigest()
-
-    return filename
+    return hash_python_lines(lines)
 
 
 def convert_github_url(url_path: str) -> Tuple[str, str]:
@@ -249,17 +234,6 @@ def prepare_module(
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/datasets/datasets/squad/squad.py'
         2. A hash string computed from the content of the dataset loading script.
     """
-    dynamic_modules_path = (
-        dynamic_modules_path
-        if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=HF_MODULES_CACHE)
-    )
-    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
-    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
-    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
-    metrics_modules_path = os.path.join(dynamic_modules_path, "metric")
-    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
-
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
@@ -272,6 +246,26 @@ def prepare_module(
 
     # Short name is name without the '.py' at the end (for the module)
     short_name = name[:-3]
+
+    # first check if the module is packaged with the `datasets` package
+    if dataset and path in _PACKAGED_DATASETS_MODULES:
+        try:
+            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+        except Exception:
+            logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
+        return _PACKAGED_DATASETS_MODULES[path]
+
+    # otherwise the module is added to the dynamic modules
+    dynamic_modules_path = (
+        dynamic_modules_path
+        if dynamic_modules_path is not None
+        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=HF_MODULES_CACHE)
+    )
+    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
+    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
+    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
+    metrics_modules_path = os.path.join(dynamic_modules_path, "metric")
+    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
 
     if force_local_path is None:
         main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name)
@@ -657,11 +651,16 @@ def load_dataset(
         **config_kwargs,
     )
 
+    # Some datasets are already processed on the HF google storage
+    # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas
+    try_from_hf_gcs = path not in _PACKAGED_DATASETS_MODULES
+
     # Download and prepare data
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
         ignore_verifications=ignore_verifications,
+        try_from_hf_gcs=try_from_hf_gcs,
     )
 
     # Build dataset for splits
