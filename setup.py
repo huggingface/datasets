@@ -82,15 +82,10 @@ REQUIRED_PKGS = [
     "xxhash",
     # for better multiprocessing
     "multiprocess",
-    # for saving datsets to local or s3
-    "fsspec",
-    "fsspec[s3]",
-    # for getting credentials from aws_profile
-    # "boto3",
-    "boto3==1.16.43",
-    "botocore==1.19.43",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
+    # for saving datsets to local
+    "fsspec",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -122,6 +117,9 @@ TESTS_REQUIRE = [
     "zstandard",
     "rarfile",
     "moto[s3]==1.3.16",
+    "fsspec[s3]",
+    "boto3==1.16.43",
+    "botocore==1.19.43",
 ]
 
 if os.name == "nt":  # windows
@@ -140,6 +138,11 @@ EXTRAS_REQUIRE = {
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
+    "s3": [
+        "fsspec[s3]",
+        "boto3==1.16.43",
+        "botocore==1.19.43",
+    ],
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
