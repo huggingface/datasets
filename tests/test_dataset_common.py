@@ -339,7 +339,7 @@ class DistributedDatasetTest(TestCase):
     def test_load_dataset_distributed(self):
         num_workers = 5
         with tempfile.TemporaryDirectory() as tmp_dir:
-            data_name = "./datasets/csv"
+            data_name = "csv"
             data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data.zip")
             local_path = cached_path(
                 data_base_path, cache_dir=tmp_dir, extract_compressed_file=True, force_extract=True
@@ -468,20 +468,20 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
-                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+                "csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
             ds = load_dataset(
-                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+                "csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
             )
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
             ds = load_dataset(
-                "./datasets/csv",
+                "csv",
                 data_files=os.path.join(tmp_dir, "table.csv"),
                 cache_dir=tmp_dir,
                 split="train",
@@ -495,7 +495,7 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
-                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+                "csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
@@ -514,7 +514,7 @@ class CsvTest(TestCase):
                 "\n".join("\t".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
-                "./datasets/csv",
+                "csv",
                 data_files=os.path.join(tmp_dir, "table_comma.csv"),
                 cache_dir=tmp_dir,
                 split="train",
@@ -524,7 +524,7 @@ class CsvTest(TestCase):
             self.assertEqual(len(ds.column_names), n_cols)
             del ds
             ds = load_dataset(
-                "./datasets/csv",
+                "csv",
                 data_files=os.path.join(tmp_dir, "table_tab.csv"),
                 cache_dir=tmp_dir,
                 split="train",
@@ -534,7 +534,7 @@ class CsvTest(TestCase):
             self.assertEqual(len(ds.column_names), n_cols)
             del ds
             ds = load_dataset(
-                "./datasets/csv",
+                "csv",
                 data_files=os.path.join(tmp_dir, "table_comma.csv"),
                 cache_dir=tmp_dir,
                 split="train",
@@ -558,7 +558,7 @@ class CsvTest(TestCase):
             for type in ["float64", "int8"]:
                 features = get_features(type)
                 ds = load_dataset(
-                    "./datasets/csv",
+                    "csv",
                     data_files=os.path.join(tmp_dir, "table.csv"),
                     cache_dir=tmp_dir,
                     split="train",
