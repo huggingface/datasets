@@ -19,6 +19,7 @@ import tempfile
 import warnings
 from functools import wraps
 from multiprocessing import Pool
+from typing import List, Optional
 from unittest import TestCase
 
 from absl.testing import parameterized
@@ -38,10 +39,11 @@ from datasets import (
     logging,
     prepare_module,
 )
+from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
 
-from .utils import for_all_test_methods, local, remote, slow
+from .utils import for_all_test_methods, local, offline, packaged, remote, slow
 
 
 logger = logging.get_logger(__name__)
@@ -80,6 +82,15 @@ def skip_if_not_compatible_with_windows(test_case):
         return test_case
 
 
+def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
+    extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv"}
+    return {
+        "train": os.path.join(path_to_dummy_data, "train." + extensions[dataset_name]),
+        "test": os.path.join(path_to_dummy_data, "test." + extensions[dataset_name]),
+        "dev": os.path.join(path_to_dummy_data, "dev." + extensions[dataset_name]),
+    }
+
+
 class DatasetTester(object):
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
@@ -94,7 +105,7 @@ class DatasetTester(object):
         builder_cls = import_main_class(module_path)
         return builder_cls
 
-    def load_all_configs(self, dataset_name, is_local=False):
+    def load_all_configs(self, dataset_name, is_local=False) -> List[Optional[BuilderConfig]]:
         # get builder class
         builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
         builder = builder_cls
@@ -103,7 +114,7 @@ class DatasetTester(object):
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def check_load_dataset(self, dataset_name, configs, is_local=False):
+    def check_load_dataset(self, dataset_name, configs, is_local=False, use_local_dummy_data=False):
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
 
@@ -124,7 +135,7 @@ class DatasetTester(object):
 
                 def check_if_url_is_valid(url):
                     if is_remote_url(url) and "\\" in url:
-                        raise ValueError(f"Bad remote url '{url}'' since it contains a backslash")
+                        raise ValueError(f"Bad remote url '{url} since it contains a backslash")
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
                 mock_dl_manager = MockDownloadManager(
@@ -132,45 +143,17 @@ class DatasetTester(object):
                     config=config,
                     version=version,
                     cache_dir=raw_temp_dir,
-                    is_local=is_local,
+                    use_local_dummy_data=use_local_dummy_data,
                     download_callbacks=[check_if_url_is_valid],
                 )
 
-                if dataset_builder.__class__.__name__ == "Csv":
-                    # need slight adoption for csv dataset
+                # packaged datasets like csv, text, json or pandas require some data files
+                if dataset_builder.__class__.__name__.lower() in _PACKAGED_DATASETS_MODULES:
                     mock_dl_manager.download_dummy_data()
                     path_to_dummy_data = mock_dl_manager.dummy_file
-                    dataset_builder.config.data_files = {
-                        "train": os.path.join(path_to_dummy_data, "train.csv"),
-                        "test": os.path.join(path_to_dummy_data, "test.csv"),
-                        "dev": os.path.join(path_to_dummy_data, "dev.csv"),
-                    }
-                elif dataset_builder.__class__.__name__ == "Json":
-                    # need slight adoption for json dataset
-                    mock_dl_manager.download_dummy_data()
-                    path_to_dummy_data = mock_dl_manager.dummy_file
-                    dataset_builder.config.data_files = {
-                        "train": os.path.join(path_to_dummy_data, "train.json"),
-                        "test": os.path.join(path_to_dummy_data, "test.json"),
-                        "dev": os.path.join(path_to_dummy_data, "dev.json"),
-                    }
-                elif dataset_builder.__class__.__name__ == "Pandas":
-                    # need slight adoption for json dataset
-                    mock_dl_manager.download_dummy_data()
-                    path_to_dummy_data = mock_dl_manager.dummy_file
-                    dataset_builder.config.data_files = {
-                        "train": os.path.join(path_to_dummy_data, "train.pkl"),
-                        "test": os.path.join(path_to_dummy_data, "test.pkl"),
-                        "dev": os.path.join(path_to_dummy_data, "dev.pkl"),
-                    }
-                elif dataset_builder.__class__.__name__ == "Text":
-                    mock_dl_manager.download_dummy_data()
-                    path_to_dummy_data = mock_dl_manager.dummy_file
-                    dataset_builder.config.data_files = {
-                        "train": os.path.join(path_to_dummy_data, "train.txt"),
-                        "test": os.path.join(path_to_dummy_data, "test.txt"),
-                        "dev": os.path.join(path_to_dummy_data, "dev.txt"),
-                    }
+                    dataset_builder.config.data_files = get_packaged_dataset_dummy_data_files(
+                        dataset_builder.__class__.__name__.lower(), path_to_dummy_data
+                    )
 
                 # mock size needed for dummy data instead of actual dataset
                 if dataset_builder.info is not None:
@@ -199,8 +182,25 @@ class DatasetTester(object):
                 del dataset
 
 
+def test_datasets_dir_and_script_names():
+    for dataset_dir in glob.glob("./datasets/*/"):
+        name = dataset_dir.split(os.sep)[-2]
+        if not name.startswith("__") and len(os.listdir(dataset_dir)) > 0:  # ignore __pycache__ and empty dirs
+            if name in _PACKAGED_DATASETS_MODULES:
+                continue
+            else:
+                # check that the script name is the same as the dir name
+                assert os.path.exists(
+                    os.path.join(dataset_dir, name + ".py")
+                ), f"Bad structure for dataset '{name}'. Please check that the directory name is a valid dataset and that the same the same as the dataset script name."
+
+
 def get_local_dataset_names():
-    datasets = [dataset_dir.split(os.sep)[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    datasets = [
+        dataset_dir.split(os.sep)[-2]
+        for dataset_dir in glob.glob("./datasets/*/")
+        if os.path.exists(os.path.join(dataset_dir, dataset_dir.split(os.sep)[-2] + ".py"))
+    ]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
@@ -215,7 +215,7 @@ class LocalDatasetTest(parameterized.TestCase):
 
     def test_load_dataset(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
-        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True, use_local_dummy_data=True)
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
@@ -234,7 +234,7 @@ class LocalDatasetTest(parameterized.TestCase):
     @slow
     def test_load_dataset_all_configs(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
-        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True, use_local_dummy_data=True)
 
     @slow
     def test_load_real_dataset(self, dataset_name):
@@ -266,6 +266,67 @@ class LocalDatasetTest(parameterized.TestCase):
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
                 del dataset
+
+
+def get_packaged_dataset_names():
+    return [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+
+
+@parameterized.named_parameters(get_packaged_dataset_names())
+@packaged
+class PackagedDatasetTest(parameterized.TestCase):
+    dataset_name = None
+
+    def setUp(self):
+        self.dataset_tester = DatasetTester(self)
+
+    def test_load_dataset(self, dataset_name):
+        configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
+        self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
+
+    def test_builder_class(self, dataset_name):
+        builder_cls = self.dataset_tester.load_builder_class(dataset_name)
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        with tempfile.TemporaryDirectory() as tmp_cache_dir:
+            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            self.assertTrue(isinstance(builder, DatasetBuilder))
+
+    def test_builder_configs(self, dataset_name):
+        builder_configs = self.dataset_tester.load_all_configs(dataset_name)
+        self.assertTrue(len(builder_configs) > 0)
+
+        if builder_configs[0] is not None:
+            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+
+    def test_load_dataset_with_data_files_offline(self, dataset_name):
+        with offline():
+            builder_cls = self.dataset_tester.load_builder_class(dataset_name)
+            builder_configs = self.dataset_tester.load_all_configs(dataset_name)
+            self.assertTrue(len(builder_configs) > 0)
+
+            for config in builder_configs:
+                name = config.name if config is not None else None
+                version = config.version if config is not None else builder_cls.VERSION
+
+                with tempfile.TemporaryDirectory() as temp_cache_dir:
+                    path_to_dummy_data = MockDownloadManager(
+                        dataset_name=dataset_name,
+                        config=config,
+                        version=version,
+                        cache_dir=temp_cache_dir,
+                        use_local_dummy_data=True,
+                    ).download_dummy_data()
+                    data_files = get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data)
+                    dataset = load_dataset(
+                        dataset_name,
+                        name=name,
+                        cache_dir=temp_cache_dir,
+                        download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                        data_files=data_files,
+                    )
+                    for split in dataset.keys():
+                        self.assertTrue(len(dataset[split]) > 0)
+                    del dataset
 
 
 def distributed_load_dataset(args):
@@ -374,16 +435,12 @@ class TextTest(TestCase):
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
                 "\n".join("foo" for _ in range(n_samples))
             )
-            ds = load_dataset(
-                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
-            )
+            ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_samples)
             del ds
-            ds = load_dataset(
-                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
-            )
+            ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
@@ -391,9 +448,7 @@ class TextTest(TestCase):
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
                 "\n".join("bar" for _ in range(n_samples))
             )
-            ds = load_dataset(
-                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
-            )
+            ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_samples)
