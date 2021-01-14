@@ -467,16 +467,12 @@ class CsvTest(TestCase):
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
-            ds = load_dataset(
-                "csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
-            )
+            ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
-            ds = load_dataset(
-                "csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
-            )
+            ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
@@ -494,9 +490,7 @@ class CsvTest(TestCase):
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
             )
-            ds = load_dataset(
-                "csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
-            )
+            ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
