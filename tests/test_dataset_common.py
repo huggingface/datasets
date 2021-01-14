@@ -280,9 +280,10 @@ class PackagedDatasetTest(parameterized.TestCase):
     def setUp(self):
         self.dataset_tester = DatasetTester(self)
 
-    def test_load_dataset(self, dataset_name):
-        configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
-        self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
+    def test_load_dataset_offline(self, dataset_name):
+        with offline():
+            configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
+            self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
@@ -297,36 +298,6 @@ class PackagedDatasetTest(parameterized.TestCase):
 
         if builder_configs[0] is not None:
             all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
-
-    def test_load_dataset_with_data_files_offline(self, dataset_name):
-        with offline():
-            builder_cls = self.dataset_tester.load_builder_class(dataset_name)
-            builder_configs = self.dataset_tester.load_all_configs(dataset_name)
-            self.assertTrue(len(builder_configs) > 0)
-
-            for config in builder_configs:
-                name = config.name if config is not None else None
-                version = config.version if config is not None else builder_cls.VERSION
-
-                with tempfile.TemporaryDirectory() as temp_cache_dir:
-                    path_to_dummy_data = MockDownloadManager(
-                        dataset_name=dataset_name,
-                        config=config,
-                        version=version,
-                        cache_dir=temp_cache_dir,
-                        use_local_dummy_data=True,
-                    ).download_dummy_data()
-                    data_files = get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data)
-                    dataset = load_dataset(
-                        dataset_name,
-                        name=name,
-                        cache_dir=temp_cache_dir,
-                        download_mode=GenerateMode.FORCE_REDOWNLOAD,
-                        data_files=data_files,
-                    )
-                    for split in dataset.keys():
-                        self.assertTrue(len(dataset[split]) > 0)
-                    del dataset
 
 
 def distributed_load_dataset(args):
