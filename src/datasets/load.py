@@ -36,10 +36,9 @@ from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
-    HF_MODULES_CACHE,
     DownloadConfig,
     cached_path,
-    create_modules_cache,
+    init_dynamic_modules_cache,
     head_hf_s3,
     hf_bucket_url,
     hf_github_url,
@@ -52,15 +51,14 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 
-def init_dynamic_modules(cache_dir):
-    modules_cache = os.path.join(cache_dir, "modules") if cache_dir else HF_MODULES_CACHE
-    create_modules_cache(modules_cache)
-    dynamic_modules_path = os.path.join(modules_cache, "datasets_modules")
-    os.makedirs(dynamic_modules_path, exist_ok=True)
-    if not os.path.exists(os.path.join(dynamic_modules_path, "__init__.py")):
-        with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
-            pass
-    return dynamic_modules_path
+# def init_dynamic_modules_cache(name: str = "datasets_modules", hf_modules_cache: Optional[str] = None):
+#     hf_modules_cache = init_modules_cache(hf_modules_cache)
+#     dynamic_modules_path = os.path.join(hf_modules_cache, name)
+#     os.makedirs(dynamic_modules_path, exist_ok=True)
+#     if not os.path.exists(os.path.join(dynamic_modules_path, "__init__.py")):
+#         with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
+#             pass
+#     return dynamic_modules_path
 
 
 def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
@@ -210,6 +208,7 @@ def prepare_module(
     download_mode: Optional[GenerateMode] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
+    dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> Tuple[str, str]:
     r"""
@@ -231,6 +230,9 @@ def prepare_module(
         dataset (bool): True if the script to load is a dataset, False if the script is a metric.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
+        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
+            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
+            By default the datasets and metrics are stored inside the `datasets_modules` module.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Return: Tuple[``str``, ``str``] with
@@ -243,11 +245,12 @@ def prepare_module(
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
-    dynamic_modules_path = init_dynamic_modules(download_config.cache_dir)
-    datasets_path = os.path.join(dynamic_modules_path, "datasets")
-    datasets_module = "datasets_modules.datasets"
-    metrics_path = os.path.join(dynamic_modules_path, "metrics")
-    metrics_module = "datasets_modules.metrics"
+    dynamic_modules_path = dynamic_modules_path or init_dynamic_modules_cache()
+    dynamic_modules_name = os.path.basename(dynamic_modules_path)
+    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
+    datasets_modules_name = dynamic_modules_name + ".datasets"
+    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
+    metrics_modules_name = dynamic_modules_name + ".metrics"
 
     module_type = "dataset" if dataset else "metric"
     name = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
@@ -362,7 +365,7 @@ def prepare_module(
     hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
 
     if force_local_path is None:
-        main_folder_path = os.path.join(datasets_path if dataset else metrics_path, short_name)
+        main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name)
         hash_folder_path = os.path.join(main_folder_path, hash)
     else:
         main_folder_path = force_local_path
@@ -455,7 +458,7 @@ def prepare_module(
                 raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
-        module_path = ".".join([datasets_module if dataset else metrics_module, short_name, hash, short_name])
+        module_path = ".".join([datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name])
     else:
         module_path = local_file_path
 

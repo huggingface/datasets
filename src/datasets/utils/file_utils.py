@@ -127,14 +127,6 @@ CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/dataset
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
 
 
-def create_modules_cache(modules_cache):
-    sys.path.append(str(modules_cache))
-    os.makedirs(modules_cache, exist_ok=True)
-    if not os.path.exists(os.path.join(modules_cache, "__init__.py")):
-        with open(os.path.join(modules_cache, "__init__.py"), "w"):
-            pass
-
-
 default_modules_cache_path = os.path.join(hf_cache_home, "modules")
 try:
     from pathlib import Path
@@ -142,6 +134,32 @@ try:
     HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
 except (AttributeError, ImportError):
     HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
+
+
+def init_modules_cache(hf_modules_cache: Optional[str] = None):
+    hf_modules_cache = str(hf_modules_cache or HF_MODULES_CACHE)
+    if hf_modules_cache not in sys.path:
+        sys.path.append(hf_modules_cache)
+    os.makedirs(hf_modules_cache, exist_ok=True)
+    create_modules_init_file(hf_modules_cache)
+    return hf_modules_cache
+
+
+DYNAMIC_MODULES_NAME = "datasets_modules"
+
+
+def init_dynamic_modules_cache(name: str = DYNAMIC_MODULES_NAME, hf_modules_cache: Optional[str] = None):
+    hf_modules_cache = init_modules_cache(hf_modules_cache)
+    dynamic_modules_path = os.path.join(hf_modules_cache, name)
+    os.makedirs(dynamic_modules_path, exist_ok=True)
+    create_modules_init_file(dynamic_modules_path)
+    return dynamic_modules_path
+
+
+def create_modules_init_file(path: str):
+    if not os.path.exists(os.path.join(path, "__init__.py")):
+        with open(os.path.join(path, "__init__.py"), "w"):
+            pass
 
 
 INCOMPLETE_SUFFIX = ".incomplete"
