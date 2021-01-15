@@ -524,12 +524,7 @@ Enable or disable caching
 Locally you can prevent the library from reloading a cached file by using ``load_from_cache=False`` in transforms like :func:`datasets.Dataset.map` for example.
 You can also specify the name of path where the cache file will be written using the parameter ``cache_file_name``.
 
-It is also possible to disable caching globally with :func:`datasets.set_caching_enabled`:
-
-.. code-block::
-
-    >>> from datasets import set_caching_enabled
-    >>> set_caching_enabled(False)
+It is also possible to disable caching globally with :func:`datasets.set_caching_enabled`.
 
 If the caching is disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
 More precisely, if the caching is disabled:
@@ -539,3 +534,10 @@ More precisely, if the caching is disabled:
 - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
 - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
 the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+
+To disable caching you can run:
+
+.. code-block::
+
+    >>> from datasets import set_caching_enabled
+    >>> set_caching_enabled(False)
