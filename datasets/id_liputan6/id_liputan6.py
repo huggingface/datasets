@@ -79,17 +79,17 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="Xtreme Liputan6 dataset",
             filename=_FILENAME,
-        )
+        ),
     ]
 
     @property
     def manual_download_instructions(self):
         return """\
-  You need to manually request the liputan6 dataset from https://github.com/fajri91/sum_liputan6/
-  and save it in a directory <path/to/folder>. The name of downloaded file is "liputan6_data.tar.gz".
-  The liputan6 dataset can then be loaded using the following command 
-  `datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/folder>")`.
-  """
+            You need to manually request the liputan6 dataset from https://github.com/fajri91/sum_liputan6/
+            and save it in a directory <path/to/folder>. The name of downloaded file is "liputan6_data.tar.gz".
+            The liputan6 dataset can then be loaded using the following command
+            `datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/folder>")`.
+            """
 
     def _info(self):
         features = datasets.Features(
@@ -136,23 +136,26 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
                     "article_dir": os.path.join(data_dir, "liputan6_data/{}/test".format(self.config.name)),
                     "split": "test",
                 },
-            )
+            ),
         ]
         if self.config.name == "canonical":
-            split_generators.append(datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "liputan6_data/{}/train".format(self.config.name)),
-                    "split": "train",
-                },
-            ))
+            split_generators.append(
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "article_dir": os.path.join(data_dir, "liputan6_data/{}/train".format(self.config.name)),
+                        "split": "train",
+                    },
+                )
+            )
         return split_generators
 
     def _generate_examples(self, article_dir, split):
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         guid = 0
-        for path in sorted(glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True),
-                           key=lambda p: int(Path(p).stem)):
+        for path in sorted(
+            glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True), key=lambda p: int(Path(p).stem)
+        ):
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
                 yield guid, {
@@ -160,7 +163,8 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
                     "url": data["url"],
                     "clean_article": " ".join([" ".join(i) for i in data["clean_article"]]),
                     "clean_summary": " ".join([" ".join(i) for i in data["clean_summary"]]),
-                    "extractive_summary": " ".join([" ".join(data["clean_article"][i])
-                                                    for i in data["extractive_summary"]]),
+                    "extractive_summary": " ".join(
+                        [" ".join(data["clean_article"][i]) for i in data["extractive_summary"]]
+                    ),
                 }
             guid += 1
