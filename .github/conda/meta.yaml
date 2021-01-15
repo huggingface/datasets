@@ -1,0 +1,47 @@
+{% set name = "datasets" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ DATASETS_VERSION }}"
+
+source:
+  path: ../../
+
+build:
+  noarch: python
+
+requirements:
+  host:
+    - python
+    - pip
+    - numpy >=1.17
+    - pyarrow >=0.17.1
+    - python-xxhash
+    - dill
+    - pandas
+    - requests >=2.19.0
+    - tqdm >=4.27,<4.50.0
+    - dataclasses
+    - multiprocess
+  run:
+    - python
+    - pip
+    - numpy >=1.17
+    - pyarrow >=0.17.1
+    - python-xxhash
+    - dill
+    - pandas
+    - requests >=2.19.0
+    - tqdm >=4.27,<4.50.0
+    - dataclasses
+    - multiprocess
+
+test:
+  imports:
+    - datasets
+
+about:
+  home: https://huggingface.co
+  license: Apache License 2.0
+  license_file: LICENSE
+  summary: "🤗 The largest hub of ready-to-use NLP datasets for ML models with fast, easy-to-use and efficient data manipulation tools"
