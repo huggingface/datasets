@@ -40,7 +40,6 @@ from .features import (
     TranslationVariableLanguages,
     Value,
 )
-from .fingerprint import set_fingerprinting_enabled
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,

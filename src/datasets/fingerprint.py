@@ -21,22 +21,10 @@ logger = get_logger(__name__)
 # Fingerprinting allows to have one deterministic fingerprint per dataset state.
 # A dataset fingerprint is updated after each transform.
 # Re-running the same transforms on a dataset in a different session results in the same fingerprint.
-# Disabling the fingerprinting mechanism makes all the fingerprints random.
-_FINGERPRINTING_ENABLED = True
 
 
 if TYPE_CHECKING:
     from .arrow_dataset import Dataset
-
-
-def set_fingerprinting_enabled(boolean: bool):
-    """
-    If disabled, the library will use random dataset fingerprint instead of computing them by hashing the transforms that are applied.
-    Since the caching mechanism uses fingerprints to name the cache files, then cache file names will be different.
-    Therefore disabling fingerprinting will prevent the caching mechanism from reloading datasets files that have already been computed.
-    """
-    global _FINGERPRINTING_ENABLED
-    _FINGERPRINTING_ENABLED = bool(boolean)
 
 
 def hashregister(t):
@@ -107,8 +95,6 @@ def _hash_dataset_info(hasher, value):
 
 
 def generate_fingerprint(dataset) -> str:
-    if not _FINGERPRINTING_ENABLED:
-        return generate_random_fingerprint()
     state = dataset.__getstate__()
     hasher = Hasher()
     for key in sorted(state):
@@ -127,8 +113,6 @@ def generate_random_fingerprint(nbits=64) -> str:
 
 
 def update_fingerprint(fingerprint, transform, transform_args):
-    if not _FINGERPRINTING_ENABLED:
-        return generate_random_fingerprint()
     hasher = Hasher()
     hasher.update(fingerprint)
     try:
