@@ -40,7 +40,14 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .fingerprint import fingerprint_transform, generate_fingerprint, generate_random_fingerprint, update_fingerprint
+from .fingerprint import (
+    _CACHING_ENABLED,
+    fingerprint_transform,
+    generate_fingerprint,
+    generate_random_fingerprint,
+    get_temporary_cache_files_directory,
+    update_fingerprint,
+)
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -57,38 +64,6 @@ if int(pa.__version__.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
-
-
-_CACHING_ENABLED = True
-_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional[tempfile.TemporaryDirectory] = None
-
-
-def set_caching_enabled(boolean: bool):
-    """
-    When applying transforms on a dataset, the data are stored in cache files.
-    The caching mechanism allows to reload an existing cache file if it's already been computed.
-
-    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
-    after each transform.
-
-    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
-    More precisely, if the caching is disabled:
-    - cache files are always recreated
-    - cache files are written to a temporary directory that is deleted when session closes
-    - cache files are named using a random hash instead of the dataset fingerprint
-    - use ``save_to_disk`` to save a transformed dataset or it will be deleted when session closes
-    - caching doesn't affect ``load_dataset``. If you want to regenerate a dataset from scratch you should use
-    the ``download_mode`` parameter in ``load_dataset``.
-    """
-    global _CACHING_ENABLED
-    _CACHING_ENABLED = bool(boolean)
-
-
-def get_temporary_cache_files_directory() -> str:
-    global _TEMP_DIR_FOR_TEMP_CACHE_FILES
-    if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-        _TEMP_DIR_FOR_TEMP_CACHE_FILES = tempfile.TemporaryDirectory()
-    return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
 
 
 class DatasetInfoMixin(object):

@@ -1,10 +1,11 @@
 import json
 import os
 import random
+import tempfile
 from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -15,16 +16,62 @@ from .utils.logging import get_logger
 from .utils.py_utils import dumps
 
 
+if TYPE_CHECKING:
+    from .arrow_dataset import Dataset
+
+
 logger = get_logger(__name__)
 
 
 # Fingerprinting allows to have one deterministic fingerprint per dataset state.
 # A dataset fingerprint is updated after each transform.
 # Re-running the same transforms on a dataset in a different session results in the same fingerprint.
+# This is possible thanks to a custom hashing function that works with most python objects.
+
+# Fingerprinting is the main mechanism that enables caching.
+# The caching mechanism allows to reload an existing cache file if it's already been computed.
 
 
-if TYPE_CHECKING:
-    from .arrow_dataset import Dataset
+#################
+# Caching
+#################
+
+_CACHING_ENABLED = True
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional[tempfile.TemporaryDirectory] = None
+
+
+def set_caching_enabled(boolean: bool):
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use ``save_to_disk`` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect ``load_dataset``. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in ``load_dataset``.
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = bool(boolean)
+
+
+def get_temporary_cache_files_directory() -> str:
+    """Return a directory that is deleted when session closes"""
+    global _TEMP_DIR_FOR_TEMP_CACHE_FILES
+    if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = tempfile.TemporaryDirectory()
+    return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
+
+
+#################
+# Hashing
+#################
 
 
 def hashregister(t):
@@ -94,6 +141,14 @@ def _hash_dataset_info(hasher, value):
     return hasher.hash_bytes(json.dumps(asdict(value), sort_keys=True).encode("utf-8"))
 
 
+#################
+# Fingerprinting
+#################
+
+# we show a warning only once when fingerprinting fails to avoid spam
+fingerprint_warnings = {}
+
+
 def generate_fingerprint(dataset) -> str:
     state = dataset.__getstate__()
     hasher = Hasher()
@@ -113,27 +168,51 @@ def generate_random_fingerprint(nbits=64) -> str:
 
 
 def update_fingerprint(fingerprint, transform, transform_args):
+    global fingerprint_warnings
     hasher = Hasher()
     hasher.update(fingerprint)
     try:
         hasher.update(transform)
     except:  # noqa various errors might raise here from pickle or dill
-        logger.warning(
-            f"Transform {transform} couldn't be hashed properly, a random hash was used instead. "
-            "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
-            "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything."
-        )
+        if _CACHING_ENABLED:
+            if not fingerprint_warnings.get("update_fingerprint_transform_hash_failed", False):
+                logger.warning(
+                    f"Transform {transform} couldn't be hashed properly, a random hash was used instead. "
+                    "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
+                    "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
+                    "This warning is only showed once. Subsequent hashing failures won't be showed."
+                )
+                fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
+            else:
+                logger.info(f"Transform {transform} couldn't be hashed properly, a random hash was used instead.")
+        else:
+            logger.info(
+                f"Transform {transform} couldn't be hashed properly, a random hash was used instead. This doesn't affect caching since it's disabled."
+            )
+
         return generate_random_fingerprint()
     for key in sorted(transform_args):
         hasher.update(key)
         try:
             hasher.update(transform_args[key])
         except:  # noqa various errors might raise here from pickle or dill
-            logger.warning(
-                f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. "
-                "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
-                "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything."
-            )
+            if _CACHING_ENABLED:
+                if not fingerprint_warnings.get("update_fingerprint_transform_hash_failed", False):
+                    logger.warning(
+                        f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. "
+                        "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
+                        "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
+                        "This warning is only showed once. Subsequent hashing failures won't be showed."
+                    )
+                    fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
+                else:
+                    logger.info(
+                        f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead."
+                    )
+            else:
+                logger.info(
+                    f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. This doesn't affect caching since it's disabled."
+                )
             return generate_random_fingerprint()
     return hasher.hexdigest()
 
