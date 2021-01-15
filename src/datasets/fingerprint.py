@@ -53,9 +53,9 @@ def set_caching_enabled(boolean: bool):
     - cache files are always recreated
     - cache files are written to a temporary directory that is deleted when session closes
     - cache files are named using a random hash instead of the dataset fingerprint
-    - use ``save_to_disk`` to save a transformed dataset or it will be deleted when session closes
-    - caching doesn't affect ``load_dataset``. If you want to regenerate a dataset from scratch you should use
-    the ``download_mode`` parameter in ``load_dataset``.
+    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
     """
     global _CACHING_ENABLED
     _CACHING_ENABLED = bool(boolean)
@@ -74,9 +74,9 @@ def is_caching_enabled() -> bool:
     - cache files are always recreated
     - cache files are written to a temporary directory that is deleted when session closes
     - cache files are named using a random hash instead of the dataset fingerprint
-    - use ``save_to_disk`` to save a transformed dataset or it will be deleted when session closes
-    - caching doesn't affect ``load_dataset``. If you want to regenerate a dataset from scratch you should use
-    the ``download_mode`` parameter in ``load_dataset``.
+    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
     """
     global _CACHING_ENABLED
     return bool(_CACHING_ENABLED)
