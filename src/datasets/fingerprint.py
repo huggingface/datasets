@@ -61,6 +61,27 @@ def set_caching_enabled(boolean: bool):
     _CACHING_ENABLED = bool(boolean)
 
 
+def is_caching_enabled() -> bool:
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use ``save_to_disk`` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect ``load_dataset``. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in ``load_dataset``.
+    """
+    global _CACHING_ENABLED
+    return bool(_CACHING_ENABLED)
+
+
 def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes"""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES

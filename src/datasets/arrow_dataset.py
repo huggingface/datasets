@@ -41,11 +41,11 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
 from .fingerprint import (
-    _CACHING_ENABLED,
     fingerprint_transform,
     generate_fingerprint,
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
+    is_caching_enabled,
     update_fingerprint,
 )
 from .info import DatasetInfo
@@ -1120,7 +1120,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        if _CACHING_ENABLED:
+        if is_caching_enabled():
             cache_file_name = "cache-" + fingerprint + ".arrow"
             cache_directory = os.path.dirname(self._data_files[0]["filename"])
         else:
@@ -1210,7 +1210,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         )
                     )
 
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else _CACHING_ENABLED
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
             fn_kwargs = dict()
@@ -1418,7 +1418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
 
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else _CACHING_ENABLED
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
