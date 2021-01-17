@@ -49,19 +49,16 @@ _LICENSE = ""
 
 _URLs = []
 
-_FILENAME = "liputan6_data.tar.gz"
-
 
 class IdLiputan6Config(datasets.BuilderConfig):
     """BuilderConfig for IdLiputan6"""
 
-    def __init__(self, filename=None, **kwargs):
+    def __init__(self, **kwargs):
         """BuilderConfig for IdLiputan6.
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
         super(IdLiputan6Config, self).__init__(**kwargs)
-        self.filename = filename
 
 
 class IdLiputan6(datasets.GeneratorBasedBuilder):
@@ -72,13 +69,11 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
             name="canonical",
             version=VERSION,
             description="Canonical Liputan6 dataset",
-            filename=_FILENAME,
         ),
         IdLiputan6Config(
             name="xtreme",
             version=VERSION,
             description="Xtreme Liputan6 dataset",
-            filename=_FILENAME,
         ),
     ]
 
@@ -111,29 +106,19 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        path_to_manual_file = os.path.join(
-            os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), self.config.filename
-        )
-        if not os.path.exists(path_to_manual_file):
-            raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('id_liputan6', "
-                "data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, self.config.filename, self.manual_download_instructions
-                )
-            )
-        data_dir = dl_manager.download_and_extract(path_to_manual_file)
+        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         split_generators = [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "liputan6_data/{}/dev".format(self.config.name)),
+                    "article_dir": os.path.join(data_dir, "{}/dev".format(self.config.name)),
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "liputan6_data/{}/test".format(self.config.name)),
+                    "article_dir": os.path.join(data_dir, "{}/test".format(self.config.name)),
                     "split": "test",
                 },
             ),
@@ -143,7 +128,7 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "article_dir": os.path.join(data_dir, "liputan6_data/{}/train".format(self.config.name)),
+                        "article_dir": os.path.join(data_dir, "{}/train".format(self.config.name)),
                         "split": "train",
                     },
                 )
