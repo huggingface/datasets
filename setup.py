@@ -153,6 +153,7 @@ EXTRAS_REQUIRE = {
         "sphinx-markdown-tables",
         "sphinx-rtd-theme==0.4.3",
         "sphinx-copybutton",
+        "fsspec[s3]",
     ],
 }
 
