@@ -10,7 +10,7 @@ from moto import mock_s3
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
-
+from datasets.fileystem import S3FileSystem
 from .utils import require_tf, require_torch
 
 
@@ -354,14 +354,14 @@ class DatasetDictTest(TestCase):
         s3.create_bucket(Bucket=mock_bucket)
         dataset_path = f"s3://{mock_bucket}/datasets/dict"
 
+        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
+
         dsets = self._create_dummy_dataset_dict()
-        dsets.save_to_disk(dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key")
+        dsets.save_to_disk(dataset_path, fs)
 
         del dsets
 
-        dsets = load_from_disk(
-            dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-        )
+        dsets = load_from_disk(dataset_path, fs)
 
         self.assertListEqual(sorted(dsets), ["test", "train"])
         self.assertEqual(len(dsets["train"]), 30)

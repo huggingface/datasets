@@ -31,6 +31,7 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -40,11 +41,12 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
+from .filesystem import is_remote_filesystem, preproc_dataset_path
 from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import get_filesystem_from_dataset_path, is_remote_filesystem, map_nested
+from .utils import map_nested
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
@@ -425,26 +427,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
-    def save_to_disk(
-        self, dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None
-    ):
+    def save_to_disk(self, dataset_path: str, fs=None):
         """
-        Save the dataset in a dataset directory or to a s3 bucket
+        Saves a dataset to a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path or s3 uri of the dataset directory where the dataset will be saved to
-            aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for uploading the data to s3
-            aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
-            aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
         self = pickle.loads(pickle.dumps(self))
-        # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
-        fs, dataset_path = get_filesystem_from_dataset_path(
-            dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key
-        )
+
+        if is_remote_filesystem(fs):
+            dataset_path = preproc_dataset_path(dataset_path)
+        else:
+            fs = fsspec.filesystem("file")
+            dataset_path = dataset_path
+
         os.makedirs(dataset_path, exist_ok=True)
         # Write indices if needed
         if self._indices is not None:
@@ -490,28 +491,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
         # removes temp empty directory if files are uploaded to s3
-        if "s3" in fs.protocol:
+        if "file" not in fs.protocol:
             shutil.rmtree(list(src.parents)[-2])
 
     @staticmethod
-    def load_from_disk(
-        dataset_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None, anon=False
-    ) -> "Dataset":
-        """Load the dataset from a dataset directory
+    def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
+        """
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path or s3 uri of the dataset directory where the dataset will be loaded from
-            aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for downloading the data to s3
-            aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for downloading the data to s3
-            aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for downloading the data to s3
-            anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+
+        Returns:
+            ``datasets.Dataset`` or ``datasets.DatasetDict``
+                if `dataset_path` is a path of a dataset directory: the dataset requested,
+                if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
-        # copies file from filesystem if it is s3 to local filesystem and modifies dataset_path to temp directory containing local copies
-        if is_remote_filesystem(dataset_path):
-            # gets filesystem from dataset, either s3:// or file://
-            fs, proc_dataset_path = get_filesystem_from_dataset_path(
-                dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon
-            )
+        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(fs):
+            proc_dataset_path = preproc_dataset_path(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
             dataset_path = Path(tmp_dir.name).joinpath(proc_dataset_path)
             fs.download(proc_dataset_path, dataset_path.as_posix(), recursive=True)

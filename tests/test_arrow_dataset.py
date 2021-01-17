@@ -18,6 +18,7 @@ from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
+from datasets.filesystem import S3FileSystem
 
 from .utils import require_tf, require_torch
 
@@ -204,10 +205,10 @@ class BaseDatasetTest(TestCase):
         dset = self._create_dummy_dataset(in_memory, tmp_dir.name).select(range(10))
         dataset_path = f"s3://{mock_bucket}/{prefix}"
 
-        dset.save_to_disk(dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key")
-        dset = dset.load_from_disk(
-            dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-        )
+        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
+
+        dset.save_to_disk(dataset_path, fs)
+        dset = dset.load_from_disk(dataset_path, fs)
 
         self.assertEqual(len(dset), 10)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))

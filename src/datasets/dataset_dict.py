@@ -5,12 +5,13 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .utils import get_filesystem_from_dataset_path, is_remote_filesystem
+from .filesystem import is_remote_filesystem, preproc_dataset_path
 
 
 class DatasetDict(dict):
@@ -480,63 +481,51 @@ class DatasetDict(dict):
             }
         )
 
-    def save_to_disk(
-        self, dataset_dict_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None
-    ):
+    def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
-        Save the dataset dict in a dataset dict directory or to a s3 bucket
+        Saves a dataset dict to a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to
-            aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for uploading the data to s3
-            aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
-            aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
-        fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
-            dataset_dict_path, aws_profile, aws_access_key_id, aws_secret_access_key
-        )
+        if is_remote_filesystem(fs):
+            proc_dataset_dict_path = preproc_dataset_path(dataset_dict_path)
+        else:
+            fs = fsspec.filesystem("file")
+            proc_dataset_dict_path = dataset_dict_path
+
         os.makedirs(proc_dataset_dict_path, exist_ok=True)
         json.dump(
             {"splits": list(self)},
             fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(
-                os.path.join(dataset_dict_path, k), aws_profile, aws_access_key_id, aws_secret_access_key
-            )
+            dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
 
     @staticmethod
-    def load_from_disk(
-        dataset_dict_path: str, aws_profile="default", aws_access_key_id=None, aws_secret_access_key=None, anon=False
-    ) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
         """
-        Load the dataset dict from a dataset dict directory or from a s3 bucket
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be loaded from
-            aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for uploading the data to s3
-            aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for uploading the data to s3
-            aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for uploading the data to s3
-            anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
         """
         dataset_dict = DatasetDict()
-        fs, proc_dataset_dict_path = get_filesystem_from_dataset_path(
-            dataset_dict_path, aws_profile, aws_access_key_id, aws_secret_access_key
-        )
+        if is_remote_filesystem(fs):
+            proc_dataset_dict_path = preproc_dataset_path(dataset_dict_path)
+        else:
+            fs = fsspec.filesystem("file")
+            proc_dataset_dict_path = dataset_dict_path
         for k in json.load(
             fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(proc_dataset_dict_path).joinpath(k).as_posix()
-                if is_remote_filesystem(dataset_dict_path)
+                if is_remote_filesystem(fs)
                 else Path(proc_dataset_dict_path).joinpath(k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(
-                dataset_dict_split_path,
-                aws_profile,
-                aws_access_key_id,
-                aws_secret_access_key,
-                anon,
-            )
+            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
         return dataset_dict

@@ -27,14 +27,16 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
+import fsspec
+
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
+from .filesystem import is_remote_filesystem, preproc_dataset_path
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
-from .utils import get_filesystem_from_dataset_path
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
 from .utils.filelock import FileLock
@@ -621,22 +623,13 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(
-    dataset_path: str,
-    aws_profile="default",
-    aws_access_key_id=None,
-    aws_secret_access_key=None,
-    anon=False,
-) -> Union[Dataset, DatasetDict]:
+def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
     """
-    Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from s3 or local filesystem.
+    Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
     Args:
-        dataset_path (``str``): path of a Dataset directory or a DatasetDict directory
-        aws_profile (:obj:`str`,  `optional`, defaults to :obj:``default``): the aws profile used to create the `boto_session` for downloading the data to s3
-        aws_access_key_id (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws access key id used to create the `boto_session` for downloading the data to s3
-        aws_secret_access_key (:obj:`str`,  `optional`, defaults to :obj:``None``): the aws secret access key used to create the `boto_session` for downloading the data to s3
-        anon (:obj:`boolean`,  `optional`, defaults to :obj:``False``): The connection can be anonymous - in which case only publicly-available, read-only buckets are accessible, for anonymous connection use `anon=True`
+        dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the Dataset or DatasetDict directory where the dataset will be loaded from
+        fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
@@ -644,15 +637,18 @@ def load_from_disk(
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
-    fs, proc_dataset_path = get_filesystem_from_dataset_path(
-        dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key
-    )
+    if is_remote_filesystem(fs):
+        proc_dataset_path = preproc_dataset_path(dataset_path)
+    else:
+        fs = fsspec.filesystem("file")
+        proc_dataset_path = dataset_path
+
     if not fs.exists(proc_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
     if fs.isfile(Path(proc_dataset_path).joinpath("dataset_info.json").as_posix()):
-        return Dataset.load_from_disk(dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon)
+        return Dataset.load_from_disk(dataset_path, fs)
     elif fs.isfile(Path(proc_dataset_path).joinpath("dataset_dict.json").as_posix()):
-        return DatasetDict.load_from_disk(dataset_path, aws_profile, aws_access_key_id, aws_secret_access_key, anon)
+        return DatasetDict.load_from_disk(dataset_path, fs)
     else:
         raise FileNotFoundError(
             "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)

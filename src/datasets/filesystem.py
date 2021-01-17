@@ -1,22 +1,7 @@
-# from s3fs import S3FileSystem
-
-
-class extend_docstring:
-    def __init__(self, method):
-        self.doc = method.__doc__
-
-    def __call__(self, function):
-        if self.doc is not None:
-            doc = function.__doc__
-            function.__doc__ = self.doc
-            if doc is not None:
-                function.__doc__ += doc
-        return function
-
-
+import fsspec
 import s3fs
 
-#  @extend_docstring(s3fs.S3FileSystem)
+
 class S3FileSystem(s3fs.S3FileSystem):
     """
     ``datasets.S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known
@@ -56,3 +41,28 @@ class S3FileSystem(s3fs.S3FileSystem):
     __doc__ = s3fs.S3FileSystem.__doc__.split("Examples")[0] + __doc__
 
     pass
+
+
+def preproc_dataset_path(dataset_path: str) -> str:
+    """
+    preprocesses `dataset_path` and removes remote filesystem (e.g. removing `s3://`)
+
+    Args:
+        dataset_path (``str``): path or s3 uri of the dataset directory where the dataset will be saved to
+    """
+    if "://" in dataset_path:
+        dataset_path = dataset_path.split("://")[1]
+    return dataset_path
+
+
+def is_remote_filesystem(fs: fsspec.spec.AbstractFileSystem) -> bool:
+    """
+    Checks if filesystem is remote filesystem filesystems for given protocol and arguments
+
+    Args:
+        fs (``fsspec.spec.AbstractFileSystem``): An abstract super-class for pythonic file-systems, e.g. ``fsspec.filesystem('file')`` or :class:`datasets.filesystem.S3FileSystem`
+    """
+    if fs is not None and fs.protocol != "file":
+        return True
+    else:
+        return False

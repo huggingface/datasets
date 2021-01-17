@@ -40,6 +40,7 @@ from .features import (
     TranslationVariableLanguages,
     Value,
 )
+from .filesystem import S3FileSystem
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,
@@ -55,7 +56,6 @@ from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, Spl
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
 
-from .filesystem import S3FileSystem
 
 if int(pyarrow.__version__.split(".")[1]) < 16 and int(pyarrow.__version__.split(".")[0]) == 0:
     raise ImportWarning(

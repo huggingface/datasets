@@ -2,9 +2,10 @@ import os
 
 import boto3
 import pytest
+import fsspec
 from moto import mock_s3
 
-from datasets.utils import is_remote_filesystem
+from datasets.filesystem import S3FileSystem, is_remote_filesystem, preproc_dataset_path
 
 
 @pytest.fixture(scope="function")
@@ -23,35 +24,32 @@ def s3(aws_credentials):
 
 
 @mock_s3
-def test_get_filesystem_from_dataset_path(s3):
-    from datasets.utils import get_filesystem_from_dataset_path
+def test_preproc_dataset_path(s3):
+    from datasets.filesystem import preproc_dataset_path
 
     mock_bucket = "moto-mock-s3-bucket"
     # We need to create the bucket since this is all in Moto's 'virtual' AWS account
     s3.create_bucket(Bucket=mock_bucket)
 
     dataset_path = f"s3://{mock_bucket}"
-    fs, dataset_path = get_filesystem_from_dataset_path(
-        dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-    )
-    assert "s3" in fs.protocol
+
+    dataset_path = preproc_dataset_path(dataset_path)
     assert dataset_path.startswith("s3://") is False
 
     dataset_path = f"./local/path"
-    fs, new_dataset_path = get_filesystem_from_dataset_path(
-        dataset_path, aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
-    )
-    assert "s3" not in fs.protocol
+    new_dataset_path = preproc_dataset_path(dataset_path)
     assert dataset_path == new_dataset_path
 
 
 @mock_s3
 def test_is_remote_filesystem():
 
-    dataset_path = f"s3://moto-mock-s3-bucket"
-    is_remote = is_remote_filesystem(dataset_path)
+    fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
+
+    is_remote = is_remote_filesystem(fs)
     assert is_remote is True
 
-    dataset_path = f"./local/path"
-    is_remote = is_remote_filesystem(dataset_path)
+    fs = fsspec.filesystem("file")
+
+    is_remote = is_remote_filesystem(fs)
     assert is_remote is False
