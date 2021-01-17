@@ -258,29 +258,15 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
         if self.config.name == "ModHayes":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "PUBLISHED-TESTSET",
-                    },
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": files, "split": "PUBLISHED-TESTSET"},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "TRAINING-SET",
-                    },
+                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAINING-SET"},
                 ),
             ]
         else:
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "TEST",
-                    },
-                ),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": files, "split": "TEST"}),
                 datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAIN"}),
                 datasets.SplitGenerator(name="unused", gen_kwargs={"filepath": files, "split": "NOT-USED"}),
             ]
@@ -378,7 +364,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                         line = f.readline()
                     elif "*<TITLE>" in line:
                         # These lines start with a variable number of * chars
-                        title = line.split('*<TITLE>')[1][:-1]
+                        title = line.split("*<TITLE>")[1][:-1]
                         line = f.readline()
                         while "</TITLE>" not in line:
                             # Convert any \n in TYPE="BRIEF" text to spaces to match other titles
