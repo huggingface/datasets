@@ -305,6 +305,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                 title = ""
                 while line:
                     if line.startswith("<REUTERS"):
+                        text = ""  # reset text in case entry has no <BODY>
                         line = line.split()
                         lewis_split = line[2].split("=")[1]
                         cgis_split = line[3].split("=")[1]
@@ -375,13 +376,19 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                     elif line.startswith("<TITLE>"):
                         title = line[7:-9]
                         line = f.readline()
+                    elif line.startswith("******<TITLE>"):
+                        title = line[13:-1]
+                        line = f.readline()
+                        while not line.startswith("</TITLE>"):
+                            title += line[:-1]
+                            line = f.readline()
                     elif "<BODY>" in line:
                         text = line.split("<BODY>")[1]
                         line = f.readline()
                         while "</BODY>" not in line:
                             text += line
                             line = f.readline()
-
+                    elif line.startswith("</REUTERS>"):
                         yield new_id, {
                             "lewis_split": lewis_split,
                             "cgis_split": cgis_split,
@@ -397,6 +404,5 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                             "text": text,
                         }
                         line = f.readline()
-
                     else:
                         line = f.readline()
