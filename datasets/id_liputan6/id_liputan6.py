@@ -80,10 +80,10 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-            You need to manually request the liputan6 dataset from https://github.com/fajri91/sum_liputan6/
-            and save it in a directory <path/to/folder>. The name of downloaded file is "liputan6_data.tar.gz".
-            The liputan6 dataset can then be loaded using the following command
-            `datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/folder>")`.
+            You need to manually request the liputan6 dataset using the form in https://github.com/fajri91/sum_liputan6/
+            and uncompress it.  The liputan6 dataset can then be loaded using the following command
+            `datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/uncompressed_folder>")` or
+            `datasets.load_dataset("id_liputan6", 'xtreme', data_dir="<path/to/uncompressed_folder>")`.
             """
 
     def _info(self):

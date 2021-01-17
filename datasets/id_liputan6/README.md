@@ -63,10 +63,10 @@ BERT-based models. We include a thorough error analysis by examining machine-gen
 low ROUGE scores, and expose both issues with ROUGE it-self, as well as with extractive and abstractive
 summarization models.
 
-You need to manually request the liputan6 dataset from https://github.com/fajri91/sum_liputan6/
-and save it in a directory <path/to/folder>. The name of downloaded file is "liputan6_data.tar.gz".
-The liputan6 dataset can then be loaded using the following command 
-`datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/folder>")`.
+You need to manually request the liputan6 dataset using the form in https://github.com/fajri91/sum_liputan6/
+and uncompress it. The liputan6 dataset can then be loaded using the following command 
+`datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/uncompressed_folder>")` or
+`datasets.load_dataset("id_liputan6", 'xtreme', data_dir="<path/to/uncompressed_folder>")`.
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
