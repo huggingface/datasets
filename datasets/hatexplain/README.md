@@ -56,6 +56,8 @@ task_ids:
 
 Hatexplain is the first benchmark hate speech dataset covering multiple aspects of the issue. Each post in the dataset is annotated from three different perspectives: the basic, commonly used 3-class classification (i.e., hate, offensive or normal), the target community (i.e., the community that has been the victim of hate speech/offensive speech in the post), and the rationales, i.e., the portions of the post on which their labeling decision (as hate, offensive or normal) is based.
 
+WARNING: This dataset contains content that are offensive and/or hateful in nature.
+
 ### Supported Tasks and Leaderboards
 
 [Needs More Information]
@@ -69,23 +71,22 @@ The language supported is English.
 ### Data Instances
 
 Sample Entry:
-~~~
+```
 {
-  "24198545_gab": {
-    "post_id": "24198545_gab",
+    "id": "24198545_gab",
     "annotators": [
       {
-        "label": "hatespeech",
+        "label": 0,  # hatespeech
         "annotator_id": 4,
         "target": ["African"]
       },
       {
-        "label": "hatespeech",
+        "label": 0,  # hatespeech
         "annotator_id": 3,
         "target": ["African"]
       },
       {
-        "label": "offensive",
+        "label": 2,  # offensive
         "annotator_id": 5,
         "target": ["African"]
       }
@@ -98,7 +99,7 @@ Sample Entry:
     "post_tokens": ["and","this","is","why","i","end","up","with","nigger","trainee","doctors","who","can","not","speak","properly","lack","basic","knowledge","of","biology","it","truly","scary","if","the","public","only","knew"]
   }
 }
-~~~
+```
 
 ### Data Fields
 

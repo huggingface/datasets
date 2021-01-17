@@ -16,16 +16,14 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
-import os
 
 import datasets
 
 
 _CITATION = """\
 @misc{mathew2020hatexplain,
-      title={HateXplain: A Benchmark Dataset for Explainable Hate Speech Detection}, 
+      title={HateXplain: A Benchmark Dataset for Explainable Hate Speech Detection},
       author={Binny Mathew and Punyajoy Saha and Seid Muhie Yimam and Chris Biemann and Pawan Goyal and Animesh Mukherjee},
       year={2020},
       eprint={2012.10289},
