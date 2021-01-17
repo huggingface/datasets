@@ -1,6 +1,12 @@
 Main classes
 ----------------------------------------------------
 
+``S3FileSystem``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: datasets.filesystem.S3FileSystem(anon=False, key=None, secret=None, token=None, use_ssl=True, client_kwargs=None, requester_pays=False, default_block_size=None, default_fill_cache=True, default_cache_type='bytes', version_aware=False, config_kwargs=None, s3_additional_kwargs=None, session=None, username=None, password=None, asynchronous=False, loop=None, **kwargs)
+ 
+
 
 ``DatasetInfo``
 ~~~~~~~~~~~~~~~~~~~~~
