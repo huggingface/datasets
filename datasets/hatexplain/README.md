@@ -104,7 +104,7 @@ Sample Entry:
 
 :small_blue_diamond:post_id : Unique id for each post<br/>
 :small_blue_diamond:annotators : The list of annotations from each annotator<br/>
-:small_blue_diamond:annotators[label] : The label assigned by the annotator to this post. Possible values: [Hatespeech, Offensive, Normal]<br/>
+:small_blue_diamond:annotators[label] : The label assigned by the annotator to this post. Possible values: `hatespeech` (0), `normal` (1) or `offensive` (2)<br/>
 :small_blue_diamond:annotators[annotator_id] : The unique Id assigned to each annotator<br/>
 :small_blue_diamond:annotators[target] : A list of target community present in the post<br/>
 :small_blue_diamond:rationales : A list of rationales selected by annotators. Each rationales represents a list with values 0 or 1. A value of 1 means that the token is part of the rationale selected by the annotator. To get the particular token, we can use the same index position in "post_tokens"<br/>
