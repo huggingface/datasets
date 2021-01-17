@@ -292,20 +292,20 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                 file, encoding="utf-8", errors="ignore"
             ) as f:  # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
                 line = f.readline()
-                lewis_split = ""
-                cgis_split = ""
-                old_id = ""
-                new_id = ""
-                topics = []
-                places = []
-                people = []
-                orgs = []
-                exchanges = []
-                date = ""
-                title = ""
                 while line:
                     if line.startswith("<REUTERS"):
-                        text = ""  # reset text in case entry has no <BODY>
+                        lewis_split = ""
+                        cgis_split = ""
+                        old_id = ""
+                        new_id = ""
+                        topics = []
+                        places = []
+                        people = []
+                        orgs = []
+                        exchanges = []
+                        date = ""
+                        title = ""
+                        text = ""
                         line = line.split()
                         lewis_split = line[2].split("=")[1]
                         cgis_split = line[3].split("=")[1]
@@ -376,16 +376,24 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                     elif line.startswith("<TITLE>"):
                         title = line[7:-9]
                         line = f.readline()
-                    elif line.startswith("******<TITLE>"):
-                        title = line[13:-1]
+                    elif "*<TITLE>" in line:
+                        # These lines start with a variable number of * chars
+                        title = line.split('*<TITLE>')[1][:-1]
                         line = f.readline()
-                        while not line.startswith("</TITLE>"):
+                        while "</TITLE>" not in line:
+                            # Convert any \n in TYPE="BRIEF" text to spaces to match other titles
                             title += " " + line[:-1]
                             line = f.readline()
                     elif "<BODY>" in line:
                         text = line.split("<BODY>")[1]
                         line = f.readline()
                         while "</BODY>" not in line:
+                            text += line
+                            line = f.readline()
+                    elif line.startswith('<TEXT TYPE="UNPROC">'):
+                        text = line[20:]
+                        line = f.readline()
+                        while "</TEXT>" not in line:
                             text += line
                             line = f.readline()
                     elif line.startswith("</REUTERS>"):
