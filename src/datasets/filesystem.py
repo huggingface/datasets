@@ -24,6 +24,15 @@ class S3FileSystem(s3fs.S3FileSystem):
       >>> s3.ls('my-private-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
+      Using ``S3Filesystem`` with ``boto3.Session`` and custom ``aws_profile``.
+
+      >>> import boto3
+      >>> from datasets import S3Filesystem
+      >>> s3_session = boto3.session.Session(profile_name='my_profile_name')
+      >>>
+      >>> s3 = datasets.S3FileSystem(sessions=s3_session)  # doctest: +SKIP
+
+
       Loading dataset from s3 using ``S3Filesystem`` and ``load_from_disk()``.
 
       >>> from datasets import S3Filesystem, load_from_disk
@@ -35,6 +44,17 @@ class S3FileSystem(s3fs.S3FileSystem):
       >>> print(len(dataset))
       25000
 
+      Saving dataset to s3 using ``S3Filesystem`` and ``dataset.save_to_disk()``.
+
+      >>> from datasets import S3Filesystem, load_dataset
+      >>>
+      >>> dataset = datasets.load_dataset("imdb")
+      >>>
+      >>> s3 = datasets.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
+      >>>
+      >>> dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
+
+
 
     """
 
@@ -45,10 +65,10 @@ class S3FileSystem(s3fs.S3FileSystem):
 
 def preproc_dataset_path(dataset_path: str) -> str:
     """
-    preprocesses `dataset_path` and removes remote filesystem (e.g. removing `s3://`)
+    preprocesses `dataset_path` and removes remote filesystem (e.g. removing ``s3://``)
 
     Args:
-        dataset_path (``str``): path or s3 uri of the dataset directory where the dataset will be saved to
+        dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory
     """
     if "://" in dataset_path:
         dataset_path = dataset_path.split("://")[1]
@@ -57,10 +77,10 @@ def preproc_dataset_path(dataset_path: str) -> str:
 
 def is_remote_filesystem(fs: fsspec.spec.AbstractFileSystem) -> bool:
     """
-    Checks if filesystem is remote filesystem filesystems for given protocol and arguments
+    Validates if filesystem has remote protocol.
 
     Args:
-        fs (``fsspec.spec.AbstractFileSystem``): An abstract super-class for pythonic file-systems, e.g. ``fsspec.filesystem('file')`` or :class:`datasets.filesystem.S3FileSystem`
+        fs (``fsspec.spec.AbstractFileSystem``): An abstract super-class for pythonic file-systems, e.g. :code:`fsspec.filesystem(\'file\')` or :class:`datasets.filesystem.S3FileSystem`
     """
     if fs is not None and fs.protocol != "file":
         return True

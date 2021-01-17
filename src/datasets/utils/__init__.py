@@ -30,7 +30,6 @@ from .file_utils import (
     is_torch_available,
     temp_seed,
 )
-from .filesystem_utils import get_filesystem_from_dataset_path, is_remote_filesystem
 from .mock_download_manager import MockDownloadManager
 from .py_utils import *
 from .tqdm_utils import *

@@ -1,8 +1,8 @@
 import os
 
 import boto3
-import pytest
 import fsspec
+import pytest
 from moto import mock_s3
 
 from datasets.filesystem import S3FileSystem, is_remote_filesystem, preproc_dataset_path
@@ -25,7 +25,6 @@ def s3(aws_credentials):
 
 @mock_s3
 def test_preproc_dataset_path(s3):
-    from datasets.filesystem import preproc_dataset_path
 
     mock_bucket = "moto-mock-s3-bucket"
     # We need to create the bucket since this is all in Moto's 'virtual' AWS account

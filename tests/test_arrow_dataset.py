@@ -17,8 +17,8 @@ from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
-from datasets.info import DatasetInfo
 from datasets.filesystem import S3FileSystem
+from datasets.info import DatasetInfo
 
 from .utils import require_tf, require_torch
 
