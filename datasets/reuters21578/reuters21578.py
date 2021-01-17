@@ -380,7 +380,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                         title = line[13:-1]
                         line = f.readline()
                         while not line.startswith("</TITLE>"):
-                            title += line[:-1]
+                            title += " " + line[:-1]
                             line = f.readline()
                     elif "<BODY>" in line:
                         text = line.split("<BODY>")[1]
