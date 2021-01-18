@@ -232,6 +232,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
+                    "text_type": datasets.Value("string"),
                     "topics": datasets.Sequence(datasets.Value("string")),
                     "lewis_split": datasets.Value("string"),
                     "cgis_split": datasets.Value("string"),
@@ -292,6 +293,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                         date = ""
                         title = ""
                         text = ""
+                        text_type = ""
                         line = line.split()
                         lewis_split = line[2].split("=")[1]
                         cgis_split = line[3].split("=")[1]
@@ -377,11 +379,18 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                             text += line
                             line = f.readline()
                     elif line.startswith('<TEXT TYPE="UNPROC">'):
+                        text_type = '"UNPROC"'
                         text = line[20:]
                         line = f.readline()
                         while "</TEXT>" not in line:
                             text += line
                             line = f.readline()
+                    elif line.startswith('<TEXT TYPE="BRIEF">'):
+                        text_type = '"BRIEF"'
+                        line = f.readline()
+                    elif line.startswith('<TEXT>'):
+                        text_type = '"NORM"'
+                        line = f.readline()
                     elif line.startswith("</REUTERS>"):
                         yield new_id, {
                             "lewis_split": lewis_split,
@@ -396,6 +405,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                             "date": date,
                             "title": title,
                             "text": text,
+                            "text_type": text_type,
                         }
                         line = f.readline()
                     else:
