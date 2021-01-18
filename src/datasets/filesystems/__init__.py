@@ -9,7 +9,7 @@ if _has_s3fs:
     from .s3filesystem import S3FileSystem  # noqa: F401
 
 
-def preproc_dataset_path(dataset_path: str) -> str:
+def extract_path_from_uri(dataset_path: str) -> str:
     """
     preprocesses `dataset_path` and removes remote filesystem (e.g. removing ``s3://``)
 

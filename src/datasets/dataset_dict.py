@@ -11,7 +11,7 @@ import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .filesystems import is_remote_filesystem, preproc_dataset_path
+from .filesystems import is_remote_filesystem, extract_path_from_uri
 
 
 class DatasetDict(dict):
@@ -490,7 +490,7 @@ class DatasetDict(dict):
             fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         if is_remote_filesystem(fs):
-            proc_dataset_dict_path = preproc_dataset_path(dataset_dict_path)
+            proc_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
         else:
             fs = fsspec.filesystem("file")
             proc_dataset_dict_path = dataset_dict_path
@@ -515,7 +515,7 @@ class DatasetDict(dict):
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
-            proc_dataset_dict_path = preproc_dataset_path(dataset_dict_path)
+            proc_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
         else:
             fs = fsspec.filesystem("file")
             proc_dataset_dict_path = dataset_dict_path

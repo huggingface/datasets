@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .filesystems import is_remote_filesystem, preproc_dataset_path
+from .filesystems import is_remote_filesystem, extract_path_from_uri
 from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
@@ -441,7 +441,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self = pickle.loads(pickle.dumps(self))
 
         if is_remote_filesystem(fs):
-            dataset_path = preproc_dataset_path(dataset_path)
+            dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
             dataset_path = dataset_path
@@ -510,7 +510,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         if is_remote_filesystem(fs):
-            proc_dataset_path = preproc_dataset_path(dataset_path)
+            proc_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
             dataset_path = Path(tmp_dir.name).joinpath(proc_dataset_path)
             fs.download(proc_dataset_path, dataset_path.as_posix(), recursive=True)

@@ -33,7 +33,7 @@ from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
-from .filesystems import is_remote_filesystem, preproc_dataset_path
+from .filesystems import is_remote_filesystem, extract_path_from_uri
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
@@ -638,7 +638,7 @@ def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
-        proc_dataset_path = preproc_dataset_path(dataset_path)
+        proc_dataset_path = extract_path_from_uri(dataset_path)
     else:
         fs = fsspec.filesystem("file")
         proc_dataset_path = dataset_path

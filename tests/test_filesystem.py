@@ -5,7 +5,7 @@ import fsspec
 import pytest
 from moto import mock_s3
 
-from datasets.filesystems import S3FileSystem, is_remote_filesystem, preproc_dataset_path
+from datasets.filesystems import S3FileSystem, is_remote_filesystem, extract_path_from_uri
 
 
 @pytest.fixture(scope="function")
@@ -24,7 +24,7 @@ def s3(aws_credentials):
 
 
 @mock_s3
-def test_preproc_dataset_path(s3):
+def test_extract_path_from_uri(s3):
 
     mock_bucket = "moto-mock-s3-bucket"
     # We need to create the bucket since this is all in Moto's 'virtual' AWS account
@@ -32,11 +32,11 @@ def test_preproc_dataset_path(s3):
 
     dataset_path = f"s3://{mock_bucket}"
 
-    dataset_path = preproc_dataset_path(dataset_path)
+    dataset_path = extract_path_from_uri(dataset_path)
     assert dataset_path.startswith("s3://") is False
 
     dataset_path = f"./local/path"
-    new_dataset_path = preproc_dataset_path(dataset_path)
+    new_dataset_path = extract_path_from_uri(dataset_path)
     assert dataset_path == new_dataset_path
 
 
