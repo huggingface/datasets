@@ -33,7 +33,7 @@ from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
-from .filesystem import is_remote_filesystem, preproc_dataset_path
+from .filesystems import is_remote_filesystem, preproc_dataset_path
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split

@@ -11,7 +11,7 @@ import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .filesystem import is_remote_filesystem, preproc_dataset_path
+from .filesystems import is_remote_filesystem, preproc_dataset_path
 
 
 class DatasetDict(dict):

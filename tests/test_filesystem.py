@@ -5,7 +5,7 @@ import fsspec
 import pytest
 from moto import mock_s3
 
-from datasets.filesystem import S3FileSystem, is_remote_filesystem, preproc_dataset_path
+from datasets.filesystems import S3FileSystem, is_remote_filesystem, preproc_dataset_path
 
 
 @pytest.fixture(scope="function")

@@ -40,7 +40,6 @@ from .features import (
     TranslationVariableLanguages,
     Value,
 )
-from .filesystem import S3FileSystem
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,

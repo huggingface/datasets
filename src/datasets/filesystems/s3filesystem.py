@@ -1,4 +1,3 @@
-import fsspec
 import s3fs
 
 
@@ -61,28 +60,3 @@ class S3FileSystem(s3fs.S3FileSystem):
     __doc__ = s3fs.S3FileSystem.__doc__.split("Examples")[0] + __doc__
 
     pass
-
-
-def preproc_dataset_path(dataset_path: str) -> str:
-    """
-    preprocesses `dataset_path` and removes remote filesystem (e.g. removing ``s3://``)
-
-    Args:
-        dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory
-    """
-    if "://" in dataset_path:
-        dataset_path = dataset_path.split("://")[1]
-    return dataset_path
-
-
-def is_remote_filesystem(fs: fsspec.spec.AbstractFileSystem) -> bool:
-    """
-    Validates if filesystem has remote protocol.
-
-    Args:
-        fs (``fsspec.spec.AbstractFileSystem``): An abstract super-class for pythonic file-systems, e.g. :code:`fsspec.filesystem(\'file\')` or :class:`datasets.filesystem.S3FileSystem`
-    """
-    if fs is not None and fs.protocol != "file":
-        return True
-    else:
-        return False

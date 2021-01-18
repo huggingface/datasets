@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .filesystem import is_remote_filesystem, preproc_dataset_path
+from .filesystems import is_remote_filesystem, preproc_dataset_path
 from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
