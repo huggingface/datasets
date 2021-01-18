@@ -63,7 +63,80 @@ NorNE ads named entity annotations on top of the Norwegian Dependency Treebank.
 
 ### Languages
 
-Both Norwegian Bokmål (`bookmal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset.
+Both Norwegian Bokmål (`bookmal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset. An extra config for the combined languages is also included (`combined`).
+
+## Dataset Structure
+
+Each entry contains text sentences, their language, identifiers, tokens, lemmas, and corresponding NER and POS tag lists.
+
+### Data Instances
+
+An example of the `train` split of the `bokmaal` config.
+
+<table class="dataframe" border="1">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>idx</th>
+      <th>lang</th>
+      <th>text</th>
+      <th>tokens</th>
+      <th>lemmas</th>
+      <th>ner_tags</th>
+      <th>pos_tags</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>000001</td>
+      <td>bokmaal</td>
+      <td>Lam og piggvar på bryllupsmenyen</td>
+      <td>[Lam, og, piggvar, på, bryllupsmenyen]</td>
+      <td>[lam, og, piggvar, på, bryllupsmeny]</td>
+      <td>[0, 0, 0, 0, 0]</td>
+      <td>[0, 9, 0, 5, 0]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>000002</td>
+      <td>bokmaal</td>
+      <td>Kamskjell, piggvar og lammefilet sto på menyen...</td>
+      <td>[Kamskjell, ,, piggvar, og, lammefilet, sto, p...</td>
+      <td>[kamskjell, $,, piggvar, og, lammefilet, stå, ...</td>
+      <td>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]</td>
+      <td>[0, 1, 0, 9, 0, 15, 2, 0, 2, 8, 6, 0, 1]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>000003</td>
+      <td>bokmaal</td>
+      <td>Og til dessert: Parfait à la Mette-Marit.</td>
+      <td>[Og, til, dessert, :, Parfait, à, la, Mette-Ma...</td>
+      <td>[og, til, dessert, $:, Parfait, à, la, Mette-M...</td>
+      <td>[0, 0, 0, 0, 7, 8, 8, 8, 0]</td>
+      <td>[9, 2, 0, 1, 10, 12, 12, 10, 1]</td>
+    </tr>
+  </tbody>
+</table>
+
+### Data Fields
+
+| Config    | Split        | Total  |
+| :---------|-------------:|-------:|
+| `bokmaal` | `train`      |  15696 |
+| `bokmaal` | `validation` |   2410 |
+| `bokmaal` | `test`       |   1939 |
+| `nynorsk` | `train`      |  14174 |
+| `nynorsk` | `validation` |   1890 |
+| `nynorsk` | `test`       |   1511 |
+| `combined`| `test`       |  29870 |
+| `combined`| `validation` |   4300 |
+| `combined`| `test`       |   3450 |
+
+### Data Splits
+
+There are three splits: `train`, `validation` and `test`.
 
 ## Dataset Creation
 
