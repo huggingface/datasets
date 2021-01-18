@@ -20,6 +20,7 @@ import glob
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 import datasets
@@ -136,6 +137,12 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
         return split_generators
 
     def _generate_examples(self, article_dir, split):
+        detokenizers = [
+            [re.compile(r"([Ll])iputan6 . com "), r"\1iputan6.com"],
+            [re.compile(r" ([.,:])"), r"\1"],
+            [re.compile(r"\( ([^)]+) \)"), r"(\1)"],
+            [re.compile(r"\" ([^)]+) \""), r'"\1"'],
+        ]
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         guid = 0
         for path in sorted(
@@ -143,13 +150,20 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
         ):
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
+                clean_article = " ".join([" ".join(i) for i in data["clean_article"]])
+                for d in detokenizers:
+                    clean_article = d[0].sub(d[1], clean_article)
+                clean_summary = " ".join([" ".join(i) for i in data["clean_summary"]])
+                for d in detokenizers:
+                    clean_summary = d[0].sub(d[1], clean_summary)
+                extractive_summary = " ".join([" ".join(data["clean_article"][i]) for i in data["extractive_summary"]])
+                for d in detokenizers:
+                    extractive_summary = d[0].sub(d[1], extractive_summary)
                 yield guid, {
                     "id": str(data["id"]),
                     "url": data["url"],
-                    "clean_article": " ".join([" ".join(i) for i in data["clean_article"]]),
-                    "clean_summary": " ".join([" ".join(i) for i in data["clean_summary"]]),
-                    "extractive_summary": " ".join(
-                        [" ".join(data["clean_article"][i]) for i in data["extractive_summary"]]
-                    ),
+                    "clean_article": clean_article,
+                    "clean_summary": clean_summary,
+                    "extractive_summary": extractive_summary,
                 }
             guid += 1
