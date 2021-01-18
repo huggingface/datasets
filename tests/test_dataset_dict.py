@@ -10,7 +10,7 @@ from moto import mock_s3
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
-from datasets.filesystem import S3FileSystem
+from datasets.filesystems import S3FileSystem
 
 from .utils import require_tf, require_torch
 
