@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- sentiment-classification
+- text-classification-other-hate-speech-detection
 ---
 
 # Dataset Card for hatexplain
