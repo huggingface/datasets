@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2021 National Library of Norway.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 # Lint as: python3
 """NorNE: Annotating Named Entities for Norwegian."""
 
-try:
-    import conllu
-except ImportError:
-    import sys
-
-    print("Please, 'pip install conllu' to use the NorNE dataset", file=sys.stderr)
+import conllu
 
 import datasets
 
