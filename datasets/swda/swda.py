@@ -29,7 +29,6 @@ import datetime
 import glob
 import io
 import os
-import random
 import re
 import sys
 
@@ -769,14 +768,6 @@ class Transcript:
         # The ptd filename in the right format for the current OS:
         self.ptd_basename = os.sep.join(row0dict["ptb_basename"].split("/"))
         # The dictionary of metadata for this transcript:
-
-        # Added to handle dummy data: metadata dummy only has 4 samples.
-        # The 4 samples will never be present in the the sample dataset since they are not aligned.
-        if len(self.metadata.metadata.keys()) < 2866:
-            # Dealing with dummy data sample.
-            # Get a random conversation number from the metadata sample.
-            self.conversation_no = random.choice(list(self.metadata.metadata.keys()))
-
         transcript_metadata = self.metadata[self.conversation_no]
         for key, val in transcript_metadata.items():
             setattr(self, key, transcript_metadata[key])
