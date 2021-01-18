@@ -259,10 +259,12 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
         if self.config.name == "ModHayes":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"filepath": files, "split": "PUBLISHED-TESTSET"},
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": files, "split": "PUBLISHED-TESTSET"},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAINING-SET"},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepath": files, "split": "TRAINING-SET"},
                 ),
             ]
         else:
@@ -388,7 +390,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                     elif line.startswith('<TEXT TYPE="BRIEF">'):
                         text_type = '"BRIEF"'
                         line = f.readline()
-                    elif line.startswith('<TEXT>'):
+                    elif line.startswith("<TEXT>"):
                         text_type = '"NORM"'
                         line = f.readline()
                     elif line.startswith("</REUTERS>"):
