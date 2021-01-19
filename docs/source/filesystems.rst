@@ -88,7 +88,7 @@ Saving ``encoded_dataset`` to a private s3 bucket using ``boto3.Session`` and cu
       >>> # creates a boto3 session with the provided aws_profile
       >>> s3_session = boto3.session.Session(profile_name='my_profile_name')
       >>>
-      >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
+      >>> # create S3FileSystem instance with s3_session
       >>> s3 = S3FileSystem(sessions=s3_session)  # doctest: +SKIP
       >>>
       >>> # saves encoded_dataset to your s3 bucket
@@ -143,6 +143,9 @@ Loading ``encoded_dataset`` from a private s3 bucket using ``boto3.Session`` and
       >>>
       >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
       >>> s3_session = boto3.session.Session(profile_name='my_profile_name')
+      >>>
+      >>> # create S3FileSystem instance with s3_session
+      >>> s3 = S3FileSystem(sessions=s3_session)  
       >>>
       >>> # load encoded_dataset to from s3 bucket
       >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
