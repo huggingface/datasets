@@ -167,9 +167,11 @@ The dataset is splitted in to train, validation and test sets.
 [More Information Needed]
 
 ### Citation Information
+```
 @inproceedings{Koto2020Liputan6AL,
   title={Liputan6: A Large-scale Indonesian Dataset for Text Summarization},
   author={Fajri Koto and Jey Han Lau and Timothy Baldwin},
   booktitle={AACL/IJCNLP},
   year={2020}
 }
+```
