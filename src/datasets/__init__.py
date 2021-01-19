@@ -40,6 +40,7 @@ from .features import (
     TranslationVariableLanguages,
     Value,
 )
+from .fingerprint import is_caching_enabled, set_caching_enabled
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,

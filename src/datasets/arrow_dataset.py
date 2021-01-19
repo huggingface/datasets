@@ -40,7 +40,14 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
+from .fingerprint import (
+    fingerprint_transform,
+    generate_fingerprint,
+    generate_random_fingerprint,
+    get_temporary_cache_files_directory,
+    is_caching_enabled,
+    update_fingerprint,
+)
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -556,7 +563,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
@@ -577,7 +584,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """Flatten the Table.
         Each column with a struct type is flattened into one column per struct field.
@@ -594,7 +601,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
         Cast the dataset to a new set of features.
@@ -619,7 +626,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) in the dataset and
@@ -646,7 +653,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
@@ -742,7 +749,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         finally:
             self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
@@ -1114,8 +1121,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        cache_file_name = "cache-" + fingerprint + ".arrow"
-        cache_directory = os.path.dirname(self._data_files[0]["filename"])
+        if is_caching_enabled():
+            cache_file_name = "cache-" + fingerprint + ".arrow"
+            cache_directory = os.path.dirname(self._data_files[0]["filename"])
+        else:
+            cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
+            cache_directory = get_temporary_cache_files_directory()
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
@@ -1129,7 +1140,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1161,7 +1172,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
@@ -1199,6 +1210,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             input_column, self._data.column_names
                         )
                     )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
             fn_kwargs = dict()
@@ -1323,7 +1336,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1334,7 +1347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1367,7 +1380,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
@@ -1405,6 +1418,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     self._data.column_names,
                 )
             )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -1554,7 +1569,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -1646,7 +1661,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -1722,7 +1737,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name"])
     def select(
         self,
         indices: Iterable,
@@ -1803,7 +1818,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
         column: str,
@@ -1881,7 +1896,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False, randomized_function=True)
+    @fingerprint_transform(
+        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+    )
     def shuffle(
         self,
         seed: Optional[int] = None,
@@ -1956,8 +1973,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(
-        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+    @fingerprint_transform(
+        inplace=False,
+        randomized_function=True,
+        fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
+        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
     )
     def train_test_split(
         self,
