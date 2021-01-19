@@ -1,5 +1,5 @@
 ---
-language: 
+languages:
 - en
 task:
 - text-classification
