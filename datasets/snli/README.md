@@ -1,19 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
 languages:
 - en
-task:
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|other-flicker-30k
+- extended|other-visual-genome
+task_categories:
 - text-classification
-purpose:
-- NLI
-size:
-- ">100k"
-language producers:
-- crowdsourced
-annotation:
-- crowdsourced
-tags:
-- extended-from-other-datasets
-license: "CC BY-SA 4.0"
+task_ids:
+- natural-language-inference
 ---
 # Dataset Card for SNLI
 
