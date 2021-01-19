@@ -496,6 +496,9 @@ The caching mechanism allows to reload an existing cache file if it's already be
 
 Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated after each transform.
 
+Note that the caching extend beyond sessions. Re-running the very same dataset processing methods (in the same order and on the same data files) in a different session will load from the same cache files.
+This is possible thanks to a custom hashing function that works with most python objects (see fingerprinting section below).
+
 
 Fingerprinting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -541,3 +544,5 @@ To disable caching you can run:
 
     >>> from datasets import set_caching_enabled
     >>> set_caching_enabled(False)
+
+You can also query the current status of the caching with :func:`datasets.is_caching_enabled`:
