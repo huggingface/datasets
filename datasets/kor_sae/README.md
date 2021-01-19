@@ -67,7 +67,7 @@ The text in the dataset is in Korean and the associated is BCP-47 code is `ko-KR
 
 ### Data Instances
 
-An example data instance contains a question or command pair and it's label:
+An example data instance contains a question or command pair and its label:
 
 ```
 {
