@@ -33,7 +33,7 @@ task_ids:
 ## Tasks supported:
 ### Task categorization / tags
 
-[Versions 2.0.0 and 3.0.0 of the CCN / DailyMail Dataset](https://www.aclweb.org/anthology/K16-1028.pdf) were developed for abstractive and extractive summarization. [Version 1.0.0](https://papers.nips.cc/paper/5945-teaching-machines-to-read-and-comprehend.pdf) was developed for machine reading and comprehension and abstractive question answering. 
+[Versions 2.0.0 and 3.0.0 of the CNN / DailyMail Dataset](https://www.aclweb.org/anthology/K16-1028.pdf) were developed for abstractive and extractive summarization. [Version 1.0.0](https://papers.nips.cc/paper/5945-teaching-machines-to-read-and-comprehend.pdf) was developed for machine reading and comprehension and abstractive question answering. 
 
 ## Purpose
 
