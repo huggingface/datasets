@@ -141,7 +141,8 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
             [re.compile(r"([Ll])iputan6 . com "), r"\1iputan6.com"],
             [re.compile(r" ([.,:])"), r"\1"],
             [re.compile(r"\( ([^)]+) \)"), r"(\1)"],
-            [re.compile(r"\" ([^)]+) \""), r'"\1"'],
+            [re.compile(r"\" ([^\"]+) \""), r'"\1"'],
+            [re.compile(r"\[ ([^]]+) ]"), r"[\1]"],
         ]
         logging.info("⏳ Generating %s examples from = %s", split, article_dir)
         guid = 0
