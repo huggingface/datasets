@@ -441,64 +441,58 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self = pickle.loads(pickle.dumps(self))
 
         if is_remote_filesystem(fs):
-            dest_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name).joinpath(dest_dataset_path)
-
+            dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
-            dataset_path = dataset_path
-        os.makedirs(dataset_path, exist_ok=True)
 
-        # Write indices if needed
-        if self._indices is not None:
-            if not self._indices_data_files:
-                cache_file_name = os.path.join(dataset_path, "indices.arrow")
+        # create temporary directory for saving
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
+            os.makedirs(temp_dataset_path, exist_ok=True)
+
+            # Write indices if needed
+            if self._indices is not None:
+                if not self._indices_data_files:
+                    cache_file_name = os.path.join(temp_dataset_path, "indices.arrow")
+                    writer = ArrowWriter(path=cache_file_name)
+                    writer.write_table(self._indices)
+                    writer.finalize()
+                    self._indices_data_files = [{"filename": cache_file_name}]
+            # Write dataset if needed
+            if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
+                cache_file_name = os.path.join(temp_dataset_path, "dataset.arrow")
                 writer = ArrowWriter(path=cache_file_name)
-                writer.write_table(self._indices)
+                writer.write_table(self._data)
                 writer.finalize()
-                self._indices_data_files = [{"filename": cache_file_name}]
-        # Write dataset if needed
-        if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
-            cache_file_name = os.path.join(dataset_path, "dataset.arrow")
-            writer = ArrowWriter(path=cache_file_name)
-            writer.write_table(self._data)
-            writer.finalize()
-            self._data_files = [{"filename": cache_file_name}]
-            self._inplace_history = [{"transforms": []}]
-        # Copy all files into the dataset directory
-        for data_file in self._data_files + self._indices_data_files:
-            src = Path(data_file["filename"])
-            dest = Path(dataset_path).joinpath(src.name)
-            if fs.protocol != "file":
-                dest = Path(dest_dataset_path).joinpath(src.name)
-                fs.put(src.as_posix(), dest.as_posix())
-            elif src.as_posix() != dest.as_posix():
-                fs.put(src.as_posix(), dest.as_posix())
-            # Change path to relative path from inside the destination directory
-            data_file["filename"] = src.name
+                self._data_files = [{"filename": cache_file_name}]
+                self._inplace_history = [{"transforms": []}]
+            # Copy all files into the dataset directory
+            for data_file in self._data_files + self._indices_data_files:
+                src = Path(data_file["filename"])
+                dest = Path(dataset_path).joinpath(src.name)
+                if fs.protocol != "file":
+                    fs.put(src.as_posix(), dest.as_posix())
+                elif src.as_posix() != dest.as_posix():
+                    fs.put(src.as_posix(), dest.as_posix())
+                # Change path to relative path from inside the destination directory
+                data_file["filename"] = src.name
 
-        if is_remote_filesystem(fs):
-            dataset_path = dest_dataset_path
-        # Get state
-        state = self.__getstate__()
-        dataset_info = json.loads(state.pop("_info"))
-        assert state.get("_data") is None, "arrow table needs to be memory mapped"
-        assert state.get("_indices") is None, "arrow table needs to be memory mapped"
-        assert all(
-            len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
-        ), "in-place history needs to be empty"
-        # Serialize state
-        with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
-            json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(
-            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
-        ) as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
-        logger.info("Dataset saved in {}".format(dataset_path))
-        # removes temp empty directory if files are uploaded to s3
-        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
-            shutil.rmtree(tmp_dir.name, ignore_errors=True)
+            # Get state
+            state = self.__getstate__()
+            dataset_info = json.loads(state.pop("_info"))
+            assert state.get("_data") is None, "arrow table needs to be memory mapped"
+            assert state.get("_indices") is None, "arrow table needs to be memory mapped"
+            assert all(
+                len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
+            ), "in-place history needs to be empty"
+            # Serialize state
+            with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
+                json.dump(state, state_file, indent=2, sort_keys=True)
+            with fs.open(
+                Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
+            ) as dataset_info_file:
+                json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
