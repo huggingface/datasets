@@ -11,7 +11,7 @@ import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
-from .filesystems import is_remote_filesystem, extract_path_from_uri
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 
 
 class DatasetDict(dict):
@@ -490,15 +490,15 @@ class DatasetDict(dict):
             fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         if is_remote_filesystem(fs):
-            proc_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
         else:
             fs = fsspec.filesystem("file")
-            proc_dataset_dict_path = dataset_dict_path
+            dest_dataset_dict_path = dataset_dict_path
+            os.makedirs(dest_dataset_dict_path, exist_ok=True)
 
-        os.makedirs(proc_dataset_dict_path, exist_ok=True)
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
+            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
             dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
@@ -515,17 +515,17 @@ class DatasetDict(dict):
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
-            proc_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
         else:
             fs = fsspec.filesystem("file")
-            proc_dataset_dict_path = dataset_dict_path
+            dest_dataset_dict_path = dataset_dict_path
         for k in json.load(
-            fs.open(Path(proc_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
             dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + Path(proc_dataset_dict_path).joinpath(k).as_posix()
+                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path).joinpath(k).as_posix()
                 if is_remote_filesystem(fs)
-                else Path(proc_dataset_dict_path).joinpath(k).as_posix()
+                else Path(dest_dataset_dict_path).joinpath(k).as_posix()
             )
             dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
         return dataset_dict

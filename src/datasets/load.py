@@ -33,7 +33,7 @@ from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
-from .filesystems import is_remote_filesystem, extract_path_from_uri
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
@@ -638,16 +638,16 @@ def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
-        proc_dataset_path = extract_path_from_uri(dataset_path)
+        dest_dataset_path = extract_path_from_uri(dataset_path)
     else:
         fs = fsspec.filesystem("file")
-        proc_dataset_path = dataset_path
+        dest_dataset_path = dataset_path
 
-    if not fs.exists(proc_dataset_path):
+    if not fs.exists(dest_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if fs.isfile(Path(proc_dataset_path).joinpath("dataset_info.json").as_posix()):
+    if fs.isfile(Path(dest_dataset_path).joinpath("dataset_info.json").as_posix()):
         return Dataset.load_from_disk(dataset_path, fs)
-    elif fs.isfile(Path(proc_dataset_path).joinpath("dataset_dict.json").as_posix()):
+    elif fs.isfile(Path(dest_dataset_path).joinpath("dataset_dict.json").as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs)
     else:
         raise FileNotFoundError(

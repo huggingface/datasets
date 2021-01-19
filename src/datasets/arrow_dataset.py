@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .filesystems import is_remote_filesystem, extract_path_from_uri
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
@@ -441,12 +441,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self = pickle.loads(pickle.dumps(self))
 
         if is_remote_filesystem(fs):
-            dataset_path = extract_path_from_uri(dataset_path)
+            dest_dataset_path = extract_path_from_uri(dataset_path)
+            tmp_dir = tempfile.TemporaryDirectory()
+            dataset_path = Path(tmp_dir.name).joinpath(dest_dataset_path)
+
         else:
             fs = fsspec.filesystem("file")
             dataset_path = dataset_path
-
         os.makedirs(dataset_path, exist_ok=True)
+
         # Write indices if needed
         if self._indices is not None:
             if not self._indices_data_files:
@@ -466,14 +469,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Copy all files into the dataset directory
         for data_file in self._data_files + self._indices_data_files:
             src = Path(data_file["filename"])
-            # file_path = Path(src)
             dest = Path(dataset_path).joinpath(src.name)
-            if src.as_posix() != dest.as_posix():
+            if fs.protocol != "file":
+                dest = Path(dest_dataset_path).joinpath(src.name)
                 fs.put(src.as_posix(), dest.as_posix())
-            elif fs.protocol != "file":
+                x = fs.ls(dest_dataset_path)
+            elif src.as_posix() != dest.as_posix():
                 fs.put(src.as_posix(), dest.as_posix())
             # Change path to relative path from inside the destination directory
             data_file["filename"] = src.name
+
+        if is_remote_filesystem(fs):
+            dataset_path = dest_dataset_path
         # Get state
         state = self.__getstate__()
         dataset_info = json.loads(state.pop("_info"))
@@ -491,8 +498,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
         # removes temp empty directory if files are uploaded to s3
-        if "file" not in fs.protocol:
-            shutil.rmtree(list(src.parents)[-2])
+        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
+            shutil.rmtree(tmp_dir.name, ignore_errors=True)
 
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
@@ -510,10 +517,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         if is_remote_filesystem(fs):
-            proc_dataset_path = extract_path_from_uri(dataset_path)
+            src_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name).joinpath(proc_dataset_path)
-            fs.download(proc_dataset_path, dataset_path.as_posix(), recursive=True)
+            dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
+            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
