@@ -24,7 +24,6 @@ from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
-import importlib_metadata
 import numpy as np
 import pyarrow as pa
 import requests
@@ -36,6 +35,13 @@ from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
+
+_PY_VERSION: str = sys.version.split()[0]
+
+if int(_PY_VERSION.split(".")[0]) == 3 and int(_PY_VERSION.split(".")[1]) < 8:
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -128,22 +134,33 @@ try:
     HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
 except (AttributeError, ImportError):
     HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
-sys.path.append(str(HF_MODULES_CACHE))
 
-os.makedirs(HF_MODULES_CACHE, exist_ok=True)
-if not os.path.exists(os.path.join(HF_MODULES_CACHE, "__init__.py")):
-    with open(os.path.join(HF_MODULES_CACHE, "__init__.py"), "w"):
-        pass
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
-def is_beam_available():
-    return _beam_available
+def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
+    """
+    Add hf_modules_cache to the python path.
+    By default hf_modules_cache='~/.cache/huggingface/modules'.
+    It can also be set with the environment variable HF_MODULES_CACHE.
+    This is used to add modules such as `datasets_modules`
+    """
+    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else HF_MODULES_CACHE
+    hf_modules_cache = str(hf_modules_cache)
+    if hf_modules_cache not in sys.path:
+        sys.path.append(hf_modules_cache)
+
+        os.makedirs(hf_modules_cache, exist_ok=True)
+        if not os.path.exists(os.path.join(hf_modules_cache, "__init__.py")):
+            with open(os.path.join(hf_modules_cache, "__init__.py"), "w"):
+                pass
+    return hf_modules_cache
 
 
 @contextmanager
 def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+    """Temporarily set the random seed. This works for python numpy, pytorch and tensorflow."""
     np_state = np.random.get_state()
     np.random.seed(seed)
 
@@ -201,6 +218,10 @@ def is_torch_available():
 
 def is_tf_available():
     return _tf_available
+
+
+def is_beam_available():
+    return _beam_available
 
 
 def is_rarfile_available():
@@ -313,6 +334,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
+        requests.exceptions.ConnectionError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -339,8 +361,10 @@ def cached_path(
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
-    elif urlparse(url_or_filename).scheme == "":
+    elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
         # File, but it doesn't exist.
+        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
+        # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
@@ -410,7 +434,7 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
+    ua = "datasets/{}; python/{}".format(__version__, _PY_VERSION)
     ua += "; pyarrow/{}".format(pa.__version__)
     if is_torch_available():
         ua += "; torch/{}".format(_torch_version)

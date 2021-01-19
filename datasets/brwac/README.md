@@ -76,8 +76,8 @@ An example from the BrWaC dataset looks as follows:
 ```
 {
   "doc_id": "netg-1afc73",
-  "paragraphs": {
-    "sentences": [
+  "text": {
+    "paragraphs": [
       [
         "Conteúdo recente"
       ],
@@ -113,7 +113,7 @@ An example from the BrWaC dataset looks as follows:
 - `doc_id`: The document ID
 - `title`: The document title
 - `uri`: URI where the document was extracted from
-- `paragraphs`: A list of document paragraphs (with a list of sentences in it as a list of strings)
+- `text`: A list of document paragraphs (with a list of sentences in it as a list of strings)
 
 ### Data Splits
 

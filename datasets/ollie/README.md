@@ -199,7 +199,7 @@ The authors of Ollie at The University of Washington
 
 ### Licensing Information
 
-The University of Washington acamdemic license: https://raw.githubusercontent.com/knowitall/ollie/master/LICENSE
+The University of Washington academic license: https://raw.githubusercontent.com/knowitall/ollie/master/LICENSE
 
 
 ### Citation Information

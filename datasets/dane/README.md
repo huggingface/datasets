@@ -16,6 +16,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+- part-of-speech-tagging
 ---
 
 # Dataset Card for [Dataset Name]

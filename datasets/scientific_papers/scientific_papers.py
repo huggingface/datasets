@@ -54,8 +54,8 @@ _DOCUMENT = "article"
 _SUMMARY = "abstract"
 
 _URLS = {
-    "arxiv": "https://drive.google.com/uc?id=1b3rmCSIoh6VhD4HKWjI4HOW-cSwcwbeC&export=download",
-    "pubmed": "https://drive.google.com/uc?id=1lvsqvsFi3W-pE1SqNZI0s8NR9rC1tsja&export=download",
+    "arxiv": "https://s3.amazonaws.com/datasets.huggingface.co/scientific_papers/1.1.1/arxiv-dataset.zip",
+    "pubmed": "https://s3.amazonaws.com/datasets.huggingface.co/scientific_papers/1.1.1/pubmed-dataset.zip",
 }
 
 
@@ -63,7 +63,7 @@ class ScientificPapersConfig(datasets.BuilderConfig):
     """BuilderConfig for Scientific Papers."""
 
     def __init__(self, filename=None, **kwargs):
-        """BuilderConfig for Wikihow.
+        """BuilderConfig for ScientificPapers
 
         Args:
           filename: filename of different configs for the dataset.
