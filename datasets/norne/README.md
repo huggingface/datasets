@@ -73,6 +73,30 @@ Each entry contains text sentences, their language, identifiers, tokens, lemmas,
 
 An example of the `train` split of the `bokmaal` config.
 
+```python
+{'idx': '000001',
+ 'lang': 'bokmaal',
+ 'lemmas': ['lam', 'og', 'piggvar', 'på', 'bryllupsmeny'],
+ 'ner_tags': [0, 0, 0, 0, 0],
+ 'pos_tags': [0, 9, 0, 5, 0],
+ 'text': 'Lam og piggvar på bryllupsmenyen',
+ 'tokens': ['Lam', 'og', 'piggvar', 'på', 'bryllupsmenyen']}
+```
+
+### Data Fields
+
+Each entry is annotated with the next fields:
+
+- `idx` (`int`), text (sentence) identifier from the NorNE dataset
+- `lang` (`str`), language variety, either `bookmal`, `nynorsk` or `combined`
+- `text` (`str`), plain text
+- `tokens` (`List[str]`), list of tokens extracted from `text`
+- `lemmas` (`List[str]`), list of lemmas extracted from `tokens`
+- `ner_tags` (`List[int]`), list of numeric NER tags for each token in `tokens`
+- `pos_tags` (`List[int]`), list of numeric PoS tags for each token in `tokens`
+
+An example DataFrame obtained from the dataset:
+
 <table class="dataframe" border="1">
   <thead>
     <tr style="text-align: right;">
@@ -120,7 +144,9 @@ An example of the `train` split of the `bokmaal` config.
   </tbody>
 </table>
 
-### Data Fields
+### Data Splits
+
+There are three splits: `train`, `validation` and `test`.
 
 | Config    | Split        | Total  |
 | :---------|-------------:|-------:|
@@ -133,10 +159,6 @@ An example of the `train` split of the `bokmaal` config.
 | `combined`| `test`       |  29870 |
 | `combined`| `validation` |   4300 |
 | `combined`| `test`       |   3450 |
-
-### Data Splits
-
-There are three splits: `train`, `validation` and `test`.
 
 ## Dataset Creation
 
