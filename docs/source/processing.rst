@@ -500,7 +500,7 @@ Reloading a dataset is possible since the cache files are named using the datase
 Fingerprinting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied.
+The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied. (Transform are all the processing method for transforming a dataset that we listed in this chapter (:func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc)
 The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
 
 For example:
@@ -513,7 +513,7 @@ For example:
     >>> print(dataset1._fingerprint, dataset2._fingerprint)
     d19493523d95e2dc 5b86abacd4b42434
 
-The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be picklable using dill or pickle.
+The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be picklable using dill or pickle. In particular for :func:`datasets.Dataset.map`, you need to provide a picklable processing method to apply on the dataset so that a determinist fingerprint can be computed by hashing the full state of the provided method (the fingerprint is computed taking into account all the dependencies of the method you provide). 
 For non-hashable transform, a random fingerprint is used and a warning is raised.
 Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work.
 If you reuse a non-hashable transform, the caching mechanism will consider it to be different from the previous calls and recompute everything.
