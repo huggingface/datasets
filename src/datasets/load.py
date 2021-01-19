@@ -22,6 +22,7 @@ import json
 import os
 import re
 import shutil
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -323,7 +324,8 @@ def prepare_module(
                         [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
                     )
                     logger.warning(
-                        f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} since it "
+                        f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
+                        f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
                         f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
                     )
                     return module_path, hash
