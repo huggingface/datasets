@@ -23,11 +23,11 @@ class S3FileSystem(s3fs.S3FileSystem):
       >>> s3.ls('my-private-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
-      Using ``S3Filesystem`` with ``boto3.Session`` and custom ``aws_profile``.
+      Using ``S3Filesystem`` with ``botocore.session.Session`` and custom ``aws_profile``.
 
-      >>> import boto3
+      >>> import botocore
       >>> from datasets.filesystems import S3Filesystem
-      >>> s3_session = boto3.session.Session(profile_name='my_profile_name')
+      >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
       >>>
       >>> s3 = S3FileSystem(sessions=s3_session)  # doctest: +SKIP
 
