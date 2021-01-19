@@ -63,6 +63,10 @@ BERT-based models. We include a thorough error analysis by examining machine-gen
 low ROUGE scores, and expose both issues with ROUGE it-self, as well as with extractive and abstractive
 summarization models.
 
+The dataset has two variants: "canonical" and "xtreme". The "xtreme" variant discards development and test 
+document–summary pairs where the summary has fewer than 90% novel 4-grams (the training data remains the same 
+as the canonical variant).
+
 You need to manually request the liputan6 dataset using the form in https://github.com/fajri91/sum_liputan6/
 and uncompress it. The liputan6 dataset can then be loaded using the following command 
 `datasets.load_dataset("id_liputan6", 'canonical', data_dir="<path/to/uncompressed_folder>")` or
@@ -86,7 +90,17 @@ Indonesian
 ```
 ### Data Instances
 
-[More Information Needed]
+An example of the dataset:
+```
+{
+  'clean_article': 'Liputan6.com, Ambon: Partai Bulan Bintang wilayah Maluku bertekad membantu pemerintah menyelesaikan konflik di provinsi tersebut. Syaratnya, penanganan penyelesaian konflik Maluku harus dimulai dari awal kerusuhan, yakni 19 Januari 1999. Demikian hasil Musyawarah Wilayah I PBB Maluku yang dimulai Sabtu pekan silam dan berakhir Senin (31/12) di Ambon. Menurut seorang fungsionaris PBB Ridwan Hasan, persoalan di Maluku bisa selesai asalkan pemerintah dan aparat keamanan serius menangani setiap persoalan di Maluku secara komprehensif dan bijaksana. Itulah sebabnya, PBB wilayah Maluku akan menjadikan penyelesaian konflik sebagai agenda utama partai. PBB Maluku juga akan mendukung penegakan hukum secara terpadu dan tanpa pandang bulu. Siapa saja yang melanggar hukum harus ditindak. Ridwan berharap, Ketua PBB Maluku yang baru, Ali Fauzi, dapat menindak lanjuti agenda politik partai yang telah diamanatkan dan mau mendukung penegakan hukum di Maluku. (ULF/Sahlan Heluth).',
+  'clean_summary': 'Konflik Ambon telah berlangsung selama tiga tahun. Partai Bulan Bintang wilayah Maluku siap membantu pemerintah menyelesaikan kasus di provinsi tersebut.',
+  'extractive_summary': 'Liputan6.com, Ambon: Partai Bulan Bintang wilayah Maluku bertekad membantu pemerintah menyelesaikan konflik di provinsi tersebut. Siapa saja yang melanggar hukum harus ditindak.',
+  'id': '26408',
+  'url': 'https://www.liputan6.com/news/read/26408/pbb-siap-membantu-penyelesaian-konflik-ambon'
+}
+
+```
 
 ### Data Fields
 - `id`: id of the sample

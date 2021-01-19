@@ -106,6 +106,13 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+        if not os.path.exists(data_dir):
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('id_liputan6', "
+                "'canonical', data_dir=...)`. Manual download instructions:\n{}".format(
+                    data_dir, self.manual_download_instructions
+                )
+            )
         split_generators = [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
