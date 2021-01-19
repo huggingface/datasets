@@ -40,14 +40,14 @@ class MockDownloadManager(object):
         config: str,
         version: Union[Version, str],
         cache_dir: Optional[str] = None,
-        is_local: bool = False,
+        use_local_dummy_data: bool = False,
         load_existing_dummy_data: bool = True,
         download_callbacks: Optional[List[Callable]] = None,
     ):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
-        self.is_local = is_local
+        self.use_local_dummy_data = use_local_dummy_data
         self.config = config
         # download_callbacks take a single url as input
         self.download_callbacks: List[Callable] = download_callbacks or []
@@ -81,7 +81,7 @@ class MockDownloadManager(object):
 
     def download_dummy_data(self):
         path_to_dummy_data_dir = (
-            self.local_path_to_dummy_data if self.is_local is True else self.github_path_to_dummy_data
+            self.local_path_to_dummy_data if self.use_local_dummy_data is True else self.github_path_to_dummy_data
         )
 
         local_path = cached_path(

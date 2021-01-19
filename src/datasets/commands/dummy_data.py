@@ -305,7 +305,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                     dataset_name=self._dataset_name,
                     config=config,
                     version=version,
-                    is_local=True,
+                    use_local_dummy_data=True,
                     load_existing_dummy_data=False,
                 )
 

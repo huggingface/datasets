@@ -6,7 +6,7 @@ annotations_creators:
   - machine-generated
   auto_full_no_split:
   - machine-generated
-   auto_full_with_split:
+  auto_full_with_split:
   - machine-generated
   manual:
   - crowdsourced
