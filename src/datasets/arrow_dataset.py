@@ -473,7 +473,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if fs.protocol != "file":
                 dest = Path(dest_dataset_path).joinpath(src.name)
                 fs.put(src.as_posix(), dest.as_posix())
-                x = fs.ls(dest_dataset_path)
             elif src.as_posix() != dest.as_posix():
                 fs.put(src.as_posix(), dest.as_posix())
             # Change path to relative path from inside the destination directory
