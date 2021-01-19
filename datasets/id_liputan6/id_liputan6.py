@@ -48,8 +48,6 @@ _HOMEPAGE = "https://arxiv.org/abs/2011.00679"
 
 _LICENSE = ""
 
-_URLs = []
-
 
 class IdLiputan6Config(datasets.BuilderConfig):
     """BuilderConfig for IdLiputan6"""
