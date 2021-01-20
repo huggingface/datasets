@@ -53,7 +53,7 @@ task_ids:
 - **Repository:** [https://homes.cs.washington.edu/~msap/social-bias-frames/](https://homes.cs.washington.edu/~msap/social-bias-frames/)
 - **Paper:** [Social Bias Frames: Reasoning about Social and Power Implications of Language](https://www.aclweb.org/anthology/2020.acl-main.486.pdf)
 - **Leaderboard:**
-- **Point of Contact:** Maartin Sap msap@cs.washington.edu
+- **Point of Contact:** [Maartin Sap](mailto:msap@cs.washington.edu)
 - **Size of downloaded dataset files:** 6.03 MB
 - **Size of the generated dataset:** 42.41 MB
 - **Total amount of disk used:** 48.45 MB
