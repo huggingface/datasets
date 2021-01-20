@@ -45,7 +45,17 @@ import datasets
 
 logger = getLogger(__name__)
 
-_CITATION1 = """\
+_CITATION = """\
+@inproceedings{rei-EtAl:2020:WMT,
+   author    = {Rei, Ricardo  and  Stewart, Craig  and  Farinha, Ana C  and  Lavie, Alon},
+   title     = {Unbabel's Participation in the WMT20 Metrics Shared Task},
+   booktitle      = {Proceedings of the Fifth Conference on Machine Translation},
+   month          = {November},
+   year           = {2020},
+   address        = {Online},
+   publisher      = {Association for Computational Linguistics},
+   pages     = {909--918},
+}
 @inproceedings{rei-etal-2020-comet,
    title = "{COMET}: A Neural Framework for {MT} Evaluation",
    author = "Rei, Ricardo  and
@@ -61,20 +71,6 @@ _CITATION1 = """\
    pages = "2685--2702",
 }
 """
-
-_CITATION2 = """\
-@inproceedings{rei-EtAl:2020:WMT,
-   author    = {Rei, Ricardo  and  Stewart, Craig  and  Farinha, Ana C  and  Lavie, Alon},
-   title     = {Unbabel's Participation in the WMT20 Metrics Shared Task},
-   booktitle      = {Proceedings of the Fifth Conference on Machine Translation},
-   month          = {November},
-   year           = {2020},
-   address        = {Online},
-   publisher      = {Association for Computational Linguistics},
-   pages     = {909--918},
-}
-"""
-
 
 _DESCRIPTION = """\
 Crosslingual Optimized Metric for Evaluation of Translation (COMET) is an open-source framework used to train Machine Translation metrics that achieve high levels of correlation with different types of human judgments (HTER, DA's or MQM).
@@ -123,7 +119,7 @@ class COMET(datasets.Metric):
 
         return datasets.MetricInfo(
             description=_DESCRIPTION,
-            citation=_CITATION1,
+            citation=_CITATION,
             homepage="https://unbabel.github.io/COMET/html/index.html",
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
