@@ -100,7 +100,7 @@ class BuilderConfig:
             return False
         return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
 
-    def get_config_id(self, config_kwargs: dict, custom_features: Optional[Features] = None) -> str:
+    def create_config_id(self, config_kwargs: dict, custom_features: Optional[Features] = None) -> str:
         """
         The config id is used to build the cache directory.
         By default it is equal to the config name.
@@ -235,7 +235,7 @@ class DatasetBuilder:
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
-        self.config, self.config_config_id = self._create_builder_config(
+        self.config, self.config_id = self._create_builder_config(
             name,
             custom_features=features,
             **config_kwargs,
@@ -346,7 +346,7 @@ class DatasetBuilder:
             raise ValueError("BuilderConfig must have a name, got %s" % builder_config.name)
 
         # compute the config id that is going to be used for caching
-        config_id = builder_config.get_config_id(config_kwargs, custom_features=custom_features)
+        config_id = builder_config.create_config_id(config_kwargs, custom_features=custom_features)
         is_custom = config_id not in self.builder_configs
         if is_custom:
             logger.warning("Using custom data configuration %s", config_id)
@@ -390,7 +390,7 @@ class DatasetBuilder:
         hash = self.hash
         if builder_config:
             # use the enriched name instead of the name to make it unique
-            builder_data_dir = os.path.join(builder_data_dir, self.config_config_id)
+            builder_data_dir = os.path.join(builder_data_dir, self.config_id)
         if with_version:
             builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
         if with_hash and hash and isinstance(hash, str):
