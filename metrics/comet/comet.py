@@ -119,7 +119,7 @@ class COMET(datasets.Metric):
 
         return datasets.MetricInfo(
             description=_DESCRIPTION,
-            citation=_CITATION1,
+            citation=_CITATION,
             homepage="https://unbabel.github.io/COMET/html/index.html",
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
