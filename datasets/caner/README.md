@@ -57,7 +57,7 @@ The Classical Arabic Named Entity Recognition corpus is a new corpus of tagged d
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- Named Entity Recognition
 
 ### Languages
 
