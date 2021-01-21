@@ -18,7 +18,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for [Persian NER]
+# Dataset Card for CANER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
