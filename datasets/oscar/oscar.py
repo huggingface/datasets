@@ -351,12 +351,19 @@ class Oscar(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         """This function returns the examples in the raw (text) form."""
         id_ = 0
+        current_lines = []
         for filepath in filepaths:
             logging.info("generating examples from = %s", filepath)
             with gzip.open(filepath, "rt") as f:
                 for line in f:
-                    line = line.rstrip()
-                    if line:
-                        feature = id_, {"id": id_, "text": line}
+                    if len(line.strip()) > 0:
+                        current_lines.append(line)
+                    else:
+                        feature = id_, {"id": id_, "text": "".join(current_lines).rstrip()}
                         yield feature
                         id_ += 1
+                        current_lines = []
+                # last paragraph
+                if current_lines:
+                    feature = id_, {"id": id_, "text": "".join(current_lines).rstrip()}
+                    yield feature
