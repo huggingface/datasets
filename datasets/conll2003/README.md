@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- multilingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|other-reuters-corpus
+task_categories:
+- structure-prediction
+task_ids:
+- named-entity-recognition
+- part-of-speech-tagging
 ---
 
 # Dataset Card for "conll2003"
