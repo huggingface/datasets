@@ -51,12 +51,6 @@ class Caner(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This covers the training dataset"),
-    ]
-
-    DEFAULT_CONFIG_NAME = "first_domain"
-
     def _info(self):
 
         features = datasets.Features(
