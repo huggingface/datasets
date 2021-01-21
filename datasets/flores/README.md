@@ -1,4 +1,35 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+  neen:
+  - en
+  - ne
+  sien:
+  - en
+  - si
+licenses:
+- cc-by-4.0
+multilinguality:
+- translation
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|wikipedia
+- extended|opus_gnome
+- extended|opus_ubuntu
+- extended|open_subtitles
+- extended|paracrawl
+- extended|bible_para
+- extended|kde4
+- extended|other-global-voices
+- extended|other-common-crawl
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for "flores"
