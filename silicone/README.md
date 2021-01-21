@@ -15,162 +15,200 @@ source_datasets:
 - original
 task_categories:
 - sequence-modeling
+- text-classification
+- text-scoring
 task_ids:
-- dialogue-modeling
-- language-modeling
-- sentiment-classification
-- topic-classification
-- semantic-similarity-scoring
-- sentiment-scoring
+  dyda_da:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-dialogue-act-classification
+  dyda_e:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-emotion-classification
+  iemocap:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-emotion-classification
+  maptask:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-dialogue-act-classification
+  meld_e:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-emotion-classification
+  meld_s:
+  - dialogue-modeling
+  - language-modeling
+  - sentiment-classification
+  mrda:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-dialogue-act-classification
+  oasis:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-dialogue-act-classification
+  sem:
+  - dialogue-modeling
+  - language-modeling
+  - sentiment-classification
+  swda:
+  - dialogue-modeling
+  - language-modeling
+  - text-classification-other-dialogue-act-classification
 ---
 
-# Dataset Card for SILICONE
+# Dataset Card for SILICONE Benchmark
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+- [Benchmark Description](#benchmark-description)
+  - [Benchmark Summary](#benchmark-summary)
   - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
+- [Benchmark Structure](#dataset-structure)
+  - [Dataset Instances](#data-instances)
   - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-## Dataset Description
+## Benchmark Description
 
-- **Homepage:** N/A
-- **Repository:** [SILICONE](https://github.com/eusip/SILICONE-benchmark)
-- **Paper:** [Hierarchical Pre-training for Sequence Labelling in Spoken Dialog](https://arxiv.org/abs/2009.11152)
-- **Leaderboard:** N/A
-- **Point of Contact:** [Ebenge Usip](ebenge.usip@telecom-paris.fr)
+<!-- - **Homepage:** -->
+- **Repository:** https://github.com/eusip/SILICONE-benchmark
+- **Paper:** https://arxiv.org/abs/2009.11152
+- **Point of Contact:** Ebenge Usip, ebenge.usip@telecom-paris.fr
+<!-- - **Leaderboard:** -->
 
-### Dataset Summary
+### Benchmark Summary
 
-The Sequence labellIng evaLuatIon benChmark fOr spoken laNguagE (SILICONE) benchmark is a collection of resources for training, evaluating, and analyzing natural language understanding systems specifically designed for spoken language. All datasets are in the English language and cover a variety of domains including daily life, scripted scenarios, joint task completion, phone call conversations, and televsion dialogue. Some datasets additionally include emotion and/or sentimant labels.
+The Sequence labellIng evaLuatIon benChmark fOr spoken laNguagE (SILICONE) benchmark is a collection of resources for training, evaluating, and analyzing natural language understanding systems specifically designed for spoken language. All datasets are in the English language and covers a variety of domains including daily life, scripted scenarios, joint task completion, phone call conversations, and televsion dialogue. Some datasets additionally include emotion and/or sentimant labels.
 
-### Supported Tasks and Leaderboards
+<!--
+-- ### Supported Tasks and Leaderboards
 
 [More Information Needed]
+-->
 
 ### Languages
 
 English.
 
-## Dataset Structure
+## Benchmark Structure
 
-### Data Instances
+### Dataset Instances
 
 #### DailyDialog Act Corpus (Dialogue Act)
+For the `dyda_da` configuration one example from the dataset is:
 ```
 {
-  'Utterance': the taxi drivers are on strike again .,
-  'Dialogue_Act': inform,
+  'Utterance': "the taxi drivers are on strike again .",
+  'Dialogue_Act': 2, # inform
   'Dialogue_ID': 2
 }
 ```
 
 #### DailyDialog Act Corpus (Emotion)
+For the `dyda_e` configuration one example from the dataset is:
 ```
 {
-  'Utterance': "oh , breaktime flies .",
-  'Emotion': sadness,
+  'Utterance': "'oh , breaktime flies .'",
+  'Emotion': 5, # sadness
   'Dialogue_ID': 997
 }
 ```
 
 #### Interactive Emotional Dyadic Motion Capture (IEMOCAP) database
+For the `iemocap` configuration one example from the dataset is:
 ```
 {
   'Dialogue_ID': Ses04F_script03_2,
   'Utterance_ID': Ses04F_script03_2_F025,
-  'Utterance': You're quite insufferable.  I expect it's because you're drunk.,
-  'Emotion': ang
+  'Utterance': "You're quite insufferable.  I expect it's because you're drunk.",
+  'Emotion': 0, # ang
 }
 ```
 
 #### HCRC MapTask Corpus
+For the `maptask` configuration one example from the dataset is:
 ```
 {
   'Speaker': f,
-  'Utterance': i think that would bring me over the crevasse,
-  'Dialogue_Act': explain
+  'Utterance': "i think that would bring me over the crevasse",
+  'Dialogue_Act': 4, # explain
 }
 ```
 
 
 #### Multimodal EmotionLines Dataset (Emotion)
+For the `meld_e` configuration one example from the dataset is:
 ```
 {
-  'Utterance': "Push 'em out , push 'em out , harder , harder .",
+  'Utterance': "'Push 'em out , push 'em out , harder , harder .'",
   'Speaker': Joey,
-  'Emotion': joy,
+  'Emotion': 3, # joy
   'Dialogue_ID': 1,
   'Utterance_ID': 2
 }
 ```
 
 #### Multimodal EmotionLines Dataset (Sentiment)
+For the `meld_s` configuration one example from the dataset is:
 ```
 {
-  'Utterance': "Okay , y'know what ? There is no more left , left !",
+  'Utterance': "'Okay , y'know what ? There is no more left , left !'",
   'Speaker': Rachel,
-  'Sentiment': negative,
+  'Sentiment': 0, # negative
   'Dialogue_ID': 2,
   'Utterance_ID': 4
 }
 ```
 
 #### ICSI MRDA Corpus
+For the `mrda` configuration one example from the dataset is:
 ```
 {
   'Utterance_ID': Bed006-c2_0073656_0076706,
-  'Dialogue_Act': s,
+  'Dialogue_Act': 0, # s
   'Channel_ID': Bed006-c2,
   'Speaker': mn015,
   'Dialogue_ID': Bed006,
-  'Utterance': keith is not technically one of us yet .
+  'Utterance': "keith is not technically one of us yet ."
 }
 ```
 
 #### BT OASIS Corpus
+For the `oasis` configuration one example from the dataset is:
 ```
 {
   'Speaker': b,
-  'Utterance': when i rang up um when i rang to find out why she said oh well your card's been declined,
-  'Dialogue_Act': inform,
+  'Utterance': "when i rang up um when i rang to find out why she said oh well your card's been declined",
+  'Dialogue_Act': 21, # inform
 }
 ```
 
 #### SEMAINE database
+For the `sem` configuration one example from the dataset is:
 ```
 {
-  'Utterance': can you think of somebody who is like that ?,
+  'Utterance': "can you think of somebody who is like that ?",
   'NbPairInSession': 11,
   'Dialogue_ID': 59,
   'SpeechTurn': 674,
   'Speaker': Agent,
-  'Sentiment': Neutral,
+  'Sentiment': 1, # Neutral
 }
 ```
 
 #### Switchboard Dialog Act (SwDA) Corpus
+For the `swda` configuration one example from the dataset is:
 ```
 {
-  'Utterance': but i 'd probably say that 's roughly right .,
-  'Dialogue_Act': aap_am,
+  'Utterance': "but i 'd probably say that 's roughly right .",
+  'Dialogue_Act': 33, # aap_am
   'From_Caller': 1255,
   'To_Caller': 1087,
   'Topic': CRIME,
@@ -181,7 +219,7 @@ English.
 
 ### Data Fields
 
-[More Information Needed]
+All data fields are formatted as `string` features.
 
 ### Data Splits
 
@@ -189,15 +227,16 @@ English.
 | ------------ | -----  | ----- | ----  |
 | dyda_da      | 87170  | 8069  | 7740  |
 | dyda_e       | 87170  | 8069  | 7740  |
-| iemocap      | 8018   | ----  | 2021  |
+| iemocap      | 7213   | 805   | 2021  |
 | maptask      | 20905  | 2963  | 2894  |
 | meld_e       | 9989   | 1109  | 2610  |
 | meld_s       | 9989   | 1109  | 2610  |
-| mrda         | 93758  | ----  | 15470 |
+| mrda         | 83944  | 9815  | 15470 |
 | oasis        | 12076  | 1513  | 1478  |
-| sem          | 4749   | ----  | 878   |
-| swda         | 211912 | ----  | 2714  |
+| sem          | 4264   | 485   | 878   |
+| swda         | 190709 | 21203 | 2714  |
 
+<!--
 ## Dataset Creation
 
 ### Curation Rationale
@@ -241,12 +280,13 @@ English.
 ### Other Known Limitations
 
 [More Information Needed]
+-->
 
 ## Additional Information
 
-### Dataset Curators
+### Benchmark Curators
 
-[Ebenge Usip](ebenge.usip@telecom-paris.fr), [Emile Chapuis](emile.chapuis@telecom-paristech.fr), [Pierre Colombo](colombo.pierre@gmail.com).
+Emile Chapuis, Pierre Colombo, Ebenge Usip.
 
 ### Licensing Information
 
