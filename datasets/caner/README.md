@@ -53,7 +53,7 @@ task_ids:
 
 ### Dataset Summary
 
-The dataset contrains a cclassical Arabic Named Entity Recognition corpus as a new corpus of tagged data that can be useful for handling the issues in recognition of Arabic named entities.
+The Classical Arabic Named Entity Recognition corpus is a new corpus of tagged data that can be useful for handling the issues in recognition of Arabic named entities.
 
 ### Supported Tasks and Leaderboards
 
