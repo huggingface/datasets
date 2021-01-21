@@ -46,8 +46,8 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** 
-- **Repository:** https://github.com/RamziSalah Classical-Arabic-Named-Entity-Recognition-Corpus
-- **Paper:** https://www.researchgate.net/publication/330075080_BUILDING_THE_CLASSICAL_ARABIC_NAMED_ENTITY_RECOGNITION_CORPUS_CANERCORPUS
+- **Repository:** [Classical-Arabic-Named-Entity-Recognition-Corpus](https://github.com/RamziSalah)
+- **Paper:** [Researchgate](https://www.researchgate.net/publication/330075080_BUILDING_THE_CLASSICAL_ARABIC_NAMED_ENTITY_RECOGNITION_CORPUS_CANERCORPUS)
 - **Leaderboard:**
 - **Point of Contact:** 
 
