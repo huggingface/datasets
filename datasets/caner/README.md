@@ -67,6 +67,11 @@ Classical Arabic
 
 ### Data Instances
 
+An example from the dataset:
+```
+{'ner_tags': 1, 'tokens': 'الجامع'}
+```
+Where 1 stands for "Book"
 
 ### Data Fields
 
