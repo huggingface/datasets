@@ -15,7 +15,7 @@ Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently Know
 - `dropbox <https://github.com/MarineChap/dropboxdrivefs>`_ for access to dropbox shares
 - `gdrive <https://github.com/intake/gdrivefs>`_ to access Google Drive and shares (experimental)
 
-These know implementations are going to be nativly added in the near future within ``datasets``.
+These know implementations are going to be natively added in the near future within ``datasets``.
 
 **Examples:**	
 
