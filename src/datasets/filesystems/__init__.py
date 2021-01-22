@@ -3,7 +3,7 @@ import importlib
 import fsspec
 
 
-_has_s3fs = importlib.util.find_spec("s3fs")
+_has_s3fs = importlib.util.find_spec("s3fs") is not None
 
 if _has_s3fs:
     from .s3filesystem import S3FileSystem  # noqa: F401
