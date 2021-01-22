@@ -4,7 +4,7 @@ FileSystems Integration for cloud storages
 Supported Filesystems
 ---------------------
 
-Currenlty ``datasets`` offers an s3 filesystem implementation with :class:`datasets.filesystems.S3FileSystem`. ``S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known implemenetation of ``fsspec``.
+Currenlty ``datasets`` offers an s3 filesystem implementation with :class:`datasets.filesystems.S3FileSystem`. ``S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known implementation of ``fsspec``.
 
 Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently Known Implementations these are: 
 
