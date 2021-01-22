@@ -70,7 +70,7 @@ Saving ``encoded_dataset`` to a private s3 bucket using ``aws_access_key_id`` an
 
 .. code-block::
 
-      >>> from datasets import filesystems
+      >>> from datasets.filesystems import S3FileSystem
       >>>
       >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
       >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
