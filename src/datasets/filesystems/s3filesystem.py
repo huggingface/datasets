@@ -4,7 +4,7 @@ import s3fs
 class S3FileSystem(s3fs.S3FileSystem):
     """
     ``datasets.filesystems.S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known
-    implemenetation of ``fsspec``. `Filesystem Spec (FSSPEC) <https://filesystem-spec.readthedocs.io/en/latest/?badge=latest>`_  is a project to
+    implementation of ``fsspec``. `Filesystem Spec (FSSPEC) <https://filesystem-spec.readthedocs.io/en/latest/?badge=latest>`_  is a project to
     unify various projects and classes to work with remote filesystems
     and file-system-like abstractions using a standard pythonic interface.
 
