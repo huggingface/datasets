@@ -69,15 +69,15 @@ Classical Arabic
 
 An example from the dataset:
 ```
-{'ner_tags': 1, 'tokens': 'الجامع'}
+{'ner_tag': 1, 'token': 'الجامع'}
 ```
 Where 1 stands for "Book"
 
 ### Data Fields
 
 - `id`: id of the sample
- - `tokens`: the tokens of the example text
- - `ner_tags`: the NER tags of each token
+ - `token`: the tokens of the example text
+ - `ner_tag`: the NER tags of each token
 
 The NER tags correspond to this list:
  ```

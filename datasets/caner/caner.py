@@ -55,8 +55,8 @@ class Caner(datasets.GeneratorBasedBuilder):
 
         features = datasets.Features(
             {
-                "tokens": datasets.Value("string"),
-                "ner_tags": datasets.ClassLabel(
+                "token": datasets.Value("string"),
+                "ner_tag": datasets.ClassLabel(
                     names=[
                         "Allah",
                         "Book",
@@ -122,6 +122,6 @@ class Caner(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(reader):
 
                 yield id_, {
-                    "tokens": row[0],
-                    "ner_tags": row[1],
+                    "token": row[0],
+                    "ner_tag": row[1],
                 }
