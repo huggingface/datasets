@@ -367,3 +367,7 @@ class Oscar(datasets.GeneratorBasedBuilder):
                 if current_lines:
                     feature = id_, {"id": id_, "text": "".join(current_lines).rstrip()}
                     yield feature
+                    id_ += 1
+                    current_lines = []
+
+
