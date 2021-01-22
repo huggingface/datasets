@@ -4,7 +4,7 @@ import numpy as np
 import pyarrow as pa
 
 from ..utils.py_utils import map_nested
-from .formatting import Formatter, NumpyArrowExtractor
+from .formatting import Formatter
 
 
 if TYPE_CHECKING:
@@ -33,13 +33,13 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
         return map_nested(self._recursive_tensorize, data_struct, map_list=False)
 
     def format_row(self, pa_table: pa.Table) -> dict:
-        row = NumpyArrowExtractor().extract_row(pa_table)
+        row = self.numpy_arrow_extractor().extract_row(pa_table)
         return self.recursive_tensorize(row)
 
     def format_column(self, pa_table: pa.Table) -> "torch.Tensor":
-        col = NumpyArrowExtractor().extract_column(pa_table)
+        col = self.numpy_arrow_extractor().extract_column(pa_table)
         return self.recursive_tensorize(col)
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        batch = NumpyArrowExtractor().extract_batch(pa_table)
+        batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         return self.recursive_tensorize(batch)

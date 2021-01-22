@@ -119,7 +119,9 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
-    arrow_extractor: BaseArrowExtractor = BaseArrowExtractor()
+    python_arrow_extractor = PythonArrowExtractor
+    numpy_arrow_extractor = NumpyArrowExtractor
+    pandas_arrow_extractor = PandasArrowExtractor
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
         if query_type == "row":
@@ -141,35 +143,35 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
 class PythonFormatter(Formatter[dict, list, dict]):
     def format_row(self, pa_table: pa.Table) -> dict:
-        return PythonArrowExtractor().extract_row(pa_table)
+        return self.python_arrow_extractor().extract_row(pa_table)
 
     def format_column(self, pa_table: pa.Table) -> list:
-        return PythonArrowExtractor().extract_column(pa_table)
+        return self.python_arrow_extractor().extract_column(pa_table)
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        return PythonArrowExtractor().extract_batch(pa_table)
+        return self.python_arrow_extractor().extract_batch(pa_table)
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
     def format_row(self, pa_table: pa.Table) -> dict:
-        return NumpyArrowExtractor().extract_row(pa_table)
+        return self.numpy_arrow_extractor().extract_row(pa_table)
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
-        return NumpyArrowExtractor().extract_column(pa_table)
+        return self.numpy_arrow_extractor().extract_column(pa_table)
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        return NumpyArrowExtractor().extract_batch(pa_table)
+        return self.numpy_arrow_extractor().extract_batch(pa_table)
 
 
 class PandasFormatter(Formatter):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return PandasArrowExtractor().extract_row(pa_table)
+        return self.pandas_arrow_extractor().extract_row(pa_table)
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
-        return PandasArrowExtractor().extract_column(pa_table)
+        return self.pandas_arrow_extractor().extract_column(pa_table)
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
-        return PandasArrowExtractor().extract_batch(pa_table)
+        return self.pandas_arrow_extractor().extract_batch(pa_table)
 
 
 class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
@@ -183,7 +185,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
         return self.format_batch(pa_table)[pa_table.column_names[0]]
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        batch = PythonArrowExtractor().extract_batch(pa_table)
+        batch = self.python_arrow_extractor().extract_batch(pa_table)
         return self.transform(batch)
 
 
