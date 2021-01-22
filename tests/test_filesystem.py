@@ -23,7 +23,6 @@ def s3(aws_credentials):
         yield boto3.client("s3", region_name="us-east-1")
 
 
-@mock_s3
 def test_extract_path_from_uri(s3):
 
     mock_bucket = "moto-mock-s3-bucket"
@@ -40,7 +39,6 @@ def test_extract_path_from_uri(s3):
     assert dataset_path == new_dataset_path
 
 
-@mock_s3
 def test_is_remote_filesystem():
 
     fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
