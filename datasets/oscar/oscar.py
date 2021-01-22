@@ -369,5 +369,3 @@ class Oscar(datasets.GeneratorBasedBuilder):
                     yield feature
                     id_ += 1
                     current_lines = []
-
-
