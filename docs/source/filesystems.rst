@@ -40,7 +40,7 @@ Listing files from private s3 bucket using ``aws_access_key_id`` and ``aws_secre
 .. code-block::
 
       >>> import datasets
-      >>> s3 = datasets.filesystems..S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
+      >>> s3 = datasets.filesystems.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
       >>> s3.ls('my-private-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
