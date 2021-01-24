@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import os
-import soundfile as sf
 
 import datasets
 
@@ -40,6 +39,21 @@ _DESCRIPTION = """\
 LibriSpeech is a corpus of approximately 1000 hours of read English speech with sampling rate of 16 kHz,
 prepared by Vassil Panayotov with the assistance of Daniel Povey. The data is derived from read
 audiobooks from the LibriVox project, and has been carefully segmented and aligned.87
+
+Note that in order to limit the required storage for preparing this dataset, the audio
+is stored in the .flac format and is not converted to a float32 array. To convert, the audio
+file to a float32 array, please make use of the `.map()` function as follows:
+
+
+```python
+import soundfile as sf
+
+def map_to_array(batch):
+    speech_array, _ = sf.read(batch["file"]
+    batch["speech"] = speech_array
+    return batch
+
+dataset = dataset.map(map_to_array, remove_columns=["file"]
 """
 
 _URL = "http://www.openslr.org/12"
@@ -56,7 +70,7 @@ _DL_URLS = {
         "test": _DL_URL + "test-other.tar.gz",
         "dev": _DL_URL + "dev-other.tar.gz",
         "train.500": _DL_URL + "train-other-500.tar.gz",
-    }
+    },
 }
 
 
@@ -88,7 +102,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "speech": datasets.Sequence(datasets.Value("float32")),
+                    "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),
@@ -128,13 +142,12 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                     line = line.strip()
                     key, transcript = line.split(" ", 1)
                     audio_file = f"{key}.flac"
-                    audio_wav, _ = sf.read(os.path.join(path, audio_file))
                     speaker_id, chapter_id = [int(el) for el in key.split("-")[:2]]
                     example = {
                         "id": key,
                         "speaker_id": speaker_id,
                         "chapter_id": chapter_id,
-                        "speech": audio_wav,
+                        "file": os.path.join(path, audio_file),
                         "text": transcript,
                     }
                     yield key, example
