@@ -129,7 +129,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
 
         return train_splits + [
             datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"]}),
         ]
 
     def _generate_examples(self, archive_path):
