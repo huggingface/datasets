@@ -49,11 +49,11 @@ file to a float32 array, please make use of the `.map()` function as follows:
 import soundfile as sf
 
 def map_to_array(batch):
-    speech_array, _ = sf.read(batch["file"]
+    speech_array, _ = sf.read(batch["file"])
     batch["speech"] = speech_array
     return batch
 
-dataset = dataset.map(map_to_array, remove_columns=["file"]
+dataset = dataset.map(map_to_array, remove_columns=["file"])
 """
 
 _URL = "http://www.openslr.org/12"
