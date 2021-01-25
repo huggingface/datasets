@@ -249,7 +249,8 @@ def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True, max_
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
-    from .. import SCRIPTS_VERSION
+    #    from .. import SCRIPTS_VERSION
+    SCRIPTS_VERSION = "master"
 
     version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
