@@ -96,6 +96,18 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    def test_dump_ignores_line_definition_of_function(self):
+        def func():
+            pass
+
+        hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+
+        def func():
+            pass
+
+        hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+        self.assertEqual(hash1, hash2)
+
     def test_recurse_dump_for_class(self):
 
         hash1 = md5(datasets.utils.dumps(Foo([0]))).hexdigest()
