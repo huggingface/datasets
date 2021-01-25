@@ -47,11 +47,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** http://www.openslr.org/12
+- **Homepage:** [LibriSpeech ASR corpus](http://www.openslr.org/12)
 - **Repository:** [Needs More Information]
-- **Paper:** https://www.danielpovey.com/files/2015_icassp_librispeech.pdf
-- **Leaderboard:** https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-other
-- **Point of Contact:** dpovey@gmail.com
+- **Paper:** [LibriSpeech: An ASR Corpus Based On Public Domain Audio Books](https://www.danielpovey.com/files/2015_icassp_librispeech.pdf)
+- **Leaderboard:** [Paperswithcode Leaderboard](https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-other)
+- **Point of Contact:** [Daniel Povey](mailto:dpovey@gmail.com)
 
 ### Dataset Summary
 
