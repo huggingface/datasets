@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9.0"""
+"""Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9.1"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -49,11 +49,11 @@ _HOMEPAGE = "https://doc2dial.github.io/file/doc2dial/"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-_URLs = "https://doc2dial.github.io/file/doc2dial.zip"
+_URLs = "https://doc2dial.github.io/file/doc2dial_sharedtask.zip"
 
 
 class Doc2dial(datasets.GeneratorBasedBuilder):
-    "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9"
+    "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.91"
 
     VERSION = datasets.Version("1.1.0")
 
@@ -179,13 +179,19 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_train.json"),
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.9/data/woOOD/doc2dial_dial_dev.json"),
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),
                     },
                 ),
             ]
@@ -193,7 +199,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.9/data/doc2dial_doc.json"),},
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_doc.json"),},
                 )
             ]
         elif self.config.name == "doc2dial_rc":
@@ -201,17 +207,19 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial", "v0.9", "data", "woOOD", "doc2dial_dial_dev.json"
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial", "v0.9", "data", "woOOD", "doc2dial_dial_train.json",
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
                     },
                 ),
             ]
@@ -258,7 +266,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-
         if self.config.name == "dialogue_domain":
             logging.info("generating examples from = %s", filepath)
             with open(filepath, encoding="utf-8") as f:
