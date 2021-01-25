@@ -74,11 +74,13 @@ with the lower-WER speakers designated as "clean" and the higher WER speakers de
 
 A typical data point comprises the path to the audio file, usually called `file` and its transcription, called `text`. Some additional information about the speaker and the passage which contains the transcription is provided.
 
+```
 {'chapter_id': 141231,
  'file': '/home/patrick/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/dev_clean/1272/141231/1272-141231-0000.flac',
  'id': '1272-141231-0000',
  'speaker_id': 1272,
  'text': 'A MAN SAID TO THE UNIVERSE SIR I EXIST'}
+```
 
 
 ### Data Fields
