@@ -205,9 +205,8 @@ class BaseDatasetTest(TestCase):
             fingerprint = dset._fingerprint
             dset.set_format(type="numpy", columns=["col_1"])
             self.assertEqual(len(dset[0]), 1)
-            self.assertIsInstance(dset[0]["col_1"], np.ndarray)
-            self.assertListEqual(list(dset[0]["col_1"].shape), [])
-            self.assertEqual(dset[0]["col_1"].item(), 3)
+            self.assertIsInstance(dset[0]["col_1"], int)
+            self.assertEqual(dset[0]["col_1"], 3)
             self.assertIsInstance(dset["col_1"], np.ndarray)
             self.assertListEqual(list(dset["col_1"].shape), [4])
             np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
@@ -216,9 +215,8 @@ class BaseDatasetTest(TestCase):
             dset.reset_format()
             with dset.formatted_as(type="numpy", columns=["col_1"]):
                 self.assertEqual(len(dset[0]), 1)
-                self.assertIsInstance(dset[0]["col_1"], np.ndarray)
-                self.assertListEqual(list(dset[0]["col_1"].shape), [])
-                self.assertEqual(dset[0]["col_1"].item(), 3)
+                self.assertIsInstance(dset[0]["col_1"], int)
+                self.assertEqual(dset[0]["col_1"], 3)
                 self.assertIsInstance(dset["col_1"], np.ndarray)
                 self.assertListEqual(list(dset["col_1"].shape), [4])
                 np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
@@ -235,7 +233,7 @@ class BaseDatasetTest(TestCase):
 
             dset.set_format(type="numpy", columns=["col_1", "col_2"])
             self.assertEqual(len(dset[0]), 2)
-            self.assertEqual(dset[0]["col_2"].item(), "a")
+            self.assertEqual(dset[0]["col_2"], "a")
             del dset
 
     @require_torch
@@ -574,7 +572,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             dset.set_format("numpy", columns=["col_1"])
 
-            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"].item() + 1})
+            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"] + 1})
             self.assertEqual(len(dset_test), 4)
             self.assertEqual(dset_test.format["type"], "numpy")
             self.assertIsInstance(dset_test["col_1"], np.ndarray)
@@ -823,7 +821,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             dset.set_format("numpy")
             fingerprint = dset._fingerprint
-            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"].item()[-1]) % 2 == 0))
+            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0))
             self.assertEqual(len(dset_filter_even_num), 15)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
@@ -992,7 +990,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_select_five), 5)
             self.assertEqual(dset_select_five.format["type"], "numpy")
             for i, row in enumerate(dset_select_five):
-                self.assertEqual(int(row["filename"].item()[-1]), i)
+                self.assertEqual(int(row["filename"][-1]), i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
             del dset, dset_select_five
@@ -1214,10 +1212,10 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 20)
             self.assertEqual(dset_train.format["type"], "numpy")
             self.assertEqual(dset_test.format["type"], "numpy")
-            self.assertNotEqual(dset_train[0]["filename"].item(), "my_name-train_0")
-            self.assertNotEqual(dset_train[-1]["filename"].item(), "my_name-train_9")
-            self.assertNotEqual(dset_test[0]["filename"].item(), "my_name-train_10")
-            self.assertNotEqual(dset_test[-1]["filename"].item(), "my_name-train_29")
+            self.assertNotEqual(dset_train[0]["filename"], "my_name-train_0")
+            self.assertNotEqual(dset_train[-1]["filename"], "my_name-train_9")
+            self.assertNotEqual(dset_test[0]["filename"], "my_name-train_10")
+            self.assertNotEqual(dset_test[-1]["filename"], "my_name-train_29")
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
@@ -1322,10 +1320,12 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], np.ndarray)
-                self.assertIsInstance(dset[:2][col], np.ndarray)
-                self.assertIsInstance(dset[col], np.ndarray)
+            self.assertIsInstance(dset[0]["filename"], str)
+            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+            self.assertIsInstance(dset["filename"], np.ndarray)
+            self.assertIsInstance(dset[0]["vec"], np.ndarray)
+            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+            self.assertIsInstance(dset["vec"], np.ndarray)
             self.assertEqual(dset[:2]["vec"].shape, (2, 3))
             self.assertEqual(dset["vec"][:2].shape, (2, 3))
 
@@ -1375,11 +1375,13 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], np.ndarray)
-                self.assertIsInstance(dset[:2][col], np.ndarray)
-                self.assertIsInstance(dset[col], np.ndarray)
-            # array is flat for raged vectors in numpy
+            self.assertIsInstance(dset[0]["filename"], str)
+            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+            self.assertIsInstance(dset["filename"], np.ndarray)
+            self.assertIsInstance(dset[0]["vec"], np.ndarray)
+            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+            self.assertIsInstance(dset["vec"], np.ndarray)
+            # array is flat for ragged vectors in numpy
             self.assertEqual(dset[:2]["vec"].shape, (2,))
             self.assertEqual(dset["vec"][:2].shape, (2,))
 

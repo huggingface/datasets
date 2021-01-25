@@ -47,7 +47,7 @@ def _query_table_with_indices_mapping(
 
 def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable]) -> pa.Table:
     if isinstance(key, int):
-        return pa_table.slice(key, 1)
+        return pa_table.slice(key % pa_table.num_rows, 1)
     if isinstance(key, slice):
         key = range(*key.indices(pa_table.num_rows))
     if isinstance(key, range):
@@ -59,7 +59,7 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
         return pa_table.drop(column for column in pa_table.column_names if column != key)
     if isinstance(key, Iterable):
         # don't use pyarrow.Table.take even for pyarrow >=1.0 (see https://issues.apache.org/jira/browse/ARROW-9773)
-        return pa.concat_tables(pa_table.slice(i, 1) for i in key)
+        return pa.concat_tables(pa_table.slice(int(i) % pa_table.num_rows, 1) for i in key)
 
     _raise_bad_key_type(key)
 
@@ -79,10 +79,6 @@ def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
     return dict((key, array[0]) for key, array in py_dict.items())
 
 
-def _nest(py_dict: Dict[str, T]) -> Dict[str, List[T]]:
-    return dict((key, [value]) for key, value in py_dict.items())
-
-
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_row(self, pa_table: pa.Table) -> dict:
         return _unnest(pa_table.to_pydict())
@@ -95,16 +91,19 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
 
 
 class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
+    def __init__(self, **np_array_kwargs):
+        self.np_array_kwargs = np_array_kwargs
+
     def extract_row(self, pa_table: pa.Table) -> dict:
         return _unnest(pa_table.to_pandas(types_mapper=pandas_types_mapper).to_dict("list"))
 
     def extract_column(self, pa_table: pa.Table) -> np.ndarray:
         col = pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]].to_list()
-        return np.array(col, copy=False)
+        return np.array(col, copy=False, **self.np_array_kwargs)
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
         batch = pa_table.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
-        return {k: np.array(v, copy=False) for k, v in batch.items()}
+        return {k: np.array(v, copy=False, **self.np_array_kwargs) for k, v in batch.items()}
 
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
@@ -153,14 +152,17 @@ class PythonFormatter(Formatter[dict, list, dict]):
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
+    def __init__(self, **np_array_kwargs):
+        self.np_array_kwargs = np_array_kwargs
+
     def format_row(self, pa_table: pa.Table) -> dict:
-        return self.numpy_arrow_extractor().extract_row(pa_table)
+        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
-        return self.numpy_arrow_extractor().extract_column(pa_table)
+        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        return self.numpy_arrow_extractor().extract_batch(pa_table)
+        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_batch(pa_table)
 
 
 class PandasFormatter(Formatter):
@@ -179,10 +181,20 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
-        return _unnest(self.format_batch(pa_table))
+        formatted_batch = self.format_batch(pa_table)
+        if not isinstance(formatted_batch, dict):
+            raise TypeError(
+                f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
+            )
+        return _unnest(formatted_batch)
 
     def format_column(self, pa_table: pa.Table) -> ColumnFormat:
-        return self.format_batch(pa_table)[pa_table.column_names[0]]
+        formatted_batch = self.format_batch(pa_table)
+        if not isinstance(formatted_batch, dict):
+            raise TypeError(
+                f"Custom formatting function must return a dict to be able to pick a column, but got {formatted_batch}"
+            )
+        return formatted_batch[pa_table.column_names[0]]
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
@@ -198,15 +210,16 @@ def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -
     if isinstance(key, int):
         if (key < 0 and key + size < 0) or (key >= size):
             raise ValueError(f"Invalid key: {key} is out of bounds for size {size}")
+        return
     if isinstance(key, slice):
-        key = range(*slice.indices(size))
+        key = range(*key.indices(size))
     if isinstance(key, range):
-        _check_valid_index_key(range.start, size=size)
-        _check_valid_index_key(range.stop, size=size)
+        _check_valid_index_key(key.start, size=size)
     elif isinstance(key, Iterable):
-        _check_valid_index_key(max(key), size=size)
-        _check_valid_index_key(min(key), size=size)
-    _raise_bad_key_type(key)
+        _check_valid_index_key(int(max(key)), size=size)
+        _check_valid_index_key(int(min(key)), size=size)
+    else:
+        _raise_bad_key_type(key)
 
 
 def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
@@ -219,14 +232,14 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
     _raise_bad_key_type(key)
 
 
-def query(
+def query_table(
     pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: Optional[pa.lib.UInt64Array] = None
 ) -> pa.Table:
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
     if isinstance(key, str):
-        _check_valid_column_key(key, pa.column_names)
+        _check_valid_column_key(key, pa_table.column_names)
     else:
         size = len(indices) if indices is not None else pa_table.num_rows
         _check_valid_index_key(key, size)
@@ -238,7 +251,7 @@ def query(
     return pa_subtable
 
 
-def format(
+def format_table(
     pa_table: pa.Table,
     key: Union[int, slice, range, str, Iterable],
     formatter: Formatter,
