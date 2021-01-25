@@ -55,7 +55,7 @@ _URLs = "https://doc2dial.github.io/file/doc2dial_sharedtask.zip"
 class Doc2dial(datasets.GeneratorBasedBuilder):
     "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.91"
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("0.9.1")
 
     # You will be able to load one or the other configurations in the following list with
     # data = datasets.load_dataset("my_dataset", "first_domain")
