@@ -97,13 +97,29 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Data Splits
 
-For "clean", the data is split into a train, validation, and test set. The train set is further divided into train.100 corresponding to 100h of the training data, and train.360 corresponding to the full 360h of the training data.
-For "other", the data is split into train, validation, and test set. The train set amounts to 500h.
+The size of the corpus makes it impractical, or at least inconvenient
+for some users, to distribute it as a single large archive. Thus the
+training portion of the corpus is split into three subsets, with approximate size 100, 360 and 500 hours respectively.
+A simple automatic
+procedure was used to select the audio in the first two sets to be, on
+average, of higher recording quality and with accents closer to US
+English. An acoustic model was trained on WSJ’s si-84 data subset
+and was used to recognize the audio in the corpus, using a bigram
+LM estimated on the text of the respective books. We computed the
+Word Error Rate (WER) of this automatic transcript relative to our
+reference transcripts obtained from the book texts.
+The speakers in the corpus were ranked according to the WER of
+the WSJ model’s transcripts, and were divided roughly in the middle,
+with the lower-WER speakers designated as "clean" and the higher-WER speakers designated as "other".
 
-|                             | Train (full)   | Valid | Test |
-| -----                       | ------ | ----- | ---- |
-| r/clean| 104014 |  2703 | 2620|
-| r/other       | 148688 |  2864 | 2939 |
+For "clean", the data is split into train, validation, and test set. The train set is further split into train.100 and train.360
+respectively accounting for 100h and 360h of the training data. 
+For "other", the data is split into train, validation, and test set. The train set contains approximately 500h of recorded speech.
+
+|                             | Train.500 | Train.360 | Train.100  | Valid | Test |
+| -----                       | ------ | ----- | ---- | ---- | ---- | 
+| clean | - | 104014 | 28539 |  2703 | 2620|
+| other | 148688 | - | - | 2864 | 2939 |
 
 
 
