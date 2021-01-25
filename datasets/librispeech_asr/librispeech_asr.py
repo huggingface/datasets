@@ -137,7 +137,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
         transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
         for transcript_file in glob.glob(transcripts_glob):
             path = os.path.dirname(transcript_file)
-            with open(os.path.join(path, transcript_file)) as f:
+            with open(os.path.join(path, transcript_file), "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     key, transcript = line.split(" ", 1)
