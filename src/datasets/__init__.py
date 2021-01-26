@@ -23,6 +23,13 @@ __version__ = "1.2.1"
 import pyarrow
 from pyarrow import total_allocated_bytes
 
+
+if tuple(int(i) for i in pyarrow.__version__.split(".")) < (0, 17, 1):
+    raise ImportWarning(
+        "To use `datasets`, the module `pyarrow>=0.17.1` is required, and the current version of `pyarrow` doesn't match this condition.\n"
+        "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
+    )
+
 from .arrow_dataset import Dataset, concatenate_datasets
 from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter
@@ -56,11 +63,5 @@ from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, Spl
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
 
-
-if int(pyarrow.__version__.split(".")[1]) < 16 and int(pyarrow.__version__.split(".")[0]) == 0:
-    raise ImportWarning(
-        "To use `datasets`, the module `pyarrow>=0.16.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
-        "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
-    )
 
 SCRIPTS_VERSION = "master"
