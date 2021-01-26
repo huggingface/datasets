@@ -52,7 +52,7 @@ Using ``S3Filesystem`` with ``botocore.session.Session`` and custom ``aws_profil
       >>> from datasets.filesystems import S3Filesystem
       >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
       >>>
-      >>> s3 = S3FileSystem(sessions=s3_session)  # doctest: +SKIP
+      >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
 
 
 
