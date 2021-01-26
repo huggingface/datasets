@@ -22,7 +22,7 @@ _DESCRIPTION = """\
 SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence-containing abstracts, and annotated with labels and rationales.
 """
 
-_URL = "https://scifact.s3-us-west-2.amazonaws.com/release/2020-12-17/data.tar.gz"
+_URL = "https://scifact.s3-us-west-2.amazonaws.com/release/latest/data.tar.gz"
 
 
 class ScifactConfig(datasets.BuilderConfig):
