@@ -1,3 +1,19 @@
+# coding=utf-8
+# Copyright 2020 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
 from typing import Any, Callable, Dict, Generic, Iterable, List, Optional, TypeVar, Union
 
 import numpy as np
@@ -95,7 +111,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         self.np_array_kwargs = np_array_kwargs
 
     def extract_row(self, pa_table: pa.Table) -> dict:
-        return _unnest(pa_table.to_pandas(types_mapper=pandas_types_mapper).to_dict("list"))
+        return _unnest(self.extract_batch(pa_table))
 
     def extract_column(self, pa_table: pa.Table) -> np.ndarray:
         col = pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]].to_list()
@@ -108,7 +124,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
     def extract_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper)
+        return pa_table.to_pandas(types_mapper=pandas_types_mapper).head(1)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
