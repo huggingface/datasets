@@ -63,51 +63,59 @@ task_ids:
 # Dataset Card for SILICONE Benchmark
 
 ## Table of Contents
-- [Benchmark Description](#benchmark-description)
-  - [Benchmark Summary](#benchmark-summary)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
-- [Benchmark Structure](#dataset-structure)
-  - [Dataset Instances](#data-instances)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-## Benchmark Description
+## Dataset Description
 
-<!-- - **Homepage:** -->
+- **Homepage:** [N/A]
 - **Repository:** https://github.com/eusip/SILICONE-benchmark
 - **Paper:** https://arxiv.org/abs/2009.11152
+- **Leaderboard:** [N/A]
 - **Point of Contact:** Ebenge Usip, ebenge.usip@telecom-paris.fr
-<!-- - **Leaderboard:** -->
 
-### Benchmark Summary
+### Dataset Summary
 
 The Sequence labellIng evaLuatIon benChmark fOr spoken laNguagE (SILICONE) benchmark is a collection of resources for training, evaluating, and analyzing natural language understanding systems specifically designed for spoken language. All datasets are in the English language and covers a variety of domains including daily life, scripted scenarios, joint task completion, phone call conversations, and televsion dialogue. Some datasets additionally include emotion and/or sentimant labels.
 
-<!--
--- ### Supported Tasks and Leaderboards
+### Supported Tasks and Leaderboards
 
 [More Information Needed]
--->
 
 ### Languages
 
 English.
 
-## Benchmark Structure
+## Dataset Structure
 
-### Dataset Instances
+### Data Instances
 
 #### DailyDialog Act Corpus (Dialogue Act)
 For the `dyda_da` configuration one example from the dataset is:
 ```
 {
   'Utterance': "the taxi drivers are on strike again .",
-  'Dialogue_Act': 2, # inform
-  'Dialogue_ID': 2
+  'Dialogue_Act': 2, # "inform"
+  'Dialogue_ID': "2"
 }
 ```
 
@@ -116,8 +124,8 @@ For the `dyda_e` configuration one example from the dataset is:
 ```
 {
   'Utterance': "'oh , breaktime flies .'",
-  'Emotion': 5, # sadness
-  'Dialogue_ID': 997
+  'Emotion': 5, # "sadness"
+  'Dialogue_ID': "997"
 }
 ```
 
@@ -125,10 +133,10 @@ For the `dyda_e` configuration one example from the dataset is:
 For the `iemocap` configuration one example from the dataset is:
 ```
 {
-  'Dialogue_ID': Ses04F_script03_2,
-  'Utterance_ID': Ses04F_script03_2_F025,
+  'Dialogue_ID': "Ses04F_script03_2",
+  'Utterance_ID': "Ses04F_script03_2_F025",
   'Utterance': "You're quite insufferable.  I expect it's because you're drunk.",
-  'Emotion': 0, # ang
+  'Emotion': 0, # "ang"
 }
 ```
 
@@ -136,9 +144,9 @@ For the `iemocap` configuration one example from the dataset is:
 For the `maptask` configuration one example from the dataset is:
 ```
 {
-  'Speaker': f,
+  'Speaker': "f",
   'Utterance': "i think that would bring me over the crevasse",
-  'Dialogue_Act': 4, # explain
+  'Dialogue_Act': 4, # "explain"
 }
 ```
 
@@ -148,10 +156,10 @@ For the `meld_e` configuration one example from the dataset is:
 ```
 {
   'Utterance': "'Push 'em out , push 'em out , harder , harder .'",
-  'Speaker': Joey,
-  'Emotion': 3, # joy
-  'Dialogue_ID': 1,
-  'Utterance_ID': 2
+  'Speaker': "Joey",
+  'Emotion': 3, # "joy"
+  'Dialogue_ID': "1",
+  'Utterance_ID': "2"
 }
 ```
 
@@ -160,10 +168,10 @@ For the `meld_s` configuration one example from the dataset is:
 ```
 {
   'Utterance': "'Okay , y'know what ? There is no more left , left !'",
-  'Speaker': Rachel,
-  'Sentiment': 0, # negative
-  'Dialogue_ID': 2,
-  'Utterance_ID': 4
+  'Speaker': "Rachel",
+  'Sentiment': 0, # "negative"
+  'Dialogue_ID': "2",
+  'Utterance_ID': "4"
 }
 ```
 
@@ -171,11 +179,11 @@ For the `meld_s` configuration one example from the dataset is:
 For the `mrda` configuration one example from the dataset is:
 ```
 {
-  'Utterance_ID': Bed006-c2_0073656_0076706,
-  'Dialogue_Act': 0, # s
-  'Channel_ID': Bed006-c2,
-  'Speaker': mn015,
-  'Dialogue_ID': Bed006,
+  'Utterance_ID': "Bed006-c2_0073656_0076706",
+  'Dialogue_Act': 0, # "s"
+  'Channel_ID': "Bed006-c2",
+  'Speaker': "mn015",
+  'Dialogue_ID': "Bed006",
   'Utterance': "keith is not technically one of us yet ."
 }
 ```
@@ -184,9 +192,9 @@ For the `mrda` configuration one example from the dataset is:
 For the `oasis` configuration one example from the dataset is:
 ```
 {
-  'Speaker': b,
+  'Speaker': "b",
   'Utterance': "when i rang up um when i rang to find out why she said oh well your card's been declined",
-  'Dialogue_Act': 21, # inform
+  'Dialogue_Act': 21, # "inform"
 }
 ```
 
@@ -195,11 +203,11 @@ For the `sem` configuration one example from the dataset is:
 ```
 {
   'Utterance': "can you think of somebody who is like that ?",
-  'NbPairInSession': 11,
-  'Dialogue_ID': 59,
-  'SpeechTurn': 674,
-  'Speaker': Agent,
-  'Sentiment': 1, # Neutral
+  'NbPairInSession': "11",
+  'Dialogue_ID': "59",
+  'SpeechTurn': "674",
+  'Speaker': "Agent",
+  'Sentiment': 1, # "Neutral"
 }
 ```
 
@@ -208,18 +216,82 @@ For the `swda` configuration one example from the dataset is:
 ```
 {
   'Utterance': "but i 'd probably say that 's roughly right .",
-  'Dialogue_Act': 33, # aap_am
-  'From_Caller': 1255,
-  'To_Caller': 1087,
-  'Topic': CRIME,
-  'Dialogue_ID': 818,
-  'Conv_ID': sw2836,
+  'Dialogue_Act': 33, # "aap_am"
+  'From_Caller': "1255",
+  'To_Caller': "1087",
+  'Topic': "CRIME",
+  'Dialogue_ID': "818",
+  'Conv_ID': "sw2836",
 }
 ```
 
 ### Data Fields
 
-All data fields are formatted as `string` features.
+For the `dyda_da` configuration, the different fields are:
+- `Utterance`: Utterance as a string.
+- `Dialogue_Act`: Dialog act label of the utterance. It can be one of "commissive" (0), "directive" (1), "inform" (2) or "question" (3).
+- `Dialogue_ID`: identifier of the dialogue as a string.
+
+For the `dyda_e` configuration, the different fields are:
+- `Utterance`: Utterance as a string.
+- `Dialogue_Act`: Dialog act label of the utterance. It can be one of "anger" (0), "disgust" (1), "fear" (2), "happiness" (3), "no emotion" (4), "sadness" (5) or "surprise" (6).
+- `Dialogue_ID`: identifier of the dialogue as a string.
+
+For the `iemocap` configuration, the different fields are:
+- `Dialogue_ID`: identifier of the dialogue as a string.
+- `Utterance_ID`: identifier of the utterance as a string.
+- `Utterance`: Utterance as a string.
+- `Emotion`: Emotion label of the utterance. It can be one of "Anger" (0), "Disgust" (1), "Excitement" (2), "Fear" (3), "Frustration" (4), "Happiness" (5), "Neutral" (6), "Other" (7), "Sadness" (8), "Surprise" (9) or "Unknown" (10).
+
+For the `maptask` configuration, the different fields are:
+- `Speaker`: identifier of the speaker as a string.
+- `Utterance`: Utterance as a string.
+- `Dialogue_Act`: Dialog act label of the utterance. It can be one of "acknowledge" (0), "align" (1), "check" (2), "clarify" (3), "explain" (4), "instruct" (5), "query_w" (6), "query_yn" (7), "ready" (8), "reply_n" (9), "reply_w" (10) or "reply_y" (11).
+
+For the `meld_e` configuration, the different fields are:
+- `Utterance`: Utterance as a string.
+- `Speaker`: Speaker as a string.
+- `Emotion`: Emotion label of the utterance. It can be one of "anger" (0), "disgust" (1), "fear" (2), "joy" (3), "neutral" (4), "sadness" (5) or "surprise" (6).
+- `Dialogue_ID`: identifier of the dialogue as a string.
+- `Utterance_ID`: identifier of the utterance as a string.
+
+For the `meld_s` configuration, the different fields are:
+- `Utterance`: Utterance as a string.
+- `Speaker`: Speaker as a string.
+- `Sentiment`: Sentiment label of the utterance. It can be one of "negative" (0), "neutral" (1) or "positive" (2).
+- `Dialogue_ID`: identifier of the dialogue as a string.
+- `Utterance_ID`: identifier of the utterance as a string.
+
+For the `mrda` configuration, the different fields are:
+- `Utterance_ID`: identifier of the utterance as a string.
+- `Dialogue_Act`: Dialog act label of the utterance. It can be one of "s" (0) [Statement/Subjective Statement], "d" (1) [Declarative Question], "b" (2) [Backchannel], "f" (3) [Follow-me] or "q" (4) [Question].
+- `Channel_ID`: identifier of the channel as a string.
+- `Speaker`: identifier of the speaker as a string.
+- `Dialogue_ID`: identifier of the channel as a string.
+- `Utterance`: Utterance as a string.
+
+For the `oasis` configuration, the different fields are:
+- `Speaker`: identifier of the speaker as a string.
+- `Utterance`: Utterance as a string.
+- `Dialogue_Act`: Dialog act label of the utterance. It can be one of "accept" (0), "ackn" (1), "answ" (2), "answElab" (3), "appreciate" (4), "backch" (5), "bye" (6), "complete" (7), "confirm" (8), "correct" (9), "direct" (10), "directElab" (11), "echo" (12), "exclaim" (13), "expressOpinion"(14), "expressPossibility" (15), "expressRegret" (16), "expressWish" (17), "greet" (18), "hold" (19),
+"identifySelf" (20), "inform" (21), "informCont" (22), "informDisc" (23), "informIntent" (24), "init" (25), "negate" (26), "offer" (27), "pardon" (28), "raiseIssue" (29), "refer" (30), "refuse" (31), "reqDirect" (32), "reqInfo" (33), "reqModal" (34), "selfTalk" (35), "suggest" (36), "thank" (37), "informIntent-hold" (38), "correctSelf" (39), "expressRegret-inform" (40) or "thank-identifySelf" (41).
+
+For the `sem` configuration, the different fields are:
+- `Utterance`: Utterance as a string.
+- `NbPairInSession`: number of utterance pairs in a dialogue.
+- `Dialogue_ID`: identifier of the dialogue as a string.
+- `SpeechTurn`: SpeakerTurn as a string.
+- `Speaker`: Speaker as a string.
+- `Sentiment`: Sentiment label of the utterance. It can be "Negative", "Neutral" or "Positive".
+
+For the `swda` configuration, the different fields are:
+`Utterance`: Utterance as a string.
+`Dialogue_Act`: Dialogue act label of the utterance. It can be "sd" (0) [Statement-non-opinion], "b" (1) [Acknowledge (Backchannel)], "sv" (2) [Statement-opinion], "%" (3) [Uninterpretable], "aa" (4) [Agree/Accept], "ba" (5) [Appreciation], "fc" (6) [Conventional-closing], "qw" (7) [Wh-Question], "nn" (8) [No Answers], "bk" (9) [Response Acknowledgement], "h" (10) [Hedge], "qy^d" (11) [Declarative Yes-No-Question], "bh" (12) [Backchannel in Question Form], "^q" (13) [Quotation], "bf" (14) [Summarize/Reformulate], 'fo_o_fw_"_by_bc' (15) [Other], 'fo_o_fw_by_bc_"' (16) [Other], "na" (17) [Affirmative Non-yes Answers], "ad" (18) [Action-directive], "^2" (19) [Collaborative Completion], "b^m" (20) [Repeat-phrase], "qo" (21) [Open-Question], "qh" (22) [Rhetorical-Question], "^h" (23) [Hold Before Answer/Agreement], "ar" (24) [Reject], "ng" (25) [Negative Non-no Answers], "br" (26) [Signal-non-understanding], "no" (27) [Other Answers], "fp" (28) [Conventional-opening], "qrr" (29) [Or-Clause], "arp_nd" (30) [Dispreferred Answers], "t3" (31) [3rd-party-talk], "oo_co_cc" (32) [Offers, Options Commits], "aap_am" (33) [Maybe/Accept-part], "t1" (34) [Downplayer], "bd" (35) [Self-talk], "^g" (36) [Tag-Question], "qw^d" (37) [Declarative Wh-Question], "fa" (38) [Apology], "ft" (39) [Thanking], "+" (40) [Unknown], "x" (41) [Unknown], "ny" (42) [Unknown], "sv_fx" (43) [Unknown], "qy_qr" (44) [Unknown] or "ba_fe" (45) [Unknown].
+`From_Caller`: identifier of the from caller as a string.
+`To_Caller`: identifier of the to caller as a string.
+`Topic`: Topic as a string.
+`Dialogue_ID`: identifier of the dialogue as a string.
+`Conv_ID`: identifier of the conversation as a string.
 
 ### Data Splits
 
@@ -236,7 +308,6 @@ All data fields are formatted as `string` features.
 | sem          | 4264   | 485   | 878   |
 | swda         | 190709 | 21203 | 2714  |
 
-<!--
 ## Dataset Creation
 
 ### Curation Rationale
@@ -280,7 +351,6 @@ All data fields are formatted as `string` features.
 ### Other Known Limitations
 
 [More Information Needed]
--->
 
 ## Additional Information
 

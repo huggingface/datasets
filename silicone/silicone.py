@@ -196,9 +196,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=["commissive", "directive", "inform", "question"],
             label_column="Dialogue_Act",
             data_url={
-                "train": os.path.join(_URL, "dyda", "train.csv"),
-                "dev": os.path.join(_URL, "dyda", "dev.csv"),
-                "test": os.path.join(_URL, "dyda", "test.csv"),
+                "train": _URL + "/dyda/train.csv",
+                "dev": _URL + "/dyda/dev.csv",
+                "test": _URL + "/dyda/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -227,9 +227,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=["anger", "disgust", "fear", "happiness", "no emotion", "sadness", "surprise"],
             label_column="Emotion",
             data_url={
-                "train": os.path.join(_URL, "dyda", "train.csv"),
-                "dev": os.path.join(_URL, "dyda", "dev.csv"),
-                "test": os.path.join(_URL, "dyda", "test.csv"),
+                "train": _URL + "/dyda/train.csv",
+                "dev": _URL + "/dyda/dev.csv",
+                "test": _URL + "/dyda/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -260,9 +260,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=list(six.iterkeys(IEMOCAP_E_DESCRIPTION)),
             label_column="Emotion",
             data_url={
-                "train": os.path.join(_URL, "iemocap", "train.csv"),
-                "dev": os.path.join(_URL, "iemocap", "dev.csv"),
-                "test": os.path.join(_URL, "iemocap", "test.csv"),
+                "train": _URL + "/iemocap/train.csv",
+                "dev": _URL + "/iemocap/dev.csv",
+                "test": _URL + "/iemocap/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -297,9 +297,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             "query_w", "query_yn", "ready", "reply_n", "reply_w", "reply_y"],
             label_column="Dialogue_Act",
             data_url={
-                "train": os.path.join(_URL, "maptask", "train.txt"),
-                "dev": os.path.join(_URL, "maptask", "dev.txt"),
-                "test": os.path.join(_URL, "maptask", "test.txt"),
+                "train": _URL + "/maptask/train.txt",
+                "dev": _URL + "/maptask/dev.txt",
+                "test": _URL + "/maptask/test.txt",
             },
             citation=textwrap.dedent(
                 """\
@@ -330,9 +330,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"],
             label_column="Emotion",
             data_url={
-                "train": os.path.join(_URL, "meld", "train.csv"),
-                "dev": os.path.join(_URL, "meld", "dev.csv"),
-                "test": os.path.join(_URL, "meld", "test.csv"),
+                "train": _URL + "/meld/train.csv",
+                "dev": _URL + "/meld/dev.csv",
+                "test": _URL + "/meld/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -362,9 +362,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=["negative", "neutral", "positive"],
             label_column="Sentiment",
             data_url={
-                "train": os.path.join(_URL, "meld", "train.csv"),
-                "dev": os.path.join(_URL, "meld", "dev.csv"),
-                "test": os.path.join(_URL, "meld", "test.csv"),
+                "train": _URL + "/meld/train.csv",
+                "dev": _URL + "/meld/dev.csv",
+                "test": _URL + "/meld/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -395,9 +395,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=list(six.iterkeys(MRDA_DA_DESCRIPTION)),
             label_column="Dialogue_Act",
             data_url={
-                "train": os.path.join(_URL, "mrda", "train.csv"),
-                "dev": os.path.join(_URL, "mrda", "dev.csv"),
-                "test": os.path.join(_URL, "mrda", "test.csv"),
+                "train": _URL + "/mrda/train.csv",
+                "dev": _URL + "/mrda/dev.csv",
+                "test": _URL + "/mrda/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -433,9 +433,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             ],
             label_column="Dialogue_Act",
             data_url={
-                "train": os.path.join(_URL, "oasis", "train.txt"),
-                "dev": os.path.join(_URL, "oasis", "dev.txt"),
-                "test": os.path.join(_URL, "oasis", "test.txt"),
+                "train": _URL + "/oasis/train.txt",
+                "dev": _URL + "/oasis/dev.txt",
+                "test": _URL + "/oasis/test.txt",
             },
             citation=textwrap.dedent(
                 """\
@@ -472,9 +472,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=["Negative", "Neutral", "Positive"],
             label_column="Sentiment",
             data_url={
-                "train": os.path.join(_URL, "sem", "train.csv"),
-                "dev": os.path.join(_URL, "sem", "dev.csv"),
-                "test": os.path.join(_URL, "sem", "test.csv"),
+                "train": _URL + "/sem/train.csv",
+                "dev": _URL + "/sem/dev.csv",
+                "test": _URL + "/sem/test.csv",
             },
             citation=textwrap.dedent(
                 """\
@@ -512,9 +512,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
             label_classes=list(six.iterkeys(SWDA_DA_DESCRIPTION)),
             label_column="Dialogue_Act",
             data_url={
-                "train": os.path.join(_URL, "swda", "train.csv"),
-                "dev": os.path.join(_URL, "swda", "dev.csv"),
-                "test": os.path.join(_URL, "swda", "test.csv"),
+                "train": _URL + "/swda/train.csv",
+                "dev": _URL + "/swda/dev.csv",
+                "test": _URL + "/swda/test.csv",
             },
             citation=textwrap.dedent(
                 """\
