@@ -2,6 +2,7 @@ import fnmatch
 import json
 import os
 import shutil
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
@@ -132,25 +133,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 return 1
             # json file
             elif dst_path.endswith(".json"):
-                with open(src_path, "r", encoding=encoding) as src_file:
-                    json_data = json.load(src_file)
-                    if json_field is not None:
-                        json_data = json_data[json_field]
-                    if isinstance(json_data, dict):
-                        if not all(isinstance(v, list) for v in json_data.values()):
-                            raise ValueError(
-                                f"Couldn't parse columns {list(json_data.keys())}. "
-                                "Maybe specify which json field must be used "
-                                "to read the data with --json_field <my_field>."
-                            )
-                        first_json_data = {k: v[:n_lines] for k, v in json_data.items()}
-                    else:
-                        first_json_data = json_data[:n_lines]
-                    if json_field is not None:
-                        first_json_data = {json_field: first_json_data}
-                    Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                    with open(dst_path, "w", encoding=encoding) as dst_file:
-                        json.dump(first_json_data, dst_file)
+                self._create_json_dummy_data(src_path, dst_path, json_field, n_lines=n_lines, encoding=encoding)
                 return 1
             # xml file
             elif dst_path.endswith(".xml"):
@@ -181,6 +164,43 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                             encoding=encoding,
                         )
             return total
+
+    @staticmethod
+    def _create_json_dummy_data(src_path, dst_path, json_field, n_lines=5, encoding=DEFAULT_ENCODING):
+        try:
+            import ijson
+        except ModuleNotFoundError:
+            error_msg = (
+                "Not found module 'ijson'. To generate JSON dummy data you must first install it: pip install ijson"
+            )
+            logger.error(error_msg)
+            sys.exit(error_msg)
+        with open(src_path, "r", encoding=encoding) as src_file:
+            prefix = f"{json_field}.item" if json_field else ""
+            items = ijson.items(src_file, prefix)
+            first_json_data = []
+            for n_line, item in enumerate(items):
+                if n_line < n_lines:
+                    first_json_data.append(item)
+                else:
+                    break
+        if not first_json_data:
+            with open(src_path, "r", encoding=encoding) as src_file:
+                prefix = json_field or ""
+                items = ijson.kvitems(src_file, prefix)
+                try:
+                    first_json_data = {k: v[:n_lines] for k, v in items}
+                except TypeError:
+                    raise ValueError(
+                        f"Couldn't parse the content of '{src_path}'. "
+                        "Maybe specify which json field must be used "
+                        "to read the data with --json_field <my_field>."
+                    )
+        if json_field:
+            first_json_data = {json_field: first_json_data}
+        Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
+        with open(dst_path, "w", encoding=encoding) as dst_file:
+            json.dump(first_json_data, dst_file)
 
     @staticmethod
     def _create_xml_dummy_data(src_path, dst_path, xml_tag, n_lines=5, encoding=DEFAULT_ENCODING):

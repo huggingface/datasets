@@ -100,6 +100,7 @@ TESTS_REQUIRE = [
     'conllu',
     'elasticsearch',
     'faiss-cpu',
+    'ijson',
     'langdetect',
     'lxml',
     'mwparserfromhell',
