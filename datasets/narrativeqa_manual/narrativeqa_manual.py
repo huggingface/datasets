@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 import os
 from os import listdir
 from os.path import isfile, join
@@ -51,7 +50,7 @@ The links are sometimes broken or invalid.  \
 Therefore, you need to manually download the stories for this dataset using the script provided by the authors \
 (https://github.com/deepmind/narrativeqa/blob/master/download_stories.sh). Running the shell script creates a folder named "tmp" \
 in the root directory and downloads the stories there. This folder containing the stories\
-can be used to load the dataset via `datasets.load_dataset("narrativeqa_manual", data_dir="<path/to/folder>").                """
+can be used to load the dataset via `datasets.load_dataset("narrativeqa_manual", data_dir="<path/to/folder>")`.                """
 
 
 _HOMEPAGE = "https://deepmind.com/research/publications/narrativeqa-reading-comprehension-challenge"
@@ -68,7 +67,7 @@ _URLS = {
 }
 
 
-class NarrativeQaManual(datasets.GeneratorBasedBuilder):
+class NarrativeqaManual(datasets.GeneratorBasedBuilder):
     """The NarrativeQA Manual dataset"""
 
     VERSION = datasets.Version("1.0.0")
@@ -119,13 +118,43 @@ class NarrativeQaManual(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLS)
+        manual_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "manual_dir": manual_dir,
+                    "split": "train",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "manual_dir": manual_dir,
+                    "split": "test",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "manual_dir": manual_dir,
+                    "split": "valid",
+                },
+            ),
+        ]
+
+    def _generate_examples(self, data_dir, manual_dir, split):
+        """ Yields examples. """
+
         documents = data_dir["documents"]
         summaries = data_dir["summaries"]
         qaps = data_dir["qaps"]
+        data_dict = {}
 
-        train_dict = {}
-        test_dict = {}
-        valid_dict = {}
         with open(documents, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
@@ -133,8 +162,10 @@ class NarrativeQaManual(datasets.GeneratorBasedBuilder):
             _ = next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 if row:
-                    if row[1] == "train":
-                        train_dict[row[0]] = {
+                    if row[1] != split:
+                        continue
+                    else:
+                        data_dict[row[0]] = {
                             "document_id": row[0],
                             "kind": row[2],
                             "story_url": row[3],
@@ -144,48 +175,22 @@ class NarrativeQaManual(datasets.GeneratorBasedBuilder):
                             "story_word_count": row[7],
                             "story_start": row[8],
                             "story_end": row[9],
+                            "question-answers": [],
                         }
 
-                    elif row[1] == "test":
-                        test_dict[row[0]] = {
-                            "document_id": row[0],
-                            "kind": row[2],
-                            "story_url": row[3],
-                            "story_file_size": row[4],
-                            "wiki_url": row[5],
-                            "wiki_title": row[6],
-                            "story_word_count": row[7],
-                            "story_start": row[8],
-                            "story_end": row[9],
-                        }
-
-                    elif row[1] == "valid":
-                        valid_dict[row[0]] = {
-                            "document_id": row[0],
-                            "kind": row[2],
-                            "story_url": row[3],
-                            "story_file_size": row[4],
-                            "wiki_url": row[5],
-                            "wiki_title": row[6],
-                            "story_word_count": row[7],
-                            "story_start": row[8],
-                            "story_end": row[9],
-                        }
-
-        path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        onlyfiles = [f for f in listdir(path_to_manual_folder) if isfile(join(path_to_manual_folder, f))]
+        onlyfiles = [f for f in listdir(manual_dir) if isfile(join(manual_dir, f))]
 
         story_texts = {}
         for i in onlyfiles:
             if "content" in i:
-                with open(os.path.join(path_to_manual_folder, i), "r", encoding="utf-8", errors="ignore") as f:
+                with open(os.path.join(manual_dir, i), "r", encoding="utf-8", errors="ignore") as f:
                     text = f.read()
                     story_texts[i.split(".")[0]] = text
 
-        if not os.path.exists(path_to_manual_folder):
+        if not os.path.exists(manual_dir):
             raise FileNotFoundError(
                 "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('narrativeqa_manual', data_dir=...)` that includes the stories downloaded from the original repository. Manual download instructions: {}".format(
-                    path_to_manual_folder, self.manual_download_instructions
+                    manual_dir, self.manual_download_instructions
                 )
             )
 
@@ -197,29 +202,12 @@ class NarrativeQaManual(datasets.GeneratorBasedBuilder):
 
             for id_, row in enumerate(csv_reader):
                 if row:
-                    if row[1] == "train":
-                        train_dict[row[0]]["summary"] = row[2]
-                        train_dict[row[0]]["summary_tokenized"] = row[3]
-                        try:
-                            train_dict[row[0]]["story_text"] = str(story_texts[row[0]])
-                        except KeyError:
-                            train_dict[row[0]]["story_text"] = ""
-
-                    elif row[1] == "test":
-                        test_dict[row[0]]["summary"] = row[2]
-                        test_dict[row[0]]["summary_tokenized"] = row[3]
-                        try:
-                            test_dict[row[0]]["story_text"] = str(story_texts[row[0]])
-                        except KeyError:
-                            test_dict[row[0]]["story_text"] = ""
-
-                    elif row[1] == "valid":
-                        valid_dict[row[0]]["summary"] = row[2]
-                        valid_dict[row[0]]["summary_tokenized"] = row[3]
-                        try:
-                            valid_dict[row[0]]["story_text"] = str(story_texts[row[0]])
-                        except KeyError:
-                            valid_dict[row[0]]["story_text"] = ""
+                    if row[1] != split:
+                        continue
+                    else:
+                        data_dict[row[0]]["summary"] = row[2]
+                        data_dict[row[0]]["summary_tokenized"] = row[3]
+                        data_dict[row[0]]["story_text"] = str(story_texts.get(row[0], ""))
 
         with open(qaps, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
@@ -228,115 +216,33 @@ class NarrativeQaManual(datasets.GeneratorBasedBuilder):
             _ = next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 if row:
-                    if row[1] == "train":
-                        try:
-                            train_dict[row[0]]["question-answers"].append(
-                                {
-                                    "question": row[2],
-                                    "answer1": row[3],
-                                    "answer2": row[4],
-                                    "question_tokenized": row[5],
-                                    "answer1_tokenized": row[6],
-                                    "answer2_tokenized": row[7],
-                                }
-                            )
-                        except KeyError:
-                            train_dict[row[0]]["question-answers"] = [
-                                {
-                                    "question": row[2],
-                                    "answer1": row[3],
-                                    "answer2": row[4],
-                                    "question_tokenized": row[5],
-                                    "answer1_tokenized": row[6],
-                                    "answer2_tokenized": row[7],
-                                }
-                            ]
+                    if row[1] != split:
+                        continue
+                    else:
+                        data_dict[row[0]]["question-answers"].append(
+                            {
+                                "question": row[2],
+                                "answer1": row[3],
+                                "answer2": row[4],
+                                "question_tokenized": row[5],
+                                "answer1_tokenized": row[6],
+                                "answer2_tokenized": row[7],
+                            }
+                        )
 
-                    elif row[1] == "test":
-                        try:
-                            test_dict[row[0]]["question-answers"].append(
-                                {
-                                    "question": row[2],
-                                    "answer1": row[3],
-                                    "answer2": row[4],
-                                    "question_tokenized": row[5],
-                                    "answer1_tokenized": row[6],
-                                    "answer2_tokenized": row[7],
-                                }
-                            )
-                        except KeyError:
-                            test_dict[row[0]]["question-answers"] = [
-                                {
-                                    "question": row[2],
-                                    "answer1": row[3],
-                                    "answer2": row[4],
-                                    "question_tokenized": row[5],
-                                    "answer1_tokenized": row[6],
-                                    "answer2_tokenized": row[7],
-                                }
-                            ]
-                    elif row[1] == "valid":
-                        try:
-                            valid_dict[row[0]]["question-answers"].append(
-                                {
-                                    "question": row[2],
-                                    "answer1": row[3],
-                                    "answer2": row[4],
-                                    "question_tokenized": row[5],
-                                    "answer1_tokenized": row[6],
-                                    "answer2_tokenized": row[7],
-                                }
-                            )
-                        except KeyError:
-                            valid_dict[row[0]]["question-answers"] = [
-                                {
-                                    "question": row[2],
-                                    "answer1": row[3],
-                                    "answer2": row[4],
-                                    "question_tokenized": row[5],
-                                    "answer1_tokenized": row[6],
-                                    "answer2_tokenized": row[7],
-                                }
-                            ]
-
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": train_dict,
-                    "split": "train",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": test_dict, "split": "test"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": valid_dict,
-                    "split": "valid",
-                },
-            ),
-        ]
-
-    def _generate_examples(self, filepath, split):
-        """ Yields examples. """
-        logging.info("generating examples from = %s", filepath)
-        data = filepath
-        for keys in data:
+        for keys in data_dict:
             yield keys, {
-                "id": data[keys]["document_id"],
-                "kind": data[keys]["kind"],
-                "story_url": data[keys]["story_url"],
-                "story_file_size": data[keys]["story_file_size"],
-                "wiki_url": data[keys]["wiki_url"],
-                "wiki_title": data[keys]["wiki_title"],
-                "story_word_count": data[keys]["story_word_count"],
-                "story_start": data[keys]["story_start"],
-                "story_end": data[keys]["story_end"],
-                "qaps": data[keys]["question-answers"],
-                "story_text": data[keys]["story_text"],
-                "summary": data[keys]["summary"],
-                "summary_tokenized": data[keys]["summary_tokenized"],
+                "id": data_dict[keys]["document_id"],
+                "kind": data_dict[keys]["kind"],
+                "story_url": data_dict[keys]["story_url"],
+                "story_file_size": data_dict[keys]["story_file_size"],
+                "wiki_url": data_dict[keys]["wiki_url"],
+                "wiki_title": data_dict[keys]["wiki_title"],
+                "story_word_count": data_dict[keys]["story_word_count"],
+                "story_start": data_dict[keys]["story_start"],
+                "story_end": data_dict[keys]["story_end"],
+                "qaps": data_dict[keys]["question-answers"],
+                "story_text": data_dict[keys]["story_text"],
+                "summary": data_dict[keys]["summary"],
+                "summary_tokenized": data_dict[keys]["summary_tokenized"],
             }

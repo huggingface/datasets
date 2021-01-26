@@ -54,7 +54,7 @@ task_ids:
 
 ### Dataset Summary
 
-NarrativeQA Manual is an English-language dataset of stories and corresponding questions designed to test reading comprehension, especially on long documents. THIS DATASET REQUIRES A MANUALLY DOWNLOADED FILE! Because of a script in the original repository which downloads the stories from original URLs everytime, the links are sometimes broken or invalid. Therefore, you need to manually download the stories for this dataset using the script provided by the authors (https://github.com/deepmind/narrativeqa/blob/master/download_stories.sh). Running the shell script creates a folder named "tmp" in the root directory and downloads the stories there. This folder containing the stories can be used to load the dataset via `datasets.load_dataset("narrativeqa_manual", data_dir="<path/to/folder>").
+NarrativeQA Manual is an English-language dataset of stories and corresponding questions designed to test reading comprehension, especially on long documents. THIS DATASET REQUIRES A MANUALLY DOWNLOADED FILE! Because of a script in the original repository which downloads the stories from original URLs everytime, the links are sometimes broken or invalid. Therefore, you need to manually download the stories for this dataset using the script provided by the authors (https://github.com/deepmind/narrativeqa/blob/master/download_stories.sh). Running the shell script creates a folder named "tmp" in the root directory and downloads the stories there. This folder containing the stories can be used to load the dataset via `datasets.load_dataset("narrativeqa_manual", data_dir="<path/to/folder>")`.
 
 ### Supported Tasks and Leaderboards
 
