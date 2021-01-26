@@ -29,7 +29,7 @@ class S3FileSystem(s3fs.S3FileSystem):
       >>> from datasets.filesystems import S3Filesystem
       >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
       >>>
-      >>> s3 = S3FileSystem(sessions=s3_session)  # doctest: +SKIP
+      >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
 
 
       Loading dataset from s3 using ``S3Filesystem`` and ``load_from_disk()``.
