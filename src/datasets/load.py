@@ -161,7 +161,20 @@ def get_imports(file_path: str):
 
     logger.info("Checking %s for additional imports.", file_path)
     imports = []
+    is_in_docstring = False
     for line in lines:
+        docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
+
+        if len(docstr_start_match) == 1:
+            # flip True <=> False only if doctstring
+            # starts at line without finishing
+            is_in_docstring = not is_in_docstring
+
+        if is_in_docstring:
+            # import statements in doctstrings should
+            # not be added as required dependencies
+            continue
+
         match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
         if match is None:
             match = re.match(

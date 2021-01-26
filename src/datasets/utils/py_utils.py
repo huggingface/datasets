@@ -447,13 +447,18 @@ def _save_code(pickler, obj):
     of functions created in notebooks or shells for example.
     """
     dill._dill.log.info("Co: %s" % obj)
+    # The filename of a function is the .py file where it is defined.
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
     # Moreover lambda functions have a special name: '<lambda>'
     # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
+    # For the hashing mechanism we ignore where the function has been defined
+    # More specifically:
+    # - we ignore the filename of special functions (filename starts with '<')
+    # - we always ignore the line number
     # Only those two lines are different from the original implementation:
     co_filename = "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_filename
-    co_firstlineno = 1 if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_firstlineno
+    co_firstlineno = 1
     # The rest is the same as in the original dill implementation
     if dill._dill.PY3:
         if hasattr(obj, "co_posonlyargcount"):

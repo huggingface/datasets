@@ -117,17 +117,18 @@ corresponding file in PAWS-Wiki.
 
 ### Data Splits
 
-The numbers of examples for each of the six languages are shown below:
+The numbers of examples for each of the seven languages are shown below:
 
 Language | Train   | Dev    | Test
 :------- | ------: | -----: | -----:
-fr       | 49,401  | 1,992  | 1,985
-es       | 49,401  | 1,962  | 1,999
-de       | 49,401  | 1,932  | 1,967
-zh       | 49,401  | 1,984  | 1,975
-ja       | 49,401  | 1,980  | 1,946
-ko       | 49,401  | 1,965  | 1,972
-Total    | 296,406 | 11,815 | 11,844
+en       | 49,401  | 2,000  | 2,000
+fr       | 49,401  | 2,000  | 2,000
+es       | 49,401  | 2,000  | 2,000
+de       | 49,401  | 2,000  | 2,000
+zh       | 49,401  | 2,000  | 2,000
+ja       | 49,401  | 2,000  | 2,000
+ko       | 49,401  | 2,000  | 2,000
+
 
 > **Caveat**: please note that the dev and test sets of PAWS-X are both sourced
 > from the dev set of PAWS-Wiki. As a consequence, the same `sentence 1` may
