@@ -2,13 +2,16 @@ import contextlib
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 
 
 class DatasetDict(dict):
@@ -478,31 +481,51 @@ class DatasetDict(dict):
             }
         )
 
-    def save_to_disk(self, dataset_dict_path: str):
+    def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
-        Save the dataset dict in a dataset dict directory.
+        Saves a dataset dict to a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
-        os.makedirs(dataset_dict_path, exist_ok=True)
+        if is_remote_filesystem(fs):
+            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+        else:
+            fs = fsspec.filesystem("file")
+            dest_dataset_dict_path = dataset_dict_path
+            os.makedirs(dest_dataset_dict_path, exist_ok=True)
+
         json.dump(
-            {"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8")
+            {"splits": list(self)},
+            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(os.path.join(dataset_dict_path, k))
+            dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
         """
-        Load the dataset dict from a dataset dict directory
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be loaded from
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+
         """
         dataset_dict = DatasetDict()
-        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))[
-            "splits"
-        ]:
-            dataset_dict[k] = Dataset.load_from_disk(os.path.join(dataset_dict_path, k))
+        if is_remote_filesystem(fs):
+            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+        else:
+            fs = fsspec.filesystem("file")
+            dest_dataset_dict_path = dataset_dict_path
+        for k in json.load(
+            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+        )["splits"]:
+            dataset_dict_split_path = (
+                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                if is_remote_filesystem(fs)
+                else Path(dest_dataset_dict_path).joinpath(k).as_posix()
+            )
+            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
         return dataset_dict

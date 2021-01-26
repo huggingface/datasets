@@ -31,6 +31,7 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -40,6 +41,7 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
     generate_fingerprint,
@@ -432,77 +434,110 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
-    def save_to_disk(self, dataset_path: str):
+    def save_to_disk(self, dataset_path: str, fs=None):
         """
-        Save the dataset in a dataset directory
+        Saves a dataset to a dataset directory, or in a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be saved to
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
         self = pickle.loads(pickle.dumps(self))
-        os.makedirs(dataset_path, exist_ok=True)
-        # Write indices if needed
-        if self._indices is not None:
-            if not self._indices_data_files:
-                cache_file_name = os.path.join(dataset_path, "indices.arrow")
+
+        if is_remote_filesystem(fs):
+            dataset_path = extract_path_from_uri(dataset_path)
+        else:
+            fs = fsspec.filesystem("file")
+
+        # create temporary directory for saving
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
+            os.makedirs(temp_dataset_path, exist_ok=True)
+
+            # Write indices if needed
+            if self._indices is not None:
+                if not self._indices_data_files:
+                    cache_file_name = os.path.join(temp_dataset_path, "indices.arrow")
+                    writer = ArrowWriter(path=cache_file_name)
+                    writer.write_table(self._indices)
+                    writer.finalize()
+                    self._indices_data_files = [{"filename": cache_file_name}]
+            # Write dataset if needed
+            if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
+                cache_file_name = os.path.join(temp_dataset_path, "dataset.arrow")
                 writer = ArrowWriter(path=cache_file_name)
-                writer.write_table(self._indices)
+                writer.write_table(self._data)
                 writer.finalize()
-                self._indices_data_files = [{"filename": cache_file_name}]
-        # Write dataset if needed
-        if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
-            cache_file_name = os.path.join(dataset_path, "dataset.arrow")
-            writer = ArrowWriter(path=cache_file_name)
-            writer.write_table(self._data)
-            writer.finalize()
-            self._data_files = [{"filename": cache_file_name}]
-            self._inplace_history = [{"transforms": []}]
-        # Copy all files into the dataset directory
-        for data_file in self._data_files + self._indices_data_files:
-            # Copy file to destination directory
-            src = data_file["filename"]
-            filename = Path(src).name
-            dest = os.path.join(dataset_path, filename)
-            if src != dest:
-                shutil.copy(src, dest)
-            # Change path to relative path from inside the destination directory
-            data_file["filename"] = filename
-        # Get state
-        state = self.__getstate__()
-        dataset_info = json.loads(state.pop("_info"))
-        assert state.get("_data") is None, "arrow table needs to be memory mapped"
-        assert state.get("_indices") is None, "arrow table needs to be memory mapped"
-        assert all(
-            len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
-        ), "in-place history needs to be empty"
-        # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
-            json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
-        logger.info("Dataset saved in {}".format(dataset_path))
+                self._data_files = [{"filename": cache_file_name}]
+                self._inplace_history = [{"transforms": []}]
+            # Copy all files into the dataset directory
+            for data_file in self._data_files + self._indices_data_files:
+                src = Path(data_file["filename"])
+                dest = Path(dataset_path).joinpath(src.name)
+                if fs.protocol != "file":
+                    fs.put(src.as_posix(), dest.as_posix())
+                elif src.as_posix() != dest.as_posix():
+                    fs.put(src.as_posix(), dest.as_posix())
+                # Change path to relative path from inside the destination directory
+                data_file["filename"] = src.name
+
+            # Get state
+            state = self.__getstate__()
+            dataset_info = json.loads(state.pop("_info"))
+            assert state.get("_data") is None, "arrow table needs to be memory mapped"
+            assert state.get("_indices") is None, "arrow table needs to be memory mapped"
+            assert all(
+                len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
+            ), "in-place history needs to be empty"
+            # Serialize state
+            with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
+                json.dump(state, state_file, indent=2, sort_keys=True)
+            with fs.open(
+                Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
+            ) as dataset_info_file:
+                json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str) -> "Dataset":
-        """Load the dataset from a dataset directory
+    def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
+        """
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+
+        Returns:
+            ``datasets.Dataset`` or ``datasets.DatasetDict``
+                if `dataset_path` is a path of a dataset directory: the dataset requested,
+                if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
-        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
+        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(fs):
+            src_dataset_path = extract_path_from_uri(dataset_path)
+            tmp_dir = tempfile.TemporaryDirectory()
+            dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
+            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+
+        with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
         # Change path to absolute path
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
+            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"]).as_posix()
         dataset.__setstate__(state)
+
+        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
+            shutil.rmtree(tmp_dir.name, ignore_errors=True)
         return dataset
 
     @property

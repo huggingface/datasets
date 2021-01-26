@@ -27,10 +27,13 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
+import fsspec
+
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
@@ -686,24 +689,32 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str) -> Union[Dataset, DatasetDict]:
+def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
     """
-    Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)``.
+    Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
     Args:
-        dataset_path (``str``): path of a Dataset directory or a DatasetDict directory
+        dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the Dataset or DatasetDict directory where the dataset will be loaded from
+        fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
             if `dataset_path` is a path of a dataset directory: the dataset requested,
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
     """
-    if not os.path.isdir(dataset_path):
+    # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
+    if is_remote_filesystem(fs):
+        dest_dataset_path = extract_path_from_uri(dataset_path)
+    else:
+        fs = fsspec.filesystem("file")
+        dest_dataset_path = dataset_path
+
+    if not fs.exists(dest_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if os.path.exists(os.path.join(dataset_path, "dataset_info.json")):
-        return Dataset.load_from_disk(dataset_path)
-    elif os.path.exists(os.path.join(dataset_path, "dataset_dict.json")):
-        return DatasetDict.load_from_disk(dataset_path)
+    if fs.isfile(Path(dest_dataset_path).joinpath("dataset_info.json").as_posix()):
+        return Dataset.load_from_disk(dataset_path, fs)
+    elif fs.isfile(Path(dest_dataset_path).joinpath("dataset_dict.json").as_posix()):
+        return DatasetDict.load_from_disk(dataset_path, fs)
     else:
         raise FileNotFoundError(
             "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
