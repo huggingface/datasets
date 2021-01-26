@@ -75,7 +75,7 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
-            self.assertIsInstance(dset[0]["col_2"], np.str_)
+            self.assertIsInstance(dset_split[0]["col_2"], np.str_)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
