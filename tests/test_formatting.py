@@ -4,10 +4,11 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
+from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
-from datasets.formatting import NumpyFormatter, PythonFormatter, PandasFormatter
 
-from .utils import require_torch, require_tf
+from .utils import require_tf, require_torch
+
 
 _COL_A = [0, 1, 2]
 _COL_B = ["foo", "bar", "foobar"]
@@ -116,6 +117,7 @@ class FormatterTest(TestCase):
     @require_torch
     def test_torch_formatter(self):
         import torch
+
         from datasets.formatting import TorchFormatter
 
         pa_table = self._create_dummy_table().drop(["b"])
@@ -132,6 +134,7 @@ class FormatterTest(TestCase):
     @require_torch
     def test_torch_formatter_np_array_kwargs(self):
         import torch
+
         from datasets.formatting import TorchFormatter
 
         pa_table = self._create_dummy_table().drop(["b"])
@@ -147,6 +150,7 @@ class FormatterTest(TestCase):
     @require_tf
     def test_tf_formatter(self):
         import tensorflow as tf
+
         from datasets.formatting import TFFormatter
 
         pa_table = self._create_dummy_table()
@@ -162,12 +166,15 @@ class FormatterTest(TestCase):
         tf.debugging.assert_equal(batch["b"], tf.ragged.constant(_COL_B, dtype=tf.string))
         self.assertIsInstance(batch["c"], tf.RaggedTensor)
         self.assertEqual(batch["c"].dtype, tf.float64)
-        tf.debugging.assert_equal(batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float64).bounding_shape())
+        tf.debugging.assert_equal(
+            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float64).bounding_shape()
+        )
         tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float64).flat_values)
 
     @require_tf
     def test_tf_formatter_np_array_kwargs(self):
         import tensorflow as tf
+
         from datasets.formatting import TFFormatter
 
         pa_table = self._create_dummy_table().drop(["b"])

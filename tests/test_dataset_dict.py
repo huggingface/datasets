@@ -50,15 +50,15 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 1)
-            self.assertIsInstance(dset_split[0]["col_1"], int)
-            self.assertEqual(dset_split[0]["col_1"], 3)
+            self.assertIsInstance(dset_split[0]["col_1"], np.int64)
+            self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.reset_format()
         with dset.formatted_as(type="numpy", columns=["col_1"]):
             for dset_split in dset.values():
                 self.assertEqual(len(dset_split[0]), 1)
-                self.assertIsInstance(dset_split[0]["col_1"], int)
-                self.assertEqual(dset_split[0]["col_1"], 3)
+                self.assertIsInstance(dset_split[0]["col_1"], np.int64)
+                self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         for dset_split in dset.values():
             self.assertEqual(dset_split.format["type"], None)
@@ -75,7 +75,8 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
-            self.assertEqual(dset_split[0]["col_2"], "a")
+            self.assertIsInstance(dset[0]["col_2"], np.str_)
+            self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
     @require_torch
