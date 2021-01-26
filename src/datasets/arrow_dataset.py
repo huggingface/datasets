@@ -2024,7 +2024,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     raise ValueError(
                         f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
                     )
-            elif isinstance(values, float):
+            if hasattr(values, "item"):  # single numpy values like np.int64 or np.str_
+                values = values.item()
+            if isinstance(values, float):
                 return _float_feature([values])
             elif isinstance(values, int):
                 return _int64_feature([values])
