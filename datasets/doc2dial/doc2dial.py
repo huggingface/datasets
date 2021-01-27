@@ -57,9 +57,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("0.9.1")
 
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset("my_dataset", "first_domain")
-    # data = datasets.load_dataset("my_dataset", "second_domain")
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name="dialogue_domain",
@@ -134,15 +131,16 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "question": datasets.Value("string"),
+                    "title": datasets.Value("string"),
                     "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
                         {
                             "text": datasets.Value("string"),
-                            "utterance": datasets.Value("string"),
-                            "da": datasets.Value("string"),
                             "answer_start": datasets.Value("int32"),
                             "answer_end": datasets.Value("int32"),
+                            "utterance": datasets.Value("string"),
+                            "da": datasets.Value("string"),
                             "sp_id": datasets.features.Sequence(
                                 datasets.Value("string")
                             ),
@@ -168,7 +166,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                         }
                     ),
                     "doc_context": datasets.Value("string"),
-                    "title": datasets.Value("string"),
                     "domain": datasets.Value("string"),
                 }
             )
@@ -250,7 +247,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             data = json.load(f)["doc_data"]
         return data
 
-    def _get_answers_rc(self, references, spans, doc_text, utterance, da):
+    def _get_answers_rc(self, references, spans, doc_text):
         """Combine the consecutive spans. Create answers with the start and end position of merged spans and corresponding text content in the document."""
         if not references:
             return []
@@ -261,16 +258,14 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 continue
             ls_sp_id.append(ref)
             start_sp, end_sp = spans[ref]["start_sp"], spans[ref]["end_sp"]
-            if start == -1 or int(start) > int(start_sp):
+            if start == -1 or start > start_sp:
                 start = start_sp
-            if int(end) < int(end_sp):
+            if end < end_sp:
                 end = end_sp
         answer = {
+            "text": doc_text[start:end],
             "answer_start": start,
             "answer_end": end,
-            "text": doc_text[start:end],
-            "utterance": utterance,
-            "da": da,
             "sp_id": ls_sp_id,
         }
         return [answer]
@@ -395,8 +390,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn["reference"],
                                         doc["spans"],
                                         doc["doc_text"],
-                                        turn["utterance"],
-                                        turn["da"],
                                     )
                                 turn.pop("reference", None)
                                 all_prev_turns.append(turn)
@@ -411,13 +404,13 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                                 qa = {
                                     "id": id_,
+                                    "title": doc_id,
+                                    "context": doc["doc_text"],
                                     "question": question,
                                     "answers": [],
                                     "dial_context": all_prev_turns,
                                     "doc_context": doc["doc_text"],
-                                    "title": doc_id,
                                     "domain": domain,
-                                    "context": doc["doc_text"],
                                 }
                                 if "references" not in turn_to_predict:
                                     turn_to_predict[
@@ -426,12 +419,15 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict["reference"],
                                         doc["spans"],
                                         doc["doc_text"],
-                                        turn_to_predict["utterance"],
-                                        turn_to_predict["da"],
                                     )
                                 if not turn_to_predict["references"]:
                                     qa["is_impossible"] = True
+                                    qa["answers"] = []
                                 else:
                                     qa["is_impossible"] = False
-                                    qa["answers"] = turn_to_predict["references"]
+                                    for answer in turn_to_predict["references"]:
+                                        d = dict(answer)
+                                        d["utterance"] = turn_to_predict["utterance"]
+                                        d["da"] = turn_to_predict["da"]
+                                        qa["answers"].append(d)
                                 yield id_, qa
