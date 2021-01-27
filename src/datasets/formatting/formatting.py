@@ -114,12 +114,20 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return _unnest(self.extract_batch(pa_table))
 
     def extract_column(self, pa_table: pa.Table) -> np.ndarray:
-        col = pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]].to_list()
-        return np.array(col, copy=False, **self.np_array_kwargs)
+        series = pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
+        return self._series_to_numpy(series)
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
-        batch = pa_table.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
-        return {k: np.array(v, copy=False, **self.np_array_kwargs) for k, v in batch.items()}
+        df = pa_table.to_pandas(types_mapper=pandas_types_mapper)
+        return {k: self._series_to_numpy(v) for k, v in df.items()}
+
+    def _series_to_numpy(self, series: pd.Series) -> np.ndarray:
+        # to_numpy takes too much time for series objects (like series of np.array)
+        if series.dtype == np.object:
+            array = series.tolist()
+        else:
+            array = series.to_numpy()
+        return np.array(array, copy=False, **self.np_array_kwargs)
 
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
