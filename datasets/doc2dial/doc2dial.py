@@ -194,10 +194,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                     gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),},
-                ),
-                datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),},
                 ),
