@@ -54,7 +54,7 @@ def _query_table_with_indices_mapping(
             pass  # treat as an iterable
     if isinstance(key, str):
         pa_table = _query_table(pa_table, key)
-        return _query_table(pa_table, indices.tolist())
+        return _query_table(pa_table, indices.to_pylist())
     if isinstance(key, Iterable):
         return _query_table(pa_table, [indices[i].as_py() for i in key])
 
