@@ -139,7 +139,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "sp_id": datasets.features.Sequence(datasets.Value("string")),
                         }
                     ),
-                    "is_impossible": datasets.Value("bool"),
                     "dial_context": datasets.features.Sequence(
                         {
                             "turn_id": datasets.Value("int32"),
@@ -341,10 +340,8 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict["reference"], doc["spans"], doc["doc_text"],
                                     )
                                 if not turn_to_predict["references"]:
-                                    qa["is_impossible"] = True
                                     qa["answers"] = []
                                 else:
-                                    qa["is_impossible"] = False
                                     for answer in turn_to_predict["references"]:
                                         d = dict(answer)
                                         d["utterance"] = turn_to_predict["utterance"]
