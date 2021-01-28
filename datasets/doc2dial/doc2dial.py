@@ -24,6 +24,7 @@ import os
 
 import datasets
 
+MAX_Q_LEN = 128
 
 _CITATION = """\
 @inproceedings{feng-etal-2020-doc2dial,
@@ -90,7 +91,12 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "turn_id": datasets.Value("int32"),
                             "role": datasets.Value("string"),
                             "da": datasets.Value("string"),
-                            "reference": [{"keys": datasets.Value("string"), "values": datasets.Value("string"),}],
+                            "reference": [
+                                {
+                                    "keys": datasets.Value("string"),
+                                    "values": datasets.Value("string"),
+                                }
+                            ],
                             "utterance": datasets.Value("string"),
                         }
                     ],
@@ -134,25 +140,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "text": datasets.Value("string"),
                             "answer_start": datasets.Value("int32"),
                             "answer_end": datasets.Value("int32"),
-                            "utterance": datasets.Value("string"),
-                            "da": datasets.Value("string"),
-                            "sp_id": datasets.features.Sequence(datasets.Value("string")),
-                        }
-                    ),
-                    "dial_context": datasets.features.Sequence(
-                        {
-                            "turn_id": datasets.Value("int32"),
-                            "role": datasets.Value("string"),
-                            "da": datasets.Value("string"),
-                            "utterance": datasets.Value("string"),
-                            "references": datasets.features.Sequence(
-                                {
-                                    "text": datasets.Value("string"),
-                                    "answer_start": datasets.Value("int32"),
-                                    "answer_end": datasets.Value("int32"),
-                                    "sp_id": datasets.features.Sequence(datasets.Value("string")),
-                                }
-                            ),
+                            # "utterance": datasets.Value("string"),
+                            # "da": datasets.Value("string"),
+                            # "sp_id": datasets.features.Sequence(datasets.Value("string")),
                         }
                     ),
                     "domain": datasets.Value("string"),
@@ -160,7 +150,11 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -172,29 +166,45 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),},
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),},
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
+                    },
                 ),
             ]
         elif self.config.name == "document_domain":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_doc.json"),},
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_doc.json"),
+                    },
                 )
             ]
         elif self.config.name == "doc2dial_rc":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),},
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),},
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
+                    },
                 ),
             ]
 
@@ -223,7 +233,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             "text": doc_text[start:end],
             "answer_start": start,
             "answer_end": end,
-            "sp_id": ls_sp_id,
+            # "sp_id": ls_sp_id,
         }
         return [answer]
 
@@ -247,7 +257,10 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         "role": i["role"],
                                         "da": i["da"],
                                         "reference": [
-                                            {"keys": ref, "values": str(i["reference"][ref]),}
+                                            {
+                                                "keys": ref,
+                                                "values": str(i["reference"][ref]),
+                                            }
                                             for ref in i["reference"]
                                         ],
                                         "utterance": i["utterance"],
@@ -313,7 +326,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 all_prev_utterances.append(turn["utterance"])
                                 if "references" not in turn:
                                     turn["references"] = self._get_answers_rc(
-                                        turn["reference"], doc["spans"], doc["doc_text"],
+                                        turn["reference"],
+                                        doc["spans"],
+                                        doc["doc_text"],
                                     )
                                 turn.pop("reference", None)
                                 all_prev_turns.append(turn)
@@ -324,7 +339,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict = dial["turns"][idx + 1]
                                     else:
                                         continue
-                                question = " ".join(list(reversed(all_prev_utterances)))
+                                question = " ".join(list(reversed(all_prev_utterances)))[:MAX_Q_LEN]
                                 id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                                 qa = {
                                     "id": id_,
@@ -332,19 +347,20 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     "context": doc["doc_text"],
                                     "question": question,
                                     "answers": [],
-                                    "dial_context": all_prev_turns,
                                     "domain": domain,
                                 }
                                 if "references" not in turn_to_predict:
                                     turn_to_predict["references"] = self._get_answers_rc(
-                                        turn_to_predict["reference"], doc["spans"], doc["doc_text"],
+                                        turn_to_predict["reference"],
+                                        doc["spans"],
+                                        doc["doc_text"],
                                     )
-                                if not turn_to_predict["references"]:
+                                if turn_to_predict["references"]:
                                     qa["answers"] = []
                                 else:
                                     for answer in turn_to_predict["references"]:
                                         d = dict(answer)
-                                        d["utterance"] = turn_to_predict["utterance"]
-                                        d["da"] = turn_to_predict["da"]
-                                        qa["answers"].append(d)
+                                        # d["utterance"] = turn_to_predict["utterance"]
+                                        # d["da"] = turn_to_predict["da"]
+                                        qa["answers"] = turn_to_predict["references"]
                                     yield id_, qa
