@@ -85,28 +85,32 @@ class NarrativeqaManual(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "id": datasets.Value("string"),
-                    "kind": datasets.Value("string"),
-                    "story_url": datasets.Value("string"),
-                    "story_file_size": datasets.Value("string"),
-                    "wiki_url": datasets.Value("string"),
-                    "wiki_title": datasets.Value("string"),
-                    "story_word_count": datasets.Value("string"),
-                    "story_start": datasets.Value("string"),
-                    "story_end": datasets.Value("string"),
-                    "story_text": datasets.Value("string"),
-                    "summary": datasets.Value("string"),
-                    "summary_tokenized": datasets.Value("string"),
-                    "qaps": datasets.features.Sequence(
+                    "document": {
+                        "id": datasets.Value("string"),
+                        "kind": datasets.Value("string"),
+                        "url": datasets.Value("string"),
+                        "file_size": datasets.Value("int32"),
+                        "word_count": datasets.Value("int32"),
+                        "start": datasets.Value("string"),
+                        "end": datasets.Value("string"),
+                        "summary": {
+                            "text": datasets.Value("string"),
+                            "tokens": datasets.features.Sequence(datasets.Value("string")),
+                            "url": datasets.Value("string"),
+                            "title": datasets.Value("string"),
+                        },
+                        "text": datasets.Value("string"),
+                    },
+                    "question": {
+                        "text": datasets.Value("string"),
+                        "tokens": datasets.features.Sequence(datasets.Value("string")),
+                    },
+                    "answers": [
                         {
-                            "question": datasets.Value("string"),
-                            "answer1": datasets.Value("string"),
-                            "answer2": datasets.Value("string"),
-                            "question_tokenized": datasets.Value("string"),
-                            "answer1_tokenized": datasets.Value("string"),
-                            "answer2_tokenized": datasets.Value("string"),
+                            "text": datasets.Value("string"),
+                            "tokens": datasets.features.Sequence(datasets.Value("string")),
                         }
-                    ),
+                    ],
                 }
             ),
             supervised_keys=None,
@@ -119,6 +123,13 @@ class NarrativeqaManual(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLS)
         manual_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+
+        if not os.path.exists(manual_dir):
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('narrativeqa_manual', data_dir=...)` that includes the stories downloaded from the original repository. Manual download instructions: {}".format(
+                    manual_dir, self.manual_download_instructions
+                )
+            )
 
         return [
             datasets.SplitGenerator(
@@ -150,36 +161,23 @@ class NarrativeqaManual(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_dir, manual_dir, split):
         """ Yields examples. """
 
-        documents = data_dir["documents"]
-        summaries = data_dir["summaries"]
-        qaps = data_dir["qaps"]
-        data_dict = {}
+        documents = {}
+        with open(data_dir["documents"], encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["set"] != split:
+                    continue
+                documents[row["document_id"]] = row
 
-        with open(documents, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(
-                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
-            _ = next(csv_reader)
-            for id_, row in enumerate(csv_reader):
-                if row:
-                    if row[1] != split:
-                        continue
-                    else:
-                        data_dict[row[0]] = {
-                            "document_id": row[0],
-                            "kind": row[2],
-                            "story_url": row[3],
-                            "story_file_size": row[4],
-                            "wiki_url": row[5],
-                            "wiki_title": row[6],
-                            "story_word_count": row[7],
-                            "story_start": row[8],
-                            "story_end": row[9],
-                            "question-answers": [],
-                        }
+        summaries = {}
+        with open(data_dir["summaries"], encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["set"] != split:
+                    continue
+                summaries[row["document_id"]] = row
 
         onlyfiles = [f for f in listdir(manual_dir) if isfile(join(manual_dir, f))]
-
         story_texts = {}
         for i in onlyfiles:
             if "content" in i:
@@ -187,62 +185,36 @@ class NarrativeqaManual(datasets.GeneratorBasedBuilder):
                     text = f.read()
                     story_texts[i.split(".")[0]] = text
 
-        if not os.path.exists(manual_dir):
-            raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('narrativeqa_manual', data_dir=...)` that includes the stories downloaded from the original repository. Manual download instructions: {}".format(
-                    manual_dir, self.manual_download_instructions
-                )
-            )
-
-        with open(summaries, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(
-                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
-            _ = next(csv_reader)
-
-            for id_, row in enumerate(csv_reader):
-                if row:
-                    if row[1] != split:
-                        continue
-                    else:
-                        data_dict[row[0]]["summary"] = row[2]
-                        data_dict[row[0]]["summary_tokenized"] = row[3]
-                        data_dict[row[0]]["story_text"] = str(story_texts.get(row[0], ""))
-
-        with open(qaps, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(
-                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
-            _ = next(csv_reader)
-            for id_, row in enumerate(csv_reader):
-                if row:
-                    if row[1] != split:
-                        continue
-                    else:
-                        data_dict[row[0]]["question-answers"].append(
-                            {
-                                "question": row[2],
-                                "answer1": row[3],
-                                "answer2": row[4],
-                                "question_tokenized": row[5],
-                                "answer1_tokenized": row[6],
-                                "answer2_tokenized": row[7],
-                            }
-                        )
-
-        for keys in data_dict:
-            yield keys, {
-                "id": data_dict[keys]["document_id"],
-                "kind": data_dict[keys]["kind"],
-                "story_url": data_dict[keys]["story_url"],
-                "story_file_size": data_dict[keys]["story_file_size"],
-                "wiki_url": data_dict[keys]["wiki_url"],
-                "wiki_title": data_dict[keys]["wiki_title"],
-                "story_word_count": data_dict[keys]["story_word_count"],
-                "story_start": data_dict[keys]["story_start"],
-                "story_end": data_dict[keys]["story_end"],
-                "qaps": data_dict[keys]["question-answers"],
-                "story_text": data_dict[keys]["story_text"],
-                "summary": data_dict[keys]["summary"],
-                "summary_tokenized": data_dict[keys]["summary_tokenized"],
-            }
+        with open(data_dir["qaps"], encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for id_, row in enumerate(reader):
+                if row["set"] != split:
+                    continue
+                document_id = row["document_id"]
+                document = documents[document_id]
+                summary = summaries[document_id]
+                full_text = story_texts[document_id]
+                res = {
+                    "document": {
+                        "id": document["document_id"],
+                        "kind": document["kind"],
+                        "url": document["story_url"],
+                        "file_size": document["story_file_size"],
+                        "word_count": document["story_word_count"],
+                        "start": document["story_start"],
+                        "end": document["story_end"],
+                        "summary": {
+                            "text": summary["summary"],
+                            "tokens": summary["summary_tokenized"].split(),
+                            "url": document["wiki_url"],
+                            "title": document["wiki_title"],
+                        },
+                        "text": full_text,
+                    },
+                    "question": {"text": row["question"], "tokens": row["question_tokenized"].split()},
+                    "answers": [
+                        {"text": row["answer1"], "tokens": row["answer1_tokenized"].split()},
+                        {"text": row["answer2"], "tokens": row["answer2_tokenized"].split()},
+                    ],
+                }
+                yield id_, res
