@@ -22,4 +22,3 @@ def test_prepare_module(subpath, shared_datadir, dynamic_modules_path):
     module_name, hash = prepare_module(path, dynamic_modules_path=dynamic_modules_path)
     module = importlib.import_module(module_name)
     assert module.DESCRIPTION == "This is a dummy dataset for tests."
-    # assert False
