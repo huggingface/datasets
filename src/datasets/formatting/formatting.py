@@ -35,7 +35,7 @@ def _is_range_contiguous(key: range) -> bool:
 
 
 def _raise_bad_key_type(key: Any):
-    raise ValueError(
+    raise TypeError(
         f"Wrong key type: '{key}' of type '{type(key)}'. Expected one of int, slice, range, str or Iterable."
     )
 
@@ -67,13 +67,15 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
     if isinstance(key, slice):
         key = range(*key.indices(pa_table.num_rows))
     if isinstance(key, range):
-        if _is_range_contiguous(key):
+        if _is_range_contiguous(key) and key.start >= 0:
             return pa_table.slice(key.start, key.stop - key.start)
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
         return pa_table.drop(column for column in pa_table.column_names if column != key)
     if isinstance(key, Iterable):
+        if len(key) == 0:
+            return pa_table.slice(0, 0)
         # don't use pyarrow.Table.take even for pyarrow >=1.0 (see https://issues.apache.org/jira/browse/ARROW-9773)
         return pa.concat_tables(pa_table.slice(int(i) % pa_table.num_rows, 1) for i in key)
 
@@ -227,21 +229,24 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
 def _check_valid_column_key(key: str, columns: List[str]) -> None:
     if key not in columns:
-        raise ValueError("Column {} not in the dataset. Current columns in the dataset: {}".format(key, columns))
+        raise KeyError("Column {} not in the dataset. Current columns in the dataset: {}".format(key, columns))
 
 
 def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -> None:
     if isinstance(key, int):
         if (key < 0 and key + size < 0) or (key >= size):
-            raise ValueError(f"Invalid key: {key} is out of bounds for size {size}")
+            raise IndexError(f"Invalid key: {key} is out of bounds for size {size}")
         return
-    if isinstance(key, slice):
-        key = range(*key.indices(size))
-    if isinstance(key, range):
-        _check_valid_index_key(key.start, size=size)
+    elif isinstance(key, slice):
+        pass
+    elif isinstance(key, range):
+        if len(key) > 0:
+            _check_valid_index_key(max(key), size=size)
+            _check_valid_index_key(min(key), size=size)
     elif isinstance(key, Iterable):
-        _check_valid_index_key(int(max(key)), size=size)
-        _check_valid_index_key(int(min(key)), size=size)
+        if len(key) > 0:
+            _check_valid_index_key(int(max(key)), size=size)
+            _check_valid_index_key(int(min(key)), size=size)
     else:
         _raise_bad_key_type(key)
 
