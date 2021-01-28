@@ -284,7 +284,7 @@ class QueryTest(TestCase):
             pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
         )
         subtable = query_table(pa_table, slice(n - 1, n), indices=indices)
-        assert len(indices.tolist()[n - 1 : n]) == 0
+        assert len(indices.to_pylist()[n - 1 : n]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
 
     def test_query_table_range(self):
