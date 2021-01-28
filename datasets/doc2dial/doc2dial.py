@@ -145,21 +145,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                         }
                     ),
                     "is_impossible": datasets.Value("bool"),
-                    "dial_context": datasets.features.Sequence(
-                        {
-                            "turn_id": datasets.Value("int32"),
-                            "role": datasets.Value("string"),
-                            "da": datasets.Value("string"),
-                            "utterance": datasets.Value("string"),
-                            "references": datasets.features.Sequence(
-                                {
-                                    "text": datasets.Value("string"),
-                                    "answer_start": datasets.Value("int32"),
-                                    "answer_end": datasets.Value("int32"),
-                                    "sp_id": datasets.features.Sequence(datasets.Value("string")),
-                                }
-                            ),
-                        }
                     ),
                     "domain": datasets.Value("string"),
                 }
@@ -363,7 +348,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     "context": doc["doc_text"],
                                     "question": question,
                                     "answers": [],
-                                    "dial_context": all_prev_turns,
                                     "domain": domain,
                                 }
                                 if "references" not in turn_to_predict:
