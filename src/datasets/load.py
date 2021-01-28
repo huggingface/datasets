@@ -281,7 +281,7 @@ def prepare_module(
     module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
     datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
     datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
-    metrics_modules_path = os.path.join(dynamic_modules_path, "metric")
+    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
     metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
 
     if force_local_path is None:
