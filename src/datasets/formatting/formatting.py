@@ -49,14 +49,14 @@ def _query_table_with_indices_mapping(
         key = range(*key.indices(pa_table.num_rows))
     if isinstance(key, range):
         if _is_range_contiguous(key):
-            return _query_table(pa_table, (i.as_py() for i in indices.slice(key.start, key.stop - key.start)))
+            return _query_table(pa_table, [i.as_py() for i in indices.slice(key.start, key.stop - key.start)])
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
         pa_table = _query_table(pa_table, key)
-        return _query_table(pa_table, (i.as_py() for i in indices))
+        return _query_table(pa_table, indices.tolist())
     if isinstance(key, Iterable):
-        return _query_table(pa_table, (indices[i].as_py() for i in key))
+        return _query_table(pa_table, [indices[i].as_py() for i in key])
 
     _raise_bad_key_type(key)
 
