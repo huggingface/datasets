@@ -156,7 +156,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             ),
                         }
                     ),
-                    "doc_context": datasets.Value("string"),
                     "domain": datasets.Value("string"),
                 }
             )
@@ -339,7 +338,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     "question": question,
                                     "answers": [],
                                     "dial_context": all_prev_turns,
-                                    "doc_context": doc["doc_text"],
                                     "domain": domain,
                                 }
                                 if "references" not in turn_to_predict:
