@@ -90,9 +90,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "turn_id": datasets.Value("int32"),
                             "role": datasets.Value("string"),
                             "da": datasets.Value("string"),
-                            "reference": [
-                                {"keys": datasets.Value("string"), "values": datasets.Value("string"),}
-                            ],
+                            "reference": [{"keys": datasets.Value("string"), "values": datasets.Value("string"),}],
                             "utterance": datasets.Value("string"),
                         }
                     ],
@@ -163,11 +161,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -179,15 +173,11 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),},
                 ),
             ]
         elif self.config.name == "document_domain":
@@ -201,21 +191,15 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),},
                 ),
             ]
 
@@ -305,9 +289,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                             data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"]
                                         ),
                                         "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
-                                        "start_sec": data["doc_data"][domain][doc_id]["spans"][i][
-                                            "start_sec"
-                                        ],
+                                        "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
                                         "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
                                         "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
                                     }
