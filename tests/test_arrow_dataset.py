@@ -1595,7 +1595,8 @@ class MiscellaneousDatasetTest(TestCase):
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_dataset_from_file(in_memory, dataset, tmp_path):
     filename = str(tmp_path / "tmp.arrow")
-    input_dataset = dataset.map(cache_file_name=filename)
-    read_dataset = Dataset.from_file(filename, in_memory=in_memory)
-    assert read_dataset.features.type == input_dataset.features.type
-    assert read_dataset.features == input_dataset.features
+    dataset.map(cache_file_name=filename)
+    dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
+    assert dataset_from_file.features.type == dataset.features.type
+    assert dataset_from_file.features == dataset.features
+    assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
