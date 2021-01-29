@@ -488,6 +488,10 @@ Saving a dataset creates a directory with various files:
 
 Both :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` objects can be saved on disk, by using respectively :func:`datasets.Dataset.save_to_disk` and :func:`datasets.DatasetDict.save_to_disk`.
 
+Furthermore it is also possible to save :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` to other filesystems and cloud storages such as S3 by using respectively :func:`datasets.Dataset.save_to_disk` 
+and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`
+
+
 Controling the cache behavior
 -----------------------------------
 

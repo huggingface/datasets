@@ -86,7 +86,8 @@ task_ids:
   - structure-prediction-other-span-extraction
   wrete:
   - semantic-similarity-classification
-  ---
+---
+
 
 # Dataset Card for IndoNLU
 

@@ -109,7 +109,7 @@ Feature | Mean Token Count
 Premise | 14.1
 Hypothesis | 8.3
 
-In the Hugging Face distribution of the dataset, the _label_ has 4 possible values, _0_, _1_, _2_, _-_.  which correspond to _entailment_, _neutral_, _contradiction_, and _no label_ respectively. The dataset was developed so that the first three values would be evenly distributed across the splits. See the Annotation Process section for details on _no label_.
+In the Hugging Face distribution of the dataset, the _label_ has 4 possible values, _0_, _1_, _2_, _-1_.  which correspond to _entailment_, _neutral_, _contradiction_, and _no label_ respectively. The dataset was developed so that the first three values would be evenly distributed across the splits. See the Annotation Process section for details on _no label_.
 
 ### Span indices
 

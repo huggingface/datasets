@@ -1,21 +1,25 @@
 import logging
 import os
 import pickle
+import shutil
 import tempfile
 from functools import partial
 from unittest import TestCase
 
+import boto3
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from moto import mock_s3
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 
 from .utils import require_tf, require_torch
@@ -184,6 +188,41 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
             self.assertEqual(dset["filename"][0], "my_name-train_0")
             del dset
+
+    @mock_s3
+    def test_dummy_dataset_serialize_s3(self, in_memory):
+        tmp_dir = tempfile.TemporaryDirectory()
+        # Mocked AWS Credentials for moto.
+        os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+        os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+        os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
+
+        s3 = boto3.client("s3", region_name="us-east-1")
+        mock_bucket = "moto-mock-s3-bucket"
+        # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+        s3.create_bucket(Bucket=mock_bucket)
+
+        if in_memory:
+            prefix = "datasets/memory"
+        else:
+            prefix = "datasets/disk"
+
+        dset = self._create_dummy_dataset(in_memory, tmp_dir.name).select(range(10))
+        dataset_path = f"s3://{mock_bucket}/{prefix}"
+
+        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
+
+        dset.save_to_disk(dataset_path, fs)
+        dset = dset.load_from_disk(dataset_path, fs)
+
+        self.assertEqual(len(dset), 10)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
+        del dset
+
+        shutil.rmtree(tmp_dir.name, ignore_errors=True)
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:

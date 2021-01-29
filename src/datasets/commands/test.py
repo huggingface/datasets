@@ -1,3 +1,4 @@
+import logging
 import os
 from argparse import ArgumentParser
 from pathlib import Path
@@ -8,6 +9,7 @@ from datasets.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBui
 from datasets.commands import BaseTransformersCLICommand
 from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module
+from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.logging import get_logger
 
 
@@ -25,6 +27,8 @@ def test_command_factory(args):
         args.ignore_verifications,
         args.force_redownload,
         args.clear_cache,
+        args.proc_rank,
+        args.num_proc,
     )
 
 
@@ -56,6 +60,18 @@ class TestCommand(BaseTransformersCLICommand):
             action="store_true",
             help="Remove downloaded files and cached datasets after each config test",
         )
+        test_parser.add_argument(
+            "--proc_rank",
+            type=int,
+            default=0,
+            help="Rank of the current process for multiprocessing testing.",
+        )
+        test_parser.add_argument(
+            "--num_proc",
+            type=int,
+            default=1,
+            help="Number of processes to use for multiprocessing testing",
+        )
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
 
@@ -70,6 +86,8 @@ class TestCommand(BaseTransformersCLICommand):
         ignore_verifications: bool,
         force_redownload: bool,
         clear_cache: bool,
+        proc_rank: int,
+        num_proc: int,
     ):
         self._dataset = dataset
         self._name = name
@@ -80,6 +98,8 @@ class TestCommand(BaseTransformersCLICommand):
         self._ignore_verifications = ignore_verifications
         self._force_redownload = force_redownload
         self._clear_cache = clear_cache
+        self._proc_rank = proc_rank
+        self._num_proc = num_proc
         if clear_cache and not cache_dir:
             print(
                 "When --clear_cache is used, specifying a cache directory is mandatory.\n"
@@ -89,6 +109,7 @@ class TestCommand(BaseTransformersCLICommand):
             exit(1)
 
     def run(self):
+        fl_logger().setLevel(logging.ERROR)
         if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
@@ -97,19 +118,24 @@ class TestCommand(BaseTransformersCLICommand):
         builder_cls = import_main_class(module_path)
 
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
-            n_builders = len(builder_cls.BUILDER_CONFIGS)
+            n_builders = len(builder_cls.BUILDER_CONFIGS) // self._num_proc
+            n_builders += (len(builder_cls.BUILDER_CONFIGS) % self._num_proc) > self._proc_rank
         else:
-            n_builders = 1
+            n_builders = 1 if self._proc_rank == 0 else 0
 
         def get_builders() -> Generator[DatasetBuilder, None, None]:
             if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
-                for config in builder_cls.BUILDER_CONFIGS:
-                    yield builder_cls(name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
+                for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
+                    if i % self._num_proc == self._proc_rank:
+                        yield builder_cls(
+                            name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir
+                        )
             else:
-                yield builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
+                if self._proc_rank == 0:
+                    yield builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
 
-        for i, builder in enumerate(get_builders()):
-            print(f"Testing builder '{builder.config.name}' ({i + 1}/{n_builders})")
+        for j, builder in enumerate(get_builders()):
+            print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
             builder.download_and_prepare(
                 download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
                 ignore_verifications=self._ignore_verifications,
