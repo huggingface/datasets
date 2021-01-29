@@ -264,7 +264,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_filename: Optional[str] = None,
         in_memory: bool = False,
     ) -> "Dataset":
-        """ Instantiate a Dataset backed by an Arrow table at filename """
+        """Instantiate a Dataset backed by an Arrow table at filename.
+
+        Args:
+            filename (str): File name of the dataset.
+            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            split (NamedSplit, optional): Name of the dataset split.
+            indices_filename (str, optional): File names of the indices.
+            in_memory (bool, default False): Whether to copy the data in-memory.
+
+        Returns:
+            datasets.Dataset
+        """
         # Stream backed by memory-mapped file / file descriptor
         stream_from = pa.memory_map if not in_memory else pa.input_stream
         stream = stream_from(filename)
