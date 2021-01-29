@@ -43,6 +43,11 @@ def _raise_bad_key_type(key: Any):
 def _query_table_with_indices_mapping(
     pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: pa.lib.UInt64Array
 ) -> pa.Table:
+    """
+    Query a pyarrow Table to extract the subtable that correspond to the given key.
+    The :obj:`indices` parameter corresponds to the indices mapping in case we cant to take into
+    account a shuffling or an indices selection for example.
+    """
     if isinstance(key, int):
         return _query_table(pa_table, indices[key].as_py())
     if isinstance(key, slice):
@@ -62,6 +67,9 @@ def _query_table_with_indices_mapping(
 
 
 def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable]) -> pa.Table:
+    """
+    Query a pyarrow Table to extract the subtable that correspond to the given key.
+    """
     if isinstance(key, int):
         return pa_table.slice(key % pa_table.num_rows, 1)
     if isinstance(key, slice):
@@ -83,6 +91,12 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
 
 
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
+    """
+    Arrow extractor are used to extract data from pyarrow tables.
+    It makes it psosible to extract rows, columns and batches.
+    These three extractions types have to be implemented.
+    """
+
     def extract_row(self, pa_table: pa.Table) -> RowFormat:
         raise NotImplementedError
 
@@ -94,6 +108,7 @@ class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
 
 def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
+    """Return the first element of a batch (dict) as a row (dict)"""
     return dict((key, array[0]) for key, array in py_dict.items())
 
 
@@ -144,6 +159,11 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
+    """
+    A formatter is an object that extracts and formats data from pyarrow table.
+    It defines the formatting for rows, colums and batches.
+    """
+
     python_arrow_extractor = PythonArrowExtractor
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
@@ -203,6 +223,15 @@ class PandasFormatter(Formatter):
 
 
 class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
+    """
+    A user-defined custom formatter function defined by a ``transform``.
+    The transform must take as input a batch of data extracted for an arrow table using the python extractor,
+    and return a batch.
+    If the output batch is not a dict, then output_all_columns won't work.
+    If the ouput batch has several fields, then querying a single column won't work since we don't know which field
+    to return.
+    """
+
     def __init__(self, transform: Callable[[dict], dict]):
         self.transform = transform
 
@@ -276,6 +305,24 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
 def query_table(
     pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: Optional[pa.lib.UInt64Array] = None
 ) -> pa.Table:
+    """
+    Query a pyarrow Table to extract the subtable that correspond to the given key.
+
+    Args:
+        pa_table (``pyarrow.Table``): The input pyarrow Table to query from
+        key (``Union[int, slice, range, str, Iterable]``): The key can be of different types:
+            - an integer i: the subtable containing only the i-th row
+            - a slice [i:j:k]: the subtable containing the rows that correspond to this slice
+            - a range(i, j, k): the subtable containing the rows that correspond to this range
+            - a string c: the subtable containing all the rows but only the column c
+            - an iterable l: the subtable that is the concatenation of all the i-th rows for all i in the iterable
+        indices (Optional ``pyarrow.lib.UInt64Array``): If not None, it is used to re-map the given key to the table rows.
+            This is used in case of shuffling or rows selection.
+
+
+    Returns:
+        ``pyarrow.Table``: the result of the query on the input table
+    """
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
@@ -299,6 +346,29 @@ def format_table(
     format_columns: Optional[list] = None,
     output_all_columns=False,
 ):
+    """
+    Format a pyarrow Table depending on the key that was used and a Formatter object.
+
+    Args:
+        pa_table (``pyarrow.Table``): The input pyarrow Table to format
+        key (``Union[int, slice, range, str, Iterable]``): Depending on the key that was used, the formatter formats
+            the table as either a row, a column or a batch.
+        formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
+            PythonFormatter, NumpyFormatter, etc.
+        format_columns (Optional ``List[str]``): if not None, it defines the columns that will be formatted using the
+            given formatter. Other columns are discarded (unless ``output_all_columns`` is True)
+        output_all_columns (``bool``, defaults to False). If True, the formatted output is completed using the columns
+            that are not in the ``format_columns`` list. For these columns, the PythonFormatter is used.
+
+
+    Returns:
+        A row, column or batch formatted object defined by the Formatter:
+        - the PythonFormatter returns a dictionary for a row or a batch, and a list for a column.
+        - the NumpyFormatter returns a dictionary for a row or a batch, and a np.array for a column.
+        - the PandasFormatter returns a pd.DataFrame for a row or a batch, and a pd.Series for a column.
+        - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
+        - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
+    """
     query_type = key_to_query_type(key)
     python_formatter = PythonFormatter()
     if format_columns is None:

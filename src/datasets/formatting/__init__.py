@@ -39,6 +39,10 @@ _FORMAT_TYPES_ALIASES_UNAVAILABLE = {}
 
 
 def register_formatter(format_type: Union[None, str], aliases: Optional[List[str]] = None):
+    """
+    Decorator to register a Formatter object using a name and optional aliases.
+    This decorator must be used on a Formatter class.
+    """
     aliases = aliases if aliases is not None else []
 
     def wrapper(formatter_cls: type) -> type:
@@ -59,6 +63,10 @@ def register_formatter(format_type: Union[None, str], aliases: Optional[List[str
 
 
 def _register_unavailable_formatter(format_type: Union[None, str], aliases: Optional[List[str]] = None):
+    """
+    Decorator to register an unavailable Formatter object using a name and optional aliases.
+    This decorator must be used on an Exception object that is raised when trying to get the unavailable formatter.
+    """
     aliases = aliases if aliases is not None else []
 
     def wrapper(unavailable_error: type) -> type:
@@ -69,6 +77,7 @@ def _register_unavailable_formatter(format_type: Union[None, str], aliases: Opti
     return wrapper
 
 
+# Here we define all the available formatting functions that can be used by `Dataset.set_format`
 register_formatter(None, aliases=["python"])(PythonFormatter)
 register_formatter("numpy", aliases=["np"])(NumpyFormatter)
 register_formatter("pandas", aliases=["pd"])(PandasFormatter)
@@ -92,6 +101,7 @@ else:
 
 
 def get_format_type_from_alias(format_type: Union[None, str]) -> str:
+    """If the given format type is a known alias, then return its main type name. Otherwise return the type with no change."""
     if format_type in _FORMAT_TYPES_ALIASES:
         return _FORMAT_TYPES_ALIASES[format_type]
     else:
@@ -99,6 +109,12 @@ def get_format_type_from_alias(format_type: Union[None, str]) -> str:
 
 
 def get_formatter(format_type: Union[None, str], **format_kwargs) -> Formatter:
+    """
+    Factory function to get a Formatter given its type name and keyword arguments.
+    A formatter is an object that extracts and formats data from pyarrow table.
+    It defines the formatting for rows, colums and batches.
+    If the formatter for a given type name doesn't exist or is not available, a error is raised.
+    """
     format_type = get_format_type_from_alias(format_type)
     if format_type in _FORMAT_TYPES:
         return _FORMAT_TYPES[format_type](**format_kwargs)
