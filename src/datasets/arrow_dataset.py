@@ -310,8 +310,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
-        mmap = pa.BufferReader(buffer)
-        f = pa.ipc.open_stream(mmap)
+        stream = pa.BufferReader(buffer)
+        f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
 
         if indices_buffer is not None:
