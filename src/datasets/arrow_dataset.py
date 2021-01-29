@@ -270,7 +270,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         stream = stream_from(filename)
         f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
-        data_files = [{"filename": filename}]
+        data_files = [{"filename": filename}] if not in_memory else None
 
         if indices_filename is not None:
             indices_mmap = pa.memory_map(indices_filename)
