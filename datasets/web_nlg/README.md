@@ -171,7 +171,7 @@ The following fields can be found in the instances:
 
 Russian data has additional optional fields comparing to English:
 - `dbpedialinks`: RDF triples extracted from DBpedia between English and Russian entities by means of the property `sameAs`.
-- `links>`: RDF triples created manually for some entities to serve as pointers to translators. There are two types of them:
+- `links`: RDF triples created manually for some entities to serve as pointers to translators. There are two types of them:
     * with `sameAs` (`Spaniards | sameAs | испанцы`)
     * with `includes` (`Tomatoes, guanciale, cheese, olive oil | includes | гуанчиале`). Those were mostly created for string literals to translate some parts of them.
 
