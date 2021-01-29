@@ -296,6 +296,27 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_2"].item(), "a")
             del dset
 
+    def test_set_format_transform(self, in_memory):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dset.set_format(transform=transform, columns=["col_1"])
+            self.assertEqual(len(dset[0].keys()), 1)
+            self.assertEqual(dset[0]["col_1"], "3")
+            self.assertEqual(dset[:2]["col_1"], ["3", "2"])
+            self.assertEqual(dset["col_1"][:2], ["3", "2"])
+
+            prev_format = dset.format
+            dset.set_format(**dset.format)
+            self.assertEqual(prev_format, dset.format)
+
+            dset.set_format(transform=transform, columns=["col_1", "col_2"])
+            self.assertEqual(len(dset[0].keys()), 2)
+            self.assertEqual(dset[0]["col_2"], "A")
+            del dset
+
     def test_transmit_format(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
