@@ -22,7 +22,7 @@ from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 
-from .utils import require_tf, require_torch
+from .utils import require_tf, require_torch, require_transformers
 
 
 class Unpicklable:
@@ -1605,3 +1605,16 @@ class MiscellaneousDatasetTest(TestCase):
             with self.assertRaises(ValueError):
                 _ = concatenate_datasets([dset1, dset2, dset3])
             del dset1, dset2, dset3
+
+    @require_transformers
+    def test_set_format_encode(self):
+        from transformers import BertTokenizer
+
+        dset = Dataset.from_dict({"text": ["hello there", "foo"]})
+        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+        def encode(batch):
+            return tokenizer(batch["text"], padding="longest", return_tensors="np")
+
+        dset.set_format(transform=encode)
+        self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))

@@ -208,19 +208,31 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
     def format_row(self, pa_table: pa.Table) -> dict:
         formatted_batch = self.format_batch(pa_table)
-        if not isinstance(formatted_batch, dict):
+        try:
+            return _unnest(formatted_batch)
+        except Exception:
             raise TypeError(
                 f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
             )
-        return _unnest(formatted_batch)
 
     def format_column(self, pa_table: pa.Table) -> ColumnFormat:
         formatted_batch = self.format_batch(pa_table)
-        if not isinstance(formatted_batch, dict):
+        if hasattr(formatted_batch, "keys"):
+            if len(formatted_batch.keys()) > 1:
+                raise TypeError(
+                    "Tried to query a column but the custom formatting function returns too many columns. "
+                    f"Only one column was expected gut got columns {list(formatted_batch.keys())}."
+                )
+        else:
             raise TypeError(
-                f"Custom formatting function must return a dict to be able to pick a column, but got {formatted_batch}"
+                f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
             )
-        return formatted_batch[pa_table.column_names[0]]
+        try:
+            return formatted_batch[pa_table.column_names[0]]
+        except Exception:
+            raise TypeError(
+                f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
+            )
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
@@ -299,10 +311,15 @@ def format_table(
     else:
         pa_table_to_format = pa_table.drop(col for col in pa_table.column_names if col not in format_columns)
         formatted_output = formatter(pa_table_to_format, query_type=query_type)
-        if isinstance(formatted_output, dict) and output_all_columns:
-            pa_table_with_remaining_columns = pa_table.drop(
-                col for col in pa_table.column_names if col in format_columns
-            )
-            remaining_columns_dict = python_formatter(pa_table_with_remaining_columns, query_type=query_type)
-            formatted_output.update(remaining_columns_dict)
+        if output_all_columns:
+            if hasattr(formatted_output, "update"):
+                pa_table_with_remaining_columns = pa_table.drop(
+                    col for col in pa_table.column_names if col in format_columns
+                )
+                remaining_columns_dict = python_formatter(pa_table_with_remaining_columns, query_type=query_type)
+                formatted_output.update(remaining_columns_dict)
+            else:
+                raise TypeError(
+                    f"Custom formatting function must return a dict to work with output_all_columns=True, but got {formatted_output}"
+                )
         return formatted_output
