@@ -633,7 +633,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             dset.set_format("numpy", columns=["col_1"])
 
-            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"] + 1})  # TODO(QL): use item here ?
+            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"] + 1})
             self.assertEqual(len(dset_test), 4)
             self.assertEqual(dset_test.format["type"], "numpy")
             self.assertIsInstance(dset_test["col_1"], np.ndarray)
@@ -882,9 +882,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             dset.set_format("numpy")
             fingerprint = dset._fingerprint
-            dset_filter_even_num = dset.filter(
-                lambda x: (int(x["filename"][-1]) % 2 == 0)
-            )  # TODO(QL): use item here ?
+            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0))
             self.assertEqual(len(dset_filter_even_num), 15)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
@@ -1053,7 +1051,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_select_five), 5)
             self.assertEqual(dset_select_five.format["type"], "numpy")
             for i, row in enumerate(dset_select_five):
-                self.assertEqual(int(row["filename"][-1]), i)  # TODO(QL): use item here ?
+                self.assertEqual(int(row["filename"][-1]), i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
             del dset, dset_select_five
