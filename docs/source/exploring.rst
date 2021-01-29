@@ -157,17 +157,6 @@ While you can access a single row with the ``dataset[i]`` pattern, you can also 
      'idx': [1, 3, 5]
     }
 
-Or use an iterable of type ``bool`` for boolean array indexing:
-
-.. code-block::
-
-    >>> label_mask = np.array(dataset['label']) == 0
-    >>> dataset[label_mask]['sentence1'][:3]
-    ["Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .",
-     'Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
-     'The Nasdaq had a weekly gain of 17.27 , or 1.2 percent , closing at 1,520.15 on Friday .']
-    >>> dataset[label_mask]['label'][:10]
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 You can also get a full columns by querying its name as a string. This will return a list of elements:
 
@@ -207,7 +196,7 @@ While the internal storage of the dataset is always the Apache Arrow format, by 
 
 A specific format can be activated with :func:`datasets.Dataset.set_format`.
 
-:func:`datasets.Dataset.set_format` accepts three inputs to control the format of the dataset:
+:func:`datasets.Dataset.set_format` accepts those inputs to control the format of the dataset:
 
 - :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow']`` (``None`` means return python objects),
 - :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
@@ -216,7 +205,7 @@ A specific format can be activated with :func:`datasets.Dataset.set_format`.
 
 .. note::
 
-    The format is only applied to single row or batches of rows (i.e. when querying :obj:`dataset[0]` or :obj:`dataset[10:20]`). Querying a column (e.g. :obj:`dataset['sentence1']`) will always return python objects and will return the column even if it's filtered by the format.
+    The format is only applied to single row or batches of rows (i.e. when querying :obj:`dataset[0]` or :obj:`dataset[10:20]`). Querying a column (e.g. :obj:`dataset['sentence1']`) will return the column even if it's filtered by the format. In this case the un-formatted column is returned.
     This design choice was made because it's quite rare to use column-only access when working with deep-learning frameworks and it's quite usefull to be able to access column even when they are masked by the format.
 
 Here is an example:
@@ -236,3 +225,28 @@ The current format of the dataset can be queried with :func:`datasets.Dataset.fo
     >>> dataset.reset_format()
     >>> dataset.format
     {'type': 'python', 'format_kwargs': {}, 'columns': ['sentence1', 'sentence2', 'label', 'idx'], 'output_all_columns': False}
+
+You can also define your own formatting function that is applied on-the-fly. To do so you can pass your formatting function in the :obj:`transform` parameter of :func:`datasets.Dataset.set_format`, and keep :obj:`type` to :obj:`None`.
+A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+
+Here is an example to tokenize and pad tokens on-the-fly when accessing the samples:
+
+.. code-block::
+
+    >>> from transformers import BertTokenizer
+    >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    >>> def encode(batch):
+    >>>     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
+    >>> dataset.set_format(transform=encode)
+    >>> dataset.format
+    {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+    >>> dataset[:2]
+    {'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
+
+Since the formatting function is applied on-the-fly, your original data are intact:
+
+.. code-block::
+
+    >>> dataset.reset_format()
+    >>> dataset[0]
+    {'idx': 0, 'label': 1, 'sentence1': 'Amrozi accused his [...] evidence .', 'sentence2': 'Referring to him [...] evidence .'}
