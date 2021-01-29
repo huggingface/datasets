@@ -87,38 +87,75 @@ Utterance are tagged with the [SWBD-DAMSL](https://web.stanford.edu/~jurafsky/ws
 
 An example from the dataset is:
 
-`{'act_tag': 125, 'caller': 'A', 'conversation_no': 3774, 'damsl_act_tag': 4, 'pos': "So/UH I/PRP 've/VBP been/VBN concerned/JJ about/IN crime/NN lately/RB ./.", 'ptb_basename': '3/sw3774', 'ptb_treenumbers': '', 'swda_filename': 'sw10utt/sw_1029_3774.utt', 'text': "{C So } I've been concerned about crime lately. /", 'transcript_index': 0, 'trees': '', 'utterance_index': 1}`
-
+`{'act_tag': 115, 'caller': 'A', 'conversation_no': 3756, 'damsl_act_tag': 26, 'pos': 'Okay/UH ,/,', 'ptb_basename': '3/sw3756', 'ptb_treenumbers': '1', 'subutterance_index': 1, 'swda_filename': 'sw12utt/sw_1210_3756.utt', 'text': 'Okay,  /', 'topic_description': 'PAINTING', 'transcript_index': 0, 'trees': '(INTJ (UH Okay) (, ,) (-DFL- E_S))', 'utterance_index': 1}`
 
 ### Data Fields
 
-'swda_filename':       (str) The filename: directory/basename
-
-'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
-
-'conversation_no':     (int) The conversation Id, to key into the metadata database.
-
-'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
-
-'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file).
-
-'caller':              (str) A, B, @A, @B, @@A, @@B
-
-'utterance_index':     (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
-
-'subutterance_index':  (int) Utterances can be broken across line. This gives the internal position.
-
-'text':                (str) The text of the utterance
-
-'pos':                 (str) The POS tagged version of the utterance, from PtbBasename+.pos
-
-'trees':               (list of nltk.tree.Tree) The tree(s) containing this utterance (separated by ||| in the file).
-
-'ptb_treenumbers':     (list of int) The tree numbers in the PtbBasename+.mrg
+* 'swda_filename':       (str) The filename: directory/basename
+* 'conversation_no':     (int) The conversation Id, to key into the metadata database.
+* 'utterance_index':     (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
+* 'subutterance_index':  (int) Utterances can be broken across line. This gives the internal position.
+* 'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
+* 'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
+* 'damsl_act_tag':       (list of str) The Dialog Act Tags of the 217 variation tags.
+* 'text':                (str) The text of the utterance
+* 'caller':              (str) A, B, @A, @B, @@A, @@B
+* 'pos':                 (str) The POS tagged version of the utterance, from PtbBasename+.pos
+* 'topic_description':   (str) The topic that is being discussed.
+* 'trees':               (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t)
+                                 for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
+* 'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
+* 'ptb_treenumbers':     (list of int) The tree numbers in the PtbBasename+.mrg
     
 
+### Dialog act annotations
 
 
+|         | name                              | act_tag            | example                                              | train_count     | full_count     |
+|-----    |-------------------------------    |----------------    |--------------------------------------------------    |-------------    |------------    |
+| 1       | Statement-non-opinion             | sd                 | Me, I'm in the legal department.                     | 72824           | 75145          |
+| 2       | Acknowledge (Backchannel)         | b                  | Uh-huh.                                              | 37096           | 38298          |
+| 3       | Statement-opinion                 | sv                 | I think it's great                                   | 25197           | 26428          |
+| 4       | Agree/Accept                      | aa                 | That's exactly it.                                   | 10820           | 11133          |
+| 5       | Abandoned or Turn-Exit            | %                  | So, -                                                | 10569           | 15550          |
+| 6       | Appreciation                      | ba                 | I can imagine.                                       | 4633            | 4765           |
+| 7       | Yes-No-Question                   | qy                 | Do you have to have any special training?            | 4624            | 4727           |
+| 8       | Non-verbal                        | x                  | [Laughter], [Throat_clearing]                        | 3548            | 3630           |
+| 9       | Yes answers                       | ny                 | Yes.                                                 | 2934            | 3034           |
+| 10      | Conventional-closing              | fc                 | Well, it's been nice talking to you.                 | 2486            | 2582           |
+| 11      | Uninterpretable                   | %                  | But, uh, yeah                                        | 2158            | 15550          |
+| 12      | Wh-Question                       | qw                 | Well, how old are you?                               | 1911            | 1979           |
+| 13      | No answers                        | nn                 | No.                                                  | 1340            | 1377           |
+| 14      | Response Acknowledgement          | bk                 | Oh, okay.                                            | 1277            | 1306           |
+| 15      | Hedge                             | h                  | I don't know if I'm making any sense or not.         | 1182            | 1226           |
+| 16      | Declarative Yes-No-Question       | qy^d               | So you can afford to get a house?                    | 1174            | 1219           |
+| 17      | Other                             | fo_o_fw_by_bc      | Well give me a break, you know.                      | 1074            | 883            |
+| 18      | Backchannel in question form      | bh                 | Is that right?                                       | 1019            | 1053           |
+| 19      | Quotation                         | ^q                 | You can't be pregnant and have cats                  | 934             | 983            |
+| 20      | Summarize/reformulate             | bf                 | Oh, you mean you switched schools for the kids.      | 919             | 952            |
+| 21      | Affirmative non-yes answers       | na                 | It is.                                               | 836             | 847            |
+| 22      | Action-directive                  | ad                 | Why don't you go first                               | 719             | 746            |
+| 23      | Collaborative Completion          | ^2                 | Who aren't contributing.                             | 699             | 723            |
+| 24      | Repeat-phrase                     | b^m                | Oh, fajitas                                          | 660             | 688            |
+| 25      | Open-Question                     | qo                 | How about you?                                       | 632             | 656            |
+| 26      | Rhetorical-Questions              | qh                 | Who would steal a newspaper?                         | 557             | 575            |
+| 27      | Hold before answer/agreement      | ^h                 | I'm drawing a blank.                                 | 540             | 556            |
+| 28      | Reject                            | ar                 | Well, no                                             | 338             | 346            |
+| 29      | Negative non-no answers           | ng                 | Uh, not a whole lot.                                 | 292             | 302            |
+| 30      | Signal-non-understanding          | br                 | Excuse me?                                           | 288             | 298            |
+| 31      | Other answers                     | no                 | I don't know                                         | 279             | 286            |
+| 32      | Conventional-opening              | fp                 | How are you?                                         | 220             | 225            |
+| 33      | Or-Clause                         | qrr                | or is it more of a company?                          | 207             | 209            |
+| 34      | Dispreferred answers              | arp_nd             | Well, not so much that.                              | 205             | 207            |
+| 35      | 3rd-party-talk                    | t3                 | My goodness, Diane, get down from there.             | 115             | 117            |
+| 36      | Offers, Options, Commits          | oo_co_cc           | I'll have to check that out                          | 109             | 110            |
+| 37      | Self-talk                         | t1                 | What's the word I'm looking for                      | 102             | 103            |
+| 38      | Downplayer                        | bd                 | That's all right.                                    | 100             | 103            |
+| 39      | Maybe/Accept-part                 | aap_am             | Something like that                                  | 98              | 105            |
+| 40      | Tag-Question                      | ^g                 | Right?                                               | 93              | 92             |
+| 41      | Declarative Wh-Question           | qw^d               | You are what kind of buff?                           | 80              | 80             |
+| 42      | Apology                           | fa                 | I'm sorry.                                           | 76              | 79             |
+| 43      | Thanking                          | ft                 | Hey thanks a lot                                     | 67              | 78             |
 
 ### Data Splits
 
@@ -191,28 +228,28 @@ This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareA
 
 ```
 @techreport{Jurafsky-etal:1997,
-	Address = {Boulder, CO},
-	Author = {Jurafsky, Daniel and Shriberg, Elizabeth and Biasca, Debra},
-	Institution = {University of Colorado, Boulder Institute of Cognitive Science},
-	Number = {97-02},
-	Title = {Switchboard {SWBD}-{DAMSL} Shallow-Discourse-Function Annotation Coders Manual, Draft 13},
-	Year = {1997}}
+    Address = {Boulder, CO},
+    Author = {Jurafsky, Daniel and Shriberg, Elizabeth and Biasca, Debra},
+    Institution = {University of Colorado, Boulder Institute of Cognitive Science},
+    Number = {97-02},
+    Title = {Switchboard {SWBD}-{DAMSL} Shallow-Discourse-Function Annotation Coders Manual, Draft 13},
+    Year = {1997}}
 
 @article{Shriberg-etal:1998,
-	Author = {Shriberg, Elizabeth and Bates, Rebecca and Taylor, Paul and Stolcke, Andreas and Jurafsky, Daniel and Ries, Klaus and Coccaro, Noah and Martin, Rachel and Meteer, Marie and Van Ess-Dykema, Carol},
-	Journal = {Language and Speech},
-	Number = {3--4},
-	Pages = {439--487},
-	Title = {Can Prosody Aid the Automatic Classification of Dialog Acts in Conversational Speech?},
-	Volume = {41},
-	Year = {1998}}
+    Author = {Shriberg, Elizabeth and Bates, Rebecca and Taylor, Paul and Stolcke, Andreas and Jurafsky, Daniel and Ries, Klaus and Coccaro, Noah and Martin, Rachel and Meteer, Marie and Van Ess-Dykema, Carol},
+    Journal = {Language and Speech},
+    Number = {3--4},
+    Pages = {439--487},
+    Title = {Can Prosody Aid the Automatic Classification of Dialog Acts in Conversational Speech?},
+    Volume = {41},
+    Year = {1998}}
 
 @article{Stolcke-etal:2000,
-	Author = {Stolcke, Andreas and Ries, Klaus and Coccaro, Noah and Shriberg, Elizabeth and Bates, Rebecca and Jurafsky, Daniel and Taylor, Paul and Martin, Rachel and Meteer, Marie and Van Ess-Dykema, Carol},
-	Journal = {Computational Linguistics},
-	Number = {3},
-	Pages = {339--371},
-	Title = {Dialogue Act Modeling for Automatic Tagging and Recognition of Conversational Speech},
-	Volume = {26},
-	Year = {2000}}
+    Author = {Stolcke, Andreas and Ries, Klaus and Coccaro, Noah and Shriberg, Elizabeth and Bates, Rebecca and Jurafsky, Daniel and Taylor, Paul and Martin, Rachel and Meteer, Marie and Van Ess-Dykema, Carol},
+    Journal = {Computational Linguistics},
+    Number = {3},
+    Pages = {339--371},
+    Title = {Dialogue Act Modeling for Automatic Tagging and Recognition of Conversational Speech},
+    Volume = {26},
+    Year = {2000}}
 ```

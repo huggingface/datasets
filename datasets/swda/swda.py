@@ -30,7 +30,6 @@ import glob
 import io
 import os
 import re
-import sys
 
 import datasets
 
@@ -95,17 +94,20 @@ class Swda(datasets.GeneratorBasedBuilder):
     about the associated turn. The SwDA project was undertaken at UC Boulder in the late 1990s.
 
     'swda_filename':       (str) The filename: directory/basename
-    'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
     'conversation_no':     (int) The conversation Id, to key into the metadata database.
-    'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
-    'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file).
-    'caller':              (str) A, B, @A, @B, @@A, @@B
     'utterance_index':     (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
     'subutterance_index':  (int) Utterances can be broken across line. This gives the internal position.
+    'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
+    'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
+    'damsl_act_tag':       (list of str) The Dialog Act Tags of the 217 variation tags.
     'text':                (str) The text of the utterance
+    'caller':              (str) A, B, @A, @B, @@A, @@B
     'pos':                 (str) The POS tagged version of the utterance, from PtbBasename+.pos
-    'trees':               (str) The tree(s) containing this utterance (separated by ||| in the file).
-    'ptb_treenumbers':     (str) The tree numbers in the PtbBasename+.mrg
+    'topic_description':   (str) The topic that is being discussed.
+    'trees':               (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t)
+                                 for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
+    'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
+    'ptb_treenumbers':     (list of int) The tree numbers in the PtbBasename+.mrg
     """
 
     # Urls for each split.
@@ -127,8 +129,9 @@ class Swda(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "swda_filename": datasets.Value("string"),
-                    "ptb_basename": datasets.Value("string"),
                     "conversation_no": datasets.Value("int64"),
+                    "utterance_index": datasets.Value("int64"),
+                    "subutterance_index": datasets.Value("int64"),
                     "transcript_index": datasets.Value("int64"),
                     "act_tag": datasets.ClassLabel(
                         num_classes=217,
@@ -400,11 +403,12 @@ class Swda(datasets.GeneratorBasedBuilder):
                             "na",
                         ],
                     ),
-                    "caller": datasets.Value("string"),
-                    "utterance_index": datasets.Value("int64"),
                     "text": datasets.Value("string"),
+                    "caller": datasets.Value("string"),
                     "pos": datasets.Value("string"),
+                    "topic_description": datasets.Value("string"),
                     "trees": datasets.Value("string"),
+                    "ptb_basename": datasets.Value("string"),
                     "ptb_treenumbers": datasets.Value("string"),
                 }
             ),
@@ -460,16 +464,18 @@ class Swda(datasets.GeneratorBasedBuilder):
                 id_ = i_trans + i_utt
                 yield id_, {
                     "swda_filename": utt.swda_filename,
-                    "ptb_basename": utt.ptb_basename,
                     "conversation_no": utt.conversation_no,
-                    "transcript_index": utt.transcript_index,
-                    "act_tag": utt.act_tag,  # Need change to labels
-                    "damsl_act_tag": utt.damsl_act_tag(),
-                    "caller": utt.caller,
                     "utterance_index": utt.utterance_index,
+                    "subutterance_index": utt.subutterance_index,
+                    "transcript_index": utt.transcript_index,
+                    "act_tag": utt.act_tag,
+                    "damsl_act_tag": utt.damsl_act_tag(),
                     "text": utt.text,
                     "pos": utt.pos,
+                    "topic_description": utt.topic_description,
+                    "caller": utt.caller,
                     "trees": utt.trees,
+                    "ptb_basename": utt.ptb_basename,
                     "ptb_treenumbers": utt.ptb_treenumbers,
                 }
 
@@ -491,14 +497,11 @@ class CorpusReader:
         self.metadata = Metadata(metadata_filename)
         self.split_file = split_file
 
-    def iter_transcripts(self, display_progress=True):
+    def iter_transcripts(
+        self,
+    ):
         """
         Iterate through the transcripts.
-
-        Parameters
-        ----------
-        display_progress : bool (default: True)
-            Display an overwriting progress bar if True.
         """
 
         # All files names.
@@ -509,43 +512,20 @@ class CorpusReader:
         filenames = [
             file for file in filenames if os.path.basename(file).split("_")[-1].split(".")[0] in self.split_file
         ]
-        i = 1
         for filename in filenames:
-            # Optional progress bar:
-            if display_progress:
-                sys.stderr.write("\r")
-                sys.stderr.write("transcript %s" % i)
-                sys.stderr.flush()
-                i += 1
             # Yield the Transcript instance:
             yield Transcript(filename, self.metadata)
-        # Closing blank line for the progress bar:
-        if display_progress:
-            sys.stderr.write("\n")
 
-    def iter_utterances(self, display_progress=True):
+    def iter_utterances(
+        self,
+    ):
         """
         Iterate through the utterances.
-
-        Parameters
-        ----------
-        display_progress : bool (default: True)
-            Display an overwriting progress bar if True.
         """
-        i = 1
-        for trans in self.iter_transcripts(display_progress=False):
+        for trans in self.iter_transcripts():
             for utt in trans.utterances:
-                # Optional progress bar.
-                if display_progress:
-                    sys.stderr.write("\r")
-                    sys.stderr.write("utterance %s" % i)
-                    sys.stderr.flush()
-                    i += 1
                 # Yield the Utterance instance:
                 yield utt
-        # Closing blank line for the progress bar:
-        if display_progress:
-            sys.stderr.write("\n")
 
 
 class Metadata:
@@ -591,6 +571,8 @@ class Metadata:
                 "to_caller_education",
             ):
                 d[key] = int(d[key])
+            # Keep topic description.
+            d["topic_description"] = d["topic_description"]
             talk_day = d["talk_day"]
             talk_year = int("19" + talk_day[:2])
             talk_month = int(talk_day[2:4])
@@ -663,8 +645,9 @@ class Utterance:
             # Special handling of non-string values.
             if att_name == "trees":
                 if row_value:
-                    row_value = row_value  # [Tree.fromstring(t)
-                    # for t in row_value.split("|||")]
+                    # Origianl code returned list of nltk.tree and used `[Tree.fromstring(t) for t in row_value.split("|||")]`.
+                    # Since we're returning str we don't need to make any mondifications to row_value.
+                    row_value = row_value
                 else:
                     row_value = ""  # []
             elif att_name == "ptb_treenumbers":
@@ -692,6 +675,7 @@ class Utterance:
             if self.caller.endswith("B"):
                 full_key = "to_" + key
             setattr(self, key, transcript_metadata[full_key])
+        setattr(self, "topic_description", transcript_metadata["topic_description"])
 
     def damsl_act_tag(self):
         """
