@@ -25,6 +25,15 @@ from datasets.info import DatasetInfo
 from .utils import require_tf, require_torch
 
 
+@pytest.fixture
+def dataset():
+    features = Features(
+        {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+    )
+    ds = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+    return ds
+
+
 class Unpicklable:
     def __getstate__(self):
         raise pickle.PicklingError()
@@ -1581,3 +1590,12 @@ class MiscellaneousDatasetTest(TestCase):
             with self.assertRaises(ValueError):
                 _ = concatenate_datasets([dset1, dset2, dset3])
             del dset1, dset2, dset3
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_dataset_from_file(in_memory, dataset, tmp_path):
+    filename = str(tmp_path / "tmp.arrow")
+    input_dataset = dataset.map(cache_file_name=filename)
+    read_dataset = Dataset.from_file(filename, in_memory=in_memory)
+    assert read_dataset.features.type == input_dataset.features.type
+    assert read_dataset.features == input_dataset.features

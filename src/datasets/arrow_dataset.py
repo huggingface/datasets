@@ -262,10 +262,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
+        in_memory: bool = False
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow table at filename """
-        mmap = pa.memory_map(filename)
-        f = pa.ipc.open_stream(mmap)
+        # Stream backed by memory-mapped file / file descriptor
+        stream_from = pa.memory_map if not in_memory else pa.input_stream
+        stream = stream_from(filename)
+        f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
         data_files = [{"filename": filename}]
 
