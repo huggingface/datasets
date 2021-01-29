@@ -512,7 +512,7 @@ class CorpusReader:
         filenames = [
             file for file in filenames if os.path.basename(file).split("_")[-1].split(".")[0] in self.split_file
         ]
-        for filename in filenames:
+        for filename in sorted(filenames):
             # Yield the Transcript instance:
             yield Transcript(filename, self.metadata)
 
