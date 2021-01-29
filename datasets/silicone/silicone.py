@@ -18,8 +18,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import os
 import textwrap
 
 import pandas as pd
@@ -176,6 +174,7 @@ class SiliconeConfig(datasets.BuilderConfig):
         self.citation = citation
         self.url = url
 
+
 class Silicone(datasets.GeneratorBasedBuilder):
     """The Sequence labellIng evaLuatIon benChmark fOr spoken laNguagE (SILICONE) benchmark."""
 
@@ -252,10 +251,10 @@ class Silicone(datasets.GeneratorBasedBuilder):
             There is no official split of this dataset."""
             ),
             text_features={
-              "Dialogue_ID": "Dialogue_ID",
-              "Utterance_ID": "Utterance_ID",
-              "Utterance": "Utterance",
-              "Emotion": "Emotion",
+                "Dialogue_ID": "Dialogue_ID",
+                "Utterance_ID": "Utterance_ID",
+                "Utterance": "Utterance",
+                "Emotion": "Emotion",
             },
             label_classes=list(six.iterkeys(IEMOCAP_E_DESCRIPTION)),
             label_column="Emotion",
@@ -293,8 +292,20 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 "Utterance": "Utterance",
                 "Dialogue_Act": "Dialogue_Act",
             },
-            label_classes=["acknowledge", "align", "check", "clarify", "explain", "instruct",
-            "query_w", "query_yn", "ready", "reply_n", "reply_w", "reply_y"],
+            label_classes=[
+                "acknowledge",
+                "align",
+                "check",
+                "clarify",
+                "explain",
+                "instruct",
+                "query_w",
+                "query_yn",
+                "ready",
+                "reply_n",
+                "reply_w",
+                "reply_y",
+            ],
             label_column="Dialogue_Act",
             data_url={
                 "train": _URL + "/maptask/train.txt",
@@ -424,12 +435,48 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 "Dialogue_Act": "Dialogue_Act",
             },
             label_classes=[
-                "accept", "ackn", "answ", "answElab", "appreciate", "backch", "bye", "complete",
-                "confirm", "correct", "direct", "directElab", "echo", "exclaim", "expressOpinion",
-                "expressPossibility", "expressRegret", "expressWish", "greet", "hold", "identifySelf",
-                "inform", "informCont", "informDisc", "informIntent", "init", "negate", "offer", "pardon",
-                "raiseIssue", "refer", "refuse", "reqDirect", "reqInfo", "reqModal", "selfTalk", "suggest",
-                "thank", "informIntent-hold", "correctSelf", "expressRegret-inform", "thank-identifySelf"
+                "accept",
+                "ackn",
+                "answ",
+                "answElab",
+                "appreciate",
+                "backch",
+                "bye",
+                "complete",
+                "confirm",
+                "correct",
+                "direct",
+                "directElab",
+                "echo",
+                "exclaim",
+                "expressOpinion",
+                "expressPossibility",
+                "expressRegret",
+                "expressWish",
+                "greet",
+                "hold",
+                "identifySelf",
+                "inform",
+                "informCont",
+                "informDisc",
+                "informIntent",
+                "init",
+                "negate",
+                "offer",
+                "pardon",
+                "raiseIssue",
+                "refer",
+                "refuse",
+                "reqDirect",
+                "reqInfo",
+                "reqModal",
+                "selfTalk",
+                "suggest",
+                "thank",
+                "informIntent-hold",
+                "correctSelf",
+                "expressRegret-inform",
+                "thank-identifySelf",
             ],
             label_column="Dialogue_Act",
             data_url={
@@ -462,12 +509,12 @@ class Silicone(datasets.GeneratorBasedBuilder):
             to evoke emotional reactions. There is no official split on this dataset."""
             ),
             text_features={
-              "Utterance": "Utterance",
-              "NbPairInSession": "NbPairInSession",
-              "Dialogue_ID": "Dialogue_ID",
-              "SpeechTurn": "SpeechTurn",
-              "Speaker": "Speaker",
-              "Sentiment": "Sentiment",
+                "Utterance": "Utterance",
+                "NbPairInSession": "NbPairInSession",
+                "Dialogue_ID": "Dialogue_ID",
+                "SpeechTurn": "SpeechTurn",
+                "Speaker": "Speaker",
+                "Sentiment": "Sentiment",
             },
             label_classes=["Negative", "Neutral", "Positive"],
             label_column="Sentiment",
@@ -581,13 +628,9 @@ class Silicone(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_file, split):
         if self.config.name not in ("maptask", "iemocap", "oasis"):
-            df = pd.read_csv(
-                data_file,
-                delimiter=",",
-                header=0,
-                quotechar='"',
-                dtype=str
-            )[six.iterkeys(self.config.text_features)]
+            df = pd.read_csv(data_file, delimiter=",", header=0, quotechar='"', dtype=str)[
+                six.iterkeys(self.config.text_features)
+            ]
 
         if self.config.name == "iemocap":
             df = pd.read_csv(
@@ -596,16 +639,13 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 header=0,
                 quotechar='"',
                 names=["Dialogue_ID", "Utterance_ID", "Utterance", "Emotion", "Valence", "Activation", "Dominance"],
-                dtype=str
+                dtype=str,
             )[six.iterkeys(self.config.text_features)]
 
         if self.config.name in ("maptask", "oasis"):
-            df = pd.read_csv(
-                data_file,
-                delimiter="|",
-                names=["Speaker", "Utterance", "Dialogue_Act"],
-                dtype=str
-            )[six.iterkeys(self.config.text_features)]
+            df = pd.read_csv(data_file, delimiter="|", names=["Speaker", "Utterance", "Dialogue_Act"], dtype=str)[
+                six.iterkeys(self.config.text_features)
+            ]
 
         rows = df.to_dict(orient="records")
 
@@ -614,7 +654,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
             example["Idx"] = n
 
             if self.config.label_column in example:
-                    label = example[self.config.label_column]
-                    example["Label"] = label
+                label = example[self.config.label_column]
+                example["Label"] = label
 
             yield example["Idx"], example
