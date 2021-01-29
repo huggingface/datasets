@@ -262,7 +262,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
-        in_memory: bool = False
+        in_memory: bool = False,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow table at filename """
         # Stream backed by memory-mapped file / file descriptor
