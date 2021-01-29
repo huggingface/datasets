@@ -543,18 +543,17 @@ def load_metric(
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.datasets/`)
-        keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+        keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-        keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
 
-    Returns: `datasets.Metric`.
+    Returns:
+        `datasets.Metric`
     """
     module_path, hash = prepare_module(
         path,
