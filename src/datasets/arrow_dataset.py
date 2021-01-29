@@ -273,10 +273,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         data_files = [{"filename": filename}] if not in_memory else None
 
         if indices_filename is not None:
-            indices_mmap = pa.memory_map(indices_filename)
-            indices_f = pa.ipc.open_stream(indices_mmap)
+            indices_stream = stream_from(indices_filename)
+            indices_f = pa.ipc.open_stream(indices_stream)
             indices_pa_table = indices_f.read_all()
-            indices_data_files = [{"filename": indices_filename}]
+            indices_data_files = [{"filename": indices_filename}] if not in_memory else None
         else:
             indices_pa_table = None
             indices_data_files = None
