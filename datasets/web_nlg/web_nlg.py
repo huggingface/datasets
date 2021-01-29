@@ -252,12 +252,14 @@ class WebNlg(datasets.GeneratorBasedBuilder):
         id_ = 0
         for xml_location in filedirs:
             for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
+                # windows may use backslashes so we first need to replace them with slashes
+                xml_file_path_with_slashes = "/".join(Path(xml_file).parts)
                 if (
-                    "webnlg_challenge_2017/test" in xml_file
-                    or "release_v3.0/en/test" in xml_file
-                    or "release_v3.0/ru/test" in xml_file
+                    "webnlg_challenge_2017/test" in xml_file_path_with_slashes
+                    or "release_v3.0/en/test" in xml_file_path_with_slashes
+                    or "release_v3.0/ru/test" in xml_file_path_with_slashes
                 ):
-                    test_cat = xml_file.split("/")[-1][:-4]
+                    test_cat = xml_file_path_with_slashes.split("/")[-1][:-4]
                 else:
                     test_cat = ""
                 for exple_dict in xml_file_to_examples(xml_file):
