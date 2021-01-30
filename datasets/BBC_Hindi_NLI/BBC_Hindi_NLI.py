@@ -79,9 +79,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-_TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_train.tsv"
-_VALID_DOWNLOAD_URL = "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_dev.tsv"
-_TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_test.tsv"
+_TRAIN_DOWNLOAD_URL = (
+    "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_train.tsv"
+)
+_VALID_DOWNLOAD_URL = (
+    "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_dev.tsv"
+)
+_TEST_DOWNLOAD_URL = (
+    "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_test.tsv"
+)
 
 
 class bbc_hindi_nli_config(datasets.BuilderConfig):
