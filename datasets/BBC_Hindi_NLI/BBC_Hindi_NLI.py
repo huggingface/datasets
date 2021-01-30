@@ -52,7 +52,7 @@ This dataset is used to train models for Natural Language Inference Tasks in Low
 """
 
 # TODO: Add a link to an official homepage for the dataset here
-_HOMEPAGE = "https://github.com/midas-research/hindi-nli-data"
+_HOMEPAGE = "https://github.com/avinsit123/hindi-nli-data"
 
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = """
@@ -79,12 +79,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-_TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/midas-research/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_train.tsv"
-_VALID_DOWNLOAD_URL = "https://raw.githubusercontent.com/midas-research/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_dev.tsv"
-_TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/midas-research/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_test.tsv"
+_TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_train.tsv"
+_VALID_DOWNLOAD_URL = "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_dev.tsv"
+_TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/avinsit123/hindi-nli-data/master/Textual_Entailment/BBC/BBC_recasted_test.tsv"
 
 
-class BBC_Hindi_NLI_Config(datasets.BuilderConfig):
+class bbc_hindi_nli_config(datasets.BuilderConfig):
     """BuilderConfig for BBC Hindi NLI Config"""
 
     def __init__(self, **kwargs):
@@ -92,15 +92,15 @@ class BBC_Hindi_NLI_Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(BBC_Hindi_NLI_Config, self).__init__(**kwargs)
+        super(bbc_hindi_nli_config, self).__init__(**kwargs)
 
 
-class BBC_Hindi_NLI(datasets.GeneratorBasedBuilder):
+class bbc_hindi_nli(datasets.GeneratorBasedBuilder):
     """BBC Hindi NLI dataset -- Dataset providing textual-entailment pairs for NLI tasks in Hindi"""
 
     BUILDER_CONFIGS = [
-        BBC_Hindi_NLI_Config(
-            name="BBC Hindi NLI",
+        bbc_hindi_nli_config(
+            name="bbc hindi nli",
             version=datasets.Version("1.1.0"),
             description="BBC Hindi NLI: Natural Language Inference Dataset in Hindi",
         ),
@@ -112,10 +112,10 @@ class BBC_Hindi_NLI(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "Context": datasets.Value("string"),
-                    "Hypothesis": datasets.Value("string"),
-                    "Entailment_Label": datasets.Value("string"),
-                    "Topic_Label": datasets.Value("string"),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
+                    "label": datasets.Value("string"),
+                    "topic": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -142,10 +142,10 @@ class BBC_Hindi_NLI(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as tsv_file:
             tsv_reader = csv.reader(tsv_file, delimiter="\t")
             for id_, row in enumerate(tsv_reader):
-                (context, hypothesis, entailment_label, topic_label) = row
+                (premise, hypothesis, label, topic) = row
                 yield id_, {
-                    "Context": context,
-                    "Hypothesis": hypothesis,
-                    "Entailment_Label": entailment_label,
-                    "Topic_Label": topic_label,
+                    "premise": premise,
+                    "hypothesis": hypothesis,
+                    "label": label,
+                    "topic": topic,
                 }
