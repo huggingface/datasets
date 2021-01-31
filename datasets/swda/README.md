@@ -88,25 +88,37 @@ Utterance are tagged with the [SWBD-DAMSL](https://web.stanford.edu/~jurafsky/ws
 
 An example from the dataset is:
 
-`{'act_tag': 115, 'caller': 'A', 'conversation_no': 3756, 'damsl_act_tag': 26, 'pos': 'Okay/UH ,/,', 'ptb_basename': '3/sw3756', 'ptb_treenumbers': '1', 'subutterance_index': 1, 'swda_filename': 'sw12utt/sw_1210_3756.utt', 'text': 'Okay,  /', 'topic_description': 'PAINTING', 'transcript_index': 0, 'trees': '(INTJ (UH Okay) (, ,) (-DFL- E_S))', 'utterance_index': 1}`
+`{'act_tag': 115, 'caller': 'A', 'conversation_no': 4325, 'damsl_act_tag': 26, 'from_caller': 1632, 'from_caller_birth_year': 1962, 'from_caller_dialect_area': 'WESTERN', 'from_caller_education': 2, 'from_caller_sex': 'FEMALE', 'length': 5, 'pos': 'Okay/UH ./.', 'prompt': 'FIND OUT WHAT CRITERIA THE OTHER CALLER WOULD USE IN SELECTING CHILD CARE SERVICES FOR A PRESCHOOLER.  IS IT EASY OR DIFFICULT TO FIND SUCH CARE?', 'ptb_basename': '4/sw4325', 'ptb_treenumbers': '1', 'subutterance_index': 1, 'swda_filename': 'sw00utt/sw_0001_4325.utt', 'talk_day': '03/23/1992', 'text': 'Okay.  /', 'to_caller': 1519, 'to_caller_birth_year': 1971, 'to_caller_dialect_area': 'SOUTH MIDLAND', 'to_caller_education': 1, 'to_caller_sex': 'FEMALE', 'topic_description': 'CHILD CARE', 'transcript_index': 0, 'trees': '(INTJ (UH Okay) (. .) (-DFL- E_S))', 'utterance_index': 1}`
 
 ### Data Fields
 
-* 'swda_filename':       (str) The filename: directory/basename
-* 'conversation_no':     (int) The conversation Id, to key into the metadata database.
-* 'utterance_index':     (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
-* 'subutterance_index':  (int) Utterances can be broken across line. This gives the internal position.
-* 'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
-* 'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
-* 'damsl_act_tag':       (list of str) The Dialog Act Tags of the 217 variation tags.
-* 'text':                (str) The text of the utterance
-* 'caller':              (str) A, B, @A, @B, @@A, @@B
-* 'pos':                 (str) The POS tagged version of the utterance, from PtbBasename+.pos
-* 'topic_description':   (str) The topic that is being discussed.
-* 'trees':               (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t)
-                                 for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
-* 'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
-* 'ptb_treenumbers':     (list of int) The tree numbers in the PtbBasename+.mrg
+* 'swda_filename':            (str) The filename: directory/basename.
+* 'ptb_basename':             (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
+* 'conversation_no':          (int) The conversation Id, to key into the metadata database.
+* 'transcript_index':         (int) The line number of this item in the transcript (counting only utt lines).
+* 'act_tag':                  (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
+* 'damsl_act_tag':            (list of str) The Dialog Act Tags of the 217 variation tags.
+* 'caller':                   (str) A, B, @A, @B, @@A, @@B
+* 'utterance_index':          (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
+* 'subutterance_index':       (int) Utterances can be broken across line. This gives the internal position.
+* 'text':                     (str) The text of the utterance
+* 'pos':                      (str) The POS tagged version of the utterance, from PtbBasename+.pos
+* 'trees':                    (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t) for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
+* 'ptb_treenumbers':          (list of int) The tree numbers in the PtbBasename+.mrg
+* 'talk_day':                 (str) Date of talk.
+* 'length':                   (int) Length of talk in seconds.
+* 'topic_description':        (str) Short description of topic that's being discussed.
+* 'prompt':                   (str) Long decription/query/instruction.
+* 'from_caller':              (int) The numerical Id of the from (A) caller.
+* 'from_caller_sex':          (str) MALE, FEMALE.
+* 'from_caller_education':    (int) Called education level 0, 1, 2, 3, 9.
+* 'from_caller_birth_year':   (int) Caller birth year YYYY.
+* 'from_caller_dialect_area': (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+* 'to_caller':                (int) The numerical Id of the to (B) caller.
+* 'to_caller_sex':            (str) MALE, FEMALE.
+* 'to_caller_education':      (int) Called education level 0, 1, 2, 3, 9.
+* 'to_caller_birth_year':     (int) Caller birth year YYYY.
+* 'to_caller_dialect_area':   (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
     
 
 ### Dialog act annotations

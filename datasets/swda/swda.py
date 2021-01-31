@@ -19,7 +19,7 @@ with turn/utterance-level dialog-act tags. The tags summarize syntactic, semanti
 about the associated turn. The SwDA project was undertaken at UC Boulder in the late 1990s.
 
 This script is a modified version of the original swda.py from https://github.com/cgpotts/swda/blob/master/swda.py from
-the original corpus repo.
+the original corpus repo. Modifications are made to accommodate the HuggingFace Dataset project format.
 """
 
 from __future__ import absolute_import, division, print_function
@@ -63,7 +63,6 @@ _CITATION = """\
     Year = {2000}}
 """
 
-
 # Description of dataset gathered from: https://github.com/cgpotts/swda#overview.
 _DESCRIPTION = """\
 The Switchboard Dialog Act Corpus (SwDA) extends the Switchboard-1 Telephone Speech Corpus, Release 2 with
@@ -83,6 +82,305 @@ _LICENSE = "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported L
 # Dataset main url.
 _URL = "https://github.com/cgpotts/swda/raw/master/swda.zip"
 
+# Dialogue act tags - long version 217 dialogue acts labels.
+act_tags = [
+    "b^m^r",
+    "qw^r^t",
+    "aa^h",
+    "br^m",
+    "fa^r",
+    "aa,ar",
+    "sd^e(^q)^r",
+    "^2",
+    "sd;qy^d",
+    "oo",
+    "bk^m",
+    "aa^t",
+    "cc^t",
+    "qy^d^c",
+    "qo^t",
+    "ng^m",
+    "qw^h",
+    "qo^r",
+    "aa",
+    "qy^d^t",
+    "qrr^d",
+    "br^r",
+    "fx",
+    "sd,qy^g",
+    "ny^e",
+    "^h^t",
+    "fc^m",
+    "qw(^q)",
+    "co",
+    "o^t",
+    "b^m^t",
+    "qr^d",
+    "qw^g",
+    "ad(^q)",
+    "qy(^q)",
+    "na^r",
+    "am^r",
+    "qr^t",
+    "ad^c",
+    "qw^c",
+    "bh^r",
+    "h^t",
+    "ft^m",
+    "ba^r",
+    "qw^d^t",
+    "%",
+    "t3",
+    "nn",
+    "bd",
+    "h^m",
+    "h^r",
+    "sd^r",
+    "qh^m",
+    "^q^t",
+    "sv^2",
+    "ft",
+    "ar^m",
+    "qy^h",
+    "sd^e^m",
+    "qh^r",
+    "cc",
+    "fp^m",
+    "ad",
+    "qo",
+    "na^m^t",
+    "fo^c",
+    "qy",
+    "sv^e^r",
+    "aap",
+    "no",
+    "aa^2",
+    "sv(^q)",
+    "sv^e",
+    "nd",
+    '"',
+    "bf^2",
+    "bk",
+    "fp",
+    "nn^r^t",
+    "fa^c",
+    "ny^t",
+    "ny^c^r",
+    "qw",
+    "qy^t",
+    "b",
+    "fo",
+    "qw^r",
+    "am",
+    "bf^t",
+    "^2^t",
+    "b^2",
+    "x",
+    "fc",
+    "qr",
+    "no^t",
+    "bk^t",
+    "bd^r",
+    "bf",
+    "^2^g",
+    "qh^c",
+    "ny^c",
+    "sd^e^r",
+    "br",
+    "fe",
+    "by",
+    "^2^r",
+    "fc^r",
+    "b^m",
+    "sd,sv",
+    "fa^t",
+    "sv^m",
+    "qrr",
+    "^h^r",
+    "na",
+    "fp^r",
+    "o",
+    "h,sd",
+    "t1^t",
+    "nn^r",
+    "cc^r",
+    "sv^c",
+    "co^t",
+    "qy^r",
+    "sv^r",
+    "qy^d^h",
+    "sd",
+    "nn^e",
+    "ny^r",
+    "b^t",
+    "ba^m",
+    "ar",
+    "bf^r",
+    "sv",
+    "bh^m",
+    "qy^g^t",
+    "qo^d^c",
+    "qo^d",
+    "nd^t",
+    "aa^r",
+    "sd^2",
+    "sv;sd",
+    "qy^c^r",
+    "qw^m",
+    "qy^g^r",
+    "no^r",
+    "qh(^q)",
+    "sd;sv",
+    "bf(^q)",
+    "+",
+    "qy^2",
+    "qw^d",
+    "qy^g",
+    "qh^g",
+    "nn^t",
+    "ad^r",
+    "oo^t",
+    "co^c",
+    "ng",
+    "^q",
+    "qw^d^c",
+    "qrr^t",
+    "^h",
+    "aap^r",
+    "bc^r",
+    "sd^m",
+    "bk^r",
+    "qy^g^c",
+    "qr(^q)",
+    "ng^t",
+    "arp",
+    "h",
+    "bh",
+    "sd^c",
+    "^g",
+    "o^r",
+    "qy^c",
+    "sd^e",
+    "fw",
+    "ar^r",
+    "qy^m",
+    "bc",
+    "sv^t",
+    "aap^m",
+    "sd;no",
+    "ng^r",
+    "bf^g",
+    "sd^e^t",
+    "o^c",
+    "b^r",
+    "b^m^g",
+    "ba",
+    "t1",
+    "qy^d(^q)",
+    "nn^m",
+    "ny",
+    "ba,fe",
+    "aa^m",
+    "qh",
+    "na^m",
+    "oo(^q)",
+    "qw^t",
+    "na^t",
+    "qh^h",
+    "qy^d^m",
+    "ny^m",
+    "fa",
+    "qy^d",
+    "fc^t",
+    "sd(^q)",
+    "qy^d^r",
+    "bf^m",
+    "sd(^q)^t",
+    "ft^t",
+    "^q^r",
+    "sd^t",
+    "sd(^q)^r",
+    "ad^t",
+]
+
+# Damsl dialogue act tags version - short version 43 dialogue acts labels.
+damsl_act_tag = [
+    "ad",
+    "qo",
+    "qy",
+    "arp_nd",
+    "sd",
+    "h",
+    "bh",
+    "no",
+    "^2",
+    "^g",
+    "ar",
+    "aa",
+    "sv",
+    "bk",
+    "fp",
+    "qw",
+    "b",
+    "ba",
+    "t1",
+    "oo_co_cc",
+    "+",
+    "ny",
+    "qw^d",
+    "x",
+    "qh",
+    "fc",
+    'fo_o_fw_"_by_bc',
+    "aap_am",
+    "%",
+    "bf",
+    "t3",
+    "nn",
+    "bd",
+    "ng",
+    "^q",
+    "br",
+    "qy^d",
+    "fa",
+    "^h",
+    "b^m",
+    "ft",
+    "qrr",
+    "na",
+]
+
+# Data features types using PyArrow data types.
+data_features_types = {
+    "swda_filename": datasets.Value("string"),
+    "ptb_basename": datasets.Value("string"),
+    "conversation_no": datasets.Value("int64"),
+    "transcript_index": datasets.Value("int64"),
+    "act_tag": datasets.ClassLabel(num_classes=217, names=act_tags),
+    "damsl_act_tag": datasets.ClassLabel(num_classes=43, names=damsl_act_tag),
+    "caller": datasets.Value("string"),
+    "utterance_index": datasets.Value("int64"),
+    "subutterance_index": datasets.Value("int64"),
+    "text": datasets.Value("string"),
+    "pos": datasets.Value("string"),
+    "trees": datasets.Value("string"),
+    "ptb_treenumbers": datasets.Value("string"),
+    "talk_day": datasets.Value("string"),
+    "length": datasets.Value("int64"),
+    "topic_description": datasets.Value("string"),
+    "prompt": datasets.Value("string"),
+    "from_caller": datasets.Value("int64"),
+    "from_caller_sex": datasets.Value("string"),
+    "from_caller_education": datasets.Value("int64"),
+    "from_caller_birth_year": datasets.Value("int64"),
+    "from_caller_dialect_area": datasets.Value("string"),
+    "to_caller": datasets.Value("int64"),
+    "to_caller_sex": datasets.Value("string"),
+    "to_caller_education": datasets.Value("int64"),
+    "to_caller_birth_year": datasets.Value("int64"),
+    "to_caller_dialect_area": datasets.Value("string"),
+}
+
 
 class Swda(datasets.GeneratorBasedBuilder):
     """
@@ -93,24 +391,38 @@ class Swda(datasets.GeneratorBasedBuilder):
     with turn/utterance-level dialog-act tags. The tags summarize syntactic, semantic, and pragmatic information
     about the associated turn. The SwDA project was undertaken at UC Boulder in the late 1990s.
 
-    'swda_filename':       (str) The filename: directory/basename
-    'conversation_no':     (int) The conversation Id, to key into the metadata database.
-    'utterance_index':     (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
-    'subutterance_index':  (int) Utterances can be broken across line. This gives the internal position.
-    'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
-    'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
-    'damsl_act_tag':       (list of str) The Dialog Act Tags of the 217 variation tags.
-    'text':                (str) The text of the utterance
-    'caller':              (str) A, B, @A, @B, @@A, @@B
-    'pos':                 (str) The POS tagged version of the utterance, from PtbBasename+.pos
-    'topic_description':   (str) The topic that is being discussed.
-    'trees':               (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t)
+    'swda_filename':            (str) The filename: directory/basename.
+    'ptb_basename':             (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
+    'conversation_no':          (int) The conversation Id, to key into the metadata database.
+    'transcript_index':         (int) The line number of this item in the transcript (counting only utt lines).
+    'act_tag':                  (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
+    'damsl_act_tag':            (list of str) The Dialog Act Tags of the 217 variation tags.
+    'caller':                   (str) A, B, @A, @B, @@A, @@B
+    'utterance_index':          (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
+    'subutterance_index':       (int) Utterances can be broken across line. This gives the internal position.
+    'text':                     (str) The text of the utterance
+    'pos':                      (str) The POS tagged version of the utterance, from PtbBasename+.pos
+    'trees':                    (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t)
                                  for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
-    'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
-    'ptb_treenumbers':     (list of int) The tree numbers in the PtbBasename+.mrg
+    'ptb_treenumbers':          (list of int) The tree numbers in the PtbBasename+.mrg
+    'talk_day':                 (str) Date of talk.
+    'length':                   (int) Length of talk in seconds.
+    'topic_description':        (str) Short description of topic that's being discussed.
+    'prompt':                   (str) Long decription/query/instruction.
+    'from_caller':              (int) The numerical Id of the from (A) caller.
+    'from_caller_sex':          (str) MALE, FEMALE.
+    'from_caller_education':    (int) Called education level 0, 1, 2, 3, 9.
+    'from_caller_birth_year':   (int) Caller birth year YYYY.
+    'from_caller_dialect_area': (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+    'to_caller':                (int) The numerical Id of the to (B) caller.
+    'to_caller_sex':            (str) MALE, FEMALE.
+    'to_caller_education':      (int) Called education level 0, 1, 2, 3, 9.
+    'to_caller_birth_year':     (int) Caller birth year YYYY.
+    'to_caller_dialect_area':   (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+
     """
 
-    # Urls for each split.
+    # Urls for each split train-dev-test.
     _URLS = {
         "train": "https://github.com/NathanDuran/Probabilistic-RNN-DA-Classifier/raw/master/data/train_split.txt",
         "dev": "https://github.com/NathanDuran/Probabilistic-RNN-DA-Classifier/raw/master/data/dev_split.txt",
@@ -119,299 +431,14 @@ class Swda(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         """
-        Specify the datasets.DatasetInfo object which contains informations and typings for the dataset.
+        Specify the datasets.DatasetInfo object which contains information and typings for the dataset.
         """
 
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types.
-            features=datasets.Features(
-                {
-                    "swda_filename": datasets.Value("string"),
-                    "conversation_no": datasets.Value("int64"),
-                    "utterance_index": datasets.Value("int64"),
-                    "subutterance_index": datasets.Value("int64"),
-                    "transcript_index": datasets.Value("int64"),
-                    "act_tag": datasets.ClassLabel(
-                        num_classes=217,
-                        names=[
-                            "b^m^r",
-                            "qw^r^t",
-                            "aa^h",
-                            "br^m",
-                            "fa^r",
-                            "aa,ar",
-                            "sd^e(^q)^r",
-                            "^2",
-                            "sd;qy^d",
-                            "oo",
-                            "bk^m",
-                            "aa^t",
-                            "cc^t",
-                            "qy^d^c",
-                            "qo^t",
-                            "ng^m",
-                            "qw^h",
-                            "qo^r",
-                            "aa",
-                            "qy^d^t",
-                            "qrr^d",
-                            "br^r",
-                            "fx",
-                            "sd,qy^g",
-                            "ny^e",
-                            "^h^t",
-                            "fc^m",
-                            "qw(^q)",
-                            "co",
-                            "o^t",
-                            "b^m^t",
-                            "qr^d",
-                            "qw^g",
-                            "ad(^q)",
-                            "qy(^q)",
-                            "na^r",
-                            "am^r",
-                            "qr^t",
-                            "ad^c",
-                            "qw^c",
-                            "bh^r",
-                            "h^t",
-                            "ft^m",
-                            "ba^r",
-                            "qw^d^t",
-                            "%",
-                            "t3",
-                            "nn",
-                            "bd",
-                            "h^m",
-                            "h^r",
-                            "sd^r",
-                            "qh^m",
-                            "^q^t",
-                            "sv^2",
-                            "ft",
-                            "ar^m",
-                            "qy^h",
-                            "sd^e^m",
-                            "qh^r",
-                            "cc",
-                            "fp^m",
-                            "ad",
-                            "qo",
-                            "na^m^t",
-                            "fo^c",
-                            "qy",
-                            "sv^e^r",
-                            "aap",
-                            "no",
-                            "aa^2",
-                            "sv(^q)",
-                            "sv^e",
-                            "nd",
-                            '"',
-                            "bf^2",
-                            "bk",
-                            "fp",
-                            "nn^r^t",
-                            "fa^c",
-                            "ny^t",
-                            "ny^c^r",
-                            "qw",
-                            "qy^t",
-                            "b",
-                            "fo",
-                            "qw^r",
-                            "am",
-                            "bf^t",
-                            "^2^t",
-                            "b^2",
-                            "x",
-                            "fc",
-                            "qr",
-                            "no^t",
-                            "bk^t",
-                            "bd^r",
-                            "bf",
-                            "^2^g",
-                            "qh^c",
-                            "ny^c",
-                            "sd^e^r",
-                            "br",
-                            "fe",
-                            "by",
-                            "^2^r",
-                            "fc^r",
-                            "b^m",
-                            "sd,sv",
-                            "fa^t",
-                            "sv^m",
-                            "qrr",
-                            "^h^r",
-                            "na",
-                            "fp^r",
-                            "o",
-                            "h,sd",
-                            "t1^t",
-                            "nn^r",
-                            "cc^r",
-                            "sv^c",
-                            "co^t",
-                            "qy^r",
-                            "sv^r",
-                            "qy^d^h",
-                            "sd",
-                            "nn^e",
-                            "ny^r",
-                            "b^t",
-                            "ba^m",
-                            "ar",
-                            "bf^r",
-                            "sv",
-                            "bh^m",
-                            "qy^g^t",
-                            "qo^d^c",
-                            "qo^d",
-                            "nd^t",
-                            "aa^r",
-                            "sd^2",
-                            "sv;sd",
-                            "qy^c^r",
-                            "qw^m",
-                            "qy^g^r",
-                            "no^r",
-                            "qh(^q)",
-                            "sd;sv",
-                            "bf(^q)",
-                            "+",
-                            "qy^2",
-                            "qw^d",
-                            "qy^g",
-                            "qh^g",
-                            "nn^t",
-                            "ad^r",
-                            "oo^t",
-                            "co^c",
-                            "ng",
-                            "^q",
-                            "qw^d^c",
-                            "qrr^t",
-                            "^h",
-                            "aap^r",
-                            "bc^r",
-                            "sd^m",
-                            "bk^r",
-                            "qy^g^c",
-                            "qr(^q)",
-                            "ng^t",
-                            "arp",
-                            "h",
-                            "bh",
-                            "sd^c",
-                            "^g",
-                            "o^r",
-                            "qy^c",
-                            "sd^e",
-                            "fw",
-                            "ar^r",
-                            "qy^m",
-                            "bc",
-                            "sv^t",
-                            "aap^m",
-                            "sd;no",
-                            "ng^r",
-                            "bf^g",
-                            "sd^e^t",
-                            "o^c",
-                            "b^r",
-                            "b^m^g",
-                            "ba",
-                            "t1",
-                            "qy^d(^q)",
-                            "nn^m",
-                            "ny",
-                            "ba,fe",
-                            "aa^m",
-                            "qh",
-                            "na^m",
-                            "oo(^q)",
-                            "qw^t",
-                            "na^t",
-                            "qh^h",
-                            "qy^d^m",
-                            "ny^m",
-                            "fa",
-                            "qy^d",
-                            "fc^t",
-                            "sd(^q)",
-                            "qy^d^r",
-                            "bf^m",
-                            "sd(^q)^t",
-                            "ft^t",
-                            "^q^r",
-                            "sd^t",
-                            "sd(^q)^r",
-                            "ad^t",
-                        ],
-                    ),
-                    "damsl_act_tag": datasets.ClassLabel(
-                        num_classes=43,
-                        names=[
-                            "ad",
-                            "qo",
-                            "qy",
-                            "arp_nd",
-                            "sd",
-                            "h",
-                            "bh",
-                            "no",
-                            "^2",
-                            "^g",
-                            "ar",
-                            "aa",
-                            "sv",
-                            "bk",
-                            "fp",
-                            "qw",
-                            "b",
-                            "ba",
-                            "t1",
-                            "oo_co_cc",
-                            "+",
-                            "ny",
-                            "qw^d",
-                            "x",
-                            "qh",
-                            "fc",
-                            'fo_o_fw_"_by_bc',
-                            "aap_am",
-                            "%",
-                            "bf",
-                            "t3",
-                            "nn",
-                            "bd",
-                            "ng",
-                            "^q",
-                            "br",
-                            "qy^d",
-                            "fa",
-                            "^h",
-                            "b^m",
-                            "ft",
-                            "qrr",
-                            "na",
-                        ],
-                    ),
-                    "text": datasets.Value("string"),
-                    "caller": datasets.Value("string"),
-                    "pos": datasets.Value("string"),
-                    "topic_description": datasets.Value("string"),
-                    "trees": datasets.Value("string"),
-                    "ptb_basename": datasets.Value("string"),
-                    "ptb_treenumbers": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features(data_features_types),
             supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
@@ -425,22 +452,36 @@ class Swda(datasets.GeneratorBasedBuilder):
         """
         Returns SplitGenerators.
         This method is tasked with downloading/extracting the data and defining the splits.
+
+         Args:
+            dl_manager (:obj:`datasets.utils.download_manager.DownloadManager`):
+                Download manager to download and extract data files from urls.
+
+        Returns:
+            :obj:`list[str]`:
+                List of paths to data.
         """
 
+        # Download extract and return path of data file.
         dl_dir = dl_manager.download_and_extract(_URL)
+        # Use swda/ folder.
         data_dir = os.path.join(dl_dir, "swda")
-
+        # Handle partitions files.
         urls_to_download = self._URLS
+        # Download extract and return paths of split files.
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
+            # Return whole data path and train splits file downloaded path.
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir, "split_file": downloaded_files["train"]}
             ),
+            # Return whole data path and dev splits file downloaded path.
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={"data_dir": data_dir, "split_file": downloaded_files["dev"]},
             ),
+            # Return whole data path and train splits file downloaded path.
             datasets.SplitGenerator(
                 name=datasets.Split.TEST, gen_kwargs={"data_dir": data_dir, "split_file": downloaded_files["test"]}
             ),
@@ -452,6 +493,17 @@ class Swda(datasets.GeneratorBasedBuilder):
         This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         The key is not important, it's more here for legacy reason (legacy from tfds).
+
+        Args:
+            data_dir (:obj:`str`):
+                Path where is downloaded dataset.
+
+            split_file (:obj:`str`):
+                Path of split file used for train-dev-test.
+
+        Returns:
+            :obj:`list[str]`:
+                List of paths to data.
         """
 
         # Read in the split file.
@@ -462,22 +514,8 @@ class Swda(datasets.GeneratorBasedBuilder):
         for i_trans, trans in enumerate(corpus.iter_transcripts()):
             for i_utt, utt in enumerate(trans.utterances):
                 id_ = i_trans + i_utt
-                yield id_, {
-                    "swda_filename": utt.swda_filename,
-                    "conversation_no": utt.conversation_no,
-                    "utterance_index": utt.utterance_index,
-                    "subutterance_index": utt.subutterance_index,
-                    "transcript_index": utt.transcript_index,
-                    "act_tag": utt.act_tag,
-                    "damsl_act_tag": utt.damsl_act_tag(),
-                    "text": utt.text,
-                    "pos": utt.pos,
-                    "topic_description": utt.topic_description,
-                    "caller": utt.caller,
-                    "trees": utt.trees,
-                    "ptb_basename": utt.ptb_basename,
-                    "ptb_treenumbers": utt.ptb_treenumbers,
-                }
+                # import pdb; pdb.set_trace()
+                yield id_, {feature: utt[feature] for feature in data_features_types.keys()}
 
 
 class CorpusReader:
@@ -490,8 +528,15 @@ class CorpusReader:
         in the main directory of the corpus, using that file to build
         the `Metadata` object used throughout.
 
-        Added split_files to separate between splits. If given None it will use all data files.
+        Args:
+            src_dirname (:obj:`str`):
+                Path where swda folder with all data.
+
+            split_file (:obj:`list[str`, `optional`):
+                List of file names used in a split (train, dev or test). This argument is optional and it will have a None value attributed inside the function.
+
         """
+
         self.src_dirname = src_dirname
         metadata_filename = os.path.join(src_dirname, "swda-metadata.csv")
         self.metadata = Metadata(metadata_filename)
@@ -502,6 +547,10 @@ class CorpusReader:
     ):
         """
         Iterate through the transcripts.
+
+        Returns:
+            :obj:`Transcript`:
+                Transcript instance.
         """
 
         # All files names.
@@ -521,7 +570,12 @@ class CorpusReader:
     ):
         """
         Iterate through the utterances.
+
+        Returns:
+            :obj:`Transcript.utterances`:
+                Utterance instance object.
         """
+
         for trans in self.iter_transcripts():
             for utt in trans.utterances:
                 # Yield the Utterance instance:
@@ -542,11 +596,11 @@ class Metadata:
         the keys correspond to the column names in the original
         tables.
 
-        Parameters
-        ----------
-        metadata_filename : str
-            The CSV file swda-metadata.csv (should be in the main
-            folder of the swda directory).
+        Args:
+            metadata_filename (:obj:`str`):
+                The CSV file swda-metadata.csv (should be in the main
+                folder of the swda directory).
+
         """
         self.metadata_filename = metadata_filename
         self.metadata = {}
@@ -558,26 +612,27 @@ class Metadata:
         dictionaries of values (str, int, or datatime, as
         appropriate).
         """
+
         csvreader = csv.reader(open(self.metadata_filename))
         header = next(csvreader)
         for row in csvreader:
             d = dict(list(zip(header, row)))
+            # Add integer number features to metadata.
             for key in (
                 "conversation_no",
+                "length",
                 "from_caller",
                 "to_caller",
-                "length",
                 "from_caller_education",
                 "to_caller_education",
             ):
                 d[key] = int(d[key])
-            # Keep topic description.
-            d["topic_description"] = d["topic_description"]
             talk_day = d["talk_day"]
             talk_year = int("19" + talk_day[:2])
             talk_month = int(talk_day[2:4])
             talk_day = int(talk_day[4:])
-            d["talk_day"] = datetime.datetime(year=talk_year, month=talk_month, day=talk_day)
+            # Make sure to convert date time to string to match PyArrow data formats.
+            d["talk_day"] = datetime.datetime(year=talk_year, month=talk_month, day=talk_day).strftime("%m/%d/%Y")
             d["from_caller_birth_year"] = int(d["from_caller_birth_year"])
             d["to_caller_birth_year"] = int(d["to_caller_birth_year"])
             self.metadata[d["conversation_no"]] = d
@@ -586,6 +641,15 @@ class Metadata:
         """
         Val should be a key in self.metadata; returns the
         corresponding value.
+
+        Args:
+            val (:obj:`str`):
+                Key in self.metadata.
+
+        Returns:
+            :obj::
+                Corresponding value.
+
         """
 
         return self.metadata[val]
@@ -596,20 +660,38 @@ class Utterance:
     The central object of interest. The attributes correspond to the
     values of the class variable header:
 
-    'swda_filename':       (str) The filename: directory/basename
-    'ptb_basename':        (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
-    'conversation_no':     (int) The conversation Id, to key into the metadata database.
-    'transcript_index':    (int) The line number of this item in the transcript (counting only utt lines).
-    'act_tag':             (list of str) The Dialog Act Tags (separated by ||| in the file).
-    'caller':              (str) A, B, @A, @B, @@A, @@B
-    'utterance_index':     (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
-    'subutterance_index':  (int) Utterances can be broken across line. This gives the internal position.
-    'text':                (str) The text of the utterance
-    'pos':                 (str) The POS tagged version of the utterance, from PtbBasename+.pos
-    'trees':               (list of nltk.tree.Tree) The tree(s) containing this utterance (separated by ||| in the file).
-    'ptb_treenumbers':     (list of int) The tree numbers in the PtbBasename+.mrg
+    'swda_filename':            (str) The filename: directory/basename.
+    'ptb_basename':             (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
+    'conversation_no':          (int) The conversation Id, to key into the metadata database.
+    'transcript_index':         (int) The line number of this item in the transcript (counting only utt lines).
+    'act_tag':                  (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
+    'damsl_act_tag':            (list of str) The Dialog Act Tags of the 217 variation tags.
+    'caller':                   (str) A, B, @A, @B, @@A, @@B
+    'utterance_index':          (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
+    'subutterance_index':       (int) Utterances can be broken across line. This gives the internal position.
+    'text':                     (str) The text of the utterance
+    'pos':                      (str) The POS tagged version of the utterance, from PtbBasename+.pos
+    'trees':                    (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t)
+                                 for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
+    'ptb_treenumbers':          (list of int) The tree numbers in the PtbBasename+.mrg
+    'talk_day':                 (str) Date of talk.
+    'length':                   (int) Length of talk in seconds.
+    'topic_description':        (str) Short description of topic that's being discussed.
+    'prompt':                   (str) Long decription/query/instruction.
+    'from_caller':              (int) The numerical Id of the from (A) caller.
+    'from_caller_sex':          (str) MALE, FEMALE.
+    'from_caller_education':    (int) Called education level 0, 1, 2, 3, 9.
+    'from_caller_birth_year':   (int) Caller birth year YYYY.
+    'from_caller_dialect_area': (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+    'to_caller':                (int) The numerical Id of the to (B) caller.
+    'to_caller_sex':            (str) MALE, FEMALE.
+    'to_caller_education':      (int) Called education level 0, 1, 2, 3, 9.
+    'to_caller_birth_year':     (int) Caller birth year YYYY.
+    'to_caller_dialect_area':   (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+
     """
 
+    # Metadata header file.
     header = [
         "swda_filename",
         "ptb_basename",
@@ -627,15 +709,15 @@ class Utterance:
 
     def __init__(self, row, transcript_metadata):
         """
-        Parameters
-        ----------
-        row : list
-            A row from one of the corpus CSV files.
+        Args:
+            row (:obj:`list`):
+                A row from one of the corpus CSV files.
 
-        transcript_metadata : dict
-            A Metadata value based on the current `conversation_no`.
+            transcript_metadata (:obj:`dict`):
+                A Metadata value based on the current `conversation_no`.
+
         """
-        ##################################################
+
         # Utterance data:
         for i in range(len(Utterance.header)):
             att_name = Utterance.header[i]
@@ -666,22 +748,39 @@ class Utterance:
                 row_value = row_value.replace("*", "")
             elif att_name in ("conversation_no", "transcript_index", "utterance_index", "subutterance_index"):
                 row_value = int(row_value)
-                # Add the attribute.
+            # Add attribute.
             setattr(self, att_name, row_value)
-        ##################################################
-        # Caller data:
-        for key in ("caller_sex", "caller_education", "caller_birth_year", "caller_dialect_area"):
-            full_key = "from_" + key
-            if self.caller.endswith("B"):
-                full_key = "to_" + key
-            setattr(self, key, transcript_metadata[full_key])
-        setattr(self, "topic_description", transcript_metadata["topic_description"])
+        # Make sure conversation number matches.
+        assert self.conversation_no == transcript_metadata["conversation_no"]
+        # Add rest of missing metadata
+        [setattr(self, key, value) for key, value in transcript_metadata.items()]
+        # Add damsl tags.
+        setattr(self, "damsl_act_tag", self.damsl_act_tag())
 
-    def damsl_act_tag(self):
+    def __getitem__(self, feature):
+        """
+        Return utterance features as dictionary. It allows us to call an utterance object as a dictionary.
+        It contains same keys as attributes.
+
+        Args:
+            feature (:obj:`str`):
+                Feature value of utterance that is part of attributes.
+
+        Returns:
+            :obj:
+                Value of feature from utterance. Value type can vary.
+        """
+
+        return vars(self)[feature]
+
+    def damsl_act_tag(
+        self,
+    ):
         """
         Seeks to duplicate the tag simplification described at the
         Coders' Manual: http://www.stanford.edu/~jurafsky/ws97/manual.august1.html
         """
+
         d_tags = []
         tags = re.split(r"\s*[,;]\s*", self.act_tag)
         for tag in tags:
@@ -725,15 +824,17 @@ class Transcript:
         """
         Sets up all the attribute values:
 
-        Parameters
-        ----------
-        swda_filename : str
-            The filename for this transcript.
-        metadata : str or Metadata
-            If a string, then assumed to be the metadata filename, and
-            the metadata is created from that filename. If a `Metadata`
-            object, then used as the needed metadata directly.
+        Args:
+            swda_filename (:obj:`str`):
+                The filename for this transcript.
+
+            metadata (:obj:`str` or `Metadata`):
+                If a string, then assumed to be the metadata filename, and
+                the metadata is created from that filename. If a `Metadata`
+                object, then used as the needed metadata directly.
+
         """
+
         self.swda_filename = swda_filename
         # If the supplied value is a filename:
         if isinstance(metadata, str) or isinstance(metadata, str):
