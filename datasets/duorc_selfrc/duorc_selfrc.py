@@ -118,7 +118,7 @@ class DuorcSelfrc(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             duorc = json.load(f)
             for example in duorc:
                 plot_id = example["id"]
