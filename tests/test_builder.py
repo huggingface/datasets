@@ -577,27 +577,23 @@ class BuilderTest(TestCase):
 
     def test_custom_writer_batch_size(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            self.assertEqual(DummyGeneratorBasedBuilder._writer_batch_size, None)
+            self.assertEqual(DummyGeneratorBasedBuilder()._writer_batch_size, None)
             dummy_builder1 = DummyGeneratorBasedBuilder(
                 cache_dir=tmp_dir,
                 name="dummy1",
             )
-            DummyGeneratorBasedBuilder._writer_batch_size = 5
             dummy_builder2 = DummyGeneratorBasedBuilder(
                 cache_dir=tmp_dir,
                 name="dummy2",
+                writer_batch_size=5,
             )
-            dummy_builder3 = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy3", writer_batch_size=10)
             dummy_builder1.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             dummy_builder2.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
-            dummy_builder3.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             dataset1 = dummy_builder1.as_dataset("train")
             self.assertEqual(len(dataset1._data[0].chunks), 1)
             dataset2 = dummy_builder2.as_dataset("train")
             self.assertEqual(len(dataset2._data[0].chunks), 20)
-            dataset3 = dummy_builder3.as_dataset("train")
-            self.assertEqual(len(dataset3._data[0].chunks), 10)
-            del dataset1, dataset2, dataset3
+            del dataset1, dataset2
 
     def test_config_names(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
