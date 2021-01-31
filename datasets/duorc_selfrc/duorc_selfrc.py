@@ -41,12 +41,8 @@ or a synthesized text, or the question might be unanswerable.
 
 _HOMEPAGE = "https://duorc.github.io/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = "https://github.com/duorc/duorc/blob/master/LICENSE"
+_LICENSE = "https://raw.githubusercontent.com/duorc/duorc/master/LICENSE"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://raw.githubusercontent.com/duorc/duorc/master/dataset/"
 _URLs = {
     "train": _URL + "SelfRC_train.json",
