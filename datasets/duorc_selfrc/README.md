@@ -76,13 +76,13 @@ The text in the dataset is in English, as spoken by Wikipedia writers for movie 
 
 ### Data Fields
 
-- `answers`: List of answers. Each answer contains a string answer text.
-- `no_answer`: A boolean denoting whether the question has an answer or not.
-- `plot`: A string movie plot.
-- `plot_id`: A string ID for the plot.
-- `question`: A string question.
-- `question_id`: A string ID for the question.
-- `title`: A string movie title.
+- `plot_id`: a `string` feature containing the movie plot ID.
+- `plot`: a `string` feature containing the movie plot text.
+- `title`: a `string` feature containing the movie title.
+- `question_id`: a `string` feature containing the question ID.
+- `question`: a `string` feature containing the question text.
+- `answers`: a `list` of `string` features containing list of answers.
+- `no_answer`: a `bool` feature informing whether the question has no answer or not.
 
 
 ### Data Splits
