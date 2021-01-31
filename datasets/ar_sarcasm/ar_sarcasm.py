@@ -94,7 +94,7 @@ class ArSarcasm(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
             rdr = csv.reader(f, delimiter=",")
-            headers = next(rdr)
+            next(rdr)
             for id_, row in enumerate(rdr):
                 if len(row) < 6:
                     continue
