@@ -25,15 +25,6 @@ from datasets.info import DatasetInfo
 from .utils import require_tf, require_torch
 
 
-@pytest.fixture
-def dataset():
-    features = Features(
-        {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
-    )
-    ds = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
-    return ds
-
-
 class Unpicklable:
     def __getstate__(self):
         raise pickle.PicklingError()
@@ -1593,9 +1584,8 @@ class MiscellaneousDatasetTest(TestCase):
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
-def test_dataset_from_file(in_memory, dataset, tmp_path):
-    filename = str(tmp_path / "tmp.arrow")
-    dataset.map(cache_file_name=filename)
+def test_dataset_from_file(in_memory, dataset, arrow_file):
+    filename = arrow_file
     previous_allocated_memory = pa.total_allocated_bytes()
     dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
