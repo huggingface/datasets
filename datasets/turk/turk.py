@@ -44,17 +44,17 @@ _LICENSE = "GNU General Public License v3.0"
 _URL_LIST = [
     (
         "test.8turkers.tok.norm",
-        "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/test.8turkers.tok.norm",
+        "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/GEM/test.8turkers.tok.norm",
     ),
     (
         "tune.8turkers.tok.norm",
-        "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/tune.8turkers.tok.norm",
+        "https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/GEM/tune.8turkers.tok.norm",
     ),
 ]
 _URL_LIST += [
     (
         f"{spl}.8turkers.tok.turk.{i}",
-        f"https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/{spl}.8turkers.tok.turk.{i}",
+        f"https://raw.githubusercontent.com/cocoxu/simplification/master/data/turkcorpus/GEM/{spl}.8turkers.tok.turk.{i}",
     )
     for spl in ["tune", "test"]
     for i in range(8)
