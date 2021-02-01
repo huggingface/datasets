@@ -275,7 +275,7 @@ class DatasetBuilder:
                     os.rmdir(self._cache_dir)
 
         # Whether data should be backed by memory-mapped file / file descriptor
-        self.keep_in_memory = keep_in_memory
+        self._keep_in_memory = keep_in_memory
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -804,7 +804,7 @@ class DatasetBuilder:
             name=self.name,
             instructions=split,
             split_infos=self.info.splits.values(),
-            in_memory=self.keep_in_memory,
+            in_memory=self._keep_in_memory,
         )
         return Dataset(**dataset_kwargs)
 
