@@ -1,6 +1,24 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- machine-generated
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-2.0
+multilinguality:
+- monolingual
+size_categories:
+- n>1M
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+- text-classification
+task_ids:
+- language-modeling
+- multi-label-classification
 ---
 
 # Dataset Card Creation Guide
