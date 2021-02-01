@@ -276,17 +276,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             datasets.Dataset
         """
-        # Stream backed by memory-mapped file / file descriptor
-        stream_from = pa.memory_map if not in_memory else pa.input_stream
-        stream = stream_from(filename)
-        f = pa.ipc.open_stream(stream)
-        pa_table = f.read_all()
+        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
         data_files = [{"filename": filename}] if not in_memory else None
 
         if indices_filename is not None:
-            indices_stream = stream_from(indices_filename)
-            indices_f = pa.ipc.open_stream(indices_stream)
-            indices_pa_table = indices_f.read_all()
+            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
             indices_data_files = [{"filename": indices_filename}] if not in_memory else None
         else:
             indices_pa_table = None
