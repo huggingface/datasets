@@ -78,7 +78,7 @@ Dataset is in Hindi
 
 ### Data Fields
 
-- Each row contatins 4 columns - Context, Hypothesis, Entailment_Label and Topic_Label.
+- Each row contatins 4 columns - Premise, Hypothesis, Label and Topic.
 
 ### Data Splits
 
