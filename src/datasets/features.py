@@ -446,7 +446,6 @@ class ClassLabel:
         # Prepare mappings
         self._int2str = [str(name) for name in self.names]
         self._str2int = {name: i for i, name in enumerate(self._int2str)}
-        print(self._int2str)
         if len(self._int2str) != len(self._str2int):
             raise ValueError("Some label names are duplicated. Each label name should be unique.")
 
@@ -479,7 +478,6 @@ class ClassLabel:
                 # strip key if not in dict
                 if value not in self._str2int:
                     value = value.strip()
-                print(value)
                 output.append(self._str2int[str(value)])
             else:
                 # No names provided, try to integerize
