@@ -10,7 +10,10 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+  ParaphraseRC:
+  - 100K<n<1M
+  SelfRC:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -20,8 +23,7 @@ task_ids:
 - extractive-qa
 ---
 
-
-# Dataset Card for duorc_selfrc
+# Dataset Card for duorc
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -56,7 +58,7 @@ task_ids:
 
 ### Dataset Summary
 
-The DuoRC SelfRC dataset is an English language dataset of questions and answers gathered from crowdsourced AMT workers on IWikipedia movie plots. The workers were given freedom to pick answer from the plots or synthesize their own answers. The dataset was created to support the task of mixture of abstractive question answering (30%) and extractive question answering (70%). 
+The DuoRC dataset is an English language dataset of questions and answers gathered from crowdsourced AMT workers on Wikipedia and IMDb movie plots. The workers were given freedom to pick answer from the plots or synthesize their own answers. It contains two sub-datasets - SelfRC and ParaphraseRC. SelfRC dataset is built on Wikipedia movie plots solely. ParaphraseRC has questions written from Wikipedia movie plots and the answers are given based on corresponding IMDb movie plots.
 
 ### Supported Tasks and Leaderboards
 
@@ -89,9 +91,9 @@ The text in the dataset is in English, as spoken by Wikipedia writers for movie 
 
 The data is split into a training, dev and test set in such a way that the resulting sets contain 70%, 15%, and 15% of the total QA pairs and no QA pairs for any movie seen in train are included in the test set. The final split sizes are as follows:
 
-Train Dec Test
-60721 12961 12599
-
+Name Train Dec Test
+SelfRC 60721 12961 12599
+ParaphraseRC 69524 15591 15857
 ## Dataset Creation
 
 ### Curation Rationale
@@ -100,7 +102,7 @@ Train Dec Test
 
 ### Source Data
 
-Wikipedia movie plots
+Wikipedia and IMDb movie plots
 
 #### Initial Data Collection and Normalization
 
@@ -114,7 +116,8 @@ Wikipedia movie plots
 
 #### Annotation process
 
-The annotators were allowed to mark an answer span in the plot or synthesize their own answers after reading Wikipedia movie plots.
+For SelfRC, the annotators were allowed to mark an answer span in the plot or synthesize their own answers after reading Wikipedia movie plots. 
+For ParaphraseRC, questions from the Wikipedia movie plots from SelfRC were used and the annotators were asked to answer based on IMDb movie plots.
 
 #### Who are the annotators?
 

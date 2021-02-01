@@ -33,10 +33,7 @@ year = {2018}
 
 
 _DESCRIPTION = """\
-DuoRC SelfRC is a reading comprehension dataset, \
-consisting of questions posed by crowdworkers on a set of Wikipedia \
-movie plots, where the answer to every question can be a segment of text from the passage, \
-or a synthesized text, or the question might be unanswerable.
+DuoRC contains 186,089 unique question-answer pairs created from a collection of 7680 pairs of movie plots where each pair in the collection reflects two versions of the same movie.
 """
 
 _HOMEPAGE = "https://duorc.github.io/"
@@ -45,13 +42,20 @@ _LICENSE = "https://raw.githubusercontent.com/duorc/duorc/master/LICENSE"
 
 _URL = "https://raw.githubusercontent.com/duorc/duorc/master/dataset/"
 _URLs = {
-    "train": _URL + "SelfRC_train.json",
-    "dev": _URL + "SelfRC_dev.json",
-    "test": _URL + "SelfRC_test.json",
+    "SelfRC": {
+        "train": _URL + "SelfRC_train.json",
+        "dev": _URL + "SelfRC_dev.json",
+        "test": _URL + "SelfRC_test.json",
+    },
+    "ParaphraseRC": {
+        "train": _URL + "ParaphraseRC_train.json",
+        "dev": _URL + "ParaphraseRC_dev.json",
+        "test": _URL + "ParaphraseRC_test.json",
+    },
 }
 
 
-class DuorcSelfrcConfig(datasets.BuilderConfig):
+class DuorcConfig(datasets.BuilderConfig):
     """BuilderConfig for DuoRC SelfRC."""
 
     def __init__(self, **kwargs):
@@ -59,15 +63,16 @@ class DuorcSelfrcConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(DuorcSelfrcConfig, self).__init__(**kwargs)
+        super(DuorcConfig, self).__init__(**kwargs)
 
 
-class DuorcSelfrc(datasets.GeneratorBasedBuilder):
-    """DuoRC SelfRC Dataset"""
+class Duorc(datasets.GeneratorBasedBuilder):
+    """DuoRC Dataset"""
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        DuorcSelfrcConfig(name="SelfRC", version=VERSION, description="Plain Text"),
+        DuorcConfig(name="SelfRC", version=VERSION, description="SelfRC dataset"),
+        DuorcConfig(name="ParaphraseRC", version=VERSION, description="ParaphraseRC dataset"),
     ]
 
     def _info(self):
@@ -94,7 +99,8 @@ class DuorcSelfrc(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        downloaded_files = dl_manager.download_and_extract(_URLs)
+        my_urls = _URLs[self.config.name]
+        downloaded_files = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
