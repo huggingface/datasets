@@ -95,3 +95,18 @@ def test_read_table(in_memory, dataset, arrow_file):
     assert set(table.column_names) == set(dataset.data.column_names)
     assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
     assert increased_allocated_memory == in_memory
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_read_files(in_memory, dataset, arrow_file):
+    filename = arrow_file
+    reader = ArrowReader("", None)
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    assert dataset_kwargs.keys() == set(["arrow_table", "data_files", "info", "split"])
+    table = dataset_kwargs["arrow_table"]
+    assert table.shape == dataset.data.shape
+    assert set(table.column_names) == set(dataset.data.column_names)
+    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+    assert increased_allocated_memory == in_memory
