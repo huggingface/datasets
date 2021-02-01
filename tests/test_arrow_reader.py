@@ -93,5 +93,5 @@ def test_read_table(in_memory, dataset, arrow_file):
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
-    assert table.to_pydict() == dataset.data.to_pydict()
+    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
     assert increased_allocated_memory == in_memory
