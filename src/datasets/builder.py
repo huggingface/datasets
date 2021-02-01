@@ -891,13 +891,19 @@ class GeneratorBasedBuilder(DatasetBuilder):
     # GeneratorBasedBuilder should have dummy data for tests by default
     test_dummy_data = True
 
+    # Default batch size used by the ArrowWriter
+    # It defines the number of samples that are kept in memory before writing them
+    # and also the length of the arrow chunks
+    # None means that the ArrowWriter will use its default value
+    DEFAULT_WRITER_BATCH_SIZE = None
+
     def __init__(self, *args, writer_batch_size=None, **kwargs):
         super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
         # None means that the ArrowWriter will use its default value
-        self._writer_batch_size = writer_batch_size
+        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
