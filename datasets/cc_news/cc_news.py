@@ -46,7 +46,7 @@ _CITATION = """\
 }
 """
 _PROJECT_URL = "https://commoncrawl.org/2016/10/news-dataset-available/"
-_DOWNLOAD_URL = "https://storage.googleapis.com/hf_datasets/cc_news.tar.gz"
+_DOWNLOAD_URL = "https://storage.googleapis.com/huggingface-nlp/datasets/cc_news/cc_news.tar.gz"
 
 
 class CCNewsConfig(datasets.BuilderConfig):
