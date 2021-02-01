@@ -4,9 +4,10 @@ from pathlib import Path
 from unittest import TestCase
 
 import pyarrow as pa
+import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import BaseReader
+from datasets.arrow_reader import ArrowReader, BaseReader
 from datasets.info import DatasetInfo
 from datasets.splits import SplitDict, SplitInfo
 
@@ -82,3 +83,15 @@ class BaseReaderTest(TestCase):
             self.assertEqual(dset.num_columns, 1)
             self.assertEqual(dset._data_files, files)
             del dset
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_read_table(in_memory, dataset, arrow_file):
+    filename = arrow_file
+    previous_allocated_memory = pa.total_allocated_bytes()
+    table = ArrowReader.read_table(filename, in_memory=in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    assert table.shape == dataset.data.shape
+    assert set(table.column_names) == set(dataset.data.column_names)
+    assert table.to_pydict() == dataset.data.to_pydict()
+    assert increased_allocated_memory == in_memory

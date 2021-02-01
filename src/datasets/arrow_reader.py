@@ -302,6 +302,25 @@ class ArrowReader(BaseReader):
             pa_table = pa_table.slice(skip, take)
         return pa_table
 
+    @staticmethod
+    def read_table(filename, in_memory=False):
+        """
+        Read table from file.
+
+        Args:
+            filename (str): File name of the table.
+            in_memory (bool, default=False): Whether to copy the data in-memory.
+
+        Returns:
+            pyarrow.Table
+        """
+        # Stream backed by memory-mapped file / file descriptor
+        stream_from = pa.memory_map if not in_memory else pa.input_stream
+        stream = stream_from(filename)
+        f = pa.ipc.open_stream(stream)
+        pa_table = f.read_all()
+        return pa_table
+
 
 class ParquetReader(BaseReader):
     """
