@@ -18,7 +18,7 @@ class ReaderTest(BaseReader):
     This reader is made for testing. It mocks file reads.
     """
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
