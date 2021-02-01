@@ -90,7 +90,7 @@ _TEST_DOWNLOAD_URL = (
 )
 
 
-class bbc_hindi_nli_config(datasets.BuilderConfig):
+class BbcHindiNLIConfig(datasets.BuilderConfig):
     """BuilderConfig for BBC Hindi NLI Config"""
 
     def __init__(self, **kwargs):
@@ -98,14 +98,14 @@ class bbc_hindi_nli_config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(bbc_hindi_nli_config, self).__init__(**kwargs)
+        super(BbcHindiNLIConfig, self).__init__(**kwargs)
 
 
-class bbc_hindi_nli(datasets.GeneratorBasedBuilder):
+class BbcHindiNLI(datasets.GeneratorBasedBuilder):
     """BBC Hindi NLI dataset -- Dataset providing textual-entailment pairs for NLI tasks in Hindi"""
 
     BUILDER_CONFIGS = [
-        bbc_hindi_nli_config(
+        BbcHindiNLIConfig(
             name="bbc hindi nli",
             version=datasets.Version("1.1.0"),
             description="BBC Hindi NLI: Natural Language Inference Dataset in Hindi",

@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- extended|bbc__hindi_nli
+- extended|bbc__hindi_news_classification
 task_categories:
 - text-classification
 task_ids:
@@ -28,8 +28,8 @@ task_ids:
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -53,7 +53,7 @@ task_ids:
 ### Dataset Summary
 
 - Dataset for Natural Language Inference in Hindi Language. BBC Hindi Dataset consists of textual-entailment pairs.
-- Each row of the Datasets if made up of 4 columns - Context, Hypothesis, Entailment_Label and Topic_Label.
+- Each row of the Datasets if made up of 4 columns - Premise, Hypothesis, Label and Topic.
 - Context and Hypothesis is written in Hindi while Entailment_Label is in English.
 - Entailment_label is of 2 types - entailed and not-entailed.
 - Dataset can be used to train models for Natural Language Inference tasks in Hindi Language.
@@ -66,6 +66,9 @@ task_ids:
 ### Languages
 
 Dataset is in Hindi
+
+## Dataset Instances
+
 
 ## Dataset Structure
 
@@ -138,6 +141,7 @@ Pls refer to this link: https://github.com/midas-research/hindi-nli-data
 
 ### Dataset Curators
 
+It is written in the repo : https://github.com/avinsit123/hindi-nli-data that 
 - This corpus can be used freely for research purposes.
 - The paper listed below provide details of the creation and use of the corpus. If you use the corpus, then please cite the paper.
 - If interested in commercial use of the corpus, send email to midas@iiitd.ac.in.
