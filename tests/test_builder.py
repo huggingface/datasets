@@ -4,6 +4,8 @@ import types
 from unittest import TestCase
 
 import numpy as np
+import pyarrow as pa
+import pytest
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
@@ -608,3 +610,17 @@ class BuilderTest(TestCase):
 
             dummy_builder = DummyBuilderWithDefaultConfig(cache_dir=tmp_dir)
             self.assertEqual(dummy_builder.config.name, "a")
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_as_dataset(keep_in_memory, tmp_path):
+    cache_dir = tmp_path / "data"
+    cache_dir.mkdir()
+    cache_dir = str(cache_dir)
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", keep_in_memory=keep_in_memory)
+    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset = dummy_builder.as_dataset("train")
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    assert dataset.data.to_pydict() == {"text": ["foo"] * 100}
+    assert increased_allocated_memory == keep_in_memory

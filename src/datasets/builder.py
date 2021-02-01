@@ -208,6 +208,7 @@ class DatasetBuilder:
         name=None,
         hash=None,
         features=None,
+        keep_in_memory=False,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -224,6 +225,7 @@ class DatasetBuilder:
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
             features: `Features`, optional features that will be used to read/write the dataset
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -271,6 +273,9 @@ class DatasetBuilder:
                         )
                     )
                     os.rmdir(self._cache_dir)
+
+        # Whether data should be backed by memory-mapped file / file descriptor
+        self.keep_in_memory = keep_in_memory
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -799,6 +804,7 @@ class DatasetBuilder:
             name=self.name,
             instructions=split,
             split_infos=self.info.splits.values(),
+            in_memory=self.keep_in_memory,
         )
         return Dataset(**dataset_kwargs)
 
