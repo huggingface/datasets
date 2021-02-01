@@ -888,6 +888,53 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
         return formatted_output
 
+    def with_format(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
+        """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
+        The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
+        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.set_transform`.
+
+        Args:
+            type (Optional ``str``):
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
+                None means __getitem__ returns python objects (default)
+            columns (Optional ``List[str]``): columns to format in the output
+                None means __getitem__ returns all columns (default)
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+        """
+        dataset = copy.deepcopy(self)
+        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        return dataset
+
+    def with_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+    ):
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
+
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
+
+        """
+        dataset = copy.deepcopy(self)
+        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        return dataset
+
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)
