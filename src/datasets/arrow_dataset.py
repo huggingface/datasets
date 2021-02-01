@@ -796,12 +796,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         type: Optional[str] = None,
         columns: Optional[List] = None,
         output_all_columns: bool = False,
-        transform: Optional[Callable] = None,
         **format_kwargs,
     ):
         """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
-        The formating can be defined by either with a ``type`` (for example "numpy") or by a user-defined ``transform``
-        used to format batches when using __getitem__.
+        The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
+        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.set_transform`.
 
         Args:
             type (Optional ``str``):
@@ -810,21 +809,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             columns (Optional ``List[str]``): columns to format in the output
                 None means __getitem__ returns all columns (default)
             output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
-            transform (Optional ``Callable``): user-defined formatting function, replaces the output defined by ``type``
-                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
-                This function is applied right before returning the objects in __getitem__.
-                If ``columns`` is specified, then the input batch of the transform only contains those columns.
-                If ``output_all_columns`` is True, then the other un-formatted columns are kept with the output of the transform.
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
-
-        # If a custom formatting function is defined, then change the formatting type to "custom" and update the format_kwargs
-        if transform is not None:
-            if type is not None and type != "custom":
-                raise Value("Please specify either 'type' or 'transform' but not both.")
-            type = "custom"
-            format_kwargs["transform"] = transform
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
@@ -858,6 +845,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Same as ``self.set_format()``
         """
         self.set_format()
+
+    def set_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+    ):
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
+
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
+
+        """
+        self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
 
     def _getitem(
         self,
