@@ -226,8 +226,8 @@ The current format of the dataset can be queried with :func:`datasets.Dataset.fo
     >>> dataset.format
     {'type': 'python', 'format_kwargs': {}, 'columns': ['sentence1', 'sentence2', 'label', 'idx'], 'output_all_columns': False}
 
-You can also define your own formatting function that is applied on-the-fly. To do so you can pass your formatting function in the :obj:`transform` parameter of :func:`datasets.Dataset.set_format`, and keep :obj:`type` to :obj:`None`.
-A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+You can also define your own formatting transform that is applied on-the-fly. To do so you can use :func:`datasets.Dataset.set_transform`. It replaces any format that may have been defined beforehand.
+A formatting transform is a callable that takes a batch (as a dict) as input and returns a batch.
 
 Here is an example to tokenize and pad tokens on-the-fly when accessing the samples:
 
@@ -237,7 +237,7 @@ Here is an example to tokenize and pad tokens on-the-fly when accessing the samp
     >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
     >>> def encode(batch):
     >>>     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
-    >>> dataset.set_format(transform=encode)
+    >>> dataset.set_transform(encode)
     >>> dataset.format
     {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
     >>> dataset[:2]
