@@ -69,7 +69,7 @@ The text in the dataset is in the English language.
 ### Data Instances
 
 Dataset instance contains an article itself and the relevant article fields.
-An example from the Cc-New test set looks as follows:
+An example from the Cc-New train set looks as follows:
 ```
 {
   'date': '2017-08-14 00:00:00',
