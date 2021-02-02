@@ -186,3 +186,7 @@ This resource is developed by [Liu et al., 2020](https://www.aclweb.org/antholog
     pages = "1057--1067"
 }
 ```
+
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

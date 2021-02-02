@@ -173,3 +173,7 @@ Please use the following citation when making use of this dataset in your work.
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
+
+### Contributions
+
+Thanks to [@benjaminvdb](https://github.com/benjaminvdb) for adding this dataset.

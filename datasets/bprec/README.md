@@ -164,3 +164,7 @@ pages = {},
 title = {Brand-Product Relation Extraction Using Heterogeneous Vector Space Representations}
 }
 ```
+
+### Contributions
+
+Thanks to [@kldarek](https://github.com/kldarek) for adding this dataset.

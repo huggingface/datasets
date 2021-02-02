@@ -197,3 +197,7 @@ The licensing status of the datasets is [GNU GPLv3](https://choosealicense.com/l
 
 ## License
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
+
+### Contributions
+
+Thanks to [@iamollas](https://github.com/iamollas) for adding this dataset.
