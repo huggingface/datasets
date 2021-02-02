@@ -2,7 +2,7 @@
 annotations_creators:
 - no-annotation
 language_creators:
-- Ibrahim Abu Farha
+- found
 languages:
 - ar
 licenses:
@@ -12,7 +12,8 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- original
+- extended|other-semeval_2017
+- extended|other-astd
 task_categories:
 - text-classification
 task_ids:
@@ -47,6 +48,9 @@ task_ids:
 
 ## Dataset Description
 
+- **Repository:** [GitHub](https://github.com/iabufarha/ArSarcasm)
+- **Paper:** https://www.aclweb.org/anthology/2020.osact-1.5/
+
 ### Dataset Summary
 
 ArSarcasm is a new Arabic sarcasm detection dataset.
@@ -62,7 +66,8 @@ For more details, please check the paper
 
 ### Supported Tasks and Leaderboards
 
-https://sites.google.com/view/ar-sarcasm-sentiment-detection/
+You can get more information about an Arabic sarcasm tasks and leaderboard
+[here](https://sites.google.com/view/ar-sarcasm-sentiment-detection/).
 
 ### Languages
 
@@ -72,16 +77,18 @@ Arabic (multiple dialects)
 
 ### Data Instances
 
-[More Information Needed]
+```javascript
+{'dialect': 1, 'original_sentiment': 0, 'sarcasm': 0, 'sentiment': 0, 'source': 'semeval', 'tweet': 'نصيحه ما عمرك اتنزل لعبة سوبر ماريو مش زي ما كنّا متوقعين الله يرحم ايامات السيقا والفاميلي #SuperMarioRun'}
+```
 
 ### Data Fields
 
-- tweet: the original tweet text surrounded by quotes (").
-- sarcasm: boolean the indicates whether a tweet is sarcastic or not.
-- sentiment: the sentiment from the new annotation (positive, negative, neutral).
-- original_sentiment: the sentiment in the original annotations (positive, negative, neutral).
-- source: the original source of tweet SemEval or ASTD.
-- dialect: the dialect used in the tweet, we used the 5 main regions in the Arab world
+- tweet: the original tweet text
+- sarcasm: 0 for non-sarcastic, 1 for sarcastic
+- sentiment: 0 for negative, 1 for neutral, 2 for positive
+- original_sentiment: 0 for negative, 1 for neutral, 2 for positive
+- source: the original source of tweet: SemEval or ASTD
+- dialect: 0 for Egypt, 1 for Gulf, 2 for Levant, 3 for Magreb, 4 for Modern Standard Arabic (MSA)
 
 ### Data Splits
 
@@ -153,4 +160,18 @@ MIT
 
 ### Citation Information
 
-See https://www.aclweb.org/anthology/2020.osact-1.5/
+```
+@inproceedings{abu-farha-magdy-2020-arabic,
+    title = "From {A}rabic Sentiment Analysis to Sarcasm Detection: The {A}r{S}arcasm Dataset",
+    author = "Abu Farha, Ibrahim  and Magdy, Walid",
+    booktitle = "Proceedings of the 4th Workshop on Open-Source Arabic Corpora and Processing Tools, with a Shared Task on Offensive Language Detection",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resource Association",
+    url = "https://www.aclweb.org/anthology/2020.osact-1.5",
+    pages = "32--39",
+    language = "English",
+    ISBN = "979-10-95546-51-1",
+}
+```

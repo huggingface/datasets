@@ -55,10 +55,10 @@ class ArSarcasm(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "dialect": datasets.Value("string"),
-                "sarcasm": datasets.Value("bool"),
-                "sentiment": datasets.Value("string"),
-                "original_sentiment": datasets.Value("string"),
+                "dialect": datasets.ClassLabel(names=["egypt", "gulf", "levant", "magreb", "msa"]),
+                "sarcasm": datasets.ClassLabel(names=["non-sarcastic", "sarcastic"]),
+                "sentiment": datasets.ClassLabel(names=["negative", "neutral", "positive"]),
+                "original_sentiment": datasets.ClassLabel(names=["negative", "neutral", "positive"]),
                 "tweet": datasets.Value("string"),
                 "source": datasets.Value("string"),
             }
@@ -102,7 +102,7 @@ class ArSarcasm(datasets.GeneratorBasedBuilder):
                     row[4] = row[4][1:-1]
                 yield id_, {
                     "dialect": row[0],
-                    "sarcasm": (row[1] == "True"),
+                    "sarcasm": "sarcastic" if row[1] == "True" else "non-sarcastic",
                     "sentiment": row[2],
                     "original_sentiment": row[3],
                     "tweet": row[4],
