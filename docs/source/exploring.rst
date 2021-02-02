@@ -183,8 +183,8 @@ In particular, you can easily select a specific column in batches, and also natu
     True
 
 
-Working with NumPy, pandas, PyTorch, TensorFlow
----------------------------------------------------------------------
+Working with NumPy, pandas, PyTorch, TensorFlow and on-tle-fly formatting transforms
+------------------------------------------------------------------------------------
 
 Up to now, the rows/batches/columns returned when querying the elements of the dataset were python objects.
 
@@ -216,7 +216,9 @@ Here is an example:
     >>> dataset[0]
     {'label': tensor(1)}
 
-The current format of the dataset can be queried with :func:`datasets.Dataset.format` and can be reset to the original format (python and no column filtered) with :func:`datasets.Dataset.reset_format`:
+It's also possible to use :func:`datasets.Dataset.with_format` instead, to get a new dataset object with the specified format.
+
+The current format of the dataset can be queried with ``datasets.Dataset.format`` and can be reset to the original format (python and no column filtered) with :func:`datasets.Dataset.reset_format`:
 
 .. code-block::
 
@@ -242,6 +244,8 @@ Here is an example to tokenize and pad tokens on-the-fly when accessing the samp
     {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
     >>> dataset[:2]
     {'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
+
+It’s also possible to use :func:`datasets.Dataset.with_transform` instead, to get a new dataset object with the specified transform.
 
 Since the formatting function is applied on-the-fly, your original data are intact:
 
