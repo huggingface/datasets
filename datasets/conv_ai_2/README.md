@@ -208,3 +208,6 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
   biburl    = {https://dblp.org/rec/journals/corr/abs-1902-00098.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.

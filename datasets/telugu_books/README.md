@@ -138,3 +138,7 @@ TE - Telugu
  ### Citation Information
 
  [More Information Needed]
+
+### Contributions
+
+Thanks to [@vinaykudari](https://github.com/vinaykudari) for adding this dataset.

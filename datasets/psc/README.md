@@ -144,3 +144,7 @@ author={Ogrodniczuk, Maciej and Kope{\'c}, Mateusz},
 booktitle = "Proceedings of the Ninth International {C}onference on {L}anguage {R}esources and {E}valuation, {LREC}~2014",
 year = "2014",
 }
+
+### Contributions
+
+Thanks to [@abecadel](https://github.com/abecadel) for adding this dataset.
