@@ -2136,7 +2136,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if hasattr(values, "dtype"):
                 if np.issubdtype(values.dtype, np.float):
                     return _float_feature([values.item()])
-                elif np.issubdtype(values.dtype, np.int):
+                elif np.issubdtype(values.dtype, np.integer):
                     return _int64_feature([values.item()])
                 elif np.issubdtype(values.dtype, np.str):
                     return _bytes_feature([values.item().encode()])
