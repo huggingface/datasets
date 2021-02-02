@@ -716,3 +716,6 @@ Single train split
     organization = "European Language Resources Association (ELRA)"
 }
 ```
+### Contributions
+
+Thanks to [@kldarek](https://github.com/kldarek) for adding this dataset.

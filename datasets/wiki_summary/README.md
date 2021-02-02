@@ -165,3 +165,7 @@ The dataset was created by Mehrdad Farahani.
   howpublished = {https://github.com/m3hrdadfi/wiki-summary},
 }
 ```
+
+### Contributions
+
+Thanks to [@tanmoyio](https://github.com/tanmoyio) for adding this dataset.

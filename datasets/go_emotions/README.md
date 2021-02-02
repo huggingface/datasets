@@ -176,3 +176,7 @@ The GitHub repository which houses this dataset has an
  title = {{GoEmotions: A Dataset of Fine-Grained Emotions}},
  year = {2020}
 }
+
+### Contributions
+
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.

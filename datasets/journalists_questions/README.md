@@ -146,3 +146,7 @@ To construct our dataset of question tweets posted by journalists, we first acqu
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@MaramHasanain](https://github.com/MaramHasanain) for adding this dataset.
