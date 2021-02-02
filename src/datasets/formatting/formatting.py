@@ -139,7 +139,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {k: self._series_to_numpy(v) for k, v in df.items()}
 
     def _series_to_numpy(self, series: pd.Series) -> np.ndarray:
-        # to_numpy takes too much time for series objects (like series of np.array)
+        # to_numpy takes too much time for series of objects (like series of np.array)
         if series.dtype == np.object:
             array = series.tolist()
         else:
