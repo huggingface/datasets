@@ -643,7 +643,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                         "references": [] if split == "train" else [example["ref"]],
                     }
         elif self.config.name.startswith("mlsum"):
-            bad_ids_dct = json.load(open(filepaths), encoding="utf-8")
+            bad_ids_dct = json.load(open(filepaths, encoding="utf-8"))
             bad_ids = dict((bad_url, True) for _, bad_url in bad_ids_dct[f"{lang}-{split}"])
             with open(filepath, encoding="utf-8") as f:
                 id_ = -1
@@ -783,8 +783,8 @@ class Gem(datasets.GeneratorBasedBuilder):
                         "references": [line.strip() for line in lines[1:]],
                     }
         elif self.config.name.startswith("wiki_lingua"):
-            with open(os.path.join(filepath, f"{split}.src")) as f_in:
-                with open(os.path.join(filepath, f"{split}.tgt")) as f_out:
+            with open(os.path.join(filepath, f"{split}.src"), encoding="utf-8") as f_in:
+                with open(os.path.join(filepath, f"{split}.tgt"), encoding="utf-8") as f_out:
                     for id_, (src, tgt) in enumerate(zip(f_in, f_out)):
                         yield id_, {
                             "gem_id": f"{self.config.name}-{split}-{id_}",
