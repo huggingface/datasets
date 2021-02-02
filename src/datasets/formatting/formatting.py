@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import Any, Callable, Dict, Generic, Iterable, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Iterable, List, Mapping, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -250,7 +250,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
             if len(formatted_batch.keys()) > 1:
                 raise TypeError(
                     "Tried to query a column but the custom formatting function returns too many columns. "
-                    f"Only one column was expected gut got columns {list(formatted_batch.keys())}."
+                    f"Only one column was expected but got columns {list(formatted_batch.keys())}."
                 )
         else:
             raise TypeError(
@@ -382,7 +382,7 @@ def format_table(
         pa_table_to_format = pa_table.drop(col for col in pa_table.column_names if col not in format_columns)
         formatted_output = formatter(pa_table_to_format, query_type=query_type)
         if output_all_columns:
-            if hasattr(formatted_output, "update"):
+            if isinstance(formatted_output, Mapping):
                 pa_table_with_remaining_columns = pa_table.drop(
                     col for col in pa_table.column_names if col in format_columns
                 )

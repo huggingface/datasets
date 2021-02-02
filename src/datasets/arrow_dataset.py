@@ -2133,16 +2133,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     raise ValueError(
                         f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
                     )
-            if hasattr(values, "item"):  # single numpy values like np.int64 or np.str_
-                values = values.item()
-            if isinstance(values, float):
-                return _float_feature([values])
-            elif isinstance(values, int):
-                return _int64_feature([values])
-            elif isinstance(values, str):
-                return _bytes_feature([values.encode()])
+            if hasattr(values, "dtype"):
+                if np.issubdtype(values.dtype, np.float):
+                    return _float_feature([values.item()])
+                elif np.issubdtype(values.dtype, np.int):
+                    return _int64_feature([values.item()])
+                elif np.issubdtype(values.dtype, np.str):
+                    return _bytes_feature([values.item().encode()])
+                else:
+                    raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
             else:
-                raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
+                raise ValueError(f"values={values} are not numpy objects, and so cannot be serialized")
 
         def serialize_example(ex):
             feature = {key: _feature(value) for key, value in ex.items()}

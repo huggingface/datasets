@@ -16,7 +16,7 @@
 # flake8: noqa
 # Lint as: python3
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from ..utils.file_utils import is_tf_available, is_torch_available
 from ..utils.logging import get_logger
@@ -33,60 +33,52 @@ from .formatting import (
 
 logger = get_logger(__name__)
 
-_FORMAT_TYPES = {}
-_FORMAT_TYPES_ALIASES = {}
-_FORMAT_TYPES_ALIASES_UNAVAILABLE = {}
+_FORMAT_TYPES: Dict[str, type] = {}
+_FORMAT_TYPES_ALIASES: Dict[str, str] = {}
+_FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[str, Exception] = {}
 
 
-def register_formatter(format_type: Union[None, str], aliases: Optional[List[str]] = None):
+def _register_formatter(formatter_cls: type, format_type: Union[None, str], aliases: Optional[List[str]] = None):
     """
-    Decorator to register a Formatter object using a name and optional aliases.
-    This decorator must be used on a Formatter class.
+    Register a Formatter object using a name and optional aliases.
+    This function must be used on a Formatter class.
     """
     aliases = aliases if aliases is not None else []
-
-    def wrapper(formatter_cls: type) -> type:
-        if format_type in _FORMAT_TYPES:
+    if format_type in _FORMAT_TYPES:
+        logger.warning(
+            f"Overwriting format type '{format_type}' ({_FORMAT_TYPES[format_type].__name__} -> {formatter_cls.__name__})"
+        )
+    _FORMAT_TYPES[format_type] = formatter_cls
+    for alias in set(aliases + [format_type]):
+        if alias in _FORMAT_TYPES_ALIASES:
             logger.warning(
-                f"Overwriting format type '{format_type}' ({_FORMAT_TYPES[format_type].__name__} -> {formatter_cls.__name__})"
+                f"Overwriting format type alias '{alias}' ({_FORMAT_TYPES_ALIASES[alias]} -> {format_type})"
             )
-        _FORMAT_TYPES[format_type] = formatter_cls
-        for alias in set(aliases + [format_type]):
-            if alias in _FORMAT_TYPES_ALIASES:
-                logger.warning(
-                    f"Overwriting format type alias '{alias}' ({_FORMAT_TYPES_ALIASES[alias]} -> {format_type})"
-                )
-            _FORMAT_TYPES_ALIASES[alias] = format_type
-        return formatter_cls
-
-    return wrapper
+        _FORMAT_TYPES_ALIASES[alias] = format_type
 
 
-def _register_unavailable_formatter(format_type: Union[None, str], aliases: Optional[List[str]] = None):
+def _register_unavailable_formatter(
+    unavailable_error: Exception, format_type: Union[None, str], aliases: Optional[List[str]] = None
+):
     """
-    Decorator to register an unavailable Formatter object using a name and optional aliases.
-    This decorator must be used on an Exception object that is raised when trying to get the unavailable formatter.
+    Register an unavailable Formatter object using a name and optional aliases.
+    This function must be used on an Exception object that is raised when trying to get the unavailable formatter.
     """
     aliases = aliases if aliases is not None else []
-
-    def wrapper(unavailable_error: type) -> type:
-        for alias in set(aliases + [format_type]):
-            _FORMAT_TYPES_ALIASES_UNAVAILABLE[alias] = unavailable_error
-        return unavailable_error
-
-    return wrapper
+    for alias in set(aliases + [format_type]):
+        _FORMAT_TYPES_ALIASES_UNAVAILABLE[alias] = unavailable_error
 
 
 # Here we define all the available formatting functions that can be used by `Dataset.set_format`
-register_formatter(None, aliases=["python"])(PythonFormatter)
-register_formatter("numpy", aliases=["np"])(NumpyFormatter)
-register_formatter("pandas", aliases=["pd"])(PandasFormatter)
-register_formatter("custom")(CustomFormatter)
+_register_formatter(PythonFormatter, None, aliases=["python"])
+_register_formatter(NumpyFormatter, "numpy", aliases=["np"])
+_register_formatter(PandasFormatter, "pandas", aliases=["pd"])
+_register_formatter(CustomFormatter, "custom")
 
 if is_torch_available():
     from .torch_formatter import TorchFormatter
 
-    register_formatter("torch", aliases=["pt", "pytorch"])(TorchFormatter)
+    _register_formatter(TorchFormatter, "torch", aliases=["pt", "pytorch"])
 else:
     _torch_error = ValueError("PyTorch needs to be installed to be able to return PyTorch tensors.")
     _register_unavailable_formatter("torch", aliases=["pt", "pytorch"])(_torch_error)
@@ -94,7 +86,7 @@ else:
 if is_tf_available():
     from .tf_formatter import TFFormatter
 
-    register_formatter("tensorflow", aliases=["tf"])(TFFormatter)
+    _register_formatter(TFFormatter, "tensorflow", aliases=["tf"])
 else:
     _tf_error = ValueError("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
     _register_unavailable_formatter("tensorflow", aliases=["tf"])(_tf_error)
@@ -113,7 +105,7 @@ def get_formatter(format_type: Union[None, str], **format_kwargs) -> Formatter:
     Factory function to get a Formatter given its type name and keyword arguments.
     A formatter is an object that extracts and formats data from pyarrow table.
     It defines the formatting for rows, colums and batches.
-    If the formatter for a given type name doesn't exist or is not available, a error is raised.
+    If the formatter for a given type name doesn't exist or is not available, an error is raised.
     """
     format_type = get_format_type_from_alias(format_type)
     if format_type in _FORMAT_TYPES:
@@ -122,7 +114,7 @@ def get_formatter(format_type: Union[None, str], **format_kwargs) -> Formatter:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:
         raise ValueError(
-            "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas'], but got '{}'".format(
-                format_type
+            "Return type should be None or selected in {}, but got '{}'".format(
+                list(type for type in _FORMAT_TYPES.keys() if type != None), format_type
             )
         )
