@@ -81,7 +81,7 @@ if is_torch_available():
     _register_formatter(TorchFormatter, "torch", aliases=["pt", "pytorch"])
 else:
     _torch_error = ValueError("PyTorch needs to be installed to be able to return PyTorch tensors.")
-    _register_unavailable_formatter("torch", aliases=["pt", "pytorch"])(_torch_error)
+    _register_unavailable_formatter(_torch_error, "torch", aliases=["pt", "pytorch"])
 
 if is_tf_available():
     from .tf_formatter import TFFormatter
@@ -89,7 +89,7 @@ if is_tf_available():
     _register_formatter(TFFormatter, "tensorflow", aliases=["tf"])
 else:
     _tf_error = ValueError("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
-    _register_unavailable_formatter("tensorflow", aliases=["tf"])(_tf_error)
+    _register_unavailable_formatter(_tf_error, "tensorflow", aliases=["tf"])
 
 
 def get_format_type_from_alias(format_type: Union[None, str]) -> str:
