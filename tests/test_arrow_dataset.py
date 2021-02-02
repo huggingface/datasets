@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import pickle
@@ -121,6 +122,19 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
 
             del dset
+
+    def test_dummy_dataset_deepcopy(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
+            total_allocated_bytes = pa.total_allocated_bytes()
+            dset2 = copy.deepcopy(dset)
+            # don't copy the underlying arrow data using memory
+            self.assertEqual(pa.total_allocated_bytes(), total_allocated_bytes)
+            self.assertEqual(len(dset2), 10)
+            self.assertDictEqual(dset2.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset2[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset2["filename"][0], "my_name-train_0")
+            del dset, dset2
 
     def test_dummy_dataset_pickle(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1539,6 +1553,31 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(transformed_dset.format, prev_format)
 
             del dset, transformed_dset
+
+    def test_with_format(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dset2 = dset.with_format("numpy", columns=["col_1"])
+            dset.set_format("numpy", columns=["col_1"])
+            self.assertDictEqual(dset.format, dset2.format)
+            self.assertEqual(dset._fingerprint, dset2._fingerprint)
+            # dset.reset_format()
+            # self.assertNotEqual(dset.format, dset2.format)
+            # self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+            del dset, dset2
+
+    def test_with_transform(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            transform = lambda x: {"foo": x["col_1"]}  # noqa: E731
+            dset2 = dset.with_transform(transform, columns=["col_1"])
+            dset.set_transform(transform, columns=["col_1"])
+            self.assertDictEqual(dset.format, dset2.format)
+            self.assertEqual(dset._fingerprint, dset2._fingerprint)
+            dset.reset_format()
+            self.assertNotEqual(dset.format, dset2.format)
+            self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+            del dset, dset2
 
 
 class MiscellaneousDatasetTest(TestCase):
