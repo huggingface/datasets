@@ -93,7 +93,7 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     Arrow extractor are used to extract data from pyarrow tables.
-    It makes it psosible to extract rows, columns and batches.
+    It makes it possible to extract rows, columns and batches.
     These three extractions types have to be implemented.
     """
 
