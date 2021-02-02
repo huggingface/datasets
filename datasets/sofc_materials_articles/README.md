@@ -203,3 +203,7 @@ The manual annotations created for the SOFC-Exp corpus are licensed under a [Cre
       primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@ZacharySBrown](https://github.com/ZacharySBrown) for adding this dataset.

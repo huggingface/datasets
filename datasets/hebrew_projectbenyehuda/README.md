@@ -189,3 +189,6 @@ SOFTWARE.
   url = {https://github.com/projectbenyehuda/public_domain_dump},
   year = {2020},
 }
+### Contributions
+
+Thanks to [@imvladikon](https://github.com/imvladikon) for adding this dataset.

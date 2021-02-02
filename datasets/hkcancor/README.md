@@ -187,3 +187,6 @@ The POS tagset to Universal Dependency tagset mapping is provided by Jackson Lee
   commit = {1d58f44e1cb097faa69de6b617e1d28903b84b98}
 }
 ```
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.
