@@ -167,3 +167,7 @@ project is to develop machine translation systems for three South African langua
   year={2010}
 }
 ```
+
+### Contributions
+
+Thanks to [@Narsil](https://github.com/Narsil) for adding this dataset.

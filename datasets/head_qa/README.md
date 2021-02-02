@@ -247,3 +247,6 @@ The dataset is licensed under the [MIT License](https://mit-license.org/).
     abstract = "We present HEAD-QA, a multi-choice question answering testbed to encourage research on complex reasoning. The questions come from exams to access a specialized position in the Spanish healthcare system, and are challenging even for highly specialized humans. We then consider monolingual (Spanish) and cross-lingual (to English) experiments with information retrieval and neural techniques. We show that: (i) HEAD-QA challenges current methods, and (ii) the results lag well behind human performance, demonstrating its usefulness as a benchmark for future work.",
 }
 ```
+### Contributions
+
+Thanks to [@mariagrandury](https://github.com/mariagrandury) for adding this dataset.

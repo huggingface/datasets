@@ -862,3 +862,7 @@ The licensing status of the dataset hinges on the legal status of [XGLUE](https:
   volume={abs/2004.01401}
 }
 ```
+
+### Contributions
+
+Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.
