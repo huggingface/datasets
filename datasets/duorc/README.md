@@ -50,10 +50,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://duorc.github.io/
-- **Repository:** https://github.com/duorc/duorc
-- **Paper:** https://arxiv.org/pdf/1804.07927.pdf
-- **Leaderboard:** https://duorc.github.io/#leaderboard
+- **Homepage:** [DuoRC](https://duorc.github.io/)
+- **Repository:** [GitHub](https://github.com/duorc/duorc)
+- **Paper:** [arXiv](https://arxiv.org/abs/1804.07927)
+- **Leaderboard:** [DuoRC Leaderboard](https://duorc.github.io/#leaderboard)
 - **Point of Contact:** [Needs More Information]
 
 ### Dataset Summary
@@ -74,7 +74,9 @@ The text in the dataset is in English, as spoken by Wikipedia writers for movie 
 
 ### Data Instances
 
+```
 {'answers': ['They arrived by train.'], 'no_answer': False, 'plot': "200 years in the future, Mars has been colonized by a high-tech company.\nMelanie Ballard (Natasha Henstridge) arrives by train to a Mars mining camp which has cut all communication links with the company headquarters. She's not alone, as she is with a group of fellow police officers. They find the mining camp deserted except for a person in the prison, Desolation Williams (Ice Cube), who seems to laugh about them because they are all going to die. They were supposed to take Desolation to headquarters, but decide to explore first to find out what happened.They find a man inside an encapsulated mining car, who tells them not to open it. However, they do and he tries to kill them. One of the cops witnesses strange men with deep scarred and heavily tattooed faces killing the remaining survivors. The cops realise they need to leave the place fast.Desolation explains that the miners opened a kind of Martian construction in the soil which unleashed red dust. Those who breathed that dust became violent psychopaths who started to build weapons and kill the uninfected. They changed genetically, becoming distorted but much stronger.The cops and Desolation leave the prison with difficulty, and devise a plan to kill all the genetically modified ex-miners on the way out. However, the plan goes awry, and only Melanie and Desolation reach headquarters alive. Melanie realises that her bosses won't ever believe her. However, the red dust eventually arrives to headquarters, and Melanie and Desolation need to fight once again.", 'plot_id': '/m/03vyhn', 'question': 'How did the police arrive at the Mars mining camp?', 'question_id': 'b440de7d-9c3f-841c-eaec-a14bdff950d1', 'title': 'Ghosts of Mars'}
+```
 
 ### Data Fields
 
@@ -153,9 +155,11 @@ The dataset was intially created by Amrita Saha, Rahul Aralikatte, Mitesh M. Kha
 
 ### Citation Information
 
+```
 @inproceedings{DuoRC,
 author = { Amrita Saha and Rahul Aralikatte and Mitesh M. Khapra and Karthik Sankaranarayanan},
 title = {{DuoRC: Towards Complex Language Understanding with Paraphrased Reading Comprehension}},
 booktitle = {Meeting of the Association for Computational Linguistics (ACL)},
 year = {2018}
 }
+```
