@@ -148,3 +148,7 @@ You can also load the data by country by using `queries_by="country"`.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.

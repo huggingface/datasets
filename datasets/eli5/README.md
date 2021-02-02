@@ -202,3 +202,7 @@ The licensing status of the dataset hinges on the legal status of the [Pushshift
   doi       = {10.18653/v1/p19-1346}
 }
 ```
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun), [@lhoestq](https://github.com/lhoestq), [@mariamabarham](https://github.com/mariamabarham), [@thomwolf](https://github.com/thomwolf), [@yjernite](https://github.com/yjernite) for adding this dataset.
