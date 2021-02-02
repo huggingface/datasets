@@ -3,7 +3,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -230,6 +230,30 @@ class DatasetDict(dict):
         self._check_values_type()
         for dataset in self.values():
             dataset.set_format()
+
+    def set_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+    ):
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
+        This applied ``set_transform`` to all the datasets of the dataset dictionary.
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
+
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
+
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
 
     def map(
         self,
