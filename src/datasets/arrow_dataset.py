@@ -867,27 +867,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
 
-    def _getitem(
-        self,
-        key: Union[int, slice, str],
-        format_type=None,
-        format_columns=None,
-        output_all_columns=False,
-        format_kwargs=None,
-    ) -> Union[Dict, List]:
-        """
-        Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
-        """
-        format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, **format_kwargs)
-        pa_subtable = query_table(
-            self._data, key, indices=self._indices.column(0) if self._indices is not None else None
-        )
-        formatted_output = format_table(
-            pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
-        )
-        return formatted_output
-
     def with_format(
         self,
         type: Optional[str] = None,
@@ -934,6 +913,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
+
+    def _getitem(
+        self,
+        key: Union[int, slice, str],
+        format_type=None,
+        format_columns=None,
+        output_all_columns=False,
+        format_kwargs=None,
+    ) -> Union[Dict, List]:
+        """
+        Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
+        """
+        format_kwargs = format_kwargs if format_kwargs is not None else {}
+        formatter = get_formatter(format_type, **format_kwargs)
+        pa_subtable = query_table(
+            self._data, key, indices=self._indices.column(0) if self._indices is not None else None
+        )
+        formatted_output = format_table(
+            pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
+        )
+        return formatted_output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """
