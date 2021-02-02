@@ -146,3 +146,7 @@ Any publication based on these datasets must include a full citation to the foll
 
 Coucke A. et al., "Snips Voice Platform: an embedded Spoken Language Understanding system for private-by-design voice interfaces." CoRR 2018, 
 https://arxiv.org/abs/1805.10190 
+
+### Contributions
+
+Thanks to [@bduvenhage](https://github.com/bduvenhage) for adding this dataset.

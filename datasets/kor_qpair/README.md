@@ -140,3 +140,7 @@ Each row in the dataset contains two questions and a `is_duplicate` label.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jaketae](https://github.com/jaketae) for adding this dataset.

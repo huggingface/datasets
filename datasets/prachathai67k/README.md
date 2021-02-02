@@ -189,3 +189,7 @@ CC-BY-NC
   journal = {GitHub repository},
   howpublished={\\url{https://github.com/PyThaiNLP/prachathai-67k}},
 }
+
+### Contributions
+
+Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.
