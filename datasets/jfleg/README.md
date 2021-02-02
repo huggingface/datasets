@@ -168,3 +168,7 @@ This benchmark was proposed by [Napoles et al., 2020](https://www.aclweb.org/ant
   url       = {http://www.aclweb.org/anthology/P14-2029}
 }
 ```
+
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

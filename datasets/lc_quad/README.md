@@ -154,3 +154,7 @@ organization={Springer}
 
 ```
 
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun), [@thomwolf](https://github.com/thomwolf), [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.

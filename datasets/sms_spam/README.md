@@ -144,3 +144,7 @@ English
   year={2011},
   booktitle = "Proceedings of the 2011 ACM Symposium on Document Engineering (DOCENG'11)",
 }
+
+### Contributions
+
+Thanks to [@czabo](https://github.com/czabo) for adding this dataset.

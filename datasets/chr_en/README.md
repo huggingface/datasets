@@ -187,3 +187,7 @@ The copyright of the data belongs to original book/article authors or translator
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

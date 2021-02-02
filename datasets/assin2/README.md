@@ -167,3 +167,7 @@ The data is split into train, validation and test set. The split sizes are as fo
   organization={Springer}
 }
 ```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.
