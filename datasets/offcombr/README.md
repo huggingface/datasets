@@ -135,3 +135,7 @@ OffComBR: an annotated dataset containing for hate speech detection in Portugues
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@hugoabonizio](https://github.com/hugoabonizio) for adding this dataset.

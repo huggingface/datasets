@@ -191,3 +191,7 @@ According to [Metashare](http://metashare.nlp.ipipan.waw.pl/metashare/repository
 }
 ```
 
+
+### Contributions
+
+Thanks to [@kacperlukawski](https://github.com/kacperlukawski) for adding this dataset.

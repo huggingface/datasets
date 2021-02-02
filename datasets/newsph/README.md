@@ -138,3 +138,7 @@ The dataset is in plaintext and only has one field ("text"). It can be used for 
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jcblaisecruz02](https://github.com/jcblaisecruz02) for adding this dataset.

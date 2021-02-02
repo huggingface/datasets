@@ -175,3 +175,6 @@ XOR-TyDi QA is distributed under the [CC BY-SA 4.0](https://creativecommons.org/
     year    = {2020}
 }
 ```
+### Contributions
+
+Thanks to [@sumanthd17](https://github.com/sumanthd17) for adding this dataset.

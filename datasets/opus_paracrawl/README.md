@@ -196,3 +196,7 @@ publisher = {European Language Resources Association (ELRA)},
 isbn = {978-2-9517408-7-7},
 language = {english}
 }
+
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.
