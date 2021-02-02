@@ -169,6 +169,25 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_2"], "A")
         del dset
 
+    def test_with_format(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_format("numpy", columns=["col_1"])
+        dset.set_format("numpy", columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
+
+    def test_with_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_transform(transform, columns=["col_1"])
+        dset.set_transform(transform, columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
+
     def test_cast_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features
