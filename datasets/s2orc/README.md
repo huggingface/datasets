@@ -14,11 +14,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
+- other
 - sequence-modeling
 - text-classification
 task_ids:
 - language-modeling
+- multi-class-classification
 - multi-label-classification
+- other-other-citation-recommendation
 ---
 
 # Dataset Card Creation Guide
@@ -150,7 +153,7 @@ Notably:
 
 * `venue` and `journal`: `str`-valued fields for the published venue/journal.  *Please note that there is not often agreement as to what constitutes a "venue" versus a "journal". Consolidating these fields is being considered for future releases.*
 
-* `year`: an `int`-valued field for the published year.  If a paper is preprinted in 2019 but published in 2020, we try to ensure the `venue/journal` and `year` fields agree & prefer non-preprint published info. *We know this decision prohibits certain types of analysis like comparing preprint & published versions of a paper.  We're looking into it for future releases.*
+* `year`: an `int`-valued field for the published year.  If a paper is preprinted in 2019 but published in 2020, we try to ensure the `venue/journal` and `year` fields agree & prefer non-preprint published info. Missing years are replaced by -1. *We know this decision prohibits certain types of analysis like comparing preprint & published versions of a paper.  We're looking into it for future releases.*
 
 * `abstract`: a `str`-valued field for the abstract.  These are provided directly from gold sources (not parsed from PDFs).  We preserve newline breaks in structured abstracts, which are common in medical papers, by denoting breaks with `':::'`.
 
