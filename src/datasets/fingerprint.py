@@ -284,9 +284,14 @@ def fingerprint_transform(
 
             # remove kwargs that are the default values
 
-            default_values = {p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty}
+            default_values = {
+                p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
+            }
             for default_varname, default_value in default_values.items():
-                if default_varname in kwargs_for_fingerprint and kwargs_for_fingerprint[default_varname] == default_value:
+                if (
+                    default_varname in kwargs_for_fingerprint
+                    and kwargs_for_fingerprint[default_varname] == default_value
+                ):
                     kwargs_for_fingerprint.pop(default_varname)
 
             # compute new_fingerprint and add it to the args of not in-place transforms
