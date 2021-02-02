@@ -876,7 +876,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     ):
         """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
         The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
-        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.set_transform`.
+
+        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.with_transform`.
+
+        Contrary to :func:`datasets.Dataset.set_format`, ``with_format`` returns a new Dataset object.
 
         Args:
             type (Optional ``str``):
@@ -898,7 +901,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         output_all_columns: bool = False,
     ):
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
-        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
+
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`.
+
+        Contrary to :func:`datasets.Dataset.set_transform`, ``with_transform`` returns a new Dataset object.
 
         Args:
             transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
