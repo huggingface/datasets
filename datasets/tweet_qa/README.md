@@ -153,3 +153,7 @@ We first describe the three-step data collection process of TWEETQA: tweet crawl
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }
+
+### Contributions
+
+Thanks to [@anaerobeth](https://github.com/anaerobeth) for adding this dataset.

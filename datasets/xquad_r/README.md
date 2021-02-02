@@ -206,3 +206,7 @@ XQuAD-R is distributed under the [CC BY-SA 4.0 license](https://creativecommons.
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@manandey](https://github.com/manandey) for adding this dataset.
