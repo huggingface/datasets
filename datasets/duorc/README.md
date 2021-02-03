@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -163,3 +164,7 @@ booktitle = {Meeting of the Association for Computational Linguistics (ACL)},
 year = {2018}
 }
 ```
+
+### Contributions
+
+Thanks to [@gchhablani](https://github.com/gchhablani) for adding this dataset.
