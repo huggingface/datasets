@@ -100,6 +100,8 @@ Dataset is in Hindi
 
 ### Dataset Instances
 
+An example of 'train' looks as follows.
+
 ```
 {'hypothesis': 'यह खबर की सूचना है|',
  'label': 'entailed',
