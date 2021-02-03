@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.9.1"""
+"""Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v1.0.1"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -24,7 +24,6 @@ import os
 
 import datasets
 
-MAX_Q_LEN = 128
 
 _CITATION = """\
 @inproceedings{feng-etal-2020-doc2dial,
@@ -45,18 +44,16 @@ in over 450 documents from four domains. Compared to the prior document-grounded
 this dataset covers a variety of dialogue scenes in information-seeking conversations.
 """
 
-_HOMEPAGE = "https://doc2dial.github.io/file/doc2dial/"
+_HOMEPAGE = "https://doc2dial.github.io"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
 
-_URLs = "https://doc2dial.github.io/file/doc2dial_sharedtask.zip"
+_URLs = "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
 
 
 class Doc2dial(datasets.GeneratorBasedBuilder):
-    "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v0.91"
+    "Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v1.0.1"
 
-    VERSION = datasets.Version("0.9.1")
+    VERSION = datasets.Version("1.0.1")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
@@ -91,10 +88,10 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "turn_id": datasets.Value("int32"),
                             "role": datasets.Value("string"),
                             "da": datasets.Value("string"),
-                            "reference": [
+                            "references": [
                                 {
-                                    "keys": datasets.Value("string"),
-                                    "values": datasets.Value("string"),
+                                    "sp_id": datasets.Value("string"),
+                                    "label": datasets.Value("string"),
                                 }
                             ],
                             "utterance": datasets.Value("string"),
@@ -139,10 +136,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                         {
                             "text": datasets.Value("string"),
                             "answer_start": datasets.Value("int32"),
-                            "answer_end": datasets.Value("int32"),
-                            # "utterance": datasets.Value("string"),
-                            # "da": datasets.Value("string"),
-                            # "sp_id": datasets.features.Sequence(datasets.Value("string")),
                         }
                     ),
                     "domain": datasets.Value("string"),
@@ -160,6 +153,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
 
         my_urls = _URLs
+
         data_dir = dl_manager.download_and_extract(my_urls)
 
         if self.config.name == "dialogue_domain":
@@ -167,13 +161,17 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
+                        "filepath": os.path.join(
+                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"
+                        ),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
+                        "filepath": os.path.join(
+                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"
+                        ),
                     },
                 ),
             ]
@@ -182,7 +180,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_doc.json"),
+                        "filepath": os.path.join(
+                            data_dir, "doc2dial/v1.0.1/doc2dial_doc.json"
+                        ),
                     },
                 )
             ]
@@ -191,19 +191,17 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_validation.json"),
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_test.json"),
+                        "filepath": os.path.join(
+                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"
+                        ),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v0.91/doc2dial_dial_train.json"),
+                        "filepath": os.path.join(
+                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"
+                        ),
                     },
                 ),
             ]
@@ -215,25 +213,22 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
         return data
 
     def _get_answers_rc(self, references, spans, doc_text):
-        """Combine the consecutive spans. Create answers with the start and end position of merged spans and corresponding text content in the document."""
+        """Obtain the grounding annotation for a given dialogue turn"""
         if not references:
             return []
         start, end = -1, -1
-        ls_sp_id = []
-        for ref, label in references.items():
-            if not ref or "reference" in label:
-                continue
-            ls_sp_id.append(ref)
-            start_sp, end_sp = spans[ref]["start_sp"], spans[ref]["end_sp"]
+        ls_sp = []
+        for ele in references:
+            sp_id = ele["sp_id"]
+            start_sp, end_sp = spans[sp_id]["start_sp"], spans[sp_id]["end_sp"]
             if start == -1 or start > start_sp:
                 start = start_sp
             if end < end_sp:
                 end = end_sp
+            ls_sp.append(doc_text[start_sp:end_sp])
         answer = {
             "text": doc_text[start:end],
             "answer_start": start,
-            "answer_end": end,
-            # "sp_id": ls_sp_id,
         }
         return [answer]
 
@@ -251,22 +246,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 "dial_id": dialogue["dial_id"],
                                 "domain": domain,
                                 "doc_id": doc_id,
-                                "turns": [
-                                    {
-                                        "turn_id": i["turn_id"],
-                                        "role": i["role"],
-                                        "da": i["da"],
-                                        "reference": [
-                                            {
-                                                "keys": ref,
-                                                "values": str(i["reference"][ref]),
-                                            }
-                                            for ref in i["reference"]
-                                        ],
-                                        "utterance": i["utterance"],
-                                    }
-                                    for i in dialogue["turns"]
-                                ],
+                                "turns": dialogue["turns"],
                             }
 
                             yield dialogue["dial_id"], x
@@ -284,27 +264,55 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 "domain": domain,
                                 "doc_id": doc_id,
                                 "title": data["doc_data"][domain][doc_id]["title"],
-                                "doc_text": data["doc_data"][domain][doc_id]["doc_text"],
+                                "doc_text": data["doc_data"][domain][doc_id][
+                                    "doc_text"
+                                ],
                                 "spans": [
                                     {
-                                        "id_sp": data["doc_data"][domain][doc_id]["spans"][i]["id_sp"],
-                                        "tag": data["doc_data"][domain][doc_id]["spans"][i]["tag"],
-                                        "start_sp": data["doc_data"][domain][doc_id]["spans"][i]["start_sp"],
-                                        "end_sp": data["doc_data"][domain][doc_id]["spans"][i]["end_sp"],
-                                        "text_sp": data["doc_data"][domain][doc_id]["spans"][i]["text_sp"],
-                                        "title": data["doc_data"][domain][doc_id]["spans"][i]["title"],
+                                        "id_sp": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["id_sp"],
+                                        "tag": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["tag"],
+                                        "start_sp": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["start_sp"],
+                                        "end_sp": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["end_sp"],
+                                        "text_sp": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["text_sp"],
+                                        "title": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["title"],
                                         "parent_titles": str(
-                                            data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"]
+                                            data["doc_data"][domain][doc_id]["spans"][
+                                                i
+                                            ]["parent_titles"]
                                         ),
-                                        "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
-                                        "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
-                                        "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
-                                        "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
+                                        "id_sec": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["id_sec"],
+                                        "start_sec": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["start_sec"],
+                                        "text_sec": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["text_sec"],
+                                        "end_sec": data["doc_data"][domain][doc_id][
+                                            "spans"
+                                        ][i]["end_sec"],
                                     }
                                     for i in data["doc_data"][domain][doc_id]["spans"]
                                 ],
-                                "doc_html_ts": data["doc_data"][domain][doc_id]["doc_html_ts"],
-                                "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
+                                "doc_html_ts": data["doc_data"][domain][doc_id][
+                                    "doc_html_ts"
+                                ],
+                                "doc_html_raw": data["doc_data"][domain][doc_id][
+                                    "doc_html_raw"
+                                ],
                             }
 
         elif self.config.name == "doc2dial_rc":
@@ -312,7 +320,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             input query is dialog history in reversed order, and output to predict is the next agent turn."""
 
             logging.info("generating examples from = %s", filepath)
-
             doc_data = self._load_doc_data_rc(filepath)
             with open(filepath, encoding="utf-8") as f:
                 dial_data = json.load(f)["dial_data"]
@@ -321,17 +328,12 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                         doc = doc_data[domain][doc_id]
                         for dial in dials:
                             all_prev_utterances = []
-                            all_prev_turns = []
                             for idx, turn in enumerate(dial["turns"]):
-                                all_prev_utterances.append(turn["utterance"])
-                                if "references" not in turn:
-                                    turn["references"] = self._get_answers_rc(
-                                        turn["reference"],
-                                        doc["spans"],
-                                        doc["doc_text"],
-                                    )
-                                turn.pop("reference", None)
-                                all_prev_turns.append(turn)
+                                all_prev_utterances.append(
+                                    "\t{}: {}".format(turn["role"], turn["utterance"])
+                                )
+                                if "test" in filepath and idx != len(dial["turns"]) - 2:
+                                    continue
                                 if turn["role"] == "agent":
                                     continue
                                 if idx + 1 < len(dial["turns"]):
@@ -339,7 +341,9 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict = dial["turns"][idx + 1]
                                     else:
                                         continue
-                                question = " ".join(list(reversed(all_prev_utterances)))[:MAX_Q_LEN]
+                                question = " ".join(
+                                    list(reversed(all_prev_utterances))
+                                ).strip()
                                 id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                                 qa = {
                                     "id": id_,
@@ -349,18 +353,12 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     "answers": [],
                                     "domain": domain,
                                 }
-                                if "references" not in turn_to_predict:
-                                    turn_to_predict["references"] = self._get_answers_rc(
-                                        turn_to_predict["reference"],
+                                if "answers" not in turn_to_predict:
+                                    turn_to_predict["answers"] = self._get_answers_rc(
+                                        turn_to_predict["references"],
                                         doc["spans"],
                                         doc["doc_text"],
                                     )
-                                if turn_to_predict["references"]:
-                                    qa["answers"] = []
-                                else:
-                                    for answer in turn_to_predict["references"]:
-                                        d = dict(answer)
-                                        # d["utterance"] = turn_to_predict["utterance"]
-                                        # d["da"] = turn_to_predict["da"]
-                                        qa["answers"] = turn_to_predict["references"]
-                                    yield id_, qa
+                                if turn_to_predict["answers"]:
+                                    qa["answers"] = turn_to_predict["answers"]
+                                yield id_, qa
