@@ -183,3 +183,7 @@ The data is only split into train set with size of 3530796 samples.
   year={2018}
 }
 ```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.
