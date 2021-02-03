@@ -165,3 +165,7 @@ the [Apache License 2.0](https://github.com/deepset-ai/COVID-QA/blob/master/LICE
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@olinguyen](https://github.com/olinguyen) for adding this dataset.
