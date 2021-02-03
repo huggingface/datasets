@@ -161,17 +161,13 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"),
                     },
                 ),
             ]
@@ -180,9 +176,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial/v1.0.1/doc2dial_doc.json"
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_doc.json"),
                     },
                 )
             ]
@@ -191,17 +185,13 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"
-                        ),
+                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"),
                     },
                 ),
             ]
@@ -264,55 +254,27 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 "domain": domain,
                                 "doc_id": doc_id,
                                 "title": data["doc_data"][domain][doc_id]["title"],
-                                "doc_text": data["doc_data"][domain][doc_id][
-                                    "doc_text"
-                                ],
+                                "doc_text": data["doc_data"][domain][doc_id]["doc_text"],
                                 "spans": [
                                     {
-                                        "id_sp": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["id_sp"],
-                                        "tag": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["tag"],
-                                        "start_sp": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["start_sp"],
-                                        "end_sp": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["end_sp"],
-                                        "text_sp": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["text_sp"],
-                                        "title": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["title"],
+                                        "id_sp": data["doc_data"][domain][doc_id]["spans"][i]["id_sp"],
+                                        "tag": data["doc_data"][domain][doc_id]["spans"][i]["tag"],
+                                        "start_sp": data["doc_data"][domain][doc_id]["spans"][i]["start_sp"],
+                                        "end_sp": data["doc_data"][domain][doc_id]["spans"][i]["end_sp"],
+                                        "text_sp": data["doc_data"][domain][doc_id]["spans"][i]["text_sp"],
+                                        "title": data["doc_data"][domain][doc_id]["spans"][i]["title"],
                                         "parent_titles": str(
-                                            data["doc_data"][domain][doc_id]["spans"][
-                                                i
-                                            ]["parent_titles"]
+                                            data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"]
                                         ),
-                                        "id_sec": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["id_sec"],
-                                        "start_sec": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["start_sec"],
-                                        "text_sec": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["text_sec"],
-                                        "end_sec": data["doc_data"][domain][doc_id][
-                                            "spans"
-                                        ][i]["end_sec"],
+                                        "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
+                                        "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
+                                        "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
+                                        "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
                                     }
                                     for i in data["doc_data"][domain][doc_id]["spans"]
                                 ],
-                                "doc_html_ts": data["doc_data"][domain][doc_id][
-                                    "doc_html_ts"
-                                ],
-                                "doc_html_raw": data["doc_data"][domain][doc_id][
-                                    "doc_html_raw"
-                                ],
+                                "doc_html_ts": data["doc_data"][domain][doc_id]["doc_html_ts"],
+                                "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
                             }
 
         elif self.config.name == "doc2dial_rc":
@@ -329,9 +291,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                         for dial in dials:
                             all_prev_utterances = []
                             for idx, turn in enumerate(dial["turns"]):
-                                all_prev_utterances.append(
-                                    "\t{}: {}".format(turn["role"], turn["utterance"])
-                                )
+                                all_prev_utterances.append("\t{}: {}".format(turn["role"], turn["utterance"]))
                                 if "test" in filepath and idx != len(dial["turns"]) - 2:
                                     continue
                                 if turn["role"] == "agent":
@@ -341,9 +301,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict = dial["turns"][idx + 1]
                                     else:
                                         continue
-                                question = " ".join(
-                                    list(reversed(all_prev_utterances))
-                                ).strip()
+                                question = " ".join(list(reversed(all_prev_utterances))).strip()
                                 id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                                 qa = {
                                     "id": id_,
