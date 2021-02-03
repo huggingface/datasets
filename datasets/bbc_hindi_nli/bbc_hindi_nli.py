@@ -121,7 +121,7 @@ class BbcHindiNLI(datasets.GeneratorBasedBuilder):
                     "premise": datasets.Value("string"),
                     "hypothesis": datasets.Value("string"),
                     "label": datasets.Value("string"),
-                    "topic": datasets.Value("string"),
+                    "topic": datasets.ClassLabel(names=["india", "news" , "international" , "sport" , "science"]),
                 }
             ),
             supervised_keys=None,
