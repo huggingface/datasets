@@ -48,7 +48,7 @@ task_ids:
  
 - **Homepage:**
 - **Repository: [FreebaseQA repository](https://github.com/kelvin-jiang/FreebaseQA)**
-- **Paper: [FreebaseQA ACL](https://www.aclweb.org/anthology/N19-1028.pdf)**
+- **Paper: [FreebaseQA ACL paper](https://www.aclweb.org/anthology/N19-1028.pdf)**
 - **Leaderboard:**
 - **Point of Contact: [Kelvin Jiang](https://github.com/kelvin-jiang)**
  
