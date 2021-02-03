@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -175,3 +176,7 @@ MIT
     ISBN = "979-10-95546-51-1",
 }
 ```
+
+### Contributions
+
+Thanks to [@mapmeld](https://github.com/mapmeld) for adding this dataset.
