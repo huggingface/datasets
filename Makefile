@@ -11,7 +11,7 @@ quality:
 
 style:
 	black --line-length 119 --target-version py36 tests src benchmarks datasets metrics
-	isort tests src benchmarks datasets metrics
+	isort tests src benchmarks datasets/**/*.py metrics
 
 # Run tests for the library
 

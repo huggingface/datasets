@@ -31,6 +31,7 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -40,7 +41,15 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
+from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .fingerprint import (
+    fingerprint_transform,
+    generate_fingerprint,
+    generate_random_fingerprint,
+    get_temporary_cache_files_directory,
+    is_caching_enabled,
+    update_fingerprint,
+)
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -75,7 +84,7 @@ class DatasetInfoMixin(object):
 
     @property
     def split(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -160,11 +169,12 @@ def transmit_format(func):
         for dataset in datasets:
             new_format = dict(self_format)
             if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
-                new_format["columns"] = list(set(dataset.column_names) - unformatted_columns)
+                # sort the columns to have a deterministic list of columns that we can compare with `out_format`
+                new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
             out_format = {
                 "type": dataset._format_type,
                 "format_kwargs": dataset._format_kwargs,
-                "columns": dataset._format_columns,
+                "columns": sorted(dataset._format_columns) if dataset._format_columns is not None else None,
                 "output_all_columns": dataset._output_all_columns,
             }
             if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
@@ -424,77 +434,110 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
-    def save_to_disk(self, dataset_path: str):
+    def save_to_disk(self, dataset_path: str, fs=None):
         """
-        Save the dataset in a dataset directory
+        Saves a dataset to a dataset directory, or in a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be saved to
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
         self = pickle.loads(pickle.dumps(self))
-        os.makedirs(dataset_path, exist_ok=True)
-        # Write indices if needed
-        if self._indices is not None:
-            if not self._indices_data_files:
-                cache_file_name = os.path.join(dataset_path, "indices.arrow")
+
+        if is_remote_filesystem(fs):
+            dataset_path = extract_path_from_uri(dataset_path)
+        else:
+            fs = fsspec.filesystem("file")
+
+        # create temporary directory for saving
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
+            os.makedirs(temp_dataset_path, exist_ok=True)
+
+            # Write indices if needed
+            if self._indices is not None:
+                if not self._indices_data_files:
+                    cache_file_name = os.path.join(temp_dataset_path, "indices.arrow")
+                    writer = ArrowWriter(path=cache_file_name)
+                    writer.write_table(self._indices)
+                    writer.finalize()
+                    self._indices_data_files = [{"filename": cache_file_name}]
+            # Write dataset if needed
+            if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
+                cache_file_name = os.path.join(temp_dataset_path, "dataset.arrow")
                 writer = ArrowWriter(path=cache_file_name)
-                writer.write_table(self._indices)
+                writer.write_table(self._data)
                 writer.finalize()
-                self._indices_data_files = [{"filename": cache_file_name}]
-        # Write dataset if needed
-        if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
-            cache_file_name = os.path.join(dataset_path, "dataset.arrow")
-            writer = ArrowWriter(path=cache_file_name)
-            writer.write_table(self._data)
-            writer.finalize()
-            self._data_files = [{"filename": cache_file_name}]
-            self._inplace_history = [{"transforms": []}]
-        # Copy all files into the dataset directory
-        for data_file in self._data_files + self._indices_data_files:
-            # Copy file to destination directory
-            src = data_file["filename"]
-            filename = Path(src).name
-            dest = os.path.join(dataset_path, filename)
-            if src != dest:
-                shutil.copy(src, dest)
-            # Change path to relative path from inside the destination directory
-            data_file["filename"] = filename
-        # Get state
-        state = self.__getstate__()
-        dataset_info = json.loads(state.pop("_info"))
-        assert state.get("_data") is None, "arrow table needs to be memory mapped"
-        assert state.get("_indices") is None, "arrow table needs to be memory mapped"
-        assert all(
-            len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
-        ), "in-place history needs to be empty"
-        # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
-            json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
-        logger.info("Dataset saved in {}".format(dataset_path))
+                self._data_files = [{"filename": cache_file_name}]
+                self._inplace_history = [{"transforms": []}]
+            # Copy all files into the dataset directory
+            for data_file in self._data_files + self._indices_data_files:
+                src = Path(data_file["filename"])
+                dest = Path(dataset_path).joinpath(src.name)
+                if fs.protocol != "file":
+                    fs.put(src.as_posix(), dest.as_posix())
+                elif src.as_posix() != dest.as_posix():
+                    fs.put(src.as_posix(), dest.as_posix())
+                # Change path to relative path from inside the destination directory
+                data_file["filename"] = src.name
+
+            # Get state
+            state = self.__getstate__()
+            dataset_info = json.loads(state.pop("_info"))
+            assert state.get("_data") is None, "arrow table needs to be memory mapped"
+            assert state.get("_indices") is None, "arrow table needs to be memory mapped"
+            assert all(
+                len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
+            ), "in-place history needs to be empty"
+            # Serialize state
+            with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
+                json.dump(state, state_file, indent=2, sort_keys=True)
+            with fs.open(
+                Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
+            ) as dataset_info_file:
+                json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str) -> "Dataset":
-        """Load the dataset from a dataset directory
+    def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
+        """
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+
+        Returns:
+            ``datasets.Dataset`` or ``datasets.DatasetDict``
+                if `dataset_path` is a path of a dataset directory: the dataset requested,
+                if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
-        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
+        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(fs):
+            src_dataset_path = extract_path_from_uri(dataset_path)
+            tmp_dir = tempfile.TemporaryDirectory()
+            dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
+            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+
+        with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
         # Change path to absolute path
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
+            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"]).as_posix()
         dataset.__setstate__(state)
+
+        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
+            shutil.rmtree(tmp_dir.name, ignore_errors=True)
         return dataset
 
     @property
@@ -528,7 +571,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def shape(self) -> Tuple[int]:
         """Shape of the dataset (number of columns, number of rows)."""
         if self._indices is not None:
-            return tuple(self._indices.num_rows, self._data.num_columns)
+            return (self._indices.num_rows, self._data.num_columns)
         return self._data.shape
 
     def unique(self, column: str) -> List[Any]:
@@ -555,7 +598,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
@@ -576,7 +619,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """Flatten the Table.
         Each column with a struct type is flattened into one column per struct field.
@@ -593,7 +636,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
         Cast the dataset to a new set of features.
@@ -618,7 +661,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) in the dataset and
@@ -645,7 +688,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
@@ -741,7 +784,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         finally:
             self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
@@ -1113,8 +1156,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        cache_file_name = "cache-" + fingerprint + ".arrow"
-        cache_directory = os.path.dirname(self._data_files[0]["filename"])
+        if is_caching_enabled():
+            cache_file_name = "cache-" + fingerprint + ".arrow"
+            cache_directory = os.path.dirname(self._data_files[0]["filename"])
+        else:
+            cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
+            cache_directory = get_temporary_cache_files_directory()
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
@@ -1128,7 +1175,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1160,9 +1207,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1198,6 +1245,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             input_column, self._data.column_names
                         )
                     )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
             fn_kwargs = dict()
@@ -1322,7 +1371,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1333,7 +1382,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1366,9 +1415,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1404,6 +1453,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     self._data.column_names,
                 )
             )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -1553,7 +1604,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -1589,7 +1640,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1645,7 +1696,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -1659,7 +1710,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1721,7 +1772,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name"])
     def select(
         self,
         indices: Iterable,
@@ -1735,7 +1786,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             `indices` (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
             `keep_in_memory` (`bool`, default: `False`): Keep the indices mapping in memory instead of writing it to a cache file.
-            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
             `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1802,7 +1853,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
         column: str,
@@ -1829,7 +1880,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 sorted indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
@@ -1880,7 +1931,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False, randomized_function=True)
+    @fingerprint_transform(
+        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+    )
     def shuffle(
         self,
         seed: Optional[int] = None,
@@ -1905,7 +1958,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the shuffled indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 shuffled indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1955,8 +2008,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(
-        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+    @fingerprint_transform(
+        inplace=False,
+        randomized_function=True,
+        fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
+        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
     )
     def train_test_split(
         self,
@@ -1997,9 +2053,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the splits indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
-            train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 train split indices instead of the automatically generated cache file name.
-            test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -2182,7 +2238,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
