@@ -43,12 +43,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- HomePage : https://github.com/midas-research/hindi-nli-data
-- Paper : "https://www.aclweb.org/anthology/2020.aacl-main.71"
-- Point of Contact : https://github.com/midas-research/hindi-nli-data
+- **Repository:** [GitHub](https://github.com/midas-research/hindi-nli-data)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.aacl-main.71)
+- **Point of Contact:** [GitHub](https://github.com/midas-research/hindi-nli-data)
 
 ### Dataset Summary
 
@@ -188,3 +189,7 @@ Pls contact authors for any information on the dataset.
     abstract = "An NLP model{'}s ability to reason should be independent of language. Previous works utilize Natural Language Inference (NLI) to understand the reasoning ability of models, mostly focusing on high resource languages like English. To address scarcity of data in low-resource languages such as Hindi, we use data recasting to create NLI datasets for four existing text classification datasets. Through experiments, we show that our recasted dataset is devoid of statistical irregularities and spurious patterns. We further study the consistency in predictions of the textual entailment models and propose a consistency regulariser to remove pairwise-inconsistencies in predictions. We propose a novel two-step classification method which uses textual-entailment predictions for classification task. We further improve the performance by using a joint-objective for classification and textual entailment. We therefore highlight the benefits of data recasting and improvements on classification performance using our approach with supporting experimental results.",
 }
 ```
+
+### Contributions
+
+Thanks to [@avinsit123](https://github.com/avinsit123) for adding this dataset.
