@@ -190,3 +190,7 @@ THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   booktitle={Proceedings of the 2nd Workshop on Representation Learning for NLP},
   pages={191--200},
   year={2017}
+
+### Contributions
+
+Thanks to [@rsanjaykamath](https://github.com/rsanjaykamath) for adding this dataset.

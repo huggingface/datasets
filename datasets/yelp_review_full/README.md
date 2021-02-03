@@ -145,3 +145,7 @@ You can check the official [yelp-dataset-agreement](https://s3-media3.fl.yelpcdn
 ### Citation Information
 
 Xiang Zhang, Junbo Zhao, Yann LeCun. Character-level Convolutional Networks for Text Classification. Advances in Neural Information Processing Systems 28 (NIPS 2015).
+
+### Contributions
+
+Thanks to [@hfawaz](https://github.com/hfawaz) for adding this dataset.

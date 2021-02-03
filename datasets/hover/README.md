@@ -147,3 +147,6 @@ Please note that in test set sentence only id, uid and claim are available. Labe
 ### Citation Information
 
 [More Information Needed]
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.

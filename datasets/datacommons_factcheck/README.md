@@ -160,3 +160,7 @@ All fact checked items are released under a `CC-BY-NC-4.0` License.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

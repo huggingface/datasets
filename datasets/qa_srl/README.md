@@ -175,3 +175,7 @@ publisher = {cs.washington.edu},
 howpublished={\\url{https://dada.cs.washington.edu/qasrl/#page-top}},
 }
 ```
+
+### Contributions
+
+Thanks to [@bpatidar](https://github.com/bpatidar) for adding this dataset.

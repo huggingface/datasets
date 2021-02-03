@@ -213,3 +213,7 @@ Proceedings of the 17th Annual ACM SIGIR Conference, 1994, 192-201.
 Hersh WR, Hickam DH, Use of a multi-application computer workstation
 in a clinical setting, Bulletin of the Medical Library Association,
 1994, 82: 382-389.
+
+### Contributions
+
+Thanks to [@skyprince999](https://github.com/skyprince999) for adding this dataset.

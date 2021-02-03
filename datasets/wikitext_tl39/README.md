@@ -146,3 +146,7 @@ Tagalog Wikipedia
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jcblaisecruz02](https://github.com/jcblaisecruz02) for adding this dataset.

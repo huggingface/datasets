@@ -163,3 +163,6 @@ title = {Emotional Tone Detection in Arabic Tweets: 18th International Conferenc
 isbn = {978-3-319-77115-1},
 doi = {10.1007/978-3-319-77116-8_8}
 }
+### Contributions
+
+Thanks to [@abdulelahsm](https://github.com/abdulelahsm) for adding this dataset.

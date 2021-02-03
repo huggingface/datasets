@@ -150,3 +150,7 @@ IOB2 labeling scheme is used.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@stefan-it](https://github.com/stefan-it) for adding this dataset.

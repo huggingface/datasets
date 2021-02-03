@@ -151,3 +151,7 @@ Apache License 2.0
 McAuley, Julian, and Jure Leskovec. "Hidden factors and hidden topics: understanding rating dimensions with review text." In Proceedings of the 7th ACM conference on Recommender systems, pp. 165-172. 2013.
 
 Xiang Zhang, Junbo Zhao, Yann LeCun. Character-level Convolutional Networks for Text Classification. Advances in Neural Information Processing Systems 28 (NIPS 2015)
+
+### Contributions
+
+Thanks to [@hfawaz](https://github.com/hfawaz) for adding this dataset.

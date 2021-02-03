@@ -159,3 +159,7 @@ Train and Test
   isbn      = "978-83-63159-28-3"}
 }
 ```
+
+### Contributions
+
+Thanks to [@czabo](https://github.com/czabo) for adding this dataset.

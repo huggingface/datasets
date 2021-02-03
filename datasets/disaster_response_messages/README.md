@@ -187,3 +187,7 @@ The dataset was initially created by [Appen](https://appen.com/)
 
 [Multilingual Disaster Response Messages](https://appen.com/datasets/combined-disaster-response-data/)
 
+
+### Contributions
+
+Thanks to [@darshan-gandhi](https://github.com/darshan-gandhi) for adding this dataset.

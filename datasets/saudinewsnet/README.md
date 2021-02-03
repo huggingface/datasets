@@ -201,3 +201,7 @@ year = 2015,
 url = "http://github.com/ParallelMazen/SaudiNewsNet"
 }
 ```
+
+### Contributions
+
+Thanks to [@abdulelahsm](https://github.com/abdulelahsm) for adding this dataset.

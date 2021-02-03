@@ -259,3 +259,7 @@ Note that each LinCE dataset has its own citation. Please see the source to see
 the correct citation for each contained dataset.
 ```
 
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq), [@thomwolf](https://github.com/thomwolf), [@gaguilar](https://github.com/gaguilar) for adding this dataset.

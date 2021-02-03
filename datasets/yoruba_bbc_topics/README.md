@@ -140,3 +140,7 @@ An instance consists of a news title sentence and the corresponding topic label 
 
 [More Information Needed]
 
+
+### Contributions
+
+Thanks to [@michael-aloys](https://github.com/michael-aloys) for adding this dataset.

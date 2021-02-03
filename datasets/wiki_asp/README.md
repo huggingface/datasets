@@ -165,3 +165,7 @@ An example from the "plant" configuration:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@katnoria](https://github.com/katnoria) for adding this dataset.

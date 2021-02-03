@@ -180,3 +180,7 @@ CC BY 4.0
 ### Citation Information
 
 [Needs More Information]
+
+### Contributions
+
+Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.

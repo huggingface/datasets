@@ -271,3 +271,6 @@ In addition, to cite the eHealth-KD challenge you can use the following prelimin
   year      = {2020},
 }
 ```
+### Contributions
+
+Thanks to [@mariagrandury](https://github.com/mariagrandury) for adding this dataset.

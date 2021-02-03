@@ -137,3 +137,7 @@ The FACTCK.BR dataset contains 1309 claims with its corresponding label.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@hugoabonizio](https://github.com/hugoabonizio) for adding this dataset.

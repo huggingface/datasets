@@ -149,3 +149,7 @@ Data Fields:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@ophelielacroix](https://github.com/ophelielacroix), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

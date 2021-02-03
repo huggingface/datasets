@@ -181,3 +181,7 @@ Five native English annotators reqruited by using Amazon Mechaincal turk
     pages = "6516--6522",
     abstract = "We propose a reference-less metric trained on manual evaluations of system outputs for grammatical error correction (GEC). Previous studies have shown that reference-less metrics are promising; however, existing metrics are not optimized for manual evaluations of the system outputs because no dataset of the system output exists with manual evaluation. This study manually evaluates outputs of GEC systems to optimize the metrics. Experimental results show that the proposed metric improves correlation with the manual evaluation in both system- and sentence-level meta-evaluation. Our dataset and metric will be made publicly available.",
 }
+
+### Contributions
+
+Thanks to [@forest1988](https://github.com/forest1988) for adding this dataset.

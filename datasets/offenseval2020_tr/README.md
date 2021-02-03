@@ -183,3 +183,7 @@ The annotations are distributed under the terms of [Creative Commons Attribution
  url  = {https://www.aclweb.org/anthology/2020.lrec-1.758},
 }
 ```
+
+### Contributions
+
+Thanks to [@yavuzKomecoglu](https://github.com/yavuzKomecoglu) for adding this dataset.

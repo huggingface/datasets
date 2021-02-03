@@ -158,3 +158,7 @@ The prefix `B` denotes the first item of a phrase, and an `I` denotes any non-in
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jaketae](https://github.com/jaketae) for adding this dataset.

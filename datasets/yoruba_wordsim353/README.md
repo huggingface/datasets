@@ -140,3 +140,7 @@ An instance consists of a pair of words as well as their similarity. The dataset
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@michael-aloys](https://github.com/michael-aloys) for adding this dataset.

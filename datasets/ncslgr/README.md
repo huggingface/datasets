@@ -148,3 +148,7 @@ None
     publisher={American Sign Language Linguistic Research Project (Distributed on CD-ROM~…}
 }
 ```
+
+### Contributions
+
+Thanks to [@AmitMY](https://github.com/AmitMY) for adding this dataset.

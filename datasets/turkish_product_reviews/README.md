@@ -139,3 +139,7 @@ The data is under the [CC-BY-SA-4.0 License](https://github.com/fthbrmnby/turkis
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@basakbuluz](https://github.com/basakbuluz) for adding this dataset.

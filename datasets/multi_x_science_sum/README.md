@@ -154,3 +154,7 @@ The data is split into a training, validation and test.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@moussaKam](https://github.com/moussaKam) for adding this dataset.

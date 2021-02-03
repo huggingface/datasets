@@ -178,3 +178,7 @@ Following Novikova et al. (2016), the E2E data was collected using pictures as s
   eprinttype = {arxiv},
   journal = {Computer Speech \& Language}
 ```
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq) for adding this dataset.

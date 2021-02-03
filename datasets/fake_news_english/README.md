@@ -160,3 +160,7 @@ pages = {17-21},
 title = {Fake News vs Satire: A Dataset and Analysis},
 doi = {10.1145/3201064.3201100}
 }
+
+### Contributions
+
+Thanks to [@MisbahKhan789](https://github.com/MisbahKhan789), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

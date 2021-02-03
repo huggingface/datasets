@@ -608,3 +608,7 @@ IndoNLU citation
   year={2007}
 }
 ```
+
+### Contributions
+
+Thanks to [@yasirabd](https://github.com/yasirabd) for adding this dataset.

@@ -144,3 +144,7 @@ Dataset is under the [CC-BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.
  copyright = {{CLARIN}.{SI} User Licence for Internet Corpora},
  year = {2016} }
 ```
+
+### Contributions
+
+Thanks to [@IvanZidov](https://github.com/IvanZidov) for adding this dataset.

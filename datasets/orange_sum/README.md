@@ -158,3 +158,7 @@ The dataset was initially created by Antoine J.-P. Tixier.
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@moussaKam](https://github.com/moussaKam) for adding this dataset.

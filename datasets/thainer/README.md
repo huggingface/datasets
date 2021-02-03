@@ -159,3 +159,7 @@ CC-BY 3.0
 
 Work extended from:
 [Tirasaroj, N.  and Aroonmanakun, W. 2012. Thai NER using CRF model based on surface features. In Proceedings of SNLP-AOS 2011, 9-10 February, 2012, Bangkok, pages 176-180.](http://pioneer.chula.ac.th/~awirote/publications/)
+
+### Contributions
+
+Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.

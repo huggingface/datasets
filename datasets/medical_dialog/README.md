@@ -191,3 +191,7 @@ Medical dialogue systems are promising in assisting in telemedicine to increase 
   journal={arXiv preprint arXiv:2004.03329}, 
   year={2020}
 }
+
+### Contributions
+
+Thanks to [@vrindaprabhu](https://github.com/vrindaprabhu) for adding this dataset.

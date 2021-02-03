@@ -177,3 +177,7 @@ The data fields are the same among all splits.
 
 ```
 
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun), [@patrickvonplaten](https://github.com/patrickvonplaten), [@yoavartzi](https://github.com/yoavartzi), [@thomwolf](https://github.com/thomwolf) for adding this dataset.
