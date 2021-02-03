@@ -309,3 +309,7 @@ Open Multilingual WordNet was compiled by Francis Bond, Kyonghee Paik, and Ryan 
 ### Citation Information
 
 Robyn Speer, Joshua Chin, and Catherine Havasi. 2017. "ConceptNet 5.5: An Open Multilingual Graph of General Knowledge." In proceedings of AAAI 31.
+
+### Contributions
+
+Thanks to [@ontocord](https://github.com/ontocord) for adding this dataset.

@@ -151,3 +151,7 @@ The "Toxic Comment Classification" dataset is released under [CC0], with the und
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@Tigrex161](https://github.com/Tigrex161) for adding this dataset.

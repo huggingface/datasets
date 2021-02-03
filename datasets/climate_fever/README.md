@@ -237,3 +237,7 @@ This benchmark dataset currently consists of a single data split `test` that con
       primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@tdiggelm](https://github.com/tdiggelm) for adding this dataset.

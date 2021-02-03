@@ -155,3 +155,7 @@ Query-wellformedness dataset is licensed under CC BY-SA 4.0. Any third party con
    year = {2018}
 }
 ```
+
+### Contributions
+
+Thanks to [@vasudevgupta7](https://github.com/vasudevgupta7) for adding this dataset.
