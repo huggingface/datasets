@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 
 import datasets
@@ -52,8 +50,6 @@ _URLs = {
     'documents': "http://www.statmt.org/cc-aligned/",
     'sentences': "http://www.statmt.org/cc-aligned/sentence-aligned/",
 }
-
-
 
 class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
     """The CCAligned Multilingual Dataset."""
@@ -90,9 +86,6 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
             features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
@@ -105,7 +98,7 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        url = os.path.join(my_urls, self.config.language_code)
+        url = os.path.join(my_urls, self.config.language_code,'.tsv.xz')
         data_file = dl_manager.download_and_extract(url)
         return [
             datasets.SplitGenerator(
@@ -122,7 +115,7 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = row.split('\t')
-                if self.config.name == "first_domain":
+                if self.config.name == "documents":
                     yield id_, {
                         "Domain": data[0],
                         "Source_URL": data[1],
