@@ -134,7 +134,7 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 datasets.utils.logging.disable_propagation()
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
-        self.assertIn("at _dummy/_dummy.py", str(context.exception))
+        self.assertIn("at " + os.path.join("_dummy", "_dummy.py"), str(context.exception))
 
     def test_load_dataset_canonical(self):
         with self.assertRaises(FileNotFoundError) as context:
