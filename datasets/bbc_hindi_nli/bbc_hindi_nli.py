@@ -120,8 +120,8 @@ class BbcHindiNLI(datasets.GeneratorBasedBuilder):
                 {
                     "premise": datasets.Value("string"),
                     "hypothesis": datasets.Value("string"),
-                    "label": datasets.Value("string"),
-                    "topic": datasets.ClassLabel(names=["india", "news" , "international" , "sport" , "science"]),
+                    "label": datasets.ClassLabel(names=["not-entailment", "entailment"]),
+                    "topic": datasets.ClassLabel(names=["india", "news" , "international" , "entertainment", "sport" , "science"]),
                 }
             ),
             supervised_keys=None,
@@ -148,10 +148,12 @@ class BbcHindiNLI(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as tsv_file:
             tsv_reader = csv.reader(tsv_file, delimiter="\t")
             for id_, row in enumerate(tsv_reader):
+                if id_ == 0:
+                    continue
                 (premise, hypothesis, label, topic) = row
                 yield id_, {
                     "premise": premise,
                     "hypothesis": hypothesis,
-                    "label": label,
-                    "topic": topic,
+                    "label": 1 if label == "entailed" else 0,
+                    "topic": int(topic),
                 }

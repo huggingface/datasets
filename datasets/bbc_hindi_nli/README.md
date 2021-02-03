@@ -67,31 +67,6 @@ task_ids:
 
 Dataset is in Hindi
 
-## Dataset Instances
-
-<table>
-<tbody>
-<tr>
-<td>&nbsp;Premise</td>
-<td>&nbsp;Hypothesis</td>
-<td>&nbsp;Label</td>
-<td>&nbsp;Topic</td>
-</tr>
-<tr>
-<td>&nbsp;बम धमाकों से दहला इराक, दर्जनों मरे</td>
-<td>&nbsp;यह भारत की सूचना है|</td>
-<td>&nbsp;not-entailed</td>
-<td>&nbsp;2</td>
-</tr>
-<tr>
-<td>&nbsp;बर्मा में मुसलमानों के खिलाफ हिंसा के और सुबूत</td>
-<td>&nbsp;यह भारत की सूचना नहीं है|</td>
-<td>&nbsp;entailed</td>
-<td>&nbsp;2</td>
-</tr>
-</tbody>
-</table>
-
 ## Dataset Structure
 
 - Data is structured in TSV format. 
@@ -103,10 +78,8 @@ Dataset is in Hindi
 An example of 'train' looks as follows.
 
 ```
-{'hypothesis': 'यह खबर की सूचना है|',
- 'label': 'entailed',
- 'premise': 'गोपनीयता की नीति',
- 'topic': '1'}
+{'hypothesis': 'यह खबर की सूचना है|', 'label': 'entailed', 'premise': 'गोपनीयता की नीति', 'topic': '1'}
+
 ```
 ### Data Fields
 
