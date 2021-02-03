@@ -98,6 +98,14 @@ Dataset is in Hindi
 - Train and Test files are in seperate files
 
 
+### Dataset Instances
+
+```
+{'hypothesis': 'यह खबर की सूचना है|',
+ 'label': 'entailed',
+ 'premise': 'गोपनीयता की नीति',
+ 'topic': '1'}
+```
 ### Data Fields
 
 - Each row contatins 4 columns - Premise, Hypothesis, Label and Topic.
