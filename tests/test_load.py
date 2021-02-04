@@ -6,6 +6,7 @@ import time
 from hashlib import sha256
 from unittest import TestCase
 
+import pyarrow as pa
 import pytest
 import requests
 
@@ -142,9 +143,13 @@ class LoadTest(TestCase):
                 datasets.utils.logging.disable_propagation()
 
 
-def test_load_dataset(dataset_loading_script_dir, data_dir, caplog):
-    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_load_dataset(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert len(dataset) == 2
+    assert increased_allocated_memory == keep_in_memory
     with offline():
         caplog.clear()
         try:
