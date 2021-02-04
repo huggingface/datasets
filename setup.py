@@ -110,7 +110,7 @@ TESTS_REQUIRE = [
     "moto[s3]==1.3.16",
     "rarfile>=4.0",
     "tensorflow>=2.3",
-    "torch>=1.0",
+    "torch",
     "transformers",
     # datasets dependencies
     "bs4",
