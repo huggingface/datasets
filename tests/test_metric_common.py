@@ -20,6 +20,7 @@ import inspect
 import os
 from contextlib import contextmanager
 from unittest.mock import patch
+from functools import wraps
 
 import numpy as np
 from absl.testing import parameterized
@@ -27,7 +28,21 @@ from absl.testing import parameterized
 import datasets
 from datasets import load_metric
 
-from .utils import local, slow
+from .utils import local, slow, for_all_test_methods
+
+REQUIRE_FAIRSEQ = {"comet"}
+_has_fairseq = importlib.util.find_spec("fairseq") is not None
+
+
+def skip_if_dataset_requires_fairseq(test_case):
+    @wraps(test_case)
+    def wrapper(self, metric_name):
+        if not _has_fairseq and metric_name in REQUIRE_FAIRSEQ:
+            self.skipTest('"test requires Fairseq"')
+        else:
+            test_case(self, metric_name)
+
+    return wrapper
 
 
 def get_local_metric_names():
@@ -36,6 +51,7 @@ def get_local_metric_names():
 
 
 @parameterized.named_parameters(get_local_metric_names())
+@for_all_test_methods(skip_if_dataset_requires_fairseq)
 @local
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}

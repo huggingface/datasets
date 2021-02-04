@@ -130,11 +130,6 @@ TESTS_REQUIRE = [
     "scipy",
     "seqeval",
     "sklearn",
-    "wget>=3.2",  # for unbabel-comet
-    "pytorch-nlp==0.5.0",  # for unbabel-comet
-    "pytorch_lightning",  # for unbabel-comet
-    "fastBPE==0.1.0",  # for unbabel-comet
-    "fairseq",  # for unbabel-comet
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
@@ -146,6 +141,16 @@ TESTS_REQUIRE = [
 
 if os.name == "nt":  # windows
     TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
+else:
+    # dependencies of unbabel-comet
+    # only test if not on windows since there're issues installing fairseq on windows
+    TESTS_REQUIRE.extend([
+        "wget>=3.2",
+        "pytorch-nlp==0.5.0",
+        "pytorch_lightning",
+        "fastBPE==0.1.0",
+        "fairseq",
+    ])
 
 
 QUALITY_REQUIRE = [
