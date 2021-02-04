@@ -38,8 +38,6 @@ Args:
 Returns:
     accuracy: Accuracy score.
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> accuracy_metric = datasets.load_metric("accuracy")
     >>> results = accuracy_metric.compute(references=[0, 1], predictions=[0, 1])

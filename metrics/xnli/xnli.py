@@ -51,8 +51,6 @@ Args:
 Returns:
     'accuracy': accuracy
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> predictions = [0, 1]
     >>> references = [0, 1]

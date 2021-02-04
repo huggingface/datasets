@@ -76,8 +76,6 @@ Returns:
     'best_f1': Best F1 (with varying threshold)
     'best_f1_thresh': No-answer probability threshold associated to the best F1
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22', 'no_answer_probability': 0.}]
     >>> references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}]

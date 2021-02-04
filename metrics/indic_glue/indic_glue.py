@@ -48,8 +48,6 @@ Returns: depending on the IndicGLUE subset, one or several of:
     "f1": F1 score
     "precision": Precision@10
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> indic_glue_metric = datasets.load_metric('indic_glue', 'wnli')  # 'wnli' or any of ["copa", "sna", "csqa", "wstp", "inltkh", "bbca", "iitp-mr", "iitp-pr", "actsa-sc", "md"]
     >>> references = [0, 1]

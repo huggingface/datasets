@@ -56,8 +56,6 @@ Args:
 Returns:
     precision: Precision score.
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> precision_metric = datasets.load_metric("precision")
     >>> results = precision_metric.compute(references=[0, 1], predictions=[0, 1])

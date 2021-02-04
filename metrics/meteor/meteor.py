@@ -66,8 +66,6 @@ Args:
 Returns:
     'meteor': meteor score.
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> meteor = datasets.load_metric('meteor')
     >>> predictions = ["It is a guide to action which ensures that the military always obeys the commands of the party"]

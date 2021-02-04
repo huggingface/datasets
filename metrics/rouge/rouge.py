@@ -70,8 +70,6 @@ Returns:
     rougeL: rouge_l (precision, recall, f1),
     rougeLsum: rouge_lsum (precision, recall, f1)
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> rouge = datasets.load_metric('rouge')
     >>> predictions = ["hello there", "general kenobi"]

@@ -56,8 +56,6 @@ Args:
 Returns:
     recall: Recall score.
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> recall_metric = datasets.load_metric("recall")
     >>> results = recall_metric.compute(references=[0, 1], predictions=[0, 1])

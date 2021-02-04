@@ -62,8 +62,6 @@ Returns:
     'sys_len': predictions length,
     'ref_len': reference length,
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> predictions = ["hello there general kenobi", "foo bar foobar"]
     >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]

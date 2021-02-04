@@ -65,8 +65,6 @@ Returns:
     'f1', F1 score,
     'hashcode': Hashcode of the library,
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> predictions = ["hello there", "general kenobi"]
     >>> references = ["hello there", "general kenobi"]

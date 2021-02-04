@@ -54,8 +54,6 @@ Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22'}]
     >>> references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}]

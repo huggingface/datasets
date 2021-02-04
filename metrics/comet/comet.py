@@ -96,8 +96,6 @@ Returns:
     `scores`: List of scores.
 
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> comet_metric = datasets.load_metric('comet') # doctest:+ELLIPSIS
     [...]Download succeeded. Loading model[...]

@@ -74,8 +74,6 @@ Returns:
     'translation_length': translation_length,
     'reference_length': reference_length
 Examples:
-    Examples should be written in doctest format, and should illustrate how
-    to use the function.
 
     >>> predictions = [
     ...     ["hello", "there", "general", "kenobi"],                             # tokenized prediction of the first sample
