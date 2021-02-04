@@ -49,7 +49,7 @@ Using ``S3Filesystem`` with ``botocore.session.Session`` and custom ``aws_profil
 .. code-block::
 
       >>> import botocore 
-      >>> from datasets.filesystems import S3Filesystem
+      >>> from datasets.filesystems import S3FileSystem
       >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
       >>>
       >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
@@ -83,7 +83,7 @@ Saving ``encoded_dataset`` to a private s3 bucket using ``botocore.session.Sessi
 .. code-block::
 
       >>> import botocore 
-      >>> from datasets.filesystems import S3Filesystem
+      >>> from datasets.filesystems import S3FileSystem
       >>>
       >>> # creates a botocore session with the provided aws_profile
       >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
@@ -107,7 +107,7 @@ Loading ``encoded_dataset`` from a public s3 bucket.
 .. code-block::
 
       >>> from datasets import load_from_disk
-      >>> from datasets.filesystems import S3Filesystem
+      >>> from datasets.filesystems import S3FileSystem
       >>>
       >>> # create S3FileSystem without credentials
       >>> s3 = S3FileSystem(anon=True)  # doctest: +SKIP
@@ -123,7 +123,7 @@ Loading ``encoded_dataset`` from a private s3 bucket using ``aws_access_key_id``
 .. code-block::
 
       >>> from datasets import load_from_disk
-      >>> from datasets.filesystems import S3Filesystem
+      >>> from datasets.filesystems import S3FileSystem
       >>>
       >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
       >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
@@ -139,7 +139,7 @@ Loading ``encoded_dataset`` from a private s3 bucket using ``botocore.session.Se
 .. code-block::
 
       >>> import botocore
-      >>> from datasets.filesystems import S3Filesystem
+      >>> from datasets.filesystems import S3FileSystem
       >>>
       >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
       >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
