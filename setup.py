@@ -130,6 +130,7 @@ TESTS_REQUIRE = [
     "scipy",
     "seqeval",
     "sklearn",
+    "wget>=3.2",  # for unbabel-comet
     "pytorch-nlp==0.5.0",  # for unbabel-comet
     "pytorch_lightning",  # for unbabel-comet
     "fastBPE==0.1.0",  # for unbabel-comet
