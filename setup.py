@@ -130,7 +130,6 @@ TESTS_REQUIRE = [
     "scipy",
     "seqeval",
     "sklearn",
-    "unbabel-comet>=0.0.6",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
