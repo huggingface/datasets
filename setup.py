@@ -130,6 +130,10 @@ TESTS_REQUIRE = [
     "scipy",
     "seqeval",
     "sklearn",
+    "pytorch-nlp==0.5.0",  # for unbabel-comet
+    "pytorch_lightning",  # for unbabel-comet
+    "fastBPE==0.1.0",  # for unbabel-comet
+    "fairseq",  # for unbabel-comet
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
