@@ -91,7 +91,6 @@ class DummyBuilderWithDefaultConfig(DummyBuilderWithMultipleConfigs):
 
 
 class BuilderTest(TestCase):
-
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -594,20 +593,6 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
     assert increased_allocated_memory == keep_in_memory
 
 
-@pytest.mark.parametrize(
-    "writer_batch_size, default_writer_batch_size, expected_chunks", [(None, None, 1), (None, 5, 20), (10, None, 10)]
-)
-def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_batch_size, expected_chunks):
-    cache_dir = str(tmp_path)
-    if default_writer_batch_size:
-        DummyGeneratorBasedBuilder.DEFAULT_WRITER_BATCH_SIZE = default_writer_batch_size
-    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", writer_batch_size=writer_batch_size)
-    assert dummy_builder._writer_batch_size == (writer_batch_size or default_writer_batch_size)
-    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
-    dataset = dummy_builder.as_dataset("train")
-    assert len(dataset.data[0].chunks) == expected_chunks
-
-
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_generator_based_builder_as_dataset(keep_in_memory, tmp_path):
     cache_dir = tmp_path / "data"
@@ -620,3 +605,17 @@ def test_generator_based_builder_as_dataset(keep_in_memory, tmp_path):
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert dataset.data.to_pydict() == {"text": ["foo"] * 100}
     assert increased_allocated_memory == keep_in_memory
+
+
+@pytest.mark.parametrize(
+    "writer_batch_size, default_writer_batch_size, expected_chunks", [(None, None, 1), (None, 5, 20), (10, None, 10)]
+)
+def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_batch_size, expected_chunks):
+    cache_dir = str(tmp_path)
+    if default_writer_batch_size:
+        DummyGeneratorBasedBuilder.DEFAULT_WRITER_BATCH_SIZE = default_writer_batch_size
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", writer_batch_size=writer_batch_size)
+    assert dummy_builder._writer_batch_size == (writer_batch_size or default_writer_batch_size)
+    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+    dataset = dummy_builder.as_dataset("train")
+    assert len(dataset.data[0].chunks) == expected_chunks
