@@ -43,13 +43,50 @@ CCAligned consists of parallel or comparable web-document pairs in 137 languages
 _HOMEPAGE = "http://www.statmt.org/cc-aligned/"
 
 
-_LICENSE = "" # Unknown
+_LICENSE = ""  # Unknown
 
 
 _URLs = {
-    'documents': "http://www.statmt.org/cc-aligned/",
-    'sentences': "http://www.statmt.org/cc-aligned/sentence-aligned/",
+    "documents": "http://www.statmt.org/cc-aligned/",
+    "sentences": "http://www.statmt.org/cc-aligned/sentence-aligned/",
 }
+
+reverse_mapped_sentences = [
+    "af_ZA",
+    "ak_GH",
+    "am_ET",
+    "ar_AR",
+    "as_IN",
+    "ay_BO",
+    "az_AZ",
+    "az_IR",
+    "be_BY",
+    "bg_BG",
+    "bm_ML",
+    "bn_IN",
+    "br_FR",
+    "bs_BA",
+    "ca_ES",
+    "cb_IQ",
+    "cs_CZ",
+    "cx_PH",
+    "cy_GB",
+    "da_DK",
+    "de_DE",
+    "el_GR",
+]  # Some languages have the reverse source languages in the URLs.
+
+
+class CCAlignedMultilingualConfig(datasets.BuilderConfig):
+    def __init__(self, *args, type=None, language_code=None, **kwargs):
+        super().__init__(
+            *args,
+            name=f"{type}-{language_code}",
+            **kwargs,
+        )
+        self.type = type
+        self.language_code = language_code
+
 
 class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
     """The CCAligned Multilingual Dataset."""
@@ -57,13 +94,50 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="documents", version=VERSION, description="The dataset containing document-pairs."),
-        datasets.BuilderConfig(name="sentences", version=VERSION, description="The dataset containing sentence-pairs."),
+        CCAlignedMultilingualConfig(
+            type="documents",
+            language_code="zz_TR",
+            version=VERSION,
+            description="The dataset containing document-pairs for en_XX-zz_TR.",
+        ),
+        CCAlignedMultilingualConfig(
+            type="sentences",
+            language_code="zz_TR",
+            version=VERSION,
+            description="The dataset containing sentence-pairs for en_XX-zz_TR.",
+        ),
+        CCAlignedMultilingualConfig(
+            type="documents",
+            language_code="tz_MA",
+            version=VERSION,
+            description="The dataset containing document-pairs for en_XX-tz_MA.",
+        ),
+        CCAlignedMultilingualConfig(
+            type="sentences",
+            language_code="tz_MA",
+            version=VERSION,
+            description="The dataset containing sentence-pairs for en_XX-tz_MA.",
+        ),
+        CCAlignedMultilingualConfig(
+            type="documents",
+            language_code="ak_GH",
+            version=VERSION,
+            description="The dataset containing document-pairs for en_XX-ak_GH.",
+        ),
+        CCAlignedMultilingualConfig(
+            type="sentences",
+            language_code="ak_GH",
+            version=VERSION,
+            description="The dataset containing sentence-pairs for en_XX-ak_GH.",
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "documents"
+    BUILDER_CONFIG_CLASS = CCAlignedMultilingualConfig
+
+    DEFAULT_CONFIG_NAME = "documents-zz_TR"
+
     def _info(self):
-        if self.config.name == "documents":
+        if self.config.name[:9] == "documents":
             features = datasets.Features(
                 {
                     "Domain": datasets.Value("string"),
@@ -78,7 +152,8 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
                 {
                     "Source_Sentence": datasets.Value("string"),
                     "Target_Sentence": datasets.Value("string"),
-                    "LASER_similarity": datasets.Value("float")
+                    "LASER_similarity": datasets.Value("float"),
+                    "from_english": datasets.Value("bool"),
                 }
             )
         return datasets.DatasetInfo(
@@ -97,8 +172,13 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs[self.config.name]
-        url = os.path.join(my_urls, self.config.language_code,'.tsv.xz')
+        my_urls = _URLs[self.config.name[:9]]
+        if self.config.name[:9] == "sentences" and self.config.language_code in reverse_mapped_sentences:
+            url = os.path.join(my_urls, self.config.language_code + "-en_XX.tsv.xz")
+            from_english = False
+        else:
+            url = os.path.join(my_urls, "en_XX-" + self.config.language_code + ".tsv.xz")
+            from_english = True
         data_file = dl_manager.download_and_extract(url)
         return [
             datasets.SplitGenerator(
@@ -106,16 +186,17 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_file),
+                    "from_english": from_english,  # Whether the translation is from english or to english, only useful in case of sentence-pairs
                 },
             )
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, from_english=False):
         """ Yields examples. """
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
-                data = row.split('\t')
-                if self.config.name == "documents":
+                data = row.split("\t")
+                if self.config.name[:9] == "documents":
                     yield id_, {
                         "Domain": data[0],
                         "Source_URL": data[1],
@@ -127,5 +208,6 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "Source_Sentence": data[0],
                         "Target_Sentence": data[1],
-                        "LASER_similarity": data[2]
+                        "LASER_similarity": data[2],
+                        "from_english": from_english,
                     }
