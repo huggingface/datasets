@@ -19,8 +19,8 @@ import importlib
 import inspect
 import os
 from contextlib import contextmanager
-from unittest.mock import patch
 from functools import wraps
+from unittest.mock import patch
 
 import numpy as np
 from absl.testing import parameterized
@@ -28,7 +28,8 @@ from absl.testing import parameterized
 import datasets
 from datasets import load_metric
 
-from .utils import local, slow, for_all_test_methods
+from .utils import for_all_test_methods, local, slow
+
 
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
