@@ -101,16 +101,16 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam",
+    "apache-beam>=2.24.0",
     "elasticsearch",
     "boto3==1.16.43",
     "botocore==1.19.43",
     "faiss-cpu",
     "fsspec[s3]",
     "moto[s3]==1.3.16",
-    "rarfile",
-    "tensorflow",
-    "torch",
+    "rarfile>=4.0",
+    "tensorflow>=2.3",
+    "torch>=1.0",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -130,12 +130,14 @@ TESTS_REQUIRE = [
     "scipy",
     "seqeval",
     "sklearn",
-    "unbabel-comet",
+    "unbabel-comet>=0.0.6",
     # to speed up pip backtracking
     "toml>=0.10.1",
-    "requests_file>=1.5.1"
-    "tldextract>=2.2.2",
-    "texttable>=1.6.3"
+    "requests_file>=1.5.1",
+    "tldextract>=3.1.0",
+    "texttable>=1.6.3",
+    "s3fs>=0.4.2",
+    "Werkzeug>=1.0.1",
 ]
 
 if os.name == "nt":  # windows
