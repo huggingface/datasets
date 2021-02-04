@@ -96,6 +96,11 @@ class Meteor(datasets.Metric):
             ],
         )
 
+    def _download_and_prepare(self, dl_manager):
+        import nltk
+
+        nltk.download('wordnet')
+
     def _compute(self, predictions, references, alpha=0.9, beta=3, gamma=0.5):
         scores = [
             meteor_score.single_meteor_score(ref, pred, alpha=alpha, beta=beta, gamma=gamma)
