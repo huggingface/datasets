@@ -557,9 +557,10 @@ class BuilderTest(TestCase):
         ("train+test[:30%]", Dataset, 13),
     ],
 )
-def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, tmp_path):
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, keep_in_memory, tmp_path):
     cache_dir = str(tmp_path)
-    dummy_builder = DummyBuilder(cache_dir=cache_dir, name="dummy")
+    dummy_builder = DummyBuilder(cache_dir=cache_dir, name="dummy", keep_in_memory=keep_in_memory)
     os.makedirs(dummy_builder.cache_dir)
 
     dummy_builder.info.splits = SplitDict()
@@ -574,7 +575,9 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         writer.write_batch({"text": ["foo"] * 10})
         writer.finalize()
 
+    previous_allocated_memory = pa.total_allocated_bytes()
     dataset = dummy_builder.as_dataset(split=split)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert isinstance(dataset, expected_dataset_class)
     if isinstance(dataset, DatasetDict):
         assert list(dataset.keys()) == ["train", "test"]
@@ -588,6 +591,7 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         assert len(dataset) == expected_dataset_length
         assert dataset.features == Features({"text": Value("string")})
         dataset.column_names == ["text"]
+    assert increased_allocated_memory == keep_in_memory
 
 
 @pytest.mark.parametrize(
