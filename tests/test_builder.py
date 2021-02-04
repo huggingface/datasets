@@ -91,49 +91,6 @@ class DummyBuilderWithDefaultConfig(DummyBuilderWithMultipleConfigs):
 
 
 class BuilderTest(TestCase):
-    def test_as_dataset(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
-            os.makedirs(dummy_builder.cache_dir)
-
-            dummy_builder.info.splits = SplitDict()
-            dummy_builder.info.splits.add(SplitInfo("train", num_examples=10))
-            dummy_builder.info.splits.add(SplitInfo("test", num_examples=10))
-
-            for split in dummy_builder.info.splits:
-                writer = ArrowWriter(
-                    path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
-                    features=Features({"text": Value("string")}),
-                )
-                writer.write_batch({"text": ["foo"] * 10})
-                writer.finalize()
-
-            dsets = dummy_builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
-            self.assertEqual(len(dsets["train"]), 10)
-            self.assertEqual(len(dsets["test"]), 10)
-            self.assertDictEqual(dsets["train"].features, Features({"text": Value("string")}))
-            self.assertDictEqual(dsets["test"].features, Features({"text": Value("string")}))
-            self.assertListEqual(dsets["train"].column_names, ["text"])
-            self.assertListEqual(dsets["test"].column_names, ["text"])
-            del dsets
-
-            dset = dummy_builder.as_dataset("train")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train")
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"text": Value("string")}))
-            self.assertListEqual(dset.column_names, ["text"])
-            del dset
-
-            dset = dummy_builder.as_dataset("train+test[:30%]")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train+test[:30%]")
-            self.assertEqual(len(dset), 13)
-            self.assertDictEqual(dset.features, Features({"text": Value("string")}))
-            self.assertListEqual(dset.column_names, ["text"])
-            del dset
 
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -593,6 +550,47 @@ class BuilderTest(TestCase):
 
 
 @pytest.mark.parametrize(
+    "split, expected_dataset_class, expected_dataset_length",
+    [
+        (None, DatasetDict, 10),
+        ("train", Dataset, 10),
+        ("train+test[:30%]", Dataset, 13),
+    ],
+)
+def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, tmp_path):
+    cache_dir = str(tmp_path)
+    dummy_builder = DummyBuilder(cache_dir=cache_dir, name="dummy")
+    os.makedirs(dummy_builder.cache_dir)
+
+    dummy_builder.info.splits = SplitDict()
+    dummy_builder.info.splits.add(SplitInfo("train", num_examples=10))
+    dummy_builder.info.splits.add(SplitInfo("test", num_examples=10))
+
+    for info_split in dummy_builder.info.splits:
+        writer = ArrowWriter(
+            path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{info_split}.arrow"),
+            features=Features({"text": Value("string")}),
+        )
+        writer.write_batch({"text": ["foo"] * 10})
+        writer.finalize()
+
+    dataset = dummy_builder.as_dataset(split=split)
+    assert isinstance(dataset, expected_dataset_class)
+    if isinstance(dataset, DatasetDict):
+        assert list(dataset.keys()) == ["train", "test"]
+        datasets = dataset.values()
+        expected_splits = ["train", "test"]
+    elif isinstance(dataset, Dataset):
+        datasets = [dataset]
+        expected_splits = [split]
+    for dataset, expected_split in zip(datasets, expected_splits):
+        assert dataset.split == expected_split
+        assert len(dataset) == expected_dataset_length
+        assert dataset.features == Features({"text": Value("string")})
+        dataset.column_names == ["text"]
+
+
+@pytest.mark.parametrize(
     "writer_batch_size, default_writer_batch_size, expected_chunks", [(None, None, 1), (None, 5, 20), (10, None, 10)]
 )
 def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_batch_size, expected_chunks):
@@ -607,7 +605,7 @@ def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_ba
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_as_dataset(keep_in_memory, tmp_path):
+def test_generator_based_builder_as_dataset(keep_in_memory, tmp_path):
     cache_dir = tmp_path / "data"
     cache_dir.mkdir()
     cache_dir = str(cache_dir)
