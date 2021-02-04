@@ -96,30 +96,41 @@ BENCHMARKS_REQUIRE = [
 ]
 
 TESTS_REQUIRE = [
-    "apache-beam",
+    # test dependencies
     "absl-py",
+    "pytest",
+    "pytest-xdist",
+    # optional dependencies
+    "apache-beam",
+    "elasticsearch",
+    "boto3==1.16.43",
+    "botocore==1.19.43",
+    "faiss-cpu",
+    "fsspec[s3]",
+    "moto[s3]==1.3.16",
+    "rarfile",
+    "tensorflow",
+    "torch",
+    "transformers",
+    # datasets dependencies
     "bs4",
     "conllu",
-    "elasticsearch",
-    "faiss-cpu",
     "langdetect",
     "lxml",
     "mwparserfromhell",
     "nltk",
     "openpyxl",
     "py7zr",
-    "pytest",
-    "pytest-xdist",
-    "tensorflow",
-    "torch",
     "tldextract",
-    "transformers",
     "zstandard",
-    "rarfile",
-    "moto[s3]==1.3.16",
-    "fsspec[s3]",
-    "boto3==1.16.43",
-    "botocore==1.19.43",
+    # metrics dependencies
+    "bert_score",
+    "rouge_score",
+    "sacrebleu",
+    "scipy",
+    "seqeval",
+    "sklearn",
+    "unbabel-comet",
 ]
 
 if os.name == "nt":  # windows
