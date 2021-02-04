@@ -134,7 +134,7 @@ TESTS_REQUIRE = [
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1"
-    "tldextract>=3.0.2",
+    "tldextract>=2.2.2",
     "texttable>=1.6.3"
 ]
 
