@@ -1,3 +1,7 @@
+pytorch-nlp==0.5.0  # for unbabel-comet
+pytorch_lightning  # for unbabel-comet
+fastBPE==0.1.0  # for unbabel-comet
+fairseq  # for unbabel-comet
 unbabel-comet>=0.0.6
 git+https://github.com/google-research/bleurt.git
 git+https://github.com/ns-moosavi/coval.git
