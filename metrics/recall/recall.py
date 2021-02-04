@@ -55,6 +55,14 @@ Args:
     sample_weight: Sample weights.
 Returns:
     recall: Recall score.
+Examples:
+    Examples should be written in doctest format, and should illustrate how
+    to use the function.
+
+    >>> recall_metric = datasets.load_metric("recall")
+    >>> results = recall_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'recall': 1.0}
 """
 
 _CITATION = """\
@@ -72,6 +80,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Recall(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(

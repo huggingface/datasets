@@ -541,9 +541,9 @@ class Metric(MetricInfoMixin):
         raise NotImplementedError
 
     def __del__(self):
-        if self.filelock is not None:
+        if hasattr(self, "filelock") and self.filelock is not None:
             self.filelock.release()
-        if self.rendez_vous_lock is not None:
+        if hasattr(self, "rendez_vous_lock") and self.rendez_vous_lock is not None:
             self.rendez_vous_lock.release()
         if hasattr(self, "writer"):  # in case it was already deleted
             del self.writer

@@ -46,13 +46,22 @@ _KWARGS_DESCRIPTION = """
 BLEURT score.
 
 Args:
-
-predictions` (list of str): prediction/candidate sentences
-`references` (list of str): reference sentences
- checkpoint: BLEURT checkpoint. Will default to BLEURT-tiny if None.
+    `predictions` (list of str): prediction/candidate sentences
+    `references` (list of str): reference sentences
+    `checkpoint` BLEURT checkpoint. Will default to BLEURT-tiny if None.
 
 Returns:
     'scores': List of scores.
+Examples:
+    Examples should be written in doctest format, and should illustrate how
+    to use the function.
+
+    >>> predictions = ["hello there", "general kenobi"]
+    >>> references = ["hello there", "general kenobi"]
+    >>> bleurt = datasets.load_metric("bleurt")
+    >>> results = bleurt.compute(predictions=predictions, references=references)
+    >>> print([round(v, 2) for v in results["scores"]])
+    [1.03, 1.04]
 """
 
 CHECKPOINT_URLS = {
@@ -65,6 +74,7 @@ CHECKPOINT_URLS = {
 }
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class BLEURT(datasets.Metric):
     def _info(self):
 

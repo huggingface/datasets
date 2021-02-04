@@ -50,6 +50,16 @@ Args:
     references: Ground truth labels.
 Returns:
     'accuracy': accuracy
+Examples:
+    Examples should be written in doctest format, and should illustrate how
+    to use the function.
+
+    >>> predictions = [0, 1]
+    >>> references = [0, 1]
+    >>> xnli_metric = datasets.load_metric("xnli")
+    >>> results = xnli_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'accuracy': 1.0}
 """
 
 
@@ -57,6 +67,7 @@ def simple_accuracy(preds, labels):
     return (preds == labels).mean()
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Xnli(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
