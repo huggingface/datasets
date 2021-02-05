@@ -58,7 +58,7 @@ task_ids:
 
 ### Dataset Summary
 
-[Needs More Information]
+FewRel is a large-scale few-shot relation extraction dataset, which contains more than one hundred relations and tens of thousands of annotated instances cross different domains.
 
 ### Supported Tasks and Leaderboards
 
@@ -66,9 +66,10 @@ task_ids:
 
 ### Languages
 
-[Needs More Information]
+The dataset contaings English text, as used by writers on Wikipedia, and crowdsourced English annotations.
 
 ## Dataset Structure
+
 
 ### Data Instances
 
