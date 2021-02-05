@@ -92,33 +92,33 @@ An example from the dataset is:
 
 ### Data Fields
 
-* 'swda_filename':            (str) The filename: directory/basename.
-* 'ptb_basename':             (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
-* 'conversation_no':          (int) The conversation Id, to key into the metadata database.
-* 'transcript_index':         (int) The line number of this item in the transcript (counting only utt lines).
-* 'act_tag':                  (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
-* 'damsl_act_tag':            (list of str) The Dialog Act Tags of the 217 variation tags.
-* 'caller':                   (str) A, B, @A, @B, @@A, @@B
-* 'utterance_index':          (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
-* 'subutterance_index':       (int) Utterances can be broken across line. This gives the internal position.
-* 'text':                     (str) The text of the utterance
-* 'pos':                      (str) The POS tagged version of the utterance, from PtbBasename+.pos
-* 'trees':                    (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t) for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
-* 'ptb_treenumbers':          (list of int) The tree numbers in the PtbBasename+.mrg
-* 'talk_day':                 (str) Date of talk.
-* 'length':                   (int) Length of talk in seconds.
-* 'topic_description':        (str) Short description of topic that's being discussed.
-* 'prompt':                   (str) Long decription/query/instruction.
-* 'from_caller':              (int) The numerical Id of the from (A) caller.
-* 'from_caller_sex':          (str) MALE, FEMALE.
-* 'from_caller_education':    (int) Called education level 0, 1, 2, 3, 9.
-* 'from_caller_birth_year':   (int) Caller birth year YYYY.
-* 'from_caller_dialect_area': (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
-* 'to_caller':                (int) The numerical Id of the to (B) caller.
-* 'to_caller_sex':            (str) MALE, FEMALE.
-* 'to_caller_education':      (int) Called education level 0, 1, 2, 3, 9.
-* 'to_caller_birth_year':     (int) Caller birth year YYYY.
-* 'to_caller_dialect_area':   (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+* `swda_filename`:            (str) The filename: directory/basename.
+* `ptb_basename`:             (str) The Treebank filename: add ".pos" for POS and ".mrg" for trees
+* `conversation_no`:          (int) The conversation Id, to key into the metadata database.
+* `transcript_index`:         (int) The line number of this item in the transcript (counting only utt lines).
+* `act_tag`:                  (list of str) The Dialog Act Tags (separated by ||| in the file). Check Dialog act annotations for more details.
+* `damsl_act_tag`:            (list of str) The Dialog Act Tags of the 217 variation tags.
+* `caller`:                   (str) A, B, @A, @B, @@A, @@B
+* `utterance_index`:          (int) The encoded index of the utterance (the number in A.49, B.27, etc.)
+* `subutterance_index`:       (int) Utterances can be broken across line. This gives the internal position.
+* `text`:                     (str) The text of the utterance
+* `pos`:                      (str) The POS tagged version of the utterance, from PtbBasename+.pos
+* `trees`:                    (str) The tree(s) containing this utterance (separated by ||| in the file). Use `[Tree.fromstring(t) for t in row_value.split("|||")]` to convert to (list of nltk.tree.Tree).
+* `ptb_treenumbers`:          (list of int) The tree numbers in the PtbBasename+.mrg
+* `talk_day`:                 (str) Date of talk.
+* `length`:                   (int) Length of talk in seconds.
+* `topic_description`:        (str) Short description of topic that's being discussed.
+* `prompt`:                   (str) Long decription/query/instruction.
+* `from_caller`:              (int) The numerical Id of the from (A) caller.
+* `from_caller_sex`:          (str) MALE, FEMALE.
+* `from_caller_education`:    (int) Called education level 0, 1, 2, 3, 9.
+* `from_caller_birth_year`:   (int) Caller birth year YYYY.
+* `from_caller_dialect_area`: (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
+* `to_caller`:                (int) The numerical Id of the to (B) caller.
+* `to_caller_sex`:            (str) MALE, FEMALE.
+* `to_caller_education`:      (int) Called education level 0, 1, 2, 3, 9.
+* `to_caller_birth_year`:     (int) Caller birth year YYYY.
+* `to_caller_dialect_area`:   (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
     
 
 ### Dialog act annotations
