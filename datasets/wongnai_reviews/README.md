@@ -73,3 +73,7 @@ LGPL-3.0
 ### Citation Information
 
 See https://github.com/wongnai/wongnai-corpus
+
+### Contributions
+
+Thanks to [@mapmeld](https://github.com/mapmeld), [@cstorm125](https://github.com/cstorm125) for adding this dataset.

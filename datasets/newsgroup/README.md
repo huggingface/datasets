@@ -25,6 +25,7 @@
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## [Dataset Description](#dataset-description)
 
@@ -191,3 +192,7 @@ The data fields are the same among all splits.
 
 ```
 
+
+### Contributions
+
+Thanks to [@mariamabarham](https://github.com/mariamabarham), [@thomwolf](https://github.com/thomwolf), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

@@ -25,6 +25,7 @@
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## [Dataset Description](#dataset-description)
 
@@ -210,3 +211,7 @@ year={2019}
 
 ```
 
+
+### Contributions
+
+Thanks to [@thomwolf](https://github.com/thomwolf), [@TevenLeScao](https://github.com/TevenLeScao), [@patrickvonplaten](https://github.com/patrickvonplaten), [@lewtun](https://github.com/lewtun) for adding this dataset.

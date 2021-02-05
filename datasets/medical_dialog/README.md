@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -191,3 +192,7 @@ Medical dialogue systems are promising in assisting in telemedicine to increase 
   journal={arXiv preprint arXiv:2004.03329}, 
   year={2020}
 }
+
+### Contributions
+
+Thanks to [@vrindaprabhu](https://github.com/vrindaprabhu) for adding this dataset.

@@ -241,11 +241,16 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0) -> requests.Response:
-    return http_head(
-        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
-        max_retries=max_retries,
-    )
+def head_hf_s3(
+    identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
+) -> Union[requests.Response, Exception]:
+    try:
+        return http_head(
+            hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+            max_retries=max_retries,
+        )
+    except Exception as e:
+        return e
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
@@ -728,3 +733,19 @@ def is_rarfile(path: str) -> bool:
         return True
     else:
         return False
+
+
+def add_start_docstrings(*docstr):
+    def docstring_decorator(fn):
+        fn.__doc__ = "".join(docstr) + (fn.__doc__ if fn.__doc__ is not None else "")
+        return fn
+
+    return docstring_decorator
+
+
+def add_end_docstrings(*docstr):
+    def docstring_decorator(fn):
+        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "".join(docstr)
+        return fn
+
+    return docstring_decorator

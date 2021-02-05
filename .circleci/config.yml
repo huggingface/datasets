@@ -14,6 +14,7 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==0.17.1
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
@@ -27,6 +28,7 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
@@ -44,6 +46,7 @@ jobs:
             - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==0.17.1
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
@@ -61,6 +64,7 @@ jobs:
             - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/

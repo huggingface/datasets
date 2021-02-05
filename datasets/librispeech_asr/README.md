@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -180,3 +181,7 @@ CC BY 4.0
 ### Citation Information
 
 [Needs More Information]
+
+### Contributions
+
+Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.

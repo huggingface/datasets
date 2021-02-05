@@ -252,3 +252,7 @@ keywords = "Adverse drug effect, Benchmark corpus, Annotation, Harmonization, Se
 abstract = "A significant amount of information about drug-related safety issues such as adverse effects are published in medical case reports that can only be explored by human readers due to their unstructured nature. The work presented here aims at generating a systematically annotated corpus that can support the development and validation of methods for the automatic extraction of drug-related adverse effects from medical case reports. The documents are systematically double annotated in various rounds to ensure consistent annotations. The annotated documents are finally harmonized to generate representative consensus annotations. In order to demonstrate an example use case scenario, the corpus was employed to train and validate models for the classification of informative against the non-informative sentences. A Maximum Entropy classifier trained with simple features and evaluated by 10-fold cross-validation resulted in the F1 score of 0.70 indicating a potential useful application of the corpus."
 }
 ```
+
+### Contributions
+
+Thanks to [@Nilanshrajput](https://github.com/Nilanshrajput), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -164,3 +165,7 @@ pages = {},
 title = {Brand-Product Relation Extraction Using Heterogeneous Vector Space Representations}
 }
 ```
+
+### Contributions
+
+Thanks to [@kldarek](https://github.com/kldarek) for adding this dataset.

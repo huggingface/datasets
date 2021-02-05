@@ -152,6 +152,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -340,3 +341,7 @@ cc-by-nc-4.0
 }
 
 ```
+
+### Contributions
+
+Thanks to [@skyprince999](https://github.com/skyprince999) for adding this dataset.

@@ -25,6 +25,7 @@
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## [Dataset Description](#dataset-description)
 
@@ -247,3 +248,7 @@ get the correct citation for each contained dataset.
 
 ```
 
+
+### Contributions
+
+Thanks to [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.

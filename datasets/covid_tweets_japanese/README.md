@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -143,3 +144,7 @@ CC-BY-ND 4.0
 
 A related paper has not yet published.
 The author shows how to cite as「鈴木 優: COVID-19 日本語 Twitter データセット （ http://www.db.info.gifu-u.ac.jp/data/Data_5f02db873363f976fce930d1 ） 」.
+
+### Contributions
+
+Thanks to [@forest1988](https://github.com/forest1988) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -166,3 +167,6 @@ Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
  year = {2016}	
 }
 ```
+### Contributions
+
+Thanks to [@kldarek](https://github.com/kldarek) for adding this dataset.

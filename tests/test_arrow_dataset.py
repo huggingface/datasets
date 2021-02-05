@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import pickle
@@ -22,7 +23,7 @@ from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 
-from .utils import require_tf, require_torch
+from .utils import require_tf, require_torch, require_transformers
 
 
 class Unpicklable:
@@ -121,6 +122,19 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
 
             del dset
+
+    def test_dummy_dataset_deepcopy(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
+            total_allocated_bytes = pa.total_allocated_bytes()
+            dset2 = copy.deepcopy(dset)
+            # don't copy the underlying arrow data using memory
+            self.assertEqual(pa.total_allocated_bytes(), total_allocated_bytes)
+            self.assertEqual(len(dset2), 10)
+            self.assertDictEqual(dset2.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset2[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset2["filename"][0], "my_name-train_0")
+            del dset, dset2
 
     def test_dummy_dataset_pickle(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -244,8 +258,7 @@ class BaseDatasetTest(TestCase):
             fingerprint = dset._fingerprint
             dset.set_format(type="numpy", columns=["col_1"])
             self.assertEqual(len(dset[0]), 1)
-            self.assertIsInstance(dset[0]["col_1"], np.ndarray)
-            self.assertListEqual(list(dset[0]["col_1"].shape), [])
+            self.assertIsInstance(dset[0]["col_1"], np.int64)
             self.assertEqual(dset[0]["col_1"].item(), 3)
             self.assertIsInstance(dset["col_1"], np.ndarray)
             self.assertListEqual(list(dset["col_1"].shape), [4])
@@ -255,8 +268,7 @@ class BaseDatasetTest(TestCase):
             dset.reset_format()
             with dset.formatted_as(type="numpy", columns=["col_1"]):
                 self.assertEqual(len(dset[0]), 1)
-                self.assertIsInstance(dset[0]["col_1"], np.ndarray)
-                self.assertListEqual(list(dset[0]["col_1"].shape), [])
+                self.assertIsInstance(dset[0]["col_1"], np.int64)
                 self.assertEqual(dset[0]["col_1"].item(), 3)
                 self.assertIsInstance(dset["col_1"], np.ndarray)
                 self.assertListEqual(list(dset["col_1"].shape), [4])
@@ -274,6 +286,7 @@ class BaseDatasetTest(TestCase):
 
             dset.set_format(type="numpy", columns=["col_1", "col_2"])
             self.assertEqual(len(dset[0]), 2)
+            self.assertIsInstance(dset[0]["col_2"], np.str_)
             self.assertEqual(dset[0]["col_2"].item(), "a")
             del dset
 
@@ -334,6 +347,28 @@ class BaseDatasetTest(TestCase):
             dset.set_format(type="pandas", columns=["col_1", "col_2"])
             self.assertEqual(len(dset[0].columns), 2)
             self.assertEqual(dset[0]["col_2"].item(), "a")
+            del dset
+
+    def test_set_transform(self, in_memory):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dset.set_transform(transform=transform, columns=["col_1"])
+            self.assertEqual(dset.format["type"], "custom")
+            self.assertEqual(len(dset[0].keys()), 1)
+            self.assertEqual(dset[0]["col_1"], "3")
+            self.assertEqual(dset[:2]["col_1"], ["3", "2"])
+            self.assertEqual(dset["col_1"][:2], ["3", "2"])
+
+            prev_format = dset.format
+            dset.set_format(**dset.format)
+            self.assertEqual(prev_format, dset.format)
+
+            dset.set_transform(transform=transform, columns=["col_1", "col_2"])
+            self.assertEqual(len(dset[0].keys()), 2)
+            self.assertEqual(dset[0]["col_2"], "A")
             del dset
 
     def test_transmit_format(self, in_memory):
@@ -613,7 +648,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             dset.set_format("numpy", columns=["col_1"])
 
-            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"].item() + 1})
+            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"] + 1})
             self.assertEqual(len(dset_test), 4)
             self.assertEqual(dset_test.format["type"], "numpy")
             self.assertIsInstance(dset_test["col_1"], np.ndarray)
@@ -862,7 +897,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             dset.set_format("numpy")
             fingerprint = dset._fingerprint
-            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"].item()[-1]) % 2 == 0))
+            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0))
             self.assertEqual(len(dset_filter_even_num), 15)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
@@ -1031,7 +1066,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_select_five), 5)
             self.assertEqual(dset_select_five.format["type"], "numpy")
             for i, row in enumerate(dset_select_five):
-                self.assertEqual(int(row["filename"].item()[-1]), i)
+                self.assertEqual(int(row["filename"][-1]), i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
             del dset, dset_select_five
@@ -1361,10 +1396,12 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], np.ndarray)
-                self.assertIsInstance(dset[:2][col], np.ndarray)
-                self.assertIsInstance(dset[col], np.ndarray)
+            self.assertIsInstance(dset[0]["filename"], np.str_)
+            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+            self.assertIsInstance(dset["filename"], np.ndarray)
+            self.assertIsInstance(dset[0]["vec"], np.ndarray)
+            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+            self.assertIsInstance(dset["vec"], np.ndarray)
             self.assertEqual(dset[:2]["vec"].shape, (2, 3))
             self.assertEqual(dset["vec"][:2].shape, (2, 3))
 
@@ -1414,11 +1451,13 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], np.ndarray)
-                self.assertIsInstance(dset[:2][col], np.ndarray)
-                self.assertIsInstance(dset[col], np.ndarray)
-            # array is flat for raged vectors in numpy
+            self.assertIsInstance(dset[0]["filename"], np.str_)
+            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+            self.assertIsInstance(dset["filename"], np.ndarray)
+            self.assertIsInstance(dset[0]["vec"], np.ndarray)
+            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+            self.assertIsInstance(dset["vec"], np.ndarray)
+            # array is flat for ragged vectors in numpy
             self.assertEqual(dset[:2]["vec"].shape, (2,))
             self.assertEqual(dset["vec"][:2].shape, (2,))
 
@@ -1515,6 +1554,31 @@ class BaseDatasetTest(TestCase):
 
             del dset, transformed_dset
 
+    def test_with_format(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dset2 = dset.with_format("numpy", columns=["col_1"])
+            dset.set_format("numpy", columns=["col_1"])
+            self.assertDictEqual(dset.format, dset2.format)
+            self.assertEqual(dset._fingerprint, dset2._fingerprint)
+            # dset.reset_format()
+            # self.assertNotEqual(dset.format, dset2.format)
+            # self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+            del dset, dset2
+
+    def test_with_transform(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            transform = lambda x: {"foo": x["col_1"]}  # noqa: E731
+            dset2 = dset.with_transform(transform, columns=["col_1"])
+            dset.set_transform(transform, columns=["col_1"])
+            self.assertDictEqual(dset.format, dset2.format)
+            self.assertEqual(dset._fingerprint, dset2._fingerprint)
+            dset.reset_format()
+            self.assertNotEqual(dset.format, dset2.format)
+            self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+            del dset, dset2
+
 
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
@@ -1581,3 +1645,16 @@ class MiscellaneousDatasetTest(TestCase):
             with self.assertRaises(ValueError):
                 _ = concatenate_datasets([dset1, dset2, dset3])
             del dset1, dset2, dset3
+
+    @require_transformers
+    def test_set_format_encode(self):
+        from transformers import BertTokenizer
+
+        dset = Dataset.from_dict({"text": ["hello there", "foo"]})
+        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+        def encode(batch):
+            return tokenizer(batch["text"], padding="longest", return_tensors="np")
+
+        dset.set_transform(transform=encode)
+        self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))

@@ -1,3 +1,4 @@
+import inspect
 import json
 import os
 import random
@@ -261,13 +262,15 @@ def fingerprint_transform(
 
         @wraps(func)
         def wrapper(*args, **kwargs):
+            kwargs_for_fingerprint = dict(kwargs)
             if args:
+                params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
                 self: "Dataset" = args[0]
                 args = args[1:]
+                params = params[1:]
+                kwargs_for_fingerprint.update(zip(params, args))
             else:
                 self: "Dataset" = kwargs.pop("self")
-            kwargs_for_fingerprint = dict(kwargs)
-            kwargs_for_fingerprint.update(zip(func.__code__.co_varnames, args))
 
             # keep the right kwargs to be hashed to generate the fingerprint
 
@@ -278,6 +281,18 @@ def fingerprint_transform(
             if randomized_function:  # randomized functions have `seed` and `generator` parameters
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
                     kwargs_for_fingerprint["generator"] = np.random.default_rng(np.random.get_state()[1][0])
+
+            # remove kwargs that are the default values
+
+            default_values = {
+                p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
+            }
+            for default_varname, default_value in default_values.items():
+                if (
+                    default_varname in kwargs_for_fingerprint
+                    and kwargs_for_fingerprint[default_varname] == default_value
+                ):
+                    kwargs_for_fingerprint.pop(default_varname)
 
             # compute new_fingerprint and add it to the args of not in-place transforms
             transform = func.__module__ + "." + func.__qualname__

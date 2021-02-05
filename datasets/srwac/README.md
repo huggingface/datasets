@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -143,3 +144,7 @@ Dataset is under the [CC-BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.
  copyright = {Creative Commons - Attribution-{ShareAlike} 4.0 International ({CC} {BY}-{SA} 4.0)},
  year = {2016} }
 ```
+
+### Contributions
+
+Thanks to [@IvanZidov](https://github.com/IvanZidov) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -151,3 +152,7 @@ author={Przepi{\'o}rkowski, Adam},
 year={2012},
 publisher={Naukowe PWN}
 }
+
+### Contributions
+
+Thanks to [@abecadel](https://github.com/abecadel) for adding this dataset.

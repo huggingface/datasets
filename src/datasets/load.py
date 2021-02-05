@@ -224,7 +224,7 @@ def prepare_module(
     r"""
         Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
 
-    Dataset and metrics codes are cached inside the lib to allow easy import (avoid ugly sys.path tweaks)
+    Dataset and metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks)
     and using cloudpickle (among other things).
 
     Args:
@@ -233,9 +233,12 @@ def prepare_module(
             path to the dataset or metric script, can be either:
                 - a path to a local directory containing the dataset processing python script
                 - an url to a github or S3 directory with a dataset processing python script
-        script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
-            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
-            your local version of the lib might cause compatibility issues.
+        script_version (Optional ``Union[str, datasets.Version]``):
+            If specified, the module will be loaded from the datasets repository at this version.
+            By default:
+            - it is set to the local version fo the lib.
+            - it will also try to load it from the master branch if it's not available at the local version fo the lib.
+            Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         dataset (bool): True if the script to load is a dataset, False if the script is a metric.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
@@ -305,28 +308,51 @@ def prepare_module(
         try:
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
-            file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
-            try:
-                local_path = cached_path(file_path, download_config=download_config)
-            except FileNotFoundError:
-                if script_version is not None:
-                    raise ValueError(
-                        "Couldn't find remote file with version {} at {}\nPlease provide a valid version and a valid {} name".format(
-                            script_version, file_path, "dataset" if dataset else "metric"
+            if path.count("/") == 0:  # canonical datasets/metrics: github path
+                file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
+                try:
+                    local_path = cached_path(file_path, download_config=download_config)
+                except FileNotFoundError:
+                    if script_version is not None:
+                        raise FileNotFoundError(
+                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name".format(
+                                script_version, file_path, "dataset" if dataset else "metric"
+                            )
                         )
-                    )
-                github_file_path = file_path
+                    else:
+                        github_file_path = file_path
+                        file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
+                        try:
+                            local_path = cached_path(file_path, download_config=download_config)
+                            logger.warning(
+                                "Couldn't find file locally at {}, or remotely at {}.\n"
+                                "The file was picked from the master branch on github instead at {}.".format(
+                                    combined_path, github_file_path, file_path
+                                )
+                            )
+                        except FileNotFoundError:
+                            raise FileNotFoundError(
+                                "Couldn't find file locally at {}, or remotely at {}.\n"
+                                "The file is also not present on the master branch on github.".format(
+                                    combined_path, github_file_path
+                                )
+                            )
+            elif path.count("/") == 1:  # users datasets/metrics: s3 path
                 file_path = hf_bucket_url(path, filename=name, dataset=dataset)
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
                     raise FileNotFoundError(
-                        "Couldn't find file locally at {}, or remotely at {} or {}.\n"
-                        'If the {} was added recently, you may need to to pass script_version="master" to find '
-                        "the loading script on the master branch.".format(
-                            combined_path, github_file_path, file_path, "dataset" if dataset else "metric"
+                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
+                            combined_path, file_path, "dataset" if dataset else "metric"
                         )
                     )
+            else:
+                raise FileNotFoundError(
+                    "Couldn't find file locally at {}. Please provide a valid {} name".format(
+                        combined_path, "dataset" if dataset else "metric"
+                    )
+                )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
             if os.path.isdir(main_folder_path):
                 hashes = [h for h in os.listdir(main_folder_path) if len(h) == 64]

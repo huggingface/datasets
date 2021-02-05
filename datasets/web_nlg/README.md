@@ -95,6 +95,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -303,3 +304,7 @@ The dataset uses the `cc-by-nc-sa-4.0` license. The source DBpedia project uses 
   url = 	"http://aclweb.org/anthology/W18-6543"
 }
 ```
+
+### Contributions
+
+Thanks to [@Shimorina](https://github.com/Shimorina), [@yjernite](https://github.com/yjernite) for adding this dataset.

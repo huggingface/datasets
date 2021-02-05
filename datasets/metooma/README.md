@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -223,3 +224,7 @@ Please cite the following publication if you make use of the dataset: https://oj
 @article{Gautam_Mathur_Gosangi_Mahata_Sawhney_Shah_2020, title={#MeTooMA: Multi-Aspect Annotations of Tweets Related to the MeToo Movement}, volume={14}, url={https://aaai.org/ojs/index.php/ICWSM/article/view/7292}, abstractNote={&lt;p&gt;In this paper, we present a dataset containing 9,973 tweets related to the MeToo movement that were manually annotated for five different linguistic aspects: relevance, stance, hate speech, sarcasm, and dialogue acts. We present a detailed account of the data collection and annotation processes. The annotations have a very high inter-annotator agreement (0.79 to 0.93 k-alpha) due to the domain expertise of the annotators and clear annotation instructions. We analyze the data in terms of geographical distribution, label correlations, and keywords. Lastly, we present some potential use cases of this dataset. We expect this dataset would be of great interest to psycholinguists, socio-linguists, and computational linguists to study the discursive space of digitally mobilized social movements on sensitive issues like sexual harassment.&lt;/p&#38;gt;}, number={1}, journal={Proceedings of the International AAAI Conference on Web and Social Media}, author={Gautam, Akash and Mathur, Puneet and Gosangi, Rakesh and Mahata, Debanjan and Sawhney, Ramit and Shah, Rajiv Ratn}, year={2020}, month={May}, pages={209-216} }
 
 ```
+
+### Contributions
+
+Thanks to [@akash418](https://github.com/akash418) for adding this dataset.

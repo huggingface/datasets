@@ -91,7 +91,7 @@ class LoadTest(TestCase):
             finally:
                 datasets.utils.logging.disable_propagation()
 
-    def test_load_dataset(self):
+    def test_load_dataset_local(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_code = """
 import os
@@ -121,12 +121,53 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
             with open(os.path.join(tmp_dir, "test.txt"), "w") as f:
                 f.write("bar\n" * 10)
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_dataset1__", dummy_code)
+            # load dataset from local path
             self.assertTrue(len(datasets.load_dataset(module_dir, data_dir=tmp_dir)), 2)
         with offline():
             self._caplog.clear()
             try:
                 datasets.utils.logging.enable_propagation()
+                # load dataset from cache
                 self.assertTrue(len(datasets.load_dataset("__dummy_dataset1__", data_dir=tmp_dir)), 2)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
             finally:
                 datasets.utils.logging.disable_propagation()
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("_dummy")
+        self.assertIn("at " + os.path.join("_dummy", "_dummy.py"), str(context.exception))
+
+    def test_load_dataset_canonical(self):
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("_dummy")
+        self.assertIn(
+            "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+            str(context.exception),
+        )
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("_dummy", script_version="0.0.0")
+        self.assertIn(
+            "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
+            str(context.exception),
+        )
+        with offline():
+            with self.assertRaises(ConnectionError) as context:
+                datasets.load_dataset("_dummy")
+            self.assertIn(
+                "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+                str(context.exception),
+            )
+
+    def test_load_dataset_users(self):
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("dummy_user/_dummy")
+        self.assertIn(
+            "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+            str(context.exception),
+        )
+        with offline():
+            with self.assertRaises(ConnectionError) as context:
+                datasets.load_dataset("dummy_user/_dummy")
+            self.assertIn(
+                "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+                str(context.exception),
+            )

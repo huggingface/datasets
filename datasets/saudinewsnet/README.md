@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## [Dataset Description](#dataset-description)
 
@@ -201,3 +202,7 @@ year = 2015,
 url = "http://github.com/ParallelMazen/SaudiNewsNet"
 }
 ```
+
+### Contributions
+
+Thanks to [@abdulelahsm](https://github.com/abdulelahsm) for adding this dataset.

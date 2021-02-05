@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -210,3 +211,7 @@ There is only a single split for both the Faithfulness annotations dataset and F
 }
 ```
 
+
+### Contributions
+
+Thanks to [@vineeths96](https://github.com/vineeths96) for adding this dataset.

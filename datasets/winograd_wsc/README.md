@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -204,3 +205,6 @@ The Winograd Schema Challenge including many of the examples here was proposed b
   organization={Citeseer}
 }
 ```
+### Contributions
+
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.

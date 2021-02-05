@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -168,3 +169,7 @@ Eleftheria Briakou and Marine Carpuat
     pages = "1563--1580",
 }
 ```
+
+### Contributions
+
+Thanks to [@mpariente](https://github.com/mpariente) for adding this dataset.

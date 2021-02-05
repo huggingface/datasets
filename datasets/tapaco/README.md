@@ -265,6 +265,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -408,3 +409,7 @@ Creative Commons Attribution 2.0 Generic
   url          = {https://doi.org/10.5281/zenodo.3707949}
 }
 ```
+
+### Contributions
+
+Thanks to [@pacman100](https://github.com/pacman100) for adding this dataset.

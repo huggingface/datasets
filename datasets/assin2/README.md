@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -167,3 +168,7 @@ The data is split into train, validation and test set. The split sizes are as fo
   organization={Springer}
 }
 ```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.

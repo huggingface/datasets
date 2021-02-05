@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -253,3 +254,7 @@ This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareA
     Volume = {26},
     Year = {2000}}
 ```
+
+### Contributions
+
+Thanks to [@gmihaila](https://github.com/gmihaila) for adding this dataset.

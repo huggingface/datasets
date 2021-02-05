@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -152,3 +153,7 @@ The dataset contains train set.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@cahya-wirawan](https://github.com/cahya-wirawan) for adding this dataset.
