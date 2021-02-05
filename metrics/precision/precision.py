@@ -28,8 +28,8 @@ FP: False positive
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Ground truth labels.
-    references: Predicted labels, as returned by a model.
+    predictions: Predicted labels, as returned by a model.
+    references: Ground truth labels.
     labels: The set of labels to include when average != 'binary', and
         their order if average is None. Labels present in the data can
         be excluded, for example to calculate a multiclass average ignoring

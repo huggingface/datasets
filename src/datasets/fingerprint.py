@@ -1,20 +1,98 @@
 import json
 import os
+import random
+import tempfile
 from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
 import xxhash
 
 from .info import DatasetInfo
+from .utils.logging import get_logger
 from .utils.py_utils import dumps
 
 
 if TYPE_CHECKING:
     from .arrow_dataset import Dataset
+
+
+logger = get_logger(__name__)
+
+
+# Fingerprinting allows to have one deterministic fingerprint per dataset state.
+# A dataset fingerprint is updated after each transform.
+# Re-running the same transforms on a dataset in a different session results in the same fingerprint.
+# This is possible thanks to a custom hashing function that works with most python objects.
+
+# Fingerprinting is the main mechanism that enables caching.
+# The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+
+#################
+# Caching
+#################
+
+_CACHING_ENABLED = True
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional[tempfile.TemporaryDirectory] = None
+
+
+def set_caching_enabled(boolean: bool):
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = bool(boolean)
+
+
+def is_caching_enabled() -> bool:
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+    """
+    global _CACHING_ENABLED
+    return bool(_CACHING_ENABLED)
+
+
+def get_temporary_cache_files_directory() -> str:
+    """Return a directory that is deleted when session closes"""
+    global _TEMP_DIR_FOR_TEMP_CACHE_FILES
+    if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = tempfile.TemporaryDirectory()
+    return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
+
+
+#################
+# Hashing
+#################
 
 
 def hashregister(t):
@@ -34,7 +112,7 @@ class Hasher:
         self.m = xxhash.xxh64()
 
     @classmethod
-    def hash_bytes(cls, value):
+    def hash_bytes(cls, value: Union[bytes, List[bytes]]) -> str:
         value = [value] if isinstance(value, bytes) else value
         m = xxhash.xxh64()
         for x in value:
@@ -42,21 +120,23 @@ class Hasher:
         return m.hexdigest()
 
     @classmethod
-    def hash_default(cls, value):
+    def hash_default(cls, value: Any) -> str:
         return cls.hash_bytes(dumps(value))
 
     @classmethod
-    def hash(cls, value):
+    def hash(cls, value: Any) -> str:
         if type(value) in cls.dispatch:
             return cls.dispatch[type(value)](cls, value)
         else:
             return cls.hash_default(value)
 
-    def update(self, value):
-        self.m.update(f"=={type(value)}==".encode("utf8"))
-        self.m.update(self.hash(value).encode("utf-8"))
+    def update(self, value: Any) -> None:
+        header_for_update = f"=={type(value)}=="
+        value_for_update = self.hash(value)
+        self.m.update(header_for_update.encode("utf8"))
+        self.m.update(value_for_update.encode("utf-8"))
 
-    def hexdigest(self):
+    def hexdigest(self) -> str:
         return self.m.hexdigest()
 
 
@@ -69,9 +149,9 @@ class Hasher:
 def _hash_pa_table(hasher, value):
     def _hash_pa_array(value):
         if isinstance(value, pa.ChunkedArray):
-            return hasher.hash_bytes(c.to_string() for c in value.chunks)
+            return hasher.hash_bytes(c.to_string().encode("utf-8") for c in value.chunks)
         else:
-            return hasher.hash_bytes(value)
+            return hasher.hash_bytes(value.to_string().encode("utf-8"))
 
     value = "-".join(col + "-" + _hash_pa_array(value[col]) for col in sorted(value.column_names))
     return hasher.hash_bytes(value.encode("utf-8"))
@@ -82,7 +162,15 @@ def _hash_dataset_info(hasher, value):
     return hasher.hash_bytes(json.dumps(asdict(value), sort_keys=True).encode("utf-8"))
 
 
-def generate_fingerprint(dataset):
+#################
+# Fingerprinting
+#################
+
+# we show a warning only once when fingerprinting fails to avoid spam
+fingerprint_warnings = {}
+
+
+def generate_fingerprint(dataset) -> str:
     state = dataset.__getstate__()
     hasher = Hasher()
     for key in sorted(state):
@@ -96,17 +184,63 @@ def generate_fingerprint(dataset):
     return hasher.hexdigest()
 
 
+def generate_random_fingerprint(nbits=64) -> str:
+    return f"{random.getrandbits(nbits):0{nbits//4}x}"
+
+
 def update_fingerprint(fingerprint, transform, transform_args):
+    global fingerprint_warnings
     hasher = Hasher()
     hasher.update(fingerprint)
-    hasher.update(transform)
+    try:
+        hasher.update(transform)
+    except:  # noqa various errors might raise here from pickle or dill
+        if _CACHING_ENABLED:
+            if not fingerprint_warnings.get("update_fingerprint_transform_hash_failed", False):
+                logger.warning(
+                    f"Transform {transform} couldn't be hashed properly, a random hash was used instead. "
+                    "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
+                    "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
+                    "This warning is only showed once. Subsequent hashing failures won't be showed."
+                )
+                fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
+            else:
+                logger.info(f"Transform {transform} couldn't be hashed properly, a random hash was used instead.")
+        else:
+            logger.info(
+                f"Transform {transform} couldn't be hashed properly, a random hash was used instead. This doesn't affect caching since it's disabled."
+            )
+
+        return generate_random_fingerprint()
     for key in sorted(transform_args):
         hasher.update(key)
-        hasher.update(transform_args[key])
+        try:
+            hasher.update(transform_args[key])
+        except:  # noqa various errors might raise here from pickle or dill
+            if _CACHING_ENABLED:
+                if not fingerprint_warnings.get("update_fingerprint_transform_hash_failed", False):
+                    logger.warning(
+                        f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. "
+                        "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
+                        "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
+                        "This warning is only showed once. Subsequent hashing failures won't be showed."
+                    )
+                    fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
+                else:
+                    logger.info(
+                        f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead."
+                    )
+            else:
+                logger.info(
+                    f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. This doesn't affect caching since it's disabled."
+                )
+            return generate_random_fingerprint()
     return hasher.hexdigest()
 
 
-def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=None, randomized_function=None):
+def fingerprint_transform(
+    inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=None, randomized_function=None
+):
     assert use_kwargs is None or isinstance(use_kwargs, list), "use_kwargs is supposed to be a list, not {}".format(
         type(use_kwargs)
     )
@@ -118,7 +252,7 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
 
     def _fingerprint(func):
 
-        assert inplace or all(
+        assert inplace or all(  # check that not in-place functions require fingerprint parameters
             name in func.__code__.co_varnames for name in fingerprint_names
         ), "function {} is missing parameters {} in signature".format(func, fingerprint_names)
         if randomized_function:  # randomized function have seed and generator parameters

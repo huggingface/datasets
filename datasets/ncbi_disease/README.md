@@ -1,5 +1,5 @@
 ---
-- annotations_creators:
+annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - structure-prediction
 task_ids:
-- named-entity-recognition: http://34.68.228.168:8501/
+- named-entity-recognition
 ---
 
 # Dataset Card for [Dataset Name]
@@ -52,8 +52,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [NCBI](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3951655/)
+- **Repository:** [Github](https://github.com/spyysalo/ncbi-disease)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -143,3 +143,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@edugp](https://github.com/edugp) for adding this dataset.

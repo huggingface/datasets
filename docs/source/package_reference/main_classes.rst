@@ -21,7 +21,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         __len__, __iter__, formatted_as, set_format, reset_format,
         __getitem__, cleanup_cache_files,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
-        save_to_disk, load_from_disk,
+        save_to_disk, load_from_disk, flatten_indices,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
         add_elasticsearch_index, load_elasticsearch_index,
         list_indexes, get_index, drop_index, search, search_batch, get_nearest_examples, get_nearest_examples_batch,
@@ -30,6 +30,10 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         license, size_in_bytes, supervised_keys, version
 
 .. autofunction:: datasets.concatenate_datasets
+
+.. autofunction:: datasets.set_caching_enabled
+
+.. autofunction:: datasets.is_caching_enabled
 
 ``DatasetDict``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -92,3 +96,14 @@ The base class ``Metric`` implements a Metric backed by one or several :class:`d
 
 .. autoclass:: datasets.Metric
     :members:
+
+
+``Filesystems``
+~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: datasets.filesystems.S3FileSystem(anon=False, key=None, secret=None, token=None, use_ssl=True, client_kwargs=None, requester_pays=False, default_block_size=None, default_fill_cache=True, default_cache_type='bytes', version_aware=False, config_kwargs=None, s3_additional_kwargs=None, session=None, username=None, password=None, asynchronous=False, loop=None, **kwargs)
+ 
+.. autofunction:: datasets.filesystems.extract_path_from_uri
+
+.. autofunction:: datasets.filesystems.is_remote_filesystem

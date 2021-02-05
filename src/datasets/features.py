@@ -26,18 +26,11 @@ from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from . import utils
-from .utils.file_utils import _tf_available, _torch_available
+from .utils.file_utils import is_tf_available, is_torch_available
 from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
-
-
-if _torch_available:
-    import torch
-
-if _tf_available:
-    import tensorflow as tf
 
 
 def string_to_arrow(type_str: str) -> pa.DataType:
@@ -71,11 +64,18 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         casted_obj: the casted object
         has_changed (bool): True if the object has been changed, False if it is identical
     """
+
+    if is_tf_available():
+        import tensorflow as tf
+
+    if is_torch_available():
+        import torch
+
     if isinstance(obj, np.ndarray):
         return obj.tolist(), True
-    elif _torch_available and isinstance(obj, torch.Tensor):
+    elif is_torch_available() and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
-    elif _tf_available and isinstance(obj, tf.Tensor):
+    elif is_tf_available() and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True

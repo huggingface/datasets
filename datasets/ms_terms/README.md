@@ -158,6 +158,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -253,3 +254,7 @@ Nearly 100 Languages.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@leoxzhao](https://github.com/leoxzhao), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

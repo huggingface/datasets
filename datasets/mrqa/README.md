@@ -49,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -288,3 +289,7 @@ Unknown
     year={2019},
 }
 ```
+
+### Contributions
+
+Thanks to [@jimmycode](https://github.com/jimmycode), [@VictorSanh](https://github.com/VictorSanh) for adding this dataset.

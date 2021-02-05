@@ -63,3 +63,7 @@ authors={Jerin Philip, Shashank Siripragada, Vinay P. Namboodiri, C.V. Jawahar
 year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@vasudevgupta7](https://github.com/vasudevgupta7) for adding this dataset.

@@ -48,6 +48,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -217,3 +218,7 @@ For the initial release paper please cite:
   url       = {https://aaai.org/ojs/index.php/AAAI/article/view/6394}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

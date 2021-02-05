@@ -1,19 +1,25 @@
+import logging
 import os
 import pickle
+import shutil
 import tempfile
 from functools import partial
 from unittest import TestCase
 
+import boto3
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pytest
 from absl.testing import parameterized
+from moto import mock_s3
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 
 from .utils import require_tf, require_torch
@@ -51,9 +57,13 @@ class BaseDatasetTest(TestCase):
 
         datasets.arrow_dataset.logger.__reduce_ex__ = reduce_ex
 
+    @pytest.fixture(autouse=True)
+    def inject_fixtures(self, caplog):
+        self._caplog = caplog
+
     def _create_dummy_dataset(self, in_memory: bool, tmp_dir: str, multiple_columns=False) -> Dataset:
         if multiple_columns:
-            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
@@ -84,7 +94,9 @@ class BaseDatasetTest(TestCase):
             del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
+            )
             self.assertEqual(dset[0]["col_1"], 3)
             self.assertEqual(dset["col_1"][0], 3)
             del dset
@@ -177,6 +189,41 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["filename"][0], "my_name-train_0")
             del dset
 
+    @mock_s3
+    def test_dummy_dataset_serialize_s3(self, in_memory):
+        tmp_dir = tempfile.TemporaryDirectory()
+        # Mocked AWS Credentials for moto.
+        os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+        os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+        os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
+
+        s3 = boto3.client("s3", region_name="us-east-1")
+        mock_bucket = "moto-mock-s3-bucket"
+        # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+        s3.create_bucket(Bucket=mock_bucket)
+
+        if in_memory:
+            prefix = "datasets/memory"
+        else:
+            prefix = "datasets/disk"
+
+        dset = self._create_dummy_dataset(in_memory, tmp_dir.name).select(range(10))
+        dataset_path = f"s3://{mock_bucket}/{prefix}"
+
+        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
+
+        dset.save_to_disk(dataset_path, fs)
+        dset = dset.load_from_disk(dataset_path, fs)
+
+        self.assertEqual(len(dset), 10)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
+        del dset
+
+        shutil.rmtree(tmp_dir.name, ignore_errors=True)
+
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -221,7 +268,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset.format["output_all_columns"], False)
 
             dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 2)
+            self.assertEqual(len(dset[0]), 3)
             self.assertIsInstance(dset[0]["col_2"], str)
             self.assertEqual(dset[0]["col_2"], "a")
 
@@ -244,7 +291,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_1"].item(), 3)
 
             dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 2)
+            self.assertEqual(len(dset[0]), 3)
             self.assertIsInstance(dset[0]["col_2"], str)
             self.assertEqual(dset[0]["col_2"], "a")
 
@@ -266,7 +313,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
 
             dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 2)
+            self.assertEqual(len(dset[0]), 3)
             self.assertIsInstance(dset[0]["col_2"], str)
             self.assertEqual(dset[0]["col_2"], "a")
 
@@ -289,6 +336,23 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["col_2"].item(), "a")
             del dset
 
+    def test_transmit_format(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            transform = datasets.arrow_dataset.transmit_format(lambda x: x)
+            # make sure identity transform doesn't apply unnecessary format
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            dset.set_format(**dset.format)
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            # check lists comparisons
+            dset.set_format(columns=["col_1"])
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            dset.set_format(columns=["col_1", "col_2"])
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            dset.set_format("numpy", columns=["col_1", "col_2"])
+            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
+            del dset
+
     def test_cast_(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
@@ -297,7 +361,7 @@ class BaseDatasetTest(TestCase):
             features = Features({k: features[k] for k in list(features)[::-1]})
             fingerprint = dset._fingerprint
             dset.cast_(features)
-            self.assertEqual(dset.num_columns, 2)
+            self.assertEqual(dset.num_columns, 3)
             self.assertEqual(dset.features["col_1"], Value("float64"))
             self.assertIsInstance(dset[0]["col_1"], float)
             self.assertNotEqual(dset._fingerprint, fingerprint)
@@ -308,12 +372,12 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
             dset.remove_columns_(column_names="col_1")
-            self.assertEqual(dset.num_columns, 1)
-            self.assertListEqual(list(dset.column_names), ["col_2"])
+            self.assertEqual(dset.num_columns, 2)
+            self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
             del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.remove_columns_(column_names=["col_1", "col_2"])
+            dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
             self.assertEqual(dset.num_columns, 0)
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
@@ -323,8 +387,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
             dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-            self.assertEqual(dset.num_columns, 2)
-            self.assertListEqual(list(dset.column_names), ["new_name", "col_2"])
+            self.assertEqual(dset.num_columns, 3)
+            self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
 
@@ -555,7 +619,7 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset_test["col_1"], np.ndarray)
             self.assertIsInstance(dset_test["col_1_plus_one"], np.ndarray)
             self.assertListEqual(sorted(dset_test[0].keys()), ["col_1", "col_1_plus_one"])
-            self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2"])
+            self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2", "col_3"])
             del dset, dset_test
 
     def test_map_multiprocessing(self, in_memory):
@@ -666,6 +730,57 @@ class BaseDatasetTest(TestCase):
             dset = dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}})
             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
             del dset
+
+    def test_map_caching(self, in_memory):
+        datasets.utils.logging.enable_propagation()
+        try:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                self._caplog.clear()
+                with self._caplog.at_level(logging.WARNING):
+                    dset = self._create_dummy_dataset(in_memory, tmp_dir)
+                    dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                    dset_test1_data_files = list(dset_test1._data_files)
+                    del dset_test1
+                    dset_test2 = dset.map(lambda x: {"foo": "bar"})
+                    self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                    self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
+                    self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+                    del dset, dset_test2
+
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                self._caplog.clear()
+                with self._caplog.at_level(logging.WARNING):
+                    dset = self._create_dummy_dataset(in_memory, tmp_dir)
+                    dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                    dset_test1_data_files = list(dset_test1._data_files)
+                    del dset_test1
+                    dset_test2 = dset.map(lambda x: {"foo": "bar"}, load_from_cache_file=False)
+                    self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                    self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
+                    self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+                    del dset, dset_test2
+
+            if not in_memory:
+                try:
+                    self._caplog.clear()
+                    with tempfile.TemporaryDirectory() as tmp_dir:
+                        with self._caplog.at_level(logging.WARNING):
+                            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+                            datasets.set_caching_enabled(False)
+                            dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                            dset_test2 = dset.map(lambda x: {"foo": "bar"})
+                            self.assertNotEqual(dset_test1._data_files, dset_test2._data_files)
+                            self.assertEqual(len(dset_test1._data_files), 1)
+                            self.assertEqual(len(dset_test2._data_files), 1)
+                            self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+                            # make sure the arrow files are going to be removed
+                            self.assertIn("tmp", dset_test1._data_files[0]["filename"])
+                            self.assertIn("tmp", dset_test2._data_files[0]["filename"])
+                            del dset, dset_test2
+                finally:
+                    datasets.set_caching_enabled(True)
+        finally:
+            datasets.utils.logging.disable_propagation()
 
     @require_torch
     def test_map_torch(self, in_memory):

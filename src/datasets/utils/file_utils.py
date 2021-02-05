@@ -9,11 +9,14 @@ import gzip
 import json
 import lzma
 import os
+import re
 import shutil
 import sys
 import tarfile
 import tempfile
-from contextlib import contextmanager
+import time
+import urllib
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
@@ -22,6 +25,7 @@ from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
 import numpy as np
+import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
@@ -32,51 +36,67 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-try:
-    USE_TF = os.environ.get("USE_TF", "AUTO").upper()
-    USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
-    if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
-        import torch
+_PY_VERSION: str = sys.version.split()[0]
 
-        _torch_available = True  # pylint: disable=invalid-name
-        logger.info("PyTorch version {} available.".format(torch.__version__))
-    else:
-        logger.info("Disabling PyTorch because USE_TF is set")
-        _torch_available = False
-except ImportError:
-    _torch_available = False  # pylint: disable=invalid-name
+if int(_PY_VERSION.split(".")[0]) == 3 and int(_PY_VERSION.split(".")[1]) < 8:
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
-try:
-    USE_TF = os.environ.get("USE_TF", "AUTO").upper()
-    USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
+USE_TF = os.environ.get("USE_TF", "AUTO").upper()
+USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
-    if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-        import tensorflow as tf
+_torch_version = "N/A"
+_torch_available = False
+if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
+    try:
+        _torch_version = importlib_metadata.version("torch")
+        _torch_available = True
+        logger.info("PyTorch version {} available.".format(_torch_version))
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling PyTorch because USE_TF is set")
 
-        assert hasattr(tf, "__version__") and int(tf.__version__[0]) >= 2
-        _tf_available = True  # pylint: disable=invalid-name
-        logger.info("TensorFlow version {} available.".format(tf.__version__))
-    else:
-        logger.info("Disabling Tensorflow because USE_TORCH is set")
-        _tf_available = False
-except (ImportError, AssertionError):
-    _tf_available = False  # pylint: disable=invalid-name
+_tf_version = "N/A"
+_tf_available = False
+if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
+    try:
+        _tf_version = importlib_metadata.version("tensorflow")
+        _tf_available = True
+        logger.info("TensorFlow version {} available.".format(_tf_version))
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling Tensorflow because USE_TORCH is set")
+
+USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
+_beam_version = "N/A"
+_beam_available = False
+if USE_BEAM in ("1", "ON", "YES", "AUTO"):
+    try:
+        _beam_version = importlib_metadata.version("apache_beam")
+        _beam_available = True
+        logger.info("Apache Beam version {} available.".format(_beam_version))
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
-try:
-    USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
-    if USE_BEAM in ("1", "ON", "YES", "AUTO"):
-        import apache_beam  # noqa: F401
-
-        _beam_available = True  # pylint: disable=invalid-name
-        logger.info("Apache Beam available.")
-    else:
-        logger.info("Disabling Apache Beam because USE_BEAM is set to False")
-        _beam_available = False
-except ImportError:
-    _beam_available = False  # pylint: disable=invalid-name
-
+USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
+_rarfile_version = "N/A"
+_rarfile_available = False
+if USE_RAR in ("1", "ON", "YES", "AUTO"):
+    try:
+        _rarfile_version = importlib_metadata.version("apache_beam")
+        _rarfile_available = True
+        logger.info("rarfile available.")
+    except importlib_metadata.PackageNotFoundError:
+        pass
+else:
+    logger.info("Disabling rarfile because USE_RAR is set to False")
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
@@ -114,26 +134,39 @@ try:
     HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
 except (AttributeError, ImportError):
     HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
-sys.path.append(str(HF_MODULES_CACHE))
 
-os.makedirs(HF_MODULES_CACHE, exist_ok=True)
-if not os.path.exists(os.path.join(HF_MODULES_CACHE, "__init__.py")):
-    with open(os.path.join(HF_MODULES_CACHE, "__init__.py"), "w"):
-        pass
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
-def is_beam_available():
-    return _beam_available
+def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
+    """
+    Add hf_modules_cache to the python path.
+    By default hf_modules_cache='~/.cache/huggingface/modules'.
+    It can also be set with the environment variable HF_MODULES_CACHE.
+    This is used to add modules such as `datasets_modules`
+    """
+    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else HF_MODULES_CACHE
+    hf_modules_cache = str(hf_modules_cache)
+    if hf_modules_cache not in sys.path:
+        sys.path.append(hf_modules_cache)
+
+        os.makedirs(hf_modules_cache, exist_ok=True)
+        if not os.path.exists(os.path.join(hf_modules_cache, "__init__.py")):
+            with open(os.path.join(hf_modules_cache, "__init__.py"), "w"):
+                pass
+    return hf_modules_cache
 
 
 @contextmanager
 def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+    """Temporarily set the random seed. This works for python numpy, pytorch and tensorflow."""
     np_state = np.random.get_state()
     np.random.seed(seed)
 
     if set_pytorch and _torch_available:
+        import torch
+
         torch_state = torch.random.get_rng_state()
         torch.random.manual_seed(seed)
 
@@ -142,6 +175,9 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch.cuda.manual_seed_all(seed)
 
     if set_tensorflow and _tf_available:
+        import tensorflow as tf
+        from tensorflow.python import context as tfpycontext
+
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
         tf.random.set_global_generator(temp_gen)
@@ -149,7 +185,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         if not tf.executing_eagerly():
             raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
 
-        tf_context = tf.python.context.context()  # eager mode context
+        tf_context = tfpycontext.context()  # eager mode context
         tf_seed = tf_context._seed
         tf_rng_initialized = hasattr(tf_context, "_rng")
         if tf_rng_initialized:
@@ -184,9 +220,17 @@ def is_tf_available():
     return _tf_available
 
 
+def is_beam_available():
+    return _beam_available
+
+
+def is_rarfile_available():
+    return _rarfile_available
+
+
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs")
+    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -197,8 +241,16 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> requests.Response:
-    return http_head(hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset))
+def head_hf_s3(
+    identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
+) -> Union[requests.Response, Exception]:
+    try:
+        return http_head(
+            hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+            max_retries=max_retries,
+        )
+    except Exception as e:
+        return e
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
@@ -247,7 +299,7 @@ class DownloadConfig:
             file in a folder along the archive.
         force_extract: if True when extract_compressed_file is True and the archive was already extracted,
             re-extract the archive and overide the folder where it was extracted.
-
+        max_retries: the number of times to retry an HTTP request if it fails. Defaults to 1.
 
     """
 
@@ -261,6 +313,7 @@ class DownloadConfig:
     force_extract: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
+    max_retries: int = 1
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -286,6 +339,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
+        requests.exceptions.ConnectionError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -307,23 +361,28 @@ def cached_path(
             user_agent=download_config.user_agent,
             local_files_only=download_config.local_files_only,
             use_etag=download_config.use_etag,
+            max_retries=download_config.max_retries,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
-    elif urlparse(url_or_filename).scheme == "":
+    elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
         # File, but it doesn't exist.
+        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
+        # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
     if download_config.extract_compressed_file and output_path is not None:
+
         if (
             not is_zipfile(output_path)
             and not tarfile.is_tarfile(output_path)
             and not is_gzip(output_path)
             and not is_xz(output_path)
+            and not is_rarfile(output_path)
         ):
             return output_path
 
@@ -362,6 +421,15 @@ def cached_path(
                 with lzma.open(output_path) as compressed_file:
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
+            elif is_rarfile(output_path):
+                if _rarfile_available:
+                    import rarfile
+
+                    rf = rarfile.RarFile(output_path)
+                    rf.extractall(output_path_extracted)
+                    rf.close()
+                else:
+                    raise EnvironmentError("Please pip install rarfile")
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
@@ -371,11 +439,14 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
+    ua = "datasets/{}; python/{}".format(__version__, _PY_VERSION)
+    ua += "; pyarrow/{}".format(pa.__version__)
     if is_torch_available():
-        ua += "; torch/{}".format(torch.__version__)
+        ua += "; torch/{}".format(_torch_version)
     if is_tf_available():
-        ua += "; tensorflow/{}".format(tf.__version__)
+        ua += "; tensorflow/{}".format(_tf_version)
+    if is_beam_available():
+        ua += "; apache_beam/{}".format(_beam_version)
     if isinstance(user_agent, dict):
         ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
     elif isinstance(user_agent, str):
@@ -383,11 +454,61 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
+def _request_with_retry(
+    verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
+) -> requests.Response:
+    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff
+
+    Args:
+        verb (str): HTTP verb, such as 'GET' or 'HEAD'
+        url (str): The URL of the ressource to fetch
+        max_retries (int): Maximum number of retries, defaults to 0 (no retries)
+        base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
+            retries then grows exponentially, capped by max_wait_time.
+        max_wait_time (float): Maximum amount of time between two retries, in seconds
+        **params: Params to pass to `requests.request`
+    """
+    tries, success = 0, False
+    while not success:
+        tries += 1
+        try:
+            response = requests.request(verb.upper(), url, **params)
+            success = True
+        except requests.exceptions.ConnectTimeout as err:
+            if tries > max_retries:
+                raise err
+            else:
+                logger.info(f"{verb} request to {url} timed out, retrying... [{tries/max_retries}]")
+                sleep_time = max(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
+                time.sleep(sleep_time)
+    return response
+
+
+def ftp_head(url, timeout=2.0):
+    try:
+        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
+            r.read(1)
+    except Exception:
+        return False
+    return True
+
+
+def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, timeout=2.0):
+    try:
+        logger.info(f"Getting through FTP {url} into {temp_file.name}")
+        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
+            shutil.copyfileobj(r, temp_file)
+    except urllib.error.URLError as e:
+        raise ConnectionError(e)
+
+
+def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
-    response = requests.get(url, stream=True, proxies=proxies, headers=headers, cookies=cookies)
+    response = _request_with_retry(
+        verb="GET", url=url, stream=True, proxies=proxies, headers=headers, cookies=cookies, max_retries=max_retries
+    )
     if response.status_code == 416:  # Range not satisfiable
         return
     content_length = response.headers.get("Content-Length")
@@ -408,10 +529,19 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
     progress.close()
 
 
-def http_head(url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10) -> requests.Response:
+def http_head(
+    url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
+) -> requests.Response:
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
-    response = requests.head(
-        url, proxies=proxies, headers=headers, cookies=cookies, allow_redirects=allow_redirects, timeout=timeout
+    response = _request_with_retry(
+        verb="HEAD",
+        url=url,
+        proxies=proxies,
+        headers=headers,
+        cookies=cookies,
+        allow_redirects=allow_redirects,
+        timeout=timeout,
+        max_retries=max_retries,
     )
     return response
 
@@ -426,6 +556,7 @@ def get_from_cache(
     user_agent=None,
     local_files_only=False,
     use_etag=True,
+    max_retries=0,
 ) -> Optional[str]:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -463,8 +594,12 @@ def get_from_cache(
 
     # We don't have the file locally or we need an eTag
     if not local_files_only:
+        if url.startswith("ftp://"):
+            connected = ftp_head(url)
         try:
-            response = http_head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+            response = http_head(
+                url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
+            )
             if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
@@ -474,8 +609,13 @@ def get_from_cache(
                         cookies = response.cookies
                 connected = True
             # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (
-                response.status_code == 405 and "drive.google.com" in url
+            elif (
+                (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
+                or (response.status_code == 405 and "drive.google.com" in url)
+                or (
+                    response.status_code == 403
+                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                )
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
@@ -532,7 +672,20 @@ def get_from_cache(
             logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
 
             # GET file object
-            http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies)
+            if url.startswith("ftp://"):
+                ftp_get(
+                    url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies
+                )
+            else:
+                http_get(
+                    url,
+                    temp_file,
+                    proxies=proxies,
+                    resume_size=resume_size,
+                    user_agent=user_agent,
+                    cookies=cookies,
+                    max_retries=max_retries,
+                )
 
         logger.info("storing %s in cache at %s", url, cache_path)
         shutil.move(temp_file.name, cache_path)
@@ -567,3 +720,16 @@ def is_xz(path: str) -> bool:
             return True
         else:
             return False
+
+
+def is_rarfile(path: str) -> bool:
+    """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
+    RAR_ID = b"Rar!\x1a\x07\x00"
+    RAR5_ID = b"Rar!\x1a\x07\x01\x00"
+
+    with open(path, "rb", 1024) as fd:
+        buf = fd.read(len(RAR5_ID))
+    if buf.startswith(RAR_ID) or buf.startswith(RAR5_ID):
+        return True
+    else:
+        return False
