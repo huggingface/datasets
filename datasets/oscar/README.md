@@ -2670,7 +2670,7 @@ This example was too long and was cropped:
 
 
 <details>
-  <summary>Click to expand the Data/size information for each language (deduplicated)</summary>
+  <summary>Click to expand the Data/size information for each language (original)</summary>
 
 #### unshuffled_original_af
 
