@@ -99,8 +99,7 @@ Examples:
 
     >>> comet_metric = datasets.load_metric('comet') # doctest:+ELLIPSIS
     [...]Download succeeded. Loading model[...]
-    >>> # comet_metric = load_metric('comet')
-    >>> # comet_metric = load_metric('comet', 'wmt-large-hter-estimator')
+    >>> # comet_metric = load_metric('comet', 'wmt-large-hter-estimator')  # you can also choose which model to use
     >>> source = ["Dem Feuer konnte Einhalt geboten werden", "Schulen und Kindergärten wurden eröffnet."]
     >>> hypothesis = ["The fire could be stopped", "Schools and kindergartens were open"]
     >>> reference = ["They were able to control the fire.", "Schools and kindergartens opened"]
