@@ -107,7 +107,7 @@ Column	Type	Description
 N	Coreference	Coreference chain information encoded in a parenthesis structure.
 More informations on the format can be found here (section "*_conll File Format"): http://www.conll.cemantix.org/2012/data.html
 
-Details on the evaluation on CoNLL can be found here: https://github.com/ns-moosavi/coval/blob/master/conll/README.md
+Details on the evaluation on CoNLL can be found here: https://github.com/ns-moosavi/coval/blob/master/coval/conll/README.md
 
 CoVal code was written by @ns-moosavi.
 Some parts are borrowed from https://github.com/clarkkev/deep-coref/blob/master/evaluation.py
@@ -135,7 +135,7 @@ Args:
         will be excluded from the evaluation.
     NP_only: Most of the recent coreference resolvers only resolve NP mentions and
         leave out the resolution of VPs. By setting the 'NP_only' option, the scorer will only evaluate the resolution of NPs.
-    min_spans: By setting 'min_spans', the scorer reports the results based on automatically detected minimum spans.
+    min_span: By setting 'min_span', the scorer reports the results based on automatically detected minimum spans.
         Minimum spans are determined using the MINA algorithm.
 
 Returns:
@@ -230,10 +230,14 @@ def evaluate(key_lines, sys_lines, metrics, NP_only, remove_nested, keep_singlet
             " F1: %.2f" % (f1 * 100),
         )
 
-    if conll_subparts_num == 3:
-        conll = (conll / 3) * 100
-        print("CoNLL score: %.2f" % conll)
-        output_scores.update({f"conll_score": conll})
+    # all metrics are supposed to be used to we don't need to check this
+    # if conll_subparts_num == 3:
+    #     conll = (conll / 3) * 100
+    #     print("CoNLL score: %.2f" % conll)
+    #     output_scores.update({"conll_score": conll})
+    assert conll_subparts_num == 3, "all conll subparts must be used"
+    conll = (conll / 3) * 100
+    output_scores.update({"conll_score": conll})
 
     return output_scores
 
@@ -254,10 +258,15 @@ def check_gold_parse_annotation(key_lines):
 
 class Coval(datasets.Metric):
     def _info(self):
+        names = ["mentions", "muc", "bcub", "ceafe", "lea"]
+        metrics = ["f1", "precision", "recall"]
+        output_names = [name + "/" + metric for name in names for metric in metrics]
+        output_names += ["conll_score"]
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=output_names,
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
@@ -273,7 +282,7 @@ class Coval(datasets.Metric):
         )
 
     def _compute(
-        self, predictions, references, keep_singletons=True, NP_only=False, min_spans=False, remove_nested=False
+        self, predictions, references, keep_singletons=True, NP_only=False, min_span=False, remove_nested=False
     ):
         allmetrics = [
             ("mentions", evaluator.mentions),
@@ -283,10 +292,10 @@ class Coval(datasets.Metric):
             ("lea", evaluator.lea),
         ]
 
-        if min_spans:
+        if min_span:
             has_gold_parse = util.check_gold_parse_annotation(references)
             if not has_gold_parse:
-                raise NotImplementedError("References should have gold parse annotation to use 'min_spans'.")
+                raise NotImplementedError("References should have gold parse annotation to use 'min_span'.")
                 # util.parse_key_file(key_file)
                 # key_file = key_file + ".parsed"
 
@@ -297,7 +306,7 @@ class Coval(datasets.Metric):
             NP_only=NP_only,
             remove_nested=remove_nested,
             keep_singletons=keep_singletons,
-            min_spans=min_spans,
+            min_span=min_span,
         )
 
         return score

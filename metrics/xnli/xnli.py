@@ -63,6 +63,7 @@ class Xnli(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=["accuracy"],
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("int64" if self.config_name != "sts-b" else "float32"),

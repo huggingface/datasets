@@ -62,6 +62,7 @@ class Squad(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=["exact_match", "f1"],
             features=datasets.Features(
                 {
                     "predictions": {"id": datasets.Value("string"), "prediction_text": datasets.Value("string")},

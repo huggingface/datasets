@@ -66,11 +66,14 @@ Returns:
 
 class Sacrebleu(datasets.Metric):
     def _info(self):
+        output_names = ["score", "counts", "totals", "bp", "sys_len", "ref_len"]
+        output_names += [f"precision_{i}" for i in range(1, scb.BLEU.NGRAM_ORDER + 1)]
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             homepage="https://github.com/mjpost/sacreBLEU",
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=output_names,
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
@@ -114,9 +117,10 @@ class Sacrebleu(datasets.Metric):
             "score": output.score,
             "counts": output.counts,
             "totals": output.totals,
-            "precisions": output.precisions,
             "bp": output.bp,
             "sys_len": output.sys_len,
             "ref_len": output.ref_len,
         }
+        for i in range(1, scb.BLEU.NGRAM_ORDER + 1):
+            output_dict[f"precision_{i}"] = output.precisions[i - 1]
         return output_dict

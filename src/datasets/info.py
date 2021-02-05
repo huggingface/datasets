@@ -260,6 +260,7 @@ class MetricInfo:
     license: str = field(default_factory=str)
     codebase_urls: List[str] = field(default_factory=list)
     reference_urls: List[str] = field(default_factory=list)
+    output_names: List[str] = field(default_factory=list)
     streamable: bool = False
     format: Optional[str] = None
 

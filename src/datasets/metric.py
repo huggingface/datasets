@@ -91,6 +91,10 @@ class MetricInfoMixin(object):
         return self._metric_info.citation
 
     @property
+    def output_names(self) -> Optional[List[str]]:
+        return self._metric_info.output_names
+
+    @property
     def features(self) -> Features:
         return self._metric_info.features
 
