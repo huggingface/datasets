@@ -99,7 +99,7 @@ class HdaNliHindi(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         HdaNliHindiConfig(
-            name="HDA hindi nli",
+            name="hda nli hindi",
             version=datasets.Version("1.1.0"),
             description="HDA Hindi NLI: Natural Language Inference Dataset for Hindi Discourse Analysis in Hindi",
         ),
