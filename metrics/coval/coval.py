@@ -13,12 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ CoVal metric. """
+import logging
 
 import coval  # From: git+https://github.com/ns-moosavi/coval.git noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
 
 import datasets
+
+
+logger = logging.getLogger(__name__)
 
 
 _CITATION = """\
@@ -119,11 +123,11 @@ Parsing CoNLL files is developed by Leo Born.
 _KWARGS_DESCRIPTION = """
 Calculates coreference evaluation metrics.
 Args:
-    predictions: list of predictions to score in the CoNLL format.
+    predictions: list of sentences. Each sentence is a list of word predictions to score in the CoNLL format.
         Each prediction is a word with its annotations as a string made of columns joined with spaces.
         Only columns 4, 5, 6 and the last column are used (word, POS, Pars and coreference annotation)
         See the details on the format in the description of the metric.
-    references: list of references for scoring in the CoNLL format.
+    references: list of sentences. Each sentence is a list of word reference to score in the CoNLL format.
         Each reference is a word with its annotations as a string made of columns joined with spaces.
         Only columns 4, 5, 6 and the last column are used (word, POS, Pars and coreference annotation)
         See the details on the format in the description of the metric.
@@ -135,7 +139,7 @@ Args:
         will be excluded from the evaluation.
     NP_only: Most of the recent coreference resolvers only resolve NP mentions and
         leave out the resolution of VPs. By setting the 'NP_only' option, the scorer will only evaluate the resolution of NPs.
-    min_spans: By setting 'min_spans', the scorer reports the results based on automatically detected minimum spans.
+    min_span: By setting 'min_span', the scorer reports the results based on automatically detected minimum spans.
         Minimum spans are determined using the MINA algorithm.
 
 Returns:
@@ -145,6 +149,21 @@ Returns:
     'ceafe': CEAFe [Luo et al., 2005]
     'lea': LEA [Moosavi and Strube, 2016]
     'conll_score': averaged CoNLL score (the average of the F1 values of MUC, B-cubed and CEAFe)
+
+Examples:
+
+    >>> coval = datasets.load_metric('coval')
+    >>> words = ['bc/cctv/00/cctv_0005   0   0       Thank   VBP  (TOP(S(VP*    thank  01   1    Xu_li  *           (V*)        *       -',
+    ... 'bc/cctv/00/cctv_0005   0   1         you   PRP        (NP*)      -    -   -    Xu_li  *        (ARG1*)   (ARG0*)   (116)',
+    ... 'bc/cctv/00/cctv_0005   0   2    everyone    NN        (NP*)      -    -   -    Xu_li  *    (ARGM-DIS*)        *    (116)',
+    ... 'bc/cctv/00/cctv_0005   0   3         for    IN        (PP*       -    -   -    Xu_li  *        (ARG2*         *       -',
+    ... 'bc/cctv/00/cctv_0005   0   4    watching   VBG   (S(VP*))))   watch  01   1    Xu_li  *             *)      (V*)      -',
+    ... 'bc/cctv/00/cctv_0005   0   5           .     .          *))      -    -   -    Xu_li  *             *         *       -']
+    >>> references = [words]
+    >>> predictions = [words]
+    >>> results = coval.compute(predictions=predictions, references=references)
+    >>> print(results) # doctest:+ELLIPSIS
+    {'mentions/recall': 1.0,[...] 'conll_score': 100.0}
 """
 
 
@@ -191,17 +210,17 @@ def get_coref_infos(
     doc_coref_infos[doc] = (key_clusters, sys_clusters, key_mention_sys_cluster, sys_mention_key_cluster)
 
     if remove_nested:
-        print(
+        logger.info(
             "Number of removed nested coreferring mentions in the key "
             "annotation: %s; and system annotation: %s" % (key_nested_coref_num, sys_nested_coref_num)
         )
-        print(
+        logger.info(
             "Number of resulting singleton clusters in the key "
             "annotation: %s; and system annotation: %s" % (key_removed_nested_clusters, sys_removed_nested_clusters)
         )
 
     if not keep_singletons:
-        print(
+        logger.info(
             "%d and %d singletons are removed from the key and system "
             "files, respectively" % (key_singletons_num, sys_singletons_num)
         )
@@ -223,7 +242,7 @@ def evaluate(key_lines, sys_lines, metrics, NP_only, remove_nested, keep_singlet
             conll_subparts_num += 1
         output_scores.update({f"{name}/recall": recall, f"{name}/precision": precision, f"{name}/f1": f1})
 
-        print(
+        logger.info(
             name.ljust(10),
             "Recall: %.2f" % (recall * 100),
             " Precision: %.2f" % (precision * 100),
@@ -232,7 +251,7 @@ def evaluate(key_lines, sys_lines, metrics, NP_only, remove_nested, keep_singlet
 
     if conll_subparts_num == 3:
         conll = (conll / 3) * 100
-        print("CoNLL score: %.2f" % conll)
+        logger.info("CoNLL score: %.2f" % conll)
         output_scores.update({f"conll_score": conll})
 
     return output_scores
@@ -252,6 +271,7 @@ def check_gold_parse_annotation(key_lines):
     return has_gold_parse
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Coval(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -260,8 +280,8 @@ class Coval(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("string", id="sequence"),
-                    "references": datasets.Value("string", id="sequence"),
+                    "predictions": datasets.Sequence(datasets.Value("string")),
+                    "references": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             codebase_urls=["https://github.com/ns-moosavi/coval"],
@@ -273,7 +293,7 @@ class Coval(datasets.Metric):
         )
 
     def _compute(
-        self, predictions, references, keep_singletons=True, NP_only=False, min_spans=False, remove_nested=False
+        self, predictions, references, keep_singletons=True, NP_only=False, min_span=False, remove_nested=False
     ):
         allmetrics = [
             ("mentions", evaluator.mentions),
@@ -283,10 +303,10 @@ class Coval(datasets.Metric):
             ("lea", evaluator.lea),
         ]
 
-        if min_spans:
+        if min_span:
             has_gold_parse = util.check_gold_parse_annotation(references)
             if not has_gold_parse:
-                raise NotImplementedError("References should have gold parse annotation to use 'min_spans'.")
+                raise NotImplementedError("References should have gold parse annotation to use 'min_span'.")
                 # util.parse_key_file(key_file)
                 # key_file = key_file + ".parsed"
 
@@ -297,7 +317,7 @@ class Coval(datasets.Metric):
             NP_only=NP_only,
             remove_nested=remove_nested,
             keep_singletons=keep_singletons,
-            min_spans=min_spans,
+            min_span=min_span,
         )
 
         return score

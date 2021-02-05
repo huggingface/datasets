@@ -733,3 +733,19 @@ def is_rarfile(path: str) -> bool:
         return True
     else:
         return False
+
+
+def add_start_docstrings(*docstr):
+    def docstring_decorator(fn):
+        fn.__doc__ = "".join(docstr) + (fn.__doc__ if fn.__doc__ is not None else "")
+        return fn
+
+    return docstring_decorator
+
+
+def add_end_docstrings(*docstr):
+    def docstring_decorator(fn):
+        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "".join(docstr)
+        return fn
+
+    return docstring_decorator
