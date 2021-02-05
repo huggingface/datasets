@@ -267,8 +267,8 @@ class FaissIndex(BaseIndex):
 
         # Train
         if train_size is not None:
-            logger.info("Training the index with the first {} vectors".format(train_size))
             train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
+            logger.info("Training the index with the first {} vectors".format(len(train_vecs)))
             self.faiss_index.train(train_vecs)
         else:
             logger.info("Ignored the training step of the faiss index as `train_size` is None.")

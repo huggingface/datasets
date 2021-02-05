@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -202,3 +203,7 @@ Creative Commons Attribution 4.0
   software  = {https://jkk.name/irc-disentanglement},
   data      = {https://jkk.name/irc-disentanglement},
 }
+
+### Contributions
+
+Thanks to [@dhruvjoshi1998](https://github.com/dhruvjoshi1998) for adding this dataset.

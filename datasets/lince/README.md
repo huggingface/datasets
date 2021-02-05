@@ -25,6 +25,7 @@
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## [Dataset Description](#dataset-description)
 
@@ -259,3 +260,7 @@ Note that each LinCE dataset has its own citation. Please see the source to see
 the correct citation for each contained dataset.
 ```
 
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq), [@thomwolf](https://github.com/thomwolf), [@gaguilar](https://github.com/gaguilar) for adding this dataset.

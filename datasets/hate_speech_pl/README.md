@@ -49,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -191,3 +192,7 @@ According to [Metashare](http://metashare.nlp.ipipan.waw.pl/metashare/repository
 }
 ```
 
+
+### Contributions
+
+Thanks to [@kacperlukawski](https://github.com/kacperlukawski) for adding this dataset.

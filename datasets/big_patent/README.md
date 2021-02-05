@@ -153,3 +153,7 @@ Each instance contains a pair of `description` and `abstract`. `description` is 
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@mattbui](https://github.com/mattbui) for adding this dataset.

@@ -125,6 +125,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -313,3 +314,6 @@ volume = {2},
 journal = {52nd Annual Meeting of the Association for Computational Linguistics, ACL 2014 - Proceedings of the Conference},
 doi = {10.3115/v1/P14-2063}
 }
+### Contributions
+
+Thanks to [@KMFODA](https://github.com/KMFODA) for adding this dataset.

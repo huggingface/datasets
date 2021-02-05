@@ -125,6 +125,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -249,3 +250,6 @@ The different parts of the data can be accessed through the different configurat
 ### Citation Information
 
 [Needs More Information]
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

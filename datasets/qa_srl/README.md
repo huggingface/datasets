@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -175,3 +176,7 @@ publisher = {cs.washington.edu},
 howpublished={\\url{https://dada.cs.washington.edu/qasrl/#page-top}},
 }
 ```
+
+### Contributions
+
+Thanks to [@bpatidar](https://github.com/bpatidar) for adding this dataset.

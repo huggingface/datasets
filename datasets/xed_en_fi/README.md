@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -159,3 +160,7 @@ License: Creative Commons Attribution 4.0 International License (CC-BY)
   booktitle={The 28th International Conference on Computational Linguistics (COLING 2020)},
   year={2020}
 }
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq), [@harshalmittal4](https://github.com/harshalmittal4) for adding this dataset.

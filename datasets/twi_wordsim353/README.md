@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -155,3 +156,7 @@ Only the test data is available
     ISBN = "979-10-95546-34-4",
 }
 ```
+
+### Contributions
+
+Thanks to [@dadelani](https://github.com/dadelani) for adding this dataset.

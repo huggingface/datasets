@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -149,3 +150,7 @@ The data fields are:
   year={2016}
 }
 ```
+
+### Contributions
+
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.

@@ -42,6 +42,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -175,3 +176,7 @@ title = {BUILDING THE CLASSICAL ARABIC NAMED ENTITY RECOGNITION CORPUS (CANERCOR
 volume = {96},
 journal = {Journal of Theoretical and Applied Information Technology}
 }
+
+### Contributions
+
+Thanks to [@KMFODA](https://github.com/KMFODA) for adding this dataset.

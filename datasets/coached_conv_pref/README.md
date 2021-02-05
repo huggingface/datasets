@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -304,3 +305,7 @@ There is a single split of the dataset named 'train' which contains the whole da
 }
 ```
 
+
+### Contributions
+
+Thanks to [@vineeths96](https://github.com/vineeths96) for adding this dataset.

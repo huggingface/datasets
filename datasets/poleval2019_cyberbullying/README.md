@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -159,3 +160,7 @@ Train and Test
   isbn      = "978-83-63159-28-3"}
 }
 ```
+
+### Contributions
+
+Thanks to [@czabo](https://github.com/czabo) for adding this dataset.

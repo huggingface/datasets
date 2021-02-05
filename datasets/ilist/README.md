@@ -169,3 +169,7 @@ The language ids correspond to the following languages: "AWA", "BRA", "MAG", "BH
     url = "https://www.aclweb.org/anthology/W18-3900",
 }
 ```
+
+### Contributions
+
+Thanks to [@vasudevgupta7](https://github.com/vasudevgupta7) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -218,3 +219,7 @@ Zeerak Ahmed
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@arkhalid](https://github.com/arkhalid) for adding this dataset.

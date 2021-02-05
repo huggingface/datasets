@@ -142,9 +142,45 @@ class LoadTest(TestCase):
             finally:
                 datasets.utils.logging.disable_propagation()
 
+    def test_load_dataset_canonical(self):
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("_dummy")
+        self.assertIn(
+            "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+            str(context.exception),
+        )
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("_dummy", script_version="0.0.0")
+        self.assertIn(
+            "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
+            str(context.exception),
+        )
+        with offline():
+            with self.assertRaises(ConnectionError) as context:
+                datasets.load_dataset("_dummy")
+            self.assertIn(
+                "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+                str(context.exception),
+            )
+
+    def test_load_dataset_users(self):
+        with self.assertRaises(FileNotFoundError) as context:
+            datasets.load_dataset("dummy_user/_dummy")
+        self.assertIn(
+            "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+            str(context.exception),
+        )
+        with offline():
+            with self.assertRaises(ConnectionError) as context:
+                datasets.load_dataset("dummy_user/_dummy")
+            self.assertIn(
+                "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+                str(context.exception),
+            )
+
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_load_dataset(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
+def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
     previous_allocated_memory = pa.total_allocated_bytes()
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
@@ -159,3 +195,6 @@ def test_load_dataset(dataset_loading_script_dir, data_dir, keep_in_memory, capl
             assert "Using the latest cached version of the module" in caplog.text
         finally:
             datasets.utils.logging.disable_propagation()
+    with pytest.raises(FileNotFoundError) as exc_info:
+        datasets.load_dataset("_dummy")
+    assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)

@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -144,3 +145,7 @@ English
   year={2011},
   booktitle = "Proceedings of the 2011 ACM Symposium on Document Engineering (DOCENG'11)",
 }
+
+### Contributions
+
+Thanks to [@czabo](https://github.com/czabo) for adding this dataset.

@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -181,3 +182,7 @@ This dataset is licensed under MIT License.
   primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@m3hrdadfi](https://github.com/m3hrdadfi) for adding this dataset.

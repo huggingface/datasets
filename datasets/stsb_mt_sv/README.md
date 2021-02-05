@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -135,3 +136,7 @@ The machine translated version were put together by @timpal0l
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@timpal0l](https://github.com/timpal0l) for adding this dataset.

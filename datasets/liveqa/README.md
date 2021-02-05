@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -186,3 +187,7 @@ This resource is developed by [Liu et al., 2020](https://www.aclweb.org/antholog
     pages = "1057--1067"
 }
 ```
+
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

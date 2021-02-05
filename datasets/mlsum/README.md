@@ -1,4 +1,32 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- de
+- es
+- fr
+- ru
+- tr
+licenses:
+- other-research-only
+multilinguality:
+- multilingual
+size_categories:
+- 1M<n<5M
+source_datasets:
+- extended|cnn_dailymail
+- original
+task_categories:
+- conditional-text-generation
+- text-classification
+task_ids:
+- machine-translation
+- multi-class-classification
+- multi-label-classification
+- summarization
+- topic-classification
 ---
 
 # Dataset Card for "mlsum"
@@ -25,13 +53,14 @@
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## [Dataset Description](#dataset-description)
 
 - **Homepage:** []()
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/recitalAI/MLSUM
+- **Paper:** https://www.aclweb.org/anthology/2020.emnlp-main.647/
+- **Point of Contact:** thomas@recital.ai
 - **Size of downloaded dataset files:** 1748.64 MB
 - **Size of the generated dataset:** 4635.42 MB
 - **Total amount of disk used:** 6384.06 MB
@@ -256,3 +285,7 @@ The data fields are the same among all splits.
 
 ```
 
+
+### Contributions
+
+Thanks to [@RachelKer](https://github.com/RachelKer), [@albertvillanova](https://github.com/albertvillanova), [@thomwolf](https://github.com/thomwolf) for adding this dataset.

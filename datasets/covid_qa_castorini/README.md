@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -171,3 +172,7 @@ the [Apache License 2.0](https://github.com/castorini/pygaggle/blob/master/LICEN
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@olinguyen](https://github.com/olinguyen) for adding this dataset.
