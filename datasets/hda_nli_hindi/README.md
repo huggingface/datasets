@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- extended|bbc__hindi_news_classification
+- extended|hindi_discourse_analysis_classification
 task_categories:
 - text-classification
 task_ids:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -54,8 +55,9 @@ task_ids:
 
 - Dataset for Natural Language Inference in Hindi Language. Hindi Discourse Analysis (HDA) Dataset consists of textual-entailment pairs.
 - Each row of the Datasets if made up of 4 columns - Premise, Hypothesis, Label and Topic.
-- Context and Hypothesis is written in Hindi while Entailment_Label is in English.
+- Premise and Hypothesis is written in Hindi while Entailment_Label is in English.
 - Entailment_label is of 2 types - entailed and not-entailed.
+- Entailed means that hypotheis can be inferred from premise and not-entailed means vice versa
 - Dataset can be used to train models for Natural Language Inference tasks in Hindi Language.
 
 ### Supported Tasks and Leaderboards
@@ -77,7 +79,8 @@ task_ids:
 An example of 'train' looks as follows.
 
 ```
-{'hypothesis': 'यह खबर की सूचना है|', 'label': 'entailed', 'premise': 'गोपनीयता की नीति', 'topic': '1'}
+{'hypothesis': 'यह एक वर्णनात्मक कथन है।', 'label': 1, 'premise': 'जैसे उस का सारा चेहरा अपना हो और आँखें किसी दूसरे की जो चेहरे पर पपोटों के पीछे महसूर कर दी गईं।', 'topic': 1}
+
 
 ```
 ### Data Fields
@@ -86,9 +89,9 @@ An example of 'train' looks as follows.
 
 ### Data Splits
 
-- Train : 15553
-- Valid : 2581
-- Test : 2593
+- Train : 31892
+- Valid : 9460
+- Test : 9970
 
 ## Dataset Creation
 
@@ -103,15 +106,13 @@ Source Dataset for the recasting process is the BBC Hindi Headlines Dataset(http
 
 #### Initial Data Collection and Normalization
 
--  BBC Hindi News Classification Dataset contains 4, 335 Hindi news headlines tagged across 14 categories: India, Pakistan,news, International, entertainment, sport, science, China, learning english, social, southasia, business, institutional, multimedia
--  We processed this dataset to combine two sets of relevant but low prevalence classes.
-- Namely, we merged the samples from Pakistan, China, international, and southasia as one class called international.
-- Likewise, we also merged samples from news, business, social, learning english, and institutional as news.
-- Lastly, we also removed the class multimedia because there were very few samples.
+-  Initial Data was collected by members of MIDAS Lab from Hindi Websites. They crowd sourced the data annotation process and selected two random stories from our corpus and had the three annotators work on them independently and classify each sentence based on the discourse mode.
+- Please refer to this paper for detailed information: https://www.aclweb.org/anthology/2020.lrec-1.149/
+- The Discourse is further classified into "Argumentative" , "Descriptive" , "Dialogic" , "Informative"  and  "Narrative" - 5 Clases.
 
 #### Who are the source language producers?
 
-Pls refer to this paper: "https://www.aclweb.org/anthology/2020.aacl-main.71"
+Please refer to this paper for detailed information: https://www.aclweb.org/anthology/2020.lrec-1.149/
 
 ### Annotations
 
@@ -121,7 +122,7 @@ Annotation process has been described in Dataset Creation Section.
 
 #### Who are the annotators?
 
-Annotation is done automatically.
+Annotation is done automatically by machine and corresponding recasting process.
 
 ### Personal and Sensitive Information
 
@@ -133,11 +134,12 @@ Pls refer to this paper: https://www.aclweb.org/anthology/2020.aacl-main.71
 
 ### Discussion of Biases
 
+No known bias exist in the dataset.
 Pls refer to this paper: https://www.aclweb.org/anthology/2020.aacl-main.71
 
 ### Other Known Limitations
 
-No other known limitations
+No other known limitations . Size of data may not be enough to train large models
 
 ## Additional Information
 
@@ -187,3 +189,7 @@ Pls contact authors for any information on the dataset.
     abstract = "An NLP model{'}s ability to reason should be independent of language. Previous works utilize Natural Language Inference (NLI) to understand the reasoning ability of models, mostly focusing on high resource languages like English. To address scarcity of data in low-resource languages such as Hindi, we use data recasting to create NLI datasets for four existing text classification datasets. Through experiments, we show that our recasted dataset is devoid of statistical irregularities and spurious patterns. We further study the consistency in predictions of the textual entailment models and propose a consistency regulariser to remove pairwise-inconsistencies in predictions. We propose a novel two-step classification method which uses textual-entailment predictions for classification task. We further improve the performance by using a joint-objective for classification and textual entailment. We therefore highlight the benefits of data recasting and improvements on classification performance using our approach with supporting experimental results.",
 }
 ```
+
+### Contributions
+
+Thanks to [@avinsit123](https://github.com/avinsit123) for adding this dataset.
