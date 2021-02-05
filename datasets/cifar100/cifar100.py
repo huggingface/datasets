@@ -201,8 +201,6 @@ class Cifar100(datasets.GeneratorBasedBuilder):
         actual_path = os.path.join(dl_dir, "cifar-100-python")
         train_path = os.path.join(actual_path, "train")
         test_path = os.path.join(actual_path, "test")
-        print(train_path)
-        print(test_path)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
