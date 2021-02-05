@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -92,7 +93,7 @@ Example instance:
 - pair_ID: sentence pair ID
 - sentence_A: sentence A
 - sentence_B: sentence B
-- label: textual entailment gold label (NEUTRAL, ENTAILMENT, or CONTRADICTION)
+- label: textual entailment gold label: entailment (0), neutral (1) or contradiction (2)
 - relatedness_score: semantic relatedness gold score (on a 1-5 continuous scale)
 - entailment_AB: entailment for the A-B order (A_neutral_B, A_entails_B, or A_contradicts_B)
 - entailment_BA: entailment for the B-A order (B_neutral_A, B_entails_A, or B_contradicts_A)
@@ -180,3 +181,7 @@ Train Trial Test
     pages = "216--223",
 }
 ```
+
+### Contributions
+
+Thanks to [@calpt](https://github.com/calpt) for adding this dataset.
