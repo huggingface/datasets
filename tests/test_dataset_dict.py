@@ -53,16 +53,14 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 1)
-            self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
-            self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+            self.assertIsInstance(dset_split[0]["col_1"], np.int64)
             self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.reset_format()
         with dset.formatted_as(type="numpy", columns=["col_1"]):
             for dset_split in dset.values():
                 self.assertEqual(len(dset_split[0]), 1)
-                self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
-                self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+                self.assertIsInstance(dset_split[0]["col_1"], np.int64)
                 self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         for dset_split in dset.values():
@@ -80,6 +78,7 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
+            self.assertIsInstance(dset_split[0]["col_2"], np.str_)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
@@ -145,6 +144,49 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dset_split[0].columns), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
+
+    def test_set_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.set_transform(transform=transform, columns=["col_1"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.format["type"], "custom")
+            self.assertEqual(len(dset_split[0].keys()), 1)
+            self.assertEqual(dset_split[0]["col_1"], "3")
+            self.assertEqual(dset_split[:2]["col_1"], ["3", "2"])
+            self.assertEqual(dset_split["col_1"][:2], ["3", "2"])
+
+        prev_format = dset[list(dset.keys())[0]].format
+        for dset_split in dset.values():
+            dset_split.set_format(**dset_split.format)
+            self.assertEqual(prev_format, dset_split.format)
+
+        dset.set_transform(transform=transform, columns=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(len(dset_split[0].keys()), 2)
+            self.assertEqual(dset_split[0]["col_2"], "A")
+        del dset
+
+    def test_with_format(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_format("numpy", columns=["col_1"])
+        dset.set_format("numpy", columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
+
+    def test_with_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_transform(transform, columns=["col_1"])
+        dset.set_transform(transform, columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
 
     def test_cast_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
