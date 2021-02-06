@@ -433,10 +433,11 @@ For `stance_hillary` config:
 
 ### Dataset Curators
 
+Francesco Barbieri, Jose Camacho-Collados, Luis Espiinosa-Anke and Leonardo Neves through Cardiff NLP.
+
 ### Licensing Information
 
 [Needs More Information]
-
 ### Citation Information
 
 @inproceedings{barbieri2020tweeteval,
