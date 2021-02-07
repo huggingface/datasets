@@ -2,7 +2,7 @@ import platform
 from argparse import ArgumentParser
 
 from datasets import __version__ as version
-from datasets import is_tf_available, is_torch_available
+from datasets.config import is_tf_available, is_torch_available
 from datasets.commands import BaseTransformersCLICommand
 
 

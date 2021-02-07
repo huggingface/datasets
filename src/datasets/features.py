@@ -26,7 +26,7 @@ from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from . import utils
-from .utils.file_utils import is_tf_available, is_torch_available
+from .config import is_tf_available, is_torch_available
 from .utils.logging import get_logger
 
 

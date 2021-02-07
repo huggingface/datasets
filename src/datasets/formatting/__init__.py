@@ -18,7 +18,7 @@
 
 from typing import Dict, List, Optional, Union
 
-from ..utils.file_utils import is_tf_available, is_torch_available
+from ..config import is_tf_available, is_torch_available
 from ..utils.logging import get_logger
 from .formatting import (
     CustomFormatter,

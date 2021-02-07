@@ -30,73 +30,21 @@ import requests
 from tqdm.auto import tqdm
 
 from .. import __version__
+from ..config import (
+    _PY_VERSION,
+    _beam_version,
+    _tf_version,
+    _torch_version,
+    is_beam_available,
+    is_rarfile_available,
+    is_tf_available,
+    is_torch_available,
+)
 from .filelock import FileLock
 from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
-
-_PY_VERSION: str = sys.version.split()[0]
-
-if int(_PY_VERSION.split(".")[0]) == 3 and int(_PY_VERSION.split(".")[1]) < 8:
-    import importlib_metadata
-else:
-    import importlib.metadata as importlib_metadata
-
-
-USE_TF = os.environ.get("USE_TF", "AUTO").upper()
-USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
-
-_torch_version = "N/A"
-_torch_available = False
-if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
-    try:
-        _torch_version = importlib_metadata.version("torch")
-        _torch_available = True
-        logger.info("PyTorch version {} available.".format(_torch_version))
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling PyTorch because USE_TF is set")
-
-_tf_version = "N/A"
-_tf_available = False
-if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-    try:
-        _tf_version = importlib_metadata.version("tensorflow")
-        _tf_available = True
-        logger.info("TensorFlow version {} available.".format(_tf_version))
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling Tensorflow because USE_TORCH is set")
-
-USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
-_beam_version = "N/A"
-_beam_available = False
-if USE_BEAM in ("1", "ON", "YES", "AUTO"):
-    try:
-        _beam_version = importlib_metadata.version("apache_beam")
-        _beam_available = True
-        logger.info("Apache Beam version {} available.".format(_beam_version))
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling Apache Beam because USE_BEAM is set to False")
-
-
-USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
-_rarfile_version = "N/A"
-_rarfile_available = False
-if USE_RAR in ("1", "ON", "YES", "AUTO"):
-    try:
-        _rarfile_version = importlib_metadata.version("apache_beam")
-        _rarfile_available = True
-        logger.info("rarfile available.")
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling rarfile because USE_RAR is set to False")
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
@@ -164,7 +112,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     np_state = np.random.get_state()
     np.random.seed(seed)
 
-    if set_pytorch and _torch_available:
+    if set_pytorch and is_torch_available():
         import torch
 
         torch_state = torch.random.get_rng_state()
@@ -174,7 +122,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch_cuda_states = torch.cuda.get_rng_state_all()
             torch.cuda.manual_seed_all(seed)
 
-    if set_tensorflow and _tf_available:
+    if set_tensorflow and is_tf_available():
         import tensorflow as tf
         from tensorflow.python import context as tfpycontext
 
@@ -197,12 +145,12 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     finally:
         np.random.set_state(np_state)
 
-        if set_pytorch and _torch_available:
+        if set_pytorch and is_torch_available():
             torch.random.set_rng_state(torch_state)
             if torch.cuda.is_available():
                 torch.cuda.set_rng_state_all(torch_cuda_states)
 
-        if set_tensorflow and _tf_available:
+        if set_tensorflow and is_tf_available():
             tf.random.set_global_generator(tf_state)
 
             tf_context._seed = tf_seed
@@ -210,22 +158,6 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
                 tf_context._rng = tf_rng
             else:
                 delattr(tf_context, "_rng")
-
-
-def is_torch_available():
-    return _torch_available
-
-
-def is_tf_available():
-    return _tf_available
-
-
-def is_beam_available():
-    return _beam_available
-
-
-def is_rarfile_available():
-    return _rarfile_available
 
 
 def is_remote_url(url_or_filename):
@@ -422,7 +354,7 @@ def cached_path(
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
             elif is_rarfile(output_path):
-                if _rarfile_available:
+                if is_rarfile_available():
                     import rarfile
 
                     rf = rarfile.RarFile(output_path)

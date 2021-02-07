@@ -3,11 +3,12 @@ import tempfile
 from unittest import TestCase
 
 import datasets
+import datasets.config
 
 from .utils import require_beam
 
 
-if datasets.is_beam_available():
+if datasets.config.is_beam_available():
     import apache_beam as beam
 
 
