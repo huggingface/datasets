@@ -159,7 +159,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
         metadata_filepath = filepath["metadata"]
 
         if "fulltext" in self.config.name:
-            fulltext_filepath = filepath["fulltext"]
+            fulltext_dir_path = filepath["fulltext"]
 
         fh = None
         if "embeddings" in self.config.name:
