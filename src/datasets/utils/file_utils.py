@@ -31,14 +31,14 @@ from tqdm.auto import tqdm
 
 from .. import __version__
 from ..config import (
-    _PY_VERSION,
-    _beam_version,
-    _tf_version,
-    _torch_version,
-    is_beam_available,
-    is_rarfile_available,
-    is_tf_available,
-    is_torch_available,
+    PY_VERSION,
+    BEAM_VERSION,
+    TF_VERSION,
+    TORCH_VERSION,
+    BEAM_AVAILABLE,
+    RARFILE_AVAILABLE,
+    TF_AVAILABLE,
+    TORCH_AVAILABLE,
 )
 from .filelock import FileLock
 from .logging import WARNING, get_logger
@@ -112,7 +112,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     np_state = np.random.get_state()
     np.random.seed(seed)
 
-    if set_pytorch and is_torch_available():
+    if set_pytorch and TORCH_AVAILABLE:
         import torch
 
         torch_state = torch.random.get_rng_state()
@@ -122,7 +122,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch_cuda_states = torch.cuda.get_rng_state_all()
             torch.cuda.manual_seed_all(seed)
 
-    if set_tensorflow and is_tf_available():
+    if set_tensorflow and TF_AVAILABLE:
         import tensorflow as tf
         from tensorflow.python import context as tfpycontext
 
@@ -145,12 +145,12 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     finally:
         np.random.set_state(np_state)
 
-        if set_pytorch and is_torch_available():
+        if set_pytorch and TORCH_AVAILABLE:
             torch.random.set_rng_state(torch_state)
             if torch.cuda.is_available():
                 torch.cuda.set_rng_state_all(torch_cuda_states)
 
-        if set_tensorflow and is_tf_available():
+        if set_tensorflow and TF_AVAILABLE:
             tf.random.set_global_generator(tf_state)
 
             tf_context._seed = tf_seed
@@ -354,7 +354,7 @@ def cached_path(
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
             elif is_rarfile(output_path):
-                if is_rarfile_available():
+                if RARFILE_AVAILABLE:
                     import rarfile
 
                     rf = rarfile.RarFile(output_path)
@@ -371,14 +371,14 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, _PY_VERSION)
+    ua = "datasets/{}; python/{}".format(__version__, PY_VERSION)
     ua += "; pyarrow/{}".format(pa.__version__)
-    if is_torch_available():
-        ua += "; torch/{}".format(_torch_version)
-    if is_tf_available():
-        ua += "; tensorflow/{}".format(_tf_version)
-    if is_beam_available():
-        ua += "; apache_beam/{}".format(_beam_version)
+    if TORCH_AVAILABLE:
+        ua += "; torch/{}".format(TORCH_VERSION)
+    if TF_AVAILABLE:
+        ua += "; tensorflow/{}".format(TF_VERSION)
+    if BEAM_AVAILABLE:
+        ua += "; apache_beam/{}".format(BEAM_VERSION)
     if isinstance(user_agent, dict):
         ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
     elif isinstance(user_agent, str):

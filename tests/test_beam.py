@@ -8,7 +8,7 @@ import datasets.config
 from .utils import require_beam
 
 
-if datasets.config.is_beam_available():
+if datasets.config.BEAM_AVAILABLE:
     import apache_beam as beam
 
 
