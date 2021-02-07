@@ -21,7 +21,6 @@ from __future__ import absolute_import, division, print_function
 import csv
 import json
 import os
-import shutil
 
 import datasets
 
@@ -52,7 +51,12 @@ questions to be solved with the dataset: https://www.kaggle.com/allen-institute-
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://ai2-semanticscholar-cord-19.s3-us-west-2.amazonaws.com/historical_releases/cord-19_2020-11-29.tar.gz"
+CORD19_DATASET_DATE = "2020-11-29"
+_URL = (
+    "https://ai2-semanticscholar-cord-19.s3-us-west-2.amazonaws.com/historical_releases/cord-19_"
+    + CORD19_DATASET_DATE
+    + ".tar.gz"
+)
 
 
 class Cord19(datasets.GeneratorBasedBuilder):
@@ -116,21 +120,27 @@ class Cord19(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(my_urls)
 
         files = dict()
-        files["metadata"] = os.path.join(data_dir, "2020-11-29/metadata.csv")
+        files["metadata"] = os.path.join(data_dir, CORD19_DATASET_DATE + "/metadata.csv")
 
         if "fulltext" in self.config.name:
-            fulltext_dir_path = os.path.join(data_dir, "2020-11-29/document_parses")
+            fulltext_dir_path = os.path.join(data_dir, CORD19_DATASET_DATE + "/document_parses")
             if not os.path.isdir(fulltext_dir_path):
-                shutil.unpack_archive(os.path.join(data_dir, "2020-11-29/document_parses.tar.gz"), fulltext_dir_path)
+                fulltext_dir_path = dl_manager.extract(
+                    os.path.join(data_dir, CORD19_DATASET_DATE + "/document_parses.tar.gz")
+                )
             files["fulltext"] = fulltext_dir_path
 
         if "embeddings" in self.config.name:
-            embeddings_dir_path = os.path.join(data_dir, "2020-11-29/cord_19_embeddings")
+            embeddings_dir_path = os.path.join(data_dir, CORD19_DATASET_DATE + "/cord_19_embeddings")
             if not os.path.isdir(embeddings_dir_path):
-                shutil.unpack_archive(
-                    os.path.join(data_dir, "2020-11-29/cord_19_embeddings.tar.gz"), embeddings_dir_path
+                embeddings_dir_path = dl_manager.extract(
+                    os.path.join(data_dir, CORD19_DATASET_DATE + "/cord_19_embeddings.tar.gz")
                 )
-            files["embeddings"] = os.path.join(embeddings_dir_path, "cord_19_embeddings_2020-11-29.csv")
+            files["embeddings"] = os.path.join(
+                embeddings_dir_path, "cord_19_embeddings_" + CORD19_DATASET_DATE + ".csv"
+            )
+
+        print("0000000000 {}".format(files))
 
         return [
             datasets.SplitGenerator(
@@ -149,7 +159,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
         metadata_filepath = filepath["metadata"]
 
         if "fulltext" in self.config.name:
-            fulltext_filepath = filepath["fulltext"]
+            fulltext_dir_path = filepath["fulltext"]
 
         fh = None
         if "embeddings" in self.config.name:
@@ -186,7 +196,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
 
                         # load json file
                         with open(
-                            os.path.join(fulltext_filepath, json_filepath), mode="r", encoding="utf-8"
+                            os.path.join(fulltext_dir_path, json_filepath), mode="r", encoding="utf-8"
                         ) as json_file:
                             data = json.load(json_file)
                             doc_fields["fulltext"] = "\n".join(text_block["text"] for text_block in data["body_text"])

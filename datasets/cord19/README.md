@@ -84,7 +84,32 @@ The dataset is in english (en).
 
 ### Data Instances
 
-TODO
+The following code block present an overview of a sample in json-like syntax (abbreviated since some fields are very long):
+```json
+{
+    "abstract": "OBJECTIVE: This retrospective chart review describes the epidemiology and clinical features of 40 patients with culture-proven Mycoplasma pneumoniae infections at King Abdulaziz University Hospital, Jeddah, Saudi Arabia. METHODS: Patients with positive M. pneumoniae cultures from respiratory specimens from January 1997 through December 1998 were identified through the Microbiology records. Charts of patients were reviewed. RESULTS: 40 patients were identified [...]", 
+    "authors": "Madani, Tariq A; Al-Ghamdi, Aisha A", 
+    "cord_uid": "ug7v899j", 
+    "doc_embeddings": [
+    -2.939983606338501,
+    -6.312200546264648,
+    -1.0459030866622925,
+    [...] 766 values in total [...]
+    -4.107113361358643,
+    -3.8174145221710205,
+    1.8976187705993652,
+    5.811529159545898,
+    -2.9323840141296387
+],
+"doi": "10.1186/1471-2334-1-6",
+"journal": "BMC Infect Dis",
+"publish_time": "2001-07-04",
+"sha": "d1aafb70c066a2068b02786f8929fd9c900897fb",
+"source_x": "PMC",
+"title": "Clinical features of culture-proven Mycoplasma pneumoniae infections at King Abdulaziz University Hospital, Jeddah, Saudi Arabia",
+"url": "https: //www.ncbi.nlm.nih.gov/pmc/articles/PMC35282/"
+}
+```
 
 ### Data Fields
 
@@ -113,7 +138,7 @@ Currently only the following fields are integrated: `cord_uid`, `sha`,`source_x`
 Extra fields based on selected configuration during loading:
 
 - `fulltext`: A `str`-valued field containing the concatenation of all text sections from json (itself extracted from pdf)
-- `doc_embeddings`: A `str`-valued field containing document embeddings as a vector of floats separated by ','.
+- `doc_embeddings`: A `sequence` of float-valued elements containing document embeddings as a vector of floats (parsed from string of values separated by ','). Details on the system used to extract the embeddings are available in: [SPECTER: Document-level Representation Learning using Citation-informed Transformers](https://arxiv.org/abs/2004.07180). TL;DR: it's relying on a BERT model pre-trained on document-level relatedness using the citation graph. The system can be queried through REST (see [public API documentation](https://github.com/allenai/paper-embedding-public-apis)).
 
 ### Data Splits
 
