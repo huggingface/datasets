@@ -1,8 +1,7 @@
 import platform
 from argparse import ArgumentParser
 
-from datasets import __version__ as version
-from datasets.config import TF_AVAILABLE, TORCH_AVAILABLE
+from datasets import __version__ as version, config
 from datasets.commands import BaseTransformersCLICommand
 
 
@@ -19,7 +18,7 @@ class EnvironmentCommand(BaseTransformersCLICommand):
     def run(self):
         pt_version = "not installed"
         pt_cuda_available = "NA"
-        if TORCH_AVAILABLE:
+        if config.TORCH_AVAILABLE:
             import torch
 
             pt_version = torch.__version__
@@ -27,7 +26,7 @@ class EnvironmentCommand(BaseTransformersCLICommand):
 
         tf_version = "not installed"
         tf_cuda_available = "NA"
-        if TF_AVAILABLE:
+        if config.TF_AVAILABLE:
             import tensorflow as tf
 
             tf_version = tf.__version__

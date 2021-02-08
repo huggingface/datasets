@@ -25,8 +25,8 @@ import pyarrow as pa
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
+from . import config
 from . import utils
-from .config import TF_AVAILABLE, TORCH_AVAILABLE
 from .utils.logging import get_logger
 
 
@@ -65,17 +65,17 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         has_changed (bool): True if the object has been changed, False if it is identical
     """
 
-    if TF_AVAILABLE:
+    if config.TF_AVAILABLE:
         import tensorflow as tf
 
-    if TORCH_AVAILABLE:
+    if config.TORCH_AVAILABLE:
         import torch
 
     if isinstance(obj, np.ndarray):
         return obj.tolist(), True
-    elif TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
+    elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
-    elif TF_AVAILABLE and isinstance(obj, tf.Tensor):
+    elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True

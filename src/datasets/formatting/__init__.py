@@ -18,7 +18,7 @@
 
 from typing import Dict, List, Optional, Union
 
-from ..config import TF_AVAILABLE, TORCH_AVAILABLE
+from .. import config
 from ..utils.logging import get_logger
 from .formatting import (
     CustomFormatter,
@@ -75,7 +75,7 @@ _register_formatter(NumpyFormatter, "numpy", aliases=["np"])
 _register_formatter(PandasFormatter, "pandas", aliases=["pd"])
 _register_formatter(CustomFormatter, "custom")
 
-if TORCH_AVAILABLE:
+if config.TORCH_AVAILABLE:
     from .torch_formatter import TorchFormatter
 
     _register_formatter(TorchFormatter, "torch", aliases=["pt", "pytorch"])
@@ -83,7 +83,7 @@ else:
     _torch_error = ValueError("PyTorch needs to be installed to be able to return PyTorch tensors.")
     _register_unavailable_formatter(_torch_error, "torch", aliases=["pt", "pytorch"])
 
-if TF_AVAILABLE:
+if config.TF_AVAILABLE:
     from .tf_formatter import TFFormatter
 
     _register_formatter(TFFormatter, "tensorflow", aliases=["tf"])
