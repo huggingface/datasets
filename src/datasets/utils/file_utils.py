@@ -228,9 +228,20 @@ def is_rarfile_available():
     return _rarfile_available
 
 
-def is_remote_url(url_or_filename):
+def is_remote_url(url_or_filename: str) -> bool:
     parsed = urlparse(url_or_filename)
     return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
+
+
+def is_local_path(url_or_filename: str) -> bool:
+    # On unix the scheme of a local path is empty (for both absolute and relative),
+    # while on windows the scheme is the drive name (ex: "c") for absolute paths.
+    # for details on the windows behavior, see https://bugs.python.org/issue42215
+    return urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/")
+
+
+def is_relative_path(url_or_filename: str) -> bool:
+    return urlparse(url_or_filename).scheme == "" and not os.path.isabs(url_or_filename)
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -323,7 +334,7 @@ def cached_path(
     url_or_filename,
     download_config=None,
     **download_kwargs,
-) -> Optional[str]:
+) -> str:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and
@@ -366,10 +377,8 @@ def cached_path(
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
-    elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
+    elif is_local_path(url_or_filename):
         # File, but it doesn't exist.
-        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
-        # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
@@ -454,6 +463,21 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
+def get_authentication_headers_for_url(url: str) -> dict:
+    """Handle the HF authentication"""
+    headers = {}
+    if url.startswith("https://huggingface.co/"):
+        try:
+            from huggingface_hub import hf_api
+
+            token = hf_api.HfFolder.get_token()
+            if token:
+                headers["authorization"] = "Bearer {}".format(token)
+        except ImportError:
+            pass
+    return headers
+
+
 def _request_with_retry(
     verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
 ) -> requests.Response:
@@ -504,6 +528,7 @@ def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookie
 
 def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
+    headers.update(get_authentication_headers_for_url(url))
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
     response = _request_with_retry(
@@ -533,6 +558,7 @@ def http_head(
     url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
 ) -> requests.Response:
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
+    headers.update(get_authentication_headers_for_url(url))
     response = _request_with_retry(
         verb="HEAD",
         url=url,
@@ -557,7 +583,7 @@ def get_from_cache(
     local_files_only=False,
     use_etag=True,
     max_retries=0,
-) -> Optional[str]:
+) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
     If it's not there, download it. Then return the path to the cached file.
