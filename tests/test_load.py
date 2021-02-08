@@ -46,13 +46,14 @@ class LoadTest(TestCase):
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
-            # prepare module from file path
+            # prepare module from file path + check resolved_file_path
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
-            importable_module_path, module_hash = datasets.load.prepare_module(
-                module_path, dynamic_modules_path=self.dynamic_modules_path
+            importable_module_path, module_hash, resolved_file_path = datasets.load.prepare_module(
+                module_path, dynamic_modules_path=self.dynamic_modules_path, return_resolved_file_path=True
             )
+            self.assertEqual(resolved_file_path, module_path)
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
