@@ -34,7 +34,6 @@ from .. import config
 from .filelock import FileLock
 from .logging import WARNING, get_logger
 
-
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
 hf_cache_home = os.path.expanduser(
@@ -47,11 +46,6 @@ try:
     HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
 except (AttributeError, ImportError):
     HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
-
-S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
-CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
-REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/datasets/{path}/{name}"
-
 
 default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
 try:
@@ -158,7 +152,7 @@ def is_remote_url(url_or_filename):
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
     if dataset:
-        endpoint = CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else S3_DATASETS_BUCKET_PREFIX
+        endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     else:
         endpoint = CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else S3_METRICS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
@@ -181,7 +175,7 @@ def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = N
 
     version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
-        return REPO_DATASETS_URL.format(version=version, path=path, name=name)
+        return config.REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:
         return REPO_METRICS_URL.format(version=version, path=path, name=name)
 
