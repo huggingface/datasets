@@ -36,15 +36,6 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-default_modules_cache_path = os.path.join(config.HF_CACHE_HOME, "modules")
-try:
-    from pathlib import Path
-
-    HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
-except (AttributeError, ImportError):
-    HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
-
-
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
@@ -55,7 +46,7 @@ def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
     It can also be set with the environment variable HF_MODULES_CACHE.
     This is used to add modules such as `datasets_modules`
     """
-    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else HF_MODULES_CACHE
+    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else config.HF_MODULES_CACHE
     hf_modules_cache = str(hf_modules_cache)
     if hf_modules_cache not in sys.path:
         sys.path.append(hf_modules_cache)

@@ -29,6 +29,7 @@ from urllib.parse import urlparse
 
 import fsspec
 
+from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
@@ -39,15 +40,7 @@ from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import (
-    HF_MODULES_CACHE,
-    DownloadConfig,
-    cached_path,
-    head_hf_s3,
-    hf_bucket_url,
-    hf_github_url,
-    init_hf_modules,
-)
+from .utils.file_utils import DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url, init_hf_modules
 from .utils.filelock import FileLock
 from .utils.logging import get_logger
 from .utils.version import Version
@@ -279,7 +272,7 @@ def prepare_module(
     dynamic_modules_path = (
         dynamic_modules_path
         if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=HF_MODULES_CACHE)
+        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
     )
     module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
     datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
