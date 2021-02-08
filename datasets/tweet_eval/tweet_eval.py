@@ -143,7 +143,7 @@ class TweetEvalConfig(datasets.BuilderConfig):
         self.sub_type = sub_type
 
 
-class TweetEvalDataset(datasets.GeneratorBasedBuilder):
+class TweetEval(datasets.GeneratorBasedBuilder):
     """TweetEval Dataset."""
 
     BUILDER_CONFIGS = [

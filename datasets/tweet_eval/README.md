@@ -440,12 +440,14 @@ Francesco Barbieri, Jose Camacho-Collados, Luis Espiinosa-Anke and Leonardo Neve
 [Needs More Information]
 ### Citation Information
 
+```
 @inproceedings{barbieri2020tweeteval,
 title={{TweetEval:Unified Benchmark and Comparative Evaluation for Tweet Classification}},
 author={Barbieri, Francesco and Camacho-Collados, Jose and Espinosa-Anke, Luis and Neves, Leonardo},
 booktitle={Proceedings of Findings of EMNLP},
 year={2020}
 }
+```
 
 ### Contributions
 
