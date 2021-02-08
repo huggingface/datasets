@@ -292,8 +292,6 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             all_prev_utterances = []
                             for idx, turn in enumerate(dial["turns"]):
                                 all_prev_utterances.append("\t{}: {}".format(turn["role"], turn["utterance"]))
-                                if "test" in filepath and idx != len(dial["turns"]) - 2:
-                                    continue
                                 if turn["role"] == "agent":
                                     continue
                                 if idx + 1 < len(dial["turns"]):
@@ -308,15 +306,11 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     "title": doc_id,
                                     "context": doc["doc_text"],
                                     "question": question,
-                                    "answers": [],
-                                    "domain": domain,
-                                }
-                                if "answers" not in turn_to_predict:
-                                    turn_to_predict["answers"] = self._get_answers_rc(
+                                    "answers": self._get_answers_rc(
                                         turn_to_predict["references"],
                                         doc["spans"],
                                         doc["doc_text"],
-                                    )
-                                if turn_to_predict["answers"]:
-                                    qa["answers"] = turn_to_predict["answers"]
+                                    ),
+                                    "domain": domain,
+                                }
                                 yield id_, qa
