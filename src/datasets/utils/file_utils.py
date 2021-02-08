@@ -44,11 +44,6 @@ try:
 except (AttributeError, ImportError):
     HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
 
-S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
-CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
-
-
 default_modules_cache_path = os.path.join(config.HF_CACHE_HOME, "modules")
 try:
     from pathlib import Path
@@ -143,7 +138,7 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     if dataset:
         endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     else:
-        endpoint = CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else S3_METRICS_BUCKET_PREFIX
+        endpoint = config.CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else config.S3_METRICS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 
@@ -166,7 +161,7 @@ def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = N
     if dataset:
         return config.REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:
-        return REPO_METRICS_URL.format(version=version, path=path, name=name)
+        return config.REPO_METRICS_URL.format(version=version, path=path, name=name)
 
 
 def hash_url_to_filename(url, etag=None):
