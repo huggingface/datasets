@@ -20,9 +20,17 @@ import enum
 import os
 from datetime import datetime
 from functools import partial
-from typing import Dict, Union
+from pathlib import Path
+from typing import Dict, Optional, Union
 
-from .file_utils import HF_DATASETS_CACHE, DownloadConfig, cached_path, get_from_cache, hash_url_to_filename
+from .file_utils import (
+    HF_DATASETS_CACHE,
+    DownloadConfig,
+    cached_path,
+    get_from_cache,
+    hash_url_to_filename,
+    is_relative_path,
+)
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import flatten_nested, map_nested, size_str
@@ -54,9 +62,10 @@ class GenerateMode(enum.Enum):
 class DownloadManager(object):
     def __init__(
         self,
-        dataset_name=None,
-        data_dir=None,
-        download_config=None,
+        dataset_name: Optional[str] = None,
+        data_dir: Optional[str] = None,
+        download_config: Optional[DownloadConfig] = None,
+        base_path: Optional[str] = None,
     ):
         """Download manager constructor.
 
@@ -66,10 +75,13 @@ class DownloadManager(object):
                 provided, downloads will contain which datasets they were used for.
             download_config: `DownloadConfig` to specify the cache directory and other
                 download options
+            base_path: `str`, base path that is used when relative paths are used to
+                download files. This can be a remote url.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
         self._download_config = download_config or DownloadConfig()
+        self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
 
@@ -173,7 +185,7 @@ class DownloadManager(object):
         if download_config.num_proc is None:
             download_config.num_proc = 16
 
-        download_func = partial(cached_path, download_config=download_config)
+        download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
@@ -191,6 +203,13 @@ class DownloadManager(object):
         logger.info("Checksum Computation took {} min".format(duration.total_seconds() // 60))
 
         return downloaded_path_or_paths
+
+    def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
+        if is_relative_path(url_or_filename):
+            # append the relative path to the base_path
+            # we use Path().joinpath().as_posix() since base_path can also be a remote url
+            url_or_filename = Path(self._base_path).joinpath(url_or_filename).as_posix()
+        return cached_path(url_or_filename, download_config=download_config)
 
     def iter_archive(self, path):
         """Returns iterator over files within archive.
