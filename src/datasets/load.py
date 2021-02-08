@@ -219,6 +219,7 @@ def prepare_module(
     dataset: bool = True,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
+    return_resolved_file_path: bool = False,
     **download_kwargs,
 ) -> Tuple[str, str]:
     r"""
@@ -246,6 +247,8 @@ def prepare_module(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
+        return_resolved_file_path (Optional bool, defaults to False):
+            If True, the url or path to the resolved dataset or metric script is returned with the other ouputs
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Return: Tuple[``str``, ``str``] with
@@ -370,6 +373,8 @@ def prepare_module(
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
                         f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
                     )
+                    if return_resolved_file_path:
+                        return module_path, hash, os.path.join(main_folder_path, hash, name)
                     return module_path, hash
             raise
 
@@ -539,6 +544,9 @@ def prepare_module(
 
     # make the new module to be noticed by the import system
     importlib.invalidate_caches()
+
+    if return_resolved_file_path:
+        return module_path, hash, file_path
     return module_path, hash
 
 
@@ -676,9 +684,16 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(
-        path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=True
+    module_path, hash, resolved_file_path = prepare_module(
+        path,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        dataset=True,
+        return_resolved_file_path=True,
     )
+    # Set the base path for downloads as the parent of the script location
+    base_path = Path(resolved_file_path).parent.as_posix()
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
@@ -704,6 +719,7 @@ def load_dataset(
         download_mode=download_mode,
         ignore_verifications=ignore_verifications,
         try_from_hf_gcs=try_from_hf_gcs,
+        base_path=base_path,
     )
 
     # Build dataset for splits
