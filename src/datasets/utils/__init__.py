@@ -19,7 +19,6 @@
 
 from .download_manager import DownloadManager, GenerateMode
 from .file_utils import (
-    HF_DATASETS_CACHE,
     HF_METRICS_CACHE,
     DownloadConfig,
     cached_path,

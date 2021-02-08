@@ -8,11 +8,12 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
 
+from datasets import config
 from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
+from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -273,7 +274,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-1]
         else:
             self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-2]
-        cache_dir = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
+        cache_dir = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
         self._auto_generate = auto_generate
         self._n_lines = n_lines
         self._json_field = json_field
@@ -328,7 +329,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                     print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
     def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
-        dl_cache_dir = os.path.join(self._cache_dir or HF_DATASETS_CACHE, "downloads")
+        dl_cache_dir = os.path.join(self._cache_dir or config.HF_DATASETS_CACHE, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config

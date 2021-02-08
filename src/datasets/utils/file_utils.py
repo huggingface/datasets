@@ -36,18 +36,7 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-hf_cache_home = os.path.expanduser(
-    os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
-)
-default_datasets_cache_path = os.path.join(hf_cache_home, "datasets")
-try:
-    from pathlib import Path
-
-    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
-except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
-
-default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
+default_metrics_cache_path = os.path.join(config.hf_cache_home, "metrics")
 try:
     from pathlib import Path
 
@@ -60,7 +49,7 @@ CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/dataset
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
 
 
-default_modules_cache_path = os.path.join(hf_cache_home, "modules")
+default_modules_cache_path = os.path.join(config.hf_cache_home, "modules")
 try:
     from pathlib import Path
 
@@ -261,7 +250,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or HF_DATASETS_CACHE
+    cache_dir = download_config.cache_dir or config.HF_DATASETS_CACHE
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -489,7 +478,7 @@ def get_from_cache(
             and no cache on disk
     """
     if cache_dir is None:
-        cache_dir = HF_DATASETS_CACHE
+        cache_dir = config.HF_DATASETS_CACHE
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
 
