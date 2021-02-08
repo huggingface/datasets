@@ -29,10 +29,10 @@ import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
-from .. import __version__
-from .. import config
+from .. import __version__, config
 from .filelock import FileLock
 from .logging import WARNING, get_logger
+
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 

@@ -1,7 +1,8 @@
 import platform
 from argparse import ArgumentParser
 
-from datasets import __version__ as version, config
+from datasets import __version__ as version
+from datasets import config
 from datasets.commands import BaseTransformersCLICommand
 
 

@@ -25,8 +25,7 @@ import pyarrow as pa
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
-from . import config
-from . import utils
+from . import config, utils
 from .utils.logging import get_logger
 
 
