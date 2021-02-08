@@ -96,10 +96,10 @@ class RunBeamCommand(BaseTransformersCLICommand):
         else:
             beam_options = None
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
-            for config in builder_cls.BUILDER_CONFIGS:
+            for builder_config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=config.name,
+                        name=builder_config.name,
                         data_dir=self._data_dir,
                         hash=hash,
                         beam_options=beam_options,
