@@ -36,7 +36,7 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-default_metrics_cache_path = os.path.join(config.hf_cache_home, "metrics")
+default_metrics_cache_path = os.path.join(config.HF_CACHE_HOME, "metrics")
 try:
     from pathlib import Path
 
@@ -49,7 +49,7 @@ CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/dataset
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
 
 
-default_modules_cache_path = os.path.join(config.hf_cache_home, "modules")
+default_modules_cache_path = os.path.join(config.HF_CACHE_HOME, "modules")
 try:
     from pathlib import Path
 

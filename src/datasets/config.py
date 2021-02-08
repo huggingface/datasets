@@ -72,13 +72,15 @@ if USE_RAR in ("1", "ON", "YES", "AUTO"):
 else:
     logger.info("Disabling rarfile because USE_RAR is set to False")
 
-hf_cache_home = os.path.expanduser(
-    os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
-)
-default_datasets_cache_path = os.path.join(hf_cache_home, "datasets")
+DEFAULT_XDG_CACHE_HOME = "~/.cache"
+XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)
+DEFAULT_HF_CACHE_HOME = os.path.join(XDG_CACHE_HOME, "huggingface")
+HF_CACHE_HOME = os.path.expanduser(os.getenv("HF_HOME", DEFAULT_HF_CACHE_HOME))
+DEFAULT_HF_DATASETS_CACHE = os.path.join(HF_CACHE_HOME, "datasets")
 try:
     from pathlib import Path
 
-    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
+    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
 except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
+    # TODO: why os.getenv twice?
+    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
