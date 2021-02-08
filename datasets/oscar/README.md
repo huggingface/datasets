@@ -5805,6 +5805,8 @@ The data fields are the same among all configs.
 | unshuffled_original_yue     |        11 |
 | unshuffled_original_zh      |  60137667 |
 
+</details>
+
 ## [Dataset Creation](#dataset-creation)
 
 ### [Curation Rationale](#curation-rationale)
