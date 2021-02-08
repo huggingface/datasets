@@ -175,24 +175,6 @@ def set_verbosity_error():
     return set_verbosity(ERROR)
 
 
-def disable_default_handler() -> None:
-    """Disable the default handler of the HuggingFace datasets library's root logger."""
-
-    _configure_library_root_logger()
-
-    assert _default_handler is not None
-    _get_library_root_logger().removeHandler(_default_handler)
-
-
-def enable_default_handler() -> None:
-    """Enable the default handler of the HuggingFace datasets library's root logger."""
-
-    _configure_library_root_logger()
-
-    assert _default_handler is not None
-    _get_library_root_logger().addHandler(_default_handler)
-
-
 def disable_propagation() -> None:
     """Disable propagation of the library log outputs.
     Note that log propagation is disabled by default.
