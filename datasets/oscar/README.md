@@ -231,180 +231,7 @@ OSCAR is mainly inteded to pretrain language models and word represantations.
 
 ### [Languages](#languages)
 
-All the data is distributed by language, both the original and the deduplicated versions of the data are available.
-
-The following table contains a list of all the 166 languages avalible in the OSCAR corpus and provides the size of each subcorpora in number of words (space separated tokens) and size (uncompressed), for both the original and the deduplicated versions of OSCAR.
-
-
-| Language          | Words original  | Size original | Words deduplicated | Size deduplicated |
-| ----------------- | --------------- | ------------- | ------------------ | ----------------- |
-| Afrikaans         | 43,482,801      | 241M          | 29,533,437         | 163M              |
-| Albanian          | 374,196,110     | 2.3G          | 186,856,699        | 1.2G              |
-| Amharic           | 28,301,601      | 360M          | 16,086,628         | 206M              |
-| Arabic            | 8,117,162,828   | 82G           | 3,171,221,354      | 32G               |
-| Aragonese         | 52,896          | 1.3M          | 45,669             | 801K              |
-| Armenian          | 273,919,388     | 3.7G          | 110,196,043        | 1.5G              |
-| Assamese          | 6,956,663       | 113M          | 4,366,570          | 71M               |
-| Asturian          | 381,005         | 2.4M          | 325,237            | 2.0M              |
-| Avaric            | 24,720          | 409K          | 19,478             | 324K              |
-| Azerbaijani       | 322,641,710     | 2.8G          | 167,742,296        | 1.5G              |
-| Bashkir           | 9,796,764       | 128M          | 6,922,589          | 90M               |
-| Basque            | 120,456,652     | 848M          | 45,359,710         | 342M              |
-| Bavarian          | 399             | 503           | 399                | 503               |
-| Belarusian        | 144,579,630     | 1.8G          | 83,499,037         | 1.1G              |
-| Bengali           | 623,575,733     | 11G           | 363,766,143        | 5.8G              |
-| Bihari            | 8,848           | 110K          | 2,875              | 34K               |
-| Bishnupriya       | 198,286         | 4.1M          | 96,940             | 1.7M              |
-| Bosnian           | 106,448         | 447K          | 20,485             | 116K              |
-| Breton            | 5,013,241       | 29M           | 2,890,384          | 16M               |
-| Bulgarian         | 2,947,648,106   | 32G           | 1,268,114,977      | 14G               |
-| Burmese           | 56,111,184      | 1.9G          | 30,102,173         | 1.1G              |
-| Catalan           | 1,360,212,450   | 8.0G          | 729,333,440        | 4.3G              |
-| Cebuano           | 6,603,567       | 39M           | 3,675,024          | 24M               |
-| Central Bikol     | 312             | 885           | 312                | 885               |
-| Central Khmer     | 20,690,610      | 1.1G          | 10,082,245         | 581M              |
-| Central Kurdish   | 48,478,334      | 487M          | 18,726,721         | 226M              |
-| Chavacano         | 130             | 520           | 130                | 520               |
-| Chechen           | 711,051         | 8.3M          | 568,146            | 6.7M              |
-| Chinese           | 14,986,424,850  | 508G          | 6,350,215,113      | 249G              |
-| Chuvash           | 3,041,614       | 39M           | 2,054,810          | 26M               |
-| Cornish           | 8,329           | 44K           | 2,704              | 14K               |
-| Croatian          | 34,232,765      | 226M          | 16,727,640         | 110M              |
-| Czech             | 7,715,977,441   | 53G           | 3,540,997,509      | 24G               |
-| Danish            | 2,637,463,889   | 16G           | 1,620,091,317      | 9.5G              |
-| Dhivehi           | 7,559,472       | 126M          | 4,726,660          | 79M               |
-| Dimli             | 19              | 146           | 19                 | 146               |
-| Dutch             | 13,020,136,373  | 78G           | 6,598,786,137      | 39G               |
-| Eastern Mari      | 565,992         | 7.2M          | 469,297            | 6.0M              |
-| Egyptian Arabic   | 7,305,151       | 66M           | 3,659,419          | 33M               |
-| Emilian-Romagnol  | 6,376           | 25K           | 6,121              | 24K               |
-| English           | 418,187,793,408 | 2.3T          | 215,841,256,971    | 1.2T              |
-| Erzya             | 90              | 1.4K          | 78                 | 1.2K              |
-| Esperanto         | 48,486,161      | 299M          | 37,324,446         | 228M              |
-| Estonian          | 643,163,730     | 4.8G          | 309,931,463        | 2.3G              |
-| Finnish           | 3,196,666,419   | 27G           | 1,597,855,468      | 13G               |
-| French            | 46,896,036,417  | 282G          | 23,206,776,649     | 138G              |
-| Galician          | 102,011,291     | 620M          | 63,600,602         | 384M              |
-| Georgian          | 171,950,621     | 3.6G          | 91,569,739         | 1.9G              |
-| German            | 44,878,908,446  | 308G          | 21,529,164,172     | 145G              |
-| Goan Konkani      | 124,277         | 2.2M          | 102,306            | 1.8M              |
-| Guarani           | 7,382           | 36K           | 4,680              | 24K               |
-| Gujarati          | 72,045,701      | 1.1G          | 50,023,432         | 722M              |
-| Haitian           | 1,014           | 3.9K          | 832                | 3.3K              |
-| Hebrew            | 2,067,753,528   | 20G           | 1,032,018,056      | 9.8G              |
-| Hindi             | 1,372,234,782   | 17G           | 745,774,934        | 8.9G              |
-| Hungarian         | 5,163,936,345   | 40G           | 2,339,127,555      | 18G               |
-| Icelandic         | 219,900,094     | 1.5G          | 129,818,331        | 846M              |
-| Ido               | 25,702          | 147K          | 22,773             | 130K              |
-| Iloko             | 142,942         | 874K          | 105,564            | 636K              |
-| Indonesian        | 4,574,692,265   | 30G           | 2,394,957,629      | 16G               |
-| Interlingua       | 180,231         | 662K          | 100,019            | 360K              |
-| Interlingue       | 5,352           | 24K           | 602                | 1.6K              |
-| Irish             | 14,483,593      | 88M           | 10,017,303         | 60M               |
-| Italian           | 22,248,707,341  | 137G          | 11,250,012,896     | 69G               |
-| Japanese          | 4,962,979,182   | 216G          | 1,123,067,063      | 106G              |
-| Javanese          | 104,896         | 659K          | 86,654             | 583K              |
-| Kalmyk            | 10,277          | 113K          | 10,155             | 112K              |
-| Kannada           | 81,186,863      | 1.7G          | 49,343,462         | 1.1G              |
-| Karachay-Balkar   | 185,436         | 2.6M          | 166,496            | 2.3M              |
-| Kazakh            | 191,126,469     | 2.7G          | 108,388,743        | 1.5G              |
-| Kirghiz           | 44,194,823      | 600M          | 28,982,620         | 388M              |
-| Komi              | 201,404         | 2.3M          | 95,243             | 1.2M              |
-| Korean            | 2,368,765,142   | 24G           | 1,120,375,149      | 12G               |
-| Kurdish           | 15,561,003      | 94M           | 9,946,440          | 60M               |
-| Lao               | 4,133,311       | 174M          | 2,583,342          | 114M              |
-| Latin             | 4,122,201       | 26M           | 1,328,038          | 8.3M              |
-| Latvian           | 520,761,977     | 4.0G          | 236,428,905        | 1.8G              |
-| Lezghian          | 247,646         | 3.3M          | 224,871            | 3.0M              |
-| Limburgan         | 4,730           | 29K           | 4,283              | 27K               |
-| Lithuanian        | 1,159,661,742   | 8.8G          | 516,183,525        | 3.9G              |
-| Lojban            | 154,330         | 736K          | 141,973            | 678K              |
-| Lombard           | 75,229          | 443K          | 73,665             | 433K              |
-| Low German        | 2,906,347       | 18M           | 2,146,417          | 13M               |
-| Lower Sorbian     | 1,787           | 13K           | 966                | 7.1K              |
-| Luxembourgish     | 4,403,577       | 29M           | 3,087,650          | 21M               |
-| Macedonian        | 189,289,873     | 2.1G          | 102,849,595        | 1.2G              |
-| Maithili          | 69,161          | 317K          | 874                | 11K               |
-| Malagasy          | 3,068,360       | 21M           | 1,872,044          | 13M               |
-| Malay             | 16,696,882      | 111M          | 6,045,753          | 42M               |
-| Malayalam         | 189,534,472     | 4.9G          | 95,892,551         | 2.5G              |
-| Maltese           | 2,995,654       | 24M           | 2,163,358          | 17M               |
-| Marathi           | 162,609,404     | 2.7G          | 82,130,803         | 1.4G              |
-| Mazanderani       | 73,870          | 691K          | 64,481             | 602K              |
-| Minangkabau       | 5,682           | 608K          | 4,825              | 310K              |
-| Mingrelian        | 299,098         | 5.8M          | 228,629            | 4.4M              |
-| Mirandese         | 171             | 1.2K          | 152                | 1.1K              |
-| Modern Greek      | 5,479,180,137   | 62G           | 2,412,419,435      | 27G               |
-| Mongolian         | 181,307,167     | 2.2G          | 68,362,013         | 838M              |
-| Nahuatl languages | 1,234           | 12K           | 1,193              | 11K               |
-| Neapolitan        | 5,282           | 17K           | 4,147              | 13K               |
-| Nepali            | 107,448,208     | 1.8G          | 71,628,317         | 1.2G              |
-| Newari            | 564,697         | 5.5M          | 288,995            | 4.1M              |
-| Northern Frisian  | 1,516           | 4.4K          | 1,516              | 4.4K              |
-| Northern Luri     | 8,022           | 76K           | 6,740              | 63K               |
-| Norwegian         | 1,344,326,388   | 8.0G          | 804,894,377        | 4.7G              |
-| Norwegian Nynorsk | 14,764,980      | 85M           | 9,435,139          | 54M               |
-| Occitan           | 750,301         | 5.8M          | 512,678            | 3.7M              |
-| Oriya             | 14,938,567      | 248M          | 11,321,740         | 188M              |
-| Ossetian          | 1,031,268       | 13M           | 878,765            | 11M               |
-| Pampanga          | 130             | 760           | 52                 | 304               |
-| Panjabi           | 61,847,806      | 763M          | 37,555,835         | 460M              |
-| Persian           | 9,096,554,121   | 79G           | 4,363,505,319      | 38G               |
-| Piemontese        | 362,013         | 2.1M          | 337,246            | 1.9M              |
-| Polish            | 15,277,255,137  | 109G          | 6,708,709,674      | 47G               |
-| Portuguese        | 20,641,903,898  | 124G          | 10,751,156,918     | 64G               |
-| Pushto            | 46,559,441      | 361M          | 31,347,348         | 242M              |
-| Quechua           | 10,186          | 78K           | 8,691              | 67K               |
-| Romanian          | 3,984,317,058   | 25G           | 1,741,794,069      | 11G               |
-| Romansh           | 1,093           | 7.4K          | 960                | 6.5K              |
-| Russia Buriat     | 963             | 13K           | 809                | 11K               |
-| Russian           | 92,522,407,837  | 1.2T          | 46,692,691,520     | 568G              |
-| Sanskrit          | 4,331,569       | 93M           | 1,713,930          | 37M               |
-| Scottish Gaelic   | 310,689         | 1.9M          | 207,110            | 1.3M              |
-| Serbian           | 364,395,411     | 3.9G          | 207,561,168        | 2.2G              |
-| Serbo-Croatian    | 5,292,184       | 25M           | 1,040,573          | 5.8M              |
-| Sicilian          | 554             | 3.3K          | 468                | 2.8K              |
-| Sindhi            | 43,530,158      | 347M          | 33,028,015         | 263M              |
-| Sinhala           | 93,053,465      | 1.4G          | 50,864,857         | 802M              |
-| Slovak            | 1,322,247,763   | 9.1G          | 656,346,179        | 4.5G              |
-| Slovenian         | 387,399,700     | 2.5G          | 193,926,684        | 1.3G              |
-| Somali            | 1,202           | 61K           | 472                | 16K               |
-| South Azerbaijani | 2,175,054       | 27M           | 1,528,709          | 19M               |
-| Spanish           | 47,545,122,279  | 278G          | 25,928,290,729     | 149G              |
-| Sundanese         | 30,321          | 211K          | 20,278             | 141K              |
-| Swahili           | 2,211,927       | 13M           | 1,376,963          | 8.1M              |
-| Swedish           | 7,155,994,312   | 44G           | 4,106,120,608      | 25G               |
-| Tagalog           | 98,949,299      | 573M          | 70,121,601         | 407M              |
-| Tajik             | 31,758,142      | 379M          | 21,029,893         | 249M              |
-| Tamil             | 420,537,132     | 9.3G          | 226,013,330        | 5.1G              |
-| Tatar             | 51,034,893      | 670M          | 23,825,695         | 305M              |
-| Telugu            | 123,711,517     | 2.5G          | 79,094,167         | 1.6G              |
-| Thai              | 951,743,087     | 36G           | 368,965,202        | 16G               |
-| Tibetan           | 1,483,589       | 187M          | 936,556            | 138M              |
-| Tosk Albanian     | 841,750         | 5.0M          | 459,001            | 2.8M              |
-| Turkish           | 7,577,388,700   | 60G           | 3,365,734,289      | 27G               |
-| Turkmen           | 1,113,869       | 11M           | 752,326            | 6.8M              |
-| Tuvinian          | 759             | 12K           | 540                | 7.9K              |
-| Uighur            | 8,657,141       | 122M          | 5,852,225          | 83M               |
-| Ukrainian         | 4,204,381,276   | 53G           | 2,252,380,351      | 28G               |
-| Upper Sorbian     | 545,351         | 4.2M          | 236,867            | 1.8M              |
-| Urdu              | 331,817,982     | 2.7G          | 218,030,228        | 1.7G              |
-| Uzbek             | 2,450,256       | 21M           | 1,381,644          | 12M               |
-| Venetian          | 3,492           | 18K           | 3,199              | 17K               |
-| Vietnamese        | 12,036,845,359  | 68G           | 5,577,159,843      | 32G               |
-| Volapük           | 321,121         | 2.0M          | 318,568            | 2.0M              |
-| Walloon           | 50,720          | 273K          | 37,543             | 203K              |
-| Waray             | 397,315         | 2.5M          | 336,311            | 2.2M              |
-| Welsh             | 37,422,441      | 213M          | 23,574,673         | 133M              |
-| Western Frisian   | 5,691,077       | 35M           | 4,223,816          | 26M               |
-| Western Mari      | 93,338          | 1.2M          | 87,780             | 1.1M              |
-| Western Panjabi   | 1,426,986       | 12M           | 1,111,112          | 9.0M              |
-| Wu Chinese        | 11,189          | 109K          | 4,333              | 32K               |
-| Yakut             | 2,547,623       | 42M           | 1,789,174          | 26M               |
-| Yiddish           | 13,834,320      | 141M          | 8,212,970          | 84M               |
-| Yoruba            | 8,906           | 55K           | 3,518              | 27K               |
-| Yue Chinese       | 186             | 3.7K          | 128                | 2.2K              |
-
+All the data is distributed by language, both the original and the deduplicated versions of the data are available. 166 different languages are available. The table in subsection [Data Splits Sample Size](#data-splits-sample-size) provides the language code for each subcorpus as well as the number of words (space separated tokens), lines and sizes for both the original and the deduplicated versions of OSCAR.
 
 ## [Dataset Structure](#dataset-structure)
 
@@ -5657,340 +5484,176 @@ The data fields are the same among all configs.
 <details>
   <summary>Click to expand the number of samples per configuration</summary>
 
-| name                        |     train |
-| --------------------------- | --------: |
-| unshuffled_deduplicated_af  |    201117 |
-| unshuffled_deduplicated_als |      7324 |
-| unshuffled_deduplicated_am  |     83663 |
-| unshuffled_deduplicated_an  |      2449 |
-| unshuffled_deduplicated_ar  |  16365590 |
-| unshuffled_deduplicated_arz |    158113 |
-| unshuffled_deduplicated_as  |     14985 |
-| unshuffled_deduplicated_ast |      6999 |
-| unshuffled_deduplicated_av  |       456 |
-| unshuffled_deduplicated_az  |    912330 |
-| unshuffled_deduplicated_azb |     15446 |
-| unshuffled_deduplicated_ba  |     42551 |
-| unshuffled_deduplicated_bar |         4 |
-| unshuffled_deduplicated_bcl |         1 |
-| unshuffled_deduplicated_be  |    585903 |
-| unshuffled_deduplicated_bg  |   5869683 |
-| unshuffled_deduplicated_bh  |       336 |
-| unshuffled_deduplicated_bn  |   1675514 |
-| unshuffled_deduplicated_bo  |     26795 |
-| unshuffled_deduplicated_bpy |      6046 |
-| unshuffled_deduplicated_br  |     37085 |
-| unshuffled_deduplicated_bs  |      2143 |
-| unshuffled_deduplicated_bxr |        42 |
-| unshuffled_deduplicated_ca  |   4390754 |
-| unshuffled_deduplicated_cbk |         1 |
-| unshuffled_deduplicated_ce  |      4042 |
-| unshuffled_deduplicated_ceb |     56248 |
-| unshuffled_deduplicated_ckb |    103639 |
-| unshuffled_deduplicated_cs  |  21001382 |
-| unshuffled_deduplicated_cv  |     20281 |
-| unshuffled_deduplicated_cy  |    157698 |
-| unshuffled_deduplicated_da  |   7663999 |
-| unshuffled_deduplicated_de  | 104913007 |
-| unshuffled_deduplicated_diq |         1 |
-| unshuffled_deduplicated_dsb |        65 |
-| unshuffled_deduplicated_dv  |     21018 |
-| unshuffled_deduplicated_el  |  10425591 |
-| unshuffled_deduplicated_eml |        84 |
-| unshuffled_deduplicated_en  | 455970823 |
-| unshuffled_deduplicated_eo  |    121166 |
-| unshuffled_deduplicated_es  |  88198940 |
-| unshuffled_deduplicated_et  |   2093620 |
-| unshuffled_deduplicated_eu  |    505548 |
-| unshuffled_deduplicated_fa  |  13704697 |
-| unshuffled_deduplicated_fi  |   8557449 |
-| unshuffled_deduplicated_fr  |  96742305 |
-| unshuffled_deduplicated_frr |         7 |
-| unshuffled_deduplicated_fy  |     33053 |
-| unshuffled_deduplicated_ga  |     83223 |
-| unshuffled_deduplicated_gd  |      5799 |
-| unshuffled_deduplicated_gl  |    544388 |
-| unshuffled_deduplicated_gn  |       106 |
-| unshuffled_deduplicated_gom |       640 |
-| unshuffled_deduplicated_gu  |    240691 |
-| unshuffled_deduplicated_he  |   3808394 |
-| unshuffled_deduplicated_hi  |   3264659 |
-| unshuffled_deduplicated_hr  |    582219 |
-| unshuffled_deduplicated_hsb |      7959 |
-| unshuffled_deduplicated_ht  |        13 |
-| unshuffled_deduplicated_hu  |  11197766 |
-| unshuffled_deduplicated_hy  |    659430 |
-| unshuffled_deduplicated_ia  |      1040 |
-| unshuffled_deduplicated_id  |  16236105 |
-| unshuffled_deduplicated_ie  |       101 |
-| unshuffled_deduplicated_ilo |      2638 |
-| unshuffled_deduplicated_io  |       694 |
-| unshuffled_deduplicated_is  |    625673 |
-| unshuffled_deduplicated_it  |  46981719 |
-| unshuffled_deduplicated_ja  |  62691967 |
-| unshuffled_deduplicated_jbo |       832 |
-| unshuffled_deduplicated_jv  |      1445 |
-| unshuffled_deduplicated_ka  |    563915 |
-| unshuffled_deduplicated_kk  |    524591 |
-| unshuffled_deduplicated_km  |    159363 |
-| unshuffled_deduplicated_kn  |    350363 |
-| unshuffled_deduplicated_ko  |   7344864 |
-| unshuffled_deduplicated_krc |      1581 |
-| unshuffled_deduplicated_ku  |     46535 |
-| unshuffled_deduplicated_kv  |      1549 |
-| unshuffled_deduplicated_kw  |       203 |
-| unshuffled_deduplicated_ky  |    146993 |
-| unshuffled_deduplicated_la  |     94588 |
-| unshuffled_deduplicated_lb  |     34807 |
-| unshuffled_deduplicated_lez |      1485 |
-| unshuffled_deduplicated_li  |       137 |
-| unshuffled_deduplicated_lmo |      1401 |
-| unshuffled_deduplicated_lo  |     52910 |
-| unshuffled_deduplicated_lrc |        88 |
-| unshuffled_deduplicated_lt  |   2977755 |
-| unshuffled_deduplicated_lv  |   1593820 |
-| unshuffled_deduplicated_mai |       123 |
-| unshuffled_deduplicated_mg  |     17957 |
-| unshuffled_deduplicated_mhr |      3212 |
-| unshuffled_deduplicated_min |       220 |
-| unshuffled_deduplicated_mk  |    437871 |
-| unshuffled_deduplicated_ml  |    603936 |
-| unshuffled_deduplicated_mn  |    395605 |
-| unshuffled_deduplicated_mr  |    326804 |
-| unshuffled_deduplicated_mrj |       757 |
-| unshuffled_deduplicated_ms  |    534016 |
-| unshuffled_deduplicated_mt  |     26598 |
-| unshuffled_deduplicated_mwl |         8 |
-| unshuffled_deduplicated_my  |    232329 |
-| unshuffled_deduplicated_myv |         6 |
-| unshuffled_deduplicated_mzn |      1055 |
-| unshuffled_deduplicated_nah |        61 |
-| unshuffled_deduplicated_nap |        73 |
-| unshuffled_deduplicated_nds |     18174 |
-| unshuffled_deduplicated_ne  |    299938 |
-| unshuffled_deduplicated_new |      4696 |
-| unshuffled_deduplicated_nl  |  34682128 |
-| unshuffled_deduplicated_nn  |    185884 |
-| unshuffled_deduplicated_no  |   5546197 |
-| unshuffled_deduplicated_oc  |     10709 |
-| unshuffled_deduplicated_or  |     59463 |
-| unshuffled_deduplicated_os  |      5213 |
-| unshuffled_deduplicated_pa  |    127467 |
-| unshuffled_deduplicated_pam |         3 |
-| unshuffled_deduplicated_pl  |  35440957 |
-| unshuffled_deduplicated_pms |      3225 |
-| unshuffled_deduplicated_pnb |      4599 |
-| unshuffled_deduplicated_ps  |     98216 |
-| unshuffled_deduplicated_pt  |  42114504 |
-| unshuffled_deduplicated_qu  |       452 |
-| unshuffled_deduplicated_rm  |        41 |
-| unshuffled_deduplicated_ro  |   9387263 |
-| unshuffled_deduplicated_ru  | 161823473 |
-| unshuffled_deduplicated_sa  |     14291 |
-| unshuffled_deduplicated_sah |     22301 |
-| unshuffled_deduplicated_scn |        21 |
-| unshuffled_deduplicated_sd  |     44280 |
-| unshuffled_deduplicated_sh  |     36700 |
-| unshuffled_deduplicated_si  |    203082 |
-| unshuffled_deduplicated_sk  |   5492193 |
-| unshuffled_deduplicated_sl  |   1746604 |
-| unshuffled_deduplicated_so  |       156 |
-| unshuffled_deduplicated_sq  |    672077 |
-| unshuffled_deduplicated_sr  |   1013619 |
-| unshuffled_deduplicated_su  |       805 |
-| unshuffled_deduplicated_sv  |  17395619 |
-| unshuffled_deduplicated_sw  |     41986 |
-| unshuffled_deduplicated_ta  |   1262993 |
-| unshuffled_deduplicated_te  |    475703 |
-| unshuffled_deduplicated_tg  |     89002 |
-| unshuffled_deduplicated_th  |   6064105 |
-| unshuffled_deduplicated_tk  |      6456 |
-| unshuffled_deduplicated_tl  |    458206 |
-| unshuffled_deduplicated_tr  |  18535232 |
-| unshuffled_deduplicated_tt  |    135923 |
-| unshuffled_deduplicated_tyv |        34 |
-| unshuffled_deduplicated_ug  |     22255 |
-| unshuffled_deduplicated_uk  |  12973344 |
-| unshuffled_deduplicated_ur  |    638596 |
-| unshuffled_deduplicated_uz  |     27537 |
-| unshuffled_deduplicated_vec |        73 |
-| unshuffled_deduplicated_vi  |  14897520 |
-| unshuffled_deduplicated_vo  |      3366 |
-| unshuffled_deduplicated_wa  |      1001 |
-| unshuffled_deduplicated_war |      9760 |
-| unshuffled_deduplicated_wuu |       214 |
-| unshuffled_deduplicated_xal |        39 |
-| unshuffled_deduplicated_xmf |      3783 |
-| unshuffled_deduplicated_yi  |     59364 |
-| unshuffled_deduplicated_yo  |       214 |
-| unshuffled_deduplicated_yue |        11 |
-| unshuffled_deduplicated_zh  |  60137577 |
-| unshuffled_original_af      |    201117 |
-| unshuffled_original_als     |      7324 |
-| unshuffled_original_am      |     83663 |
-| unshuffled_original_an      |      2449 |
-| unshuffled_original_ar      |  16365602 |
-| unshuffled_original_arz     |    158113 |
-| unshuffled_original_as      |     14985 |
-| unshuffled_original_ast     |      6999 |
-| unshuffled_original_av      |       456 |
-| unshuffled_original_az      |    912330 |
-| unshuffled_original_azb     |     15446 |
-| unshuffled_original_ba      |     42551 |
-| unshuffled_original_bar     |         4 |
-| unshuffled_original_bcl     |         1 |
-| unshuffled_original_be      |    586031 |
-| unshuffled_original_bg      |   5869686 |
-| unshuffled_original_bh      |       336 |
-| unshuffled_original_bn      |   1675515 |
-| unshuffled_original_bo      |     26795 |
-| unshuffled_original_bpy     |      6046 |
-| unshuffled_original_br      |     37085 |
-| unshuffled_original_bs      |      2143 |
-| unshuffled_original_bxr     |        42 |
-| unshuffled_original_ca      |   4390754 |
-| unshuffled_original_cbk     |         1 |
-| unshuffled_original_ce      |      4042 |
-| unshuffled_original_ceb     |     56248 |
-| unshuffled_original_ckb     |    103639 |
-| unshuffled_original_cs      |  21001388 |
-| unshuffled_original_cv      |     20281 |
-| unshuffled_original_cy      |    157698 |
-| unshuffled_original_da      |   7664010 |
-| unshuffled_original_de      | 104913504 |
-| unshuffled_original_diq     |         1 |
-| unshuffled_original_dsb     |        65 |
-| unshuffled_original_dv      |     21018 |
-| unshuffled_original_el      |  10425596 |
-| unshuffled_original_eml     |        84 |
-| unshuffled_original_en      | 455994980 |
-| unshuffled_original_eo      |    121171 |
-| unshuffled_original_es      |  88199221 |
-| unshuffled_original_et      |   2093621 |
-| unshuffled_original_eu      |    506883 |
-| unshuffled_original_fa      |  13704702 |
-| unshuffled_original_fi      |   8557453 |
-| unshuffled_original_fr      |  96742378 |
-| unshuffled_original_frr     |         7 |
-| unshuffled_original_fy      |     33053 |
-| unshuffled_original_ga      |     83223 |
-| unshuffled_original_gd      |      5799 |
-| unshuffled_original_gl      |    544388 |
-| unshuffled_original_gn      |       106 |
-| unshuffled_original_gom     |       640 |
-| unshuffled_original_gu      |    240691 |
-| unshuffled_original_he      |   3808397 |
-| unshuffled_original_hi      |   3264660 |
-| unshuffled_original_hr      |    582219 |
-| unshuffled_original_hsb     |      7959 |
-| unshuffled_original_ht      |        13 |
-| unshuffled_original_hu      |  11197780 |
-| unshuffled_original_hy      |    659430 |
-| unshuffled_original_ia      |      1040 |
-| unshuffled_original_id      |  16236463 |
-| unshuffled_original_ie      |       101 |
-| unshuffled_original_ilo     |      2638 |
-| unshuffled_original_io      |       694 |
-| unshuffled_original_is      |    625673 |
-| unshuffled_original_it      |  46981781 |
-| unshuffled_original_ja      |  62721527 |
-| unshuffled_original_jbo     |       832 |
-| unshuffled_original_jv      |      1445 |
-| unshuffled_original_ka      |    563916 |
-| unshuffled_original_kk      |    524591 |
-| unshuffled_original_km      |    159363 |
-| unshuffled_original_kn      |    350363 |
-| unshuffled_original_ko      |   7345075 |
-| unshuffled_original_krc     |      1581 |
-| unshuffled_original_ku      |     46535 |
-| unshuffled_original_kv      |      1549 |
-| unshuffled_original_kw      |       203 |
-| unshuffled_original_ky      |    146993 |
-| unshuffled_original_la      |     94588 |
-| unshuffled_original_lb      |     34807 |
-| unshuffled_original_lez     |      1485 |
-| unshuffled_original_li      |       137 |
-| unshuffled_original_lmo     |      1401 |
-| unshuffled_original_lo      |     52910 |
-| unshuffled_original_lrc     |        88 |
-| unshuffled_original_lt      |   2977757 |
-| unshuffled_original_lv      |   1593820 |
-| unshuffled_original_mai     |       123 |
-| unshuffled_original_mg      |     17957 |
-| unshuffled_original_mhr     |      3212 |
-| unshuffled_original_min     |       220 |
-| unshuffled_original_mk      |    437871 |
-| unshuffled_original_ml      |    603937 |
-| unshuffled_original_mn      |    395605 |
-| unshuffled_original_mr      |    326804 |
-| unshuffled_original_mrj     |       757 |
-| unshuffled_original_ms      |    534016 |
-| unshuffled_original_mt      |     26598 |
-| unshuffled_original_mwl     |         8 |
-| unshuffled_original_my      |    232329 |
-| unshuffled_original_myv     |         6 |
-| unshuffled_original_mzn     |      1055 |
-| unshuffled_original_nah     |        61 |
-| unshuffled_original_nap     |        73 |
-| unshuffled_original_nds     |     18174 |
-| unshuffled_original_ne      |    299938 |
-| unshuffled_original_new     |      4696 |
-| unshuffled_original_nl      |  34682142 |
-| unshuffled_original_nn      |    185884 |
-| unshuffled_original_no      |   5546211 |
-| unshuffled_original_oc      |     10709 |
-| unshuffled_original_or      |     59463 |
-| unshuffled_original_os      |      5213 |
-| unshuffled_original_pa      |    127467 |
-| unshuffled_original_pam     |         3 |
-| unshuffled_original_pl      |  35440972 |
-| unshuffled_original_pms     |      3225 |
-| unshuffled_original_pnb     |      4599 |
-| unshuffled_original_ps      |     98216 |
-| unshuffled_original_pt      |  42114520 |
-| unshuffled_original_qu      |       452 |
-| unshuffled_original_rm      |        41 |
-| unshuffled_original_ro      |   9387265 |
-| unshuffled_original_ru      | 161836003 |
-| unshuffled_original_sa      |     14291 |
-| unshuffled_original_sah     |     22301 |
-| unshuffled_original_scn     |        21 |
-| unshuffled_original_sd      |     44280 |
-| unshuffled_original_sh      |     36700 |
-| unshuffled_original_si      |    203082 |
-| unshuffled_original_sk      |   5492194 |
-| unshuffled_original_sl      |   1746604 |
-| unshuffled_original_so      |       156 |
-| unshuffled_original_sq      |    672077 |
-| unshuffled_original_sr      |   1013619 |
-| unshuffled_original_su      |       805 |
-| unshuffled_original_sv      |  17395625 |
-| unshuffled_original_sw      |     41986 |
-| unshuffled_original_ta      |   1263280 |
-| unshuffled_original_te      |    475703 |
-| unshuffled_original_tg      |     89002 |
-| unshuffled_original_th      |   6064129 |
-| unshuffled_original_tk      |      6456 |
-| unshuffled_original_tl      |    458206 |
-| unshuffled_original_tr      |  18535253 |
-| unshuffled_original_tt      |    135923 |
-| unshuffled_original_tyv     |        34 |
-| unshuffled_original_ug      |     22255 |
-| unshuffled_original_uk      |  12973467 |
-| unshuffled_original_ur      |    638596 |
-| unshuffled_original_uz      |     27537 |
-| unshuffled_original_vec     |        73 |
-| unshuffled_original_vi      |  14898250 |
-| unshuffled_original_vo      |      3366 |
-| unshuffled_original_wa      |      1001 |
-| unshuffled_original_war     |      9760 |
-| unshuffled_original_wuu     |       214 |
-| unshuffled_original_xal     |        39 |
-| unshuffled_original_xmf     |      3783 |
-| unshuffled_original_yi      |     59364 |
-| unshuffled_original_yo      |       214 |
-| unshuffled_original_yue     |        11 |
-| unshuffled_original_zh      |  60137667 |
+| Language          | Language code | Name original           | Train original | Words original  | Size original | Name deduplicated           | Train deduplicated | Words deduplicated | Size deduplicated |
+| ----------------- | ------------- | ----------------------- | -------------- | --------------- | ------------- | --------------------------- | ------------------ | ------------------ | ----------------- |
+| Afrikaans         | af            | unshuffled_original_af  | 201117         | 43,482,801      | 241M          | unshuffled_deduplicated_af  | 201117             | 29,533,437         | 163M              |
+| Albanian          | sq            | unshuffled_original_sq  | 672077         | 374,196,110     | 2.3G          | unshuffled_deduplicated_sq  | 672077             | 186,856,699        | 1.2G              |
+| Alemannic         | als           | unshuffled_original_als | 7324           | 841,750         | 5.0M          | unshuffled_deduplicated_als | 7324               | 459,001            | 2.8M              |
+| Amharic           | am            | unshuffled_original_am  | 83663          | 28,301,601      | 360M          | unshuffled_deduplicated_am  | 83663              | 16,086,628         | 206M              |
+| Arabic            | ar            | unshuffled_original_ar  | 16365602       | 8,117,162,828   | 82G           | unshuffled_deduplicated_ar  | 16365590           | 3,171,221,354      | 32G               |
+| Aragonese         | an            | unshuffled_original_an  | 2449           | 52,896          | 1.3M          | unshuffled_deduplicated_an  | 2449               | 45,669             | 801K              |
+| Armenian          | hy            | unshuffled_original_hy  | 659430         | 273,919,388     | 3.7G          | unshuffled_deduplicated_hy  | 659430             | 110,196,043        | 1.5G              |
+| Assamese          | as            | unshuffled_original_as  | 14985          | 6,956,663       | 113M          | unshuffled_deduplicated_as  | 14985              | 4,366,570          | 71M               |
+| Asturian          | ast           | unshuffled_original_ast | 6999           | 381,005         | 2.4M          | unshuffled_deduplicated_ast | 6999               | 325,237            | 2.0M              |
+| Avaric            | av            | unshuffled_original_av  | 456            | 24,720          | 409K          | unshuffled_deduplicated_av  | 456                | 19,478             | 324K              |
+| Azerbaijani       | az            | unshuffled_original_az  | 912330         | 322,641,710     | 2.8G          | unshuffled_deduplicated_az  | 912330             | 167,742,296        | 1.5G              |
+| Bashkir           | ba            | unshuffled_original_ba  | 42551          | 9,796,764       | 128M          | unshuffled_deduplicated_ba  | 42551              | 6,922,589          | 90M               |
+| Basque            | eu            | unshuffled_original_eu  | 506883         | 120,456,652     | 848M          | unshuffled_deduplicated_eu  | 505548             | 45,359,710         | 342M              |
+| Bavarian          | bar           | unshuffled_original_bar | 4              | 399             | 503           | unshuffled_deduplicated_bar | 4                  | 399                | 503               |
+| Belarusian        | be            | unshuffled_original_be  | 586031         | 144,579,630     | 1.8G          | unshuffled_deduplicated_be  | 585903             | 83,499,037         | 1.1G              |
+| Bengali           | bn            | unshuffled_original_bn  | 1675515        | 623,575,733     | 11G           | unshuffled_deduplicated_bn  | 1675514            | 363,766,143        | 5.8G              |
+| Bihari            | bh            | unshuffled_original_bh  | 336            | 8,848           | 110K          | unshuffled_deduplicated_bh  | 336                | 2,875              | 34K               |
+| Bishnupriya       | bpy           | unshuffled_original_bpy | 6046           | 198,286         | 4.1M          | unshuffled_deduplicated_bpy | 6046               | 96,940             | 1.7M              |
+| Bosnian           | bs            | unshuffled_original_bs  | 2143           | 106,448         | 447K          | unshuffled_deduplicated_bs  | 2143               | 20,485             | 116K              |
+| Breton            | br            | unshuffled_original_br  | 37085          | 5,013,241       | 29M           | unshuffled_deduplicated_br  | 37085              | 2,890,384          | 16M               |
+| Bulgarian         | bg            | unshuffled_original_bg  | 5869686        | 2,947,648,106   | 32G           | unshuffled_deduplicated_bg  | 5869683            | 1,268,114,977      | 14G               |
+| Burmese           | my            | unshuffled_original_my  | 232329         | 56,111,184      | 1.9G          | unshuffled_deduplicated_my  | 232329             | 30,102,173         | 1.1G              |
+| Catalan           | ca            | unshuffled_original_ca  | 4390754        | 1,360,212,450   | 8.0G          | unshuffled_deduplicated_ca  | 4390754            | 729,333,440        | 4.3G              |
+| Cebuano           | ceb           | unshuffled_original_ceb | 56248          | 6,603,567       | 39M           | unshuffled_deduplicated_ceb | 56248              | 3,675,024          | 24M               |
+| Central Bikol     | bcl           | unshuffled_original_bcl | 1              | 312             | 885           | unshuffled_deduplicated_bcl | 1                  | 312                | 885               |
+| Central Khmer     | km            | unshuffled_original_km  | 159363         | 20,690,610      | 1.1G          | unshuffled_deduplicated_km  | 159363             | 10,082,245         | 581M              |
+| Central Kurdish   | ckb           | unshuffled_original_ckb | 103639         | 48,478,334      | 487M          | unshuffled_deduplicated_ckb | 103639             | 18,726,721         | 226M              |
+| Chavacano         | cbk           | unshuffled_original_cbk | 1              | 130             | 520           | unshuffled_deduplicated_cbk | 1                  | 130                | 520               |
+| Chechen           | ce            | unshuffled_original_ce  | 4042           | 711,051         | 8.3M          | unshuffled_deduplicated_ce  | 4042               | 568,146            | 6.7M              |
+| Chinese           | zh            | unshuffled_original_zh  | 60137667       | 14,986,424,850  | 508G          | unshuffled_deduplicated_zh  | 60137577           | 6,350,215,113      | 249G              |
+| Chuvash           | cv            | unshuffled_original_cv  | 20281          | 3,041,614       | 39M           | unshuffled_deduplicated_cv  | 20281              | 2,054,810          | 26M               |
+| Cornish           | kw            | unshuffled_original_kw  | 203            | 8,329           | 44K           | unshuffled_deduplicated_kw  | 203                | 2,704              | 14K               |
+| Croatian          | hr            | unshuffled_original_hr  | 582219         | 34,232,765      | 226M          | unshuffled_deduplicated_hr  | 582219             | 16,727,640         | 110M              |
+| Czech             | cs            | unshuffled_original_cs  | 21001388       | 7,715,977,441   | 53G           | unshuffled_deduplicated_cs  | 21001382           | 3,540,997,509      | 24G               |
+| Danish            | da            | unshuffled_original_da  | 7664010        | 2,637,463,889   | 16G           | unshuffled_deduplicated_da  | 7663999            | 1,620,091,317      | 9.5G              |
+| Dhivehi           | dv            | unshuffled_original_dv  | 21018          | 7,559,472       | 126M          | unshuffled_deduplicated_dv  | 21018              | 4,726,660          | 79M               |
+| Dimli             | diq           | unshuffled_original_diq | 1              | 19              | 146           | unshuffled_deduplicated_diq | 1                  | 19                 | 146               |
+| Dutch             | nl            | unshuffled_original_nl  | 34682142       | 13,020,136,373  | 78G           | unshuffled_deduplicated_nl  | 34682128           | 6,598,786,137      | 39G               |
+| Eastern Mari      | mhr           | unshuffled_original_mhr | 3212           | 565,992         | 7.2M          | unshuffled_deduplicated_mhr | 3212               | 469,297            | 6.0M              |
+| Egyptian Arabic   | arz           | unshuffled_original_arz | 158113         | 7,305,151       | 66M           | unshuffled_deduplicated_arz | 158113             | 3,659,419          | 33M               |
+| Emilian-Romagnol  | eml           | unshuffled_original_eml | 84             | 6,376           | 25K           | unshuffled_deduplicated_eml | 84                 | 6,121              | 24K               |
+| English           | en            | unshuffled_original_en  | 455994980      | 418,187,793,408 | 2.3T          | unshuffled_deduplicated_en  | 455970823          | 215,841,256,971    | 1.2T              |
+| Erzya             | myv           | unshuffled_original_myv | 6              | 90              | 1.4K          | unshuffled_deduplicated_myv | 6                  | 78                 | 1.2K              |
+| Esperanto         | eo            | unshuffled_original_eo  | 121171         | 48,486,161      | 299M          | unshuffled_deduplicated_eo  | 121166             | 37,324,446         | 228M              |
+| Estonian          | et            | unshuffled_original_et  | 2093621        | 643,163,730     | 4.8G          | unshuffled_deduplicated_et  | 2093620            | 309,931,463        | 2.3G              |
+| Finnish           | fi            | unshuffled_original_fi  | 8557453        | 3,196,666,419   | 27G           | unshuffled_deduplicated_fi  | 8557449            | 1,597,855,468      | 13G               |
+| French            | fr            | unshuffled_original_fr  | 96742378       | 46,896,036,417  | 282G          | unshuffled_deduplicated_fr  | 96742305           | 23,206,776,649     | 138G              |
+| Galician          | gl            | unshuffled_original_gl  | 544388         | 102,011,291     | 620M          | unshuffled_deduplicated_gl  | 544388             | 63,600,602         | 384M              |
+| Georgian          | ka            | unshuffled_original_ka  | 563916         | 171,950,621     | 3.6G          | unshuffled_deduplicated_ka  | 563915             | 91,569,739         | 1.9G              |
+| German            | de            | unshuffled_original_de  | 104913504      | 44,878,908,446  | 308G          | unshuffled_deduplicated_de  | 104913007          | 21,529,164,172     | 145G              |
+| Goan Konkani      | gom           | unshuffled_original_gom | 640            | 124,277         | 2.2M          | unshuffled_deduplicated_gom | 640                | 102,306            | 1.8M              |
+| Guarani           | gn            | unshuffled_original_gn  | 106            | 7,382           | 36K           | unshuffled_deduplicated_gn  | 106                | 4,680              | 24K               |
+| Gujarati          | gu            | unshuffled_original_gu  | 240691         | 72,045,701      | 1.1G          | unshuffled_deduplicated_gu  | 240691             | 50,023,432         | 722M              |
+| Haitian           | ht            | unshuffled_original_ht  | 13             | 1,014           | 3.9K          | unshuffled_deduplicated_ht  | 13                 | 832                | 3.3K              |
+| Hebrew            | he            | unshuffled_original_he  | 3808397        | 2,067,753,528   | 20G           | unshuffled_deduplicated_he  | 3808394            | 1,032,018,056      | 9.8G              |
+| Hindi             | hi            | unshuffled_original_hi  | 3264660        | 1,372,234,782   | 17G           | unshuffled_deduplicated_hi  | 3264659            | 745,774,934        | 8.9G              |
+| Hungarian         | hu            | unshuffled_original_hu  | 11197780       | 5,163,936,345   | 40G           | unshuffled_deduplicated_hu  | 11197766           | 2,339,127,555      | 18G               |
+| Icelandic         | is            | unshuffled_original_is  | 625673         | 219,900,094     | 1.5G          | unshuffled_deduplicated_is  | 625673             | 129,818,331        | 846M              |
+| Ido               | io            | unshuffled_original_io  | 694            | 25,702          | 147K          | unshuffled_deduplicated_io  | 694                | 22,773             | 130K              |
+| Iloko             | ilo           | unshuffled_original_ilo | 2638           | 142,942         | 874K          | unshuffled_deduplicated_ilo | 2638               | 105,564            | 636K              |
+| Indonesian        | id            | unshuffled_original_id  | 16236463       | 4,574,692,265   | 30G           | unshuffled_deduplicated_id  | 16236105           | 2,394,957,629      | 16G               |
+| Interlingua       | ia            | unshuffled_original_ia  | 1040           | 180,231         | 662K          | unshuffled_deduplicated_ia  | 1040               | 100,019            | 360K              |
+| Interlingue       | ie            | unshuffled_original_ie  | 101            | 5,352           | 24K           | unshuffled_deduplicated_ie  | 101                | 602                | 1.6K              |
+| Irish             | ga            | unshuffled_original_ga  | 83223          | 14,483,593      | 88M           | unshuffled_deduplicated_ga  | 83223              | 10,017,303         | 60M               |
+| Italian           | it            | unshuffled_original_it  | 46981781       | 22,248,707,341  | 137G          | unshuffled_deduplicated_it  | 46981719           | 11,250,012,896     | 69G               |
+| Japanese          | ja            | unshuffled_original_ja  | 62721527       | 4,962,979,182   | 216G          | unshuffled_deduplicated_ja  | 62691967           | 1,123,067,063      | 106G              |
+| Javanese          | jv            | unshuffled_original_jv  | 1445           | 104,896         | 659K          | unshuffled_deduplicated_jv  | 1445               | 86,654             | 583K              |
+| Kalmyk            | xal           | unshuffled_original_xal | 39             | 10,277          | 113K          | unshuffled_deduplicated_xal | 39                 | 10,155             | 112K              |
+| Kannada           | kn            | unshuffled_original_kn  | 350363         | 81,186,863      | 1.7G          | unshuffled_deduplicated_kn  | 350363             | 49,343,462         | 1.1G              |
+| Karachay-Balkar   | krc           | unshuffled_original_krc | 1581           | 185,436         | 2.6M          | unshuffled_deduplicated_krc | 1581               | 166,496            | 2.3M              |
+| Kazakh            | kk            | unshuffled_original_kk  | 524591         | 191,126,469     | 2.7G          | unshuffled_deduplicated_kk  | 524591             | 108,388,743        | 1.5G              |
+| Kirghiz           | ky            | unshuffled_original_ky  | 146993         | 44,194,823      | 600M          | unshuffled_deduplicated_ky  | 146993             | 28,982,620         | 388M              |
+| Komi              | kv            | unshuffled_original_kv  | 1549           | 201,404         | 2.3M          | unshuffled_deduplicated_kv  | 1549               | 95,243             | 1.2M              |
+| Korean            | ko            | unshuffled_original_ko  | 7345075        | 2,368,765,142   | 24G           | unshuffled_deduplicated_ko  | 7344864            | 1,120,375,149      | 12G               |
+| Kurdish           | ku            | unshuffled_original_ku  | 46535          | 15,561,003      | 94M           | unshuffled_deduplicated_ku  | 46535              | 9,946,440          | 60M               |
+| Lao               | lo            | unshuffled_original_lo  | 52910          | 4,133,311       | 174M          | unshuffled_deduplicated_lo  | 52910              | 2,583,342          | 114M              |
+| Latin             | la            | unshuffled_original_la  | 94588          | 4,122,201       | 26M           | unshuffled_deduplicated_la  | 94588              | 1,328,038          | 8.3M              |
+| Latvian           | lv            | unshuffled_original_lv  | 1593820        | 520,761,977     | 4.0G          | unshuffled_deduplicated_lv  | 1593820            | 236,428,905        | 1.8G              |
+| Lezghian          | lez           | unshuffled_original_lez | 1485           | 247,646         | 3.3M          | unshuffled_deduplicated_lez | 1485               | 224,871            | 3.0M              |
+| Limburgan         | li            | unshuffled_original_li  | 137            | 4,730           | 29K           | unshuffled_deduplicated_li  | 137                | 4,283              | 27K               |
+| Lithuanian        | lt            | unshuffled_original_lt  | 2977757        | 1,159,661,742   | 8.8G          | unshuffled_deduplicated_lt  | 2977755            | 516,183,525        | 3.9G              |
+| Lojban            | jbo           | unshuffled_original_jbo | 832            | 154,330         | 736K          | unshuffled_deduplicated_jbo | 832                | 141,973            | 678K              |
+| Lombard           | lmo           | unshuffled_original_lmo | 1401           | 75,229          | 443K          | unshuffled_deduplicated_lmo | 1401               | 73,665             | 433K              |
+| Low German        | nds           | unshuffled_original_nds | 18174          | 2,906,347       | 18M           | unshuffled_deduplicated_nds | 18174              | 2,146,417          | 13M               |
+| Lower Sorbian     | dsb           | unshuffled_original_dsb | 65             | 1,787           | 13K           | unshuffled_deduplicated_dsb | 65                 | 966                | 7.1K              |
+| Luxembourgish     | lb            | unshuffled_original_lb  | 34807          | 4,403,577       | 29M           | unshuffled_deduplicated_lb  | 34807              | 3,087,650          | 21M               |
+| Macedonian        | mk            | unshuffled_original_mk  | 437871         | 189,289,873     | 2.1G          | unshuffled_deduplicated_mk  | 437871             | 102,849,595        | 1.2G              |
+| Maithili          | mai           | unshuffled_original_mai | 123            | 69,161          | 317K          | unshuffled_deduplicated_mai | 123                | 874                | 11K               |
+| Malagasy          | mg            | unshuffled_original_mg  | 17957          | 3,068,360       | 21M           | unshuffled_deduplicated_mg  | 17957              | 1,872,044          | 13M               |
+| Malay             | ms            | unshuffled_original_ms  | 534016         | 16,696,882      | 111M          | unshuffled_deduplicated_ms  | 534016             | 6,045,753          | 42M               |
+| Malayalam         | ml            | unshuffled_original_ml  | 603937         | 189,534,472     | 4.9G          | unshuffled_deduplicated_ml  | 603936             | 95,892,551         | 2.5G              |
+| Maltese           | mt            | unshuffled_original_mt  | 26598          | 2,995,654       | 24M           | unshuffled_deduplicated_mt  | 26598              | 2,163,358          | 17M               |
+| Marathi           | mr            | unshuffled_original_mr  | 326804         | 162,609,404     | 2.7G          | unshuffled_deduplicated_mr  | 326804             | 82,130,803         | 1.4G              |
+| Mazanderani       | mzn           | unshuffled_original_mzn | 1055           | 73,870          | 691K          | unshuffled_deduplicated_mzn | 1055               | 64,481             | 602K              |
+| Minangkabau       | min           | unshuffled_original_min | 220            | 5,682           | 608K          | unshuffled_deduplicated_min | 220                | 4,825              | 310K              |
+| Mingrelian        | xmf           | unshuffled_original_xmf | 3783           | 299,098         | 5.8M          | unshuffled_deduplicated_xmf | 3783               | 228,629            | 4.4M              |
+| Mirandese         | mwl           | unshuffled_original_mwl | 8              | 171             | 1.2K          | unshuffled_deduplicated_mwl | 8                  | 152                | 1.1K              |
+| Modern Greek      | el            | unshuffled_original_el  | 10425596       | 5,479,180,137   | 62G           | unshuffled_deduplicated_el  | 10425591           | 2,412,419,435      | 27G               |
+| Mongolian         | mn            | unshuffled_original_mn  | 395605         | 181,307,167     | 2.2G          | unshuffled_deduplicated_mn  | 395605             | 68,362,013         | 838M              |
+| Nahuatl languages | nah           | unshuffled_original_nah | 61             | 1,234           | 12K           | unshuffled_deduplicated_nah | 61                 | 1,193              | 11K               |
+| Neapolitan        | nap           | unshuffled_original_nap | 73             | 5,282           | 17K           | unshuffled_deduplicated_nap | 73                 | 4,147              | 13K               |
+| Nepali            | ne            | unshuffled_original_ne  | 299938         | 107,448,208     | 1.8G          | unshuffled_deduplicated_ne  | 299938             | 71,628,317         | 1.2G              |
+| Newari            | new           | unshuffled_original_new | 4696           | 564,697         | 5.5M          | unshuffled_deduplicated_new | 4696               | 288,995            | 4.1M              |
+| Northern Frisian  | frr           | unshuffled_original_frr | 7              | 1,516           | 4.4K          | unshuffled_deduplicated_frr | 7                  | 1,516              | 4.4K              |
+| Northern Luri     | lrc           | unshuffled_original_lrc | 88             | 8,022           | 76K           | unshuffled_deduplicated_lrc | 88                 | 6,740              | 63K               |
+| Norwegian         | no            | unshuffled_original_no  | 5546211        | 1,344,326,388   | 8.0G          | unshuffled_deduplicated_no  | 5546197            | 804,894,377        | 4.7G              |
+| Norwegian Nynorsk | nn            | unshuffled_original_nn  | 185884         | 14,764,980      | 85M           | unshuffled_deduplicated_nn  | 185884             | 9,435,139          | 54M               |
+| Occitan           | oc            | unshuffled_original_oc  | 10709          | 750,301         | 5.8M          | unshuffled_deduplicated_oc  | 10709              | 512,678            | 3.7M              |
+| Oriya             | or            | unshuffled_original_or  | 59463          | 14,938,567      | 248M          | unshuffled_deduplicated_or  | 59463              | 11,321,740         | 188M              |
+| Ossetian          | os            | unshuffled_original_os  | 5213           | 1,031,268       | 13M           | unshuffled_deduplicated_os  | 5213               | 878,765            | 11M               |
+| Pampanga          | pam           | unshuffled_original_pam | 3              | 130             | 760           | unshuffled_deduplicated_pam | 3                  | 52                 | 304               |
+| Panjabi           | pa            | unshuffled_original_pa  | 127467         | 61,847,806      | 763M          | unshuffled_deduplicated_pa  | 127467             | 37,555,835         | 460M              |
+| Persian           | fa            | unshuffled_original_fa  | 13704702       | 9,096,554,121   | 79G           | unshuffled_deduplicated_fa  | 13704697           | 4,363,505,319      | 38G               |
+| Piemontese        | pms           | unshuffled_original_pms | 3225           | 362,013         | 2.1M          | unshuffled_deduplicated_pms | 3225               | 337,246            | 1.9M              |
+| Polish            | pl            | unshuffled_original_pl  | 35440972       | 15,277,255,137  | 109G          | unshuffled_deduplicated_pl  | 35440957           | 6,708,709,674      | 47G               |
+| Portuguese        | pt            | unshuffled_original_pt  | 42114520       | 20,641,903,898  | 124G          | unshuffled_deduplicated_pt  | 42114504           | 10,751,156,918     | 64G               |
+| Pushto            | ps            | unshuffled_original_ps  | 98216          | 46,559,441      | 361M          | unshuffled_deduplicated_ps  | 98216              | 31,347,348         | 242M              |
+| Quechua           | qu            | unshuffled_original_qu  | 452            | 10,186          | 78K           | unshuffled_deduplicated_qu  | 452                | 8,691              | 67K               |
+| Romanian          | ro            | unshuffled_original_ro  | 9387265        | 3,984,317,058   | 25G           | unshuffled_deduplicated_ro  | 9387263            | 1,741,794,069      | 11G               |
+| Romansh           | rm            | unshuffled_original_rm  | 41             | 1,093           | 7.4K          | unshuffled_deduplicated_rm  | 41                 | 960                | 6.5K              |
+| Russia Buriat     | bxr           | unshuffled_original_bxr | 42             | 963             | 13K           | unshuffled_deduplicated_bxr | 42                 | 809                | 11K               |
+| Russian           | ru            | unshuffled_original_ru  | 161836003      | 92,522,407,837  | 1.2T          | unshuffled_deduplicated_ru  | 161823473          | 46,692,691,520     | 568G              |
+| Sanskrit          | sa            | unshuffled_original_sa  | 14291          | 4,331,569       | 93M           | unshuffled_deduplicated_sa  | 14291              | 1,713,930          | 37M               |
+| Scottish Gaelic   | gd            | unshuffled_original_gd  | 5799           | 310,689         | 1.9M          | unshuffled_deduplicated_gd  | 5799               | 207,110            | 1.3M              |
+| Serbian           | sr            | unshuffled_original_sr  | 1013619        | 364,395,411     | 3.9G          | unshuffled_deduplicated_sr  | 1013619            | 207,561,168        | 2.2G              |
+| Serbo-Croatian    | sh            | unshuffled_original_sh  | 36700          | 5,292,184       | 25M           | unshuffled_deduplicated_sh  | 36700              | 1,040,573          | 5.8M              |
+| Sicilian          | scn           | unshuffled_original_scn | 21             | 554             | 3.3K          | unshuffled_deduplicated_scn | 21                 | 468                | 2.8K              |
+| Sindhi            | sd            | unshuffled_original_sd  | 44280          | 43,530,158      | 347M          | unshuffled_deduplicated_sd  | 44280              | 33,028,015         | 263M              |
+| Sinhala           | si            | unshuffled_original_si  | 203082         | 93,053,465      | 1.4G          | unshuffled_deduplicated_si  | 203082             | 50,864,857         | 802M              |
+| Slovak            | sk            | unshuffled_original_sk  | 5492194        | 1,322,247,763   | 9.1G          | unshuffled_deduplicated_sk  | 5492193            | 656,346,179        | 4.5G              |
+| Slovenian         | sl            | unshuffled_original_sl  | 1746604        | 387,399,700     | 2.5G          | unshuffled_deduplicated_sl  | 1746604            | 193,926,684        | 1.3G              |
+| Somali            | so            | unshuffled_original_so  | 156            | 1,202           | 61K           | unshuffled_deduplicated_so  | 156                | 472                | 16K               |
+| South Azerbaijani | azb           | unshuffled_original_azb | 15446          | 2,175,054       | 27M           | unshuffled_deduplicated_azb | 15446              | 1,528,709          | 19M               |
+| Spanish           | es            | unshuffled_original_es  | 88199221       | 47,545,122,279  | 278G          | unshuffled_deduplicated_es  | 88198940           | 25,928,290,729     | 149G              |
+| Sundanese         | su            | unshuffled_original_su  | 805            | 30,321          | 211K          | unshuffled_deduplicated_su  | 805                | 20,278             | 141K              |
+| Swahili           | sw            | unshuffled_original_sw  | 41986          | 2,211,927       | 13M           | unshuffled_deduplicated_sw  | 41986              | 1,376,963          | 8.1M              |
+| Swedish           | sv            | unshuffled_original_sv  | 17395625       | 7,155,994,312   | 44G           | unshuffled_deduplicated_sv  | 17395619           | 4,106,120,608      | 25G               |
+| Tagalog           | tl            | unshuffled_original_tl  | 458206         | 98,949,299      | 573M          | unshuffled_deduplicated_tl  | 458206             | 70,121,601         | 407M              |
+| Tajik             | tg            | unshuffled_original_tg  | 89002          | 31,758,142      | 379M          | unshuffled_deduplicated_tg  | 89002              | 21,029,893         | 249M              |
+| Tamil             | ta            | unshuffled_original_ta  | 1263280        | 420,537,132     | 9.3G          | unshuffled_deduplicated_ta  | 1262993            | 226,013,330        | 5.1G              |
+| Tatar             | tt            | unshuffled_original_tt  | 135923         | 51,034,893      | 670M          | unshuffled_deduplicated_tt  | 135923             | 23,825,695         | 305M              |
+| Telugu            | te            | unshuffled_original_te  | 475703         | 123,711,517     | 2.5G          | unshuffled_deduplicated_te  | 475703             | 79,094,167         | 1.6G              |
+| Thai              | th            | unshuffled_original_th  | 6064129        | 951,743,087     | 36G           | unshuffled_deduplicated_th  | 6064105            | 368,965,202        | 16G               |
+| Tibetan           | bo            | unshuffled_original_bo  | 26795          | 1,483,589       | 187M          | unshuffled_deduplicated_bo  | 26795              | 936,556            | 138M              |
+| Turkish           | tr            | unshuffled_original_tr  | 18535253       | 7,577,388,700   | 60G           | unshuffled_deduplicated_tr  | 18535232           | 3,365,734,289      | 27G               |
+| Turkmen           | tk            | unshuffled_original_tk  | 6456           | 1,113,869       | 11M           | unshuffled_deduplicated_tk  | 6456               | 752,326            | 6.8M              |
+| Tuvinian          | tyv           | unshuffled_original_tyv | 34             | 759             | 12K           | unshuffled_deduplicated_tyv | 34                 | 540                | 7.9K              |
+| Uighur            | ug            | unshuffled_original_ug  | 22255          | 8,657,141       | 122M          | unshuffled_deduplicated_ug  | 22255              | 5,852,225          | 83M               |
+| Ukrainian         | uk            | unshuffled_original_uk  | 12973467       | 4,204,381,276   | 53G           | unshuffled_deduplicated_uk  | 12973344           | 2,252,380,351      | 28G               |
+| Upper Sorbian     | hsb           | unshuffled_original_hsb | 7959           | 545,351         | 4.2M          | unshuffled_deduplicated_hsb | 7959               | 236,867            | 1.8M              |
+| Urdu              | ur            | unshuffled_original_ur  | 638596         | 331,817,982     | 2.7G          | unshuffled_deduplicated_ur  | 638596             | 218,030,228        | 1.7G              |
+| Uzbek             | uz            | unshuffled_original_uz  | 27537          | 2,450,256       | 21M           | unshuffled_deduplicated_uz  | 27537              | 1,381,644          | 12M               |
+| Venetian          | vec           | unshuffled_original_vec | 73             | 3,492           | 18K           | unshuffled_deduplicated_vec | 73                 | 3,199              | 17K               |
+| Vietnamese        | vi            | unshuffled_original_vi  | 14898250       | 12,036,845,359  | 68G           | unshuffled_deduplicated_vi  | 14897520           | 5,577,159,843      | 32G               |
+| Volapük           | vo            | unshuffled_original_vo  | 3366           | 321,121         | 2.0M          | unshuffled_deduplicated_vo  | 3366               | 318,568            | 2.0M              |
+| Walloon           | wa            | unshuffled_original_wa  | 1001           | 50,720          | 273K          | unshuffled_deduplicated_wa  | 1001               | 37,543             | 203K              |
+| Waray             | war           | unshuffled_original_war | 9760           | 397,315         | 2.5M          | unshuffled_deduplicated_war | 9760               | 336,311            | 2.2M              |
+| Welsh             | cy            | unshuffled_original_cy  | 157698         | 37,422,441      | 213M          | unshuffled_deduplicated_cy  | 157698             | 23,574,673         | 133M              |
+| Western Frisian   | fy            | unshuffled_original_fy  | 33053          | 5,691,077       | 35M           | unshuffled_deduplicated_fy  | 33053              | 4,223,816          | 26M               |
+| Western Mari      | mrj           | unshuffled_original_mrj | 757            | 93,338          | 1.2M          | unshuffled_deduplicated_mrj | 757                | 87,780             | 1.1M              |
+| Western Panjabi   | pnb           | unshuffled_original_pnb | 4599           | 1,426,986       | 12M           | unshuffled_deduplicated_pnb | 4599               | 1,111,112          | 9.0M              |
+| Wu Chinese        | wuu           | unshuffled_original_wuu | 214            | 11,189          | 109K          | unshuffled_deduplicated_wuu | 214                | 4,333              | 32K               |
+| Yakut             | sah           | unshuffled_original_sah | 22301          | 2,547,623       | 42M           | unshuffled_deduplicated_sah | 22301              | 1,789,174          | 26M               |
+| Yiddish           | yi            | unshuffled_original_yi  | 59364          | 13,834,320      | 141M          | unshuffled_deduplicated_yi  | 59364              | 8,212,970          | 84M               |
+| Yoruba            | yo            | unshuffled_original_yo  | 214            | 8,906           | 55K           | unshuffled_deduplicated_yo  | 214                | 3,518              | 27K               |
+| Yue Chinese       | yue           | unshuffled_original_yue | 11             | 186             | 3.7K          | unshuffled_deduplicated_yue | 11                 | 128                | 2.2K              |
+
+
 
 </details>
 
@@ -6038,7 +5701,7 @@ The [fastText linear classifier](https://fasttext.cc) is limed both in performan
 
 ### [Dataset Curators](#dataset-curators)
 
-The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît Sagot](http://pauillac.inria.fr/~sagot/), and [Laurent Romary](https://cv.archives-ouvertes.fr/laurentromary), during work done at [Inria](https://www.inria.fr/en), particularly at [ALMAnaCH team](https://team.inria.fr/almanach/).
+The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît Sagot](http://pauillac.inria.fr/~sagot/), and [Laurent Romary](https://cv.archives-ouvertes.fr/laurentromary), during work done at [Inria](https://www.inria.fr/en), particularly at the [ALMAnaCH team](https://team.inria.fr/almanach/).
 
 ### [Licensing Information](#licensing-information)
 
