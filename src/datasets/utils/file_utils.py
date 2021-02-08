@@ -36,14 +36,6 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-default_metrics_cache_path = os.path.join(config.HF_CACHE_HOME, "metrics")
-try:
-    from pathlib import Path
-
-    HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
-except (AttributeError, ImportError):
-    HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
-
 default_modules_cache_path = os.path.join(config.HF_CACHE_HOME, "modules")
 try:
     from pathlib import Path

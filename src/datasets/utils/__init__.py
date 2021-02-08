@@ -18,7 +18,7 @@
 """Util import."""
 
 from .download_manager import DownloadManager, GenerateMode
-from .file_utils import HF_METRICS_CACHE, DownloadConfig, cached_path, hf_bucket_url, is_remote_url, temp_seed
+from .file_utils import DownloadConfig, cached_path, hf_bucket_url, is_remote_url, temp_seed
 from .mock_download_manager import MockDownloadManager
 from .py_utils import *
 from .tqdm_utils import *

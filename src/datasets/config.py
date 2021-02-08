@@ -90,3 +90,13 @@ try:
 except (AttributeError, ImportError):
     # TODO: why os.getenv twice?
     HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
+
+
+DEFAULT_HF_METRICS_CACHE = os.path.join(HF_CACHE_HOME, "metrics")
+try:
+    from pathlib import Path
+
+    HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
+except (AttributeError, ImportError):
+    # TODO: why os.getenv twice?
+    HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
