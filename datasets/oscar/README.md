@@ -5466,6 +5466,10 @@ The data fields are the same among all configs.
 
 ### [Data Splits Sample Size](#data-splits-sample-size)
 
+
+<details>
+  <summary>Click to expand the number of samples per configuration</summary>
+
 | name                        |     train |
 | --------------------------- | --------: |
 | unshuffled_deduplicated_af  |    201117 |
