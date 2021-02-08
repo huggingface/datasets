@@ -20,6 +20,7 @@ from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
+from pathlib import Path
 from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
