@@ -5857,16 +5857,16 @@ The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît S
 
     These data are released under this licensing scheme
     We do not own any of the text from which these data has been extracted.
-    We license the actual packaging of these data under the Creative Commons CC0 license     ("no rights reserved") http://creativecommons.org/publicdomain/zero/1.0/
-    To the extent possible under law, Inria has waived all copyright     and related or neighboring rights to OSCAR
+    We license the actual packaging of these data under the Creative Commons CC0 license ("no rights reserved") http://creativecommons.org/publicdomain/zero/1.0/
+    To the extent possible under law, Inria has waived all copyright and related or neighboring rights to OSCAR
     This work is published from: France.
 
-    Should you consider that our data contains material that is owned by you     and should therefore not be reproduced here, please:
-    * Clearly identify yourself, with detailed contact data such as an address,     telephone number or email address at which you can be contacted.
+    Should you consider that our data contains material that is owned by you and should therefore not be reproduced here, please:
+    * Clearly identify yourself, with detailed contact data such as an address, telephone number or email address at which you can be contacted.
     * Clearly identify the copyrighted work claimed to be infringed.
-    * Clearly identify the material that is claimed to be infringing and     information reasonably sufficient to allow us to locate the material.
+    * Clearly identify the material that is claimed to be infringing and information reasonably sufficient to allow us to locate the material.
 
-    We will comply to legitimate requests by removing the affected sources     from the next release of the corpus.
+    We will comply to legitimate requests by removing the affected sources from the next release of the corpus.
 
 ### [Citation Information](#citation-information)
 
