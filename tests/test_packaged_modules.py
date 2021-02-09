@@ -35,11 +35,13 @@ def malformed_csv_file(tmp_path):
     return str(filename)
 
 
-def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, capsys):
+def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
     csv = Csv()
     generator = csv._generate_tables([csv_file, malformed_csv_file])
     with pytest.raises(ValueError, match="Error tokenizing data"):
         for _ in generator:
             pass
-    captured = capsys.readouterr()
-    assert f"Failed to read file '{malformed_csv_file}'" in captured.out
+    assert any(
+        record.levelname == "ERROR" and f"Failed to read file '{malformed_csv_file}'" in record.message
+        for record in caplog.records
+    )

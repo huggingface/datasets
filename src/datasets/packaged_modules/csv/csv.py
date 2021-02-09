@@ -135,6 +135,5 @@ class Csv(datasets.ArrowBasedBuilder):
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                     yield (file_idx, batch_idx), pa_table
             except ValueError as e:
-                # logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
-                print(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
+                logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
                 raise
