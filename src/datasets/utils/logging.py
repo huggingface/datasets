@@ -29,7 +29,7 @@ from typing import Optional
 
 
 _lock = threading.Lock()
-_default_handler: Optional[logging.Handler] = None
+_library_root_logger_configured = False
 
 log_levels = {
     "debug": logging.DEBUG,
@@ -71,33 +71,28 @@ def _get_library_root_logger() -> logging.Logger:
 
 def _configure_library_root_logger() -> None:
 
-    global _default_handler
+    global _library_root_logger_configured
 
     with _lock:
-        if _default_handler:
+        if _library_root_logger_configured:
             # This library has already configured the library root logger.
             return
-        _default_handler = logging.StreamHandler()  # Set sys.stderr as stream.
+        _library_root_logger_configured = True
 
         # Apply our default configuration to the library root logger.
         library_root_logger = _get_library_root_logger()
-        library_root_logger.addHandler(_default_handler)
         library_root_logger.setLevel(_get_default_logging_level())
-        library_root_logger.propagate = False
 
 
 def _reset_library_root_logger() -> None:
 
-    global _default_handler
+    global _library_root_logger_configured
 
     with _lock:
-        if not _default_handler:
-            return
 
         library_root_logger = _get_library_root_logger()
-        library_root_logger.removeHandler(_default_handler)
         library_root_logger.setLevel(logging.NOTSET)
-        _default_handler = None
+        _library_root_logger_configured = False
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
@@ -178,24 +173,6 @@ def set_verbosity_error():
     Shortcut to ``datasets.logging.set_verbosity(datasets.logging.ERROR)``
     """
     return set_verbosity(ERROR)
-
-
-def disable_default_handler() -> None:
-    """Disable the default handler of the HuggingFace datasets library's root logger."""
-
-    _configure_library_root_logger()
-
-    assert _default_handler is not None
-    _get_library_root_logger().removeHandler(_default_handler)
-
-
-def enable_default_handler() -> None:
-    """Enable the default handler of the HuggingFace datasets library's root logger."""
-
-    _configure_library_root_logger()
-
-    assert _default_handler is not None
-    _get_library_root_logger().addHandler(_default_handler)
 
 
 def disable_propagation() -> None:
