@@ -140,8 +140,6 @@ class Cord19(datasets.GeneratorBasedBuilder):
                 embeddings_dir_path, "cord_19_embeddings_" + CORD19_DATASET_DATE + ".csv"
             )
 
-        print("0000000000 {}".format(files))
-
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -213,5 +211,5 @@ class Cord19(datasets.GeneratorBasedBuilder):
 
                 yield i, doc_fields
 
-            if "embeddings" and fh is not None:
+            if "embeddings" in self.config.name and fh is not None:
                 fh.close()

@@ -85,7 +85,7 @@ The dataset is in english (en).
 ### Data Instances
 
 The following code block present an overview of a sample in json-like syntax (abbreviated since some fields are very long):
-```json
+```
 {
     "abstract": "OBJECTIVE: This retrospective chart review describes the epidemiology and clinical features of 40 patients with culture-proven Mycoplasma pneumoniae infections at King Abdulaziz University Hospital, Jeddah, Saudi Arabia. METHODS: Patients with positive M. pneumoniae cultures from respiratory specimens from January 1997 through December 1998 were identified through the Microbiology records. Charts of patients were reviewed. RESULTS: 40 patients were identified [...]", 
     "authors": "Madani, Tariq A; Al-Ghamdi, Aisha A", 
@@ -143,6 +143,15 @@ Extra fields based on selected configuration during loading:
 ### Data Splits
 
 No annotation provided in this dataset so all instances are provided in training split.
+
+The sizes of each configurations are:
+
+|          | Tain   |
+| -----    | ------ |
+| metadata | 368618  |
+| fulltest | 368618  |
+| embeddings | 368618  |
+
 
 ## Dataset Creation
 
