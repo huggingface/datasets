@@ -40,23 +40,24 @@ def test_download_manager_download(urls, tmp_path, monkeypatch):
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     downloaded_paths = dl_manager.download(urls)
-    if isinstance(urls, str):
-        downloaded_paths = [downloaded_paths]
-    elif isinstance(urls, dict):
-        assert "train" in downloaded_paths.keys()
-        downloaded_paths = downloaded_paths.values()
-    assert downloaded_paths
-    for downloaded_path in downloaded_paths:
-        downloaded_path = Path(downloaded_path)
-        parts = downloaded_path.parts
-        assert parts[-1] == HASH
-        assert parts[-2] == cache_subdir
-        assert downloaded_path.exists()
-        with open(downloaded_path, "r") as f:
-            content = f.read()
-        assert content == CONTENT
-        metadata_downloaded_path = downloaded_path.with_suffix(".json")
-        assert metadata_downloaded_path.exists()
-        with open(metadata_downloaded_path, "r") as f:
-            metadata_content = json.load(f)
-        assert metadata_content == {"url": URL, "etag": None}
+    for downloaded_paths in [downloaded_paths, dl_manager.downloaded_paths]:
+        if isinstance(urls, str):
+            downloaded_paths = [downloaded_paths]
+        elif isinstance(urls, dict):
+            assert "train" in downloaded_paths.keys()
+            downloaded_paths = downloaded_paths.values()
+        assert downloaded_paths
+        for downloaded_path in downloaded_paths:
+            downloaded_path = Path(downloaded_path)
+            parts = downloaded_path.parts
+            assert parts[-1] == HASH
+            assert parts[-2] == cache_subdir
+            assert downloaded_path.exists()
+            with open(downloaded_path, "r") as f:
+                content = f.read()
+            assert content == CONTENT
+            metadata_downloaded_path = downloaded_path.with_suffix(".json")
+            assert metadata_downloaded_path.exists()
+            with open(metadata_downloaded_path, "r") as f:
+                metadata_content = json.load(f)
+            assert metadata_content == {"url": URL, "etag": None}
