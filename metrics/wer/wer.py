@@ -14,7 +14,7 @@
 # limitations under the License.
 """ Word Error Ratio (WER) metric. """
 
-from jiwer import wer  # From: https://github.com/jitsi/jiwer
+from jiwer import wer
 
 import datasets
 
