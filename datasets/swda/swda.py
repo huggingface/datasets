@@ -483,7 +483,7 @@ class Swda(datasets.GeneratorBasedBuilder):
         # Generate examples.
         for i_trans, trans in enumerate(corpus.iter_transcripts()):
             for i_utt, utt in enumerate(trans.utterances):
-                id_ = i_trans + i_utt
+                id_ = str(i_trans) + ":" + str(i_utt)
                 yield id_, {feature: utt[feature] for feature in self.info.features.keys()}
 
 
