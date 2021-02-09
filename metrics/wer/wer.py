@@ -62,12 +62,14 @@ Returns:
 
 Examples:
 
-    >>> predictions = ["hello this is the prediction", "there is an other sample"]
-    >>> references = ["hello this is the reference", "there is another one"]
+    >>> from datasets import load_metric
+
+    >>> predictions = ["this is the prediction", "there is an other sample"]
+    >>> references = ["this is the reference", "there is another one"]
     >>> wer = datasets.load_metric("wer")
     >>> wer_score = wer.compute(predictions=predictions, references=references)
     >>> print(wer_score)
-    5/9 are correct => 0.44 WER
+    0.5
 """
 
 
