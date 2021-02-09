@@ -19,6 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+
 import datasets
 
 
@@ -115,7 +116,7 @@ class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
         phonetics = {}
         orthographics = {}
 
-        with open(phonetic_path, "r", encoding = "utf-8") as f:
+        with open(phonetic_path, "r", encoding="utf-8") as f:
             for line in f:
                 wav_file, phonetic = line.split('"')[1::2]
                 phonetics[wav_file] = phonetic
