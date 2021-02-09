@@ -124,7 +124,7 @@ TESTS_REQUIRE = [
     "tldextract",
     "zstandard",
     # metrics dependencies
-    "bert_score",
+    "bert_score>=0.3.6",
     "rouge_score",
     "sacrebleu",
     "scipy",
