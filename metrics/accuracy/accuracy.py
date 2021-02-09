@@ -37,6 +37,12 @@ Args:
     sample_weight: Sample weights.
 Returns:
     accuracy: Accuracy score.
+Examples:
+
+    >>> accuracy_metric = datasets.load_metric("accuracy")
+    >>> results = accuracy_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'accuracy': 1.0}
 """
 
 _CITATION = """\
@@ -54,6 +60,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Accuracy(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
