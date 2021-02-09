@@ -120,22 +120,18 @@ class Cord19(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(my_urls)
 
         files = dict()
-        files["metadata"] = os.path.join(data_dir, CORD19_DATASET_DATE + "/metadata.csv")
+        files["metadata"] = os.path.join(data_dir, CORD19_DATASET_DATE, "metadata.csv")
 
         if "fulltext" in self.config.name:
-            fulltext_dir_path = os.path.join(data_dir, CORD19_DATASET_DATE + "/document_parses")
-            if not os.path.isdir(fulltext_dir_path):
-                fulltext_dir_path = dl_manager.extract(
-                    os.path.join(data_dir, CORD19_DATASET_DATE + "/document_parses.tar.gz")
-                )
+            fulltext_dir_path = dl_manager.extract(
+                os.path.join(data_dir, CORD19_DATASET_DATE, "document_parses.tar.gz")
+            )
             files["fulltext"] = fulltext_dir_path
 
         if "embeddings" in self.config.name:
-            embeddings_dir_path = os.path.join(data_dir, CORD19_DATASET_DATE + "/cord_19_embeddings")
-            if not os.path.isdir(embeddings_dir_path):
-                embeddings_dir_path = dl_manager.extract(
-                    os.path.join(data_dir, CORD19_DATASET_DATE + "/cord_19_embeddings.tar.gz")
-                )
+            embeddings_dir_path = dl_manager.extract(
+                os.path.join(data_dir, CORD19_DATASET_DATE, "cord_19_embeddings.tar.gz")
+            )
             files["embeddings"] = os.path.join(
                 embeddings_dir_path, "cord_19_embeddings_" + CORD19_DATASET_DATE + ".csv"
             )
