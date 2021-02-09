@@ -86,6 +86,8 @@ class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
                 {
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
+                    "phonetic": datasets.Value("string"),
+                    "orthographic": datasets.Value("string"),
                 }
             ),
             supervised_keys=("file", "text"),
@@ -95,26 +97,47 @@ class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         archive_path = dl_manager.download_and_extract(_URL)
-        archive_path = os.path.join(archive_path, 'arabic-speech-corpus')
-        return [datasets.SplitGenerator(name="train", 
-                gen_kwargs={"archive_path": archive_path}),
-                datasets.SplitGenerator(name="test", 
-                gen_kwargs={"archive_path": os.path.join(archive_path,'test set')})]
+        archive_path = os.path.join(archive_path, "arabic-speech-corpus")
+        return [
+            datasets.SplitGenerator(name="train", gen_kwargs={"archive_path": archive_path}),
+            datasets.SplitGenerator(name="test", gen_kwargs={"archive_path": os.path.join(archive_path, "test set")}),
+        ]
 
     def _generate_examples(self, archive_path):
         """Generate examples from a Librispeech archive_path."""
-        lab_dir = os.path.join(archive_path, 'lab')
-        wav_dir = os.path.join(archive_path, 'wav')
+        lab_dir = os.path.join(archive_path, "lab")
+        wav_dir = os.path.join(archive_path, "wav")
+        if "test set" in archive_path:
+            phonetic_path = os.path.join(archive_path, "phonetic-transcript.txt")
+        else:
+            phonetic_path = os.path.join(archive_path, "phonetic-transcipt.txt")
+
+        orthographic_path = os.path.join(archive_path, "orthographic-transcript.txt")
+
+        phonetics = {}
+        orthographics = {}
+
+        with open(phonetic_path, "r") as f:
+            for line in f:
+                wav_file, phonetic = line.split('"')[1::2]
+                phonetics[wav_file] = phonetic
+
+        with open(orthographic_path, "r") as f:
+            for line in f:
+                wav_file, orthographic = line.split('"')[1::2]
+                orthographics[wav_file] = orthographic
 
         for _id, lab_name in enumerate(os.listdir(lab_dir)):
             lab_path = os.path.join(lab_dir, lab_name)
-            lab_text = open(lab_path, 'r').read()
+            lab_text = open(lab_path, "r").read()
 
-            wav_name = lab_name[:-4]+'.wav'
+            wav_name = lab_name[:-4] + ".wav"
             wav_path = os.path.join(wav_dir, wav_name)
 
             example = {
                 "file": wav_path,
                 "text": lab_text,
+                "phonetic": phonetics[wav_name],
+                "orthographic": orthographics[wav_name],
             }
             yield str(_id), example

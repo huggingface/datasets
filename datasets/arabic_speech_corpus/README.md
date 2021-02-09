@@ -75,9 +75,9 @@ A typical data point comprises the path to the audio file, usually called `file`
 ### Data Fields
 
 - file: A path to the downloaded audio file in .wav format.
-
 - text: the transcription of the audio file.
-
+- phonetic: the transcription in phonentics format. 
+- orthographic: the transcriptions written in orthographic format. 
 
 ### Data Splits
 
