@@ -2,7 +2,7 @@
 annotations_creators:
 - no-annotation
 language_creators:
-- expert-generated
+- found
 languages:
 - en
 licenses:
@@ -150,7 +150,7 @@ The sizes of each configurations are:
 |          | Tain   |
 | -----    | ------ |
 | metadata | 368618  |
-| fulltest | 368618  |
+| fulltext | 368618  |
 | embeddings | 368618  |
 
 
