@@ -46,6 +46,7 @@ from .utils.file_utils import (
     head_hf_s3,
     hf_bucket_url,
     hf_github_url,
+    hf_hub_url,
     init_hf_modules,
 )
 from .utils.filelock import FileLock
@@ -276,7 +277,10 @@ def prepare_module(
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
         except Exception:
             logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
-        return _PACKAGED_DATASETS_MODULES[path]
+        module_path, hash = _PACKAGED_DATASETS_MODULES[path]
+        if return_resolved_file_path:
+            return module_path, hash, None
+        return module_path, hash
 
     # otherwise the module is added to the dynamic modules
     dynamic_modules_path = (
@@ -340,8 +344,11 @@ def prepare_module(
                                     combined_path, github_file_path
                                 )
                             )
-            elif path.count("/") == 1:  # users datasets/metrics: s3 path
-                file_path = hf_bucket_url(path, filename=name, dataset=dataset)
+            elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
+                if dataset:
+                    file_path = hf_hub_url(path=path, name=name)
+                else:
+                    file_path = hf_bucket_url(path, filename=name, dataset=False)
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
@@ -693,7 +700,10 @@ def load_dataset(
         return_resolved_file_path=True,
     )
     # Set the base path for downloads as the parent of the script location
-    base_path = Path(resolved_file_path).parent.as_posix()
+    if resolved_file_path is not None:
+        base_path = Path(resolved_file_path).parent.as_posix()
+    else:
+        base_path = None
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)

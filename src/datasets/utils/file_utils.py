@@ -113,6 +113,9 @@ S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/da
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
 REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/datasets/{path}/{name}"
 
+HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
+HUB_DEFAULT_VERSION = "main"
+
 
 default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
 try:
@@ -272,6 +275,11 @@ def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = N
         return REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:
         return REPO_METRICS_URL.format(version=version, path=path, name=name)
+
+
+def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
+    version = version or HUB_DEFAULT_VERSION
+    return HUB_DATASETS_URL.format(path=path, name=name, version=version)
 
 
 def hash_url_to_filename(url, etag=None):
