@@ -20,6 +20,7 @@ import socket
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pyarrow as pa
 from tqdm.auto import tqdm
 
@@ -88,11 +89,15 @@ class TypedSequence:
         """This function is called when calling pa.array(typed_sequence)"""
         assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
         trying_type = False
-        if type is None and self.try_type:
+
+        if type is not None:  # user explicitly passed the feature
+            pass
+        elif isinstance(self.data, np.ndarray):  # maintain dtype of numpy array passed by user
+            type = pa.from_numpy_dtype(self.data.dtype)
+        else:
             type = self.try_type
             trying_type = True
-        else:
-            type = self.type
+
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
