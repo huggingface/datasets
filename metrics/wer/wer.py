@@ -62,8 +62,6 @@ Returns:
 
 Examples:
 
-    >>> from datasets import load_metric
-
     >>> predictions = ["this is the prediction", "there is an other sample"]
     >>> references = ["this is the reference", "there is another one"]
     >>> wer = datasets.load_metric("wer")
