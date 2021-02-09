@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from datasets.utils.download_manager import DownloadConfig, DownloadManager
+from datasets.utils.file_utils import hash_url_to_filename
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -53,11 +54,48 @@ def test_download_manager_download(urls, tmp_path, monkeypatch):
             assert parts[-1] == HASH
             assert parts[-2] == cache_subdir
             assert downloaded_path.exists()
-            with open(downloaded_path, "r") as f:
-                content = f.read()
+            content = downloaded_path.read_text()
             assert content == CONTENT
             metadata_downloaded_path = downloaded_path.with_suffix(".json")
             assert metadata_downloaded_path.exists()
-            with open(metadata_downloaded_path, "r") as f:
-                metadata_content = json.load(f)
+            metadata_content = json.loads(metadata_downloaded_path.read_text())
             assert metadata_content == {"url": URL, "etag": None}
+
+
+@pytest.mark.parametrize("paths_type", [str, list, dict])
+def test_download_manager_extract(paths_type, xz_file, text_file):
+    filename = str(xz_file)
+    if issubclass(paths_type, str):
+        paths = filename
+    elif issubclass(paths_type, list):
+        paths = [filename]
+    elif issubclass(paths_type, dict):
+        paths = {"train": filename}
+    dataset_name = "dummy"
+    cache_dir = xz_file.parent
+    extracted_subdir = "extracted"
+    download_config = DownloadConfig(
+        cache_dir=cache_dir,
+        use_etag=False,
+    )
+    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    extracted_paths = dl_manager.extract(paths)
+    input_paths = paths
+    for extracted_paths in [extracted_paths, dl_manager.extracted_paths]:
+        if isinstance(paths, str):
+            extracted_paths = [extracted_paths]
+            input_paths = [paths]
+        elif isinstance(paths, dict):
+            assert "train" in extracted_paths.keys()
+            extracted_paths = extracted_paths.values()
+            input_paths = paths.values()
+        assert extracted_paths
+        for extracted_path, input_path in zip(extracted_paths, input_paths):
+            extracted_path = Path(extracted_path)
+            parts = extracted_path.parts
+            assert parts[-1] == hash_url_to_filename(input_path, etag=None)
+            assert parts[-2] == extracted_subdir
+            assert extracted_path.exists()
+            extracted_file_content = extracted_path.read_text()
+            expected_file_content = text_file.read_text()
+            assert extracted_file_content == expected_file_content
