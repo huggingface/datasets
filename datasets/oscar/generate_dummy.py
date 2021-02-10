@@ -3,7 +3,6 @@ from pathlib import Path
 
 import fsspec as fs
 import requests
-
 from oscar import _BASE_CHECKSUM_FILE_NAME, Oscar
 
 
