@@ -110,3 +110,7 @@ try:
     HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 except (AttributeError, ImportError):
     HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
+
+
+HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
+HUB_DEFAULT_VERSION = "main"
