@@ -99,7 +99,7 @@ class HdaNliHindi(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         HdaNliHindiConfig(
-            name="hda nli hindi",
+            name="HDA nli hindi",
             version=datasets.Version("1.1.0"),
             description="HDA Hindi NLI: Natural Language Inference Dataset for Hindi Discourse Analysis in Hindi",
         ),
@@ -115,7 +115,7 @@ class HdaNliHindi(datasets.GeneratorBasedBuilder):
                     "hypothesis": datasets.Value("string"),
                     "label": datasets.ClassLabel(names=["not-entailment", "entailment"]),
                     "topic": datasets.ClassLabel(
-                        names=["Argumentative" , "Descriptive" , "Dialogic" , "Informative" , "Narrative"]
+                        names=["Argumentative", "Descriptive", "Dialogic", "Informative", "Narrative"]
                     ),
                 }
             ),

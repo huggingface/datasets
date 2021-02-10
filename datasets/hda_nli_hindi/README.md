@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- extended|hindi_discourse_analysis_classification
+- extended|hindi_discourse
 task_categories:
 - text-classification
 task_ids:
@@ -47,9 +47,9 @@ task_ids:
 
 ## Dataset Description
 
-- HomePage : https://github.com/midas-research/hindi-nli-data
-- Paper : https://www.aclweb.org/anthology/2020.aacl-main.71
-- Point of Contact : https://github.com/midas-research/hindi-nli-data
+- **HomePage:** [GitHub](https://github.com/midas-research/hindi-nli-data)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.aacl-main.71)
+- **Point of Contact:** [GitHub](https://github.com/midas-research/hindi-nli-data)
 
 ### Dataset Summary
 
@@ -85,7 +85,11 @@ An example of 'train' looks as follows.
 ```
 ### Data Fields
 
-- Each row contatins 4 columns - premise, hypothesis, label and topic.
+Each row contatins 4 columns:
+- premise: string
+- hypothesis: string
+- label: class label with values that correspond to "not-entailment" (0) or "entailment" (1)
+- topic: class label with values that correspond to "Argumentative" (0), "Descriptive" (1), "Dialogic" (2), "Informative" (3) or "Narrative" (4).
 
 ### Data Splits
 
