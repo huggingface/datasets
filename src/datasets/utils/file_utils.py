@@ -650,7 +650,7 @@ def get_from_cache(
                 url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
             )
             if response.status_code == 200:  # ok
-                etag = response.headers.get("X-Linked-Etag") or response.headers.get("ETag") if use_etag else None
+                etag = response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
                     # In some edge cases, we need to get a confirmation token
                     if k.startswith("download_warning") and "drive.google.com" in url:
@@ -668,12 +668,6 @@ def get_from_cache(
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
-            # In case of a redirect,
-            # save an extra redirect on the request.get call,
-            # and ensure we download the exact atomic version even if it changed
-            # between the HEAD and the GET (unlikely, but hey).
-            elif 300 <= response.status_code <= 399:
-                url = response.headers["Location"]
         except (EnvironmentError, requests.exceptions.Timeout):
             # not connected
             pass
