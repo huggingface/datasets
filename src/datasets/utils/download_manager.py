@@ -18,7 +18,6 @@
 
 import enum
 import os
-import urllib
 from datetime import datetime
 from functools import partial
 from typing import Dict, Optional, Union
