@@ -20,11 +20,12 @@ from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
 import numpy as np
+import posixpath
 import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
@@ -282,6 +283,20 @@ def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
     return HUB_DATASETS_URL.format(path=path, name=name, version=version)
 
 
+def url_or_path_join(base_name: str, *pathnames: List[str]) -> str:
+    if is_remote_url(base_name):
+        return posixpath.join(base_name, *pathnames)
+    else:
+        return Path(base_name).joinpath(*pathnames).as_posix()
+
+
+def url_or_path_parent(url_or_path: str) -> str:
+    if is_remote_url(url_or_path):
+        return url_or_path[: url_or_path.rindex("/")]
+    else:
+        return os.path.dirname(url_or_path)
+
+
 def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
@@ -474,7 +489,7 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
 def get_authentication_headers_for_url(url: str) -> dict:
     """Handle the HF authentication"""
     headers = {}
-    if url.startswith("https://huggingface.co/"):
+    if url.startswith("https://huggingface.co/") or url.startswith("https://cdn-lfs.huggingface.co"):
         try:
             from huggingface_hub import hf_api
 
@@ -635,7 +650,7 @@ def get_from_cache(
                 url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
             )
             if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag") if use_etag else None
+                etag = response.headers.get("X-Linked-Etag") or response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
                     # In some edge cases, we need to get a confirmation token
                     if k.startswith("download_warning") and "drive.google.com" in url:
@@ -653,6 +668,12 @@ def get_from_cache(
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
+            # In case of a redirect,
+            # save an extra redirect on the request.get call,
+            # and ensure we download the exact atomic version even if it changed
+            # between the HEAD and the GET (unlikely, but hey).
+            elif 300 <= response.status_code <= 399:
+                url = response.headers["Location"]
         except (EnvironmentError, requests.exceptions.Timeout):
             # not connected
             pass

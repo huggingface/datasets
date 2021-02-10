@@ -48,6 +48,8 @@ from .utils.file_utils import (
     hf_github_url,
     hf_hub_url,
     init_hf_modules,
+    url_or_path_join,
+    url_or_path_parent,
 )
 from .utils.filelock import FileLock
 from .utils.logging import get_logger
@@ -389,8 +391,8 @@ def prepare_module(
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the modules cache to import it
 
-    base_path = os.path.dirname(file_path)  # remove the filename
-    dataset_infos = os.path.join(base_path, DATASET_INFOS_DICT_FILE_NAME)
+    base_path = url_or_path_parent(file_path)  # remove the filename
+    dataset_infos = url_or_path_join(base_path, DATASET_INFOS_DICT_FILE_NAME)
 
     # Download the dataset infos file if available
     try:
@@ -418,7 +420,7 @@ def prepare_module(
                 f"comment pointing to the original realtive import file path."
             )
         if import_type == "internal":
-            url_or_filename = base_path + "/" + import_path + ".py"
+            url_or_filename = url_or_path_join(base_path, import_path + ".py")
         elif import_type == "external":
             url_or_filename = import_path
         else:
@@ -701,7 +703,7 @@ def load_dataset(
     )
     # Set the base path for downloads as the parent of the script location
     if resolved_file_path is not None:
-        base_path = Path(resolved_file_path).parent.as_posix()
+        base_path = url_or_path_parent(resolved_file_path)
     else:
         base_path = None
 

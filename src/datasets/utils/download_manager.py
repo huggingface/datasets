@@ -18,9 +18,9 @@
 
 import enum
 import os
+import urllib
 from datetime import datetime
 from functools import partial
-from pathlib import Path
 from typing import Dict, Optional, Union
 
 from .file_utils import (
@@ -30,6 +30,7 @@ from .file_utils import (
     get_from_cache,
     hash_url_to_filename,
     is_relative_path,
+    url_or_path_join,
 )
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
@@ -207,8 +208,7 @@ class DownloadManager(object):
     def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
-            # we use Path().joinpath().as_posix() since base_path can also be a remote url
-            url_or_filename = Path(self._base_path).joinpath(url_or_filename).as_posix()
+            url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return cached_path(url_or_filename, download_config=download_config)
 
     def iter_archive(self, path):
