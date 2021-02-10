@@ -23,7 +23,14 @@ from functools import partial
 from typing import Dict, Optional, Union
 
 from .. import config
-from .file_utils import DownloadConfig, cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
+from .file_utils import (
+    DownloadConfig,
+    cached_path,
+    get_from_cache,
+    hash_url_to_filename,
+    is_relative_path,
+    url_or_path_join,
+)
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import flatten_nested, map_nested, size_str
