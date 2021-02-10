@@ -63,7 +63,7 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
 
     An Apache Arrow Table is the internal storing format for 🤗datasets. It allows to store arbitrarily long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗datasets is thus to always memory-map dataset on drive.
 
-3. Return a **dataset build from the splits** asked by the user (default: all), in the above example we create a dataset with the first 10% of the validation split.
+3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 
 
 Selecting a split

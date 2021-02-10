@@ -633,7 +633,7 @@ def load_dataset(
                 Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
                 They can be directly access from drive, loaded in RAM or even streamed over the web.
 
-        3. Return a dataset build from the requested splits in ``split`` (default: all).
+        3. Return a dataset built from the requested splits in ``split`` (default: all).
 
     Args:
 
