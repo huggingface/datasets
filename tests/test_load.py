@@ -160,15 +160,15 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 
     def test_load_dataset_users(self):
         with self.assertRaises(FileNotFoundError) as context:
-            datasets.load_dataset("dummy_user/_dummy")
+            datasets.load_dataset("lhoestq/_dummy")
         self.assertIn(
-            "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+            "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
             str(context.exception),
         )
         with offline():
             with self.assertRaises(ConnectionError) as context:
-                datasets.load_dataset("dummy_user/_dummy")
+                datasets.load_dataset("lhoestq/_dummy")
             self.assertIn(
-                "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+                "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
                 str(context.exception),
             )
