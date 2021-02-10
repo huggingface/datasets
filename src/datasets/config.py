@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 from .utils.logging import get_logger
 
@@ -15,6 +16,10 @@ REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{ver
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
+
+# Hub
+HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
+HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION: str = sys.version.split()[0]
 
@@ -70,7 +75,7 @@ RARFILE_VERSION = "N/A"
 RARFILE_AVAILABLE = False
 if USE_RAR in ("1", "ON", "YES", "AUTO"):
     try:
-        RARFILE_VERSION = importlib_metadata.version("apache_beam")
+        RARFILE_VERSION = importlib_metadata.version("rarfile")
         RARFILE_AVAILABLE = True
         logger.info("rarfile available.")
     except importlib_metadata.PackageNotFoundError:
@@ -82,35 +87,12 @@ DEFAULT_XDG_CACHE_HOME = "~/.cache"
 XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)
 DEFAULT_HF_CACHE_HOME = os.path.join(XDG_CACHE_HOME, "huggingface")
 HF_CACHE_HOME = os.path.expanduser(os.getenv("HF_HOME", DEFAULT_HF_CACHE_HOME))
+
 DEFAULT_HF_DATASETS_CACHE = os.path.join(HF_CACHE_HOME, "datasets")
-# TODO: Why import in try and os.getenv twice in except?
-try:
-    from pathlib import Path
-
-    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
-except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
-
+HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
 
 DEFAULT_HF_METRICS_CACHE = os.path.join(HF_CACHE_HOME, "metrics")
-# TODO: Why timport in ry and os.getenv twice in except?
-try:
-    from pathlib import Path
-
-    HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
-except (AttributeError, ImportError):
-    HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
-
+HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
 
 DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
-# TODO: Why import in try and os.getenv twice in except?
-try:
-    from pathlib import Path
-
-    HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
-except (AttributeError, ImportError):
-    HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
-
-
-HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
-HUB_DEFAULT_VERSION = "main"
+HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
