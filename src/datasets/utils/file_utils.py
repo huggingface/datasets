@@ -20,6 +20,7 @@ from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
+from pathlib import Path
 from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
@@ -29,112 +30,12 @@ import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
-from .. import __version__
+from .. import __version__, config
 from .filelock import FileLock
 from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
-
-_PY_VERSION: str = sys.version.split()[0]
-
-if int(_PY_VERSION.split(".")[0]) == 3 and int(_PY_VERSION.split(".")[1]) < 8:
-    import importlib_metadata
-else:
-    import importlib.metadata as importlib_metadata
-
-
-USE_TF = os.environ.get("USE_TF", "AUTO").upper()
-USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
-
-_torch_version = "N/A"
-_torch_available = False
-if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
-    try:
-        _torch_version = importlib_metadata.version("torch")
-        _torch_available = True
-        logger.info("PyTorch version {} available.".format(_torch_version))
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling PyTorch because USE_TF is set")
-
-_tf_version = "N/A"
-_tf_available = False
-if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-    try:
-        _tf_version = importlib_metadata.version("tensorflow")
-        _tf_available = True
-        logger.info("TensorFlow version {} available.".format(_tf_version))
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling Tensorflow because USE_TORCH is set")
-
-USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
-_beam_version = "N/A"
-_beam_available = False
-if USE_BEAM in ("1", "ON", "YES", "AUTO"):
-    try:
-        _beam_version = importlib_metadata.version("apache_beam")
-        _beam_available = True
-        logger.info("Apache Beam version {} available.".format(_beam_version))
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling Apache Beam because USE_BEAM is set to False")
-
-
-USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
-_rarfile_version = "N/A"
-_rarfile_available = False
-if USE_RAR in ("1", "ON", "YES", "AUTO"):
-    try:
-        _rarfile_version = importlib_metadata.version("apache_beam")
-        _rarfile_available = True
-        logger.info("rarfile available.")
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling rarfile because USE_RAR is set to False")
-
-hf_cache_home = os.path.expanduser(
-    os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
-)
-default_datasets_cache_path = os.path.join(hf_cache_home, "datasets")
-try:
-    from pathlib import Path
-
-    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
-except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
-
-S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
-CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
-REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/datasets/{path}/{name}"
-
-
-default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
-try:
-    from pathlib import Path
-
-    HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
-except (AttributeError, ImportError):
-    HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
-
-S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
-CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
-
-
-default_modules_cache_path = os.path.join(hf_cache_home, "modules")
-try:
-    from pathlib import Path
-
-    HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
-except (AttributeError, ImportError):
-    HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
-
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
@@ -146,7 +47,7 @@ def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
     It can also be set with the environment variable HF_MODULES_CACHE.
     This is used to add modules such as `datasets_modules`
     """
-    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else HF_MODULES_CACHE
+    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else config.HF_MODULES_CACHE
     hf_modules_cache = str(hf_modules_cache)
     if hf_modules_cache not in sys.path:
         sys.path.append(hf_modules_cache)
@@ -164,7 +65,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     np_state = np.random.get_state()
     np.random.seed(seed)
 
-    if set_pytorch and _torch_available:
+    if set_pytorch and config.TORCH_AVAILABLE:
         import torch
 
         torch_state = torch.random.get_rng_state()
@@ -174,7 +75,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
             torch_cuda_states = torch.cuda.get_rng_state_all()
             torch.cuda.manual_seed_all(seed)
 
-    if set_tensorflow and _tf_available:
+    if set_tensorflow and config.TF_AVAILABLE:
         import tensorflow as tf
         from tensorflow.python import context as tfpycontext
 
@@ -197,12 +98,12 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     finally:
         np.random.set_state(np_state)
 
-        if set_pytorch and _torch_available:
+        if set_pytorch and config.TORCH_AVAILABLE:
             torch.random.set_rng_state(torch_state)
             if torch.cuda.is_available():
                 torch.cuda.set_rng_state_all(torch_cuda_states)
 
-        if set_tensorflow and _tf_available:
+        if set_tensorflow and config.TF_AVAILABLE:
             tf.random.set_global_generator(tf_state)
 
             tf_context._seed = tf_seed
@@ -212,22 +113,6 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
                 delattr(tf_context, "_rng")
 
 
-def is_torch_available():
-    return _torch_available
-
-
-def is_tf_available():
-    return _tf_available
-
-
-def is_beam_available():
-    return _beam_available
-
-
-def is_rarfile_available():
-    return _rarfile_available
-
-
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
     return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
@@ -235,9 +120,9 @@ def is_remote_url(url_or_filename):
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
     if dataset:
-        endpoint = CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else S3_DATASETS_BUCKET_PREFIX
+        endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     else:
-        endpoint = CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else S3_METRICS_BUCKET_PREFIX
+        endpoint = config.CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else config.S3_METRICS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 
@@ -258,9 +143,9 @@ def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = N
 
     version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
-        return REPO_DATASETS_URL.format(version=version, path=path, name=name)
+        return config.REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:
-        return REPO_METRICS_URL.format(version=version, path=path, name=name)
+        return config.REPO_METRICS_URL.format(version=version, path=path, name=name)
 
 
 def hash_url_to_filename(url, etag=None):
@@ -344,7 +229,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or HF_DATASETS_CACHE
+    cache_dir = download_config.cache_dir or config.HF_DATASETS_CACHE
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -422,7 +307,7 @@ def cached_path(
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(compressed_file, extracted_file)
             elif is_rarfile(output_path):
-                if _rarfile_available:
+                if config.RARFILE_AVAILABLE:
                     import rarfile
 
                     rf = rarfile.RarFile(output_path)
@@ -439,14 +324,14 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, _PY_VERSION)
+    ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
     ua += "; pyarrow/{}".format(pa.__version__)
-    if is_torch_available():
-        ua += "; torch/{}".format(_torch_version)
-    if is_tf_available():
-        ua += "; tensorflow/{}".format(_tf_version)
-    if is_beam_available():
-        ua += "; apache_beam/{}".format(_beam_version)
+    if config.TORCH_AVAILABLE:
+        ua += "; torch/{}".format(config.TORCH_VERSION)
+    if config.TF_AVAILABLE:
+        ua += "; tensorflow/{}".format(config.TF_VERSION)
+    if config.BEAM_AVAILABLE:
+        ua += "; apache_beam/{}".format(config.BEAM_VERSION)
     if isinstance(user_agent, dict):
         ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
     elif isinstance(user_agent, str):
@@ -572,7 +457,7 @@ def get_from_cache(
             and no cache on disk
     """
     if cache_dir is None:
-        cache_dir = HF_DATASETS_CACHE
+        cache_dir = config.HF_DATASETS_CACHE
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
 
