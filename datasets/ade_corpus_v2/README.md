@@ -34,10 +34,10 @@ task_ids:
     - coreference-resolution
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for Adverse Drug Reaction Data v2
 
 ## Table of Contents
-- [Dataset Card for [Needs More Information]](#dataset-card-for-needs-more-information)
+- [Dataset Card for Adverse Drug Reaction Data v2](#dataset-card-for-adverse-drug-reaction-data-v2)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)

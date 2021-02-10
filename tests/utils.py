@@ -3,7 +3,7 @@ import unittest
 from contextlib import contextmanager
 from distutils.util import strtobool
 
-from datasets.utils.file_utils import _tf_available, _torch_available
+from datasets import config
 
 
 def parse_flag_from_env(key, default=False):
@@ -35,7 +35,7 @@ def require_beam(test_case):
     These tests are skipped when Apache Beam isn't installed.
 
     """
-    if not _torch_available:
+    if not config.TORCH_AVAILABLE:
         test_case = unittest.skip("test requires PyTorch")(test_case)
     return test_case
 
@@ -89,7 +89,7 @@ def require_torch(test_case):
     These tests are skipped when PyTorch isn't installed.
 
     """
-    if not _torch_available:
+    if not config.TORCH_AVAILABLE:
         test_case = unittest.skip("test requires PyTorch")(test_case)
     return test_case
 
@@ -101,7 +101,7 @@ def require_tf(test_case):
     These tests are skipped when TensorFlow isn't installed.
 
     """
-    if not _tf_available:
+    if not config.TF_AVAILABLE:
         test_case = unittest.skip("test requires TensorFlow")(test_case)
     return test_case
 

@@ -22,15 +22,8 @@ from datetime import datetime
 from functools import partial
 from typing import Dict, Optional, Union
 
-from .file_utils import (
-    HF_DATASETS_CACHE,
-    DownloadConfig,
-    cached_path,
-    get_from_cache,
-    hash_url_to_filename,
-    is_relative_path,
-    url_or_path_join,
-)
+from .. import config
+from .file_utils import DownloadConfig, cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import flatten_nested, map_nested, size_str
@@ -142,7 +135,7 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        cache_dir = self._download_config.cache_dir or os.path.join(HF_DATASETS_CACHE, "downloads")
+        cache_dir = self._download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
         max_retries = self._download_config.max_retries
 
         def url_to_downloaded_path(url):

@@ -124,12 +124,13 @@ TESTS_REQUIRE = [
     "tldextract",
     "zstandard",
     # metrics dependencies
-    "bert_score",
+    "bert_score>=0.3.6",
     "rouge_score",
     "sacrebleu",
     "scipy",
     "seqeval",
     "sklearn",
+    "jiwer",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",

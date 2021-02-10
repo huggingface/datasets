@@ -358,7 +358,7 @@ class Oscar(datasets.GeneratorBasedBuilder):
                 for line in f:
                     if len(line.strip()) > 0:
                         current_lines.append(line)
-                    else:
+                    elif current_lines:
                         feature = id_, {"id": id_, "text": "".join(current_lines).rstrip()}
                         yield feature
                         id_ += 1
