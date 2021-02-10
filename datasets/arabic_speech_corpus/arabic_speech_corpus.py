@@ -126,7 +126,7 @@ class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
                 wav_file, orthographic = line.split('"')[1::2]
                 orthographics[wav_file] = orthographic
 
-        for _id, lab_name in enumerate(os.listdir(lab_dir)):
+        for _id, lab_name in enumerate(sorted(os.listdir(lab_dir))):
             lab_path = os.path.join(lab_dir, lab_name)
             lab_text = open(lab_path, "r", encoding="utf-8").read()
 
