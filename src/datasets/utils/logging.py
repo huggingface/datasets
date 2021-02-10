@@ -16,7 +16,6 @@
 
 import logging
 import os
-import threading
 from logging import CRITICAL  # NOQA
 from logging import DEBUG  # NOQA
 from logging import ERROR  # NOQA
@@ -27,9 +26,6 @@ from logging import WARN  # NOQA
 from logging import WARNING  # NOQA
 from typing import Optional
 
-
-_lock = threading.Lock()
-_library_root_logger_configured = False
 
 log_levels = {
     "debug": logging.DEBUG,
@@ -60,50 +56,30 @@ def _get_default_logging_level():
 
 
 def _get_library_name() -> str:
-
     return __name__.split(".")[0]
 
 
 def _get_library_root_logger() -> logging.Logger:
-
     return logging.getLogger(_get_library_name())
 
 
 def _configure_library_root_logger() -> None:
-
-    global _library_root_logger_configured
-
-    with _lock:
-        if _library_root_logger_configured:
-            # This library has already configured the library root logger.
-            return
-        _library_root_logger_configured = True
-
-        # Apply our default configuration to the library root logger.
-        library_root_logger = _get_library_root_logger()
-        library_root_logger.setLevel(_get_default_logging_level())
+    # Apply our default configuration to the library root logger.
+    library_root_logger = _get_library_root_logger()
+    library_root_logger.setLevel(_get_default_logging_level())
 
 
 def _reset_library_root_logger() -> None:
-
-    global _library_root_logger_configured
-
-    with _lock:
-
-        library_root_logger = _get_library_root_logger()
-        library_root_logger.setLevel(logging.NOTSET)
-        _library_root_logger_configured = False
+    library_root_logger = _get_library_root_logger()
+    library_root_logger.setLevel(logging.NOTSET)
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Return a logger with the specified name.
     This function can be used in dataset and metrics scripts.
     """
-
     if name is None:
         name = _get_library_name()
-
-    _configure_library_root_logger()
     return logging.getLogger(name)
 
 
@@ -119,8 +95,6 @@ def get_verbosity() -> int:
         - ``datasets.logging.INFO``
         - ``datasets.logging.DEBUG``
     """
-
-    _configure_library_root_logger()
     return _get_library_root_logger().getEffectiveLevel()
 
 
@@ -130,8 +104,6 @@ def set_verbosity(verbosity: int) -> None:
         verbosity:
             Logging level, e.g., ``datasets.logging.DEBUG`` and ``datasets.logging.INFO``.
     """
-
-    _configure_library_root_logger()
     _get_library_root_logger().setLevel(verbosity)
 
 
@@ -179,8 +151,6 @@ def disable_propagation() -> None:
     """Disable propagation of the library log outputs.
     Note that log propagation is disabled by default.
     """
-
-    _configure_library_root_logger()
     _get_library_root_logger().propagate = False
 
 
@@ -189,6 +159,8 @@ def enable_propagation() -> None:
     Please disable the HuggingFace datasets library's default handler to prevent double logging if the root logger has
     been configured.
     """
-
-    _configure_library_root_logger()
     _get_library_root_logger().propagate = True
+
+
+# Configure the library root logger at the module level (singleton-like)
+_configure_library_root_logger()
