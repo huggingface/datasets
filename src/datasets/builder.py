@@ -460,6 +460,7 @@ class DatasetBuilder:
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -472,6 +473,9 @@ class DatasetBuilder:
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
             base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+                If True, will get token from ~/.huggingface.
+
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
@@ -482,6 +486,7 @@ class DatasetBuilder:
                     cache_dir=os.path.join(self._cache_dir_root, "downloads"),
                     force_download=bool(download_mode == FORCE_REDOWNLOAD),
                     use_etag=False,
+                    use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(

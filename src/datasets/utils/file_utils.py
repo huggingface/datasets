@@ -216,6 +216,8 @@ class DownloadConfig:
         force_extract: if True when extract_compressed_file is True and the archive was already extracted,
             re-extract the archive and overide the folder where it was extracted.
         max_retries: the number of times to retry an HTTP request if it fails. Defaults to 1.
+        use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token
+            for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
 
     """
 
@@ -230,6 +232,7 @@ class DownloadConfig:
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
+    use_auth_token: Optional[str] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -260,7 +263,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or config.HF_DATASETS_CACHE
+    cache_dir = download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -278,6 +281,7 @@ def cached_path(
             local_files_only=download_config.local_files_only,
             use_etag=download_config.use_etag,
             max_retries=download_config.max_retries,
+            use_auth_token=download_config.use_auth_token,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -368,18 +372,18 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(url: str) -> dict:
+def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
-    if url.startswith("https://huggingface.co/") or url.startswith("https://cdn-lfs.huggingface.co"):
-        try:
+    if url.startswith("https://huggingface.co/"):
+        if isinstance(use_auth_token, str):
+            token = use_auth_token
+        elif bool(use_auth_token):
             from huggingface_hub import hf_api
 
             token = hf_api.HfFolder.get_token()
             if token:
                 headers["authorization"] = "Bearer {}".format(token)
-        except ImportError:
-            pass
     return headers
 
 
@@ -422,7 +426,7 @@ def ftp_head(url, timeout=2.0):
     return True
 
 
-def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, timeout=2.0):
+def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
     try:
         logger.info(f"Getting through FTP {url} into {temp_file.name}")
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
@@ -431,9 +435,9 @@ def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookie
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
-    headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
-    headers.update(get_authentication_headers_for_url(url))
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
+    headers = copy.deepcopy(headers) or {}
+    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
     response = _request_with_retry(
@@ -460,10 +464,10 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
 
 
 def http_head(
-    url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
+    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
 ) -> requests.Response:
-    headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
-    headers.update(get_authentication_headers_for_url(url))
+    headers = copy.deepcopy(headers) or {}
+    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     response = _request_with_retry(
         verb="HEAD",
         url=url,
@@ -488,6 +492,7 @@ def get_from_cache(
     local_files_only=False,
     use_etag=True,
     max_retries=0,
+    use_auth_token=None,
 ) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -523,13 +528,23 @@ def get_from_cache(
     if os.path.exists(cache_path) and not force_download and not use_etag:
         return cache_path
 
+    # Prepare headers for authentication
+    headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
+    if user_agent is not None:
+        headers["user-agent"] = user_agent
+
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
             connected = ftp_head(url)
         try:
             response = http_head(
-                url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
+                url,
+                allow_redirects=True,
+                proxies=proxies,
+                timeout=etag_timeout,
+                max_retries=max_retries,
+                headers=headers,
             )
             if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag") if use_etag else None
@@ -604,16 +619,14 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp://"):
-                ftp_get(
-                    url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies
-                )
+                ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
             else:
                 http_get(
                     url,
                     temp_file,
                     proxies=proxies,
                     resume_size=resume_size,
-                    user_agent=user_agent,
+                    headers=headers,
                     cookies=cookies,
                     max_retries=max_retries,
                 )
