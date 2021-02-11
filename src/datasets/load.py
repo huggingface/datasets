@@ -348,7 +348,7 @@ def prepare_module(
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 if dataset:
-                    file_path = hf_hub_url(path=path, name=name)
+                    file_path = hf_hub_url(path=path, name=name, version=script_version)
                 else:
                     file_path = hf_bucket_url(path, filename=name, dataset=False)
                 try:
