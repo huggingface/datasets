@@ -323,6 +323,10 @@ class FaissIndex(BaseIndex):
             hasattr(self.faiss_index, "device")
             and self.faiss_index.device is not None
             and self.faiss_index.device > -1
+        ) or (
+            hasattr(self.faiss_index, "getDevice")
+            and self.faiss_index.getDevice() is not None
+            and self.faiss_index.getDevice() > -1
         ):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:

@@ -182,7 +182,7 @@ class DatasetBuilder:
             names, types, and shapes, version, splits, citation, etc.
         * `datasets.DatasetBuilder.download_and_prepare`: downloads the source data
             and writes it to disk.
-        * `datasets.DatasetBuilder.as_dataset`: generate an `Dataset`.
+        * `datasets.DatasetBuilder.as_dataset`: generates a `Dataset`.
 
     **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
     dataset by defining a `datasets.BuilderConfig` subclass and accepting a
@@ -695,9 +695,21 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
     ) -> Union[Dataset, DatasetDict]:
-        """Return a Dataset for the specified split."""
+        """Return a Dataset for the specified split.
+
+        Args:
+            split (`datasets.Split`): Which subset of the data to return.
+            run_post_process (bool, default=True): Whether to run post-processing dataset transforms and/or add
+                indexes.
+            ignore_verifications (bool, default=False): Whether to ignore the verifications of the
+                downloaded/processed dataset information (checksums/size/splits/...).
+            in_memory (bool, default=False): Whether to copy the data in-memory.
+
+        Returns:
+            datasets.Dataset
+        """
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
                 (
@@ -722,6 +734,7 @@ class DatasetBuilder:
                 self._build_single_dataset,
                 run_post_process=run_post_process,
                 ignore_verifications=ignore_verifications,
+                in_memory=in_memory,
             ),
             split,
             map_tuple=True,
@@ -730,7 +743,9 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool):
+    def _build_single_dataset(
+        self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool, in_memory: bool = False
+    ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
         if isinstance(split, str):
@@ -739,6 +754,7 @@ class DatasetBuilder:
         # Build base dataset
         ds = self._as_dataset(
             split=split,
+            in_memory=in_memory,
         )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
@@ -791,7 +807,7 @@ class DatasetBuilder:
 
         return ds
 
-    def _as_dataset(self, split: Split = Split.TRAIN) -> Dataset:
+    def _as_dataset(self, split: Split = Split.TRAIN, in_memory: bool = False) -> Dataset:
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -800,6 +816,7 @@ class DatasetBuilder:
 
         Args:
             split: `datasets.Split` which subset of the data to read.
+            in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
             `Dataset`
@@ -809,6 +826,7 @@ class DatasetBuilder:
             name=self.name,
             instructions=split,
             split_infos=self.info.splits.values(),
+            in_memory=in_memory,
         )
         return Dataset(**dataset_kwargs)
 
@@ -892,18 +910,22 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
-    # GeneratorBasedBulder should have dummy data for tests by default
+    # GeneratorBasedBuilder should have dummy data for tests by default
     test_dummy_data = True
 
-    # Batch size used by the ArrowWriter
+    # Default batch size used by the ArrowWriter
     # It defines the number of samples that are kept in memory before writing them
     # and also the length of the arrow chunks
     # None means that the ArrowWriter will use its default value
-    _writer_batch_size = None
+    DEFAULT_WRITER_BATCH_SIZE = None
 
-    def __init__(self, *args, **kwargs):
-        self._writer_batch_size = kwargs.pop("writer_batch_size", self._writer_batch_size)
+    def __init__(self, *args, writer_batch_size=None, **kwargs):
         super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
+        # Batch size used by the ArrowWriter
+        # It defines the number of samples that are kept in memory before writing them
+        # and also the length of the arrow chunks
+        # None means that the ArrowWriter will use its default value
+        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
