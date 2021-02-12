@@ -5,6 +5,7 @@ import tempfile
 import time
 from hashlib import sha256
 from unittest import TestCase
+from unittest.mock import patch
 
 import pyarrow as pa
 import pytest
@@ -41,6 +42,9 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
             for i, line in enumerate(f):
                 yield i, {"text": line.strip()}
 """
+
+SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"
+SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 
 
 @pytest.fixture
@@ -192,3 +196,26 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset("_dummy")
     assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
+
+
+def test_loading_from_the_datasets_hub():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
+        assert len(dataset["train"]), 2
+        assert len(dataset["validation"]), 3
+
+
+def test_loading_from_the_datasets_hub_with_use_auth_token():
+    from datasets.utils.file_utils import http_head
+
+    def assert_auth(url, *args, headers, **kwargs):
+        assert headers["authorization"] == "Bearer foo"
+        return http_head(url, *args, headers=headers, **kwargs)
+
+    with patch("datasets.utils.file_utils.http_head") as mock_head:
+        mock_head.side_effect = assert_auth
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with offline():
+                with pytest.raises(ConnectionError):
+                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
+        mock_head.assert_called()
