@@ -75,9 +75,18 @@ Returns:
     'best_exact_thresh': No-answer probability threshold associated to the best exact match
     'best_f1': Best F1 (with varying threshold)
     'best_f1_thresh': No-answer probability threshold associated to the best F1
+Examples:
+
+    >>> predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22', 'no_answer_probability': 0.}]
+    >>> references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}]
+    >>> squad_v2_metric = datasets.load_metric("squad_v2")
+    >>> results = squad_v2_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'exact': 100.0, 'f1': 100.0, 'total': 1, 'HasAns_exact': 100.0, 'HasAns_f1': 100.0, 'HasAns_total': 1, 'best_exact': 100.0, 'best_exact_thresh': 0.0, 'best_f1': 100.0, 'best_f1_thresh': 0.0}
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class SquadV2(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -124,4 +133,4 @@ class SquadV2(datasets.Metric):
             no_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=no_ans_qids)
             merge_eval(out_eval, no_ans_eval, "NoAns")
         find_all_best_thresh(out_eval, predictions, exact_raw, f1_raw, no_answer_probabilities, qid_to_has_ans)
-        return out_eval
+        return dict(out_eval)

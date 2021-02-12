@@ -19,7 +19,7 @@ task_ids:
 - structure-prediction-other-acronym-identification
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Acronym Identification Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

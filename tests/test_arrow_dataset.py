@@ -767,55 +767,51 @@ class BaseDatasetTest(TestCase):
             del dset
 
     def test_map_caching(self, in_memory):
-        datasets.utils.logging.enable_propagation()
-        try:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                self._caplog.clear()
-                with self._caplog.at_level(logging.WARNING):
-                    dset = self._create_dummy_dataset(in_memory, tmp_dir)
-                    dset_test1 = dset.map(lambda x: {"foo": "bar"})
-                    dset_test1_data_files = list(dset_test1._data_files)
-                    del dset_test1
-                    dset_test2 = dset.map(lambda x: {"foo": "bar"})
-                    self.assertEqual(dset_test1_data_files, dset_test2._data_files)
-                    self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
-                    self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
-                    del dset, dset_test2
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(logging.WARNING):
+                dset = self._create_dummy_dataset(in_memory, tmp_dir)
+                dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                dset_test1_data_files = list(dset_test1._data_files)
+                del dset_test1
+                dset_test2 = dset.map(lambda x: {"foo": "bar"})
+                self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
+                self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+                del dset, dset_test2
 
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                self._caplog.clear()
-                with self._caplog.at_level(logging.WARNING):
-                    dset = self._create_dummy_dataset(in_memory, tmp_dir)
-                    dset_test1 = dset.map(lambda x: {"foo": "bar"})
-                    dset_test1_data_files = list(dset_test1._data_files)
-                    del dset_test1
-                    dset_test2 = dset.map(lambda x: {"foo": "bar"}, load_from_cache_file=False)
-                    self.assertEqual(dset_test1_data_files, dset_test2._data_files)
-                    self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
-                    self.assertNotIn("Loading cached processed dataset", self._caplog.text)
-                    del dset, dset_test2
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(logging.WARNING):
+                dset = self._create_dummy_dataset(in_memory, tmp_dir)
+                dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                dset_test1_data_files = list(dset_test1._data_files)
+                del dset_test1
+                dset_test2 = dset.map(lambda x: {"foo": "bar"}, load_from_cache_file=False)
+                self.assertEqual(dset_test1_data_files, dset_test2._data_files)
+                self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
+                self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+                del dset, dset_test2
 
-            if not in_memory:
-                try:
-                    self._caplog.clear()
-                    with tempfile.TemporaryDirectory() as tmp_dir:
-                        with self._caplog.at_level(logging.WARNING):
-                            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-                            datasets.set_caching_enabled(False)
-                            dset_test1 = dset.map(lambda x: {"foo": "bar"})
-                            dset_test2 = dset.map(lambda x: {"foo": "bar"})
-                            self.assertNotEqual(dset_test1._data_files, dset_test2._data_files)
-                            self.assertEqual(len(dset_test1._data_files), 1)
-                            self.assertEqual(len(dset_test2._data_files), 1)
-                            self.assertNotIn("Loading cached processed dataset", self._caplog.text)
-                            # make sure the arrow files are going to be removed
-                            self.assertIn("tmp", dset_test1._data_files[0]["filename"])
-                            self.assertIn("tmp", dset_test2._data_files[0]["filename"])
-                            del dset, dset_test2
-                finally:
-                    datasets.set_caching_enabled(True)
-        finally:
-            datasets.utils.logging.disable_propagation()
+        if not in_memory:
+            try:
+                self._caplog.clear()
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    with self._caplog.at_level(logging.WARNING):
+                        dset = self._create_dummy_dataset(in_memory, tmp_dir)
+                        datasets.set_caching_enabled(False)
+                        dset_test1 = dset.map(lambda x: {"foo": "bar"})
+                        dset_test2 = dset.map(lambda x: {"foo": "bar"})
+                        self.assertNotEqual(dset_test1._data_files, dset_test2._data_files)
+                        self.assertEqual(len(dset_test1._data_files), 1)
+                        self.assertEqual(len(dset_test2._data_files), 1)
+                        self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+                        # make sure the arrow files are going to be removed
+                        self.assertIn("tmp", dset_test1._data_files[0]["filename"])
+                        self.assertIn("tmp", dset_test2._data_files[0]["filename"])
+                        del dset, dset_test2
+            finally:
+                datasets.set_caching_enabled(True)
 
     @require_torch
     def test_map_torch(self, in_memory):

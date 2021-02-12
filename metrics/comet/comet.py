@@ -38,7 +38,7 @@ predictions['scores']
 import os
 from logging import getLogger
 
-from comet.models import download_model, load_checkpoint  # From: unbabel-comet
+from comet.models import download_model  # From: unbabel-comet
 
 import datasets
 
@@ -95,25 +95,21 @@ Returns:
     `samples`: List of dictionaries with `src`, `mt`, `ref` and `score`.
     `scores`: List of scores.
 
+Examples:
 
-Usage:
-```python
-from datasets import load_metric
-comet_metric = load_metric('metrics/comet/comet.py')
-#comet_metric = load_metric('comet')
-#comet_metric = load_metric('comet', 'wmt-large-hter-estimator')
-
-
-source = ["Dem Feuer konnte Einhalt geboten werden", "Schulen und Kindergärten wurden eröffnet."]
-hypothesis = ["The fire could be stopped", "Schools and kindergartens were open"]
-reference = ["They were able to control the fire.", "Schools and kindergartens opened"]
-
-predictions = comet_metric.compute(predictions=hypothesis, references=reference, sources=source)
-predictions['scores']
-```
+    >>> comet_metric = datasets.load_metric('comet') # doctest:+ELLIPSIS
+    [...]Download succeeded. Loading model[...]
+    >>> # comet_metric = load_metric('comet', 'wmt-large-hter-estimator')  # you can also choose which model to use
+    >>> source = ["Dem Feuer konnte Einhalt geboten werden", "Schulen und Kindergärten wurden eröffnet."]
+    >>> hypothesis = ["The fire could be stopped", "Schools and kindergartens were open"]
+    >>> reference = ["They were able to control the fire.", "Schools and kindergartens opened"]
+    >>> results = comet_metric.compute(predictions=hypothesis, references=reference, sources=source)
+    >>> print([round(v, 2) for v in results["scores"]])
+    [0.19, 0.92]
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class COMET(datasets.Metric):
     def _info(self):
 

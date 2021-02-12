@@ -129,18 +129,14 @@ class LoadTest(TestCase):
             )
         with offline():
             self._caplog.clear()
-            try:
-                datasets.utils.logging.enable_propagation()
-                # allow provide the module name without an explicit path to remote or local actual file
-                importable_module_path3, _ = datasets.load.prepare_module(
-                    "__dummy_module_name2__", dynamic_modules_path=self.dynamic_modules_path
-                )
-                # it loads the most recent version of the module
-                self.assertEqual(importable_module_path2, importable_module_path3)
-                self.assertNotEqual(importable_module_path1, importable_module_path3)
-                self.assertIn("Using the latest cached version of the module", self._caplog.text)
-            finally:
-                datasets.utils.logging.disable_propagation()
+            # allow provide the module name without an explicit path to remote or local actual file
+            importable_module_path3, _ = datasets.load.prepare_module(
+                "__dummy_module_name2__", dynamic_modules_path=self.dynamic_modules_path
+            )
+            # it loads the most recent version of the module
+            self.assertEqual(importable_module_path2, importable_module_path3)
+            self.assertNotEqual(importable_module_path1, importable_module_path3)
+            self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
     def test_load_dataset_canonical(self):
         with self.assertRaises(FileNotFoundError) as context:
@@ -188,13 +184,10 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     assert increased_allocated_memory == keep_in_memory
     with offline():
         caplog.clear()
-        try:
-            datasets.utils.logging.enable_propagation()
-            dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
-            assert len(dataset) == 2
-            assert "Using the latest cached version of the module" in caplog.text
-        finally:
-            datasets.utils.logging.disable_propagation()
+        # Load dataset from cache
+        dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
+        assert len(dataset) == 2
+        assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset("_dummy")
     assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
