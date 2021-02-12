@@ -609,6 +609,7 @@ def load_dataset(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     ignore_verifications: bool = False,
+    keep_in_memory: bool = False,
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     **config_kwargs,
@@ -655,6 +656,7 @@ def load_dataset(
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+        keep_in_memory (bool, default=False): Whether to copy the data in-memory.
         save_infos (bool): Save the dataset information (checksums/size/splits/...)
         script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
@@ -700,7 +702,7 @@ def load_dataset(
     )
 
     # Build dataset for splits
-    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications)
+    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
     if save_infos:
         builder_instance._save_infos()
 
