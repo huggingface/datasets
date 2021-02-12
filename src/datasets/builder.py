@@ -733,8 +733,9 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool,
-                              in_memory: bool = False):
+    def _build_single_dataset(
+        self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool, in_memory: bool = False
+    ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
         if isinstance(split, str):
