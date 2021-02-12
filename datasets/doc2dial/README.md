@@ -373,11 +373,10 @@ For `dialogue_domain`:
 
 
 
-For `doc2dial_rc`,
+For `doc2dial_rc`, this conforms to [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) data format. For how to load Doc2Dial data for reading comprehension task, please refer [here](https://github.com/doc2dial/sharedtask-dialdoc2021).
 
 - `id`: the ID of a QA instance;
 - `question`: user query;
-- `is_impossible`: if the question is answerable;
 - `answers`: the answers that are grounded in the associated document;
   - `answer_start`: the start position of the grounding span in the associated document (`context`);
   - `text`: the text content of the grounding span;
