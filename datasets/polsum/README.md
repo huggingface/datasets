@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -716,3 +717,6 @@ Single train split
     organization = "European Language Resources Association (ELRA)"
 }
 ```
+### Contributions
+
+Thanks to [@kldarek](https://github.com/kldarek) for adding this dataset.

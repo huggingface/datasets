@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -148,3 +149,7 @@ This dataset is licensed under the Creative Commons Attribution-NonCommercial-Sh
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@stevhliu](https://github.com/stevhliu) for adding this dataset.

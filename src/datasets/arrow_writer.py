@@ -23,9 +23,10 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
+from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
-from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
+from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
 
 
@@ -345,7 +346,7 @@ class BeamWriter(object):
         self._parquet_path = os.path.splitext(path)[0]  # remove extension
         self._namespace = namespace or "default"
         self._num_examples = None
-        self._cache_dir = cache_dir or HF_DATASETS_CACHE
+        self._cache_dir = cache_dir or config.HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
         """Add the final steps of the beam pipeline: write to parquet files."""

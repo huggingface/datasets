@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -146,3 +147,7 @@ Roshan Sharma
 ### Citation Information
 
 [Citation](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/CONTRIBUTING.md)
+
+### Contributions
+
+Thanks to [@darshan-gandhi](https://github.com/darshan-gandhi) for adding this dataset.

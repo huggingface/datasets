@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -188,3 +189,7 @@ BibTeX:
   howpublished={\\url{https://attapol.github.io/tlc.html}}
 }
 ```
+
+### Contributions
+
+Thanks to [@chameleonTK](https://github.com/chameleonTK) for adding this dataset.

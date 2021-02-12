@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -168,3 +169,7 @@ The data is under the [Creative Commons Attribution-NonCommercial 4.0 ](https://
     ISBN = "979-10-95546-34-4",
 }
 ```
+
+### Contributions
+
+Thanks to [@dadelani](https://github.com/dadelani) for adding this dataset.

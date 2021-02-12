@@ -44,14 +44,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:** https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus
-- **Paper:** https://ieeexplore.ieee.org/abstract/document/9080043
+- **Homepage:** [Github](https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus)
+- **Repository:** [Github](https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus)
+- **Paper:** [IEEE](https://ieeexplore.ieee.org/abstract/document/9080043)
 - **Leaderboard:**
-- **Point of Contact:** <a href="https://github.com/MuhammadYaseenKhan">Muhammad Yaseen Khan</a>
+- **Point of Contact:** [Muhammad Yaseen Khan](https://github.com/MuhammadYaseenKhan)
 
 ### Dataset Summary
 
@@ -137,3 +138,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@chaitnayabasava](https://github.com/chaitnayabasava) for adding this dataset.

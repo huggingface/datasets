@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -137,3 +138,7 @@ CC-BY-2.1
 ### Citation Information
 
 See http://www.lsi.us.es/~fermin/index.php/Datasets
+
+### Contributions
+
+Thanks to [@mapmeld](https://github.com/mapmeld) for adding this dataset.

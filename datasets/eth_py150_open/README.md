@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -157,3 +158,7 @@ Apache License 2.0
   year={2020},
   organization={PMLR}
 }
+
+### Contributions
+
+Thanks to [@Bharat123rox](https://github.com/Bharat123rox) for adding this dataset.

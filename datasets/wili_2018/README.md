@@ -277,6 +277,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -385,3 +386,7 @@ ODC Open Database License v1.0
   url          = {https://doi.org/10.5281/zenodo.841984}
 }
 ```
+
+### Contributions
+
+Thanks to [@Shubhambindal2017](https://github.com/Shubhambindal2017) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -121,3 +122,7 @@ The corpus was scraped by @timpal0l
 Research only.
 ### Citation Information
 No paper exists currently.
+
+### Contributions
+
+Thanks to [@timpal0l](https://github.com/timpal0l) for adding this dataset.

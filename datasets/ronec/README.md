@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -152,3 +153,7 @@ MIT License
   journal={arXiv preprint arXiv:1909.01247},
   year={2019}
 }
+
+### Contributions
+
+Thanks to [@iliemihai](https://github.com/iliemihai) for adding this dataset.

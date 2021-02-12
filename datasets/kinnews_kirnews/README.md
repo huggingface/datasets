@@ -51,6 +51,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -182,3 +183,7 @@ Lang| Train | Test |
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@saradhix](https://github.com/saradhix) for adding this dataset.

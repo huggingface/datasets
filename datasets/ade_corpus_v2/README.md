@@ -10,34 +10,34 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
   - 10K<n<100K
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
   - 1K<n<10K
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
   - n<1K
 source_datasets:
 - original
 task_categories:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
     - text-classification
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
     - structure-prediction
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
     - structure-prediction
 task_ids:
-  Ade_corpos_v2_classificaion:
+  Ade_corpus_v2_classification:
     - fact-checking
-  Ade_corpos_v2_drug_ade_relation:
+  Ade_corpus_v2_drug_ade_relation:
     - coreference-resolution
-  Ade_corpos_v2_drug_dosage_relation:
+  Ade_corpus_v2_drug_dosage_relation:
     - coreference-resolution
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for Adverse Drug Reaction Data v2
 
 ## Table of Contents
-- [Dataset Card for [Needs More Information]](#dataset-card-for-needs-more-information)
+- [Dataset Card for Adverse Drug Reaction Data v2](#dataset-card-for-adverse-drug-reaction-data-v2)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -93,16 +93,66 @@ English
 
 ### Data Instances
 
-[Needs More Information]
+#### Config - `Ade_corpus_v2_classification`
+```
+{
+      'label': 1, 
+      'text': 'Intravenous azithromycin-induced ototoxicity.'
+}
+
+```
+
+#### Config - `Ade_corpus_v2_drug_ade_relation`
+
+```
+{ 
+    'drug': 'azithromycin', 
+    'effect': 'ototoxicity', 
+    'indexes': {
+                  'drug': {
+                            'end_char': [24], 
+                            'start_char': [12]
+                          }, 
+                  'effect': {
+                            'end_char': [44], 
+                            'start_char': [33]
+                            }
+                }, 
+    'text': 'Intravenous azithromycin-induced ototoxicity.'
+    
+}
+
+```
+
+#### Config - `Ade_corpus_v2_drug_dosage_relation`
+
+```
+{
+    'dosage': '4 times per day', 
+    'drug': 'insulin', 
+    'indexes': {
+                'dosage': {
+                            'end_char': [56], 
+                            'start_char': [41]
+                        }, 
+                'drug': {
+                          'end_char': [40], 
+                          'start_char': [33]}
+                        }, 
+    'text': 'She continued to receive regular insulin 4 times per day over the following 3 years with only occasional hives.'
+}
+
+```
+
 
 ### Data Fields
 
-
-#### Config - `Ade_corpos_v2_classificaion`
+#### Config - `Ade_corpus_v2_classification`
 
 - `text` - Input text.
-- `label` - Whether the adverse drug effect(ADE) related or not.
-#### Config - `Ade_corpos_v2_drug_ade_relation`
+- `label` - Whether the adverse drug effect(ADE) related (1) or not (0).
+- 
+#### Config - `Ade_corpus_v2_drug_ade_relation`
 
 - `text` - Input text.
 - `drug` - Name of drug.
@@ -112,7 +162,7 @@ English
 - `indexes.effect.start_char` - Start index of `effect` string in text.
 - `indexes.effect.end_char` - End index of `effect` string in text.
 
-#### Config - `Ade_corpos_v2_drug_dosage_relation`
+#### Config - `Ade_corpus_v2_drug_dosage_relation`
 
 - `text` - Input text.
 - `drug` - Name of drug.
@@ -202,3 +252,7 @@ keywords = "Adverse drug effect, Benchmark corpus, Annotation, Harmonization, Se
 abstract = "A significant amount of information about drug-related safety issues such as adverse effects are published in medical case reports that can only be explored by human readers due to their unstructured nature. The work presented here aims at generating a systematically annotated corpus that can support the development and validation of methods for the automatic extraction of drug-related adverse effects from medical case reports. The documents are systematically double annotated in various rounds to ensure consistent annotations. The annotated documents are finally harmonized to generate representative consensus annotations. In order to demonstrate an example use case scenario, the corpus was employed to train and validate models for the classification of informative against the non-informative sentences. A Maximum Entropy classifier trained with simple features and evaluated by 10-fold cross-validation resulted in the F1 score of 0.70 indicating a potential useful application of the corpus."
 }
 ```
+
+### Contributions
+
+Thanks to [@Nilanshrajput](https://github.com/Nilanshrajput), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

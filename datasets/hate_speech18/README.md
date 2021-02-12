@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -158,3 +159,7 @@ English
     pages = "11--20",
 }
 ```
+
+### Contributions
+
+Thanks to [@czabo](https://github.com/czabo) for adding this dataset.

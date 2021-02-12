@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -193,3 +194,7 @@ year={2020},
 publisher = {Allen Institute for AI},
 }
 ```
+
+### Contributions
+
+Thanks to [@bpatidar](https://github.com/bpatidar) for adding this dataset.

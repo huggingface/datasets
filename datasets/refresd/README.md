@@ -47,12 +47,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/Elbria/xling-SemDiv/tree/master/REFreSD)
+- **Repository:** [Github](https://github.com/Elbria/xling-SemDiv/)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.emnlp-main.121)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -168,3 +169,7 @@ Eleftheria Briakou and Marine Carpuat
     pages = "1563--1580",
 }
 ```
+
+### Contributions
+
+Thanks to [@mpariente](https://github.com/mpariente) for adding this dataset.

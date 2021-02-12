@@ -121,3 +121,7 @@ The limitations of the Allociné dataset have not yet been investigated, however
 
 The Allociné dataset is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
+
+### Contributions
+
+Thanks to [@thomwolf](https://github.com/thomwolf), [@TheophileBlard](https://github.com/TheophileBlard), [@lewtun](https://github.com/lewtun) for adding this dataset.

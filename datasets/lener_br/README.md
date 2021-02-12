@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -75,8 +76,16 @@ The language supported is Portuguese.
 
 ### Data Instances
 
-[More Information Needed]
+An example from the dataset looks as follows:
 
+```
+{
+  "id": "0",
+  "ner_tags": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0],
+  "tokens": [
+    "EMENTA", ":", "APELAÇÃO", "CÍVEL", "-", "AÇÃO", "DE", "INDENIZAÇÃO", "POR", "DANOS", "MORAIS", "-", "PRELIMINAR", "-", "ARGUIDA", "PELO", "MINISTÉRIO", "PÚBLICO", "EM", "GRAU", "RECURSAL"]
+}
+```
 ### Data Fields
 
 - `id`: id of the sample
@@ -91,7 +100,11 @@ The NER tags have the same format as in the CoNLL shared task: a B denotes the f
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into train, validation and test set. The split sizes are as follow:
+
+| Train  | Val   | Test |
+| ------ | ----- | ---- |
+| 7828   | 1177  | 1390 |
 
 ## Dataset Creation
 
@@ -166,3 +179,7 @@ The NER tags have the same format as in the CoNLL shared task: a B denotes the f
       url = {https://cic.unb.br/~teodecampos/LeNER-Br/},
 }	
 ```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.

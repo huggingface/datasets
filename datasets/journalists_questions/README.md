@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -146,3 +147,7 @@ To construct our dataset of question tweets posted by journalists, we first acqu
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@MaramHasanain](https://github.com/MaramHasanain) for adding this dataset.

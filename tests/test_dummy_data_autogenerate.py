@@ -66,7 +66,7 @@ class DummyDataAutoGenerationTest(TestCase):
                 dataset_name=dataset_builder.name,
                 config=None,
                 version=Version("0.0.0"),
-                is_local=True,
+                use_local_dummy_data=True,
                 cache_dir=cache_dir,
                 load_existing_dummy_data=False,  # dummy data don't exist yet
             )

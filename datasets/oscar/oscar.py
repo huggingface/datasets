@@ -316,14 +316,14 @@ class Oscar(datasets.GeneratorBasedBuilder):
             version=datasets.Version("1.0.0"),
         )
         for language in _languages()
-        # ] + [
-        #     OscarConfig(  # pylint: disable=g-complex-comprehension
-        #         language=language,
-        #         shuffled=False,
-        #         deduplicated=False,
-        #         version=datasets.Version("1.0.0"),
-        #     )
-        #     for language in _languages()
+    ] + [
+        OscarConfig(  # pylint: disable=g-complex-comprehension
+            language=language,
+            shuffled=False,
+            deduplicated=False,
+            version=datasets.Version("1.0.0"),
+        )
+        for language in _languages()
     ]
     BUILDER_CONFIG_CLASS = OscarConfig
 
@@ -367,3 +367,5 @@ class Oscar(datasets.GeneratorBasedBuilder):
                 if current_lines:
                     feature = id_, {"id": id_, "text": "".join(current_lines).rstrip()}
                     yield feature
+                    id_ += 1
+                    current_lines = []

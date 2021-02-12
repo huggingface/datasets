@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -189,3 +190,7 @@ CC BY-NC-SA 3.0
   language = {english}
 }
 
+
+### Contributions
+
+Thanks to [@rahul-art](https://github.com/rahul-art) for adding this dataset.

@@ -43,14 +43,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** 
-- **Repository:** https://github.com/HaniehP/PersianNER
-- **Paper:** https://www.aclweb.org/anthology/C16-1319.pdf
+- **Homepage:** [Github](https://github.com/HaniehP/PersianNER)
+- **Repository:** [Github](https://github.com/HaniehP/PersianNER)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/C16-1319)
 - **Leaderboard:**
-- **Point of Contact:** 
+- **Point of Contact:**
 
 ### Dataset Summary
 
@@ -157,3 +158,7 @@ Creative Commons Attribution 4.0 International License.
     pages = "3381--3389",
     abstract = "Named-Entity Recognition (NER) is still a challenging task for languages with low digital resources. The main difficulties arise from the scarcity of annotated corpora and the consequent problematic training of an effective NER pipeline. To abridge this gap, in this paper we target the Persian language that is spoken by a population of over a hundred million people world-wide. We first present and provide ArmanPerosNERCorpus, the first manually-annotated Persian NER corpus. Then, we introduce PersoNER, an NER pipeline for Persian that leverages a word embedding and a sequential max-margin classifier. The experimental results show that the proposed approach is capable of achieving interesting MUC7 and CoNNL scores while outperforming two alternatives based on a CRF and a recurrent neural network.",
 }
+
+### Contributions
+
+Thanks to [@KMFODA](https://github.com/KMFODA) for adding this dataset.

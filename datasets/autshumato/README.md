@@ -58,6 +58,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -167,3 +168,7 @@ project is to develop machine translation systems for three South African langua
   year={2010}
 }
 ```
+
+### Contributions
+
+Thanks to [@Narsil](https://github.com/Narsil) for adding this dataset.

@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -195,3 +196,7 @@ eprint={2009.11352},
 archivePrefix={arXiv},
 primaryClass={cs.CL}
 }
+
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.

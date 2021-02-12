@@ -8,11 +8,12 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
 
+from datasets import config
 from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
+from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -273,7 +274,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-1]
         else:
             self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-2]
-        cache_dir = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
+        cache_dir = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
         self._auto_generate = auto_generate
         self._n_lines = n_lines
         self._json_field = json_field
@@ -289,23 +290,23 @@ class DummyDataCommand(BaseTransformersCLICommand):
         builder_cls = import_main_class(module_path)
 
         # use `None` as config if no configs
-        configs = builder_cls.BUILDER_CONFIGS or [None]
+        builder_configs = builder_cls.BUILDER_CONFIGS or [None]
         auto_generate_results = []
         with tempfile.TemporaryDirectory() as tmp_dir:
-            for config in configs:
-                if config is None:
+            for builder_config in builder_configs:
+                if builder_config is None:
                     name = None
                     version = builder_cls.VERSION
                 else:
-                    version = config.version
-                    name = config.name
+                    version = builder_config.version
+                    name = builder_config.name
 
                 dataset_builder = builder_cls(name=name, hash=hash, cache_dir=tmp_dir)
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,
-                    config=config,
+                    config=builder_config,
                     version=version,
-                    is_local=True,
+                    use_local_dummy_data=True,
                     load_existing_dummy_data=False,
                 )
 
@@ -328,7 +329,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                     print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
     def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
-        dl_cache_dir = os.path.join(self._cache_dir or HF_DATASETS_CACHE, "downloads")
+        dl_cache_dir = os.path.join(self._cache_dir or config.HF_DATASETS_CACHE, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
@@ -383,7 +384,6 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
     def _print_dummy_data_instructions(self, dataset_builder, mock_dl_manager):
         dummy_data_folder = os.path.join(self._path_to_dataset, mock_dl_manager.dummy_data_folder)
-        config = mock_dl_manager.config
         logger.info(f"Creating dummy folder structure for {dummy_data_folder}... ")
         os.makedirs(dummy_data_folder, exist_ok=True)
 
@@ -392,7 +392,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         except FileNotFoundError as e:
 
             print(
-                f"Dataset {self._dataset_name} with config {config} seems to already open files in the method `_split_generators(...)`. You might consider to instead only open files in the method `_generate_examples(...)` instead. If this is not possible the dummy data has to be created with less guidance. Make sure you create the file {e.filename}."
+                f"Dataset {self._dataset_name} with config {mock_dl_manager.config} seems to already open files in the method `_split_generators(...)`. You might consider to instead only open files in the method `_generate_examples(...)` instead. If this is not possible the dummy data has to be created with less guidance. Make sure you create the file {e.filename}."
             )
 
         files_to_create = set()
@@ -407,7 +407,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
             try:
                 dummy_data_guidance_print = "\n" + 30 * "=" + "DUMMY DATA INSTRUCTIONS" + 30 * "=" + "\n"
-                config_string = f"config {config.name} of " if config is not None else ""
+                config_string = (
+                    f"config {mock_dl_manager.config.name} of " if mock_dl_manager.config is not None else ""
+                )
                 dummy_data_guidance_print += (
                     "- In order to create the dummy data for "
                     + config_string
