@@ -203,6 +203,7 @@ def test_loading_from_the_datasets_hub():
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
         assert len(dataset["train"]), 2
         assert len(dataset["validation"]), 3
+        del dataset
 
 
 def test_loading_from_the_datasets_hub_with_use_auth_token():
