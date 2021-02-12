@@ -163,13 +163,15 @@ Once you are logged in with your datasets hub credentials, you can start buildin
 
 .. code-block:: bash
 
-    huggingface-cli repo create your_dataset_name
+    huggingface-cli repo create your_dataset_name --type dataset
+
 
 If you want to create a repo under a specific organization, you should add a `--organization` flag:
 
 .. code-block:: bash
 
-    huggingface-cli repo create your_dataset_name --organization your-org-name
+    huggingface-cli repo create your_dataset_name --type dataset --organization your-org-name
+
 
 This creates a repo on the datasets hub, which can be cloned.
 

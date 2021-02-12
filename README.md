@@ -110,7 +110,7 @@ We have a very detailed step-by-step guide to add a new dataset to the ![number 
 
 You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md) to add a dataset to this repository.
 
-You can also have your own repository for your dataset on the Hub under your namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share_dataset.html).
+You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share_dataset.html).
 
 # Main differences between `🤗Datasets` and `tfds`
 
