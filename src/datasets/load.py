@@ -686,7 +686,6 @@ def load_dataset(
         data_files=data_files,
         hash=hash,
         features=features,
-        keep_in_memory=keep_in_memory,
         **config_kwargs,
     )
 
@@ -703,7 +702,7 @@ def load_dataset(
     )
 
     # Build dataset for splits
-    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications)
+    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
     if save_infos:
         builder_instance._save_infos()
 

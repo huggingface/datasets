@@ -556,10 +556,10 @@ class BuilderTest(TestCase):
         ("train+test[:30%]", Dataset, 13),
     ],
 )
-@pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, keep_in_memory, tmp_path):
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, in_memory, tmp_path):
     cache_dir = str(tmp_path)
-    dummy_builder = DummyBuilder(cache_dir=cache_dir, name="dummy", keep_in_memory=keep_in_memory)
+    dummy_builder = DummyBuilder(cache_dir=cache_dir, name="dummy")
     os.makedirs(dummy_builder.cache_dir)
 
     dummy_builder.info.splits = SplitDict()
@@ -575,7 +575,7 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         writer.finalize()
 
     previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = dummy_builder.as_dataset(split=split)
+    dataset = dummy_builder.as_dataset(split=split, in_memory=in_memory)
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert isinstance(dataset, expected_dataset_class)
     if isinstance(dataset, DatasetDict):
@@ -590,21 +590,21 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         assert len(dataset) == expected_dataset_length
         assert dataset.features == Features({"text": Value("string")})
         dataset.column_names == ["text"]
-    assert increased_allocated_memory == keep_in_memory
+    assert increased_allocated_memory == in_memory
 
 
-@pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_generator_based_builder_as_dataset(keep_in_memory, tmp_path):
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_generator_based_builder_as_dataset(in_memory, tmp_path):
     cache_dir = tmp_path / "data"
     cache_dir.mkdir()
     cache_dir = str(cache_dir)
-    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", keep_in_memory=keep_in_memory)
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy")
     dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
     previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = dummy_builder.as_dataset("train")
+    dataset = dummy_builder.as_dataset("train", in_memory=in_memory)
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert dataset.data.to_pydict() == {"text": ["foo"] * 100}
-    assert increased_allocated_memory == keep_in_memory
+    assert increased_allocated_memory == in_memory
 
 
 @pytest.mark.parametrize(
