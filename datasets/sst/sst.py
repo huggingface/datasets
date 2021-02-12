@@ -40,8 +40,7 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 The Stanford Sentiment Treebank, the first corpus with fully labeled parse trees that allows for a
-complete analysis of the compositional effects of sentiment in language. In this version we include
-only sentences and sub-sentences with their sentiment labels. Parse trees are not included.
+complete analysis of the compositional effects of sentiment in language.
 """
 
 _HOMEPAGE = "https://nlp.stanford.edu/sentiment/"
@@ -51,7 +50,7 @@ _LICENSE = ""
 _URL = 'https://www.dropbox.com/s/4xlyud4l5mllom0/stanfordSentimentTreebank.zip?dl=1'
 
 
-class SstPhrases(datasets.GeneratorBasedBuilder):
+class Sst(datasets.GeneratorBasedBuilder):
     """The Stanford Sentiment Treebank"""
 
     def _info(self):

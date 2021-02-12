@@ -13,7 +13,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 
-# Dataset Card for sst_phrases
+# Dataset Card for sst
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
