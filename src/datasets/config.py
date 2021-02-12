@@ -17,6 +17,10 @@ S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/dat
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
 
+# Hub
+HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
+HUB_DEFAULT_VERSION = "main"
+
 PY_VERSION: str = sys.version.split()[0]
 
 if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:

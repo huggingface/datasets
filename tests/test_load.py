@@ -5,6 +5,7 @@ import tempfile
 import time
 from hashlib import sha256
 from unittest import TestCase
+from unittest.mock import patch
 
 import pyarrow as pa
 import pytest
@@ -41,6 +42,9 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
             for i, line in enumerate(f):
                 yield i, {"text": line.strip()}
 """
+
+SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"
+SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 
 
 @pytest.fixture
@@ -97,13 +101,14 @@ class LoadTest(TestCase):
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
-            # prepare module from file path
+            # prepare module from file path + check resolved_file_path
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
-            importable_module_path, module_hash = datasets.load.prepare_module(
-                module_path, dynamic_modules_path=self.dynamic_modules_path
+            importable_module_path, module_hash, resolved_file_path = datasets.load.prepare_module(
+                module_path, dynamic_modules_path=self.dynamic_modules_path, return_resolved_file_path=True
             )
+            self.assertEqual(resolved_file_path, module_path)
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
@@ -161,16 +166,16 @@ class LoadTest(TestCase):
 
     def test_load_dataset_users(self):
         with self.assertRaises(FileNotFoundError) as context:
-            datasets.load_dataset("dummy_user/_dummy")
+            datasets.load_dataset("lhoestq/_dummy")
         self.assertIn(
-            "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+            "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
             str(context.exception),
         )
         with offline():
             with self.assertRaises(ConnectionError) as context:
-                datasets.load_dataset("dummy_user/_dummy")
+                datasets.load_dataset("lhoestq/_dummy")
             self.assertIn(
-                "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
+                "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
                 str(context.exception),
             )
 
@@ -191,3 +196,27 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset("_dummy")
     assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
+
+
+def test_loading_from_the_datasets_hub():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
+        assert len(dataset["train"]), 2
+        assert len(dataset["validation"]), 3
+        del dataset
+
+
+def test_loading_from_the_datasets_hub_with_use_auth_token():
+    from datasets.utils.file_utils import http_head
+
+    def assert_auth(url, *args, headers, **kwargs):
+        assert headers["authorization"] == "Bearer foo"
+        return http_head(url, *args, headers=headers, **kwargs)
+
+    with patch("datasets.utils.file_utils.http_head") as mock_head:
+        mock_head.side_effect = assert_auth
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with offline():
+                with pytest.raises(ConnectionError):
+                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
+        mock_head.assert_called()
