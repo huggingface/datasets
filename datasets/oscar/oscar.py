@@ -349,7 +349,7 @@ class Oscar(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths):
-        """This function returns the examples in the raw (text) form."""
+        """This function returns the examples in the raw (text) form by iterating on all the files."""
         id_ = 0
         current_lines = []
         for filepath in filepaths:
