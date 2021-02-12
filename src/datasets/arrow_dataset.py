@@ -2360,6 +2360,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
+    def add_item(self, item):
+        table = pa.Table.from_pydict({k: [v] for k, v in item.items()})
+        self._data = pa.concat_tables([self._data, table]) if self._data.shape != (0, 0) else table
+
 
 def concatenate_datasets(
     dsets: List[Dataset],
