@@ -376,14 +376,15 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] =
     """Handle the HF authentication"""
     headers = {}
     if url.startswith("https://huggingface.co/"):
+        token = None
         if isinstance(use_auth_token, str):
             token = use_auth_token
         elif bool(use_auth_token):
             from huggingface_hub import hf_api
 
             token = hf_api.HfFolder.get_token()
-            if token:
-                headers["authorization"] = "Bearer {}".format(token)
+        if token:
+            headers["authorization"] = "Bearer {}".format(token)
     return headers
 
 
