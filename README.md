@@ -106,9 +106,11 @@ Another introduction to `🤗Datasets` is the tutorial on Google Colab here:
 
 # Add a new dataset to the Hub
 
-We know have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
+We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
 
-You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md) to add a dataset to this repository.
+
+You can also have your own repository for your dataset on the Hub under your namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share_dataset.html).
 
 # Main differences between `🤗Datasets` and `tfds`
 
