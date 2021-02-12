@@ -60,6 +60,8 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
             {
                 "phrase": datasets.Value("string"),
                 "label": datasets.Value("float"),
+                "tokens": datasets.Value("string"),
+                "tree": datasets.Value("string"),
             }
         )
 
@@ -82,6 +84,8 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
                     "labels_path" : os.path.join(data_dir, "sentiment_labels.txt"),
                     "splits_path" : os.path.join(data_dir, "datasetSplit.txt"),
                     "sentences_path" : os.path.join(data_dir, "datasetSentences.txt"),
+                    "tokens_path": os.path.join(data_dir, "SOStr.txt"),
+                    "trees_path": os.path.join(data_dir, "STree.txt"),
                     "split_id" : '1',
                 },
             ),
@@ -92,6 +96,8 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
                     "labels_path" : os.path.join(data_dir, "sentiment_labels.txt"),
                     "splits_path" : os.path.join(data_dir, "datasetSplit.txt"),
                     "sentences_path" : os.path.join(data_dir, "datasetSentences.txt"),
+                    "tokens_path": os.path.join(data_dir, "SOStr.txt"),
+                    "trees_path": os.path.join(data_dir, "STree.txt"),
                     "split_id" : '3',
                 },
             ),
@@ -102,6 +108,8 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
                     "labels_path" : os.path.join(data_dir, "sentiment_labels.txt"),
                     "splits_path" : os.path.join(data_dir, "datasetSplit.txt"),
                     "sentences_path" : os.path.join(data_dir, "datasetSentences.txt"),
+                    "tokens_path": os.path.join(data_dir, "SOStr.txt"),
+                    "trees_path": os.path.join(data_dir, "STree.txt"),
                     "split_id" : '2',
                 },
             ),
@@ -112,12 +120,14 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
                     "labels_path" : os.path.join(data_dir, "sentiment_labels.txt"),
                     "splits_path" : os.path.join(data_dir, "datasetSplit.txt"),
                     "sentences_path" : os.path.join(data_dir, "datasetSentences.txt"),
+                    "tokens_path": os.path.join(data_dir, "SOStr.txt"),
+                    "trees_path": os.path.join(data_dir, "STree.txt"),
                     "split_id" : '0',
                 },
             ),
         ]
 
-    def _generate_examples(self, phrases_path, labels_path, splits_path, sentences_path, split_id):
+    def _generate_examples(self, phrases_path, labels_path, splits_path, sentences_path, tokens_path, trees_path, split_id):
         """ Yields examples. """
         # Create a dictionary with all sentences, sub-sentences and their labels
         sst = {}
@@ -138,11 +148,24 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
             for id_, (phrase, label) in enumerate(sst.items()):
                 yield id_, {
                     'phrase': phrase,
-                    'label': label
+                    'label': label,
+                    'tokens': None,
+                    'tree' : None
                 }
-        # Else return only the whole sentences with their labels.
-        # Their assigned data split is given in the 'splits_path' file
+        # Else return only the whole sentences with their parse trees and labels.
         else:
+            # Parse trees for each whole sentence
+            trees = {}
+            with open(tokens_path) as tok, open(trees_path) as tr:
+                tok_reader = csv. reader(tok, delimiter='\t', quoting=csv.QUOTE_NONE)
+                tree_reader = csv.reader(tr, delimiter='\t', quoting=csv.QUOTE_NONE)
+                for i, row in enumerate(tok_reader, start=1):
+                    trees[i] = {}
+                    trees[i]['tokens'] = row[0]
+                for i, row in enumerate(tree_reader, start=1):
+                    trees[i]['tree'] = row[0]
+
+            # The mapping from sentence_index to split_id is given in the 'splits_path' file
             with open(splits_path) as spl, open(sentences_path) as snt:
 
                 splits_reader = csv.DictReader(spl, delimiter=",", quoting=csv.QUOTE_NONE)
@@ -153,5 +176,7 @@ class SstPhrases(datasets.GeneratorBasedBuilder):
                     if splits[row['sentence_index']] == split_id:
                         yield id_, {
                             'phrase': row['sentence'],
-                            'label' : sst[row['sentence']]
+                            'label' : sst[row['sentence']],
+                            'tokens': trees[int(row['sentence_index'])]['tokens'],
+                            'tree': trees[int(row['sentence_index'])]['tree'],
                         }
