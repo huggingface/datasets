@@ -1654,3 +1654,11 @@ class MiscellaneousDatasetTest(TestCase):
 
         dset.set_transform(transform=encode)
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+def test_dataset_add_item():
+    item = {"input_ids": np.array([4, 4, 2])}
+    ds = Dataset(pa.Table.from_pydict({}))
+    ds.add_item(item)
+    assert ds.data.shape == (1, 1)
+    assert ds.data.column_names == ["input_ids"]
