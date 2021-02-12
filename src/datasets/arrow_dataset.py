@@ -263,18 +263,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
+        in_memory: bool = False,
     ) -> "Dataset":
-        """ Instantiate a Dataset backed by an Arrow table at filename """
-        mmap = pa.memory_map(filename)
-        f = pa.ipc.open_stream(mmap)
-        pa_table = f.read_all()
-        data_files = [{"filename": filename}]
+        """Instantiate a Dataset backed by an Arrow table at filename.
+
+        Args:
+            filename (str): File name of the dataset.
+            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            split (NamedSplit, optional): Name of the dataset split.
+            indices_filename (str, optional): File names of the indices.
+            in_memory (bool, default False): Whether to copy the data in-memory.
+
+        Returns:
+            datasets.Dataset
+        """
+        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
+        data_files = [{"filename": filename}] if not in_memory else None
 
         if indices_filename is not None:
-            indices_mmap = pa.memory_map(indices_filename)
-            indices_f = pa.ipc.open_stream(indices_mmap)
-            indices_pa_table = indices_f.read_all()
-            indices_data_files = [{"filename": indices_filename}]
+            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
+            indices_data_files = [{"filename": indices_filename}] if not in_memory else None
         else:
             indices_pa_table = None
             indices_data_files = None
@@ -297,8 +305,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
-        mmap = pa.BufferReader(buffer)
-        f = pa.ipc.open_stream(mmap)
+        stream = pa.BufferReader(buffer)
+        f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
 
         if indices_buffer is not None:

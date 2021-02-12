@@ -1654,3 +1654,15 @@ class MiscellaneousDatasetTest(TestCase):
 
         dset.set_transform(transform=encode)
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_dataset_from_file(in_memory, dataset, arrow_file):
+    filename = arrow_file
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    assert dataset_from_file.features.type == dataset.features.type
+    assert dataset_from_file.features == dataset.features
+    assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
+    assert increased_allocated_memory == in_memory

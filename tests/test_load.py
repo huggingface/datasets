@@ -6,12 +6,63 @@ import time
 from hashlib import sha256
 from unittest import TestCase
 
+import pyarrow as pa
 import pytest
 import requests
 
 import datasets
+from datasets import load_dataset
 
 from .utils import offline
+
+
+DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
+
+DATASET_LOADING_SCRIPT_CODE = """
+import os
+
+import datasets
+from datasets import DatasetInfo, Features, Split, SplitGenerator, Value
+
+
+class __DummyDataset1__(datasets.GeneratorBasedBuilder):
+
+    def _info(self) -> DatasetInfo:
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [
+            SplitGenerator(Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
+            SplitGenerator(Split.TEST, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "test.txt")}),
+        ]
+
+    def _generate_examples(self, filepath, **kwargs):
+        with open(filepath, "r", encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                yield i, {"text": line.strip()}
+"""
+
+
+@pytest.fixture
+def data_dir(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    with open(data_dir / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+    return str(data_dir)
+
+
+@pytest.fixture
+def dataset_loading_script_dir(tmp_path):
+    script_name = DATASET_LOADING_SCRIPT_NAME
+    script_dir = tmp_path / script_name
+    script_dir.mkdir()
+    script_path = script_dir / f"{script_name}.py"
+    with open(script_path, "w") as f:
+        f.write(DATASET_LOADING_SCRIPT_CODE)
+    return str(script_dir)
 
 
 class LoadTest(TestCase):
@@ -87,47 +138,6 @@ class LoadTest(TestCase):
             self.assertNotEqual(importable_module_path1, importable_module_path3)
             self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
-    def test_load_dataset_local(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dummy_code = """
-import os
-
-import datasets
-from datasets import DatasetInfo, Features, Split, SplitGenerator, Value
-
-
-class __DummyDataset1__(datasets.GeneratorBasedBuilder):
-
-    def _info(self) -> DatasetInfo:
-        return DatasetInfo(features=Features({"text": Value("string")}))
-
-    def _split_generators(self, dl_manager):
-        return [
-            SplitGenerator(Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
-            SplitGenerator(Split.TEST, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "test.txt")}),
-        ]
-
-    def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, "r", encoding="utf-8") as f:
-            for i, line in enumerate(f):
-                yield i, {"text": line.strip()}
-            """
-            with open(os.path.join(tmp_dir, "train.txt"), "w") as f:
-                f.write("foo\n" * 10)
-            with open(os.path.join(tmp_dir, "test.txt"), "w") as f:
-                f.write("bar\n" * 10)
-            module_dir = self._dummy_module_dir(tmp_dir, "__dummy_dataset1__", dummy_code)
-            # load dataset from local path
-            self.assertTrue(len(datasets.load_dataset(module_dir, data_dir=tmp_dir)), 2)
-        with offline():
-            self._caplog.clear()
-            # load dataset from cache
-            self.assertTrue(len(datasets.load_dataset("__dummy_dataset1__", data_dir=tmp_dir)), 2)
-            self.assertIn("Using the latest cached version of the module", self._caplog.text)
-        with self.assertRaises(FileNotFoundError) as context:
-            datasets.load_dataset("_dummy")
-        self.assertIn("at " + os.path.join("_dummy", "_dummy.py"), str(context.exception))
-
     def test_load_dataset_canonical(self):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
@@ -163,3 +173,21 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/dummy_user/_dummy/_dummy.py",
                 str(context.exception),
             )
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    assert len(dataset) == 2
+    assert increased_allocated_memory == keep_in_memory
+    with offline():
+        caplog.clear()
+        # Load dataset from cache
+        dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
+        assert len(dataset) == 2
+        assert "Using the latest cached version of the module" in caplog.text
+    with pytest.raises(FileNotFoundError) as exc_info:
+        datasets.load_dataset("_dummy")
+    assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
