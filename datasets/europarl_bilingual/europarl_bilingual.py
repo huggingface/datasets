@@ -15,8 +15,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import xml.etree.ElementTree as ET
 import os
+import xml.etree.ElementTree as ET
 
 import datasets
 
@@ -58,32 +58,32 @@ http://opus.nlpl.eu/Europarl-v8.php
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 LANGUAGES = [
-    'bg',
-    'cs',
-    'da',
-    'de',
-    'el',
-    'en',
-    'es',
-    'et',
-    'fi',
-    'fr',
-    'hu',
-    'it',
-    'lt',
-    'lv',
-    'nl',
-    'pl',
-    'pt',
-    'ro',
-    'sk',
-    'sl',
-    'sv'
+    "bg",
+    "cs",
+    "da",
+    "de",
+    "el",
+    "en",
+    "es",
+    "et",
+    "fi",
+    "fr",
+    "hu",
+    "it",
+    "lt",
+    "lv",
+    "nl",
+    "pl",
+    "pt",
+    "ro",
+    "sk",
+    "sl",
+    "sv",
 ]
 
 ALL_PAIRS = []
 for i in range(len(LANGUAGES)):
-    for j in range(i+1, len(LANGUAGES)):
+    for j in range(i + 1, len(LANGUAGES)):
         ALL_PAIRS.append((LANGUAGES[i], LANGUAGES[j]))
 
 _VERSION = "8.0.0"
@@ -102,10 +102,10 @@ class EuroparlBilingualConfig(datasets.BuilderConfig):
         )
         self.lang1 = lang1
         self.lang2 = lang2
-    
+
     def _lang_pair(self):
         return (self.lang1, self.lang2)
-    
+
     def _is_valid(self):
         return self._lang_pair() in ALL_PAIRS
 
@@ -166,17 +166,11 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         if not self.config._is_valid():
-            raise ValueError(
-                f"{self.config._lang_pair()} is not a supported language pair. Choose among: {ALL_PAIRS}"
-            )
+            raise ValueError(f"{self.config._lang_pair()} is not a supported language pair. Choose among: {ALL_PAIRS}")
 
         # download data files
-        path_datafile_1 = dl_manager.download_and_extract(
-            _BASE_URL_DATASET.format(self.config.lang1)
-        )
-        path_datafile_2 = dl_manager.download_and_extract(
-            _BASE_URL_DATASET.format(self.config.lang2)
-        )
+        path_datafile_1 = dl_manager.download_and_extract(_BASE_URL_DATASET.format(self.config.lang1))
+        path_datafile_2 = dl_manager.download_and_extract(_BASE_URL_DATASET.format(self.config.lang2))
 
         # download relations file
         path_relation_file = dl_manager.download_and_extract(
@@ -189,8 +183,8 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "path_datafiles": (path_datafile_1, path_datafile_2),
-                    "path_relation_file": path_relation_file
-                }
+                    "path_relation_file": path_relation_file,
+                },
             )
         ]
 
@@ -198,9 +192,9 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
     def _parse_xml_datafile(filepath):
         """
         Parse and return a Dict[sentence_id, text] representing data with the following structure:
-        """      
+        """
         document = ET.parse(filepath).getroot()
-        return { tag.attrib['id']: tag.text for tag in document.iter('s') }
+        return {tag.attrib["id"]: tag.text for tag in document.iter("s")}
 
     def _generate_examples(self, path_datafiles, path_relation_file):
         """ Yields examples. """
@@ -226,34 +220,28 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
         # my counter
         _id = 0
         relations_root = ET.parse(path_relation_file).getroot()
-        
+
         for linkGroup in relations_root:
             # retrieve files and remove .gz extension because 'datasets' library already decompress them
             from_doc_dict = EuroparlBilingual._parse_xml_datafile(
-                os.path.splitext(
-                    os.path.join(path_datafiles[0], "Europarl", "raw", linkGroup.attrib['fromDoc'])
-                )[0]
+                os.path.splitext(os.path.join(path_datafiles[0], "Europarl", "raw", linkGroup.attrib["fromDoc"]))[0]
             )
 
             to_doc_dict = EuroparlBilingual._parse_xml_datafile(
-                os.path.splitext(
-                    os.path.join(path_datafiles[1], "Europarl", "raw", linkGroup.attrib['toDoc'])
-                )[0]
+                os.path.splitext(os.path.join(path_datafiles[1], "Europarl", "raw", linkGroup.attrib["toDoc"]))[0]
             )
 
             for link in linkGroup:
-                from_sentence_ids, to_sentence_ids = link.attrib['xtargets'].split(";")
+                from_sentence_ids, to_sentence_ids = link.attrib["xtargets"].split(";")
                 from_sentence_ids = [i for i in from_sentence_ids.split(" ") if i]
                 to_sentence_ids = [i for i in to_sentence_ids.split(" ") if i]
 
                 if not len(from_sentence_ids) or not len(to_sentence_ids):
                     continue
-                
+
                 # in rare cases, there is not entry for some key pairs
                 sentence_lang1 = " ".join(from_doc_dict[i] for i in from_sentence_ids if i in from_doc_dict)
                 sentence_lang2 = " ".join(to_doc_dict[i] for i in to_sentence_ids if i in to_doc_dict)
 
-                yield _id, {
-                    'translation': { self.config.lang1: sentence_lang1, self.config.lang2: sentence_lang2 }
-                }
+                yield _id, {"translation": {self.config.lang1: sentence_lang1, self.config.lang2: sentence_lang2}}
                 _id += 1
