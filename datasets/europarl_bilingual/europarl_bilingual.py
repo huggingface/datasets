@@ -248,11 +248,12 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
 
                 if not len(from_sentence_ids) or not len(to_sentence_ids):
                     continue
+                
+                # in rare cases, there is not entry for some key pairs
+                sentence_lang1 = " ".join(from_doc_dict[i] for i in from_sentence_ids if i in from_doc_dict)
+                sentence_lang2 = " ".join(to_doc_dict[i] for i in to_sentence_ids if i in to_doc_dict)
 
                 yield _id, {
-                    'translation': {
-                        self.config.lang1: " ".join(from_doc_dict[i] for i in from_sentence_ids),
-                        self.config.lang2: " ".join(to_doc_dict[i] for i in to_sentence_ids)
-                    }
+                    'translation': { self.config.lang1: sentence_lang1, self.config.lang2: sentence_lang2 }
                 }
                 _id += 1
