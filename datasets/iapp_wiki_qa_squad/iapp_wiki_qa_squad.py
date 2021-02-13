@@ -45,7 +45,11 @@ class IappWikiQaSquad(datasets.GeneratorBasedBuilder):
     _TEST_FILE = "test.jsonl"
 
     BUILDER_CONFIGS = [
-        IappWikiQaSquadConfig(name="iapp_wiki_qa_squad", version=datasets.Version("1.0.0"), description=_DESCRIPTION,),
+        IappWikiQaSquadConfig(
+            name="iapp_wiki_qa_squad",
+            version=datasets.Version("1.0.0"),
+            description=_DESCRIPTION,
+        ),
     ]
 
     def _info(self):
@@ -83,13 +87,16 @@ class IappWikiQaSquad(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(arch_path, "data")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VALID_FILE)},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._VALID_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)},
             ),
         ]
 
