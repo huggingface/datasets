@@ -253,7 +253,7 @@ def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_s
     return normalized_sent
 
 
-# @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Sari(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
