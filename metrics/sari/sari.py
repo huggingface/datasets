@@ -16,10 +16,10 @@
 
 from collections import Counter
 
+import sacrebleu
 import sacremoses
 
 import datasets
-import sacrebleu
 
 
 _CITATION = """\
@@ -262,8 +262,8 @@ class Sari(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
                     "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
                 }
             ),
             codebase_urls=[
