@@ -6,7 +6,6 @@ import pytest
 from datasets.utils.py_utils import (
     NestedDataStructure,
     flatten_nest_dict,
-    flatten_nested,
     map_nested,
     temporary_assignment,
     zip_dict,
@@ -34,30 +33,7 @@ class PyUtilsTest(TestCase):
         self.assertDictEqual(flatten_nest_dict(d2), expected_flatten_d2)
         self.assertDictEqual(flatten_nest_dict(d3), expected_flatten_d3)
 
-    def test_flatten_nested(self):
-        s1 = {}
-        s2 = []
-        s3 = "foo"
-        s4 = ["foo", "bar"]
-        s5 = {"a": 1, "b": 2}
-        s6 = {"a": [1, 2], "b": [3, 4]}
-        s7 = {"a": {"1": 1}, "b": 2}
-        expected_flatten_nested_s1 = []
-        expected_flatten_nested_s2 = []
-        expected_flatten_nested_s3 = ["foo"]
-        expected_flatten_nested_s4 = ["foo", "bar"]
-        expected_flatten_nested_s5 = [1, 2]
-        expected_flatten_nested_s6 = [1, 2, 3, 4]
-        expected_flatten_nested_s7 = [1, 2]
-        self.assertEqual(flatten_nested(s1), expected_flatten_nested_s1)
-        self.assertEqual(flatten_nested(s2), expected_flatten_nested_s2)
-        self.assertEqual(flatten_nested(s3), expected_flatten_nested_s3)
-        self.assertEqual(flatten_nested(s4), expected_flatten_nested_s4)
-        self.assertEqual(flatten_nested(s5), expected_flatten_nested_s5)
-        self.assertEqual(flatten_nested(s6), expected_flatten_nested_s6)
-        self.assertEqual(flatten_nested(s7), expected_flatten_nested_s7)
-
-    def test_map_mested(self):
+    def test_map_nested(self):
         s1 = {}
         s2 = []
         s3 = 1
