@@ -72,8 +72,8 @@ class DownloadManager(object):
         self._download_config = download_config or DownloadConfig()
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
-        self.downloaded_paths = None
-        self.extracted_paths = None
+        self.downloaded_paths = []
+        self.extracted_paths = []
 
     @property
     def manual_dir(self):
@@ -186,7 +186,7 @@ class DownloadManager(object):
         )
         duration = datetime.now() - start_time
         logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
-        self.downloaded_paths = downloaded_path_or_paths
+        self.downloaded_paths.append(downloaded_path_or_paths)
 
         start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
@@ -241,7 +241,7 @@ class DownloadManager(object):
             path_or_paths,
             num_proc=num_proc,
         )
-        self.extracted_paths = extracted_paths
+        self.extracted_paths.append(extracted_paths)
         return extracted_paths
 
     def download_and_extract(self, url_or_urls):
