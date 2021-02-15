@@ -161,6 +161,7 @@ Some details about normalization:
 | Ltd. | Limited |
 | Col. | Colonel |
 | Ft. | Fort |
+(*) there's no standard expansion for "Mrs."
 
 #### Who are the source language producers?
 
