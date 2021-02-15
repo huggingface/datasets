@@ -92,17 +92,17 @@ class TypedSequence:
 
         if type is not None:  # user explicitly passed the feature
             pass
-        elif isinstance(self.data, np.ndarray):
-            value = numpy_to_pyarrow_listarray(self.data)
         elif type is None and self.try_type:
             type = self.try_type
             trying_type = True
+        else:
+            type = self.type
 
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
             elif isinstance(self.data, np.ndarray):
-                out = value
+                out = numpy_to_pyarrow_listarray(self.data)
             else:
                 out = pa.array(self.data, type=type)
             if trying_type and out[0].as_py() != self.data[0]:
