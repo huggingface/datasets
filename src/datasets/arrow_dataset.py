@@ -635,10 +635,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
-        """Flatten the Table.
-        Each column with a struct type is flattened into one column per struct field.
-        Other columns are left unchanged.
-        """
+        """In-place version of :func:`Dataset.flatten`"""
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
                 self._data = self._data.flatten()
@@ -650,13 +647,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
+    @fingerprint_transform(inplace=False)
+    def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
+        """Flattens the table.
+        Each column with a struct type is flattened into one column per struct field.
+        Other columns are left unchanged.
+
+        Returns:
+            A copy of the dataset with flattened columns
+        """
+        dataset = copy.deepcopy(self)
+        dataset._fingerprint = new_fingerprint
+        dataset.flatten_(max_depth=max_depth)
+        return dataset
+
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
-        Cast the dataset to a new set of features.
-
-        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        In-place version of :func:`Dataset.cast`
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -675,14 +683,32 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
+    @fingerprint_transform(inplace=False)
+    def cast(self, features: Features, new_fingerprint) -> "Dataset":
+        """
+        Cast the dataset to a new set of features.
+
+        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            features (:class:`datasets.Features`): New features to cast the dataset to.
+                The name of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+
+        Returns:
+            A copy of the dataset with casted features
+        """
+        dataset = copy.deepcopy(self)
+        dataset._fingerprint = new_fingerprint
+        dataset.cast_(features=features)
+        return dataset
+
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
-        Remove one or several column(s) in the dataset and
-        the features associated to them.
-
-        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        In-place version of :func:`Dataset.remove_columns`
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -702,14 +728,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
+    @fingerprint_transform(inplace=False)
+    def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
+        """
+        Remove one or several column(s) in the dataset and
+        the features associated to them.
+
+        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+
+        Returns:
+            A copy of the dataset object without the columns to remove
+        """
+        dataset = copy.deepcopy(self)
+        dataset._fingerprint = new_fingerprint
+        dataset.remove_columns_(column_names=column_names)
+        return dataset
+
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
-        Rename a column in the dataset and move the features associated to the original column under the new column name.
-
-        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
-            - takes care of moving the original features under the new column name.
-            - doesn't copy the data to a new dataset and is thus much faster.
+        In-place version of :func:`Dataset.rename_column`
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -735,6 +777,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         del self._info.features[original_column_name]
 
         self._data = self._data.rename_columns(new_column_names)
+
+    @fingerprint_transform(inplace=False)
+    def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
+        """
+        Rename a column in the dataset, and move the features associated to the original column under the new column name.
+
+        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
+            - takes care of moving the original features under the new column name.
+            - doesn't copy the data to a new dataset and is thus much faster.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+
+        Returns:
+            A copy of the dataset with a renamed column
+        """
+        dataset = copy.deepcopy(self)
+        dataset._fingerprint = new_fingerprint
+        dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
+        return dataset
 
     def __len__(self):
         """ Number of rows in the dataset """

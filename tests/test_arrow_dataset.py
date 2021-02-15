@@ -388,7 +388,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
             del dset
 
-    def test_cast_(self, in_memory):
+    def test_cast_inplace(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             features = dset.features
@@ -402,7 +402,23 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
 
-    def test_remove_columns_(self, in_memory):
+    def test_cast(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            features = dset.features
+            features["col_1"] = Value("float64")
+            features = Features({k: features[k] for k in list(features)[::-1]})
+            fingerprint = dset._fingerprint
+            casted_dset = dset.cast(features)
+            self.assertEqual(casted_dset.num_columns, 3)
+            self.assertEqual(casted_dset.features["col_1"], Value("float64"))
+            self.assertIsInstance(casted_dset[0]["col_1"], float)
+            self.assertNotEqual(casted_dset._fingerprint, fingerprint)
+            self.assertNotEqual(casted_dset, dset)
+            del dset
+            del casted_dset
+
+    def test_remove_columns_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
@@ -417,7 +433,25 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
 
-    def test_rename_column_(self, in_memory):
+    def test_remove_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            fingerprint = dset._fingerprint
+            new_dset = dset.remove_columns(column_names="col_1")
+            self.assertEqual(new_dset.num_columns, 2)
+            self.assertListEqual(list(new_dset.column_names), ["col_2", "col_3"])
+            self.assertNotEqual(new_dset._fingerprint, fingerprint)
+            del dset
+            del new_dset
+
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            new_dset = dset.remove_columns(column_names=["col_1", "col_2", "col_3"])
+            self.assertEqual(new_dset.num_columns, 0)
+            self.assertNotEqual(new_dset._fingerprint, fingerprint)
+            del dset
+            del new_dset
+
+    def test_rename_column_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
@@ -426,6 +460,18 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
+
+    def test_rename_column(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            fingerprint = dset._fingerprint
+            new_dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
+            self.assertEqual(new_dset.num_columns, 3)
+            self.assertListEqual(list(new_dset.column_names), ["new_name", "col_2", "col_3"])
+            self.assertListEqual(list(dset.column_names), ["col_1", "col_2", "col_3"])
+            self.assertNotEqual(new_dset._fingerprint, fingerprint)
+            del dset
+            del new_dset
 
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
