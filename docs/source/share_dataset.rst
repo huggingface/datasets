@@ -220,29 +220,47 @@ Other files can safely be deleted.
 Uploading your files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once the repo is cloned, you can add the dataset script and dataset infos.
-
-You can add these files to the staging environment and verify that they have been correctly staged with the ``git
-status`` command:
+Once the repo is cloned, add the files containing the data.
 
 .. code-block:: bash
 
+    cp /somewhere/data/*json .
+    git lfs track *.json
+    git add .gitattributes
+    git commit -m "track json files"
+    git add *json
+
+It's crucial that ``git lfs track`` gets run on the large data files before ``git add``. If later during ``git push`` you get the error:
+
+.. code-block:: bash
+
+  remote: Your push was rejected because it contains files larger than 10M.
+  remote: Please use https://git-lfs.github.com/ to store larger files.
+
+it means you ``git add``ed the data files before telling ``lfs`` to track those.
+
+Now you can add the dataset script and `dataset_infos.json` file:
+
+.. code-block:: bash
+
+    cp /somewhere/data/dataset_infos.json .
+    cp /somewhere/data/load_script.py .
     git add --all
+
+Quickly verify that they have been correctly staged with:
+
+.. code-block:: bash
+
     git status
 
-Finally, the files should be committed:
+Finally, the files are ready to be committed and pushed to the remote:
 
 .. code-block:: bash
 
     git commit -m "First version of the your_dataset_name dataset."
-
-And pushed to the remote:
-
-.. code-block:: bash
-
     git push
 
-This will upload the folder containing the dataset script and dataset infos that we have just prepared.
+This will upload the folder containing the dataset script and dataset infos and data files.
 
 
 Using your dataset
