@@ -1,8 +1,10 @@
 from unittest import TestCase
 
 import numpy as np
+import pytest
 
 from datasets.utils.py_utils import (
+    NestedDataStructure,
     flatten_nest_dict,
     flatten_nested,
     map_nested,
@@ -133,3 +135,20 @@ class PyUtilsTest(TestCase):
         with temporary_assignment(foo, "my_attr", "BAR"):
             self.assertEqual(foo.my_attr, "BAR")
         self.assertEqual(foo.my_attr, "bar")
+
+
+@pytest.mark.parametrize(
+    "data, expected_output",
+    [
+        ({}, []),
+        ([], []),
+        ("foo", ["foo"]),
+        (["foo", "bar"], ["foo", "bar"]),
+        ({"a": 1, "b": 2}, [1, 2]),
+        ({"a": [1, 2], "b": [3, 4]}, [1, 2, 3, 4]),
+        ({"a": {"1": 1}, "b": 2}, [1, 2]),
+    ],
+)
+def test_flatten(data, expected_output):
+    output = NestedDataStructure(data).flatten()
+    assert output == expected_output
