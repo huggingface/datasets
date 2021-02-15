@@ -25,7 +25,7 @@ import shutil
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
@@ -204,10 +204,10 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        cache_dir=None,
-        name=None,
-        hash=None,
-        features=None,
+        cache_dir: Optional[str] = None,
+        name: Optional[str] = None,
+        hash: Optional[str] = None,
+        features: Optional[Features] = None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -228,8 +228,8 @@ class DatasetBuilder:
 
         """
         # DatasetBuilder name
-        self.name = camelcase_to_snakecase(self.__class__.__name__)
-        self.hash = hash
+        self.name: str = camelcase_to_snakecase(self.__class__.__name__)
+        self.hash: Optional[str] = hash
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
@@ -294,7 +294,7 @@ class DatasetBuilder:
         """Empty DatasetInfo if doesn't exist"""
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
-    def _create_builder_config(self, name=None, custom_features=None, **config_kwargs):
+    def _create_builder_config(self, name=None, custom_features=None, **config_kwargs) -> Tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and name and DEFAULT_CONFIG_NAME are None.
         config_kwargs override the defaults kwargs in config
@@ -459,6 +459,8 @@ class DatasetBuilder:
         ignore_verifications: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -470,6 +472,10 @@ class DatasetBuilder:
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
+            base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+                If True, will get token from ~/.huggingface.
+
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
@@ -480,10 +486,14 @@ class DatasetBuilder:
                     cache_dir=os.path.join(self._cache_dir_root, "downloads"),
                     force_download=bool(download_mode == FORCE_REDOWNLOAD),
                     use_etag=False,
+                    use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
-                dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+                dataset_name=self.name,
+                download_config=download_config,
+                data_dir=self.config.data_dir,
+                base_path=base_path,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False

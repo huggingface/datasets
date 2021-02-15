@@ -102,31 +102,169 @@ Push the changes to your account using:
 
 Sharing a "community provided" dataset
 -----------------------------------------
-Make a data directory, for example called ``my_local_dataset``, containing, at a minimum, ``my_local_dataset/my_local_dataset.py``, but also whatever other files your dataset needs.
 
-Then, simply upload with ``datasets-cli`` from the command line:
+In this page, we will show you how to share a dataset with the community on the `datasets hub <https://huggingface.co/datasets>`__.
 
-.. code::
+.. note::
 
-   datasets-cli login  # use your huggingface.co credentials, only needs to be run once.
-   datasets-cli upload_dataset my_local_dataset
+    You will need to create an account on `huggingface.co <https://huggingface.co/join>`__ for this.
 
+    Optionally, you can join an existing organization or create a new one.
 
+Prepare your dataset for uploading
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+We have seen in the :doc:`dataset script tutorial <add_dataset>`: how to write a dataset loading script. Let's see how you can share it on the
+`datasets hub <https://huggingface.co/datasets>`__.
 
-This uploads the dataset to your personal account. If you want your model to be namespaced by your organization name
-rather than your username, add the following flag to any command:
+Dataset versioning
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since version 2.0, the datasets hub has built-in dataset versioning based on git and git-lfs. It is based on the paradigm
+that one dataset *is* one repo.
+
+This allows:
+
+- built-in versioning
+- access control
+- scalability
+
+This is built around *revisions*, which is a way to pin a specific version of a dataset, using a commit hash, tag or
+branch.
+
+For instance:
 
 .. code-block::
 
-    --organization organization_name
+    >>> dataset = load_dataset(
+    >>>   "lhoestq/custom_squad",
+    >>>   script_version="main"  # tag name, or branch name, or commit hash
+    >>> )
 
-After ``upload_dataset``, the following python code should work:
+Basic steps
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code::
+In order to upload a dataset, you'll need to first create a git repo. This repo will live on the datasets hub, allowing
+users to clone it and you (and your organization members) to push to it.
 
-    import datasets
-    datasets.load_dataset('my_username/my_local_dataset')
+You can create a dataset repo directly from `the /new page on the website <https://huggingface.co/new-dataset>`__.
+
+Alternatively, you can use the ``huggingface-cli``. The next steps describe that process:
+
+Go to a terminal and run the following command. It should be in the virtual environment where you installed 🤗
+Datasets, since that command :obj:`huggingface-cli` comes from the library.
+
+.. code-block:: bash
+
+    huggingface-cli login
+
+
+Once you are logged in with your datasets hub credentials, you can start building your repositories. To create a repo:
+
+.. code-block:: bash
+
+    huggingface-cli repo create your_dataset_name --type dataset
+
+
+If you want to create a repo under a specific organization, you should add a `--organization` flag:
+
+.. code-block:: bash
+
+    huggingface-cli repo create your_dataset_name --type dataset --organization your-org-name
+
+
+This creates a repo on the datasets hub, which can be cloned.
+
+.. code-block:: bash
+
+    # Make sure you have git-lfs installed
+    # (https://git-lfs.github.com/)
+    git lfs install
+
+    git clone https://huggingface.co/datasets/username/your_dataset_name
+
+When you have your local clone of your repo and lfs installed, you can then add/remove from that clone as you would
+with any other git repo.
+
+.. code-block:: bash
+
+    # Commit as usual
+    cd your_dataset_name
+    echo "hello" >> README.md
+    git add . && git commit -m "Update from $USER"
+
+We are intentionally not wrapping git too much, so that you can go on with the workflow you're used to and the tools
+you already know.
+
+The only learning curve you might have compared to regular git is the one for git-lfs. The documentation at
+`git-lfs.github.com <https://git-lfs.github.com/>`__ is decent, but we'll work on a tutorial with some tips and tricks
+in the coming weeks!
+
+Additionally, if you want to change multiple repos at once, the `change_config.py script
+<https://github.com/huggingface/efficient_scripts/blob/main/change_config.py>`__ can probably save you some time.
+
+
+Check the directory before pushing to the datasets hub.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make sure there are no garbage files in the directory you'll upload. It should only have:
+
+- a `your_dataset_name.py` file, which is the dataset script;
+- an optional `dataset_infos.json` file, which contains metadata about your dataset like the split sizes;
+- optional dummy data files, which contains only a small subset from the dataset for tests and preview;
+- your raw data files (json, csv, txt, etc.) that you need for your dataset
+
+Other files can safely be deleted.
+
+
+Uploading your files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the repo is cloned, you can add the dataset script and dataset infos.
+
+You can add these files to the staging environment and verify that they have been correctly staged with the ``git
+status`` command:
+
+.. code-block:: bash
+
+    git add --all
+    git status
+
+Finally, the files should be committed:
+
+.. code-block:: bash
+
+    git commit -m "First version of the your_dataset_name dataset."
+
+And pushed to the remote:
+
+.. code-block:: bash
+
+    git push
+
+This will upload the folder containing the dataset script and dataset infos that we have just prepared.
+
+
+Using your dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your dataset now has a page on huggingface.co/datasets 🔥
+
+Anyone can load it from code:
+
+.. code-block::
+
+    >>> dataset = load_dataset("namespace/your_dataset_name")
+
+
+You may specify a version by using the ``script-version`` flag in the ``load_dataset`` function:
+
+.. code-block::
+
+    >>> dataset = load_dataset(
+    >>>   "lhoestq/custom_squad",
+    >>>   script_version="main"  # tag name, or branch name, or commit hash
+    >>> )
 
 
 .. _adding-tests:
@@ -316,14 +454,14 @@ Now test that both the real data and the dummy data work correctly. Go back to t
 
 .. code-block::
 
-    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
+    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your_dataset_name>
 
 
 And *for the dummy data*:
 
 .. code-block::
 
-    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your_dataset_name>
 
 
 If all tests pass, your dataset works correctly. Awesome! You can now follow the last steps of the :ref:`canonical-dataset` or :ref:`community-dataset` sections to share the dataset with the community. If you experienced problems with the dummy data tests, here are some additional tips:

@@ -40,7 +40,17 @@ from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url, init_hf_modules
+from .utils.file_utils import (
+    DownloadConfig,
+    cached_path,
+    head_hf_s3,
+    hf_bucket_url,
+    hf_github_url,
+    hf_hub_url,
+    init_hf_modules,
+    url_or_path_join,
+    url_or_path_parent,
+)
 from .utils.filelock import FileLock
 from .utils.logging import get_logger
 from .utils.version import Version
@@ -212,6 +222,7 @@ def prepare_module(
     dataset: bool = True,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
+    return_resolved_file_path: bool = False,
     **download_kwargs,
 ) -> Tuple[str, str]:
     r"""
@@ -239,6 +250,8 @@ def prepare_module(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
+        return_resolved_file_path (Optional bool, defaults to False):
+            If True, the url or path to the resolved dataset or metric script is returned with the other ouputs
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Return: Tuple[``str``, ``str``] with
@@ -266,7 +279,10 @@ def prepare_module(
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
         except Exception:
             logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
-        return _PACKAGED_DATASETS_MODULES[path]
+        module_path, hash = _PACKAGED_DATASETS_MODULES[path]
+        if return_resolved_file_path:
+            return module_path, hash, None
+        return module_path, hash
 
     # otherwise the module is added to the dynamic modules
     dynamic_modules_path = (
@@ -330,8 +346,11 @@ def prepare_module(
                                     combined_path, github_file_path
                                 )
                             )
-            elif path.count("/") == 1:  # users datasets/metrics: s3 path
-                file_path = hf_bucket_url(path, filename=name, dataset=dataset)
+            elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
+                if dataset:
+                    file_path = hf_hub_url(path=path, name=name, version=script_version)
+                else:
+                    file_path = hf_bucket_url(path, filename=name, dataset=False)
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
@@ -363,6 +382,10 @@ def prepare_module(
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
                         f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
                     )
+                    if return_resolved_file_path:
+                        with open(os.path.join(main_folder_path, hash, short_name + ".json")) as cache_metadata:
+                            file_path = json.load(cache_metadata)["original file path"]
+                        return module_path, hash, file_path
                     return module_path, hash
             raise
 
@@ -370,8 +393,8 @@ def prepare_module(
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the modules cache to import it
 
-    base_path = os.path.dirname(file_path)  # remove the filename
-    dataset_infos = os.path.join(base_path, DATASET_INFOS_DICT_FILE_NAME)
+    base_path = url_or_path_parent(file_path)  # remove the filename
+    dataset_infos = url_or_path_join(base_path, DATASET_INFOS_DICT_FILE_NAME)
 
     # Download the dataset infos file if available
     try:
@@ -399,7 +422,7 @@ def prepare_module(
                 f"comment pointing to the original realtive import file path."
             )
         if import_type == "internal":
-            url_or_filename = base_path + "/" + import_path + ".py"
+            url_or_filename = url_or_path_join(base_path, import_path + ".py")
         elif import_type == "external":
             url_or_filename = import_path
         else:
@@ -532,6 +555,9 @@ def prepare_module(
 
     # make the new module to be noticed by the import system
     importlib.invalidate_caches()
+
+    if return_resolved_file_path:
+        return module_path, hash, file_path
     return module_path, hash
 
 
@@ -612,6 +638,7 @@ def load_dataset(
     keep_in_memory: bool = False,
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
+    use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     r"""Load a dataset
@@ -624,7 +651,8 @@ def load_dataset(
             contain the URL to the original data files and the code to load examples from the original data files.
 
             You can find some of the scripts here: https://github.com/huggingface/datasets/datasets
-            and easily upload yours to share them using the CLI ``datasets-cli``.
+            and easily upload yours to share them using the CLI ``huggingface-cli``.
+            You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
         2. Run the dataset loading script which will:
 
@@ -642,7 +670,7 @@ def load_dataset(
             path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+                - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
         data_files (Optional ``str``): defining the data_files of the dataset configuration
@@ -658,9 +686,13 @@ def load_dataset(
         ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
         keep_in_memory (bool, default=False): Whether to copy the data in-memory.
         save_infos (bool): Save the dataset information (checksums/size/splits/...)
-        script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
-            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
-            your local version of the lib might cause compatibility issues.
+        script_version (Optional ``Union[str, datasets.Version]``): Version of the dataset script to load:
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
+            You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+            - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+            You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from ~/.huggingface.
         **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``datasets.BuilderConfig`` and used in the ``datasets.DatasetBuilder``.
 
     Returns:
@@ -671,9 +703,20 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(
-        path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=True
+    module_path, hash, resolved_file_path = prepare_module(
+        path,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        dataset=True,
+        return_resolved_file_path=True,
+        use_auth_token=use_auth_token,
     )
+    # Set the base path for downloads as the parent of the script location
+    if resolved_file_path is not None:
+        base_path = url_or_path_parent(resolved_file_path)
+    else:
+        base_path = None
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
@@ -699,6 +742,8 @@ def load_dataset(
         download_mode=download_mode,
         ignore_verifications=ignore_verifications,
         try_from_hf_gcs=try_from_hf_gcs,
+        base_path=base_path,
+        use_auth_token=use_auth_token,
     )
 
     # Build dataset for splits

@@ -90,6 +90,20 @@ class DummyBuilderWithDefaultConfig(DummyBuilderWithMultipleConfigs):
     DEFAULT_CONFIG_NAME = "a"
 
 
+class DummyBuilderWithDownload(DummyBuilder):
+    def __init__(self, *args, rel_path=None, abs_path=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._rel_path = rel_path
+        self._abs_path = abs_path
+
+    def _split_generators(self, dl_manager):
+        if self._rel_path is not None:
+            assert os.path.exists(dl_manager.download(self._rel_path)), "dl_manager must support relative paths"
+        if self._abs_path is not None:
+            assert os.path.exists(dl_manager.download(self._abs_path)), "dl_manager must support absolute paths"
+        return [SplitGenerator(name=Split.TRAIN)]
+
+
 class BuilderTest(TestCase):
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -102,6 +116,43 @@ class BuilderTest(TestCase):
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+            )
+
+    def test_download_and_prepare_with_base_path(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            rel_path = "dummy1.data"
+            abs_path = os.path.join(tmp_dir, "dummy2.data")
+            # test relative path is missing
+            dummy_builder = DummyBuilderWithDownload(cache_dir=tmp_dir, name="dummy", rel_path=rel_path)
+            with self.assertRaises(FileNotFoundError):
+                dummy_builder.download_and_prepare(
+                    try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD, base_path=tmp_dir
+                )
+            # test absolute path is missing
+            dummy_builder = DummyBuilderWithDownload(cache_dir=tmp_dir, name="dummy", abs_path=abs_path)
+            with self.assertRaises(FileNotFoundError):
+                dummy_builder.download_and_prepare(
+                    try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD, base_path=tmp_dir
+                )
+            # test that they are both properly loaded when they exist
+            open(os.path.join(tmp_dir, rel_path), "w")
+            open(abs_path, "w")
+            dummy_builder = DummyBuilderWithDownload(
+                cache_dir=tmp_dir, name="dummy", rel_path=rel_path, abs_path=abs_path
+            )
+            dummy_builder.download_and_prepare(
+                try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD, base_path=tmp_dir
+            )
+            self.assertTrue(
+                os.path.exists(
+                    os.path.join(
+                        tmp_dir,
+                        "dummy_builder_with_download",
+                        "dummy",
+                        "0.0.0",
+                        "dummy_builder_with_download-train.arrow",
+                    )
+                )
             )
 
     def test_as_dataset_with_post_process(self):
