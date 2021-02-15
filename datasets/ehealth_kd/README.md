@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -271,3 +272,6 @@ In addition, to cite the eHealth-KD challenge you can use the following prelimin
   year      = {2020},
 }
 ```
+### Contributions
+
+Thanks to [@mariagrandury](https://github.com/mariagrandury) for adding this dataset.

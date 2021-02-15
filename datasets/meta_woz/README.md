@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -223,3 +224,7 @@ url = {https://www.microsoft.com/en-us/research/publication/fast-domain-adaptati
 -hybrid-generative-retrieval-transformer/},
 }
 ```
+
+### Contributions
+
+Thanks to [@pacman100](https://github.com/pacman100) for adding this dataset.

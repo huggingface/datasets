@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -160,3 +161,7 @@ The organization details of PolEval is present in this [link](http://2019.poleva
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@vrindaprabhu](https://github.com/vrindaprabhu) for adding this dataset.

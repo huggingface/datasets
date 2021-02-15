@@ -232,7 +232,7 @@ Here is how we can apply the right format to our dataset using :func:`datasets.D
     >>> ## TENSORFLOW CODE
     >>> import tensorflow as tf
     >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
-    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.max_len]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
+    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
     >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["labels"])).batch(32)
     >>> next(iter(tfdataset))
     ({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=

@@ -49,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -172,3 +173,7 @@ The dataset curator is [sayalikulkarni](https://github.com/google-research-datas
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }
+
+### Contributions
+
+Thanks to [@Karthik-Bhaskar](https://github.com/Karthik-Bhaskar) for adding this dataset.

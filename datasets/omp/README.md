@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -222,3 +223,7 @@ This data set is licensed under a Creative Commons Attribution-NonCommercial-Sha
   url       = {http://www.lrec-conf.org/proceedings/lrec2018/summaries/8885.html},
 }
 ```
+
+### Contributions
+
+Thanks to [@aseifert](https://github.com/aseifert) for adding this dataset.

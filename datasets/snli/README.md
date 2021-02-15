@@ -1,19 +1,23 @@
 ---
-language: 
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
 - en
-task:
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|other-flicker-30k
+- extended|other-visual-genome
+task_categories:
 - text-classification
-purpose:
-- NLI
-size:
-- ">100k"
-language producers:
-- crowdsourced
-annotation:
-- crowdsourced
-tags:
-- extended-from-other-datasets
-license: "CC BY-SA 4.0"
+task_ids:
+- natural-language-inference
 ---
 # Dataset Card for SNLI
 
@@ -105,7 +109,7 @@ Feature | Mean Token Count
 Premise | 14.1
 Hypothesis | 8.3
 
-In the Hugging Face distribution of the dataset, the _label_ has 4 possible values, _0_, _1_, _2_, _-_.  which correspond to _entailment_, _neutral_, _contradiction_, and _no label_ respectively. The dataset was developed so that the first three values would be evenly distributed across the splits. See the Annotation Process section for details on _no label_.
+In the Hugging Face distribution of the dataset, the _label_ has 4 possible values, _0_, _1_, _2_, _-1_.  which correspond to _entailment_, _neutral_, _contradiction_, and _no label_ respectively. The dataset was developed so that the first three values would be evenly distributed across the splits. See the Annotation Process section for details on _no label_.
 
 ### Span indices
 
@@ -140,3 +144,7 @@ The language reflects the content of the photos collected from Flickr, as descri
 
 ## Licensing information
 The Stanford Natural Language Inference Corpus is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
+
+### Contributions
+
+Thanks to [@mariamabarham](https://github.com/mariamabarham), [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.

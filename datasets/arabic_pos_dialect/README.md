@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - structure-prediction
 task_ids:
-- structure-prediction-other-pos-tagging
+- part-of-speech-tagging
 ---
 
 # Dataset Card for Arabic POS Dialect
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -205,3 +206,7 @@ Kareem Darwish, Hamdy Mubarak, Ahmed Abdelali, Mohamed Eldesouki, Younes Samih, 
   language = {english}
   }
 ```
+
+### Contributions
+
+Thanks to [@mcmillanmajora](https://github.com/mcmillanmajora) for adding this dataset.

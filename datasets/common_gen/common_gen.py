@@ -10,12 +10,23 @@ import datasets
 random.seed(42)  # This is important, to ensure the same order for concept sets as the official script.
 
 _CITATION = """\
-@article{lin2019comgen,
-     author = {Bill Yuchen Lin and Ming Shen and Wangchunshu Zhou and Pei Zhou and Chandra Bhagavatula and Yejin Choi and Xiang Ren},
-     title = {CommonGen: A Constrained Text Generation Challenge for Generative Commonsense Reasoning},
-     journal = {CoRR},
-     volume = {abs/1911.03705},
-     year = {2019}
+@inproceedings{lin-etal-2020-commongen,
+    title = "{C}ommon{G}en: A Constrained Text Generation Challenge for Generative Commonsense Reasoning",
+    author = "Lin, Bill Yuchen  and
+      Zhou, Wangchunshu  and
+      Shen, Ming  and
+      Zhou, Pei  and
+      Bhagavatula, Chandra  and
+      Choi, Yejin  and
+      Ren, Xiang",
+    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2020",
+    month = nov,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.findings-emnlp.165",
+    doi = "10.18653/v1/2020.findings-emnlp.165",
+    pages = "1823--1840"
 }
 """
 

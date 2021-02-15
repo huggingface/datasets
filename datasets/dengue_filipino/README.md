@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -155,3 +156,7 @@ Sample data:
     pages={2-7},
     doi={10.1109/AGENTS.2018.8459963}}
   }
+
+### Contributions
+
+Thanks to [@anaerobeth](https://github.com/anaerobeth) for adding this dataset.

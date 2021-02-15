@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 - **Repository:** [Medical questions pairs repository](https://github.com/curai/medical-question-pair-dataset)
@@ -159,3 +160,7 @@ The first instruction generates a positive question pair (similar) and the secon
       primaryClass={cs.IR}
 }
 ```
+
+### Contributions
+
+Thanks to [@tuner007](https://github.com/tuner007) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -196,3 +197,7 @@ Dongyeop Kang, Waleed Ammar, Bhavana Dalvi Mishra, Madeleine van Zuylen, Sebasti
   url = {https://arxiv.org/abs/1804.09635},
   year = {2018}
 }
+
+### Contributions
+
+Thanks to [@vinaykudari](https://github.com/vinaykudari) for adding this dataset.

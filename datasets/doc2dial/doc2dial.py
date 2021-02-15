@@ -312,5 +312,4 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         doc["doc_text"],
                                     ),
                                     "domain": domain,
-                                }
                                 yield id_, qa

@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -99,7 +100,7 @@ The POS tags are ["NN", "VVINF", "ADJX", "ADV"] -> ["noun", "verb", "adjective",
 
 ### Data Splits
 
-[Needs More Information]
+ train: 1,650 negative and 1,818 positive words
 
 ## Dataset Creation
 
@@ -162,3 +163,6 @@ booktitle = {Proceedings of the 7th International Language Resources and Evaluat
 author = {Remus, R. and Quasthoff, U. and Heyer, G.},
 year = {2010}
 }
+### Contributions
+
+Thanks to [@harshalmittal4](https://github.com/harshalmittal4) for adding this dataset.

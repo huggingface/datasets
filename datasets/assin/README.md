@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -76,8 +77,8 @@ Finally, the manual annotation of pairs of sentences was performed by human anno
 selected to annotate each pair of sentences, which is done in two steps: (i) assigning a semantic similarity label (a score between 1 and 5, 
 from unrelated to very similar); and (ii) providing an entailment label (one sentence entails the other, sentences are paraphrases, 
 or no relation). Sentence pairs where at least three annotators do not agree on the entailment label were considered controversial 
-and thus discarded from the gold standard annotations. The full dataset has 10,000 sentence pairs, half of which in Brazilian Portuguese 
-and half in European Portuguese. Either language variant has 2,500 pairs for training, 500 for validation and 2,000 for testing.
+and thus discarded from the gold standard annotations. The full dataset has 10,000 sentence pairs, half of which in Brazilian Portuguese (ptbr) 
+and half in European Portuguese (ptpt). Either language variant has 2,500 pairs for training, 500 for validation and 2,000 for testing.
 
 ### Supported Tasks and Leaderboards
 
@@ -91,7 +92,17 @@ The language supported is Portuguese.
 
 ### Data Instances
 
-[More Information Needed]
+An example from the ASSIN dataset looks as follows:
+
+```
+{
+  "entailment_judgment": 0,
+  "hypothesis": "André Gomes entra em campo quatro meses depois de uma lesão na perna esquerda o ter afastado dos relvados.",
+  "premise": "Relembre-se que o atleta estava afastado dos relvados desde maio, altura em que contraiu uma lesão na perna esquerda.",
+  "relatedness_score": 3.5,
+  "sentence_pair_id": 1
+}
+```
 
 ### Data Fields
 
@@ -103,7 +114,13 @@ The language supported is Portuguese.
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into train, validation and test set. The split sizes are as follow:
+
+|         | Train  | Val   | Test |
+| -----   | ------ | ----- | ---- |
+| full    | 5000   | 1000  | 4000 |
+| ptbr    | 2500   | 500   | 2000 |
+| ptpt    | 2500   | 500   | 2000 |
 
 ## Dataset Creation
 
@@ -161,6 +178,7 @@ The language supported is Portuguese.
 
 ### Citation Information
 
+```
 @inproceedings{fonseca2016assin,
   title={ASSIN: Avaliacao de similaridade semantica e inferencia textual},
   author={Fonseca, E and Santos, L and Criscuolo, Marcelo and Aluisio, S},
@@ -168,3 +186,8 @@ The language supported is Portuguese.
   pages={13--15},
   year={2016}
 }
+```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.

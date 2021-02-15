@@ -1,8 +1,9 @@
 import os
 import unittest
+from contextlib import contextmanager
 from distutils.util import strtobool
 
-from datasets.utils.file_utils import _tf_available, _torch_available
+from datasets import config
 
 
 def parse_flag_from_env(key, default=False):
@@ -24,6 +25,7 @@ def parse_flag_from_env(key, default=False):
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
 _run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=False)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
+_run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
 
 
 def require_beam(test_case):
@@ -33,7 +35,7 @@ def require_beam(test_case):
     These tests are skipped when Apache Beam isn't installed.
 
     """
-    if not _torch_available:
+    if not config.TORCH_AVAILABLE:
         test_case = unittest.skip("test requires PyTorch")(test_case)
     return test_case
 
@@ -87,7 +89,7 @@ def require_torch(test_case):
     These tests are skipped when PyTorch isn't installed.
 
     """
-    if not _torch_available:
+    if not config.TORCH_AVAILABLE:
         test_case = unittest.skip("test requires PyTorch")(test_case)
     return test_case
 
@@ -99,7 +101,7 @@ def require_tf(test_case):
     These tests are skipped when TensorFlow isn't installed.
 
     """
-    if not _tf_available:
+    if not config.TF_AVAILABLE:
         test_case = unittest.skip("test requires TensorFlow")(test_case)
     return test_case
 
@@ -144,6 +146,18 @@ def local(test_case):
     return test_case
 
 
+def packaged(test_case):
+    """
+    Decorator marking a test as packaged
+
+    Packaged tests are run by default. Set the RUN_PACKAGED environment variable
+    to a falsy value to not run them.
+    """
+    if not _run_packaged_tests or _run_packaged_tests == 0:
+        test_case = unittest.skip("test is packaged")(test_case)
+    return test_case
+
+
 def remote(test_case):
     """
     Decorator marking a test as one that relies on github or aws.
@@ -166,3 +180,21 @@ def for_all_test_methods(*decorators):
         return cls
 
     return decorate
+
+
+@contextmanager
+def offline(exception_cls=None):
+    """inspired from https://stackoverflow.com/a/18601897"""
+    import socket
+
+    online_socket = socket.socket
+
+    def guard(*args, **kwargs):
+        error = exception_cls if exception_cls is not None else socket.error
+        raise error("Offline mode is enabled.")
+
+    try:
+        socket.socket = guard
+        yield
+    finally:
+        socket.socket = online_socket

@@ -43,12 +43,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/mpsilfve/finer-data)
+- **Repository:** [Github](https://github.com/mpsilfve/finer-data)
+- **Paper:** [Arxiv](https://arxiv.org/abs/1908.04212)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -150,3 +151,7 @@ IOB2 labeling scheme is used.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@stefan-it](https://github.com/stefan-it) for adding this dataset.

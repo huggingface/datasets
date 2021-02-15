@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -62,22 +63,34 @@ An annotated dataset for hate speech and offensive language detection on tweets.
 [More Information Needed]
 
 ### Languages
-
-[More Information Needed]
+English (`en`)
 
 ## Dataset Structure
 
 ### Data Instances
-
-[More Information Needed]
+```
+{
+"count": 3,
+ "hate_speech_annotation": 0,
+ "offensive_language_annotation": 0,
+ "neither_annotation": 3,
+ "label": 2,  # "neither"
+ "tweet": "!!! RT @mayasolovely: As a woman you shouldn't complain about cleaning up your house. &amp; as a man you should always take the trash out...")
+}
+```
 
 ### Data Fields
-
-[More Information Needed]
+```
+count: (Integer) number of users who coded each tweet (min is 3, sometimes more users coded a tweet when judgments were determined to be unreliable,
+hate_speech_annotation: (Integer) number of users who judged the tweet to be hate speech,
+offensive_language_annotation: (Integer) number of users who judged the tweet to be offensive,
+neither_annotation: (Integer) number of users who judged the tweet to be neither offensive nor non-offensive,
+label: (Class Label) class label for majority of CF users (0: 'hate-speech', 1: 'offensive-language' or 2: 'neither'),
+tweet: (string)
+```
 
 ### Data Splits
-
-[More Information Needed]
+This dataset is not splitted, only the train split is available.
 
 ## Dataset Creation
 
@@ -106,8 +119,8 @@ An annotated dataset for hate speech and offensive language detection on tweets.
 [More Information Needed]
 
 ### Personal and Sensitive Information
+Usernames are not anonymized in the dataset.
 
-[More Information Needed]
 
 ## Considerations for Using the Data
 
@@ -130,9 +143,19 @@ An annotated dataset for hate speech and offensive language detection on tweets.
 [More Information Needed]
 
 ### Licensing Information
-
-[More Information Needed]
+MIT License
 
 ### Citation Information
+@inproceedings{hateoffensive,
+  title = {Automated Hate Speech Detection and the Problem of Offensive Language},
+  author = {Davidson, Thomas and Warmsley, Dana and Macy, Michael and Weber, Ingmar}, 
+  booktitle = {Proceedings of the 11th International AAAI Conference on Web and Social Media},
+  series = {ICWSM '17},
+  year = {2017},
+  location = {Montreal, Canada},
+  pages = {512-515}
+  }
 
-[More Information Needed]
+### Contributions
+
+Thanks to [@hugoabonizio](https://github.com/hugoabonizio) for adding this dataset.

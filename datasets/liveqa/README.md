@@ -43,14 +43,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Github](https://github.com/PKU-TANGENT/LiveQA)
+- **Repository:** [Github](https://github.com/PKU-TANGENT/LiveQA)
+- **Paper:** [Liu et al., 2020](https://www.aclweb.org/anthology/2020.ccl-1.98.pdf)
+- **Leaderboard:** N/A
+- **Point of Contact:** Qianying Liu
 
 ### Dataset Summary
 The LiveQA dataset is a Chinese question-answering resource constructed from playby-play live broadcasts. It contains 117k multiple-choice questions written by human commentators for over 1,670 NBA games, which are collected from the Chinese Hupu website.
@@ -186,3 +187,7 @@ This resource is developed by [Liu et al., 2020](https://www.aclweb.org/antholog
     pages = "1057--1067"
 }
 ```
+
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

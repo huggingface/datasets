@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -148,3 +149,7 @@ None
     publisher={American Sign Language Linguistic Research Project (Distributed on CD-ROM~…}
 }
 ```
+
+### Contributions
+
+Thanks to [@AmitMY](https://github.com/AmitMY) for adding this dataset.

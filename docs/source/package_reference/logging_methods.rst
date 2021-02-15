@@ -49,10 +49,6 @@ Functions
 
 .. autofunction:: datasets.logging.set_verbosity_error
 
-.. autofunction:: datasets.logging.disable_default_handler
-
-.. autofunction:: datasets.logging.enable_default_handler
-
 .. autofunction:: datasets.logging.disable_propagation
 
 .. autofunction:: datasets.logging.enable_propagation

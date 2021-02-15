@@ -43,11 +43,12 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/ljos/navnkjenner)
+- **Repository:** [Github](https://github.com/ljos/navnkjenner)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -135,3 +136,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jplu](https://github.com/jplu) for adding this dataset.
