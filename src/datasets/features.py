@@ -17,6 +17,8 @@
 """ This class handle features definition in datasets and some utilities to display table type."""
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
+from functools import reduce
+from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -777,6 +779,16 @@ def generate_from_arrow_type(pa_type: pa.DataType):
     else:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
+def numpy_to_pyarrow_listarray(arr: np.ndarray):
+    """Build a PyArrow ListArray from a multidimensional NumPy array.
+    """
+    values = pa.array(arr.flatten())
+    for i in range(arr.ndim - 1):
+        n_offsets = reduce(mul, arr.shape[:arr.ndim - i - 1], 1)
+        step_offsets = arr.shape[arr.ndim - i - 1]
+        offsets = pa.array(np.arange(n_offsets + 1) * step_offsets, type=pa.int32())
+        values = pa.ListArray.from_arrays(offsets, values)
+    return values
 
 class Features(dict):
     @property

@@ -17,6 +17,7 @@ import errno
 import json
 import os
 import socket
+
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
@@ -25,7 +26,7 @@ import pyarrow as pa
 from tqdm.auto import tqdm
 
 from . import config
-from .features import Features, _ArrayXDExtensionType
+from .features import Features, _ArrayXDExtensionType, numpy_to_pyarrow_listarray
 from .info import DatasetInfo
 from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
@@ -92,15 +93,17 @@ class TypedSequence:
 
         if type is not None:  # user explicitly passed the feature
             pass
-        elif isinstance(self.data, np.ndarray):  # maintain dtype of numpy array passed by user
-            type = pa.from_numpy_dtype(self.data.dtype)
-        else:
+        elif isinstance(self.data, np.ndarray):
+            value = numpy_to_pyarrow_listarray(self.data)
+        elif type is None and self.try_type:
             type = self.try_type
             trying_type = True
 
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+            elif isinstance(self.data, np.ndarray):
+                out = value
             else:
                 out = pa.array(self.data, type=type)
             if trying_type and out[0].as_py() != self.data[0]:
