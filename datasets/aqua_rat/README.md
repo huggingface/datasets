@@ -26,7 +26,6 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  
   - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
@@ -50,11 +49,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/deepmind/AQuA
-- **Repository:** https://github.com/deepmind/AQuA
-- **Paper:** https://arxiv.org/pdf/1705.04146.pdf
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [https://github.com/deepmind/AQuA](https://github.com/deepmind/AQuA)
+- **Repository:** [https://github.com/deepmind/AQuA](https://github.com/deepmind/AQuA)
+- **Paper:** [https://arxiv.org/pdf/1705.04146.pdf](https://arxiv.org/pdf/1705.04146.pdf)
 
 ### Dataset Summary
 
