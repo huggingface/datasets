@@ -13,6 +13,7 @@ import requests
 
 import datasets
 from datasets import load_dataset
+from datasets.utils.remote_utils import RemoteManager
 
 from .utils import offline
 
@@ -207,14 +208,14 @@ def test_loading_from_the_datasets_hub():
 
 
 def test_loading_from_the_datasets_hub_with_use_auth_token():
-    from datasets.utils.file_utils import http_head
+    def assert_auth(original):
+        def wrapped_method(url, *args, headers, **kwargs):
+            assert headers["authorization"] == "Bearer foo"
+            return original(url, *args, headers=headers, **kwargs)
 
-    def assert_auth(url, *args, headers, **kwargs):
-        assert headers["authorization"] == "Bearer foo"
-        return http_head(url, *args, headers=headers, **kwargs)
+        return wrapped_method
 
-    with patch("datasets.utils.file_utils.http_head") as mock_head:
-        mock_head.side_effect = assert_auth
+    with patch.object(RemoteManager, "http_head", wraps=assert_auth(RemoteManager.http_head)) as mock_head:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises(ConnectionError):
