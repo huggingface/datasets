@@ -1670,7 +1670,9 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
 
 def test_dataset_add_item():
     item = {"input_ids": np.array([4, 4, 2])}
-    ds = Dataset(pa.Table.from_pydict({}))
+    features = Features({"input_ids": Value("int64")})  #, "col_2": Value("string")})
+    info = DatasetInfo(features=features)
+    ds = Dataset(pa.Table.from_pydict({}), info=info)
     ds.add_item(item)
     assert ds.data.shape == (1, 1)
     assert ds.data.column_names == ["input_ids"]

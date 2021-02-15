@@ -2370,6 +2370,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def add_item(self, item):
         table = pa.Table.from_pydict({k: [v] for k, v in item.items()})
+        # get the pyarrow type corresponding to the features
+        type = self.features.type
+        # build the schema of the table
+        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
+        # cast the table
+        table = table.cast(schema)
+        # Concatenae tables
         self._data = pa.concat_tables([self._data, table]) if self._data.shape != (0, 0) else table
 
 
