@@ -33,7 +33,7 @@ from .file_utils import (
 )
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
-from .py_utils import map_nested, size_str
+from .py_utils import NestedDataStructure, map_nested, size_str
 
 
 logger = get_logger(__name__)
