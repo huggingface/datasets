@@ -142,7 +142,7 @@ def head_hf_s3(
     identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
 ) -> Union[requests.Response, Exception]:
     try:
-        return http_head(
+        return RemoteManager.http_head(
             hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
             max_retries=max_retries,
         )
@@ -434,24 +434,6 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
     progress.close()
 
 
-def http_head(
-    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
-) -> requests.Response:
-    headers = copy.deepcopy(headers) or {}
-    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
-    response = RemoteManager.request_with_retry(
-        verb="HEAD",
-        url=url,
-        proxies=proxies,
-        headers=headers,
-        cookies=cookies,
-        allow_redirects=allow_redirects,
-        timeout=timeout,
-        max_retries=max_retries,
-    )
-    return response
-
-
 def get_from_cache(
     url,
     cache_dir=None,
@@ -509,7 +491,7 @@ def get_from_cache(
         if url.startswith("ftp://"):
             connected = ftp_head(url)
         try:
-            response = http_head(
+            response = RemoteManager.http_head(
                 url,
                 allow_redirects=True,
                 proxies=proxies,
