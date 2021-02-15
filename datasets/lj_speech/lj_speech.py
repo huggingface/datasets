@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Librispeech automatic speech recognition dataset."""
+"""LJ automatic speech recognition dataset."""
 
 from __future__ import absolute_import, division, print_function
 
