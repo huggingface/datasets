@@ -629,17 +629,14 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
+      @property
+    def manual_download_instructions(self):
+        return """\
+    You need to go to https://commonvoice.mozilla.org/en/datasets,
+    and manually download the dataset as a .tar file. Once it is completed,
+    a folder will be made containing the files, validated.tsv, train.tsv, test.tsv, reported.tsv, other.tsv, invalidated.tsv, dev.tsv
+    and the folder clips containing audiofiles sampled at 48khz. Each clip is around 3-4 seconds in duration with a size of around 20-50 khz"""
 
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
         datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
