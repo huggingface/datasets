@@ -21,6 +21,7 @@ import json
 import os
 
 import datasets
+import numpy as np
 
 
 _CITATION = """\
@@ -57,10 +58,11 @@ class Sst(datasets.GeneratorBasedBuilder):
 
         features = datasets.Features(
             {
-                "phrase": datasets.Value("string"),
-                "label": datasets.Value("float"),
-                "tokens": datasets.Value("string"),
-                "tree": datasets.Value("string"),
+                'phrase': datasets.Value("string"),
+                'label': datasets.Value("float"),
+                'label_bin': datasets.Value('int32'),
+                'tokens': datasets.Value("string"),
+                'tree': datasets.Value("string"),
             }
         )
 
@@ -130,6 +132,8 @@ class Sst(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         # Create a dictionary with all sentences, sub-sentences and their labels
         sst = {}
+        bins = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
         with open(phrases_path) as f, open(labels_path) as g:
             phrase_reader = csv.reader(f, delimiter='|', quoting=csv.QUOTE_NONE)
             for row in phrase_reader:
@@ -148,6 +152,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 yield id_, {
                     'phrase': phrase,
                     'label': label,
+                    'label_bin': np.digitize(label, bins=bins, right=True),
                     'tokens': None,
                     'tree' : None
                 }
@@ -176,6 +181,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                         yield id_, {
                             'phrase': row['sentence'],
                             'label' : sst[row['sentence']],
+                            'label_bin': np.digitize(sst[row['sentence']], bins=bins, right=True),
                             'tokens': trees[int(row['sentence_index'])]['tokens'],
                             'tree': trees[int(row['sentence_index'])]['tree'],
                         }
