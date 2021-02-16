@@ -228,7 +228,6 @@ elsewhere, add these files using the following steps. Let's say that the files y
     cp /somewhere/data/*.json .
     git lfs track *.json
     git add .gitattributes
-    git commit -m "track json files using Git LFS"
     git add *.json
     git commit -m "add json files"
 
