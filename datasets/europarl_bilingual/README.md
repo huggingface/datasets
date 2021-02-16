@@ -1,4 +1,43 @@
-[Needs More Information]
+---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- bg
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- fi
+- fr
+- hu
+- it
+- lt
+- lv
+- nl
+- pl
+- pt
+- ro
+- sk
+- sl
+- sv
+licenses:
+- unknown
+multilinguality:
+- translation
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- other
+task_ids:
+- machine-translation
+---
 
 # Dataset Card for europarl-bilingual
 
@@ -92,11 +131,11 @@ Every pair of the following languages is available:
 
 ### Data Fields
 
-[Needs More Information]
+- `translation`: a dictionary containing two strings paired with a key indicating the corresponding language.
 
 ### Data Splits
 
-[Needs More Information]
+- `train`: only train split is provided. Authors did not provide a separation of examples in `train`, `dev` and `test`.
 
 ## Dataset Creation
 
