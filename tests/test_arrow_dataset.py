@@ -1222,6 +1222,35 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(i, len(formatted_dset) - 1)
             del dset, formatted_dset
 
+    def test_to_csv(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # File path argument
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            file_path = os.path.join(tmp_dir, "test_path.csv")
+            bytes_written = dset.to_csv(path_or_buf=file_path)
+
+            self.assertTrue(os.path.isfile(file_path))
+            self.assertEqual(bytes_written, os.path.getsize(file_path))
+            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+
+            self.assertEqual(csv_dset.shape, dset.shape)
+            self.assertEqual(csv_dset.columns, dset.column_names)
+            del dset
+
+            # File buffer argument
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            file_path = os.path.join(tmp_dir, "test_buffer.csv")
+            with open(file_path, "wb+") as buffer:
+                bytes_written = dset.to_csv(path_or_buf=buffer)
+
+            self.assertTrue(os.path.isfile(file_path))
+            self.assertEqual(bytes_written, os.path.getsize(file_path))
+            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+
+            self.assertEqual(csv_dset.shape, dset.shape)
+            self.assertEqual(csv_dset.columns, dset.column_names)
+            del dset
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)

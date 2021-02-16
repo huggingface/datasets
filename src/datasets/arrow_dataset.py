@@ -29,7 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -68,6 +68,8 @@ if int(pa.__version__.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+PathLike = Union[str, bytes, os.PathLike]
 
 
 class DatasetInfoMixin(object):
@@ -2175,6 +2177,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
+
+    def _write_csv(self, file_obj: BinaryIO, batch_size: int, **to_csv_kwargs) -> int:
+        """
+        Writes the pyarrow table as CSV to a binary file handle.
+        Caller is responsible for opening and closing the handle.
+        """
+        written = 0
+        to_csv_kwargs.pop("header", None)
+        to_csv_kwargs.pop("path_or_buf", None)
+        to_csv_kwargs.pop("encoding", None)
+
+        for offset in range(0, self._data.num_rows, batch_size):
+            batch = self._data.slice(offset, offset + batch_size)
+            csv_str = batch.to_pandas().to_csv(
+                path_or_buf=None, header=(offset == 0), encoding="utf-8", **to_csv_kwargs
+            )
+            written += file_obj.write(csv_str.encode("utf-8"))
+        return written
+
+    def to_csv(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **to_csv_kwargs,
+    ):
+        """Exports the dataset to csv
+
+        Args:
+            `path_or_buf` (:obj:`PathLike` or :obj:`FileOrBuffer): Either a path to a file or a BinaryIO.
+            `batch_size` (`Optional[int]`): Size of the batch to load in memory and write at once. Defaults to
+                :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            `**to_csv_kwargs`: Parameters to pass to pandas's :func:`DataFrame.to_csv`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+
+        if isinstance(path_or_buf, (str, bytes, os.PathLike)):
+            with open(path_or_buf, "wb+") as buffer:
+                written = self._write_csv(file_obj=buffer, batch_size=batch_size, **to_csv_kwargs)
+        else:
+            written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
+        return written
 
     def add_faiss_index(
         self,
