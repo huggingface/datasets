@@ -29,7 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -2181,6 +2181,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
+
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = True) -> Union[dict, Iterator[dict]]:
+        """Returns or yields the dataset as a Python dict
+
+        Args:
+            batched (`bool`): Whether to yield the dataset as batches of size :param:`batch_size` or to
+                return the full dataset at once.
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if batched is `True`.
+                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `dict` or `Iterator[dict]`
+        """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        if not batched:
+            return self._data.to_pydict()
+        else:
+            return (
+                self._data.slice(offset, offset + batch_size).to_pydict()
+                for offset in range(0, self._data.num_rows, batch_size)
+            )
+
+    def to_pandas(
+        self, batch_size: Optional[int] = None, batched: bool = True
+    ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
+        """Returns or yields the dataset to :class:`pandas.DataFrame` object(s).
+
+        Args:
+            batched (`bool`): Whether to yield the dataset as batches of size :param:`batch_size` or to
+                return the full dataset at once.
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if batched is `True`.
+                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+        """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        if not batched:
+            return self._data.to_pandas()
+        else:
+            return (
+                self._data.slice(offset, offset + batch_size).to_pandas()
+                for offset in range(0, self._data.num_rows, batch_size)
+            )
 
     def add_faiss_index(
         self,
