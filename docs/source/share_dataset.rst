@@ -220,7 +220,8 @@ Other files can safely be deleted.
 Uploading your files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once the repo is cloned, add the files containing the data.
+Once the repo is cloned, If you need to add data files, instead of relying on the data to be hosted
+elsewhere, add these files using the following steps. Let's say that the files you're adding are ``*.json`` files, then:
 
 .. code-block:: bash
 
