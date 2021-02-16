@@ -213,10 +213,15 @@ class DatasetDict(dict):
         Args:
             type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
-                None means __getitem__ returns all columns (default)
+            columns (Optional ``List[str]``): columns to format in the output.
+                None means __getitem__ returns all columns (default).
             output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
+        It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
+        gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
+
+            new formatted columns = (all columns - previously unformatted columns)
         """
         self._check_values_type()
         for dataset in self.values():
