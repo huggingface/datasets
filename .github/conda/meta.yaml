@@ -23,6 +23,9 @@ requirements:
     - tqdm >=4.27,<4.50.0
     - dataclasses
     - multiprocess
+    - importlib_metadata
+    - fsspec
+    - huggingface-hub
   run:
     - python
     - pip
@@ -35,6 +38,9 @@ requirements:
     - tqdm >=4.27,<4.50.0
     - dataclasses
     - multiprocess
+    - importlib_metadata
+    - fsspec
+    - huggingface-hub
 
 test:
   imports:
