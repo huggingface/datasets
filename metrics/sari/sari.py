@@ -274,12 +274,11 @@ class Sari(datasets.Metric):
         )
 
     def _compute(self, sources, predictions, references):
-        srcs = [normalize(sent) for sent in sources]
-        preds = [normalize(sent) for sent in predictions]
-        refs = [[normalize(sent) for sent in ref_sents] for ref_sents in references]
 
-        sari_score = []
-        for i in range(len(srcs)):
-            sari_score.append(SARIsent(srcs[i], preds[i], refs[i]))
-
-        return {"sari": 100.0 * (sum(sari_score) / len(sari_score))}
+        if not (len(sources) == len(predictions) == len(references)):
+            raise ValueError("Sources length must match predictions and references lengths.")
+        sari_score = 0
+        for src, pred, refs in zip(sources, predictions, references):
+            sari_score += SARIsent(normalize(src), normalize(pred), [normalize(sent) for sent in refs])
+        sari_score = sari_score / len(predictions)
+        return {"sari": 100 * sari_score}
