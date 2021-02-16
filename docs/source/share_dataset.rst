@@ -228,8 +228,8 @@ elsewhere, add these files using the following steps. Let's say that the files y
     cp /somewhere/data/*.json .
     git lfs track *.json
     git add .gitattributes
-    git commit -m "track json files"
     git add *.json
+    git commit -m "add json files"
 
 It's crucial that ``git lfs track`` gets run on the large data files before ``git add``. If later during ``git push`` you get the error:
 
