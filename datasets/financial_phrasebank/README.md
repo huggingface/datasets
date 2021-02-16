@@ -1,4 +1,3 @@
-
 ---
 annotations_creators:
 - expert-generated
@@ -83,6 +82,9 @@ English
 - label: a label corresponding to the class as a string: 'positive', 'negative' or 'neutral'
 
 ### Data Splits
+There's no train/validation/test split.
+
+However the dataset is available in four possible configurations depending on the percentage of agreement of annotators:
 
 `sentences_50agree`; Number of instances with >=50% annotator agreement: 4846 
 `sentences_66agree`: Number of instances with >=66% annotator agreement: 4217
@@ -181,6 +183,7 @@ License: Creative Commons Attribution 4.0 International License (CC-BY)
 
 ### Citation Information
 
+```
 @article{Malo2014GoodDO,
   title={Good debt or bad debt: Detecting semantic orientations in economic texts},
   author={P. Malo and A. Sinha and P. Korhonen and J. Wallenius and P. Takala},
@@ -188,6 +191,7 @@ License: Creative Commons Attribution 4.0 International License (CC-BY)
   year={2014},
   volume={65}
 }
+```
 
 ### Contributions
 

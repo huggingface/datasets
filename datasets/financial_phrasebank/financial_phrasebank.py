@@ -118,9 +118,9 @@ class FinancialPhraseBank(datasets.GeneratorBasedBuilder):
                     "sentence": datasets.Value("string"),
                     "label": datasets.features.ClassLabel(
                         names=[
-                            "positive",
-                            "neutral",
                             "negative",
+                            "neutral",
+                            "positive",
                         ]
                     ),
                 }
