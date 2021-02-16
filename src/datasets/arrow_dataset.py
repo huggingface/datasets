@@ -38,6 +38,7 @@ import pyarrow as pa
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
+from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects
