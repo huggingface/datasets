@@ -214,30 +214,30 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://oscar-corpus.com](https://oscar-corpus.com)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 OSCAR or **O**pen **S**uper-large **C**rawled [**A**LMAnaCH](https://team.inria.fr/almanach/) co**R**pus is a huge multilingual corpus obtained by language classification and filtering of the [Common Crawl](https://commoncrawl.org/) corpus using the [goclassy](https://github.com/pjox/goclassy) architecture. Data is distributed by language in both original and deduplicated form.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 OSCAR is mainly inteded to pretrain language models and word represantations.
 
-### [Languages](#languages)
+### Languages
 
 All the data is distributed by language, both the original and the deduplicated versions of the data are available. 166 different languages are available. The table in subsection [Data Splits Sample Size](#data-splits-sample-size) provides the language code for each subcorpus as well as the number of words (space separated tokens), lines and sizes for both the original and the deduplicated versions of OSCAR.
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for all the configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 
 <details>
@@ -5471,14 +5471,14 @@ This example was too long and was cropped:
 
 </details>
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all configs.
 
 - `id`: a `int64` feature.
 - `text`: a `string` feature.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 
 <details>
@@ -5657,9 +5657,9 @@ The data fields are the same among all configs.
 
 </details>
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
+### Curation Rationale
 
 OSCAR was constructed new pipeline derived from the [fastText's one](https://github.com/facebookresearch/fastText), called [_goclassy_](https://github.com/pjox/goclassy). Goclassy reuses the [fastText linear classifier](https://fasttext.cc) and the pre-trained fastText model for language recognition, but it completely rewrites and parallelises their pipeline in an asynchronous manner.
 
@@ -5667,7 +5667,7 @@ The order of operations is more or less the same as in the fastText pre-processi
 
 Filtering and cleaning processes at line level are done before feeding each line to the classifier. Lines shorter than 100 UTF-8 characters and lines containing invalid UTF-8 characters are discarted and are not classified. After all files are proccesed the deduplicated versions are constructed and everything is then splitted in shards and compressed.
 
-### [Source Data](#source-data)
+### Source Data
 
 [Common Crawl](https://commoncrawl.org/) is a non-profit foundation which produces and maintains an open repository of web crawled data that is both accessible and analysable. Common Crawl's complete web archive consists of petabytes of data collected over 8 years of web crawling. The repository contains raw web page HTML data (WARC files), metdata extracts (WAT files) and plain text extracts (WET files). The organisation's crawlers has always respected [nofollow](http://microformats.org/wiki/rel-nofollow) and [robots.txt](https://www.robotstxt.org/) policies.
 
@@ -5675,35 +5675,35 @@ Each monthly Common Crawl snapshot is in itself a massive multilingual corpus, w
 
 To construct OSCAR the WET files of Common Crawl were used. These contain the extracted plain texts from the websites mostly converted to UTF-8, as well as headers containing the metatada of each crawled document. Each WET file comes compressed in gzip format and is stored on Amazon Web Services. In the case of OSCAR, the **November 2018** snapshot was used. It surpasses 20TB of uncompressed data and contains more than 50 thousand plain text files where each file consists of the plain text from multiple websites along its metadata header.
 
-### [Annotations](#annotations)
+### Annotations
 
 The dataset does not contain any additional annotations.
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Personal and Sensitive Information
 
 Being constructed from Common Crawl, Personal and sensitive information might be present. This **must** be considered before training deep learning models with OSCAR, specially in the case of text-generation models.
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Social Impact of Dataset
 
 OSCAR is intended to bring more data to a wide variety of lanuages, the aim of the corpus is to make large amounts of data available to lower resource languages in order to facilitate the pre-training of state-of-the-art language modeling architectures.
 
-### [Discussion of Biases](#discussion-of-biases)
+### Discussion of Biases
 
 OSCAR is not properly filtered yet and this can be reflected on the models trained with it. Care is advised specially concerning biases of the resulting models.
 
-### [Other Known Limitations](#other-known-limitations)
+### Other Known Limitations
 
 The [fastText linear classifier](https://fasttext.cc) is limed both in performance and the variety of languages it can recognize, so the quality of some OSCAR sub-corpora might be lower than expected, specially for the lowest-resource langiuages. Some audits have already been done by [third parties](https://arxiv.org/abs/2010.14571).
 
-## [Additional Information](#additional-information)
+## Additional Information
 
-### [Dataset Curators](#dataset-curators)
+### Dataset Curators
 
 The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît Sagot](http://pauillac.inria.fr/~sagot/), and [Laurent Romary](https://cv.archives-ouvertes.fr/laurentromary), during work done at [Inria](https://www.inria.fr/en), particularly at the [ALMAnaCH team](https://team.inria.fr/almanach/).
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
     These data are released under this licensing scheme
     We do not own any of the text from which these data has been extracted.
@@ -5718,7 +5718,7 @@ The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît S
 
     We will comply to legitimate requests by removing the affected sources from the next release of the corpus.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @inproceedings{ortiz-suarez-etal-2020-monolingual,

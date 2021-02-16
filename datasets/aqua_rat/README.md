@@ -94,43 +94,52 @@ en
 
 ### Curation Rationale
 
+[Needs More Information]
 
 ### Source Data
 
-
 #### Initial Data Collection and Normalization
 
+[Needs More Information]
 
 #### Who are the source language producers?
 
+[Needs More Information]
 
 ### Annotations
 
 #### Annotation process
 
+[Needs More Information]
 
 #### Who are the annotators?
 
+[Needs More Information]
 
 ### Personal and Sensitive Information
 
+[Needs More Information]
 
 ## Considerations for Using the Data
 
-
 ### Social Impact of Dataset
+
+[Needs More Information]
 
 ### Discussion of Biases
 
+[Needs More Information]
 
 ### Other Known Limitations
 
+[Needs More Information]
 
 ## Additional Information
 
 
 ### Dataset Curators
 
+[Needs More Information]
 
 ### Licensing Information
 Copyright 2017 Google Inc.

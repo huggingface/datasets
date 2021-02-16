@@ -96,27 +96,45 @@ The data is split into a training, validation and test set. The final split size
 
 ### Curation Rationale
 
+[Needs More Information]
+
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
+[Needs More Information]
+
 #### Who are the source language producers?
+
+[Needs More Information]
 
 ### Annotations
 
 #### Annotation process
 
+[Needs More Information]
+
 #### Who are the annotators?
 
+[Needs More Information]
+
 ### Personal and Sensitive Information
+
+[Needs More Information]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
+[Needs More Information]
+
 ### Discussion of Biases
 
+[Needs More Information]
+
 ### Other Known Limitations
+
+[Needs More Information]
 
 ## Additional Information
 
@@ -125,6 +143,8 @@ The data is split into a training, validation and test set. The final split size
 The machine translated version were put together by @timpal0l
 
 ### Licensing Information
+
+[Needs More Information]
 
 ### Citation Information
 
