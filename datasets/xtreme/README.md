@@ -29,7 +29,7 @@
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/google-research/xtreme	https://www.nyu.edu/projects/bowman/xnli/](https://github.com/google-research/xtreme	https://www.nyu.edu/projects/bowman/xnli/)
+- **Homepage:** [https://github.com/google-research/xtreme](https://github.com/google-research/xtreme)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
