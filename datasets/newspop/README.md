@@ -1,4 +1,3 @@
-
 ---
 annotations_creators:
 - crowdsourced
@@ -17,8 +16,7 @@ source_datasets:
 task_categories:
 - text-scoring
 task_ids:
-- sentiment-scoring
-- other
+- other-social-media-shares-prediction
 ---
 
 # Dataset Card for newspop
@@ -154,6 +152,7 @@ License: Creative Commons Attribution 4.0 International License (CC-BY)
 
 ### Citation Information
 
+```
 @article{Moniz2018MultiSourceSF,
   title={Multi-Source Social Feedback of Online News Feeds},
   author={N. Moniz and L. Torgo},
@@ -161,6 +160,7 @@ License: Creative Commons Attribution 4.0 International License (CC-BY)
   year={2018},
   volume={abs/1801.07055}
 }
+```
 
 ### Contributions
 

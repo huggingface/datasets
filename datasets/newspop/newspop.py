@@ -48,7 +48,7 @@ _URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00432/Data/New
 _VERSION = datasets.Version("1.0.0")
 
 
-class FinancialPhraseBank(datasets.GeneratorBasedBuilder):
+class Newspop(datasets.GeneratorBasedBuilder):
     __doc__
 
     def _info(self):
