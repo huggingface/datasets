@@ -321,7 +321,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         """
         Convert to NumPy Array.
         Note that Pandas expects a 1D array when dtype is set to object.
-        But for other dtypes, the returned shape is same as the one of ``data``.
+        But for other dtypes, the returned shape is the same as the one of ``data``.
 
         More info about pandas 1D requirement for PandasExtensionArray here:
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
