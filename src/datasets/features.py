@@ -15,6 +15,7 @@
 
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
@@ -33,18 +34,60 @@ logger = get_logger(__name__)
 
 
 def string_to_arrow(type_str: str) -> pa.DataType:
-    if type_str not in pa.__dict__:
+    """
+    string_to_arrow takes a string pyarrow dtype and converts it to a pyarrow.DataType.
+
+    In effect, `dt == string_to_arrow(str(dt))`
+
+    This is necessary because the datasets.Value() primitive type is constructed using a string dtype, oftentimes
+
+    Value(dtype=str(pa_type))
+
+    But Features.type (via `get_nested_type()` expects to resolve Features into a pyarrow Schema,
+        which means that each Value() must resolve into its corresponding pyarrow.DataType, which is the purpose
+        of this function.
+    """
+    timestamp_regex = re.compile("^timestamp\[(.*)\]$")
+    timestamp_matches = timestamp_regex.search(type_str)
+    if timestamp_matches:
+        """
+        >>> import pyarrow as pa
+        >>> str(pa.timestamp('us'))
+        'timestamp[us]'
+        >>> str(pa.timestamp('us', tz='America/New_York'))
+        'timestamp[us, tz=America/New_York]'
+        """
+        timestamp_internals = timestamp_matches.group(1)
+        internals_regex = re.compile("^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+:]*)$")
+        internals_matches = internals_regex.search(timestamp_internals)
+        if timestamp_internals in ["s", "ms", "us", "ns"]:
+            return pa.timestamp(timestamp_internals)
+        elif internals_matches:
+            return pa.timestamp(internals_matches.group(1), internals_matches.group(2))
+        else:
+            raise ValueError(
+                f"{type_str} is not a validly formatted string representation of a pyarrow timestamp."
+                f"Examples include timestamp[us] or timestamp[us, tz=America/New_York]"
+                f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html#pyarrow.timestamp"
+            )
+    elif type_str == "double":
+        return pa.float64()
+    elif type_str == "float":
+        return pa.float32()
+    elif type_str == "halffloat":
+        return pa.float16()
+    elif type_str not in pa.__dict__:
         if str(type_str + "_") not in pa.__dict__:
             raise ValueError(
                 f"Neither {type_str} nor {type_str + '_'} seems to be a pyarrow data type. "
                 f"Please make sure to use a correct data type, see: "
                 f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions"
             )
-        arrow_data_type_str = str(type_str + "_")
+        arrow_data_factory_function_name = str(type_str + "_")
     else:
-        arrow_data_type_str = type_str
+        arrow_data_factory_function_name = type_str
 
-    return pa.__dict__[arrow_data_type_str]()
+    return pa.__dict__[arrow_data_factory_function_name]()
 
 
 def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
@@ -129,7 +172,7 @@ def cast_to_python_objects(obj: Any) -> Any:
 class Value:
     """Encapsulate an Arrow datatype for easy serialization."""
 
-    dtype: str
+    dtype: str  # The string representation of a pyarrow datatype: str(pyarrow.DataType)
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
@@ -207,7 +250,6 @@ class Array5D(_ArrayXD):
 
 
 class _ArrayXDExtensionType(pa.PyExtensionType):
-
     ndims: int = None
 
     def __init__(self, shape: tuple, dtype: str):
@@ -696,7 +738,13 @@ FeatureType = Union[
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
-    """ Convert our Feature nested object in an Apache Arrow type """
+    """
+    get_nested_type() converts a datasets.FeatureType into a pyarrow.DataType, and acts as the inverse of
+        generate_from_arrow_type().
+
+    It performs double-duty as the implementation of Features.type and handles the conversion of
+        datasets.Feature->pa.struct
+    """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return pa.struct(
@@ -759,6 +807,12 @@ def encode_nested_example(schema, obj):
 def generate_from_dict(obj: Any):
     """Regenerate the nested feature object from a serialized dict.
     We use the '_type' fields to get the dataclass name to load.
+
+    generate_from_dict is the recursive helper for Features.from_dict, and allows for a convenient constructor syntax
+        for users to define new datasets and provide their own Features.  This acts as an analogue to
+        Features.from_arrow_schema and handles the recursive field-by-field instantiation, but doesn't require any
+        mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
+        that Value() automatically performs.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
@@ -775,7 +829,16 @@ def generate_from_dict(obj: Any):
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 
-def generate_from_arrow_type(pa_type: pa.DataType):
+def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
+    """
+    generate_from_arrow_type accepts an arrow DataType and returns a datasets FeatureType to be used as the type for
+        a single field.
+
+    This is the high-level arrow->datasets type conversion and is inverted by get_nested_type().
+
+    This operates at the individual *field* level, whereas Features.from_arrow_schema() operates at the
+        full schema level and holds the methods that represent the bijection from Features<->pyarrow.Schema
+    """
     if isinstance(pa_type, pa.StructType):
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):

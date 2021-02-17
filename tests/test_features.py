@@ -3,9 +3,17 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import Features, Sequence, Value, _cast_to_python_objects, cast_to_python_objects
+from datasets.features import (
+    Features,
+    Sequence,
+    Value,
+    _cast_to_python_objects,
+    cast_to_python_objects,
+    string_to_arrow,
+)
 
 from .utils import require_tf, require_torch
 
@@ -30,6 +38,31 @@ class FeaturesTest(TestCase):
         self.assertEqual(original_features.type, new_features.type)
         self.assertDictEqual(dset[0], new_dset[0])
         self.assertDictEqual(dset[:], new_dset[:])
+
+    def test_string_to_arrow_bijection(self):
+        supported_pyarrow_datatypes = [
+            pa.timestamp("s"),
+            pa.timestamp("ns", tz="America/New_York"),
+            pa.string(),
+            pa.int32(),
+            pa.float64(),
+        ]
+        for dt in supported_pyarrow_datatypes:
+            self.assertEqual(dt, string_to_arrow(str(dt)))
+
+        unsupported_pyarrow_datatypes = [pa.list_(pa.float64())]
+        for dt in unsupported_pyarrow_datatypes:
+            with self.assertRaises(ValueError):
+                string_to_arrow(str(dt))
+
+        supported_pyarrow_dtypes = ["timestamp[ns]", "timestamp[ns, tz=+07:30]", "double", "int32"]
+        for sdt in supported_pyarrow_dtypes:
+            self.assertEqual(sdt, str(string_to_arrow(sdt)))
+
+        unsupported_pyarrow_dtypes = ["timestamp[blob]", "timestamp[[ns]]", "timestamp[ns, tz=[ns]]", "int"]
+        for sdt in unsupported_pyarrow_dtypes:
+            with self.assertRaises(ValueError):
+                string_to_arrow(sdt)
 
     def test_cast_to_python_objects_list(self):
         obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
