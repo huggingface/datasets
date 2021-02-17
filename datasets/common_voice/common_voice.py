@@ -52,9 +52,10 @@ _LICENSE = "https://github.com/common-voice/common-voice/blob/main/LICENSE"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'first_domain': "https://mozilla-common-voice-datasets.s3.dualstack.us-west-2.amazonaws.com/cv-corpus-6.1-2020-12-11/en.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQ3GQRTO3CAFSOHXG%2F20210212%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210212T082132Z&X-Amz-Expires=43200&X-Amz-Security-Token=FwoGZXIvYXdzEOr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDDBRxPQbFwld%2BrOewCKSBOR7k7VaqtnM0zucItVC0gdXyV4Uh5qtOx0vhTzhGRJ2r0mKkJ5FNL8bMe5TWtcX0IEH8HHTs28S%2BDerVhBD%2FGKfxy6J4BQCjhR0J8AoqwEYm0qRVm5b7tbWBNYetD5c8HxYGWWRppvaYxRxdnRbupfKuGpMEf3eYskfH8tAA739HbcKj44LGe4lkKsGvI1avxrxrNugcrNF%2BOccEdNInU%2F%2BVQvoFUu93oAEhJWl8dWXswDtZSCmuvfTjCbsZjphoSfTz5t0T25qXwP3PpcZTRVrYm9rQ4GGwaiva9qs0Q0nA0mC0skcMLF%2BZMxfo4wtaDfneDoPgNITqHtLyXLKeXRwIhHUzjNriniNNTp3XJyivc6qr6uNJ23IysUKfqNfQ2EiZC07VEQlVcYoSBKNHvGEIHsXfICaQ4MyHSl7dJa0CaSOAjBytNMxxhqCCLylJ%2BEgnO45VS5X12z8D3vTyyjR67hqXKDHwdTioVTlK3j%2FTXWRHDw31EbikSkhDKubD%2F2VDJLMul7cXjpCWygmJXHKG%2BNQKM09vP3pdmuVuQ1Z8an8OPMTnGKJEOsKXkrCJTOjvQVAl7z4KKlA9UW0Hp0u%2FoZnT%2Fxgi7dvqwu1Fq7%2BRQ%2BkXi3LT6lA%2B%2BJfO2HEOnlcsg1TFompSGp0dD12F3iTQNmKAuakCdunLyQRd%2Bgi2vRmwfsPyHOnRiJVbyghoEWyKLHtmIEGMir%2B01wURSgc46vtaXqBOz5Gtj4bF5wkpw6TCh%2FiHFn7Fx6igw69uJmKtpI%3D&X-Amz-Signature=573df56b8f6aa8e13b2fa26fa0763718e25f2d7a33e0be97ea5ff82680d82474&X-Amz-SignedHeaders=host",
-    'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
+    'first_domain': "https://mozilla-common-voice-datasets.s3.dualstack.us-west-2.amazonaws.com/cv-corpus-6.1-2020-12-11/en.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQ3GQRTO3CAFSOHXG%2F20210212%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210212T082132Z&X-Amz-Expires=43200&X-Amz-Security-Token=FwoGZXIvYXdzEOr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDDBRxPQbFwld%2BrOewCKSBOR7k7VaqtnM0zucItVC0gdXyV4Uh5qtOx0vhTzhGRJ2r0mKkJ5FNL8bMe5TWtcX0IEH8HHTs28S%2BDerVhBD%2FGKfxy6J4BQCjhR0J8AoqwEYm0qRVm5b7tbWBNYetD5c8HxYGWWRppvaYxRxdnRbupfKuGpMEf3eYskfH8tAA739HbcKj44LGe4lkKsGvI1avxrxrNugcrNF%2BOccEdNInU%2F%2BVQvoFUu93oAEhJWl8dWXswDtZSCmuvfTjCbsZjphoSfTz5t0T25qXwP3PpcZTRVrYm9rQ4GGwaiva9qs0Q0nA0mC0skcMLF%2BZMxfo4wtaDfneDoPgNITqHtLyXLKeXRwIhHUzjNriniNNTp3XJyivc6qr6uNJ23IysUKfqNfQ2EiZC07VEQlVcYoSBKNHvGEIHsXfICaQ4MyHSl7dJa0CaSOAjBytNMxxhqCCLylJ%2BEgnO45VS5X12z8D3vTyyjR67hqXKDHwdTioVTlK3j%2FTXWRHDw31EbikSkhDKubD%2F2VDJLMul7cXjpCWygmJXHKG%2BNQKM09vP3pdmuVuQ1Z8an8OPMTnGKJEOsKXkrCJTOjvQVAl7z4KKlA9UW0Hp0u%2FoZnT%2Fxgi7dvqwu1Fq7%2BRQ%2BkXi3LT6lA%2B%2BJfO2HEOnlcsg1TFompSGp0dD12F3iTQNmKAuakCdunLyQRd%2Bgi2vRmwfsPyHOnRiJVbyghoEWyKLHtmIEGMir%2B01wURSgc46vtaXqBOz5Gtj4bF5wkpw6TCh%2FiHFn7Fx6igw69uJmKtpI%3D&X-Amz-Signature=573df56b8f6aa8e13b2fa26fa0763718e25f2d7a33e0be97ea5ff82680d82474&X-Amz-SignedHeaders=host"
 }
+
+
 
 _FILES = {
     "dev.tsv": "fields": {
@@ -457,7 +458,8 @@ _LANGUAGES = {
     "Version": "ab_1h_2020-12-11",
     "Validated_Hr_Total": 0.05,
     "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
+    "Number_Of_Voice": 14,
+    "Download_Link": "https://mozilla-common-voice-datasets.s3.dualstack.us-west-2.amazonaws.com/cv-corpus-6.1-2020-12-11/nl.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQ3GQRTO3ND4UAQXB%2F20210217%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210217T080740Z&X-Amz-Expires=43200&X-Amz-Security-Token=FwoGZXIvYXdzEGIaDCC6ALh%2FwIK9ovvRdCKSBCs5WaSJNsZ2h0SnhpnWFv4yiAJHJTe%2BY6pBcCqadRMs0RABHeQ2n1QDACJ5V9WOqIHfMfT0AI%2Bfe6iFkTGLgRrJOMYpgV%2FmIBcXCjeb72r4ZvudMA8tprkSxZsEh53bJkIDQx1tXqfpz0yoefM0geD3461suEGhHnLIyiwffrUpRg%2BkNZN9%2FLZZXpF5F2pogieKKV533Jetkd1xlWOR%2Bem9R2bENu2RV563XX3JvbWxSYN9IHkVT1xwd4ZiOpUtX7%2F2RoluJUKw%2BUPpyml3J%2FOPPGdr7CyPLjqNxdq9ceRi8lRybty64XvNYZGt45VNTQ3pkTTz4VpUCJAGkgxq95Ve%2BOwW%2Fsc8JtblTFKrH11vej62NB7C0n7JPPS4SLKXHKW%2B7ZbybcNf3BnsAVouPdsGTMslcgkD81b9trnjyXJdOZkzdHUf2KcWVXVceEsZnMhcCZQ1cJpI7qXPEk8QrKCQcNByPLHmPIEdHpj9IrIBKDkl2qO7VX7CCB65WDt2eZRltOcNHXWVFXFktMdQOQztI1j0XSZz2iOX4jPKKaqz193VEytlAqmehNi8pePOnxkP9Z1SP7d3I6rayuBF3phmpHxw499tY3ECYYgoCnJ6QSFa3KxMjFmEpQlmjxuwEMHd4CDL2FJYGcCiIxbCcL1r8ZE3%2BbGdcu7PRsVCHX3Huh%2FqGIaF4h40FgteN6teyKCHKOebs4EGMipb9xmEMZ9ZbVopz4bkhLdMTrjKon9w624Xem0MTPqN7XY%2BB6lRgrW8rd4%3D&X-Amz-Signature=28eabdfce72a472a70b0f9e1e2c37fe1471b5ec8ed60614fbe900bfa97ae1ac8&X-Amz-SignedHeaders=host"
     },"Odia": {
     "Date": "2020-12-11",
     "Size": "39 MB",
@@ -649,21 +651,37 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
             features = datasets.Features(
                 {
+                    "client_id": datasets.Value("string"),
+                    "path": datasets.Value("string"),
                     "sentence": datasets.Value("string"),
-                    "option1": datasets.Value("string"),
-                    "answer": datasets.Value("string")
+                    "up_votes": datasets.Value("int64"),
+                    "down_votes": datasets.Value("int64"),
+                    "age": datasets.Value("string"),
+                    "gender": datasets.Value("string"),
+                    "locale": datasets.Value("string"),
+                    "segmet": datasets.Value("string"),
+
                     # These are the features of your dataset like images, labels ...
                 }
             )
+
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
             features = datasets.Features(
                 {
+                    "client_id": datasets.Value("string"),
+                    "path": datasets.Value("string"),
                     "sentence": datasets.Value("string"),
-                    "option2": datasets.Value("string"),
-                    "second_domain_answer": datasets.Value("string")
+                    "up_votes": datasets.Value("int64"),
+                    "down_votes": datasets.Value("int64"),
+                    "age": datasets.Value("string"),
+                    "gender": datasets.Value("string"),
+                    "locale": datasets.Value("string"),
+                    "segmet": datasets.Value("string"),
+
                     # These are the features of your dataset like images, labels ...
                 }
             )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -696,7 +714,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
+                    "filepath": os.path.join(data_dir, "train.tsv"),
                     "split": "train",
                 },
             ),
@@ -704,16 +722,48 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
+                    "filepath": os.path.join(data_dir, "test.tsv"),
                     "split": "test"
                 },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
+                name=datasets.Split.DEV,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.jsonl"),
+                    "filepath": os.path.join(data_dir, "dev.tsv"),
                     "split": "dev",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATED,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "validated.tsv"),
+                    "split": "validated",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.INVALIDATED,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "invalidated.tsv"),
+                    "split": "invalidated",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.REPORTED,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "reported.tsv"),
+                    "split": "reported",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.OTHER,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "other.tsv"),
+                    "split": "other",
                 },
             ),
         ]
