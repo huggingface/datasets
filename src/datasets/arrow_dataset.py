@@ -2184,16 +2184,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Caller is responsible for opening and closing the handle.
         """
         written = 0
-        to_csv_kwargs.pop("header", None)
+        header = to_csv_kwargs.pop("header", True)
+        encoding = to_csv_kwargs.pop("encoding", "utf-8")
         to_csv_kwargs.pop("path_or_buf", None)
-        to_csv_kwargs.pop("encoding", None)
 
         for offset in range(0, self._data.num_rows, batch_size):
             batch = self._data.slice(offset, offset + batch_size)
             csv_str = batch.to_pandas().to_csv(
-                path_or_buf=None, header=(offset == 0), encoding="utf-8", **to_csv_kwargs
+                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
             )
-            written += file_obj.write(csv_str.encode("utf-8"))
+            written += file_obj.write(csv_str.encode(encoding))
         return written
 
     def to_csv(
