@@ -97,8 +97,7 @@ class FinancialPhraseBankConfig(datasets.BuilderConfig):
         self.path = os.path.join("FinancialPhraseBank-v1.0", f"Sentences_{split.title()}Agree.txt")
 
 
-class FinancialPhraseBank(datasets.GeneratorBasedBuilder):
-    __doc__
+class FinancialPhrasebank(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         FinancialPhraseBankConfig(
