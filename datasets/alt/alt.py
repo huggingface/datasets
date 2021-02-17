@@ -225,13 +225,6 @@ class Alt(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("alt-parallel"):
             files = self.config.languages
 
-            template = {
-                "SNT.URLID": None,
-                "SNT.URLID.SNTID": None,
-                "url": None,
-                "translation": {},
-            }
-
             data = {}
             for lang in files:
                 file_path = os.path.join(basepath, "ALT-Parallel-Corpus-20191206", f"data_{lang}.txt")
@@ -245,14 +238,16 @@ class Alt(datasets.GeneratorBasedBuilder):
                         continue
 
                     if sntid not in data:
-                        data[sntid] = template.copy()
+                        data[sntid] = {}
                         data[sntid]["SNT.URLID"] = urlid
                         data[sntid]["SNT.URLID.SNTID"] = sntid
                         data[sntid]["url"] = allow_urls[urlid]["url"]
+                        data[sntid]["translation"] = {}
 
                     # Note that Japanese and Myanmar texts have empty sentence fields in this release.
                     if len(sp) >= 2:
                         data[sntid]["translation"][lang] = sp[1]
+
                 fin.close()
 
         elif self.config.name == "alt-en":
