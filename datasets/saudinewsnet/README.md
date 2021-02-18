@@ -45,7 +45,7 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [SaudiNewsNet](https://github.com/parallelfold/SaudiNewsNet)
 - **Repository:** [Website](https://github.com/parallelfold/SaudiNewsNet)
@@ -55,7 +55,7 @@ task_ids:
 - **Size of the generated dataset:** 98.85 MB
 - **Total amount of disk used:** 126.52 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 The dataset contains a set of 31,030 Arabic newspaper articles alongwith metadata, extracted from various online Saudi newspapers and written in MSA.
 
@@ -76,19 +76,19 @@ The dataset currently contains **31,030** Arabic articles (with a total number o
 - [Arreyadi](http://www.arreyadi.com.sa/) (133 articles)
 - [Arreyadiyah](http://www.arreyadiyah.com/) (52 articles)
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### default
 
@@ -110,7 +110,7 @@ This example was too long and was cropped:
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -121,19 +121,19 @@ The data fields are the same among all splits.
 - **`author`** (str): The author of the article. Contains missing values that were replaced with an empty string.
 - **`content`** (str): The content of the article.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name  |train|
 |-------|----:|
 |default|31030|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Source Data](#source-data)
+### Source Data
 
     | String Identifier  | Newspaper |
     | ------------------ | --------- |
@@ -160,39 +160,39 @@ The Modern Standard Arabic texts crawled from the Internet.
 
 Newspaper Websites.
 
-### [Annotations](#annotations)
+### Annotations
 
 The dataset does not contain any additional annotations.
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### [Social Impact of Dataset](#social-impact-of-dataset)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Discussion of Biases](#discussion-of-biases)
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Licensing Information
 
 Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @misc{hagrima2015,

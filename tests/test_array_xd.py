@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 import pandas as pd
+import pytest
 from absl.testing import parameterized
 
 import datasets
@@ -228,3 +229,13 @@ class ArrayXDTest(unittest.TestCase):
         )
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
         del dataset
+
+
+@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+def test_table_to_pandas(dtype, dummy_value):
+    features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    df = dataset._data.to_pandas()
+    assert type(df.foo.dtype) == datasets.features.PandasArrayExtensionDtype
+    arr = df.foo.to_numpy()
+    np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))

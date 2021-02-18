@@ -265,12 +265,16 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return self.storage[i]
 
     def to_numpy(self):
-        storage: pa.FixedSizeListArray = self.storage
+        storage: pa.ListArray = self.storage
         size = 1
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
-        numpy_arr = storage.to_numpy()
+        # zero copy is available for all primitive types except booleans
+        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
+        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
+        zero_copy_only = not self.type.value_type.startswith("bool")
+        numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
@@ -317,6 +321,26 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         self._data = data if not copy else np.array(data)
         self._dtype = PandasArrayExtensionDtype(data.dtype)
 
+    def __array__(self, dtype=None):
+        """
+        Convert to NumPy Array.
+        Note that Pandas expects a 1D array when dtype is set to object.
+        But for other dtypes, the returned shape is the same as the one of ``data``.
+
+        More info about pandas 1D requirement for PandasExtensionArray here:
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
+
+        """
+        if dtype == object:
+            out = np.empty(len(self._data), dtype=object)
+            for i in range(len(self._data)):
+                out[i] = self._data[i]
+            return out
+        if dtype is None:
+            return self._data
+        else:
+            return self._data.astype(dtype)
+
     def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
         return PandasArrayExtensionArray(self._data, copy=True)
 
@@ -341,9 +365,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
-        if np.issubdtype(self.dtype.value_type, np.floating):
-            return np.array(np.isnan(arr).any() for arr in self._data)
-        return np.array((arr < 0).any() for arr in self._data)
+        return np.array([np.isnan(arr).any() for arr in self._data])
 
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
         raise NotImplementedError()

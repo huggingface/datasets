@@ -48,7 +48,7 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://homes.cs.washington.edu/~msap/social-bias-frames/](https://homes.cs.washington.edu/~msap/social-bias-frames/)
 - **Repository:** [https://homes.cs.washington.edu/~msap/social-bias-frames/](https://homes.cs.washington.edu/~msap/social-bias-frames/)
@@ -59,27 +59,27 @@ task_ids:
 - **Size of the generated dataset:** 42.41 MB
 - **Total amount of disk used:** 48.45 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 Warning: this document and dataset contain content that may be offensive or upsetting.
 
 Social Bias Frames is a new way of representing the biases and offensiveness that are implied in language. For example, these frames are meant to distill the implication that "women (candidates) are less qualified" behind the statement "we shouldn’t lower our standards to hire more women." The Social Bias Inference Corpus (SBIC) supports large-scale learning and evaluation of social implications with over 150k structured annotations of social media posts, spanning over 34k implications about a thousand demographic groups.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 This dataset supports both classification and generation. Sap et al. developed several models using the SBIC. They report an F1 score of 78.8 in predicting whether the posts in the test set were offensive, an F1 score of 78.6 in predicting whether the posts were intending to be offensive, an F1 score of 80.7 in predicting whether the posts were lewd, and an F1 score of 69.9 in predicting whether the posts were targeting a specific group. 
 
 Another of Sap et al.’s models performed better in the generation task. They report a BLUE score of 77.9, a Rouge-L score of 68.7, and a WMD score of 0.74 in generating a description of the targeted group given a post as well as a BLUE score of 52.6, a Rouge-L score of 44.9, and a WMD score of 2.79 in generating a description of the implied offensive statement given a post. See the paper for further details. 
 
-### [Languages](#languages)
+### Languages
 
 The language in SBIC is predominantly white-aligned English (78%, using a lexical dialect detector, [Blodgett et al., 2016](https://www.aclweb.org/anthology/D16-1120)). The curators find less than 10% of posts in SBIC are detected to have the AAE dialect category. The BCP-47 language tag is, presumably, en-US. 
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 Each instance contains a post that may contain an offensive statement and annotated information concerning the nature of the offensive implication as well as the demographics of the annotator and origin of the post. See the [Social Bias Frames dataset viewer](https://huggingface.co/datasets/viewer/?dataset=social_bias_frames) to explore more examples. 
 
@@ -114,7 +114,7 @@ An example of 'validation' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -140,7 +140,7 @@ The data fields are the same among all splits.
 - _dataSource_: a string indicating the source of the post (`t/...`: means Twitter, `r/...`: means a subreddit)
 
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 To ensure that no post appeared in multiple splits, the curators defined a training instance as the post and its three sets of annotations. They then split the dataset into train, validation, and test sets (75%/12.5%/12.5%).
 
@@ -148,13 +148,13 @@ To ensure that no post appeared in multiple splits, the curators defined a train
 |-------|-----:|---------:|----:|
 |default|112900|     16738|17501|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
+### Curation Rationale
 
 The main aim for this dataset is to cover a wide variety of social biases that are implied in text, both subtle and overt, and make the biases representative of real world discrimination that people experience [RWJF 2017](https://web.archive.org/web/20200620105955/https://www.rwjf.org/en/library/research/2017/10/discrimination-in-america--experiences-and-views.html). The curators also included some innocuous statements, to balance out biases, offensive, or harmful content.
 
-### [Source Data](#source-data)
+### Source Data
 
 The curators included online posts from the following sources sometime between 2014-2019:
 - r/darkJokes, r/meanJokes, r/offensiveJokes
@@ -170,7 +170,7 @@ The curators wanted posts to be as self-contained as possible, therefore, they a
 
 Due to the nature of this corpus, there is no way to know who the speakers are. But, the speakers of the Reddit, Gab, and Stormfront posts are likely white men (see [Gender by subreddit](http://bburky.com/subredditgenderratios/), [Gab users](https://en.wikipedia.org/wiki/Gab_(social_network)#cite_note-insidetheright-22), [Stormfront description](https://en.wikipedia.org/wiki/Stormfront_(website))).
 
-### [Annotations](#annotations)
+### Annotations
 
 #### Annotation process
 
@@ -186,13 +186,13 @@ The annotators are Amazon Mechanical Turk workers aged 36±10 years old. The ann
 
 Usernames are not included with the data, but the site where the post was collected is, so the user could potentially be recovered. 
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Social Impact of Dataset
 
 The curators recognize that studying Social Bias Frames necessarily requires confronting online content that may be offensive or disturbing but argue that deliberate avoidance does not eliminate such problems. By assessing social media content through the lens of Social Bias Frames, automatic flagging or AI-augmented writing interfaces may be analyzed for potentially harmful online content with detailed explanations for users or moderators to consider and verify. In addition, the collective analysis over large corpora can also be insightful for educating people on reducing unconscious biases in their language by encouraging empathy towards a targeted group.
 
-### [Discussion of Biases](#discussion-of-biases)
+### Discussion of Biases
 
 Because this is a corpus of social biases, a lot of posts contain implied or overt biases against the following groups (in decreasing order of prevalence):
 - gender/sexuality
@@ -204,13 +204,13 @@ Because this is a corpus of social biases, a lot of posts contain implied or ove
 
 The curators warn that technology trained on this dataset could have side effects such as censorship and dialect-based racial bias. 
 
-### [Other Known Limitations](#other-known-limitations)
+### Other Known Limitations
 
 Because the curators found that the dataset is predominantly written in White-aligned English, they caution researchers to consider the potential for dialect or identity-based biases in labelling ([Davidson et al.,2019](https://www.aclweb.org/anthology/W19-3504.pdf); [Sap et al., 2019a](https://www.aclweb.org/anthology/P19-1163.pdf)) before deploying technology based on SBIC.
 
-## [Additional Information](#additional-information)
+## Additional Information
 
-### [Dataset Curators](#dataset-curators)
+### Dataset Curators
 
 This dataset was developed by Maarten Sap of the Paul G. Allen School of Computer Science & Engineering at the University of Washington, Saadia Gabriel, Lianhui Qin, Noah A Smith, and Yejin Choi of the Paul G. Allen School of Computer Science & Engineering and the Allen Institute for Artificial Intelligence, and Dan Jurafsky of the Linguistics & Computer Science Departments of Stanford University.
 
@@ -218,7 +218,7 @@ This dataset was developed by Maarten Sap of the Paul G. Allen School of Compute
 
 The SBIC is licensed under the [Creative Commons 4.0 License](https://creativecommons.org/licenses/by/4.0/)
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @inproceedings{sap-etal-2020-social,
