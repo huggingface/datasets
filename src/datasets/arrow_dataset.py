@@ -2188,8 +2188,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         encoding = to_csv_kwargs.pop("encoding", "utf-8")
         to_csv_kwargs.pop("path_or_buf", None)
 
-        for offset in range(0, self._data.num_rows, batch_size):
-            batch = self._data.slice(offset, offset + batch_size)
+        for offset in range(0, len(self), batch_size):
+            batch = query_table(
+                pa_table=self._data,
+                key=slice(offset, offset + batch_size),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            )
             csv_str = batch.to_pandas().to_csv(
                 path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
             )
