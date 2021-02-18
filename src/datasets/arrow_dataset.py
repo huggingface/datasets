@@ -2182,47 +2182,55 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
 
-    def to_dict(self, batch_size: Optional[int] = None, batched: bool = True) -> Union[dict, Iterator[dict]]:
-        """Returns or yields the dataset as a Python dict
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+        """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Whether to yield the dataset as batches of size :param:`batch_size` or to
-                return the full dataset at once.
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if batched is `True`.
+            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
+                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
                 Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `dict` or `Iterator[dict]`
         """
-        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         if not batched:
             return self._data.to_pydict()
         else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
-                self._data.slice(offset, offset + batch_size).to_pydict()
+                query_table(
+                    pa_table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ).to_pydict()
                 for offset in range(0, self._data.num_rows, batch_size)
             )
 
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = True
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
-        """Returns or yields the dataset to :class:`pandas.DataFrame` object(s).
+        """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Whether to yield the dataset as batches of size :param:`batch_size` or to
-                return the full dataset at once.
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if batched is `True`.
+            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
+                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
                 Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
         """
-        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         if not batched:
             return self._data.to_pandas()
         else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
-                self._data.slice(offset, offset + batch_size).to_pandas()
+                query_table(
+                    pa_table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ).to_pandas()
                 for offset in range(0, self._data.num_rows, batch_size)
             )
 

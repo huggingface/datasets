@@ -1237,7 +1237,7 @@ class BaseDatasetTest(TestCase):
                     self.assertLessEqual(len(batch[col_name]), bacth_size)
 
             # Full
-            dset_to_dict = dset.to_dict(batched=False)
+            dset_to_dict = dset.to_dict()
             self.assertIsInstance(dset_to_dict, dict)
             self.assertListEqual(sorted(dset_to_dict.keys()), sorted(dset.column_names))
             for col_name in dset.column_names:
@@ -1260,7 +1260,7 @@ class BaseDatasetTest(TestCase):
                     self.assertLessEqual(len(batch[col_name]), bacth_size)
 
             # Full
-            dset_to_pandas = dset.to_pandas(batched=False)
+            dset_to_pandas = dset.to_pandas()
             self.assertIsInstance(dset_to_pandas, pd.DataFrame)
             self.assertListEqual(sorted(dset_to_pandas.columns), sorted(dset.column_names))
             for col_name in dset.column_names:
