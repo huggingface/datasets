@@ -2208,7 +2208,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
     def to_pandas(
-        self, batch_size: Optional[int] = None, batched: bool = True
+        self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
