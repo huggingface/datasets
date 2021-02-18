@@ -55,6 +55,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
+from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
@@ -612,6 +613,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
+    @deprecated
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
@@ -633,6 +635,32 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
+    @fingerprint_transform(inplace=False)
+    def dictionary_encode_column(self, column: str, new_fingerprint) -> "Dataset":
+        """Dictionary encode a column.
+
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        Args:
+            column (:obj:`str`):
+
+        Returns:
+            A copy of the dataset with the column dictionary encoded
+        """
+        dataset = copy.deepcopy(self)
+        if column not in dataset._data.column_names:
+            raise ValueError(f"Column ({column}) not in table columns ({dataset._data.column_names}).")
+        casted_schema: pa.Schema = self._data.schema
+        field_index = casted_schema.get_field_index(column)
+        field: pa.Field = casted_schema.field(field_index)
+        casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
+        casted_schema.set(field_index, casted_field)
+        dataset._data = dataset._data.cast(casted_schema)
+        dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        return dataset
+
+    @deprecated
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """In-place version of :func:`Dataset.flatten`"""
@@ -657,10 +685,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             A copy of the dataset with flattened columns
         """
         dataset = copy.deepcopy(self)
-        dataset._fingerprint = new_fingerprint
-        dataset.flatten_(max_depth=max_depth)
+        for depth in range(1, max_depth):
+            if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
+                dataset._data = dataset._data.flatten()
+            else:
+                break
+        if dataset.info is not None:
+            dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        logger.info(
+            "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
+        )
         return dataset
 
+    @deprecated
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
@@ -701,10 +738,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             A copy of the dataset with casted features
         """
         dataset = copy.deepcopy(self)
+        if sorted(features) != sorted(dataset._data.column_names):
+            raise ValueError(
+                f"The columns in features ({list(features)}) must be identical "
+                f"as the columns in the dataset: {dataset._data.column_names}"
+            )
+
+        dataset._info.features = features
+        type = features.type
+        schema = pa.schema({col_name: type[col_name].type for col_name in dataset._data.column_names})
+        dataset._data = dataset._data.cast(schema)
         dataset._fingerprint = new_fingerprint
-        dataset.cast_(features=features)
         return dataset
 
+    @deprecated
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
@@ -744,10 +791,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             A copy of the dataset object without the columns to remove
         """
         dataset = copy.deepcopy(self)
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        for column_name in column_names:
+            if column_name not in dataset._data.column_names:
+                raise ValueError(
+                    f"Column name {column_name} not in the dataset. "
+                    f"Current columns in the dataset: {dataset._data.column_names}"
+                )
+
+        for column_name in column_names:
+            del dataset._info.features[column_name]
+
+        dataset._data = dataset._data.drop(column_names)
         dataset._fingerprint = new_fingerprint
-        dataset.remove_columns_(column_names=column_names)
         return dataset
 
+    @deprecated
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
@@ -795,8 +856,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             A copy of the dataset with a renamed column
         """
         dataset = copy.deepcopy(self)
+        if original_column_name not in dataset._data.column_names:
+            raise ValueError(
+                f"Original column name {original_column_name} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+        if new_column_name in dataset._data.column_names:
+            raise ValueError(
+                f"New column name {original_column_name} already in the dataset. "
+                f"Please choose a column name which is not already in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+        if not new_column_name:
+            raise ValueError("New column name is empty.")
+
+        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+
+        dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
+        del dataset._info.features[original_column_name]
+
+        dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._fingerprint = new_fingerprint
-        dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
         return dataset
 
     def __len__(self):
