@@ -809,7 +809,8 @@ def generate_from_dict(obj: Any):
     We use the '_type' fields to get the dataclass name to load.
 
     generate_from_dict is the recursive helper for Features.from_dict, and allows for a convenient constructor syntax
-        for users to define new datasets and provide their own Features.  This acts as an analogue to
+        to define features from json dictionaries. This function is used in particular when deserializing
+        a DatasetInfo that was dumped to a json dictionary. This acts as an analogue to
         Features.from_arrow_schema and handles the recursive field-by-field instantiation, but doesn't require any
         mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
         that Value() automatically performs.

@@ -39,7 +39,7 @@ class FeaturesTest(TestCase):
         self.assertDictEqual(dset[0], new_dset[0])
         self.assertDictEqual(dset[:], new_dset[:])
 
-    def test_string_to_arrow_bijection(self):
+    def test_string_to_arrow_bijection_for_primitive_types(self):
         supported_pyarrow_datatypes = [
             pa.timestamp("s"),
             pa.timestamp("ns", tz="America/New_York"),
