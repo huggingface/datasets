@@ -1225,7 +1225,7 @@ class BaseDatasetTest(TestCase):
     def test_to_dict(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             bacth_size = dset.num_rows - 1
             to_dict_generator = dset.to_dict(batched=True, batch_size=bacth_size)
 
@@ -1249,7 +1249,7 @@ class BaseDatasetTest(TestCase):
     def test_to_pandas(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             bacth_size = dset.num_rows - 1
             to_pandas_generator = dset.to_pandas(batched=True, batch_size=bacth_size)
 
