@@ -368,7 +368,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
-        return np.array([np.isnan(arr).any() for arr in self._data])
+        return np.array([pd.isna(arr).any() for arr in self._data])
 
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
         raise NotImplementedError()
