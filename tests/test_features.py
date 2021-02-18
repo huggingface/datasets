@@ -45,7 +45,6 @@ class FeaturesTest(TestCase):
             pa.timestamp("ns", tz="America/New_York"),
             pa.string(),
             pa.int32(),
-            pa.float64(),
         ]
         for dt in supported_pyarrow_datatypes:
             self.assertEqual(dt, string_to_arrow(str(dt)))
@@ -55,7 +54,7 @@ class FeaturesTest(TestCase):
             with self.assertRaises(ValueError):
                 string_to_arrow(str(dt))
 
-        supported_pyarrow_dtypes = ["timestamp[ns]", "timestamp[ns, tz=+07:30]", "double", "int32"]
+        supported_pyarrow_dtypes = ["timestamp[ns]", "timestamp[ns, tz=+07:30]", "int32"]
         for sdt in supported_pyarrow_dtypes:
             self.assertEqual(sdt, str(string_to_arrow(sdt)))
 
