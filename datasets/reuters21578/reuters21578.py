@@ -232,6 +232,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
+                    "text_type": datasets.Value("string"),
                     "topics": datasets.Sequence(datasets.Value("string")),
                     "lewis_split": datasets.Value("string"),
                     "cgis_split": datasets.Value("string"),
@@ -259,28 +260,16 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "PUBLISHED-TESTSET",
-                    },
+                    gen_kwargs={"filepath": files, "split": "PUBLISHED-TESTSET"},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "TRAINING-SET",
-                    },
+                    gen_kwargs={"filepath": files, "split": "TRAINING-SET"},
                 ),
             ]
         else:
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "TEST",
-                    },
-                ),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": files, "split": "TEST"}),
                 datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAIN"}),
                 datasets.SplitGenerator(name="unused", gen_kwargs={"filepath": files, "split": "NOT-USED"}),
             ]
@@ -292,19 +281,21 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                 file, encoding="utf-8", errors="ignore"
             ) as f:  # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
                 line = f.readline()
-                lewis_split = ""
-                cgis_split = ""
-                old_id = ""
-                new_id = ""
-                topics = []
-                places = []
-                people = []
-                orgs = []
-                exchanges = []
-                date = ""
-                title = ""
                 while line:
                     if line.startswith("<REUTERS"):
+                        lewis_split = ""
+                        cgis_split = ""
+                        old_id = ""
+                        new_id = ""
+                        topics = []
+                        places = []
+                        people = []
+                        orgs = []
+                        exchanges = []
+                        date = ""
+                        title = ""
+                        text = ""
+                        text_type = ""
                         line = line.split()
                         lewis_split = line[2].split("=")[1]
                         cgis_split = line[3].split("=")[1]
@@ -341,32 +332,32 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                     elif line.startswith("<TOPICS>"):
                         if line.replace("\n", "") != "<TOPICS></TOPICS>":
                             line = line.split("<D>")
-                            topics = [topic.replace("</D>", "") for topic in line[1:-1]]
-                            topics = [topic.replace("</TOPICS>", "") for topic in topics]
+                            topics = [topic.replace("</D>", "") for topic in line[1:]]
+                            topics = [topic.replace("</TOPICS>\n", "") for topic in topics]
                         line = f.readline()
                     elif line.startswith("<PLACES>"):
                         if line.replace("\n", "") != "<PLACES></PLACES>":
                             line = line.split("<D>")
-                            places = [place.replace("</D>", "") for place in line[1:-1]]
-                            places = [place.replace("</PLACES>", "") for place in places]
+                            places = [place.replace("</D>", "") for place in line[1:]]
+                            places = [place.replace("</PLACES>\n", "") for place in places]
                         line = f.readline()
                     elif line.startswith("<PEOPLE>"):
                         if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
                             line = line.split("<D>")
-                            people = [p.replace("</D>", "") for p in line[1:-1]]
-                            people = [p.replace("</PEOPLE>", "") for p in people]
+                            people = [p.replace("</D>", "") for p in line[1:]]
+                            people = [p.replace("</PEOPLE>\n", "") for p in people]
                         line = f.readline()
                     elif line.startswith("<ORGS>"):
                         if line.replace("\n", "") != "<ORGS></ORGS>":
                             line = line.split("<D>")
-                            orgs = [org.replace("</D>", "") for org in line[1:-1]]
-                            orgs = [org.replace("</ORGS>", "") for org in orgs]
+                            orgs = [org.replace("</D>", "") for org in line[1:]]
+                            orgs = [org.replace("</ORGS>\n", "") for org in orgs]
                         line = f.readline()
                     elif line.startswith("<EXCHANGES>"):
                         if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
                             line = line.split("<D>")
-                            exchanges = [ex.replace("</D>", "") for ex in line[1:-1]]
-                            exchanges = [ex.replace("</EXCHANGES>", "") for ex in exchanges]
+                            exchanges = [ex.replace("</D>", "") for ex in line[1:]]
+                            exchanges = [ex.replace("</EXCHANGES>\n", "") for ex in exchanges]
                         line = f.readline()
                     elif line.startswith("<DATE>"):
                         date = line.replace("\n", "")
@@ -375,13 +366,34 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                     elif line.startswith("<TITLE>"):
                         title = line[7:-9]
                         line = f.readline()
+                    elif "*<TITLE>" in line:
+                        # These lines start with a variable number of * chars
+                        title = line.split("*<TITLE>")[1][:-1]
+                        line = f.readline()
+                        while "</TITLE>" not in line:
+                            # Convert any \n in TYPE="BRIEF" text to spaces to match other titles
+                            title += " " + line[:-1]
+                            line = f.readline()
                     elif "<BODY>" in line:
                         text = line.split("<BODY>")[1]
                         line = f.readline()
                         while "</BODY>" not in line:
                             text += line
                             line = f.readline()
-
+                    elif line.startswith('<TEXT TYPE="UNPROC">'):
+                        text_type = '"UNPROC"'
+                        text = line[20:]
+                        line = f.readline()
+                        while "</TEXT>" not in line:
+                            text += line
+                            line = f.readline()
+                    elif line.startswith('<TEXT TYPE="BRIEF">'):
+                        text_type = '"BRIEF"'
+                        line = f.readline()
+                    elif line.startswith("<TEXT>"):
+                        text_type = '"NORM"'
+                        line = f.readline()
+                    elif line.startswith("</REUTERS>"):
                         yield new_id, {
                             "lewis_split": lewis_split,
                             "cgis_split": cgis_split,
@@ -395,8 +407,8 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                             "date": date,
                             "title": title,
                             "text": text,
+                            "text_type": text_type,
                         }
                         line = f.readline()
-
                     else:
                         line = f.readline()

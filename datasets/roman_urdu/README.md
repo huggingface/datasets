@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -156,3 +157,7 @@ Each row consists of a short Urdu text, followed by a sentiment label. The label
   institution = "University of California, Irvine, School of Information and Computer Sciences"
 }
 ```
+
+### Contributions
+
+Thanks to [@jaketae](https://github.com/jaketae) for adding this dataset.

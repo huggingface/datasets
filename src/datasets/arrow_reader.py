@@ -149,17 +149,18 @@ class BaseReader:
         self._info: Optional["DatasetInfo"] = info
         self._filetype_suffix: Optional[str] = None
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files) -> pa.Table:
+    def _read_files(self, files, in_memory=False) -> pa.Table:
         """Returns Dataset for given file instructions.
 
         Args:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
+            in_memory (bool, default False): Whether to copy the data in-memory.
         """
         assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
         pa_tables = []
@@ -167,7 +168,7 @@ class BaseReader:
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
         for f_dict in files:
-            pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
+            pa_table: pa.Table = self._get_dataset_from_filename(f_dict, in_memory=in_memory)
             pa_tables.append(pa_table)
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
@@ -191,6 +192,7 @@ class BaseReader:
         name,
         instructions,
         split_infos,
+        in_memory=False,
     ):
         """Returns Dataset instance(s).
 
@@ -200,6 +202,7 @@ class BaseReader:
                 Instruction can be string and will then be passed to the Instruction
                 constructor as it.
             split_infos (list of SplitInfo proto): the available splits for dataset.
+            in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
              kwargs to build a single Dataset instance.
@@ -209,12 +212,13 @@ class BaseReader:
         if not files:
             msg = 'Instruction "%s" corresponds to no data!' % instructions
             raise AssertionError(msg)
-        return self.read_files(files=files, original_instructions=instructions)
+        return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
     def read_files(
         self,
         files,
         original_instructions=None,
+        in_memory=False,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
@@ -222,13 +226,14 @@ class BaseReader:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contains the relative path, not absolute.
                 skip/take indicates which example read in the file: `ds.skip().take()`
-            original_instructions: store the original instructions used to build the dataset split in the dataset
+            original_instructions: store the original instructions used to build the dataset split in the dataset.
+            in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
             kwargs to build a Dataset instance.
         """
         # Prepend path to filename
-        pa_table = self._read_files(files)
+        pa_table = self._read_files(files, in_memory=in_memory)
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
@@ -274,7 +279,7 @@ class BaseReader:
 class ArrowReader(BaseReader):
     """
     Build a Dataset object out of Instruction instance(s).
-    This Reader uses memory mapping on arrow files.
+    This Reader uses either memory mapping or file descriptors (in-memory) on arrow files.
     """
 
     def __init__(self, path: str, info: Optional["DatasetInfo"]):
@@ -287,19 +292,36 @@ class ArrowReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "arrow"
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
-        mmap = pa.memory_map(filename)
-        f = pa.ipc.open_stream(mmap)
-        pa_table = f.read_all()
+        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
+        return pa_table
+
+    @staticmethod
+    def read_table(filename, in_memory=False):
+        """
+        Read table from file.
+
+        Args:
+            filename (str): File name of the table.
+            in_memory (bool, default=False): Whether to copy the data in-memory.
+
+        Returns:
+            pyarrow.Table
+        """
+        # Stream backed by memory-mapped file / file descriptor
+        stream_from = pa.memory_map if not in_memory else pa.input_stream
+        stream = stream_from(filename)
+        f = pa.ipc.open_stream(stream)
+        pa_table = f.read_all()
         return pa_table
 
 
@@ -319,13 +341,14 @@ class ParquetReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "parquet"
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_dataset_from_filename(self, filename_skip_take, **kwargs):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
+        # Parquet read_table always loads data in memory, independently of memory_map
         pa_table = pa.parquet.read_table(filename, memory_map=True)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):

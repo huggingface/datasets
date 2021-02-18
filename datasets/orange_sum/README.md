@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -158,3 +159,7 @@ The dataset was initially created by Antoine J.-P. Tixier.
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@moussaKam](https://github.com/moussaKam) for adding this dataset.

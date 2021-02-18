@@ -25,19 +25,11 @@ import pyarrow as pa
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
-from . import utils
-from .utils.file_utils import _tf_available, _torch_available
+from . import config, utils
 from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
-
-
-if _torch_available:
-    import torch
-
-if _tf_available:
-    import tensorflow as tf
 
 
 def string_to_arrow(type_str: str) -> pa.DataType:
@@ -71,11 +63,18 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         casted_obj: the casted object
         has_changed (bool): True if the object has been changed, False if it is identical
     """
+
+    if config.TF_AVAILABLE:
+        import tensorflow as tf
+
+    if config.TORCH_AVAILABLE:
+        import torch
+
     if isinstance(obj, np.ndarray):
         return obj.tolist(), True
-    elif _torch_available and isinstance(obj, torch.Tensor):
+    elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
-    elif _tf_available and isinstance(obj, tf.Tensor):
+    elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
@@ -318,6 +317,26 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         self._data = data if not copy else np.array(data)
         self._dtype = PandasArrayExtensionDtype(data.dtype)
 
+    def __array__(self, dtype=None):
+        """
+        Convert to NumPy Array.
+        Note that Pandas expects a 1D array when dtype is set to object.
+        But for other dtypes, the returned shape is the same as the one of ``data``.
+
+        More info about pandas 1D requirement for PandasExtensionArray here:
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
+
+        """
+        if dtype == object:
+            out = np.empty(len(self._data), dtype=object)
+            for i in range(len(self._data)):
+                out[i] = self._data[i]
+            return out
+        if dtype is None:
+            return self._data
+        else:
+            return self._data.astype(dtype)
+
     def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
         return PandasArrayExtensionArray(self._data, copy=True)
 
@@ -342,9 +361,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
-        if np.issubdtype(self.dtype.value_type, np.floating):
-            return np.array(np.isnan(arr).any() for arr in self._data)
-        return np.array((arr < 0).any() for arr in self._data)
+        return np.array([np.isnan(arr).any() for arr in self._data])
 
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
         raise NotImplementedError()

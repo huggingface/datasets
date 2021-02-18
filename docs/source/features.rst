@@ -11,7 +11,7 @@ Here is a brief presentation of the various types of features which can be used 
 
 .. note::
 
-	A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the :class:`datasets.Sequence`.
+    A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the :class:`datasets.Sequence`.
 
 - a :class:`datasets.ClassLabel` feature specifies a field with a predefined set of classes which can have labels associated to them and will be stored as integers in the dataset. This field will be stored and retrieved as an integer value and two conversion methods, :func:`datasets.ClassLabel.str2int` and :func:`datasets.ClassLabel.int2str` can be used to convert from the label names to the associate integer value and vice-versa.
 

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -137,3 +138,7 @@ This dataset uses Tunisian Arabic written with latin script (BCP-47: aeb-Latn)
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.

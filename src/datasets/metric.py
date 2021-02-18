@@ -23,13 +23,14 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pyarrow as pa
 
+from . import config
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
+from .utils import copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
 from .utils.filelock import BaseFileLock, FileLock, Timeout
@@ -177,7 +178,7 @@ class Metric(MetricInfoMixin):
         self.max_concurrent_cache_files = max_concurrent_cache_files
 
         self.keep_in_memory = keep_in_memory
-        self._data_dir_root = os.path.expanduser(cache_dir or HF_METRICS_CACHE)
+        self._data_dir_root = os.path.expanduser(cache_dir or config.HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
         self.timeout: Union[int, float] = timeout
@@ -541,9 +542,9 @@ class Metric(MetricInfoMixin):
         raise NotImplementedError
 
     def __del__(self):
-        if self.filelock is not None:
+        if hasattr(self, "filelock") and self.filelock is not None:
             self.filelock.release()
-        if self.rendez_vous_lock is not None:
+        if hasattr(self, "rendez_vous_lock") and self.rendez_vous_lock is not None:
             self.rendez_vous_lock.release()
         if hasattr(self, "writer"):  # in case it was already deleted
             del self.writer

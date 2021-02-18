@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
 
 import datasets
@@ -176,19 +177,21 @@ class ChrEn(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, split):
         if self.config.name == "monolingual_raw":
             keys = ["text_sentence", "text_title", "speaker", "date", "type", "dialect"]
-            monolingual = pd.read_excel(filepaths["monolingual_raw"])
-            for id_, row in enumerate(monolingual.itertuples()):
-                yield id_, dict(zip(keys, row[1:]))
+            with open(filepaths["monolingual_raw"], "rb") as f:
+                monolingual = pd.read_excel(f, engine="openpyxl")
+                for id_, row in enumerate(monolingual.itertuples()):
+                    yield id_, dict(zip(keys, row[1:]))
         elif self.config.name == "parallel_raw":
             keys = ["line_number", "en_sent", "chr_sent", "text_title", "speaker", "date", "type", "dialect"]
-            parallel = pd.read_excel(filepaths["parallel_raw"])
-            for id_, row in enumerate(parallel.itertuples()):
-                res = dict(zip(keys, row[1:]))
-                res["sentence_pair"] = {"en": res["en_sent"], "chr": res["chr_sent"]}
-                res["line_number"] = str(res["line_number"])
-                del res["en_sent"]
-                del res["chr_sent"]
-                yield id_, res
+            with open(filepaths["parallel_raw"], "rb") as f:
+                parallel = pd.read_excel(f, engine="openpyxl")
+                for id_, row in enumerate(parallel.itertuples()):
+                    res = dict(zip(keys, row[1:]))
+                    res["sentence_pair"] = {"en": res["en_sent"], "chr": res["chr_sent"]}
+                    res["line_number"] = str(res["line_number"])
+                    del res["en_sent"]
+                    del res["chr_sent"]
+                    yield id_, res
         elif self.config.name == "monolingual":
             f = open(filepaths[f"monolingual_{split}"], encoding="utf-8")
             for id_, line in enumerate(f):

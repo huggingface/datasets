@@ -17,13 +17,13 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- PAWS-X:
+  PAWS-X:
   - intent-classification
-- XNLI:
+  XNLI:
   - semantic-similarity-classification
-- CLS:
+  CLS:
   - sentiment-classification
-- WSD-V:
+  WSD-V:
   - text-classification-other-Word Sense Disambiguation for Verbs
 ---
 
@@ -64,6 +64,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -231,3 +232,6 @@ The licenses are:
     primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@jplu](https://github.com/jplu) for adding this dataset.

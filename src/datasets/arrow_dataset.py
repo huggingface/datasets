@@ -31,6 +31,7 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -39,8 +40,17 @@ from tqdm.auto import tqdm
 
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
-from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
-from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
+from .features import Features, Value, cast_to_python_objects
+from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .fingerprint import (
+    fingerprint_transform,
+    generate_fingerprint,
+    generate_random_fingerprint,
+    get_temporary_cache_files_directory,
+    is_caching_enabled,
+    update_fingerprint,
+)
+from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -75,7 +85,7 @@ class DatasetInfoMixin(object):
 
     @property
     def split(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -160,11 +170,12 @@ def transmit_format(func):
         for dataset in datasets:
             new_format = dict(self_format)
             if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
-                new_format["columns"] = list(set(dataset.column_names) - unformatted_columns)
+                # sort the columns to have a deterministic list of columns that we can compare with `out_format`
+                new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
             out_format = {
                 "type": dataset._format_type,
                 "format_kwargs": dataset._format_kwargs,
-                "columns": dataset._format_columns,
+                "columns": sorted(dataset._format_columns) if dataset._format_columns is not None else None,
                 "output_all_columns": dataset._output_all_columns,
             }
             if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
@@ -252,18 +263,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
+        in_memory: bool = False,
     ) -> "Dataset":
-        """ Instantiate a Dataset backed by an Arrow table at filename """
-        mmap = pa.memory_map(filename)
-        f = pa.ipc.open_stream(mmap)
-        pa_table = f.read_all()
-        data_files = [{"filename": filename}]
+        """Instantiate a Dataset backed by an Arrow table at filename.
+
+        Args:
+            filename (str): File name of the dataset.
+            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            split (NamedSplit, optional): Name of the dataset split.
+            indices_filename (str, optional): File names of the indices.
+            in_memory (bool, default False): Whether to copy the data in-memory.
+
+        Returns:
+            datasets.Dataset
+        """
+        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
+        data_files = [{"filename": filename}] if not in_memory else None
 
         if indices_filename is not None:
-            indices_mmap = pa.memory_map(indices_filename)
-            indices_f = pa.ipc.open_stream(indices_mmap)
-            indices_pa_table = indices_f.read_all()
-            indices_data_files = [{"filename": indices_filename}]
+            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
+            indices_data_files = [{"filename": indices_filename}] if not in_memory else None
         else:
             indices_pa_table = None
             indices_data_files = None
@@ -286,8 +305,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
-        mmap = pa.BufferReader(buffer)
-        f = pa.ipc.open_stream(mmap)
+        stream = pa.BufferReader(buffer)
+        f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
 
         if indices_buffer is not None:
@@ -424,77 +443,115 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
-    def save_to_disk(self, dataset_path: str):
+    def save_to_disk(self, dataset_path: str, fs=None):
         """
-        Save the dataset in a dataset directory
+        Saves a dataset to a dataset directory, or in a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be saved to
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
         self = pickle.loads(pickle.dumps(self))
-        os.makedirs(dataset_path, exist_ok=True)
-        # Write indices if needed
-        if self._indices is not None:
-            if not self._indices_data_files:
-                cache_file_name = os.path.join(dataset_path, "indices.arrow")
+
+        if is_remote_filesystem(fs):
+            dataset_path = extract_path_from_uri(dataset_path)
+        else:
+            fs = fsspec.filesystem("file")
+
+        # create temporary directory for saving
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
+            os.makedirs(temp_dataset_path, exist_ok=True)
+
+            # Write indices if needed
+            if self._indices is not None:
+                if not self._indices_data_files:
+                    cache_file_name = os.path.join(temp_dataset_path, "indices.arrow")
+                    writer = ArrowWriter(path=cache_file_name)
+                    writer.write_table(self._indices)
+                    writer.finalize()
+                    self._indices_data_files = [{"filename": cache_file_name}]
+            # Write dataset if needed
+            if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
+                cache_file_name = os.path.join(temp_dataset_path, "dataset.arrow")
                 writer = ArrowWriter(path=cache_file_name)
-                writer.write_table(self._indices)
+                writer.write_table(self._data)
                 writer.finalize()
-                self._indices_data_files = [{"filename": cache_file_name}]
-        # Write dataset if needed
-        if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
-            cache_file_name = os.path.join(dataset_path, "dataset.arrow")
-            writer = ArrowWriter(path=cache_file_name)
-            writer.write_table(self._data)
-            writer.finalize()
-            self._data_files = [{"filename": cache_file_name}]
-            self._inplace_history = [{"transforms": []}]
-        # Copy all files into the dataset directory
-        for data_file in self._data_files + self._indices_data_files:
-            # Copy file to destination directory
-            src = data_file["filename"]
-            filename = Path(src).name
-            dest = os.path.join(dataset_path, filename)
-            if src != dest:
-                shutil.copy(src, dest)
-            # Change path to relative path from inside the destination directory
-            data_file["filename"] = filename
-        # Get state
-        state = self.__getstate__()
-        dataset_info = json.loads(state.pop("_info"))
-        assert state.get("_data") is None, "arrow table needs to be memory mapped"
-        assert state.get("_indices") is None, "arrow table needs to be memory mapped"
-        assert all(
-            len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
-        ), "in-place history needs to be empty"
-        # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
-            json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
-        logger.info("Dataset saved in {}".format(dataset_path))
+                self._data_files = [{"filename": cache_file_name}]
+                self._inplace_history = [{"transforms": []}]
+            # Copy all files into the dataset directory
+            for data_file in self._data_files + self._indices_data_files:
+                src = Path(data_file["filename"])
+                dest = Path(dataset_path).joinpath(src.name)
+                if fs.protocol != "file":
+                    fs.put(src.as_posix(), dest.as_posix())
+                elif src.as_posix() != dest.as_posix():
+                    fs.put(src.as_posix(), dest.as_posix())
+                # Change path to relative path from inside the destination directory
+                data_file["filename"] = src.name
+
+            # Get state
+            state = self.__getstate__()
+            dataset_info = json.loads(state.pop("_info"))
+            assert state.get("_data") is None, "arrow table needs to be memory mapped"
+            assert state.get("_indices") is None, "arrow table needs to be memory mapped"
+            assert all(
+                len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
+            ), "in-place history needs to be empty"
+            for k in state["_format_kwargs"].keys():
+                try:
+                    json.dumps(state["_format_kwargs"][k])
+                except TypeError as e:
+                    raise TypeError(str(e) + f"\nThe format kwargs must be jSON serializable, but key '{k}' isn't.")
+            # Serialize state
+            with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
+                json.dump(state, state_file, indent=2, sort_keys=True)
+            with fs.open(
+                Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
+            ) as dataset_info_file:
+                json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str) -> "Dataset":
-        """Load the dataset from a dataset directory
+    def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
+        """
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+
+        Returns:
+            ``datasets.Dataset`` or ``datasets.DatasetDict``
+                if `dataset_path` is a path of a dataset directory: the dataset requested,
+                if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
-        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
+        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(fs):
+            src_dataset_path = extract_path_from_uri(dataset_path)
+            tmp_dir = tempfile.TemporaryDirectory()
+            dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
+            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+
+        with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
         # Change path to absolute path
         for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
+            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"]).as_posix()
         dataset.__setstate__(state)
+
+        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
+            shutil.rmtree(tmp_dir.name, ignore_errors=True)
         return dataset
 
     @property
@@ -528,7 +585,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def shape(self) -> Tuple[int]:
         """Shape of the dataset (number of columns, number of rows)."""
         if self._indices is not None:
-            return tuple(self._indices.num_rows, self._data.num_columns)
+            return (self._indices.num_rows, self._data.num_columns)
         return self._data.shape
 
     def unique(self, column: str) -> List[Any]:
@@ -555,7 +612,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
@@ -576,7 +633,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """Flatten the Table.
         Each column with a struct type is flattened into one column per struct field.
@@ -593,7 +650,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
         Cast the dataset to a new set of features.
@@ -618,7 +675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) in the dataset and
@@ -645,7 +702,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
@@ -741,7 +798,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         finally:
             self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
-    @fingerprint(inplace=True)
+    @fingerprint_transform(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
@@ -749,44 +806,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         output_all_columns: bool = False,
         **format_kwargs,
     ):
-        """Set __getitem__ return format (type and columns)
+        """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
+        The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
+        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.set_transform`.
 
         Args:
-            type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+            type (Optional ``str``):
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
-                None means __getitem__ returns all columns (default)
+            columns (Optional ``List[str]``): columns to format in the output.
+                None means __getitem__ returns all columns (default).
             output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
+        It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
+        gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
+
+            new formatted columns = (all columns - previously unformatted columns)
+
         """
-        # Check return type
-        if type in ["torch", "pytorch", "pt"]:
-            try:
-                import torch  # noqa: F401
-            except ImportError:
-                logger.error("PyTorch needs to be installed to be able to return PyTorch tensors.")
-            type = "torch"
-        elif type in ["tensorflow", "tf"]:
-            try:
-                import tensorflow  # noqa: F401
-            except ImportError:
-                logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
-            type = "tensorflow"
-        elif type in ["numpy", "np"]:
-            type = "numpy"
-        elif type in ["pandas", "pd"]:
-            type = "pandas"
-        elif type in [None, "python"]:
-            type = None
-        else:
-            assert not (
-                type == "pandas" and (output_all_columns or format_kwargs)
-            ), "Format type 'pandas' doesn't allow the use of `output_all_columns` or `**format_kwargs`."
-            assert (
-                type is None or type == "numpy" or type == "pandas"
-            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas'], but got '{}'".format(
-                type
-            )
+        format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
+
+        # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
+        type = get_format_type_from_alias(type)
+        _ = get_formatter(type, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
@@ -798,7 +841,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
 
-        format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
         self._format_type = type
         self._format_kwargs = format_kwargs
         self._format_columns = columns
@@ -818,116 +860,79 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         self.set_format()
 
-    def _convert_outputs(
-        self, outputs, format_type=None, format_columns=None, output_all_columns=False, format_kwargs=None
+    def set_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
     ):
-        format_kwargs = format_kwargs if format_kwargs is not None else {}
-        if format_type is None:
-            if output_all_columns:
-                return outputs
-            if isinstance(outputs, dict) and format_columns is not None:
-                return {k: v for k, v in outputs.items() if k in format_columns}
-            return outputs
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
 
-        map_nested_kwargs = {}
-        if format_type == "numpy":
-            if "copy" not in format_kwargs:
-                format_kwargs["copy"] = False
-            command = partial(np.array, **format_kwargs)
-            map_nested_kwargs["map_list"] = False  # convert lists to arrays
-        elif format_type == "torch":
-            import torch
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
 
-            map_nested_kwargs["map_list"] = False  # convert lists to tensors
+        """
+        self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
 
-            def command(x):
-                if isinstance(
-                    x, (list, tuple, np.ndarray)
-                ):  # add support for nested types like struct of list of struct
-                    x = np.array(x, copy=False)
-                    if x.dtype == np.object:  # pytorch tensors cannot be instantied from an array of objects
-                        return [map_nested(command, i, **map_nested_kwargs) for i in x]
-                return torch.tensor(x, **format_kwargs)
+    def with_format(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
+        """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
+        The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
 
-        elif format_type == "tensorflow":
-            import tensorflow
+        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.with_transform`.
 
-            map_nested_kwargs["map_list"] = False  # convert lists to tensors
+        Contrary to :func:`datasets.Dataset.set_format`, ``with_format`` returns a new Dataset object.
 
-            def command(x):
-                if isinstance(
-                    x, (list, tuple, np.ndarray)
-                ):  # add support for nested types like struct of list of struct
-                    x = np.array(x, copy=False)
-                    if x.dtype == np.object:  # tensorflow tensors can sometimes be instantied from an array of objects
-                        try:
-                            return tensorflow.ragged.constant(x, **format_kwargs)
-                        except ValueError:
-                            return [map_nested(command, i, **map_nested_kwargs) for i in x]
-                return tensorflow.ragged.constant(x, **format_kwargs)
+        Args:
+            type (Optional ``str``):
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
+                None means __getitem__ returns python objects (default)
+            columns (Optional ``List[str]``): columns to format in the output
+                None means __getitem__ returns all columns (default)
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+        """
+        dataset = copy.deepcopy(self)
+        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        return dataset
 
-        else:
+    def with_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+    ):
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
 
-            def identity(x):
-                return x
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`.
 
-            command = identity
-        if isinstance(outputs, (list, tuple, np.ndarray, pd.Series)):
-            return command(outputs)
-        elif isinstance(outputs, pd.DataFrame):
-            if format_columns is not None and not output_all_columns:
-                to_remove_columns = [col for col in self.column_names if col not in format_columns]
-                output_dict = outputs.drop(to_remove_columns, axis=1)
-            else:
-                output_dict = outputs
-        else:
-            output_dict = {}
-            for k, v in outputs.items():
-                if format_columns is not None and k not in format_columns and not output_all_columns:
-                    continue
-                if format_columns is None or k in format_columns:
-                    v = map_nested(command, v, **map_nested_kwargs)
-                output_dict[k] = v
-        return output_dict
+        Contrary to :func:`datasets.Dataset.set_transform`, ``with_transform`` returns a new Dataset object.
 
-    @staticmethod
-    def _unnest(py_dict):
-        return dict((key, array[0]) for key, array in py_dict.items())
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
 
-    @staticmethod
-    def _nest(py_dict):
-        return dict((key, [elem]) for key, elem in py_dict.items())
-
-    def _map_indices(self, indices: Union[int, slice, pa.Array, Iterable]):
-        if self._indices is None:
-            return indices
-
-        if isinstance(indices, int):
-            return self._indices.column(0)[indices].as_py()
-
-        slice_indices = None
-        array_indices = None
-        if isinstance(indices, slice):
-            slice_indices = indices.indices(self.num_rows)
-            # Check if the slice is a contiguous slice - else build an indices array
-            if slice_indices[2] != 1 or slice_indices[1] < slice_indices[0]:
-                array_indices = pa.array(list(range(*slice_indices)), type=pa.uint64())
-        elif isinstance(indices, pa.Array):
-            array_indices = indices
-        elif isinstance(indices, Iterable):
-            array_indices = pa.array([int(i) for i in indices], type=pa.uint64())
-
-        # We can do a slice
-        if array_indices is None:
-            return self._indices.column(0).slice(slice_indices[0], slice_indices[1] - slice_indices[0])
-
-        # We cannot do a slice, we need to do a take or some concatenation on pyarrow < 1.0.0
-        if PYARROW_V0:  # pre-1.0.0 backward compatibility
-            data_array = pa.concat_tables(self._indices.slice(i.as_py(), 1) for i in array_indices).column(0)
-        else:
-            data_array = self._indices.column(0).take(array_indices)
-
-        return data_array
+        """
+        dataset = copy.deepcopy(self)
+        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        return dataset
 
     def _getitem(
         self,
@@ -940,139 +945,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
-        # In the following, to convert data from the arrow table to dicts or lists,
-        # we use .to_pandas().to_dict() or .to_pandas().to_list() as they are
-        # significantly faster than .to_pydict() thanks to zero-copy and because it doesn't
-        # call `list()` on every object in sequences of sequences of objects for example
-        if isinstance(key, int):
-            if key < 0:
-                key = self.num_rows + key
-            if key >= self.num_rows or key < 0:
-                raise IndexError(f"Index ({key}) outside of table length ({self.num_rows}).")
-
-            # Check if we need to convert indices
-            key = self._map_indices(key)
-
-            if format_type is not None:
-                if format_type == "pandas":
-                    outputs = self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper)
-                else:
-                    outputs = self._unnest(
-                        self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
-                    )
-            else:
-                outputs = self._unnest(self._data.slice(key, 1).to_pydict())
-
-        elif isinstance(key, slice):
-            indices_array = None
-            key_indices = key.indices(self.num_rows)
-
-            # Check if the slice is a contiguous slice - else build an indices array
-            if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
-                indices_array = pa.array(list(range(*key)), type=pa.uint64())
-
-            # Check if we need to convert indices
-            if self._indices is not None:
-                indices_array = self._map_indices(indices_array if indices_array else key)
-                # TODO: here we could add a check that the resulting indices are a contiguous slice
-                # to avoid using 'take' instead of 'slice'
-
-            # Get the subset of the table
-            if indices_array is not None:
-                # if PYARROW_V0:  # don't use take (see https://issues.apache.org/jira/browse/ARROW-9773)
-                data_subset = pa.concat_tables(
-                    self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
-                )
-                # else:
-                #     data_subset = self._data.take(indices_array)
-            else:
-                data_subset = self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
-
-            # Convert to the format
-            if format_type is not None:
-                if format_type == "pandas":
-                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
-                else:
-                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
-            else:
-                outputs = data_subset.to_pydict()
-
-        elif isinstance(key, str):
-            if key not in self._data.column_names:
-                raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
-
-            # Check if we need to convert indices
-            if self._indices is not None:
-                indices_array = self._indices.column(0)
-                # if PYARROW_V0:  # don't use take (see https://issues.apache.org/jira/browse/ARROW-9773)
-                data_array = pa.concat_tables(self._data.slice(i.as_py(), 1) for i in indices_array).column(key)
-                # else:
-                #     data_array = self._data.column(key).take(indices_array)
-            else:
-                data_array = self._data.column(key)
-
-            if format_type is not None:
-                # We should use
-                # outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
-                # but there is a bug in pyarrow that makes ignores the types_mapper in that case
-                # see https://issues.apache.org/jira/browse/ARROW-9664
-                # We build a table with one column and call to_pandas on it instead
-                one_column_table = pa.Table.from_arrays([data_array], schema=pa.schema([self._data.schema.field(key)]))
-                if format_columns is None or key in format_columns:
-                    if format_type == "pandas":
-                        outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key]
-                    else:
-                        outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
-                else:
-                    outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
-            else:
-                outputs = data_array.to_pylist()
-
-        elif isinstance(key, Iterable):
-            if len(key) > 0 and isinstance(key[0], (bool, np.bool_)):
-                if len(key) != self.__len__():
-                    raise ValueError(
-                        f"Iterable with bool entries must be length of dataset ({self.__len__()}), " f"not {len(key)}"
-                    )
-                indices = [i for i, val in enumerate(key) if val]
-            else:
-                indices = key
-
-            indices_array = pa.array([int(i) + len(self) if int(i) < 0 else int(i) for i in indices], type=pa.uint64())
-
-            # Check if we need to convert indices
-            indices_array = self._map_indices(indices_array)
-
-            # TODO: here we could add a check that the resulting indices are a contiguous slice
-            # to avoid using 'take' instead of 'slice'
-
-            # if PYARROW_V0:  # don't use take (see https://issues.apache.org/jira/browse/ARROW-9773)
-            data_subset = pa.concat_tables(
-                self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
-            )
-            # else:
-            #     data_subset = self._data.take(indices_array)
-
-            if format_type is not None:
-                if format_type == "pandas":
-                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
-                else:
-                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
-            else:
-                outputs = data_subset.to_pydict()
-
-        else:
-            raise ValueError("Can only get row(s) (int or slice or list[int]) or columns (string).")
-
-        if format_type is not None or format_columns is not None:
-            outputs = self._convert_outputs(
-                outputs,
-                format_type=format_type,
-                format_columns=format_columns,
-                output_all_columns=output_all_columns,
-                format_kwargs=format_kwargs,
-            )
-        return outputs
+        format_kwargs = format_kwargs if format_kwargs is not None else {}
+        formatter = get_formatter(format_type, **format_kwargs)
+        pa_subtable = query_table(
+            self._data, key, indices=self._indices.column(0) if self._indices is not None else None
+        )
+        formatted_output = format_table(
+            pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
+        )
+        return formatted_output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """
@@ -1113,8 +994,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        cache_file_name = "cache-" + fingerprint + ".arrow"
-        cache_directory = os.path.dirname(self._data_files[0]["filename"])
+        if is_caching_enabled():
+            cache_file_name = "cache-" + fingerprint + ".arrow"
+            cache_directory = os.path.dirname(self._data_files[0]["filename"])
+        else:
+            cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
+            cache_directory = get_temporary_cache_files_directory()
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
@@ -1128,7 +1013,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1160,9 +1045,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1198,6 +1083,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             input_column, self._data.column_names
                         )
                     )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
             fn_kwargs = dict()
@@ -1322,7 +1209,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1333,7 +1220,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -1366,9 +1253,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1404,6 +1291,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     self._data.column_names,
                 )
             )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -1553,7 +1442,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -1589,7 +1478,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1645,7 +1534,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -1659,7 +1548,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1721,7 +1610,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name"])
     def select(
         self,
         indices: Iterable,
@@ -1735,7 +1624,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             `indices` (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
             `keep_in_memory` (`bool`, default: `False`): Keep the indices mapping in memory instead of writing it to a cache file.
-            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
             `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1802,7 +1691,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
     @transmit_format
-    @fingerprint(inplace=False)
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
         column: str,
@@ -1829,7 +1718,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 sorted indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
@@ -1880,7 +1769,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(inplace=False, randomized_function=True)
+    @fingerprint_transform(
+        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+    )
     def shuffle(
         self,
         seed: Optional[int] = None,
@@ -1905,7 +1796,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the shuffled indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 shuffled indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -1955,8 +1846,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @transmit_format
-    @fingerprint(
-        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+    @fingerprint_transform(
+        inplace=False,
+        randomized_function=True,
+        fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
+        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
     )
     def train_test_split(
         self,
@@ -1997,9 +1891,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the splits indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
-            train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 train split indices instead of the automatically generated cache file name.
-            test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -2182,7 +2076,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -2238,10 +2132,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             """Returns an int64_list from a list of bool / enum / int / uint."""
             return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
 
-        def _feature(values: np.ndarray) -> "tf.train.Feature":
+        def _feature(values: Union[float, int, str, np.ndarray]) -> "tf.train.Feature":
             """Typechecks `values` and returns the corresponding tf.train.Feature."""
-            if values.ndim == 0:
-                values = values.item()
             if isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
@@ -2255,14 +2147,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     raise ValueError(
                         f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
                     )
-            elif isinstance(values, float):
-                return _float_feature([values])
-            elif isinstance(values, int):
-                return _int64_feature([values])
-            elif isinstance(values, str):
-                return _bytes_feature([values.encode()])
+            if hasattr(values, "dtype"):
+                if np.issubdtype(values.dtype, np.floating):
+                    return _float_feature([values.item()])
+                elif np.issubdtype(values.dtype, np.integer):
+                    return _int64_feature([values.item()])
+                elif np.issubdtype(values.dtype, np.str):
+                    return _bytes_feature([values.item().encode()])
+                else:
+                    raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
             else:
-                raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
+                raise ValueError(f"values={values} are not numpy objects, and so cannot be serialized")
 
         def serialize_example(ex):
             feature = {key: _feature(value) for key, value in ex.items()}

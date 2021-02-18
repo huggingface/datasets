@@ -488,7 +488,65 @@ Saving a dataset creates a directory with various files:
 
 Both :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` objects can be saved on disk, by using respectively :func:`datasets.Dataset.save_to_disk` and :func:`datasets.DatasetDict.save_to_disk`.
 
+Furthermore it is also possible to save :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` to other filesystems and cloud storages such as S3 by using respectively :func:`datasets.Dataset.save_to_disk` 
+and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`
+
+
 Controling the cache behavior
 -----------------------------------
 
-[UNDER CONSTRUCTION]
+When applying transforms on a dataset, the data are stored in cache files.
+The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated after each transform.
+
+Note that the caching extend beyond sessions. Re-running the very same dataset processing methods (in the same order and on the same data files) in a different session will load from the same cache files.
+This is possible thanks to a custom hashing function that works with most python objects (see fingerprinting section below).
+
+
+Fingerprinting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied. (Transform are all the processing method for transforming a dataset that we listed in this chapter (:func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc)
+The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
+
+For example:
+
+.. code-block::
+
+    >>> from datasets import Dataset
+    >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
+    >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
+    >>> print(dataset1._fingerprint, dataset2._fingerprint)
+    d19493523d95e2dc 5b86abacd4b42434
+
+The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be picklable using dill or pickle. In particular for :func:`datasets.Dataset.map`, you need to provide a picklable processing method to apply on the dataset so that a determinist fingerprint can be computed by hashing the full state of the provided method (the fingerprint is computed taking into account all the dependencies of the method you provide). 
+For non-hashable transform, a random fingerprint is used and a warning is raised.
+Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work.
+If you reuse a non-hashable transform, the caching mechanism will consider it to be different from the previous calls and recompute everything.
+
+Enable or disable caching
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Locally you can prevent the library from reloading a cached file by using ``load_from_cache=False`` in transforms like :func:`datasets.Dataset.map` for example.
+You can also specify the name of path where the cache file will be written using the parameter ``cache_file_name``.
+
+It is also possible to disable caching globally with :func:`datasets.set_caching_enabled`.
+
+If the caching is disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+More precisely, if the caching is disabled:
+- cache files are always recreated
+- cache files are written to a temporary directory that is deleted when session closes
+- cache files are named using a random hash instead of the dataset fingerprint
+- use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+- caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+
+To disable caching you can run:
+
+.. code-block::
+
+    >>> from datasets import set_caching_enabled
+    >>> set_caching_enabled(False)
+
+You can also query the current status of the caching with :func:`datasets.is_caching_enabled`:

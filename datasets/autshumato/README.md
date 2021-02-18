@@ -4,21 +4,21 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-- autshumato-en-ts-manual:
+  autshumato-en-ts-manual:
   - en
   - ts
-- autshumato-en-tn:
+  autshumato-en-tn:
   - en
   - tn
-- autshumato-en-ts:
+  autshumato-en-ts:
   - en
   - ts
-- autshumato-en-zu:
+  autshumato-en-zu:
   - en
   - zu
-- autshumato-tn:
+  autshumato-tn:
   - tn
-- autshumato-ts:
+  autshumato-ts:
   - ts
 licenses:
 - cc-by-2.5
@@ -58,6 +58,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -167,3 +168,7 @@ project is to develop machine translation systems for three South African langua
   year={2010}
 }
 ```
+
+### Contributions
+
+Thanks to [@Narsil](https://github.com/Narsil) for adding this dataset.

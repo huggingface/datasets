@@ -95,6 +95,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -157,70 +158,110 @@ A typical example contains the original RDF triples in the set, a modified versi
 ### Data Fields
 
 The following fields can be found in the instances:
-- `category`: the category of the DBpedia entites present in the RDF triples.
+- `category`: the category of the DBpedia entities present in the RDF triples.
 - `eid`: an example ID, only unique per split per category.
 - `size`: number of RDF triples in the set.
-- `shape`: (for v3 only) Each set of RDF-triples is a tree, which is characterised by its shape and shape type. `shape` is a string representation of the tree with nested parentheses where X is a node (see [Newick tree format](https://en.wikipedia.org/wiki/Newick_format))
-- `shape_type`: (for v3 only) is a type of the tree shape, which can be: `chain` (the object of one triple is the subject of the other); `sibling` (triples with a shared subject); `mixed` (both chain and sibling types present).
-- `2017_test_category`: (for `webnlg_challenge_2017`) tells whether the set of RDF triples was present in the training set or not.
+- `shape`: (since v2) Each set of RDF-triples is a tree, which is characterised by its shape and shape type. `shape` is a string representation of the tree with nested parentheses where X is a node (see [Newick tree format](https://en.wikipedia.org/wiki/Newick_format))
+- `shape_type`: (since v2) is a type of the tree shape, which can be: `chain` (the object of one triple is the subject of the other); `sibling` (triples with a shared subject); `mixed` (both chain and sibling types present).
+- `test_category`: (for `webnlg_challenge_2017` and `v3`) tells whether the set of RDF triples was present in the training set or not. Several splits of the test set are available: with and without references, and for RDF-to-text generation / for semantic parsing.
 - `lex`: the lexicalizations, with:
   - `text`: the text to be predicted.
-  - `lid`: a lexicalizayion ID, unique per example.
+  - `lid`: a lexicalization ID, unique per example.
   - `comment`: the lexicalizations were rated by crowd workers are either `good` or `bad`
+  - `lang`: (for `release_v3.0_ru`) the language used because original English texts were kept in the Russian version.
+
+Russian data has additional optional fields comparing to English:
+- `dbpedialinks`: RDF triples extracted from DBpedia between English and Russian entities by means of the property `sameAs`.
+- `links`: RDF triples created manually for some entities to serve as pointers to translators. There are two types of them:
+    * with `sameAs` (`Spaniards | sameAs | испанцы`)
+    * with `includes` (`Tomatoes, guanciale, cheese, olive oil | includes | гуанчиале`). Those were mostly created for string literals to translate some parts of them.
 
 ### Data Splits
 
-[More Information Needed]
+For `v3.0` releases:
+
+|  English (v3.0) | Train  | Dev   | Test (data-to-text) |
+|-----------------|--------|-------|-------|
+| **triple sets** | 13,211 | 1,667 | 1,779 |
+| **texts**       | 35,426 | 4,464 | 5,150 |
+|**properties**   | 372    | 290   | 220   |
+
+
+|  Russian (v3.0) | Train  | Dev   | Test (data-to-text) |
+|-----------------|--------|-------|---------------------|
+| **triple sets** | 5,573  | 790   | 1,102 |
+| **texts**       | 14,239 | 2,026 | 2,780 |
+|**properties**   | 226    | 115   | 192   |
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+The WebNLG dataset was created to promote the development _(i)_ of RDF verbalisers and _(ii)_ of microplanners able to handle a wide range of linguistic constructions. The dataset aims at covering knowledge in different domains ("categories"). The same properties and entities can appear in several categories.
 
 ### Source Data
 
+The data was compiled from raw DBpedia triples. [This paper](https://www.aclweb.org/anthology/C16-1141/) explains how the triples were selected.
+
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Initial triples extracted from DBpedia were modified in several ways. See [official documentation](https://webnlg-challenge.loria.fr/docs/) for the most frequent changes that have been made. An original tripleset and a modified tripleset usually represent a one-to-one mapping. However, there are cases with many-to-one mappings when several original triplesets are mapped to one modified tripleset.
+
+Entities that served as roots of RDF trees are listed in [this file](https://gitlab.com/shimorina/webnlg-dataset/-/blob/master/supplementary/entities_dict.json).
+
+The English WebNLG 2020 dataset (v3.0) for training comprises data-text pairs for 16 distinct DBpedia categories:
+- The 10 seen categories used in the 2017 version: Airport, Astronaut, Building, City, ComicsCharacter, Food, Monument, SportsTeam, University, and WrittenWork.
+- The 5 unseen categories of 2017, which are now part of the seen data: Athlete, Artist, CelestialBody, MeanOfTransportation, Politician.
+- 1 new category: Company.
+
+The Russian dataset (v3.0) comprises data-text pairs for 9 distinct categories: Airport, Astronaut, Building, CelestialBody, ComicsCharacter, Food, Monument, SportsTeam, and University.
 
 #### Who are the source language producers?
 
-[More Information Needed]
+There are no source texts, all textual material was compiled during the annotation process.
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+Annotators were first asked to create sentences that verbalise single triples. In a second round, annotators were asked to combine single-triple sentences together into sentences that cover 2 triples. And so on until 7 triples. Quality checks were performed to ensure the quality of the annotations. See Section 3.3 in [the dataset paper](https://www.aclweb.org/anthology/P17-1017.pdf).
+
+Russian data was translated from English with an MT system and then was post-edited by crowdworkers. See Section 2.2 of [this paper](https://webnlg-challenge.loria.fr/files/2020.webnlg-papers.7.pdf).
 
 #### Who are the annotators?
 
-[More Information Needed]
+All references were collected through crowdsourcing platforms (CrowdFlower/Figure 8 and Amazon Mechanical Turk). For Russian, post-editing was done using the Yandex.Toloka crowdsourcing platform.
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+Neither the dataset as published or the annotation process involves the collection or sharing of any kind of personal / demographic information.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+We do not foresee any negative social impact in particular from this dataset or task.
+
+Positive outlooks: Being able to generate good quality text from RDF data would permit, e.g., making this data more accessible to lay users, enriching existing text with information drawn from knowledge bases such as DBpedia or describing, comparing and relating entities present in these knowledge bases.
 
 ### Discussion of Biases
 
-[More Information Needed]
+This dataset is created using DBpedia RDF triples which naturally exhibit biases that have been found to exist in Wikipedia such as some forms of, e.g., gender bias.
+
+The choice of [entities](https://gitlab.com/shimorina/webnlg-dataset/-/blob/master/supplementary/entities_dict.json), described by RDF trees, was not controlled. As such, they may contain gender biases; for instance, all the astronauts described by RDF triples are male. Hence, in texts, pronouns _he/him/his_ occur more often. Similarly, entities can be related to the Western culture more often than to other cultures.
 
 ### Other Known Limitations
 
-[More Information Needed]
+The quality of the crowdsourced references is limited, in particular in terms of fluency/naturalness of the collected texts.
+
+Russian data was machine-translated and then post-edited by crowdworkers, so some examples may still exhibit issues related to bad translations.
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed]
+The principle curator of the dataset is Anastasia Shimorina (Université de Lorraine / LORIA, France). Throughout the WebNLG releases, several people contributed to their construction: Claire Gardent (CNRS / LORIA, France), Shashi Narayan (Google, UK), Laura Perez-Beltrachini (University of Edinburgh, UK), Elena Khasanova, and Thiago Castro Ferreira (Federal University of Minas Gerais, Brazil).
+The dataset construction was funded by the French National Research Agency (ANR).
 
 ### Licensing Information
 
@@ -263,3 +304,7 @@ The dataset uses the `cc-by-nc-sa-4.0` license. The source DBpedia project uses 
   url = 	"http://aclweb.org/anthology/W18-6543"
 }
 ```
+
+### Contributions
+
+Thanks to [@Shimorina](https://github.com/Shimorina), [@yjernite](https://github.com/yjernite) for adding this dataset.

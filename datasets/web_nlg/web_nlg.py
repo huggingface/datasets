@@ -21,6 +21,7 @@ import xml.etree.cElementTree as ET
 from collections import defaultdict
 from glob import glob
 from os.path import join as pjoin
+from pathlib import Path
 
 import datasets
 
@@ -92,12 +93,12 @@ _FILE_PATHS = {
     "release_v3.0_en": {
         "train": [f"release_v3.0/en/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v3.0/en/dev/{i}triples/" for i in range(1, 8)],
-        "test": [f"release_v3.0/en/test/" for i in range(1, 8)],
+        "test": [f"release_v3.0/en/test/"],
     },
     "release_v3.0_ru": {
         "train": [f"release_v3.0/ru/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v3.0/ru/dev/{i}triples/" for i in range(1, 8)],
-        "test": [f"release_v3.0/ru/test/" for i in range(1, 8)],
+        "test": [f"release_v3.0/ru/test/"],
     },
 }
 
@@ -136,9 +137,20 @@ def parse_entry(entry):
         "comment": [ex.get("comment", "") for ex in entry.get("lex", [])],
         "lid": [ex.get("lid", "") for ex in entry.get("lex", [])],
         "text": [ex.get("text", "") for ex in entry.get("lex", [])],
+        "lang": [ex.get("lang", "") for ex in entry.get("lex", [])],
     }
     res["shape"] = entry.get("shape", "")
     res["shape_type"] = entry.get("shape_type", "")
+    dbpedia_links = entry["dbpedialinks"]
+    if dbpedia_links:
+        res["dbpedia_links"] = [dbpedia_link["text"] for dbpedia_link in dbpedia_links[0]["dbpedialink"]]
+    else:
+        res["dbpedia_links"] = []
+    links = entry["links"]
+    if links:
+        res["links"] = [link["text"] for link in links[0]["link"]]
+    else:
+        res["links"] = []
     return res
 
 
@@ -197,9 +209,12 @@ class WebNlg(datasets.GeneratorBasedBuilder):
                         "comment": datasets.Value("string"),
                         "lid": datasets.Value("string"),
                         "text": datasets.Value("string"),
+                        "lang": datasets.Value("string"),
                     }
                 ),
-                "2017_test_category": datasets.Value("string"),
+                "test_category": datasets.Value("string"),
+                "dbpedia_links": datasets.Sequence(datasets.Value("string")),
+                "links": datasets.Sequence(datasets.Value("string")),
             }
         )
         return datasets.DatasetInfo(
@@ -238,8 +253,17 @@ class WebNlg(datasets.GeneratorBasedBuilder):
         id_ = 0
         for xml_location in filedirs:
             for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
-                test_cat = xml_file.split("/")[-1][:-4] if "webnlg_challenge_2017/test" in xml_file else ""
+                # windows may use backslashes so we first need to replace them with slashes
+                xml_file_path_with_slashes = "/".join(Path(xml_file).parts)
+                if (
+                    "webnlg_challenge_2017/test" in xml_file_path_with_slashes
+                    or "release_v3.0/en/test" in xml_file_path_with_slashes
+                    or "release_v3.0/ru/test" in xml_file_path_with_slashes
+                ):
+                    test_cat = xml_file_path_with_slashes.split("/")[-1][:-4]
+                else:
+                    test_cat = ""
                 for exple_dict in xml_file_to_examples(xml_file):
-                    exple_dict["2017_test_category"] = test_cat
+                    exple_dict["test_category"] = test_cat
                     id_ += 1
                     yield id_, exple_dict

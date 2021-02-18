@@ -48,6 +48,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -181,3 +182,7 @@ Under MIT license (see [here](https://github.com/Yale-LILY/dart/blob/master/LICE
   journal={arXiv preprint arXiv:2007.02871},
   year={2020}
 ```
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq) for adding this dataset.
