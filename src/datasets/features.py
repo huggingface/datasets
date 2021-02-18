@@ -265,12 +265,16 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return self.storage[i]
 
     def to_numpy(self):
-        storage: pa.FixedSizeListArray = self.storage
+        storage: pa.ListArray = self.storage
         size = 1
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
-        numpy_arr = storage.to_numpy()
+        # zero copy is available for all primitive types except booleans
+        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
+        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
+        zero_copy_only = not self.type.value_type.startswith("bool")
+        numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
