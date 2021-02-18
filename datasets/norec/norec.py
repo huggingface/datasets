@@ -23,10 +23,17 @@ import datasets
 
 
 _CITATION = """\
-NoReC: The Norwegian Review Corpus
-Erik Velldal, Lilja Øvrelid, Eivind Alexander Bergem, Cathrine Stadsnes, Samia Touileb, Fredrik Jørgensen
-2018
-http://www.lrec-conf.org/proceedings/lrec2018/pdf/851.pdf
+@InProceedings{VelOvrBer18,
+  author = {Erik Velldal and Lilja {\O}vrelid and 
+            Eivind Alexander Bergem and  Cathrine Stadsnes and 
+            Samia Touileb and Fredrik J{\o}rgensen},
+  title = {{NoReC}: The {N}orwegian {R}eview {C}orpus},
+  booktitle = {Proceedings of the 11th edition of the 
+               Language Resources and Evaluation Conference},
+  year = {2018},
+  address = {Miyazaki, Japan},
+  pages = {4186--4191}
+}
 """
 
 _DESCRIPTION = """\
