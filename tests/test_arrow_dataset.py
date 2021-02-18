@@ -119,7 +119,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["col_1"][0], 3)
             del dset
 
-
     def test_dummy_dataset_array_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
