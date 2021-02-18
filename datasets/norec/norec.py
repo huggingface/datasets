@@ -24,9 +24,9 @@ import datasets
 
 _CITATION = """\
 @InProceedings{VelOvrBer18,
-  author = {Erik Velldal and Lilja {\O}vrelid and 
-            Eivind Alexander Bergem and  Cathrine Stadsnes and 
-            Samia Touileb and Fredrik J{\o}rgensen},
+  author = {Erik Velldal and Lilja Ovrelid and 
+            Eivind Alexander Bergem and Cathrine Stadsnes and 
+            Samia Touileb and Fredrik Jorgensen},
   title = {{NoReC}: The {N}orwegian {R}eview {C}orpus},
   booktitle = {Proceedings of the 11th edition of the 
                Language Resources and Evaluation Conference},
