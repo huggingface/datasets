@@ -51,7 +51,29 @@ class Norec(datasets.GeneratorBasedBuilder):
                     "text": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "lemmas": datasets.Sequence(datasets.Value("string")),
-                    "pos_tags": datasets.Sequence(datasets.Value("string")),
+                    "pos_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "ADJ",
+                                "ADP",
+                                "ADV",
+                                "AUX",
+                                "CCONJ",
+                                "DET",
+                                "INTJ",
+                                "NOUN",
+                                "NUM",
+                                "PART",
+                                "PRON",
+                                "PROPN",
+                                "PUNCT",
+                                "SCONJ",
+                                "SYM",
+                                "VERB",
+                                "X",
+                            ]
+                        )
+                    ),
                     "xpos_tags": datasets.Sequence(datasets.Value("string")),
                     "feats": datasets.Sequence(datasets.Value("string")),
                     "head": datasets.Sequence(datasets.Value("string")),
