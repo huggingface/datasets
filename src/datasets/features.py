@@ -22,6 +22,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from pyarrow.types import is_boolean, is_primitive
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
@@ -271,9 +272,11 @@ class ArrayExtensionArray(pa.ExtensionArray):
             size *= self.type.shape[i]
             storage = storage.flatten()
         # zero copy is available for all primitive types except booleans
+        # primitive types are types for which the physical representation in arrow and in numpy
+        # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
         # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
         # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
-        zero_copy_only = not self.type.value_type.startswith("bool")
+        zero_copy_only = is_primitive(storage.type) and not is_boolean(storage.type)
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr

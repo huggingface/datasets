@@ -119,7 +119,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["col_1"][0], 3)
             del dset
 
-    def test_dummy_dataset_array_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
             self.assertDictEqual(
@@ -132,11 +131,9 @@ class BaseDatasetTest(TestCase):
                     }
                 ),
             )
-            self.assertEqual(dset[0]["col_2"], [["a", "b"], ["c", "d"]])
-            self.assertEqual(dset["col_2"][0], [["a", "b"], ["c", "d"]])
+            self.assertEqual(dset[0]["col_2"], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
+            self.assertEqual(dset["col_2"][0], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
             del dset
-
-            self.fail("Unify this test with test_dummy_dataset once fixed")
 
     def test_dataset_getitem(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1301,8 +1298,6 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
             del dset
 
-    def test_to_csv_arrays(self, in_memory):
-        # TODO - unify this test with test_to_csv once fixed
         with tempfile.TemporaryDirectory() as tmp_dir:
             # With array features
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
@@ -1316,8 +1311,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(csv_dset.shape, dset.shape)
             self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
             del dset
-
-            self.fail("Do not forget to unify to_csv tests")
 
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
