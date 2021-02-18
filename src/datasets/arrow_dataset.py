@@ -658,6 +658,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         casted_schema.set(field_index, casted_field)
         dataset._data = dataset._data.cast(casted_schema)
         dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        dataset._fingerprint = new_fingerprint
         return dataset
 
     @deprecated
