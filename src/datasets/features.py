@@ -22,9 +22,9 @@ from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from pyarrow.types import is_boolean, is_primitive
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
+from pyarrow.types import is_boolean, is_primitive
 
 from . import config, utils
 from .utils.logging import get_logger
