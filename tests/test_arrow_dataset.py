@@ -70,13 +70,13 @@ class BaseDatasetTest(TestCase):
                 data = {
                     "col_1": [[[True, False], [False, True]]] * 4,  # 2D
                     "col_2": [[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]] * 4,  # 3D array
-                    "col_3": [[[3, 2], [1, 0]]] * 4,  # 2D array
+                    "col_3": [[3, 2, 1, 0]] * 4,  # Sequence
                 }
                 features = Features(
                     {
                         "col_1": Array2D(shape=(2, 2), dtype="bool"),
                         "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                        "col_3": Array2D(shape=(2, 2), dtype="int64"),
+                        "col_3": Sequence(feature=Value("int64")),
                     }
                 )
             else:
@@ -127,7 +127,7 @@ class BaseDatasetTest(TestCase):
                     {
                         "col_1": Array2D(shape=(2, 2), dtype="bool"),
                         "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                        "col_3": Array2D(shape=(2, 2), dtype="int64"),
+                        "col_3": Sequence(feature=Value("int64")),
                     }
                 ),
             )
