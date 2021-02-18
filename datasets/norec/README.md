@@ -45,10 +45,10 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** None
 - **Repository:** https://github.com/ltgoslo/norec
 - **Paper:** http://www.lrec-conf.org/proceedings/lrec2018/pdf/851.pdf
 - **Leaderboard:** [More Information Needed]
@@ -208,6 +208,8 @@ The data instances have the following fields:
 - tokens: tokens
 - xpos_tags: [More Information Needed]
 
+The part of speech taggs correspond to these labels: "ADJ" (0), "ADP" (1), "ADV" (2), "AUX" (3), "CCONJ" (4), "DET" (5), "INTJ" (6), "NOUN" (7), "NUM" (8), "PART" (9), "PRON" (10), "PROPN" (11), "PUNCT" (12), "SCONJ" (13), "SYM" (14), "VERB" (15), "X" (16),
+
 ### Data Splits
 
 The training, validation, and test set contain `680792`, `101106`, and `101594` sentences respectively.
@@ -272,4 +274,20 @@ The training, validation, and test set contain `680792`, `101106`, and `101594` 
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{VelOvrBer18,
+  author = {Erik Velldal and Lilja {\O}vrelid and 
+            Eivind Alexander Bergem and  Cathrine Stadsnes and 
+            Samia Touileb and Fredrik J{\o}rgensen},
+  title = {{NoReC}: The {N}orwegian {R}eview {C}orpus},
+  booktitle = {Proceedings of the 11th edition of the 
+               Language Resources and Evaluation Conference},
+  year = {2018},
+  address = {Miyazaki, Japan},
+  pages = {4186--4191}
+}
+```
+
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.
