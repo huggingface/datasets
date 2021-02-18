@@ -388,6 +388,13 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
             del dset
 
+    def test_dictionary_encode(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dict_encoded_dset = dset.dictionary_encode_column(column="col_2")
+            del dict_encoded_dset
+            del dset
+
     def test_cast_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)

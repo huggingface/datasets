@@ -651,7 +651,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset = copy.deepcopy(self)
         if column not in dataset._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({dataset._data.column_names}).")
-        casted_schema: pa.Schema = self._data.schema
+        casted_schema: pa.Schema = dataset._data.schema
         field_index = casted_schema.get_field_index(column)
         field: pa.Field = casted_schema.field(field_index)
         casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
