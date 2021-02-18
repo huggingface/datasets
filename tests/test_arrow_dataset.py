@@ -1279,6 +1279,73 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(i, len(formatted_dset) - 1)
             del dset, formatted_dset
 
+    def test_to_dict(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Batched
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            bacth_size = dset.num_rows - 1
+            to_dict_generator = dset.to_dict(batched=True, batch_size=bacth_size)
+
+            for batch in to_dict_generator:
+                self.assertIsInstance(batch, dict)
+                self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
+                for col_name in dset.column_names:
+                    self.assertIsInstance(batch[col_name], list)
+                    self.assertLessEqual(len(batch[col_name]), bacth_size)
+
+            # Full
+            dset_to_dict = dset.to_dict()
+            self.assertIsInstance(dset_to_dict, dict)
+            self.assertListEqual(sorted(dset_to_dict.keys()), sorted(dset.column_names))
+
+            for col_name in dset.column_names:
+                self.assertLessEqual(len(dset_to_dict[col_name]), len(dset))
+
+            # With index mapping
+            dset = dset.select([1, 0, 3])
+            dset_to_dict = dset.to_dict()
+            self.assertIsInstance(dset_to_dict, dict)
+            self.assertEqual(len(dset_to_dict), 3)
+            self.assertListEqual(sorted(dset_to_dict.keys()), sorted(dset.column_names))
+
+            for col_name in dset.column_names:
+                self.assertIsInstance(dset_to_dict[col_name], list)
+                self.assertEqual(len(dset_to_dict[col_name]), len(dset))
+
+            del dset
+
+    def test_to_pandas(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Batched
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            bacth_size = dset.num_rows - 1
+            to_pandas_generator = dset.to_pandas(batched=True, batch_size=bacth_size)
+
+            for batch in to_pandas_generator:
+                self.assertIsInstance(batch, pd.DataFrame)
+                self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
+                for col_name in dset.column_names:
+                    self.assertLessEqual(len(batch[col_name]), bacth_size)
+
+            # Full
+            dset_to_pandas = dset.to_pandas()
+            self.assertIsInstance(dset_to_pandas, pd.DataFrame)
+            self.assertListEqual(sorted(dset_to_pandas.columns), sorted(dset.column_names))
+            for col_name in dset.column_names:
+                self.assertEqual(len(dset_to_pandas[col_name]), len(dset))
+
+            # With index mapping
+            dset = dset.select([1, 0, 3])
+            dset_to_pandas = dset.to_pandas()
+            self.assertIsInstance(dset_to_pandas, pd.DataFrame)
+            self.assertEqual(len(dset_to_pandas), 3)
+            self.assertListEqual(sorted(dset_to_pandas.columns), sorted(dset.column_names))
+
+            for col_name in dset.column_names:
+                self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
+
+            del dset
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)

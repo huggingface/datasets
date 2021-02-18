@@ -27,7 +27,7 @@
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference](https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -37,7 +37,7 @@
 - **Size of the generated dataset:** 1573.33 MB
 - **Total amount of disk used:** 4924.51 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
     IndicGLUE is a natural language understanding benchmark for Indian languages. It contains a wide
     variety of tasks and covers 11 major Indian languages - as, bn, gu, hi, kn, ml, mr, or, pa, ta, te.
@@ -59,19 +59,19 @@ between a model's score on this task and its score on the unconverted original t
 call converted dataset WNLI (Winograd NLI). This dataset is translated and publicly released for 3
 Indian languages by AI4Bharat.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### actsa-sc.te
 
@@ -158,7 +158,7 @@ An example of 'validation' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -191,7 +191,7 @@ The data fields are the same among all splits.
 - `question`: a `string` feature.
 - `label`: a `int32` feature.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 #### actsa-sc.te
 
@@ -223,49 +223,49 @@ The data fields are the same among all splits.
 |-------|----:|---------:|---:|
 |copa.hi|  362|        88| 449|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Source Data](#source-data)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Annotations](#annotations)
+### Source Data
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
-
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Discussion of Biases](#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Citation Information](#citation-information)
+### Licensing Information
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Citation Information
 
 ```
     @inproceedings{kakwani2020indicnlpsuite,

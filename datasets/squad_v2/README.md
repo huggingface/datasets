@@ -27,7 +27,7 @@
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://rajpurkar.github.io/SQuAD-explorer/](https://rajpurkar.github.io/SQuAD-explorer/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -37,25 +37,25 @@
 - **Size of the generated dataset:** 122.57 MB
 - **Total amount of disk used:** 166.91 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questions written adversarially by crowdworkers
  to look similar to answerable ones. To do well on SQuAD2.0, systems must not only answer questions when possible, but
  also determine when no answer is supported by the paragraph and abstain from answering.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### squad_v2
 
@@ -79,7 +79,7 @@ This example was too long and was cropped:
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -92,55 +92,55 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
   - `answer_start`: a `int32` feature.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 |  name  |train |validation|
 |--------|-----:|---------:|
 |squad_v2|130319|     11873|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Source Data](#source-data)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Annotations](#annotations)
+### Source Data
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
-
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Discussion of Biases](#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Citation Information](#citation-information)
+### Licensing Information
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Citation Information
 
 ```
 @article{2016arXiv160605250R,

@@ -379,7 +379,7 @@ _TRAIN_SUBSETS = [
         name="setimes_2",
         target="en",
         sources={"ro", "tr"},
-        url="http://opus.nlpl.eu/download.php?f=SETIMES/v2/tmx/en-{src}.tmx.gz",
+        url="https://opus.nlpl.eu/download.php?f=SETIMES/v2/tmx/en-{src}.tmx.gz",
         path="",
     ),
     SubDataset(
