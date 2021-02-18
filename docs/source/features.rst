@@ -1,12 +1,37 @@
 Dataset features
 ===========================
 
-:class:`datasets.Features` define the internal structure and typings for each example in the dataset. Features are used to specify the underlying serailization format but also contain high-level informations regarding the fields, e.g. conversion methods from names to integer values for a class label field.
+:class:`datasets.Features` defines the internal structure of a dataset. Features are used to specify the underlying serialization format but also contain high-level information regarding the fields, e.g. column names, types, and conversion methods from names to integer values for a class label field.
 
-Here is a brief presentation of the various types of features which can be used to define the dataset fields (aka columns):
+A brief summary of how to use this class:
 
-- :class:`datasets.Features` is the base class and should be only called once and instantiated with a dictionary of field names and field sub-features as detailed in the rest of this list,
+- :class:`datasets.Features` should be only called once and instantiated with a ``dict[str, FieldType]``, where keys are your desired column names, and values are the type of that column.
+
+`FieldType` can be one of a few possibilities:
+
+- a :class:`datasets.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``. The dtypes supported are as follows:
+    - null
+    - bool
+    - int8
+    - int16
+    - int32
+    - int64
+    - uint8
+    - uint16
+    - uint32
+    - uint64
+    - float16
+    - float32 (alias float)
+    - float64 (alias double)
+    - timestamp[(s|ms|us|ns)]
+    - timestamp[(s|ms|us|ns), tz=(tzstring)]
+    - binary
+    - large_binary
+    - string
+    - large_string
+
 - a python :obj:`dict` specifies that the field is a nested field containing a mapping of sub-fields to sub-fields features. It's possible to have nested fields of nested fields in an arbitrary manner.
+
 - a python :obj:`list` or a :class:`datasets.Sequence` specifies that the field contains a list of objects. The python :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature type hosted in this list. Python :obj:`list` are simplest to define and write while :class:`datasets.Sequence` provide a few more specific behaviors like the possibility to specify a fixed length for the list (slightly more efficient).
 
 .. note::
@@ -14,8 +39,6 @@ Here is a brief presentation of the various types of features which can be used 
     A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the :class:`datasets.Sequence`.
 
 - a :class:`datasets.ClassLabel` feature specifies a field with a predefined set of classes which can have labels associated to them and will be stored as integers in the dataset. This field will be stored and retrieved as an integer value and two conversion methods, :func:`datasets.ClassLabel.str2int` and :func:`datasets.ClassLabel.int2str` can be used to convert from the label names to the associate integer value and vice-versa.
-
-- a :class:`datasets.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``. The types supported are all the `non-nested types of Apache Arrow <https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions>`__ among which the most commonly used ones are ``int64``, ``float32`` and ``string``.
 
 - finally, two features are specific to Machine Translation: :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`. We refer to the package reference for more details on these features.
 
