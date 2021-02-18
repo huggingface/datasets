@@ -35,27 +35,26 @@ logger = get_logger(__name__)
 
 def string_to_arrow(type_str: str) -> pa.DataType:
     """
-    string_to_arrow takes a string pyarrow dtype and converts it to a pyarrow.DataType.
+    string_to_arrow takes a datasets string dtype and converts it to a pyarrow.DataType.
 
-    In effect, `dt == string_to_arrow(str(dt))`
+    In effect, `dt == string_to_arrow(arrow_to_datasets_dtype(dt))`
 
-    This is necessary because the datasets.Value() primitive type is constructed using a string dtype, oftentimes
+    This is necessary because the datasets.Value() primitive type is constructed using a string dtype
 
-    Value(dtype=str(pa_type))
+    Value(dtype=str)
 
     But Features.type (via `get_nested_type()` expects to resolve Features into a pyarrow Schema,
-        which means that each Value() must resolve into its corresponding pyarrow.DataType, which is the purpose
-        of this function.
+        which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
+        purpose of this function.
     """
     timestamp_regex = re.compile(r"^timestamp\[(.*)\]$")
     timestamp_matches = timestamp_regex.search(type_str)
     if timestamp_matches:
         """
-        >>> import pyarrow as pa
-        >>> str(pa.timestamp('us'))
-        'timestamp[us]'
-        >>> str(pa.timestamp('us', tz='America/New_York'))
-        'timestamp[us, tz=America/New_York]'
+        Example timestamp dtypes:
+
+        timestamp[us]
+        timestamp[us, tz=America/New_York]
         """
         timestamp_internals = timestamp_matches.group(1)
         internals_regex = re.compile(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+:]*)$")
@@ -70,12 +69,6 @@ def string_to_arrow(type_str: str) -> pa.DataType:
                 f"Examples include timestamp[us] or timestamp[us, tz=America/New_York]"
                 f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html#pyarrow.timestamp"
             )
-    elif type_str == "double":
-        return pa.float64()
-    elif type_str == "float":
-        return pa.float32()
-    elif type_str == "halffloat":
-        return pa.float16()
     elif type_str not in pa.__dict__:
         if str(type_str + "_") not in pa.__dict__:
             raise ValueError(
@@ -172,7 +165,7 @@ def cast_to_python_objects(obj: Any) -> Any:
 class Value:
     """Encapsulate an Arrow datatype for easy serialization."""
 
-    dtype: str  # The string representation of a pyarrow datatype: str(pyarrow.DataType)
+    dtype: str
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
