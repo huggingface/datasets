@@ -29,7 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -2231,6 +2231,66 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
         return written
+
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+        """Returns the dataset as a Python dict. Can also return a generator for large datasets.
+
+        Args:
+            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
+                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
+                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `dict` or `Iterator[dict]`
+        """
+        if not batched:
+            return query_table(
+                pa_table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            ).to_pydict()
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (
+                query_table(
+                    pa_table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ).to_pydict()
+                for offset in range(0, len(self), batch_size)
+            )
+
+    def to_pandas(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
+        """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
+                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
+                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+        """
+        if not batched:
+            return query_table(
+                pa_table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            ).to_pandas()
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (
+                query_table(
+                    pa_table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ).to_pandas()
+                for offset in range(0, len(self), batch_size)
+            )
 
     def add_faiss_index(
         self,
