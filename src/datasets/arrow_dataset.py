@@ -2195,7 +2195,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             `dict` or `Iterator[dict]`
         """
         if not batched:
-            return self._data.to_pydict()
+            return query_table(
+                pa_table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            ).to_pydict()
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
@@ -2204,7 +2208,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     key=slice(offset, offset + batch_size),
                     indices=self._indices.column(0) if self._indices is not None else None,
                 ).to_pydict()
-                for offset in range(0, self._data.num_rows, batch_size)
+                for offset in range(0, len(self), batch_size)
             )
 
     def to_pandas(
@@ -2222,7 +2226,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
         """
         if not batched:
-            return self._data.to_pandas()
+            return query_table(
+                pa_table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            ).to_pandas()
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
@@ -2231,7 +2239,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     key=slice(offset, offset + batch_size),
                     indices=self._indices.column(0) if self._indices is not None else None,
                 ).to_pandas()
-                for offset in range(0, self._data.num_rows, batch_size)
+                for offset in range(0, len(self), batch_size)
             )
 
     def add_faiss_index(
