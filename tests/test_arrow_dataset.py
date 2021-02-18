@@ -402,8 +402,7 @@ class BaseDatasetTest(TestCase):
             features["col_1"] = Value("float64")
             features = Features({k: features[k] for k in list(features)[::-1]})
             fingerprint = dset._fingerprint
-            with self.assertWarns(DeprecationWarning):
-                dset.cast_(features)
+            dset.cast_(features)
             self.assertEqual(dset.num_columns, 3)
             self.assertEqual(dset.features["col_1"], Value("float64"))
             self.assertIsInstance(dset[0]["col_1"], float)
@@ -430,15 +429,13 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
-            with self.assertWarns(DeprecationWarning):
-                dset.remove_columns_(column_names="col_1")
+            dset.remove_columns_(column_names="col_1")
             self.assertEqual(dset.num_columns, 2)
             self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
             del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            with self.assertWarns(DeprecationWarning):
-                dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
+            dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
             self.assertEqual(dset.num_columns, 0)
             self.assertNotEqual(dset._fingerprint, fingerprint)
             del dset
@@ -465,8 +462,7 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             fingerprint = dset._fingerprint
-            with self.assertWarns(DeprecationWarning):
-                dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+            dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
             self.assertEqual(dset.num_columns, 3)
             self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
             self.assertNotEqual(dset._fingerprint, fingerprint)
