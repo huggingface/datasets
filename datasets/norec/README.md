@@ -56,7 +56,7 @@ task_ids:
 
 ### Dataset Summary
 
-[More Information Needed]
+This dataset contains Norwegian Review Corpus (NoReC), created for the purpose of training and evaluating models for document-level sentiment analysis. More than 43,000 full-text reviews have been collected from major Norwegian news sources and cover a range of different domains, including literature, movies, video games, restaurants, music and theater, in addition to product reviews across a range of categories. Each review is labeled with a manually assigned score of 1–6, as provided by the rating of the original author.
 
 ### Supported Tasks and Leaderboards
 
@@ -64,22 +64,153 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+The sentences in the dataset are in Norwegian (nb, nn, no).
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
+A sample from training set is provided below:
+
+```
+{'deprel': ['det',
+  'amod',
+  'cc',
+  'conj',
+  'nsubj',
+  'case',
+  'nmod',
+  'cop',
+  'case',
+  'case',
+  'root',
+  'flat:name',
+  'flat:name',
+  'punct'],
+ 'deps': ['None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None'],
+ 'feats': ["{'Gender': 'Masc', 'Number': 'Sing', 'PronType': 'Dem'}",
+  "{'Definite': 'Def', 'Degree': 'Pos', 'Number': 'Sing'}",
+  'None',
+  "{'Definite': 'Def', 'Degree': 'Pos', 'Number': 'Sing'}",
+  "{'Definite': 'Def', 'Gender': 'Masc', 'Number': 'Sing'}",
+  'None',
+  'None',
+  "{'Mood': 'Ind', 'Tense': 'Pres', 'VerbForm': 'Fin'}",
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None'],
+ 'head': ['5',
+  '5',
+  '4',
+  '2',
+  '11',
+  '7',
+  '5',
+  '11',
+  '11',
+  '11',
+  '0',
+  '11',
+  '11',
+  '11'],
+ 'idx': '000000-02-01',
+ 'lemmas': ['den',
+  'andre',
+  'og',
+  'sist',
+  'sesong',
+  'av',
+  'Rome',
+  'være',
+  'ute',
+  'på',
+  'DVD',
+  'i',
+  'Norge',
+  '$.'],
+ 'misc': ['None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  "{'SpaceAfter': 'No'}",
+  'None'],
+ 'pos_tags': [5, 0, 4, 0, 7, 1, 11, 3, 1, 1, 11, 1, 11, 12],
+ 'text': 'Den andre og siste sesongen av Rome er ute på DVD i Norge.',
+ 'tokens': ['Den',
+  'andre',
+  'og',
+  'siste',
+  'sesongen',
+  'av',
+  'Rome',
+  'er',
+  'ute',
+  'på',
+  'DVD',
+  'i',
+  'Norge',
+  '.'],
+ 'xpos_tags': ['None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None',
+  'None']}
+
+```
 
 
 ### Data Fields
 
-[More Information Needed]
+The data instances have the following fields:
+
+- deprel: [More Information Needed]
+- deps: [More Information Needed]
+- feats: [More Information Needed]
+- head: [More Information Needed]
+- idx: index
+- lemmas: lemmas of all tokens
+- misc: [More Information Needed]
+- pos_tags: part of speech tags
+- text: text string
+- tokens: tokens
+- xpos_tags: [More Information Needed]
 
 ### Data Splits
 
-[More Information Needed]
+The training, validation, and test set contain `680792`, `101106`, and `101594` sentences respectively.
 
 ## Dataset Creation
 
