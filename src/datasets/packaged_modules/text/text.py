@@ -5,7 +5,7 @@ import pyarrow as pa
 import datasets
 
 
-logger = datasets.logging.get_logger(__name__)
+logger = datasets.utils.logging.get_logger(__name__)
 
 FEATURES = datasets.Features(
     {
