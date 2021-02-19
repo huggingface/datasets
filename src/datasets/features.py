@@ -37,7 +37,7 @@ def string_to_arrow(type_str: str) -> pa.DataType:
     """
     string_to_arrow takes a datasets string dtype and converts it to a pyarrow.DataType.
 
-    In effect, `dt == string_to_arrow(arrow_to_datasets_dtype(dt))`
+    In effect, `dt == string_to_arrow(str(dt))`
 
     This is necessary because the datasets.Value() primitive type is constructed using a string dtype
 
