@@ -528,14 +528,15 @@ def get_from_cache(
             if url.startswith("ftp://"):
                 ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
             else:
+                callback = lambda chunk: temp_file.write(chunk)
                 RemoteManager.http_get(
                     url,
-                    temp_file,
                     proxies=proxies,
                     resume_size=resume_size,
                     headers=headers,
                     cookies=cookies,
                     max_retries=max_retries,
+                    callback=callback,
                 )
 
         logger.info("storing %s in cache at %s", url, cache_path)

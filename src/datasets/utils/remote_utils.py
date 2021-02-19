@@ -83,7 +83,7 @@ class RemoteManager:
         return response
 
     @classmethod
-    def http_get(cls, url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
+    def http_get(cls, url, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0, callback=None):
         headers = copy.deepcopy(headers) or {}
         headers["user-agent"] = cls.get_datasets_user_agent(user_agent=headers.get("user-agent"))
         if resume_size > 0:
@@ -99,22 +99,25 @@ class RemoteManager:
         )
         if response.status_code == 416:  # Range not satisfiable
             return
-        content_length = response.headers.get("Content-Length")
-        total = resume_size + int(content_length) if content_length is not None else None
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        progress = tqdm(
-            unit="B",
-            unit_scale=True,
-            total=total,
-            initial=resume_size,
-            desc="Downloading",
-            disable=not_verbose,
-        )
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                progress.update(len(chunk))
-                temp_file.write(chunk)
-        progress.close()
+        if callback:
+            content_length = response.headers.get("Content-Length")
+            total = resume_size + int(content_length) if content_length is not None else None
+            not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+            progress = tqdm(
+                unit="B",
+                unit_scale=True,
+                total=total,
+                initial=resume_size,
+                desc="Downloading",
+                disable=not_verbose,
+            )
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:  # filter out keep-alive new chunks
+                    progress.update(len(chunk))
+                    callback(chunk)
+            progress.close()
+        else:
+            return response.iter_content(chunk_size=1024)
 
     @staticmethod
     def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
