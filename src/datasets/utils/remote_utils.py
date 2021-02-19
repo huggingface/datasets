@@ -100,13 +100,13 @@ class HttpClient:
             callback (callable, optional): Callback function to be called with each response data chunk.
 
         Returns:
-            generator or type returned by `callback`
+            requests.Response or type returned by `callback`
         """
         headers = copy.deepcopy(headers) or {}
         headers["user-agent"] = cls.get_datasets_user_agent(user_agent=headers.get("user-agent"))
         if resume_size > 0:
             headers["Range"] = "bytes=%d-" % (resume_size,)
-        response = cls.request_with_retry(
+        with cls.request_with_retry(
             verb="GET",
             url=url,
             stream=True,
@@ -114,28 +114,28 @@ class HttpClient:
             headers=headers,
             cookies=cookies,
             max_retries=max_retries,
-        )
-        if response.status_code == 416:  # Range not satisfiable
-            return
-        if callback:
-            content_length = response.headers.get("Content-Length")
-            total = resume_size + int(content_length) if content_length is not None else None
-            not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-            progress = tqdm(
-                unit="B",
-                unit_scale=True,
-                total=total,
-                initial=resume_size,
-                desc="Downloading",
-                disable=not_verbose,
-            )
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:  # filter out keep-alive new chunks
-                    progress.update(len(chunk))
-                    callback(chunk)
-            progress.close()
-        else:
-            return response.iter_content(chunk_size=1024)
+        ) as response:
+            if response.status_code == 416:  # Range not satisfiable
+                return
+            if callback:
+                content_length = response.headers.get("Content-Length")
+                total = resume_size + int(content_length) if content_length is not None else None
+                not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+                progress = tqdm(
+                    unit="B",
+                    unit_scale=True,
+                    total=total,
+                    initial=resume_size,
+                    desc="Downloading",
+                    disable=not_verbose,
+                )
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
+                        progress.update(len(chunk))
+                        callback(chunk)
+                progress.close()
+            else:
+                return response
 
     @staticmethod
     def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
