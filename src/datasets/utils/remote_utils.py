@@ -4,9 +4,10 @@ from typing import Optional, Union
 
 import pyarrow as pa
 import requests
+from tqdm.auto import tqdm
 
 from .. import __version__, config
-from .logging import get_logger
+from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
@@ -81,6 +82,40 @@ class RemoteManager:
             max_retries=max_retries,
         )
         return response
+
+    @classmethod
+    def http_get(cls, url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
+        headers = copy.deepcopy(headers) or {}
+        headers["user-agent"] = cls.get_datasets_user_agent(user_agent=headers.get("user-agent"))
+        if resume_size > 0:
+            headers["Range"] = "bytes=%d-" % (resume_size,)
+        response = cls.request_with_retry(
+            verb="GET",
+            url=url,
+            stream=True,
+            proxies=proxies,
+            headers=headers,
+            cookies=cookies,
+            max_retries=max_retries,
+        )
+        if response.status_code == 416:  # Range not satisfiable
+            return
+        content_length = response.headers.get("Content-Length")
+        total = resume_size + int(content_length) if content_length is not None else None
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+        progress = tqdm(
+            unit="B",
+            unit_scale=True,
+            total=total,
+            initial=resume_size,
+            desc="Downloading",
+            disable=not_verbose,
+        )
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                progress.update(len(chunk))
+                temp_file.write(chunk)
+        progress.close()
 
     @staticmethod
     def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
