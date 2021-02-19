@@ -296,16 +296,18 @@ def flatten_nest_dict(d):
     return flat_dict
 
 
-def flatten_nested(data_struct):
-    """Flatten data struct of obj or `list`/`dict` of obj"""
-    if isinstance(data_struct, dict):
-        data_struct = list(flatten_nest_dict(data_struct).values())
-        if data_struct and isinstance(data_struct[0], (list, tuple)):
-            data_struct = [x for sublist in data_struct for x in sublist]
-    if isinstance(data_struct, (list, tuple)):
-        return data_struct
-    # Singleton
-    return [data_struct]
+class NestedDataStructure:
+    def __init__(self, data=None):
+        self.data = data if data else []
+
+    def flatten(self, data=None):
+        data = data if data is not None else self.data
+        if isinstance(data, dict):
+            return self.flatten(list(data.values()))
+        elif isinstance(data, (list, tuple)):
+            return [flattened for item in data for flattened in self.flatten(item)]
+        else:
+            return [data]
 
 
 def datasets_dir():
