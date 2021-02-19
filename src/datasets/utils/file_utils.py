@@ -508,7 +508,12 @@ def get_from_cache(
             # GET file object
             if url.startswith("ftp://"):
                 FtpClient.get(
-                    url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies
+                    url,
+                    proxies=proxies,
+                    resume_size=resume_size,
+                    headers=headers,
+                    cookies=cookies,
+                    callback=lambda r: shutil.copyfileobj(r, temp_file),
                 )
             else:
                 HttpClient.get(

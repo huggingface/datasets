@@ -1,5 +1,4 @@
 import copy
-import shutil
 import time
 import urllib
 from contextlib import closing
@@ -167,10 +166,13 @@ class FtpClient:
         return True
 
     @staticmethod
-    def get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
+    def get(url, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0, callback=None):
         try:
-            logger.info(f"Getting through FTP {url} into {temp_file.name}")
+            logger.info(f"Getting through FTP {url}")  # into {temp_file.name}")
             with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-                shutil.copyfileobj(r, temp_file)
+                if callback:
+                    callback(r)
+                else:
+                    return r
         except urllib.error.URLError as e:
             raise ConnectionError(e)
