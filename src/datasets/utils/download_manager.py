@@ -120,7 +120,7 @@ class DownloadManager(object):
         )
         return uploaded_path_or_paths
 
-    def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
+    def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             # call str to support PathLike objects
