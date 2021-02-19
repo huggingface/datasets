@@ -20,9 +20,11 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 import gzip
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -353,7 +355,7 @@ class Oscar(datasets.GeneratorBasedBuilder):
         id_ = 0
         current_lines = []
         for filepath in filepaths:
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             with gzip.open(filepath, "rt") as f:
                 for line in f:
                     if len(line.strip()) > 0:

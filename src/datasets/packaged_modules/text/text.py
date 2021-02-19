@@ -1,4 +1,3 @@
-import logging
 from dataclasses import dataclass
 
 import pyarrow as pa
@@ -6,7 +5,7 @@ import pyarrow as pa
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 FEATURES = datasets.Features(
     {

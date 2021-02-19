@@ -1,5 +1,4 @@
 import copy
-import logging
 import os
 import pickle
 import shutil
@@ -22,6 +21,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
+from datasets.utils.logging import WARNING
 
 from .utils import require_tf, require_torch, require_transformers
 
@@ -802,7 +802,7 @@ class BaseDatasetTest(TestCase):
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(logging.WARNING):
+            with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
                 dset_test1_data_files = list(dset_test1._data_files)
@@ -815,7 +815,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(logging.WARNING):
+            with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
                 dset_test1_data_files = list(dset_test1._data_files)
@@ -830,7 +830,7 @@ class BaseDatasetTest(TestCase):
             try:
                 self._caplog.clear()
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    with self._caplog.at_level(logging.WARNING):
+                    with self._caplog.at_level(WARNING):
                         dset = self._create_dummy_dataset(in_memory, tmp_dir)
                         datasets.set_caching_enabled(False)
                         dset_test1 = dset.map(lambda x: {"foo": "bar"})

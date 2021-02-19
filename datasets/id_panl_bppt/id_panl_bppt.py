@@ -16,10 +16,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -110,7 +112,7 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir, split):
-        logging.info("⏳ Generating %s examples from = %s", split, data_dir)
+        logger.info("⏳ Generating %s examples from = %s", split, data_dir)
         id = 0
         for topic in self.config.topics:
             src_path = "PANL-BPPT-{}-{}-{}w.txt".format(
