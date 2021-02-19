@@ -32,9 +32,6 @@ from .utils.logging import WARNING, get_logger
 
 logger = get_logger(__name__)
 
-# Batch size constants. For more info, see:
-# https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 type_ = type  # keep python's type function
 
 
@@ -165,7 +162,7 @@ class ArrowWriter(object):
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
-        self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
+        self.writer_batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
