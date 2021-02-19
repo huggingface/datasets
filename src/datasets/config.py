@@ -2,6 +2,8 @@ import os
 import sys
 from pathlib import Path
 
+import pyarrow as pa
+
 from .utils.logging import get_logger
 
 
@@ -28,6 +30,7 @@ if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
 else:
     import importlib.metadata as importlib_metadata
 
+PYARROW_VERSION = pa.__version__
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
