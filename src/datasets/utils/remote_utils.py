@@ -157,6 +157,16 @@ class HttpClient:
 class FtpClient:
     @staticmethod
     def head(url, timeout=2.0):
+        """Wrapper around `urllib.request` to get the first byte of a remote resource.
+
+        Args:
+            url (str): The URL of the resource to fetch.
+            timeout (float): Parameter passed to `urllib.request.urlopen` to indicate timeout seconds for blocking
+                operations like the connection attempt.
+
+        Returns:
+            bytes
+        """
         try:
             with urllib.request.urlopen(url, timeout=timeout) as r:
                 r.read(1)
@@ -166,6 +176,17 @@ class FtpClient:
 
     @staticmethod
     def get(url, timeout=2.0, callback=None):
+        """Wrapper around `urllib.request` to get a remote resource.
+
+        Args:
+            url (str): The URL of the resource to fetch.
+            timeout (float): Parameter passed to `urllib.request.urlopen` to indicate timeout seconds for blocking
+                operations like the connection attempt.
+            callback (callable, optional): Callback function to be called with the remote file-like interface.
+
+        Returns:
+            urllib.response.addinfourl or type returned by `callback`
+        """
         try:
             logger.info(f"Getting through FTP {url}")  # into {temp_file.name}")
             with urllib.request.urlopen(url, timeout=timeout) as r:
