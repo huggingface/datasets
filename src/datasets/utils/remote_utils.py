@@ -12,7 +12,7 @@ from .logging import WARNING, get_logger
 logger = get_logger(__name__)
 
 
-class RemoteManager:
+class HttpClient:
     @staticmethod
     def request_with_retry(
         verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
@@ -47,7 +47,7 @@ class RemoteManager:
         return response
 
     @classmethod
-    def http_head(
+    def head(
         cls, url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
     ) -> requests.Response:
         """Wrapper around `requests` HEAD.
@@ -83,7 +83,7 @@ class RemoteManager:
         return response
 
     @classmethod
-    def http_get(cls, url, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0, callback=None):
+    def get(cls, url, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0, callback=None):
         """Wrapper around `requests` GET.
 
         Args:

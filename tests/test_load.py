@@ -13,7 +13,7 @@ import requests
 
 import datasets
 from datasets import load_dataset
-from datasets.utils.remote_utils import RemoteManager
+from datasets.utils.remote_utils import HttpClient
 
 from .utils import offline
 
@@ -215,7 +215,7 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
 
         return wrapped_method
 
-    with patch.object(RemoteManager, "http_head", wraps=assert_auth(RemoteManager.http_head)) as mock_head:
+    with patch.object(HttpClient, "http_head", wraps=assert_auth(HttpClient.head)) as mock_head:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises(ConnectionError):

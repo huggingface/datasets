@@ -31,8 +31,7 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import RemoteManager
-
+from .remote_utils import HttpClient
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -140,7 +139,7 @@ def head_hf_s3(
     identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
 ) -> Union[requests.Response, Exception]:
     try:
-        return RemoteManager.http_head(
+        return HttpClient.head(
             hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
             max_retries=max_retries,
         )
@@ -445,7 +444,7 @@ def get_from_cache(
         if url.startswith("ftp://"):
             connected = ftp_head(url)
         try:
-            response = RemoteManager.http_head(
+            response = HttpClient.head(
                 url,
                 allow_redirects=True,
                 proxies=proxies,
@@ -528,7 +527,7 @@ def get_from_cache(
             if url.startswith("ftp://"):
                 ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
             else:
-                RemoteManager.http_get(
+                HttpClient.get(
                     url,
                     proxies=proxies,
                     resume_size=resume_size,
