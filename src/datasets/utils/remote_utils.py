@@ -84,6 +84,23 @@ class RemoteManager:
 
     @classmethod
     def http_get(cls, url, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0, callback=None):
+        """Wrapper around `requests` GET.
+
+        Args:
+            url (str): The URL of the resource to fetch.
+            proxies (dict): Parameter passed to `requests.request` with the protocol to the URL of the proxy.
+            resume_size (int): Part of the resource to be returned, passed to Range HTTP request Header as bytes range
+                start.
+            headers (dict, optional): Parameter passed to `requests.request` with the HTTP Headers to be sent with the
+                Request.
+            cookies (dict, optional): Parameter passed to `requests.request` with the cookies to be sent with the
+                Request.
+            max_retries (int, default=0): Maximum number of retries, defaults to 0 (no retries).
+            callback (callable, optional): Callback function to be called with each response data chunk.
+
+        Returns:
+            generator or type returned by `callback`
+        """
         headers = copy.deepcopy(headers) or {}
         headers["user-agent"] = cls.get_datasets_user_agent(user_agent=headers.get("user-agent"))
         if resume_size > 0:
