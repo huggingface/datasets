@@ -21,6 +21,7 @@ class TextConfig(datasets.BuilderConfig):
 
     encoding: str = "utf-8"
     chunksize: int = 10 << 20  # 10MB
+    keep_linebreaks: bool = False
 
 
 class Text(datasets.ArrowBasedBuilder):
@@ -59,7 +60,7 @@ class Text(datasets.ArrowBasedBuilder):
                     if not batch:
                         break
                     batch += f.readline()  # finish current line
-                    batch = batch.splitlines()
+                    batch = batch.splitlines(keepends=self.config.keep_linebreaks)
                     pa_table = pa.Table.from_arrays([pa.array(batch)], schema=pa.schema({"text": pa.string()}))
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
