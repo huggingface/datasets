@@ -1,14 +1,18 @@
 import contextlib
+import copy
 import json
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
+from .filesystems import extract_path_from_uri, is_remote_filesystem
 
 
 class DatasetDict(dict):
@@ -204,15 +208,20 @@ class DatasetDict(dict):
         **format_kwargs,
     ):
         """Set __getitem__ return format (type and columns)
-        The transformation is applied to all the datasets of the dataset dictionary.
+        The format is set for every dataset in the dataset dictionary
 
         Args:
             type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
-                None means __getitem__ returns all columns (default)
+            columns (Optional ``List[str]``): columns to format in the output.
+                None means __getitem__ returns all columns (default).
             output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
+        It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
+        gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
+
+            new formatted columns = (all columns - previously unformatted columns)
         """
         self._check_values_type()
         for dataset in self.values():
@@ -227,6 +236,85 @@ class DatasetDict(dict):
         self._check_values_type()
         for dataset in self.values():
             dataset.set_format()
+
+    def set_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+    ):
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
+        The transform is set for every dataset in the dataset dictionary
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
+
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
+
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
+
+    def with_format(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
+        """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
+        The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
+        The format is set for every dataset in the dataset dictionary
+
+        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.with_transform`.
+
+        Contrary to :func:`datasets.DatasetDict.set_format`, ``with_format`` returns a new DatasetDict object with new Dataset objects.
+
+        Args:
+            type (Optional ``str``):
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
+                None means __getitem__ returns python objects (default)
+            columns (Optional ``List[str]``): columns to format in the output
+                None means __getitem__ returns all columns (default)
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+        """
+        dataset = copy.deepcopy(self)
+        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        return dataset
+
+    def with_transform(
+        self,
+        transform: Optional[Callable],
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+    ):
+        """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
+        The transform is set for every dataset in the dataset dictionary
+
+        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`.
+
+        Contrary to :func:`datasets.DatasetDict.set_transform`, ``with_transform`` returns a new DatasetDict object with new Dataset objects.
+
+        Args:
+            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+                A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
+                This function is applied right before returning the objects in __getitem__.
+            columns (Optional ``List[str]``): columns to format in the output
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+                If set to True, then the other un-formatted columns are kept with the output of the transform.
+
+        """
+        dataset = copy.deepcopy(self)
+        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        return dataset
 
     def map(
         self,
@@ -267,7 +355,7 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
@@ -337,7 +425,7 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
+            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
@@ -394,7 +482,7 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
@@ -420,7 +508,8 @@ class DatasetDict(dict):
 
     def shuffle(
         self,
-        seeds: Optional[Dict[str, int]] = None,
+        seeds: Optional[Union[int, Dict[str, int]]] = None,
+        seed: Optional[int] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
@@ -434,25 +523,31 @@ class DatasetDict(dict):
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seeds (Optional `Dict[str, int]`): A seed to initialize the default BitGenerator if ``generator=None``.
+            seeds (Optional `Dict[str, int]` or `int`): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-                You have to provide one :obj:`seed` per dataset in the dataset dictionary.
+                You can provide one :obj:`seed` per dataset in the dataset dictionary.
+            seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``. Alias for seeds (the seed argument has priority over seeds if both arguments are provided).
             generators (Optional `Dict[str, np.random.Generator]`): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                 You have to provide one :obj:`generator` per dataset in the dataset dictionary.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+            indices_cache_file_names (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mappings instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
         self._check_values_type()
+        if seed is not None and seeds is not None:
+            raise ValueError("Please specify seed or seeds, but not both")
+        seeds = seed if seed is not None else seeds
         if seeds is None:
             seeds = {k: None for k in self}
+        elif not isinstance(seeds, dict):
+            seeds = {k: seeds for k in self}
         if generators is None:
             generators = {k: None for k in self}
         if indices_cache_file_names is None:
@@ -471,31 +566,51 @@ class DatasetDict(dict):
             }
         )
 
-    def save_to_disk(self, dataset_dict_path: str):
+    def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
-        Save the dataset dict in a dataset dict directory.
+        Saves a dataset dict to a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
-        os.makedirs(dataset_dict_path, exist_ok=True)
+        if is_remote_filesystem(fs):
+            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+        else:
+            fs = fsspec.filesystem("file")
+            dest_dataset_dict_path = dataset_dict_path
+            os.makedirs(dest_dataset_dict_path, exist_ok=True)
+
         json.dump(
-            {"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8")
+            {"splits": list(self)},
+            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(os.path.join(dataset_dict_path, k))
+            dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
         """
-        Load the dataset dict from a dataset dict directory
+        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be loaded from
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from
+            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+
         """
         dataset_dict = DatasetDict()
-        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))[
-            "splits"
-        ]:
-            dataset_dict[k] = Dataset.load_from_disk(os.path.join(dataset_dict_path, k))
+        if is_remote_filesystem(fs):
+            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+        else:
+            fs = fsspec.filesystem("file")
+            dest_dataset_dict_path = dataset_dict_path
+        for k in json.load(
+            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+        )["splits"]:
+            dataset_dict_split_path = (
+                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                if is_remote_filesystem(fs)
+                else Path(dest_dataset_dict_path).joinpath(k).as_posix()
+            )
+            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
         return dataset_dict

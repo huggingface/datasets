@@ -296,16 +296,18 @@ def flatten_nest_dict(d):
     return flat_dict
 
 
-def flatten_nested(data_struct):
-    """Flatten data struct of obj or `list`/`dict` of obj"""
-    if isinstance(data_struct, dict):
-        data_struct = list(flatten_nest_dict(data_struct).values())
-        if data_struct and isinstance(data_struct[0], (list, tuple)):
-            data_struct = [x for sublist in data_struct for x in sublist]
-    if isinstance(data_struct, (list, tuple)):
-        return data_struct
-    # Singleton
-    return [data_struct]
+class NestedDataStructure:
+    def __init__(self, data=None):
+        self.data = data if data else []
+
+    def flatten(self, data=None):
+        data = data if data is not None else self.data
+        if isinstance(data, dict):
+            return self.flatten(list(data.values()))
+        elif isinstance(data, (list, tuple)):
+            return [flattened for item in data for flattened in self.flatten(item)]
+        else:
+            return [data]
 
 
 def datasets_dir():
@@ -447,13 +449,18 @@ def _save_code(pickler, obj):
     of functions created in notebooks or shells for example.
     """
     dill._dill.log.info("Co: %s" % obj)
+    # The filename of a function is the .py file where it is defined.
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
     # Moreover lambda functions have a special name: '<lambda>'
     # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
+    # For the hashing mechanism we ignore where the function has been defined
+    # More specifically:
+    # - we ignore the filename of special functions (filename starts with '<')
+    # - we always ignore the line number
     # Only those two lines are different from the original implementation:
     co_filename = "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_filename
-    co_firstlineno = 1 if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_firstlineno
+    co_firstlineno = 1
     # The rest is the same as in the original dill implementation
     if dill._dill.PY3:
         if hasattr(obj, "co_posonlyargcount"):

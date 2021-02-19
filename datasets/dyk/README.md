@@ -1,21 +1,21 @@
 ---
 annotations_creators:
 - expert-generated
-  language_creators:
+language_creators:
 - other
-  languages:
+languages:
 - pl
-  licenses:
+licenses:
 - bsd-3-clause
-  multilinguality:
+multilinguality:
 - monolingual
-  size_categories:
+size_categories:
 - 1K<n<10K
-  source_datasets:
+source_datasets:
 - original
-  task_categories:
+task_categories:
 - question-answering
-  task_ids:
+task_ids:
 - open-domain-qa
 ---
 
@@ -43,6 +43,7 @@ annotations_creators:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -139,3 +140,7 @@ CC BY-SA 3.0
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abecadel](https://github.com/abecadel) for adding this dataset.

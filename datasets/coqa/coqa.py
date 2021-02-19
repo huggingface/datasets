@@ -23,8 +23,8 @@ _DESCRIPTION = """\
 CoQA: A Conversational Question Answering Challenge
 """
 
-_TRAIN_DATA_URL = "https://datasets.stanford.edu/data/coqa/coqa-train-v1.0.json"
-_DEV_DATA_URL = "https://datasets.stanford.edu/data/coqa/coqa-dev-v1.0.json"
+_TRAIN_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-train-v1.0.json"
+_DEV_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-dev-v1.0.json"
 
 
 class Coqa(datasets.GeneratorBasedBuilder):

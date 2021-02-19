@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- es:
+  es:
   - es
-- nl:
+  nl:
   - nl
 licenses:
 - unknown
@@ -20,7 +20,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 ---
 
 # Dataset Card Creation Guide
@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -206,3 +207,7 @@ Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset
     url = "https://www.aclweb.org/anthology/W02-2024",
 }
 ```
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq) for adding this dataset.

@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
+import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
 
 import datasets
@@ -96,8 +97,8 @@ class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate examples."""
-        # For labeled examples, extract the label from the path.
-        df = pd.read_excel(filepath)
-        for id_, record in df.iterrows():
-            tweet, sentiment = record["Feed"], record["Sentiment"]
-            yield str(id_), {"text": tweet, "label": sentiment}
+        with open(filepath, "rb") as f:
+            df = pd.read_excel(f, engine="openpyxl")
+            for id_, record in df.iterrows():
+                tweet, sentiment = record["Feed"], record["Sentiment"]
+                yield str(id_), {"text": tweet, "label": sentiment}

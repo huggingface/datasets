@@ -277,6 +277,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -409,3 +410,7 @@ The dataset, which contains paragraphs from Wikipedia, is licensed under CC-BY-S
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

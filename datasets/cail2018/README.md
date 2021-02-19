@@ -42,12 +42,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/thunlp/CAIL/blob/master/README_en.md)
+- **Repository:** [Github](https://github.com/thunlp/CAIL)
+- **Paper:** [Arxiv](https://arxiv.org/abs/1807.02478)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -134,3 +135,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@JetRunner](https://github.com/JetRunner) for adding this dataset.

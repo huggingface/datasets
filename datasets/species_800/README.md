@@ -52,7 +52,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [SPECIES](https://species.jensenlab.org/)
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
@@ -143,3 +143,6 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+### Contributions
+
+Thanks to [@edugp](https://github.com/edugp) for adding this dataset.

@@ -1,21 +1,21 @@
 ---
 annotations_creators:
 - expert-generated
-  language_creators:
+language_creators:
 - other
-  languages:
+languages:
 - pl
-  licenses:
+licenses:
 - bsd-3-clause
-  multilinguality:
+multilinguality:
 - monolingual
-  size_categories:
+size_categories:
 - 1K<n<10K
-  source_datasets:
+source_datasets:
 - original
-  task_categories:
+task_categories:
 - text-classification
-  task_ids:
+task_ids:
 - sentiment-classification
 ---
 
@@ -43,6 +43,7 @@ annotations_creators:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -141,3 +142,7 @@ CC BY-NC-SA 4.0
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abecadel](https://github.com/abecadel) for adding this dataset.

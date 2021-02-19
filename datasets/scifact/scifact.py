@@ -1,4 +1,5 @@
-"""TODO(scifact): Add a description here."""
+"""Scientific fact-checking dataset. Verifies claims based on citation sentences
+using evidence from the cited abstracts."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -8,22 +9,20 @@ import os
 import datasets
 
 
-# TODO(scifact): BibTeX citation
 _CITATION = """\
-@inproceedings{scifact2020
-  title={ Fact or Fiction: Verifying Scientific Claims},
-  author={David,  Wadden and Kyle, Lo and Lucy Lu, Wang and Shanchuan, Lin and Madeleine van, Zuylen and Arman, Cohan and  Hannaneh, Hajishirzi},
-  booktitle={2011 AAAI Spring Symposium Series},
+@inproceedings{Wadden2020FactOF,
+  title={Fact or Fiction: Verifying Scientific Claims},
+  author={David Wadden and Shanchuan Lin and Kyle Lo and Lucy Lu Wang and Madeleine van Zuylen and Arman Cohan and Hannaneh Hajishirzi},
+  booktitle={EMNLP},
   year={2020},
 }
 """
 
-# TODO(scifact):
 _DESCRIPTION = """\
-SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence-containing abstracts, and annotated with labels and rationales
+SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence-containing abstracts, and annotated with labels and rationales.
 """
 
-_URL = "https://ai2-s2-scifact.s3-us-west-2.amazonaws.com/release/2020-05-01/data.tar.gz"
+_URL = "https://scifact.s3-us-west-2.amazonaws.com/release/latest/data.tar.gz"
 
 
 class ScifactConfig(datasets.BuilderConfig):

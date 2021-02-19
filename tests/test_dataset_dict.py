@@ -2,12 +2,15 @@ import os
 import tempfile
 from unittest import TestCase
 
+import boto3
 import numpy as np
 import pandas as pd
+from moto import mock_s3
 
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
+from datasets.filesystems import S3FileSystem
 
 from .utils import require_tf, require_torch
 
@@ -50,16 +53,14 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 1)
-            self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
-            self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+            self.assertIsInstance(dset_split[0]["col_1"], np.int64)
             self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.reset_format()
         with dset.formatted_as(type="numpy", columns=["col_1"]):
             for dset_split in dset.values():
                 self.assertEqual(len(dset_split[0]), 1)
-                self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
-                self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+                self.assertIsInstance(dset_split[0]["col_1"], np.int64)
                 self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         for dset_split in dset.values():
@@ -77,6 +78,7 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
+            self.assertIsInstance(dset_split[0]["col_2"], np.str_)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
@@ -142,6 +144,49 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dset_split[0].columns), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
+
+    def test_set_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.set_transform(transform=transform, columns=["col_1"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.format["type"], "custom")
+            self.assertEqual(len(dset_split[0].keys()), 1)
+            self.assertEqual(dset_split[0]["col_1"], "3")
+            self.assertEqual(dset_split[:2]["col_1"], ["3", "2"])
+            self.assertEqual(dset_split["col_1"][:2], ["3", "2"])
+
+        prev_format = dset[list(dset.keys())[0]].format
+        for dset_split in dset.values():
+            dset_split.set_format(**dset_split.format)
+            self.assertEqual(prev_format, dset_split.format)
+
+        dset.set_transform(transform=transform, columns=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(len(dset_split[0].keys()), 2)
+            self.assertEqual(dset_split[0]["col_2"], "A")
+        del dset
+
+    def test_with_format(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_format("numpy", columns=["col_1"])
+        dset.set_format("numpy", columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
+
+    def test_with_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_transform(transform, columns=["col_1"])
+        dset.set_transform(transform, columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
 
     def test_cast_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -283,7 +328,17 @@ class DatasetDictTest(TestCase):
                 seeds=seeds, indices_cache_file_names=indices_cache_file_names_3, load_from_cache_file=False
             )
             self.assertNotEqual(dsets_shuffled_3["train"]["filename"], dsets_shuffled_3["test"]["filename"])
+
+            # other input types
+            dsets_shuffled_int = dsets.shuffle(42)
+            dsets_shuffled_alias = dsets.shuffle(seed=42)
+            dsets_shuffled_none = dsets.shuffle()
+            self.assertEqual(len(dsets_shuffled_int["train"]), 30)
+            self.assertEqual(len(dsets_shuffled_alias["train"]), 30)
+            self.assertEqual(len(dsets_shuffled_none["train"]), 30)
+
             del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
+            del dsets_shuffled_int, dsets_shuffled_alias, dsets_shuffled_none
 
     def test_check_values_type(self):
         dsets = self._create_dummy_dataset_dict()
@@ -327,3 +382,33 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
+
+    @mock_s3
+    def test_save_and_load_to_s3(self):
+        # Mocked AWS Credentials for moto.
+        os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+        os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+        os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
+
+        s3 = boto3.client("s3", region_name="us-east-1")
+        mock_bucket = "moto-mock-s3-bucket"
+        # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+        s3.create_bucket(Bucket=mock_bucket)
+        dataset_path = f"s3://{mock_bucket}/datasets/dict"
+
+        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
+
+        dsets = self._create_dummy_dataset_dict()
+        dsets.save_to_disk(dataset_path, fs)
+
+        del dsets
+
+        dsets = load_from_disk(dataset_path, fs)
+
+        self.assertListEqual(sorted(dsets), ["test", "train"])
+        self.assertEqual(len(dsets["train"]), 30)
+        self.assertListEqual(dsets["train"].column_names, ["filename"])
+        self.assertEqual(len(dsets["test"]), 30)
+        self.assertListEqual(dsets["test"].column_names, ["filename"])
+        del dsets

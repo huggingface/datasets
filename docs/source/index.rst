@@ -43,6 +43,7 @@ The documentation is organized in five parts:
     exploring
     processing
     torch_tensorflow
+    filesystems
     faiss_and_ea
 
 .. toctree::

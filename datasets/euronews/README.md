@@ -45,12 +45,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/EuropeanaNewspapers/ner-corpora)
+- **Repository:** [Github](https://github.com/EuropeanaNewspapers/ner-corpora)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/L16-1689/)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -137,3 +138,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jplu](https://github.com/jplu) for adding this dataset.

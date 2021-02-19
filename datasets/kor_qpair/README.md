@@ -44,11 +44,12 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/songys/Question_pair)
+- **Repository:** [Github](https://github.com/songys/Question_pair)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -140,3 +141,7 @@ Each row in the dataset contains two questions and a `is_duplicate` label.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jaketae](https://github.com/jaketae) for adding this dataset.
