@@ -215,7 +215,7 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
 
         return wrapped_method
 
-    with patch.object(HttpClient, "http_head", wraps=assert_auth(HttpClient.head)) as mock_head:
+    with patch.object(HttpClient, "head", wraps=assert_auth(HttpClient.head)) as mock_head:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises(ConnectionError):
