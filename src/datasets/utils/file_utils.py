@@ -14,8 +14,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
-import urllib
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
@@ -31,7 +30,8 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import HttpClient
+from .remote_utils import FtpClient, HttpClient
+
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -369,24 +369,6 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] =
     return headers
 
 
-def ftp_head(url, timeout=2.0):
-    try:
-        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-            r.read(1)
-    except Exception:
-        return False
-    return True
-
-
-def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
-    try:
-        logger.info(f"Getting through FTP {url} into {temp_file.name}")
-        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-            shutil.copyfileobj(r, temp_file)
-    except urllib.error.URLError as e:
-        raise ConnectionError(e)
-
-
 def get_from_cache(
     url,
     cache_dir=None,
@@ -442,7 +424,7 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
-            connected = ftp_head(url)
+            connected = FtpClient.head(url)
         try:
             response = HttpClient.head(
                 url,
@@ -525,7 +507,9 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp://"):
-                ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
+                FtpClient.get(
+                    url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies
+                )
             else:
                 HttpClient.get(
                     url,
