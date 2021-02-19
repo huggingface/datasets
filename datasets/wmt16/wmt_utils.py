@@ -386,7 +386,7 @@ _TRAIN_SUBSETS = [
         name="uncorpus_v1",
         target="en",
         sources={"ru", "zh"},
-        url="https://storage.googleapis.com/tfdataset-data/downloadataset/uncorpus/UNv1.0.en-{src}.tar.gz",
+        url="https://huggingface.co/datasets/wmt/uncorpus/resolve/main/UNv1.0.en-{src}.tar.gz",
         path=("en-{src}/UNv1.0.en-{src}.{src}", "en-{src}/UNv1.0.en-{src}.en"),
     ),
     SubDataset(
