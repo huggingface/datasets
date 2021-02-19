@@ -26,13 +26,11 @@ from zipfile import ZipFile, is_zipfile
 
 import numpy as np
 import posixpath
-import pyarrow as pa
 import requests
-from tqdm.auto import tqdm
 
-from .. import __version__, config
+from .. import config
 from .filelock import FileLock
-from .logging import WARNING, get_logger
+from .logging import get_logger
 from .remote_utils import RemoteManager
 
 
@@ -356,22 +354,6 @@ def cached_path(
     return output_path
 
 
-def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(pa.__version__)
-    if config.TORCH_AVAILABLE:
-        ua += "; torch/{}".format(config.TORCH_VERSION)
-    if config.TF_AVAILABLE:
-        ua += "; tensorflow/{}".format(config.TF_VERSION)
-    if config.BEAM_AVAILABLE:
-        ua += "; apache_beam/{}".format(config.BEAM_VERSION)
-    if isinstance(user_agent, dict):
-        ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
-    elif isinstance(user_agent, str):
-        ua += "; " + user_agent
-    return ua
-
-
 def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
@@ -404,34 +386,6 @@ def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=N
             shutil.copyfileobj(r, temp_file)
     except urllib.error.URLError as e:
         raise ConnectionError(e)
-
-
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
-    headers = copy.deepcopy(headers) or {}
-    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
-    if resume_size > 0:
-        headers["Range"] = "bytes=%d-" % (resume_size,)
-    response = RemoteManager.request_with_retry(
-        verb="GET", url=url, stream=True, proxies=proxies, headers=headers, cookies=cookies, max_retries=max_retries
-    )
-    if response.status_code == 416:  # Range not satisfiable
-        return
-    content_length = response.headers.get("Content-Length")
-    total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-    progress = tqdm(
-        unit="B",
-        unit_scale=True,
-        total=total,
-        initial=resume_size,
-        desc="Downloading",
-        disable=not_verbose,
-    )
-    for chunk in response.iter_content(chunk_size=1024):
-        if chunk:  # filter out keep-alive new chunks
-            progress.update(len(chunk))
-            temp_file.write(chunk)
-    progress.close()
 
 
 def get_from_cache(
@@ -574,7 +528,7 @@ def get_from_cache(
             if url.startswith("ftp://"):
                 ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
             else:
-                http_get(
+                RemoteManager.http_get(
                     url,
                     temp_file,
                     proxies=proxies,
