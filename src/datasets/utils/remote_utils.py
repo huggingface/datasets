@@ -15,9 +15,9 @@ logger = get_logger(__name__)
 class RemoteManager:
     @staticmethod
     def request_with_retry(
-        verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **kwargs
+        verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
     ) -> requests.Response:
-        """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
+        """Wrapper around `requests` to retry in case it fails with a ConnectTimeout, with exponential backoff.
 
         Args:
             verb (str): HTTP verb, such as 'GET' or 'HEAD'.
@@ -26,7 +26,7 @@ class RemoteManager:
             base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
                 retries then grows exponentially, capped by max_wait_time.
             max_wait_time (float): Maximum amount of time between two retries, in seconds.
-            **kwargs: Params to pass to `requests.request`.
+            **params: Params to pass to `requests.request`.
 
         Returns:
             requests.Response
@@ -35,7 +35,7 @@ class RemoteManager:
         while not success:
             tries += 1
             try:
-                response = requests.request(verb.upper(), url, **kwargs)
+                response = requests.request(verb.upper(), url, **params)
                 success = True
             except requests.exceptions.ConnectTimeout as err:
                 if tries > max_retries:
@@ -50,16 +50,20 @@ class RemoteManager:
     def http_head(
         cls, url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
     ) -> requests.Response:
-        """Wrapper around requests HEAD.
+        """Wrapper around `requests` HEAD.
 
         Args:
             url (str): The URL of the resource to fetch.
-            proxies:
-            headers:
-            cookies:
-            allow_redirects:
-            timeout:
-            max_retries:
+            proxies (dict): Parameter passed to `requests.request` with the protocol to the URL of the proxy.
+            headers (dict, optional): Parameter passed to `requests.request` with the HTTP Headers to be sent with the
+                Request.
+            cookies (dict, optional): Parameter passed to `requests.request` with the cookies to be sent with the
+                Request.
+            allow_redirects (bool, default=True): Parameter passed to `requests.request` to enable/disable
+                redirections.
+            timeout (float, default=10): Parameter passed to `requests.request` to indicate how many seconds to wait
+                for the server to send data before giving up.
+            max_retries (int, default=0): Maximum number of retries, defaults to 0 (no retries).
 
         Returns:
             requests.Response
