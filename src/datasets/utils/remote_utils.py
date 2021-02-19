@@ -1,7 +1,6 @@
 import copy
 import time
 import urllib
-from contextlib import closing
 from typing import Optional, Union
 
 import requests
@@ -159,7 +158,7 @@ class FtpClient:
     @staticmethod
     def head(url, timeout=2.0):
         try:
-            with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
                 r.read(1)
         except Exception:
             return False
@@ -169,7 +168,7 @@ class FtpClient:
     def get(url, timeout=2.0, callback=None):
         try:
             logger.info(f"Getting through FTP {url}")  # into {temp_file.name}")
-            with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
                 if callback:
                     callback(r)
                 else:
