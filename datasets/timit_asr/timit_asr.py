@@ -17,6 +17,7 @@
 """TIMIT automatic speech recognition dataset."""
 
 from __future__ import absolute_import, division, print_function
+
 import os
 
 import pandas as pd
@@ -42,37 +43,11 @@ and for the evaluation of automatic speech recognition systems.
 TIMIT contains high quality recordings of 630 individuals/speakers with 8 different American English dialects,
 with each individual reading upto 10 phonetically rich sentences.
 
-Note that in order to limit the required storage for preparing this dataset, the audio
-is stored in the .flac format and is not converted to a float32 array. To convert, the audio
-file to a float32 array, please make use of the `.map()` function as follows:
-
-
-```python
-import soundfile as sf
-
-def map_to_array(batch):
-    speech_array, _ = sf.read(batch["file"])
-    batch["speech"] = speech_array
-    return batch
-
-dataset = dataset.map(map_to_array, remove_columns=["file"])
-```
+More info on TIMIT dataset can be understood from the "README" which can be found here:
+https://catalog.ldc.upenn.edu/docs/LDC93S1/readme.txt
 """
 
 _URL = "https://data.deepai.org/timit.zip"
-
-_DIALECT_REGION = {
-    "dr1": "NewEngland",
-    "dr2": "Northern",
-    "dr3": "NorthMidland",
-    "dr4": "SouthMidland",
-    "dr5": "Southern",
-    "dr6": "NewYorkCity",
-    "dr7": "Western",
-    "dr8": "ArmyBrat_(moved around)",
-}
-
-_SENTENCE_TYPE = {"SA": "Dialect", "SX": "Compact", "SI": "Diverse"}
 
 
 class TimitASRConfig(datasets.BuilderConfig):
