@@ -468,6 +468,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with tempfile.TemporaryDirectory() as tmp_dir:
             temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
             os.makedirs(temp_dataset_path, exist_ok=True)
+            os.makedirs(dataset_path, exist_ok=True)
 
             # Write indices if needed
             if self._indices is not None:
