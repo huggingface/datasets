@@ -16,11 +16,13 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 from xml.etree import ElementTree
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -185,7 +187,7 @@ class EuropaEcdcTM(datasets.GeneratorBasedBuilder):
         source_language,
         target_language,
     ):
-        logging.info(f"⏳ Generating examples from = {filepath}")
+        logger.info(f"⏳ Generating examples from = {filepath}")
         xml_element_tree = ElementTree.parse(filepath)
         xml_body_tag = xml_element_tree.getroot().find("body")
         assert xml_body_tag is not None, f"Invalid data: <body></body> tag not found in {filepath}"

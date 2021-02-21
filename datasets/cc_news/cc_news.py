@@ -19,10 +19,12 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import json
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -97,7 +99,7 @@ class CCNews(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, directory):
-        logging.info("CC-News dataset: generating examples from = %s", directory)
+        logger.info("CC-News dataset: generating examples from = %s", directory)
         glob_target = os.path.join(directory, "**/*.json")
         article_files = glob.glob(glob_target, recursive=True)
         article_files = sorted(article_files)

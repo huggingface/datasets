@@ -18,10 +18,12 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import glob
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -123,7 +125,7 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, article_dir, split):
-        logging.info("⏳ Generating %s examples from = %s", split, article_dir)
+        logger.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
         for path in sorted(glob.glob(os.path.join(article_dir, "**/*.csv"), recursive=True)):
             with open(path, encoding="utf-8-sig", newline="") as f:

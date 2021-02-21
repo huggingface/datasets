@@ -45,14 +45,15 @@ except ImportError:
     _typing_extensions = Literal = Final = None
 
 
+logger = get_logger(__name__)
+
+
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
 # See
 # https://stackoverflow.com/questions/14946264/python-lru-cache-decorator-per-instance
 # For @property methods, use @memoized_property below.
 memoize = functools.lru_cache
-
-logger = get_logger(__name__)
 
 
 def size_str(size_in_bytes):
