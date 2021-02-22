@@ -178,7 +178,7 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir: dict) -> "DatasetInfo":
+    def from_directory(cls, dataset_info_dir: str) -> "DatasetInfo":
         """Create DatasetInfo from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,

@@ -171,7 +171,7 @@ def transmit_format(func):
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         # re-apply format to the output
         for dataset in datasets:
-            new_format = dict(self_format)
+            new_format = self_format.copy()
             if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
                 # sort the columns to have a deterministic list of columns that we can compare with `out_format`
                 new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
@@ -408,7 +408,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del self._indices
 
     def __getstate__(self):
-        state = dict(self.__dict__)
+        state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
         state["_split"] = str(state["_split"]) if state["_split"] is not None else None
         if self._data_files:
@@ -423,7 +423,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         assert (
             state.get("_data") is not None or state.get("_data_files") is not None
         ), "tried to unpickle a dataset without arrow_table or data_files"
-        state = dict(state)
+        state = state.copy()
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
         state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
         self.__dict__ = state
@@ -585,7 +585,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column_names
 
     @property
-    def shape(self) -> Tuple[int]:
+    def shape(self) -> Tuple[int, int]:
         """Shape of the dataset (number of columns, number of rows)."""
         if self._indices is not None:
             return (self._indices.num_rows, self._data.num_columns)
@@ -1090,7 +1090,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
-            fn_kwargs = dict()
+            fn_kwargs = {}
 
         # Check if the function returns updated examples
         def does_function_return_dict(inputs, indices):
@@ -1157,7 +1157,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
-            prev_env = dict(os.environ)
+            prev_env = os.environ.copy()
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
             if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
@@ -1310,9 +1310,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         if fn_kwargs is None:
-            fn_kwargs = dict()
+            fn_kwargs = {}
 
-        # If we do batch computation but no batch sze is provided, default to the full dataset
+        # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
@@ -1515,7 +1515,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         if fn_kwargs is None:
-            fn_kwargs = dict()
+            fn_kwargs = {}
         fn_kwargs["input_columns"] = input_columns
 
         # return map function

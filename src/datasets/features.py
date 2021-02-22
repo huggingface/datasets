@@ -18,7 +18,9 @@
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
-from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional
+from typing import Sequence as Sequence_
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -244,7 +246,7 @@ class Array5D(_ArrayXD):
 
 
 class _ArrayXDExtensionType(pa.PyExtensionType):
-    ndims: int = None
+    ndims: Optional[int] = None
 
     def __init__(self, shape: tuple, dtype: str):
         assert (
@@ -387,10 +389,10 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
     ) -> "PandasArrayExtensionArray":
         data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
-        return PandasArrayExtensionArray(data, dtype=dtype, copy=copy)
+        return cls(data, copy=copy)
 
     @classmethod
-    def _concat_same_type(cls, to_concat: Sequence["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
+    def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
         data = np.vstack([va._data for va in to_concat])
         return cls(data, copy=False)
 
@@ -414,9 +416,9 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return PandasArrayExtensionArray(self._data[item], copy=False)
 
     def take(
-        self, indices: Sequence[int], allow_fill: bool = False, fill_value: bool = None
+        self, indices: Sequence_[int], allow_fill: bool = False, fill_value: bool = None
     ) -> "PandasArrayExtensionArray":
-        indices = np.asarray(indices, dtype="int")
+        indices: np.ndarray = np.asarray(indices, dtype="int")
         if allow_fill:
             fill_value = (
                 self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
@@ -471,15 +473,15 @@ class ClassLabel:
             classes, one per line.
     """
 
-    num_classes: int = None
-    names: List[str] = None
-    names_file: str = None
+    num_classes: Optional[int] = None
+    names: Optional[List[str]] = None
+    names_file: Optional[str] = None
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
     pa_type: ClassVar[Any] = pa.int64()
-    _str2int: ClassVar[Dict[str, int]] = None
-    _int2str: ClassVar[Dict[int, int]] = None
+    _str2int: ClassVar[Optional[Dict[str, int]]] = None
+    _int2str: ClassVar[Optional[Dict[int, int]]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self):
@@ -523,9 +525,9 @@ class ClassLabel:
 
     def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer."""
-        assert isinstance(values, str) or isinstance(values, Iterable), (
-            f"Values {values} should be a string " f"or an Iterable (list, numpy array, pytorch, tensorflow tensors"
-        )
+        assert isinstance(values, str) or isinstance(
+            values, Iterable
+        ), f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
         return_list = True
         if isinstance(values, str):
             values = [values]
@@ -551,16 +553,17 @@ class ClassLabel:
 
     def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
-        assert isinstance(values, int) or isinstance(values, Iterable), (
-            f"Values {values} should be an integer " f"or an Iterable (list, numpy array, pytorch, tensorflow tensors"
-        )
+        assert isinstance(values, int) or isinstance(
+            values, Iterable
+        ), f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
         return_list = True
         if isinstance(values, int):
             values = [values]
             return_list = False
 
-        if any(not 0 <= v < self.num_classes for v in values):
-            raise ValueError("Invalid integer class label %d" % values)
+        for v in values:
+            if not 0 <= v < self.num_classes:
+                raise ValueError("Invalid integer class label %d" % v)
 
         if self._int2str:
             output = [self._int2str[int(v)] for v in values]
@@ -667,8 +670,8 @@ class TranslationVariableLanguages:
         }
     """
 
-    languages: List = None
-    num_languages: int = None
+    languages: Optional[List] = None
+    num_languages: Optional[int] = None
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -771,9 +774,9 @@ def encode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return dict(
-            (k, encode_nested_example(sub_schema, sub_obj)) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
-        )
+        return {
+            k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
+        }
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         return [encode_nested_example(sub_schema, o) for o in obj]

@@ -6,7 +6,7 @@ import tempfile
 from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -107,7 +107,7 @@ def hashregister(t):
 class Hasher:
     """Hasher that accepts python objets as inputs."""
 
-    dispatch = {}
+    dispatch: Dict = {}
 
     def __init__(self):
         self.m = xxhash.xxh64()
@@ -168,7 +168,7 @@ def _hash_dataset_info(hasher, value):
 #################
 
 # we show a warning only once when fingerprinting fails to avoid spam
-fingerprint_warnings = {}
+fingerprint_warnings: Dict[str, bool] = {}
 
 
 def generate_fingerprint(dataset) -> str:
@@ -262,7 +262,7 @@ def fingerprint_transform(
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            kwargs_for_fingerprint = dict(kwargs)
+            kwargs_for_fingerprint = kwargs.copy()
             if args:
                 params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
                 self: "Dataset" = args[0]

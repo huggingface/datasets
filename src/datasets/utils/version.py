@@ -19,6 +19,7 @@
 import dataclasses
 import re
 from dataclasses import dataclass
+from typing import Optional
 
 
 _VERSION_TMPL = r"^(?P<major>{v})" r"\.(?P<minor>{v})" r"\.(?P<patch>{v})$"
@@ -26,7 +27,7 @@ _VERSION_WILDCARD_REG = re.compile(_VERSION_TMPL.format(v=r"\d+|\*"))
 _VERSION_RESOLVED_REG = re.compile(_VERSION_TMPL.format(v=r"\d+"))
 
 
-@dataclass()
+@dataclass
 class Version:
     """Dataset version MAJOR.MINOR.PATCH.
     Args:
@@ -35,10 +36,10 @@ class Version:
     """
 
     version_str: str
-    description: str = None
-    major: str = None
-    minor: str = None
-    patch: str = None
+    description: Optional[str] = None
+    major: Optional[str] = None
+    minor: Optional[str] = None
+    patch: Optional[str] = None
 
     def __post_init__(self):
         self.major, self.minor, self.patch = _str_to_version(self.version_str)

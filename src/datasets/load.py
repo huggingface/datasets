@@ -24,7 +24,7 @@ import re
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlparse
 
 import fsspec
@@ -61,7 +61,7 @@ logger = get_logger(__name__)
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
 
-def init_dynamic_modules(name: str, hf_modules_cache: Optional[str] = None):
+def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]] = None):
     """
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
@@ -77,7 +77,7 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[str] = None):
     return dynamic_modules_path
 
 
-def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
+def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetBuilder], Type[Metric]]]:
     """Import a module at module_path and return its main class:
     - a DatasetBuilder if dataset is True
     - a Metric if dataset is False
@@ -106,7 +106,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
     """
     # List all python files in directories if directories are supplied as part of external imports
-    to_use_files = []
+    to_use_files: List[Union[Path, str]] = []
     for file_path in file_paths:
         if os.path.isdir(file_path):
             to_use_files.extend(list(Path(file_path).rglob("*.[pP][yY]")))
@@ -121,7 +121,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     return hash_python_lines(lines)
 
 
-def convert_github_url(url_path: str) -> Tuple[str, str]:
+def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     """Convert a link to a file on a github repo in a link to the raw github object."""
     parsed = urlparse(url_path)
     sub_directory = None
@@ -166,7 +166,7 @@ def get_imports(file_path: str):
         lines.extend(f.readlines())
 
     logger.info("Checking %s for additional imports.", file_path)
-    imports = []
+    imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
         docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
@@ -224,7 +224,7 @@ def prepare_module(
     dynamic_modules_path: Optional[str] = None,
     return_resolved_file_path: bool = False,
     **download_kwargs,
-) -> Tuple[str, str]:
+) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
     r"""
         Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
 
