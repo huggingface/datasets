@@ -208,4 +208,4 @@ def set_current_working_directory_to_temp_dir(*args, **kwargs):
     with tempfile.TemporaryDirectory(*args, **kwargs) as tmp_dir:
         os.chdir(tmp_dir)
         yield
-    os.chdir(original_working_dir)
+        os.chdir(original_working_dir)
