@@ -62,13 +62,15 @@ class WikiDprConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         self.with_embeddings = with_embeddings
-        self.with_index = with_index
+        self.with_index = with_index and index_name != "no_index"
         self.wiki_split = wiki_split
         self.embeddings_name = embeddings_name
         self.index_name = index_name if with_index else "no_index"
         self.index_train_size = index_train_size
         self.dummy = dummy
         name = [self.wiki_split, self.embeddings_name, self.index_name]
+        if not self.with_embeddings:
+            name.append("no_embeddings")
         if self.dummy:
             name = ["dummy"] + name
             assert (
@@ -94,10 +96,11 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WikiDprConfig(
             embeddings_name=embeddings_name,
-            with_index=(index_name != "no_index"),
+            with_embeddings=with_embeddings,
             index_name=index_name,
             version=datasets.Version("0.0.0"),
         )
+        for with_embeddings in (True, False)
         for embeddings_name in ("nq", "multiset")
         for index_name in ("exact", "compressed", "no_index")
     ]
