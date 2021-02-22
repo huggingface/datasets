@@ -465,9 +465,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs = fsspec.filesystem("file")
 
         # create temporary directory for saving
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
-            os.makedirs(temp_dataset_path, exist_ok=True)
+        with tempfile.TemporaryDirectory() as temp_dataset_path:
+            fs.makedirs(dataset_path, exist_ok=True)
 
             # Write indices if needed
             if self._indices is not None:
