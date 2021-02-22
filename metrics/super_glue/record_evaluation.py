@@ -80,7 +80,6 @@ def evaluate(dataset, predictions):
 
     exact_match = exact_match / total
     f1 = f1 / total
-    print("* Exact_match: {}\n* F1: {}".format(exact_match, f1))
 
     return {"exact_match": exact_match, "f1": f1}, correct_ids
 
