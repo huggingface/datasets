@@ -326,9 +326,6 @@ def query_table(
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
-    # If lazy, consume it
-    if isinstance(key, Iterable):
-        key = list(key)
     if isinstance(key, str):
         _check_valid_column_key(key, pa_table.column_names)
     else:
