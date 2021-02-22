@@ -80,20 +80,6 @@ def size_str(size_in_bytes):
     return "{} {}".format(int(size_in_bytes), "bytes")
 
 
-# def is_notebook():
-#     """Returns True if running in a notebook (Colab, Jupyter) environement."""
-#     # Inspired from the tfdm autonotebook code
-#     try:
-#         from IPython import get_ipython  # pylint: disable=import-outside-toplevel,g-import-not-at-top
-#
-#         if "IPKernelApp" not in get_ipython().config:
-#             return False  # Run in a IPython terminal
-#     except:  # noqa: E722
-#         return False
-#     else:
-#         return True
-
-
 @contextlib.contextmanager
 def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
@@ -145,23 +131,6 @@ class classproperty(property):  # pylint: disable=invalid-name
 
     def __get__(self, obj, objtype=None):
         return self.fget.__get__(None, objtype)()
-
-
-# class memoized_property(property):  # pylint: disable=invalid-name
-#     """Descriptor that mimics @property but caches output in member variable."""
-#
-#     def __get__(self, obj, objtype=None):
-#         # See https://docs.python.org/3/howto/descriptor.html#properties
-#         if obj is None:
-#             return self
-#         if self.fget is None:
-#             raise AttributeError("unreadable attribute")
-#         attr = "__cached_" + self.fget.__name__
-#         cached = getattr(obj, attr, None)
-#         if cached is None:
-#             cached = self.fget(obj)
-#             setattr(obj, attr, cached)
-#         return cached
 
 
 def _single_map_nested(args):
@@ -309,27 +278,6 @@ class NestedDataStructure:
             return [flattened for item in data for flattened in self.flatten(item)]
         else:
             return [data]
-
-
-# def datasets_dir():
-#     """Path to datasets directory."""
-#     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-
-# class abstractclassmethod(classmethod):  # pylint: disable=invalid-name
-#     """Decorate a method to mark it as an abstract @classmethod."""
-#
-#     __isabstractmethod__ = True
-#
-#     def __init__(self, fn):
-#         fn.__isabstractmethod__ = True
-#         super(abstractclassmethod, self).__init__(fn)
-
-
-# def get_datasets_path(relative_path):
-#     """Returns absolute path to file given path relative to datasets root."""
-#     path = os.path.join(datasets_dir(), relative_path)
-#     return path
 
 
 def has_sufficient_disk_space(needed_bytes, directory="."):
