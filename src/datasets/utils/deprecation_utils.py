@@ -1,25 +1,39 @@
-import logging
-import warnings
-from typing import Callable
+from typing import Callable, Optional
+
+from .logging import get_logger
 
 
 _emitted_deprecation_warnings = set()
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-def deprecated(deprecated_function: Callable):
-    global _emitted_deprecation_warnings
+def deprecated(help_message: Optional[str] = None):
+    """Decorator to mark a function as deprecated.
 
-    def wrapper(*args, **kwargs):
-        func_hash = hash(deprecated_function)
-        if func_hash not in _emitted_deprecation_warnings:
-            warning_msg = (
+    Args:
+        help_message (`Optional[str]`): An optional message to guide the user on how to
+            switch to non-deprecated usage of the library.
+    """
+
+    def decorator(deprecated_function: Callable):
+        global _emitted_deprecation_warnings
+        warning_msg = (
+            (
                 f"{deprecated_function.__name__} is deprecated and will be removed "
                 "in the next major version of datasets."
             )
-            warnings.warn(message=warning_msg, category=DeprecationWarning)
-            logger.warning(warning_msg)
-            _emitted_deprecation_warnings.add(func_hash)
-        return deprecated_function(*args, **kwargs)
+            + help_message
+            if help_message
+            else ""
+        )
 
-    return wrapper
+        def wrapper(*args, **kwargs):
+            func_hash = hash(deprecated_function)
+            if func_hash not in _emitted_deprecation_warnings:
+                logger.warning(warning_msg)
+                _emitted_deprecation_warnings.add(func_hash)
+            return deprecated_function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

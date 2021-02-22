@@ -614,7 +614,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @deprecated
+    @deprecated(help_message="Use the dataset.dictionary_encode_column method instead.")
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
@@ -662,7 +662,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated
+    @deprecated(help_message="Use the dataset.flatten method instead.")
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """In-place version of :func:`Dataset.flatten`"""
@@ -699,7 +699,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
         return dataset
 
-    @deprecated
+    @deprecated(help_message="Use the dataset.cast method instead.")
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
@@ -753,7 +753,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated
+    @deprecated(help_message="Use the dataset.remove_columns method instead.")
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
@@ -810,7 +810,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated
+    @deprecated(help_message="Use the dataset.rename_column method instead.")
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
