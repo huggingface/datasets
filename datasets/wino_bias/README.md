@@ -10,15 +10,13 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - structure-prediction
 task_ids:
 - coreference-resolution
-- named-entity-recognition
-- part-of-speech-tagging
 ---
 
 # Dataset Card for Wino_Bias dataset
@@ -50,7 +48,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** [WinoBias](https://uclanlp.github.io/corefBias/overview)
-- **Repository:**
+- **Repository:** [Github](https://github.com/uclanlp/corefBias/tree/master/WinoBias/wino)
 - **Paper:** [Arxiv](https://arxiv.org/abs/1804.06876)
 - **Leaderboard:**
 - **Point of Contact:**
@@ -59,11 +57,11 @@ task_ids:
 
 WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.
 The corpus contains Winograd-schema style sentences with entities corresponding to people
-referred by their occupation (e.g. the nurse, the doctor, the carpenter).
+referred by their occupation (e.g. the nurse, the doctor, the carpenter). The dataset contains both dev and test sets with different biases. "pro_stereotype" means the corference chain follows the existing societal bias (e.g. links "doctor" to male pronoun "he"), "anti_stereotype" means the coference chain is opposite to the existing societal bias (e.g. links "doctor" to female pronoun "she"). There are 2 types of stereotype datasets: "type1" dataset needs the model to understand the contents to make the prediction while "type2" can be answered by grammar rules. 
 
 ### Supported Tasks and Leaderboards
 
-The underlying task is coreference resolution. But it also support NER and POS tasks.
+The underlying task is coreference resolution. 
 
 ### Languages
 
@@ -81,18 +79,19 @@ English
     - part_number = Some files are divided into multiple parts numbered as 000, 001, 002, ... etc.
     - word_num = This is the word index of the word in that sentence.
     - tokens = This is the token as segmented/tokenized in the Treebank.
-    - pos_tags = This is the Penn Treebank style part of speech. When parse information is missing, all part of speeches except the one for which there is some sense or proposition annotation   are marked with a XX tag. The verb is marked with just a VERB tag.
-    - parse_bit = This is the bracketed structure broken before the first open parenthesis in the parse, and the word/part-of-speech leaf replaced with a *. The full parse can be created by substituting the asterix with the "([pos] [word])" string (or leaf) and concatenating the items in the rows of that column. When the parse information is missing, the first word of a sentence is tagged as "(TOP*" and the last word is tagged as "*)" and all intermediate words are tagged with a "*".
-    - predicate_lemma = The predicate lemma is mentioned for the rows for which we have semantic role information or word sense information. All other rows are marked with a "-".
-    - predicate_framenet_id = This is the PropBank frameset ID of the predicate in predicate_lemma.
-    - word_sense = This is the word sense of the word in Column tokens.
-    - speaker = This is the speaker or author name where available.
-    - ner_tags = These columns identifies the spans representing various named entities. For documents which do not have named entity annotation, each line is represented with an "*".
-    - verbal_predicates = There is one column each of predicate argument structure information for the predicate mentioned in predicate_lemma. If there are no predicates tagged in a sentence this is a single column with all rows marked with an "*".
+    - pos_tags = This is the Penn Treebank style part of speech. When parse information is missing, all part of speeches except the one for which there is some sense or proposition annotation   are marked with a XX tag. The verb is marked with just a VERB tag. [set to '-' currently]
+    - parse_bit = This is the bracketed structure broken before the first open parenthesis in the parse, and the word/part-of-speech leaf replaced with a *. The full parse can be created by substituting the asterix with the "([pos] [word])" string (or leaf) and concatenating the items in the rows of that column. When the parse information is missing, the first word of a sentence is tagged as "(TOP*" and the last word is tagged as "*)" and all intermediate words are tagged with a "*". [set to '-' currently]
+    - predicate_lemma = The predicate lemma is mentioned for the rows for which we have semantic role information or word sense information. All other rows are marked with a "-". [set to '-' currently]
+    - predicate_framenet_id = This is the PropBank frameset ID of the predicate in predicate_lemma. [set to '-' currently]
+    - word_sense = This is the word sense of the word in Column tokens. [set to '-' currently]
+    - speaker/author = This is the speaker or author name where available. [only "Speaker#1" currently]
+    - ner_tags = These columns identifies the spans representing various named entities. For documents which do not have named entity annotation, each line is represented with an "*". [set all to '*' now]
+    - verbal_predicates = There is one column each of predicate argument structure information for the predicate mentioned in predicate_lemma. If there are no predicates tagged in a sentence this is a single column with all rows marked with an "*". 
+    - coreference = Coreference chain information encoded in a parenthesis structure.
 
 ### Data Splits
 
-Single Split available
+- dev and test splits. For each split, there will be "pro_stereotype" and "anti_stereotype" splits. Each "pro_" and "anti_" splits will have "type1" and "type2" splits. 
 
 ## Dataset Creation
 
@@ -170,4 +169,4 @@ MIT Licence
 
 ### Contributions
 
-Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset.
+Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset. Updated by [@JieyuZhao](https://github.com/JieyuZhao). 
