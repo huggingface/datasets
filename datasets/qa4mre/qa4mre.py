@@ -54,7 +54,7 @@ Additional gold standard documents are available for two pilot studies: one on
 alzheimers data, and the other on entrance exams data.
 """
 
-_BASE_URL = "http://datasets.uned.es/clef-qa/repository/js/scripts/downloadFile.php?file=/var/www/html/nlp/clef-qa/repository/resources/QA4MRE/"
+_BASE_URL = "http://nlp.uned.es/clef-qa/repository/js/scripts/downloadFile.php?file=/var/www/html/nlp/clef-qa/repository/resources/QA4MRE/"
 
 PATHS = {
     "2011": {
@@ -215,7 +215,7 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
             # No default supervised keys because both passage and question are used
             # to determine the correct answer.
             supervised_keys=None,
-            homepage="http://datasets.uned.es/clef-qa/repository/pastCampaigns.php",
+            homepage="http://nlp.uned.es/clef-qa/repository/pastCampaigns.php",
             citation=_CITATION,
         )
 
