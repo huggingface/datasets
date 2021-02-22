@@ -199,7 +199,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                 train_size = self.config.index_train_size
                 logger.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
-                    index = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
+                    index = faiss.IndexHNSWSQ(d, faiss.ScalarQuantizer.QT_8bit, 128, faiss.METRIC_INNER_PRODUCT)
                     index.hnsw.efConstruction = 200
                     index.hnsw.efSearch = 128
                     dataset.add_faiss_index("embeddings", custom_index=index)
