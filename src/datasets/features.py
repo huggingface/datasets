@@ -23,8 +23,10 @@ from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
+from pyarrow.lib import TimestampType
 from pyarrow.types import is_boolean, is_primitive
 
 from . import config, utils
@@ -34,11 +36,63 @@ from .utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def string_to_arrow(type_str: str) -> pa.DataType:
+def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
+    """
+    _arrow_to_datasets_dtype takes a pyarrow.DataType and converts it to a datasets string dtype.
+    In effect, `dt == string_to_arrow(_arrow_to_datasets_dtype(dt))`
+    """
+
+    if pyarrow.types.is_null(arrow_type):
+        return "null"
+    elif pyarrow.types.is_boolean(arrow_type):
+        return "bool"
+    elif pyarrow.types.is_int8(arrow_type):
+        return "int8"
+    elif pyarrow.types.is_int16(arrow_type):
+        return "int16"
+    elif pyarrow.types.is_int32(arrow_type):
+        return "int32"
+    elif pyarrow.types.is_int64(arrow_type):
+        return "int64"
+    elif pyarrow.types.is_uint8(arrow_type):
+        return "uint8"
+    elif pyarrow.types.is_uint16(arrow_type):
+        return "uint16"
+    elif pyarrow.types.is_uint32(arrow_type):
+        return "uint32"
+    elif pyarrow.types.is_uint64(arrow_type):
+        return "uint64"
+    elif pyarrow.types.is_float16(arrow_type):
+        return "float16"  # pyarrow dtype is "halffloat"
+    elif pyarrow.types.is_float32(arrow_type):
+        return "float32"  # pyarrow dtype is "float"
+    elif pyarrow.types.is_float64(arrow_type):
+        return "float64"  # pyarrow dtype is "double"
+    elif pyarrow.types.is_timestamp(arrow_type):
+        assert isinstance(arrow_type, TimestampType)
+        if arrow_type.tz is None:
+            return f"timestamp[{arrow_type.unit}]"
+        elif arrow_type.tz:
+            return f"timestamp[{arrow_type.unit}, tz={arrow_type.tz}]"
+        else:
+            raise ValueError(f"Unexpected timestamp object {arrow_type}.")
+    elif pyarrow.types.is_binary(arrow_type):
+        return "binary"
+    elif pyarrow.types.is_large_binary(arrow_type):
+        return "large_binary"
+    elif pyarrow.types.is_string(arrow_type):
+        return "string"
+    elif pyarrow.types.is_large_string(arrow_type):
+        return "large_string"
+    else:
+        raise ValueError(f"Arrow type {arrow_type} does not have a datasets dtype equivalent.")
+
+
+def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     """
     string_to_arrow takes a datasets string dtype and converts it to a pyarrow.DataType.
 
-    In effect, `dt == string_to_arrow(str(dt))`
+    In effect, `dt == string_to_arrow(_arrow_to_datasets_dtype(dt))`
 
     This is necessary because the datasets.Value() primitive type is constructed using a string dtype
 
@@ -49,7 +103,7 @@ def string_to_arrow(type_str: str) -> pa.DataType:
         purpose of this function.
     """
     timestamp_regex = re.compile(r"^timestamp\[(.*)\]$")
-    timestamp_matches = timestamp_regex.search(type_str)
+    timestamp_matches = timestamp_regex.search(datasets_dtype)
     if timestamp_matches:
         """
         Example timestamp dtypes:
@@ -66,20 +120,20 @@ def string_to_arrow(type_str: str) -> pa.DataType:
             return pa.timestamp(internals_matches.group(1), internals_matches.group(2))
         else:
             raise ValueError(
-                f"{type_str} is not a validly formatted string representation of a pyarrow timestamp."
+                f"{datasets_dtype} is not a validly formatted string representation of a pyarrow timestamp."
                 f"Examples include timestamp[us] or timestamp[us, tz=America/New_York]"
                 f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html#pyarrow.timestamp"
             )
-    elif type_str not in pa.__dict__:
-        if str(type_str + "_") not in pa.__dict__:
+    elif datasets_dtype not in pa.__dict__:
+        if str(datasets_dtype + "_") not in pa.__dict__:
             raise ValueError(
-                f"Neither {type_str} nor {type_str + '_'} seems to be a pyarrow data type. "
+                f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
                 f"Please make sure to use a correct data type, see: "
                 f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions"
             )
-        arrow_data_factory_function_name = str(type_str + "_")
+        arrow_data_factory_function_name = str(datasets_dtype + "_")
     else:
-        arrow_data_factory_function_name = type_str
+        arrow_data_factory_function_name = datasets_dtype
 
     return pa.__dict__[arrow_data_factory_function_name]()
 
@@ -164,7 +218,29 @@ def cast_to_python_objects(obj: Any) -> Any:
 
 @dataclass
 class Value:
-    """Encapsulate an Arrow datatype for easy serialization."""
+    """
+    The Value dtypes are as follows:
+
+    null
+    bool
+    int8
+    int16
+    int32
+    int64
+    uint8
+    uint16
+    uint32
+    uint64
+    float16
+    float32 (alias float)
+    float64 (alias double)
+    timestamp[(s|ms|us|ns)]
+    timestamp[(s|ms|us|ns), tz=(tzstring)]
+    binary
+    large_binary
+    string
+    large_string
+    """
 
     dtype: str
     id: Optional[str] = None
@@ -855,7 +931,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
-        return Value(dtype=str(pa_type))
+        return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
