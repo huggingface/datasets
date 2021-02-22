@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100K < n <1M
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -61,15 +61,15 @@ task_ids:
 
 ### Dataset Summary
 
-The Allociné dataset was developed for large-scale sentiment analysis in French. The texts are movie reviews written by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. The reviews were written between 2006 and 2020. Further information on the kinds of films included in the dataset has not been documented.
+The Allociné dataset is a French-language dataset for sentiment analysis. The texts are movie reviews written between 2006 and 2020 by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. It contains 100k positive and 100k negative reviews divied into train (160k), validation (20k), and test (20k). 
 
 ### Supported Tasks and Leaderboards
 
-[tf-allociné](https://huggingface.co/tblard/tf-allocine) achieves 97.44% accuracy on the test set. 
+- `text-classification`, `sentiment-classification`: The dataset can be used to train a model for sentiment classification. The model performance is evaluated based on the accuracy of the predicted labels as compared to the given labels in the dataset. A BERT-based model, [tf-allociné](https://huggingface.co/tblard/tf-allocine), achieves 97.44% accuracy on the test set. 
 
 ### Languages
 
-The BCP-47 code for French is fr.
+The text is in French, as spoken by users of the [Allociné.fr](https://www.allocine.fr/) website. The BCP-47 code for French is fr.
 
 ## Dataset Structure
 
@@ -86,23 +86,24 @@ An example from the Allociné train set looks like the following:
 
 ### Data Fields
 
-- 'review'
-- 'label'
+- 'review': a string containing the review text
+- 'label': an integer, either _0_ or _1_, indicating a _negative_ or _positive_ review, respectively
 
 ### Data Splits
 
 The Allociné dataset has 3 splits: _train_, _validation_, and _test_. The splits contain disjoint sets of movies. The following table contains the number of reviews in each split and the percentage of positive and negative reviews. 
-Dataset Split | Number of Instances in Split | Percent Negative Reviews | Percent Positive Reviews
---------------|------------------------------|--------------------------|-------------------------
-Train | 160,000 | 49.6% | 50.4%
-Validation | 20,000 | 51.0% | 49.0%
-Test | 20,000 | 52.0% | 48.0%
+
+| Dataset Split | Number of Instances in Split | Percent Negative Reviews | Percent Positive Reviews |
+| ------------- | ---------------------------- | ------------------------ | ------------------------ |
+| Train         | 160,000                      | 49.6%                    | 50.4%                    |
+| Validation    | 20,000                       | 51.0%                    | 49.0%                    |
+| Test          | 20,000                       | 52.0%                    | 48.0%                    |
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+The Allociné dataset was developed to support large-scale sentiment analysis in French. It was released alongside the [tf-allociné](https://huggingface.co/tblard/tf-allocine) model and used to compare the performance of several language models on this task. 
 
 ### Source Data
 
@@ -114,7 +115,7 @@ The reviews were originally labeled with a rating from 0.5 to 5.0 with a step of
 
 #### Who are the source language producers?
 
-The dataset contains movie reviews collected from [Allociné.fr](https://www.allocine.fr/). The content of each review may include information and opinions about the film's actors, film crew, and plot.
+The dataset contains movie reviews produced by the online community of the [Allociné.fr](https://www.allocine.fr/) website. 
 
 ### Annotations
 
@@ -130,17 +131,19 @@ The dataset does not contain any additional annotations.
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+Reviewer usernames or personal information were not collected with the reviews, but could potentially be recovered. The content of each review may include information and opinions about the film's actors, film crew, and plot.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+Sentiment classification is a complex task which requires sophisticated language understanding skills. Successful models can support decision-making based on the outcome of the sentiment analysis, though such models currently require a high degree of domain specificity. 
+
+It should be noted that the community represented in the dataset may not represent any downstream application's potential users, and the observed behavior of a model trained on this dataset may vary based on the domain and use case. 
 
 ### Discussion of Biases
 
-[More Information Needed]
+The Allociné website lists a number of topics which violate their [terms of service](https://www.allocine.fr/service/conditions.html#charte). Further analysis is needed to determine the extent to which moderators have successfully removed such content. 
 
 ### Other Known Limitations
 
