@@ -351,6 +351,10 @@ class DatasetBuilder:
         if is_custom:
             logger.warning("Using custom data configuration %s", config_id)
         else:
+            # datasets requiring a manual data dir should set data at init to
+            # pre-instantiated dataset config
+            if builder_config.data_dir is not None:
+                self.builder_configs[builder_config.name].data_dir = builder_config.data_dir
             if builder_config != self.builder_configs[builder_config.name]:
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "

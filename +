@@ -16,6 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+import csv
+import json
 import os
 
 import datasets
@@ -628,15 +630,14 @@ class CommonVoiceConfig(datasets.BuilderConfig):
           url: `string`, url for information about the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        self.language = name
+        self.language = language
         self.sub_version = sub_version
-        self.date_of_snapshot = kwargs.pop("date", None)
+        self.date_of_snapshop = kwargs.pop("date", None)
         self.size = kwargs.pop("size", None)
         self.validated_hr_total = kwargs.pop("val_hrs", None)
         self.total_hr_total = kwargs.pop("total_hrs", None)
         self.num_of_voice = kwargs.pop("num_of_voice", None)
-        description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
-        super(CommonVoiceConfig, self).__init__(name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs)
+        super(CommonVoiceConfig, self).__init__(name=language, version=datasets.Version("6.1.0", ""), **kwargs)
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
@@ -660,6 +661,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             val_hrs=_LANGUAGES[lang]["Validated_Hr_Total"], 
             total_hrs=_LANGUAGES[lang]["Overall_Hr_Total"], 
             num_of_voice=_LANGUAGES[lang]["Number_Of_Voice"], 
+            description=f"Common Voice dataset for {lang}",
         )
         for lang in _LANGUAGES.keys()
     ]
@@ -695,9 +697,8 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 "down_votes": datasets.Value("int64"),
                 "age": datasets.Value("string"),
                 "gender": datasets.Value("string"),
-                "accent": datasets.Value("string"),
                 "locale": datasets.Value("string"),
-                "segment": datasets.Value("string"),
+                "segmet": datasets.Value("string"),
             }
         )
 
@@ -726,72 +727,61 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
-        abs_path_to_data = os.path.abspath(dl_manager.manual_dir)
-        abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
-
+        import ipdb; ipdb.set_trace()
+        my_urls = _URLs[self.config.name]
+        data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "train.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "filepath": os.path.join(data_dir, "train.tsv"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "test.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "filepath": os.path.join(data_dir, "test.tsv"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "dev.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "filepath": os.path.join(data_dir, "dev.tsv"),
                 },
             ),
             datasets.SplitGenerator(
                 name="other",
+                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "other.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "filepath": os.path.join(data_dir, "other.tsv"),
                 },
             ),
             datasets.SplitGenerator(
                 name="invalidated",
+                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "invalidated.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "filepath": os.path.join(data_dir, "invalidated.tsv"),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, path_to_clips):
+    def _generate_examples(self, filepath, split):
         """ Yields examples. """
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-        data_fields = list(self._info().features.keys())
-        path_idx = data_fields.index("path")
 
         with open(filepath, encoding="utf-8") as f:
             lines = f.readlines()
-            headline = lines[0]
-
-            column_names = headline.strip().split("\t")
-            assert column_names == data_fields, f"The file should have {data_fields} as column names, but has {column_names}"
-
+            headline = files[0]
+            import ipdb; ipdb.set_trace()
             for id_, line in enumerate(lines[1:]):
-                field_values = line.strip().split("\t")
-
-                # set absolute path for mp3 audio file
-                field_values[path_idx] = os.path.join(path_to_clips, field_values[path_idx])
-
-                # if data is incomplete, fill with empty values
-                if len(field_values) < len(data_fields):
-                    field_values += (len(data_fields) - len(field_values)) * ["''"]
-
+                fields = line.strip().split("\t")
                 yield id_, {
-                    key: value for key, value in zip(data_fields, field_values)
+                    "sentence": data["sentence"],
+                    "option1": data["option1"],
+                    "answer": "" if split == "test" else data["answer"],
                 }
