@@ -97,6 +97,7 @@ def evaluate_multirc(ids_preds, labels):
     return {"f1": avg_f1, "exact_match": avg_em}
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class SuperGlue(datasets.Metric):
     def _info(self):
         if self.config_name not in [
