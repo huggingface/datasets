@@ -33,7 +33,7 @@ from .file_utils import (
 )
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
-from .py_utils import flatten_nested, map_nested, size_str
+from .py_utils import NestedDataStructure, map_nested, size_str
 
 
 logger = get_logger(__name__)
@@ -120,11 +120,9 @@ class DownloadManager(object):
         )
         return uploaded_path_or_paths
 
-    def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
+    def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
-        flattened_urls_or_urls = flatten_nested(url_or_urls)
-        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(path)
 
@@ -149,9 +147,9 @@ class DownloadManager(object):
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
         downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
-        flattened_urls_or_urls = flatten_nested(url_or_urls)
-        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+        url_or_urls = NestedDataStructure(url_or_urls)
+        downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
+        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             try:
                 get_from_cache(
                     url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
@@ -165,7 +163,7 @@ class DownloadManager(object):
                     url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
                 )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
-        return downloaded_path_or_paths
+        return downloaded_path_or_paths.data
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -197,12 +195,14 @@ class DownloadManager(object):
         duration = datetime.now() - start_time
         logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
 
+        url_or_urls = NestedDataStructure(url_or_urls)
+        downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
         start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         duration = datetime.now() - start_time
         logger.info("Checksum Computation took {} min".format(duration.total_seconds() // 60))
 
-        return downloaded_path_or_paths
+        return downloaded_path_or_paths.data
 
     def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
         if is_relative_path(url_or_filename):

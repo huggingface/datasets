@@ -29,7 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -68,6 +68,8 @@ if int(pa.__version__.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+PathLike = Union[str, bytes, os.PathLike]
 
 
 class DatasetInfoMixin(object):
@@ -463,9 +465,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs = fsspec.filesystem("file")
 
         # create temporary directory for saving
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
-            os.makedirs(temp_dataset_path, exist_ok=True)
+        with tempfile.TemporaryDirectory() as temp_dataset_path:
+            fs.makedirs(dataset_path, exist_ok=True)
 
             # Write indices if needed
             if self._indices is not None:
@@ -2181,6 +2182,54 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
+
+    def _write_csv(self, file_obj: BinaryIO, batch_size: int, **to_csv_kwargs) -> int:
+        """
+        Writes the pyarrow table as CSV to a binary file handle.
+        Caller is responsible for opening and closing the handle.
+        """
+        written = 0
+        header = to_csv_kwargs.pop("header", True)
+        encoding = to_csv_kwargs.pop("encoding", "utf-8")
+        to_csv_kwargs.pop("path_or_buf", None)
+
+        for offset in range(0, len(self), batch_size):
+            batch = query_table(
+                pa_table=self._data,
+                key=slice(offset, offset + batch_size),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            )
+            csv_str = batch.to_pandas().to_csv(
+                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
+            )
+            written += file_obj.write(csv_str.encode(encoding))
+        return written
+
+    def to_csv(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **to_csv_kwargs,
+    ):
+        """Exports the dataset to csv
+
+        Args:
+            `path_or_buf` (:obj:`PathLike` or :obj:`FileOrBuffer): Either a path to a file or a BinaryIO.
+            `batch_size` (`Optional[int]`): Size of the batch to load in memory and write at once. Defaults to
+                :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            `**to_csv_kwargs`: Parameters to pass to pandas's :func:`DataFrame.to_csv`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+
+        if isinstance(path_or_buf, (str, bytes, os.PathLike)):
+            with open(path_or_buf, "wb+") as buffer:
+                written = self._write_csv(file_obj=buffer, batch_size=batch_size, **to_csv_kwargs)
+        else:
+            written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
+        return written
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.

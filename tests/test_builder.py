@@ -104,6 +104,17 @@ class DummyBuilderWithDownload(DummyBuilder):
         return [SplitGenerator(name=Split.TRAIN)]
 
 
+class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
+    @property
+    def manual_download_instructions(self):
+        return "To use the dataset you have to download some stuff manually and pass the data path to data_dir"
+
+    def _split_generators(self, dl_manager):
+        if not os.path.exists(self.config.data_dir):
+            raise FileNotFoundError(f"data_dir {self.config.data_dir} doesn't exist.")
+        return [SplitGenerator(name=Split.TRAIN)]
+
+
 class BuilderTest(TestCase):
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -597,6 +608,14 @@ class BuilderTest(TestCase):
 
             dummy_builder = DummyBuilderWithDefaultConfig(cache_dir=tmp_dir)
             self.assertEqual(dummy_builder.config.name, "a")
+
+    def test_cache_dir_for_data_dir(self):
+        with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
+            dummy_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, name="a", data_dir=data_dir)
+            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, name="a", data_dir=data_dir)
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, name="a", data_dir=tmp_dir)
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
 
 
 @pytest.mark.parametrize(

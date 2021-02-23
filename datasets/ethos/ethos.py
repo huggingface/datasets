@@ -2,11 +2,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
-
 import pandas as pd
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -53,7 +54,7 @@ class EthosConfig(datasets.BuilderConfig):
         elif variation.lower() == "multilabel":
             self.variation = "multilabel"
         else:
-            logging.warning("Wrong variation. Could be either 'binary' or 'multilabel', using 'binary' instead.")
+            logger.warning("Wrong variation. Could be either 'binary' or 'multilabel', using 'binary' instead.")
             self.variation = "binary"
         super(EthosConfig, self).__init__(**kwargs)
 

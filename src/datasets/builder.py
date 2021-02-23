@@ -119,8 +119,10 @@ class BuilderConfig:
         config_kwargs_to_add_to_suffix.pop("version", None)
         # data files are handled differently
         config_kwargs_to_add_to_suffix.pop("data_files", None)
-        # data dir is ignored (when specified it points to the manually downloaded data)
-        config_kwargs_to_add_to_suffix.pop("data_dir", None)
+        # data dir handling (when specified it points to the manually downloaded data):
+        # it was previously ignored before the introduction of config id because we didn't want
+        # to change the config name. Now it's fine to take it into account for the config id.
+        # config_kwargs_to_add_to_suffix.pop("data_dir", None)
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {

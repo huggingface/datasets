@@ -1,4 +1,3 @@
-import logging
 import os
 from argparse import ArgumentParser
 from pathlib import Path
@@ -10,7 +9,7 @@ from datasets.commands import BaseTransformersCLICommand
 from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module
 from datasets.utils.filelock import logger as fl_logger
-from datasets.utils.logging import get_logger
+from datasets.utils.logging import ERROR, get_logger
 
 
 logger = get_logger(__name__)
@@ -109,7 +108,7 @@ class TestCommand(BaseTransformersCLICommand):
             exit(1)
 
     def run(self):
-        fl_logger().setLevel(logging.ERROR)
+        fl_logger().setLevel(ERROR)
         if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)

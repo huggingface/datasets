@@ -19,12 +19,11 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\

@@ -18,10 +18,12 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import json
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -104,7 +106,7 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, article_dir, split):
-        logging.info("⏳ Generating %s examples from = %s", split, article_dir)
+        logger.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
         for path in sorted(glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True)):
             with open(path, encoding="utf-8") as f:

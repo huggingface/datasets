@@ -5,10 +5,12 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -100,7 +102,7 @@ class Offenseval2020TR(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, labelpath):
         """Generate OffensEval2020TR examples."""
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
 
         if labelpath:
             with open(filepath, encoding="utf-8") as f:

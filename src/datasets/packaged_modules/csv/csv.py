@@ -1,6 +1,5 @@
 # coding=utf-8
 
-import logging
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -10,7 +9,7 @@ import pyarrow as pa
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass

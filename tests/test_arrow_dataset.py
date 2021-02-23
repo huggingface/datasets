@@ -1,5 +1,4 @@
 import copy
-import logging
 import os
 import pickle
 import shutil
@@ -19,11 +18,12 @@ import datasets.arrow_dataset
 from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
-from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
+from datasets.utils.logging import WARNING
 
-from .utils import require_tf, require_torch, require_transformers
+from .utils import require_tf, require_torch, require_transformers, set_current_working_directory_to_temp_dir
 
 
 class Unpicklable:
@@ -62,10 +62,27 @@ class BaseDatasetTest(TestCase):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
-    def _create_dummy_dataset(self, in_memory: bool, tmp_dir: str, multiple_columns=False) -> Dataset:
+    def _create_dummy_dataset(
+        self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False
+    ) -> Dataset:
         if multiple_columns:
-            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
-            dset = Dataset.from_dict(data)
+            if array_features:
+                data = {
+                    "col_1": [[[True, False], [False, True]]] * 4,  # 2D
+                    "col_2": [[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]] * 4,  # 3D array
+                    "col_3": [[3, 2, 1, 0]] * 4,  # Sequence
+                }
+                features = Features(
+                    {
+                        "col_1": Array2D(shape=(2, 2), dtype="bool"),
+                        "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
+                        "col_3": Sequence(feature=Value("int64")),
+                    }
+                )
+            else:
+                data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
+                features = None
+            dset = Dataset.from_dict(data, features=features)
         else:
             dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         if not in_memory:
@@ -100,6 +117,22 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(dset[0]["col_1"], 3)
             self.assertEqual(dset["col_1"][0], 3)
+            del dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
+            self.assertDictEqual(
+                dset.features,
+                Features(
+                    {
+                        "col_1": Array2D(shape=(2, 2), dtype="bool"),
+                        "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
+                        "col_3": Sequence(feature=Value("int64")),
+                    }
+                ),
+            )
+            self.assertEqual(dset[0]["col_2"], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
+            self.assertEqual(dset["col_2"][0], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
             del dset
 
     def test_dataset_getitem(self, in_memory):
@@ -175,9 +208,20 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset_serialize(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
+            with set_current_working_directory_to_temp_dir():
+                dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
+                dataset_path = "my_dataset"  # rel path
+                dset.save_to_disk(dataset_path)
+                dset = dset.load_from_disk(dataset_path)
+
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                self.assertEqual(dset["filename"][0], "my_name-train_0")
+                del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            dataset_path = os.path.join(tmp_dir, "my_dataset")
+            dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
             dset.save_to_disk(dataset_path)
             dset = dset.load_from_disk(dataset_path)
 
@@ -769,7 +813,7 @@ class BaseDatasetTest(TestCase):
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(logging.WARNING):
+            with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
                 dset_test1_data_files = list(dset_test1._data_files)
@@ -782,7 +826,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(logging.WARNING):
+            with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
                 dset_test1_data_files = list(dset_test1._data_files)
@@ -797,7 +841,7 @@ class BaseDatasetTest(TestCase):
             try:
                 self._caplog.clear()
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    with self._caplog.at_level(logging.WARNING):
+                    with self._caplog.at_level(WARNING):
                         dset = self._create_dummy_dataset(in_memory, tmp_dir)
                         datasets.set_caching_enabled(False)
                         dset_test1 = dset.map(lambda x: {"foo": "bar"})
@@ -1221,6 +1265,63 @@ class BaseDatasetTest(TestCase):
             # Test for equal number of elements
             self.assertEqual(i, len(formatted_dset) - 1)
             del dset, formatted_dset
+
+    def test_to_csv(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # File path argument
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            file_path = os.path.join(tmp_dir, "test_path.csv")
+            bytes_written = dset.to_csv(path_or_buf=file_path)
+
+            self.assertTrue(os.path.isfile(file_path))
+            self.assertEqual(bytes_written, os.path.getsize(file_path))
+            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+
+            self.assertEqual(csv_dset.shape, dset.shape)
+            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
+            del dset
+
+            # File buffer argument
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            file_path = os.path.join(tmp_dir, "test_buffer.csv")
+            with open(file_path, "wb+") as buffer:
+                bytes_written = dset.to_csv(path_or_buf=buffer)
+
+            self.assertTrue(os.path.isfile(file_path))
+            self.assertEqual(bytes_written, os.path.getsize(file_path))
+            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+
+            self.assertEqual(csv_dset.shape, dset.shape)
+            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
+            del dset
+
+            # After a select/shuffle transform
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dset = dset.select(range(0, len(dset), 2)).shuffle()
+            file_path = os.path.join(tmp_dir, "test_path.csv")
+            bytes_written = dset.to_csv(path_or_buf=file_path)
+
+            self.assertTrue(os.path.isfile(file_path))
+            self.assertEqual(bytes_written, os.path.getsize(file_path))
+            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+
+            self.assertEqual(csv_dset.shape, dset.shape)
+            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
+            del dset
+
+            # With array features
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
+            file_path = os.path.join(tmp_dir, "test_path.csv")
+            bytes_written = dset.to_csv(path_or_buf=file_path)
+
+            self.assertTrue(os.path.isfile(file_path))
+            self.assertEqual(bytes_written, os.path.getsize(file_path))
+            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+
+            self.assertEqual(csv_dset.shape, dset.shape)
+            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
+
+            del dset
 
     def test_to_dict(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
