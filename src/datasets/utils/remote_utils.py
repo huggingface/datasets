@@ -47,13 +47,14 @@ class RemoteManager:
 
             # Download to temporary file, then copy to cache dir once finished.
             # Otherwise you get corrupt cache entries if the download gets interrupted.
-            with RemotePath(url).open(
+            with RemotePath(
+                url,
                 proxies=proxies,
                 resume_size=resume_size,
                 headers=headers,
                 cookies=cookies,
                 max_retries=max_retries,
-            ) as remote_file, temp_file_manager() as temp_file:
+            ).open() as remote_file, temp_file_manager() as temp_file:
                 logger.info(
                     "%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name
                 )
@@ -85,8 +86,8 @@ class FtpPath(RemotePath):
         super().__init__(url)
         self.timeout = timeout
 
-    def open(self, **kwargs):
-        return FtpFile(self.url, **kwargs)
+    def open(self):
+        return FtpFile(self)
 
     def exists(self):
         return FtpClient.head(self.url)
@@ -117,8 +118,8 @@ class HttpPath(RemotePath):
         self.response = None
         self.etag = None
 
-    def open(self, **kwargs):
-        return HttpFile(self.url, **kwargs)
+    def open(self):
+        return HttpFile(self)
 
     def exists(self):
         connected = False
@@ -158,8 +159,8 @@ class HttpPath(RemotePath):
 
 
 class RemoteFile:
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, path):
+        self.path = path
 
     def __enter__(self):
         return self
@@ -169,43 +170,42 @@ class RemoteFile:
 
 
 class FtpFile(RemoteFile):
-    def __init__(self, url, timeout=2.0, **kwargs):
-        super().__init__(url)
-        self.file = FtpClient.get(self.url, timeout=timeout)
+    def __init__(self, path):
+        super().__init__(path)
+        self.file = FtpClient.get(self.path.url, timeout=self.path.timeout)
 
     def fetch(self, dst_file):
-        logger.info(f"Getting through FTP {self.url} into {dst_file.name}")
+        logger.info(f"Getting through FTP {self.path.url} into {dst_file.name}")
         shutil.copyfileobj(self.file, dst_file)
 
 
 class HttpFile(RemoteFile):
-    def __init__(self, url, cookies=None, headers=None, max_retries=0, proxies=None, resume_size=0, **kwargs):
-        super().__init__(url)
-        self.resume_size = resume_size
+    def __init__(self, path):
+        super().__init__(path)
         self.file = HttpClient.get(
-            self.url,
-            cookies=cookies,
-            headers=headers,
-            max_retries=max_retries,
-            proxies=proxies,
-            resume_size=resume_size,
+            self.path.url,
+            cookies=self.path.cookies,
+            headers=self.path.headers,
+            max_retries=self.path.max_retries,
+            proxies=self.path.proxies,
+            resume_size=self.path.resume_size,
         )
 
     def fetch(self, dst_file):
         if self.file.status_code == 416:  # Range not satisfiable
             return
         content_length = self.file.headers.get("Content-Length")
-        total = self.resume_size + int(content_length) if content_length is not None else None
+        total = self.path.resume_size + int(content_length) if content_length is not None else None
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         progress = tqdm(
             unit="B",
             unit_scale=True,
             total=total,
-            initial=self.resume_size,
+            initial=self.path.resume_size,
             desc="Downloading",
             disable=not_verbose,
         )
-        logger.info(f"Getting through HTTP {self.url} into {dst_file.name}")
+        logger.info(f"Getting through HTTP {self.path.url} into {dst_file.name}")
         for chunk in self.file.iter_content(chunk_size=1024):
             if chunk:  # filter out keep-alive new chunks
                 progress.update(len(chunk))
