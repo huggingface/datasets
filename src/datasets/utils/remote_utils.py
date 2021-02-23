@@ -70,13 +70,23 @@ class RemoteManager:
 
 
 class RemotePath:
+    def __new__(cls, url, *args, **kwargs):
+        cls = FtpPath if urllib.parse.urlparse(url).scheme == "ftp" else HttpPath
+        return super().__new__(cls)
+
     def __init__(self, url):
         self.url = url
         self.scheme = urllib.parse.urlparse(url)
 
+
+class FtpPath(RemotePath):
     def open(self, **kwargs):
-        file_class = FtpFile if self.scheme == "ftp" else HttpFile
-        return file_class(self.url, **kwargs)
+        return FtpFile(self.url, **kwargs)
+
+
+class HttpPath(RemotePath):
+    def open(self, **kwargs):
+        return HttpFile(self.url, **kwargs)
 
 
 class RemoteFile:
