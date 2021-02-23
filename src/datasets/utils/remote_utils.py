@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -83,10 +84,71 @@ class FtpPath(RemotePath):
     def open(self, **kwargs):
         return FtpFile(self.url, **kwargs)
 
+    def exists(self):
+        return FtpClient.head(self.url)
+
 
 class HttpPath(RemotePath):
+    def __init__(
+        self,
+        url,
+        cookies=None,
+        headers=None,
+        max_retries=0,
+        proxies=None,
+        use_etag=True,
+        etag_timeout=10,
+        resume_size=0,
+        **kwargs,
+    ):
+        super().__init__(url)
+        self.cookies = cookies
+        self.headers = headers
+        self.max_retires = max_retries
+        self.proxies = proxies
+        self.resume_size = resume_size
+        self.use_etag = use_etag
+        self.etag_timeout = etag_timeout
+
+        self.etag = None
+
     def open(self, **kwargs):
         return HttpFile(self.url, **kwargs)
+
+    def exists(self):
+        connected = False
+        try:
+            response = HttpClient.head(
+                self.url,
+                allow_redirects=True,
+                proxies=self.proxies,
+                timeout=self.etag_timeout,
+                max_retries=self.max_retries,
+                headers=self.headers,
+            )
+            if response.status_code == 200:  # ok
+                self.etag = response.headers.get("ETag") if self.use_etag else None
+                for k, v in response.cookies.items():
+                    # In some edge cases, we need to get a confirmation token
+                    if k.startswith("download_warning") and "drive.google.com" in self.url:
+                        self.url += "&confirm=" + v
+                        self.cookies = response.cookies
+                connected = True
+            # In some edge cases, head request returns 400 but the connection is actually ok
+            elif (
+                (response.status_code == 400 and "firebasestorage.googleapis.com" in self.url)
+                or (response.status_code == 405 and "drive.google.com" in self.url)
+                or (
+                    response.status_code == 403
+                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", self.url)
+                )
+            ):
+                connected = True
+                logger.info("Couldn't get ETag version for url {}".format(self.url))
+        except (EnvironmentError, requests.exceptions.Timeout):
+            # not connected
+            pass
+        return connected
 
 
 class RemoteFile:
