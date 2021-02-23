@@ -929,7 +929,10 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
     elif isinstance(pa_type, pa.DictionaryType):
-        raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
+        if pyarrow.types.is_integer(pa_type.index_type) and pyarrow.types.is_string(pa_type.value_type):
+            return ClassLabel()
+        else:
+            raise NotImplementedError  # ClassLabel requires the dictionary data values, not just the pyarrow type.
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
