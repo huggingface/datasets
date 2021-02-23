@@ -591,7 +591,8 @@ class BaseDatasetTest(TestCase):
                 dset3.select([0, 1], indices_cache_file_name=os.path.join(tmp_dir, "i3.arrow")),
             )
 
-            dset3.remove_columns_("foo")
+            dset3 = dset3.rename_column("foo", "new_foo")
+            dset3.remove_columns_("new_foo")
             if not in_memory:
                 dset1._data, dset2._data, dset3._data = Unpicklable(), Unpicklable(), Unpicklable()
             dset1, dset2, dset3 = [pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3)]
