@@ -8,7 +8,6 @@ import copy
 import gzip
 import lzma
 import os
-import re
 import shutil
 import sys
 import tarfile
@@ -27,7 +26,7 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import FtpClient, HttpClient, RemoteManager
+from .remote_utils import FtpPath, HttpClient, HttpPath, RemoteManager
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -421,40 +420,21 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
-            connected = FtpClient.head(url)
+            ftp_path = FtpPath(url)
+            connected = ftp_path.exists()
         else:
-            try:
-                response = HttpClient.head(
-                    url,
-                    allow_redirects=True,
-                    proxies=proxies,
-                    timeout=etag_timeout,
-                    max_retries=max_retries,
-                    headers=headers,
-                )
-                if response.status_code == 200:  # ok
-                    etag = response.headers.get("ETag") if use_etag else None
-                    for k, v in response.cookies.items():
-                        # In some edge cases, we need to get a confirmation token
-                        if k.startswith("download_warning") and "drive.google.com" in url:
-                            url += "&confirm=" + v
-                            cookies = response.cookies
-                    connected = True
-                # In some edge cases, head request returns 400 but the connection is actually ok
-                elif (
-                    (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
-                    or (response.status_code == 405 and "drive.google.com" in url)
-                    or (
-                        response.status_code == 403
-                        and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
-                    )
-                ):
-                    connected = True
-                    logger.info("Couldn't get ETag version for url {}".format(url))
-            except (EnvironmentError, requests.exceptions.Timeout):
-                # not connected
-                pass
+            http_path = HttpPath(
+                url,
+                cookies=cookies,
+                headers=headers,
+                max_retries=max_retries,
+                proxies=proxies,
+                use_etag=use_etag,
+                etag_timeout=etag_timeout,
+            )
+            connected = http_path.exists()
 
+    cookies, etag, response, url = http_path.cookies, http_path.etag, http_path.response, http_path.url
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
