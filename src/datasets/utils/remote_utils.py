@@ -177,7 +177,7 @@ class RemotePath:
         self.scheme = urllib.parse.urlparse(url)
 
     def open(self, **kwargs):
-        file_class = FtpFile if self.scheme == 'ftp' else HttpFile
+        file_class = FtpFile if self.scheme == "ftp" else HttpFile
         return file_class(self.url, **kwargs)
 
 
@@ -206,8 +206,14 @@ class HttpFile(RemoteFile):
     def __init__(self, url, cookies=None, headers=None, max_retries=0, proxies=None, resume_size=0, **kwargs):
         super().__init__(url)
         self.resume_size = resume_size
-        self.file = HttpClient.get(self.url, cookies=cookies, headers=headers, max_retries=max_retries,
-                                   proxies=proxies, resume_size=resume_size)
+        self.file = HttpClient.get(
+            self.url,
+            cookies=cookies,
+            headers=headers,
+            max_retries=max_retries,
+            proxies=proxies,
+            resume_size=resume_size,
+        )
 
     def fetch(self, dst_file):
         if self.file.status_code == 416:  # Range not satisfiable

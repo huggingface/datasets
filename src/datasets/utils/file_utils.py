@@ -32,6 +32,7 @@ from .filelock import FileLock
 from .logging import get_logger
 from .remote_utils import FtpClient, HttpClient, RemotePath
 
+
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
