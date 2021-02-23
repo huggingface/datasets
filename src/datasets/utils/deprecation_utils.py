@@ -1,3 +1,4 @@
+from functools import wraps
 from typing import Callable, Optional
 
 from .logging import get_logger
@@ -27,6 +28,7 @@ def deprecated(help_message: Optional[str] = None):
             else ""
         )
 
+        @wraps(deprecated_function)
         def wrapper(*args, **kwargs):
             func_hash = hash(deprecated_function)
             if func_hash not in _emitted_deprecation_warnings:
@@ -34,6 +36,7 @@ def deprecated(help_message: Optional[str] = None):
                 _emitted_deprecation_warnings.add(func_hash)
             return deprecated_function(*args, **kwargs)
 
+        wrapper._decorator_name_ = "deprecated"
         return wrapper
 
     return decorator
