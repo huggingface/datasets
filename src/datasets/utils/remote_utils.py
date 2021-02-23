@@ -1,17 +1,139 @@
 import copy
+import json
+import os
 import shutil
+import tempfile
 import time
 import urllib
+from contextlib import contextmanager
+from functools import partial
 from typing import Optional, Union
 
 import requests
 from tqdm.auto import tqdm
 
 from .. import __version__, config
+from .file_utils import logger
+from .filelock import FileLock
 from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
+
+
+class RemoteManager:
+    @staticmethod
+    def fetch(url, cache_path, cookies, etag, headers, max_retries, proxies, resume_download, cache_dir):
+        # Prevent parallel downloads of the same file with a lock.
+        lock_path = cache_path + ".lock"
+        with FileLock(lock_path):
+
+            if resume_download:
+                incomplete_path = cache_path + ".incomplete"
+
+                @contextmanager
+                def _resumable_file_manager():
+                    with open(incomplete_path, "a+b") as f:
+                        yield f
+
+                temp_file_manager = _resumable_file_manager
+                if os.path.exists(incomplete_path):
+                    resume_size = os.stat(incomplete_path).st_size
+                else:
+                    resume_size = 0
+            else:
+                temp_file_manager = partial(tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
+                resume_size = 0
+
+            # Download to temporary file, then copy to cache dir once finished.
+            # Otherwise you get corrupt cache entries if the download gets interrupted.
+            with RemotePath(url).open(
+                proxies=proxies,
+                resume_size=resume_size,
+                headers=headers,
+                cookies=cookies,
+                max_retries=max_retries,
+            ) as remote_file, temp_file_manager() as temp_file:
+                logger.info(
+                    "%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name
+                )
+                # GET file object
+                remote_file.fetch(temp_file)
+
+            logger.info("storing %s in cache at %s", url, cache_path)
+            shutil.move(temp_file.name, cache_path)
+
+            logger.info("creating metadata file for %s", cache_path)
+            meta = {"url": url, "etag": etag}
+            meta_path = cache_path + ".json"
+            with open(meta_path, "w", encoding="utf-8") as meta_file:
+                json.dump(meta, meta_file)
+
+
+class RemotePath:
+    def __init__(self, url):
+        self.url = url
+        self.scheme = urllib.parse.urlparse(url)
+
+    def open(self, **kwargs):
+        file_class = FtpFile if self.scheme == "ftp" else HttpFile
+        return file_class(self.url, **kwargs)
+
+
+class RemoteFile:
+    def __init__(self, url):
+        self.url = url
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.file.close()
+
+
+class FtpFile(RemoteFile):
+    def __init__(self, url, timeout=2.0, **kwargs):
+        super().__init__(url)
+        self.file = FtpClient.get(self.url, timeout=timeout)
+
+    def fetch(self, dst_file):
+        logger.info(f"Getting through FTP {self.url} into {dst_file.name}")
+        shutil.copyfileobj(self.file, dst_file)
+
+
+class HttpFile(RemoteFile):
+    def __init__(self, url, cookies=None, headers=None, max_retries=0, proxies=None, resume_size=0, **kwargs):
+        super().__init__(url)
+        self.resume_size = resume_size
+        self.file = HttpClient.get(
+            self.url,
+            cookies=cookies,
+            headers=headers,
+            max_retries=max_retries,
+            proxies=proxies,
+            resume_size=resume_size,
+        )
+
+    def fetch(self, dst_file):
+        if self.file.status_code == 416:  # Range not satisfiable
+            return
+        content_length = self.file.headers.get("Content-Length")
+        total = self.resume_size + int(content_length) if content_length is not None else None
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+        progress = tqdm(
+            unit="B",
+            unit_scale=True,
+            total=total,
+            initial=self.resume_size,
+            desc="Downloading",
+            disable=not_verbose,
+        )
+        logger.info(f"Getting through HTTP {self.url} into {dst_file.name}")
+        for chunk in self.file.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                progress.update(len(chunk))
+                dst_file.write(chunk)
+        progress.close()
 
 
 class HttpClient:
@@ -169,69 +291,3 @@ class FtpClient:
             return urllib.request.urlopen(url, timeout=timeout)
         except urllib.error.URLError as e:
             raise ConnectionError(e)
-
-
-class RemotePath:
-    def __init__(self, url):
-        self.url = url
-        self.scheme = urllib.parse.urlparse(url)
-
-    def open(self, **kwargs):
-        file_class = FtpFile if self.scheme == "ftp" else HttpFile
-        return file_class(self.url, **kwargs)
-
-
-class RemoteFile:
-    def __init__(self, url):
-        self.url = url
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.file.close()
-
-
-class FtpFile(RemoteFile):
-    def __init__(self, url, timeout=2.0, **kwargs):
-        super().__init__(url)
-        self.file = FtpClient.get(self.url, timeout=timeout)
-
-    def fetch(self, dst_file):
-        logger.info(f"Getting through FTP {self.url} into {dst_file.name}")
-        shutil.copyfileobj(self.file, dst_file)
-
-
-class HttpFile(RemoteFile):
-    def __init__(self, url, cookies=None, headers=None, max_retries=0, proxies=None, resume_size=0, **kwargs):
-        super().__init__(url)
-        self.resume_size = resume_size
-        self.file = HttpClient.get(
-            self.url,
-            cookies=cookies,
-            headers=headers,
-            max_retries=max_retries,
-            proxies=proxies,
-            resume_size=resume_size,
-        )
-
-    def fetch(self, dst_file):
-        if self.file.status_code == 416:  # Range not satisfiable
-            return
-        content_length = self.file.headers.get("Content-Length")
-        total = self.resume_size + int(content_length) if content_length is not None else None
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        progress = tqdm(
-            unit="B",
-            unit_scale=True,
-            total=total,
-            initial=self.resume_size,
-            desc="Downloading",
-            disable=not_verbose,
-        )
-        logger.info(f"Getting through HTTP {self.url} into {dst_file.name}")
-        for chunk in self.file.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                progress.update(len(chunk))
-                dst_file.write(chunk)
-        progress.close()

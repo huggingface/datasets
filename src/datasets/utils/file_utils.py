@@ -6,17 +6,14 @@ Copyright by the AllenNLP authors.
 
 import copy
 import gzip
-import json
 import lzma
 import os
 import re
 import shutil
 import sys
 import tarfile
-import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
-from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -30,7 +27,7 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import FtpClient, HttpClient, RemotePath
+from .remote_utils import FtpClient, HttpClient, RemoteManager
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -479,48 +476,7 @@ def get_from_cache(
         return cache_path
 
     # From now on, connected is True.
-    # Prevent parallel downloads of the same file with a lock.
-    lock_path = cache_path + ".lock"
-    with FileLock(lock_path):
-
-        if resume_download:
-            incomplete_path = cache_path + ".incomplete"
-
-            @contextmanager
-            def _resumable_file_manager():
-                with open(incomplete_path, "a+b") as f:
-                    yield f
-
-            temp_file_manager = _resumable_file_manager
-            if os.path.exists(incomplete_path):
-                resume_size = os.stat(incomplete_path).st_size
-            else:
-                resume_size = 0
-        else:
-            temp_file_manager = partial(tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
-            resume_size = 0
-
-        # Download to temporary file, then copy to cache dir once finished.
-        # Otherwise you get corrupt cache entries if the download gets interrupted.
-        with RemotePath(url).open(
-            proxies=proxies,
-            resume_size=resume_size,
-            headers=headers,
-            cookies=cookies,
-            max_retries=max_retries,
-        ) as remote_file, temp_file_manager() as temp_file:
-            logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
-            # GET file object
-            remote_file.fetch(temp_file)
-
-        logger.info("storing %s in cache at %s", url, cache_path)
-        shutil.move(temp_file.name, cache_path)
-
-        logger.info("creating metadata file for %s", cache_path)
-        meta = {"url": url, "etag": etag}
-        meta_path = cache_path + ".json"
-        with open(meta_path, "w", encoding="utf-8") as meta_file:
-            json.dump(meta, meta_file)
+    RemoteManager.fetch(url, cache_path, cookies, etag, headers, max_retries, proxies, resume_download, cache_dir)
 
     return cache_path
 
