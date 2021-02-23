@@ -74,7 +74,7 @@ class RemoteResource:
 
     def __init__(self, url):
         self.url = url
-        self.scheme = urllib.parse.urlparse(url)
+        self.scheme = urllib.parse.urlparse(url).scheme
 
 
 class FtpResource(RemoteResource):
