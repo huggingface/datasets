@@ -15,6 +15,7 @@
 """WinoBias: Winograd-schema dataset for detecting gender bias"""
 
 from __future__ import absolute_import, division, print_function
+import collections
 
 import datasets
 
@@ -49,13 +50,15 @@ _HOMEPAGE = "https://uclanlp.github.io/corefBias/overview"
 
 _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)"
 
-_URL = "https://drive.google.com/uc?export=download&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0"
+_URL = "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format"
 
+class WinoBiasConfig(datasets.BuilderConfig):
+    def __init__(self, data_url, **kwargs):
+        super(WinoBiasConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        self.data_url = data_url
 
 class WinoBias(datasets.GeneratorBasedBuilder):
     """WinoBias: Winograd-schema dataset for detecting gender bias"""
-
-    VERSION = datasets.Version("4.0.0")
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
@@ -68,12 +71,56 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # You will be able to load one or the other configurations in the following list with
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
+    def __init__(self, *args, writer_batch_size=None, **kwargs):
+        super(WinoBias, self).__init__(*args, **kwargs)
+        # Batch size used by the ArrowWriter
+        # It defines the number of samples that are kept in memory before writing them
+        # and also the length of the arrow chunks
+        # None means that the ArrowWriter will use its default value
+        self._writer_batch_size = writer_batch_size or 100
+
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="wino_bias",
-            version=VERSION,
-            description="WinoBias: Winograd-schema dataset for detecting gender bias",
+        WinoBiasConfig(
+            name='dev_type1_pro',
+            description = "winoBias dev_type1_pro_stereotype data in cornll format",
+            data_url = _URL + "/dev_type1_pro_stereotype.v4_auto_conll"
         ),
+        WinoBiasConfig(
+            name='dev_type1_anti',
+            description = "winoBias dev_type1_anti_stereotype data in cornll format",
+            data_url = _URL + "/dev_type1_anti_stereotype.v4_auto_conll"
+        ), 
+        WinoBiasConfig(
+            name='dev_type2_pro',
+            description = "winoBias dev_type2_pro_stereotype data in cornll format",
+            data_url = _URL + "/dev_type2_pro_stereotype.v4_auto_conll"
+        ),
+        WinoBiasConfig(
+            name='dev_type2_anti',
+            description = "winoBias dev_type2_anti_stereotype data in cornll format",
+            data_url = _URL + "/dev_type2_anti_stereotype.v4_auto_conll"
+        ),
+        WinoBiasConfig(
+            name='test_type1_pro',
+            description = "winoBias test_type1_pro_stereotype data in cornll format",
+            data_url = _URL + "/test_type1_pro_stereotype.v4_auto_conll"
+        ),
+        WinoBiasConfig(
+            name='test_type1_anti',
+            description = "winoBias test_type1_anti_stereotype data in cornll format",
+            data_url = _URL + "/test_type1_anti_stereotype.v4_auto_conll"
+        ),
+        WinoBiasConfig(
+            name='test_type2_pro',
+            description = "winoBias test_type2_pro_stereotype data in cornll format",
+            data_url = _URL + "/test_type2_pro_stereotype.v4_auto_conll"
+        ),
+        WinoBiasConfig(
+            name='test_type2_anti',
+            description = "winoBias test_type2_anti_stereotype data in cornll format",
+            data_url = _URL + "/test_type2_anti_stereotype.v4_auto_conll"
+        ),
+        
     ]
 
     def _info(self):
@@ -145,6 +192,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "ADD",
                                 "-LRB-",
                                 "-RRB-",
+                                "-",
                             ]
                         )
                     ),
@@ -194,10 +242,12 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "I-CARDINAL",
                                 "*",
                                 "0",
+                                "-",
                             ]
                         )
                     ),
                     "verbal_predicates": datasets.Sequence(datasets.Value("string")),
+                    "coreference_clusters": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -211,10 +261,10 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        data_dir = dl_manager.download(self.config.data_url)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=self.config.data_url.split("/")[-1].split(".")[0],
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": data_dir},
             )
@@ -222,6 +272,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
+
         with open(filepath, encoding="utf-8") as f:
             id_ = 0
             document_id = None
@@ -237,6 +288,9 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             ner_tags = []
             ner_start = False
             verbal_predicates = []
+            coreference = []
+            clusters = collections.defaultdict(list)
+            coref_stacks = collections.defaultdict(list)
             for line in f:
                 if line.startswith("#begin") or line.startswith("#end"):
                     continue
@@ -255,7 +309,9 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         "speaker": speaker,
                         "ner_tags": ner_tags,
                         "verbal_predicates": verbal_predicates,
+                        "coreference_clusters": sum(clusters[1], []),  #flatten the list as writing the exmaples needs an array.
                     }
+                    
                     word_num = []
                     tokens = []
                     pos_tags = []
@@ -266,8 +322,11 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                     speaker = []
                     ner_tags = []
                     verbal_predicates = []
+                    coreference = []
+                    clusters = collections.defaultdict(list)
+                    coref_stacks = collections.defaultdict(list)
                 else:
-                    splits = [s for s in line.split(" ") if s]
+                    splits = [s for s in line.split() if s]
                     if len(splits) > 7:
                         document_id = splits[0]
                         part_number = splits[1]
@@ -280,6 +339,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         word_sense.append(splits[8])
                         speaker.append(splits[9])
                         ner_word = splits[10]
+                        coreference = splits[-1]
                         if ")" in ner_word and ner_start:
                             ner_start = False
                             ner_word = "0"
@@ -294,6 +354,22 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
                         if word_is_verbal_predicate:
                             verbal_predicates.append(splits[3])
+                        if coreference != '-':
+                            for segment in coreference.split("|"):
+                                if segment[0] == '(':
+                                    if segment[-1] == ")":
+                                        cluster_id = int(segment[1:-1])
+                                        clusters[cluster_id].append([splits[2], splits[2]])
+                                    else:
+                                        cluster_id = int(segment[1:])
+                                        coref_stacks[cluster_id].append(splits[2])
+                                else:
+                                    cluster_id = int(segment[:-1])
+                                    start = coref_stacks[cluster_id].pop()
+                                    clusters[cluster_id].append([start, splits[2]])
+
+
+
             if tokens:
                 # add the last one
                 id_ += 1
@@ -310,4 +386,5 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                     "speaker": speaker,
                     "ner_tags": ner_tags,
                     "verbal_predicates": verbal_predicates,
+                    "coreference_clusters": sum(clusters[1], []),
                 }
