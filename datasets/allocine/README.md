@@ -165,4 +165,4 @@ The Allociné dataset is licensed under the [MIT License](https://opensource.org
 
 ### Contributions
 
-Thanks to [@thomwolf](https://github.com/thomwolf), [@TheophileBlard](https://github.com/TheophileBlard), [@lewtun](https://github.com/lewtun) for adding this dataset.
+Thanks to [@thomwolf](https://github.com/thomwolf), [@TheophileBlard](https://github.com/TheophileBlard), [@lewtun](https://github.com/lewtun) and [@mcmillanmajora](https://github.com/mcmillanmajora) for adding this dataset.
