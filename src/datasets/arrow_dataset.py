@@ -671,6 +671,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
+        dataset._fingerprint = new_fingerprint
         return dataset
 
     @deprecated(help_message="Use the dataset.cast method instead.")
