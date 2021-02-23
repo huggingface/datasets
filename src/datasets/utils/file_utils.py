@@ -26,7 +26,7 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import FtpResource, HttpClient, HttpResource, RemoteManager
+from .remote_utils import FtpResource, HttpClient, HttpResource, RemoteManager, RemoteResource
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -462,7 +462,15 @@ def get_from_cache(
         return cache_path
 
     # From now on, connected is True.
-    RemoteManager.fetch(url, cache_path, cookies, etag, headers, max_retries, proxies, resume_download, cache_dir)
+    remote_resource = RemoteResource(
+        url,
+        cookies=cookies,
+        headers=headers,
+        max_retries=max_retries,
+        proxies=proxies,
+        etag=etag,
+    )
+    RemoteManager.fetch(remote_resource, cache_path, resume_download, cache_dir)
 
     return cache_path
 

@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 class RemoteManager:
     @staticmethod
-    def fetch(url, cache_path, cookies, etag, headers, max_retries, proxies, resume_download, cache_dir):
+    def fetch(remote_resource, cache_path, resume_download, cache_dir):
         # Prevent parallel downloads of the same file with a lock.
         lock_path = cache_path + ".lock"
         with FileLock(lock_path):
@@ -47,25 +47,21 @@ class RemoteManager:
 
             # Download to temporary file, then copy to cache dir once finished.
             # Otherwise you get corrupt cache entries if the download gets interrupted.
-            with RemoteResource(
-                url,
-                proxies=proxies,
-                resume_size=resume_size,
-                headers=headers,
-                cookies=cookies,
-                max_retries=max_retries,
-            ).open() as remote_file, temp_file_manager() as temp_file:
+            remote_resource.resume_size = resume_size
+            with remote_resource.open() as remote_file, temp_file_manager() as temp_file:
                 logger.info(
-                    "%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name
+                    "%s not found in cache or force_download set to True, downloading to %s",
+                    remote_resource.url,
+                    temp_file.name,
                 )
                 # GET file object
                 remote_file.fetch(temp_file)
 
-            logger.info("storing %s in cache at %s", url, cache_path)
+            logger.info("storing %s in cache at %s", remote_resource.url, cache_path)
             shutil.move(temp_file.name, cache_path)
 
             logger.info("creating metadata file for %s", cache_path)
-            meta = {"url": url, "etag": etag}
+            meta = {"url": remote_resource.url, "etag": remote_resource.etag}
             meta_path = cache_path + ".json"
             with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
@@ -103,6 +99,7 @@ class HttpResource(RemoteResource):
         proxies=None,
         use_etag=True,
         etag_timeout=10,
+        etag=None,
         resume_size=0,
         **kwargs,
     ):
@@ -114,9 +111,9 @@ class HttpResource(RemoteResource):
         self.resume_size = resume_size
         self.use_etag = use_etag
         self.etag_timeout = etag_timeout
+        self.etag = etag
 
         self.response = None
-        self.etag = None
 
     def open(self):
         return HttpFile(self)
