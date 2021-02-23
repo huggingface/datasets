@@ -23,63 +23,41 @@ import pandas as pd
 import datasets
 
 
-_CITATION = ""
+_VERSION = "1.0.0"
 
-_DESCRIPTION = ""
+_CITATION = """
+@misc{wang2020covost,
+    title={CoVoST 2: A Massively Multilingual Speech-to-Text Translation Corpus},
+    author={Changhan Wang and Anne Wu and Juan Pino},
+    year={2020},
+    eprint={2007.10310},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+"""
 
-XX_EN_LANGUAGES = [
-    "fr",
-    "de",
-    "es",
-    "ca",
-    "it",
-    "ru",
-    "zh-CN",
-    "pt",
-    "fa",
-    "et",
-    "mn",
-    "nl",
-    "tr",
-    "ar",
-    "sv-SE",
-    "lv",
-    "sl",
-    "ta",
-    "ja",
-    "id",
-    "cy",
-]
+_DESCRIPTION = """
+CoVoST 2, a large-scale multilingual speech translation corpus covering translations from 21 languages into English \
+and from English into 15 languages. The dataset is created using Mozilla’s open source Common Voice database of \
+crowdsourced voice recordings.
+"""
 
+_HOMEPAGE = "https://github.com/facebookresearch/covost"
 
-EN_XX_LANGUAGES = [
-    "de",
-    "tr",
-    "fa",
-    "sv-SE",
-    "mn",
-    "zh-CN",
-    "cy",
-    "ca",
-    "sl",
-    "et",
-    "id",
-    "ar",
-    "ta",
-    "lv",
-    "ja",
-]
+# fmt: off
+XX_EN_LANGUAGES = ["fr", "de", "es", "ca", "it", "ru", "zh-CN", "pt", "fa", "et", "mn", "nl", "tr", "ar", "sv-SE", "lv", "sl", "ta", "ja", "id", "cy"]
+EN_XX_LANGUAGES = ["de", "tr", "fa", "sv-SE", "mn", "zh-CN", "cy", "ca", "sl", "et", "id", "ar", "ta", "lv", "ja"]
+# fmt: on
 
-COVOST_URL_TEMPLATE = "https://dl.fbaipublicfiles.com/covost/" "covost_v2.{src_lang}_{tgt_lang}.tsv.tar.gz"
+COVOST_URL_TEMPLATE = "https://dl.fbaipublicfiles.com/covost/covost_v2.{src_lang}_{tgt_lang}.tsv.tar.gz"
 
 
 def _get_builder_configs():
     builder_configs = [
-        datasets.BuilderConfig(name=f"en-{lang}", version=datasets.Version()) for lang in EN_XX_LANGUAGES
+        datasets.BuilderConfig(name=f"en_{lang}", version=datasets.Version(_VERSION)) for lang in EN_XX_LANGUAGES
     ]
 
     builder_configs += [
-        datasets.BuilderConfig(name=f"{lang}-en", version=datasets.Version()) for lang in XX_EN_LANGUAGES
+        datasets.BuilderConfig(name=f"{lang}_en", version=datasets.Version(_VERSION)) for lang in XX_EN_LANGUAGES
     ]
     return builder_configs
 
@@ -87,13 +65,16 @@ def _get_builder_configs():
 class Covost2(datasets.GeneratorBasedBuilder):
     """CoVOST2 Dataset."""
 
-    VERSION = datasets.Version("")
+    VERSION = datasets.Version(_VERSION)
 
     BUILDER_CONFIGS = _get_builder_configs()
 
     @property
     def manual_download_instructions(self):
-        return "Manual download"
+        return """\
+You should download the Common Voice v4 dataset from https://commonvoice.mozilla.org/en/datasets.
+and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COVOST_ROOT}` path as `data_dir`
+"""
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -105,14 +86,13 @@ class Covost2(datasets.GeneratorBasedBuilder):
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),
             ),
-            supervised_keys=("path", "sentence", "translation"),
-            homepage="",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         data_root = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        source_lang, target_lang = self.config.name.split("-")
+        source_lang, target_lang = self.config.name.split("_")
         source_path = os.path.join(data_root, source_lang)
 
         if not os.path.exists(source_path):
@@ -121,7 +101,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
         covost_url = COVOST_URL_TEMPLATE.format(src_lang=source_lang, tgt_lang=target_lang)
         extracted_path = dl_manager.download_and_extract(covost_url)
 
-        covost_tsv_path = os.path.join(extracted_path, f"covost_v2.{source_lang}_{target_lang}")
+        covost_tsv_path = os.path.join(extracted_path, f"covost_v2.{source_lang}_{target_lang}.tsv")
         cv_tsv_path = os.path.join(source_path, "validated.tsv")
 
         covost_tsv = self._load_df_from_tsv(covost_tsv_path)
@@ -148,7 +128,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"df": test_df, "source_path": source_path}),
         ]
 
-    def _get_builder_conifgs(self, df, source_path):
+    def _generate_examples(self, df, source_path):
         for i, row in df.iterrows():
             yield i, {
                 "id": row["path"].replace(".mp3", ""),
