@@ -168,3 +168,38 @@ class FtpClient:
             return urllib.request.urlopen(url, timeout=timeout)
         except urllib.error.URLError as e:
             raise ConnectionError(e)
+
+
+class RemotePath:
+    def __init__(self, url):
+        self.url = url
+        self.scheme = urllib.parse.urlparse(url)
+
+    def open(self, **kwargs):
+        file_class = FtpFile if self.scheme == 'ftp' else HttpFile
+        return file_class(self.url, **kwargs)
+
+
+class RemoteFile:
+    def __init__(self, url):
+        self.url = url
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.file.close()
+
+
+class FtpFile(RemoteFile):
+    def __init__(self, url, timeout=2.0):
+        super().__init__(url)
+        self.file = FtpClient.get(self.url, timeout=timeout)
+
+
+class HttpFile(RemoteFile):
+    def __init__(self, url, cookies=None, headers=None, max_retries=0, proxies=None, resume_size=0):
+        super().__init__(url)
+        self.resume_size = resume_size
+        self.file = HttpClient.get(self.url, cookies=cookies, headers=headers, max_retries=max_retries, proxies=proxies,
+                                   resume_size=resume_size)
