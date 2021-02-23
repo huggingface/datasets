@@ -434,7 +434,7 @@ def get_from_cache(
             )
             connected = http_path.exists()
 
-    cookies, etag, response, url = http_path.cookies, http_path.etag, http_path.response, http_path.url
+            cookies, etag, response, url = http_path.cookies, http_path.etag, http_path.response, http_path.url
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
