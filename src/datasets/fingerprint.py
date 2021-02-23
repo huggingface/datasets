@@ -298,7 +298,6 @@ def fingerprint_transform(
             transform = func.__module__ + "." + func.__qualname__
             if inplace:
                 new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
-                new_inplace_history_item = (func.__name__, deepcopy(args), deepcopy(kwargs))
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
@@ -315,8 +314,6 @@ def fingerprint_transform(
 
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
                 self._fingerprint = new_fingerprint
-                for inplace_hist_per_file in self._inplace_history:
-                    inplace_hist_per_file["transforms"].append(new_inplace_history_item)
 
             return out
 

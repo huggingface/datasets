@@ -147,8 +147,37 @@ class DatasetTransformationNotAllowedError(Exception):
     pass
 
 
+def replayable_table_alteration(func):
+    """
+    Wrapper for dataset transforms that modify an existing table to save the modification
+    for replay when the Dataset is pickled.
+    The replay happens in the __setstate__ method.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # an history item is a tuple of the method name to call and then the args and the lwargs
+        new_inplace_history_item = (func.__name__, copy.deepcopy(args), copy.deepcopy(kwargs))
+        # apply actual function
+        out: Optional["Dataset"] = func(self, *args, **kwargs)
+        # get the dataset to update (to handle both in-place and not in-place transforms)
+        dataset: "Dataset" = out if out is not None else self
+        # update the history to be able to replay it later
+        for inplace_hist_per_file in dataset._inplace_history:
+            inplace_hist_per_file["transforms"].append(new_inplace_history_item)
+        return out
+
+    wrapper._decorator_name_ = "table_alteration"
+    return wrapper
+
+
 def transmit_format(func):
-    """Wrapper for dataset transforms that are not in-place to transmit the format of the original dataset to the new dataset"""
+    """Wrapper for dataset transforms that recreate a new Dataset to transmit the format of the original dataset to the new dataset"""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -435,7 +464,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pa_table = reader._read_files([data_file])
                 sub_dataset = Dataset(pa_table, fingerprint="")
                 for inplace_transform_name, args, kwargs in inplace_hist_per_file["transforms"]:
-                    getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
+                    out = getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
+                    sub_dataset = sub_dataset if out is None else out
                 tables.append(sub_dataset._data)
             tables = [t for t in tables if len(t) > 0]
             # fix all-empty tables
@@ -615,6 +645,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column(column).unique().to_pylist()
 
     @deprecated(help_message="Use the dataset.dictionary_encode_column method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
@@ -637,6 +668,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
     @deprecated(help_message="Use the dataset.flatten method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """In-place version of :func:`Dataset.flatten`"""
@@ -651,6 +683,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
+    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flattens the table.
@@ -675,6 +708,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use the dataset.cast method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
@@ -697,6 +731,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
+    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def cast(self, features: Features, new_fingerprint) -> "Dataset":
         """
@@ -729,6 +764,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use the dataset.remove_columns method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
@@ -752,6 +788,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
+    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -786,6 +823,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use the dataset.rename_column method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
@@ -816,6 +854,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.rename_columns(new_column_names)
 
+    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
