@@ -48,6 +48,7 @@ https://catalog.ldc.upenn.edu/docs/LDC93S1/readme.txt
 """
 
 _URL = "https://data.deepai.org/timit.zip"
+_HOMEPAGE = "https://catalog.ldc.upenn.edu/LDC93S1"
 
 
 class TimitASRConfig(datasets.BuilderConfig):
@@ -65,12 +66,10 @@ class TimitASRConfig(datasets.BuilderConfig):
         super(TimitASRConfig, self).__init__(version=datasets.Version("2.0.1", ""), **kwargs)
 
 
-class TimitASRConfig(datasets.GeneratorBasedBuilder):
+class TimitASR(datasets.GeneratorBasedBuilder):
     """TimitASR dataset."""
 
-    BUILDER_CONFIGS = [
-        TimitASRConfig(name="clean", description="'Clean' speech."),
-    ]
+    BUILDER_CONFIGS = [TimitASRConfig(name="clean", description="'Clean' speech.")]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -100,7 +99,7 @@ class TimitASRConfig(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=("file", "text"),
-            homepage=_URL,
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
@@ -121,8 +120,10 @@ class TimitASRConfig(datasets.GeneratorBasedBuilder):
         data_path = os.path.join(os.path.dirname(data_info_csv).strip(), "data")
 
         # Read the data info to extract rows mentioning about non-converted audio only
-        data_info = pd.read_csv(data_info_csv)
-        data_info = data_info.loc[(data_info["is_audio"] == True) & (data_info["is_converted_audio"] == False)]
+        data_info = pd.read_csv(data_info_csv, encoding='utf8')
+        data_info.dropna(how='all', inplace=True)
+
+        data_info = data_info.loc[(data_info["is_audio"]) & (~data_info["is_converted_audio"])]
 
         # Iterating the contents of the data to extract the relevant information
         for audio_idx in range(data_info.shape[0]):
@@ -132,11 +133,11 @@ class TimitASRConfig(datasets.GeneratorBasedBuilder):
             wav_path = os.path.join(data_path, *(audio_data["path_from_data_dir"].split("/")))
 
             # extract transcript
-            with open(wav_path.replace(".WAV", ".TXT"), "r") as op:
+            with open(wav_path.replace(".WAV", ".TXT"), "r", encoding="utf-8") as op:
                 transcript = " ".join(op.readlines()[0].split()[2:])  # first two items are sample number
 
             # extract phonemes
-            with open(wav_path.replace(".WAV", ".PHN"), "r") as op:
+            with open(wav_path.replace(".WAV", ".PHN"), "r", encoding="utf-8") as op:
                 phonemes = [
                     {
                         "start": i.split(" ")[0],
@@ -147,7 +148,7 @@ class TimitASRConfig(datasets.GeneratorBasedBuilder):
                 ]
 
             # extract words
-            with open(wav_path.replace(".WAV", ".WRD"), "r") as op:
+            with open(wav_path.replace(".WAV", ".WRD"), "r", encoding="utf-8") as op:
                 words = [
                     {
                         "start": i.split(" ")[0],
