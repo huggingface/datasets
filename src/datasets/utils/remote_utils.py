@@ -1,4 +1,5 @@
 import copy
+import shutil
 import time
 import urllib
 from typing import Optional, Union
@@ -196,6 +197,10 @@ class FtpFile(RemoteFile):
         super().__init__(url)
         self.file = FtpClient.get(self.url, timeout=timeout)
 
+    def fetch(self, dst_file):
+        logger.info(f"Getting through FTP {self.url} into {dst_file.name}")
+        shutil.copyfileobj(self.file, dst_file)
+
 
 class HttpFile(RemoteFile):
     def __init__(self, url, cookies=None, headers=None, max_retries=0, proxies=None, resume_size=0):
@@ -203,3 +208,24 @@ class HttpFile(RemoteFile):
         self.resume_size = resume_size
         self.file = HttpClient.get(self.url, cookies=cookies, headers=headers, max_retries=max_retries, proxies=proxies,
                                    resume_size=resume_size)
+
+    def fetch(self, dst_file):
+        if self.file.status_code == 416:  # Range not satisfiable
+            return
+        content_length = self.file.headers.get("Content-Length")
+        total = self.resume_size + int(content_length) if content_length is not None else None
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+        progress = tqdm(
+            unit="B",
+            unit_scale=True,
+            total=total,
+            initial=self.resume_size,
+            desc="Downloading",
+            disable=not_verbose,
+        )
+        logger.info(f"Getting through HTTP {self.url} into {dst_file.name}")
+        for chunk in self.file.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                progress.update(len(chunk))
+                dst_file.write(chunk)
+        progress.close()
