@@ -110,6 +110,7 @@ class HttpPath(RemotePath):
         self.use_etag = use_etag
         self.etag_timeout = etag_timeout
 
+        self.response = None
         self.etag = None
 
     def open(self, **kwargs):
@@ -126,6 +127,7 @@ class HttpPath(RemotePath):
                 max_retries=self.max_retries,
                 headers=self.headers,
             )
+            self.response = response
             if response.status_code == 200:  # ok
                 self.etag = response.headers.get("ETag") if self.use_etag else None
                 for k, v in response.cookies.items():
