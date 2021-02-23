@@ -13,7 +13,6 @@ import requests
 from tqdm.auto import tqdm
 
 from .. import __version__, config
-from .file_utils import logger
 from .filelock import FileLock
 from .logging import WARNING, get_logger
 
