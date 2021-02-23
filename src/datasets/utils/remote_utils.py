@@ -84,7 +84,7 @@ class HttpClient:
         return response
 
     @classmethod
-    def get(cls, url, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0, callback=None):
+    def get(cls, url, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
         """Wrapper around `requests` GET.
 
         Args:
@@ -97,16 +97,15 @@ class HttpClient:
             cookies (dict, optional): Parameter passed to `requests.request` with the cookies to be sent with the
                 Request.
             max_retries (int, default=0): Maximum number of retries, defaults to 0 (no retries).
-            callback (callable, optional): Callback function to be called with each response data chunk.
 
         Returns:
-            requests.Response or type returned by `callback`
+            requests.Response
         """
         headers = copy.deepcopy(headers) or {}
         headers["user-agent"] = cls.get_datasets_user_agent(user_agent=headers.get("user-agent"))
         if resume_size > 0:
             headers["Range"] = "bytes=%d-" % (resume_size,)
-        with cls.request_with_retry(
+        return cls.request_with_retry(
             verb="GET",
             url=url,
             stream=True,
@@ -114,28 +113,7 @@ class HttpClient:
             headers=headers,
             cookies=cookies,
             max_retries=max_retries,
-        ) as response:
-            if response.status_code == 416:  # Range not satisfiable
-                return
-            if callback:
-                content_length = response.headers.get("Content-Length")
-                total = resume_size + int(content_length) if content_length is not None else None
-                not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-                progress = tqdm(
-                    unit="B",
-                    unit_scale=True,
-                    total=total,
-                    initial=resume_size,
-                    desc="Downloading",
-                    disable=not_verbose,
-                )
-                for chunk in response.iter_content(chunk_size=1024):
-                    if chunk:  # filter out keep-alive new chunks
-                        progress.update(len(chunk))
-                        callback(chunk)
-                progress.close()
-            else:
-                return response
+        )
 
     @staticmethod
     def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
@@ -175,24 +153,18 @@ class FtpClient:
         return True
 
     @staticmethod
-    def get(url, timeout=2.0, callback=None):
+    def get(url, timeout=2.0):
         """Wrapper around `urllib.request` to get a remote resource.
 
         Args:
             url (str): The URL of the resource to fetch.
             timeout (float): Parameter passed to `urllib.request.urlopen` to indicate timeout seconds for blocking
                 operations like the connection attempt.
-            callback (callable, optional): Callback function to be called with the remote file-like interface.
 
         Returns:
-            urllib.response.addinfourl or type returned by `callback`
+            urllib.response.addinfourl
         """
         try:
-            logger.info(f"Getting through FTP {url}")  # into {temp_file.name}")
-            with urllib.request.urlopen(url, timeout=timeout) as r:
-                if callback:
-                    callback(r)
-                else:
-                    return r
+            return urllib.request.urlopen(url, timeout=timeout)
         except urllib.error.URLError as e:
             raise ConnectionError(e)

@@ -26,10 +26,11 @@ from zipfile import ZipFile, is_zipfile
 import numpy as np
 import posixpath
 import requests
+from tqdm.auto import tqdm
 
 from .. import config
 from .filelock import FileLock
-from .logging import get_logger
+from .logging import WARNING, get_logger
 from .remote_utils import FtpClient, HttpClient
 
 
@@ -507,17 +508,37 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp://"):
-                FtpClient.get(url, callback=lambda r: shutil.copyfileobj(r, temp_file))
+                logger.info(f"Getting through FTP {url} into {temp_file.name}")
+                with FtpClient.get(url) as response:
+                    shutil.copyfileobj(response, temp_file)
             else:
-                HttpClient.get(
+                with HttpClient.get(
                     url,
                     proxies=proxies,
                     resume_size=resume_size,
                     headers=headers,
                     cookies=cookies,
                     max_retries=max_retries,
-                    callback=lambda chunk: temp_file.write(chunk),
-                )
+                ) as response:
+                    logger.info(f"Getting through HTTP {url} into {temp_file.name}")
+                    if response.status_code == 416:  # Range not satisfiable
+                        return
+                    content_length = response.headers.get("Content-Length")
+                    total = resume_size + int(content_length) if content_length is not None else None
+                    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+                    progress = tqdm(
+                        unit="B",
+                        unit_scale=True,
+                        total=total,
+                        initial=resume_size,
+                        desc="Downloading",
+                        disable=not_verbose,
+                    )
+                    for chunk in response.iter_content(chunk_size=1024):
+                        if chunk:  # filter out keep-alive new chunks
+                            progress.update(len(chunk))
+                            temp_file.write(chunk)
+                    progress.close()
 
         logger.info("storing %s in cache at %s", url, cache_path)
         shutil.move(temp_file.name, cache_path)
