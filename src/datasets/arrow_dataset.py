@@ -29,7 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -38,6 +38,7 @@ import pyarrow as pa
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
+from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects
@@ -67,6 +68,8 @@ if int(pa.__version__.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+PathLike = Union[str, bytes, os.PathLike]
 
 
 class DatasetInfoMixin(object):
@@ -263,18 +266,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
+        in_memory: bool = False,
     ) -> "Dataset":
-        """ Instantiate a Dataset backed by an Arrow table at filename """
-        mmap = pa.memory_map(filename)
-        f = pa.ipc.open_stream(mmap)
-        pa_table = f.read_all()
-        data_files = [{"filename": filename}]
+        """Instantiate a Dataset backed by an Arrow table at filename.
+
+        Args:
+            filename (str): File name of the dataset.
+            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            split (NamedSplit, optional): Name of the dataset split.
+            indices_filename (str, optional): File names of the indices.
+            in_memory (bool, default False): Whether to copy the data in-memory.
+
+        Returns:
+            datasets.Dataset
+        """
+        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
+        data_files = [{"filename": filename}] if not in_memory else None
 
         if indices_filename is not None:
-            indices_mmap = pa.memory_map(indices_filename)
-            indices_f = pa.ipc.open_stream(indices_mmap)
-            indices_pa_table = indices_f.read_all()
-            indices_data_files = [{"filename": indices_filename}]
+            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
+            indices_data_files = [{"filename": indices_filename}] if not in_memory else None
         else:
             indices_pa_table = None
             indices_data_files = None
@@ -297,8 +308,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
-        mmap = pa.BufferReader(buffer)
-        f = pa.ipc.open_stream(mmap)
+        stream = pa.BufferReader(buffer)
+        f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
 
         if indices_buffer is not None:
@@ -454,9 +465,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs = fsspec.filesystem("file")
 
         # create temporary directory for saving
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            temp_dataset_path = Path(tmp_dir).joinpath(dataset_path)
-            os.makedirs(temp_dataset_path, exist_ok=True)
+        with tempfile.TemporaryDirectory() as temp_dataset_path:
+            fs.makedirs(dataset_path, exist_ok=True)
 
             # Write indices if needed
             if self._indices is not None:
@@ -806,10 +816,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             type (Optional ``str``):
                 Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
-                None means __getitem__ returns all columns (default)
+            columns (Optional ``List[str]``): columns to format in the output.
+                None means __getitem__ returns all columns (default).
             output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
+        It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
+        gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
+
+            new formatted columns = (all columns - previously unformatted columns)
+
         """
         format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
 
@@ -2166,6 +2182,114 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
+
+    def _write_csv(self, file_obj: BinaryIO, batch_size: int, **to_csv_kwargs) -> int:
+        """
+        Writes the pyarrow table as CSV to a binary file handle.
+        Caller is responsible for opening and closing the handle.
+        """
+        written = 0
+        header = to_csv_kwargs.pop("header", True)
+        encoding = to_csv_kwargs.pop("encoding", "utf-8")
+        to_csv_kwargs.pop("path_or_buf", None)
+
+        for offset in range(0, len(self), batch_size):
+            batch = query_table(
+                pa_table=self._data,
+                key=slice(offset, offset + batch_size),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            )
+            csv_str = batch.to_pandas().to_csv(
+                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
+            )
+            written += file_obj.write(csv_str.encode(encoding))
+        return written
+
+    def to_csv(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **to_csv_kwargs,
+    ):
+        """Exports the dataset to csv
+
+        Args:
+            `path_or_buf` (:obj:`PathLike` or :obj:`FileOrBuffer): Either a path to a file or a BinaryIO.
+            `batch_size` (`Optional[int]`): Size of the batch to load in memory and write at once. Defaults to
+                :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            `**to_csv_kwargs`: Parameters to pass to pandas's :func:`DataFrame.to_csv`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+
+        if isinstance(path_or_buf, (str, bytes, os.PathLike)):
+            with open(path_or_buf, "wb+") as buffer:
+                written = self._write_csv(file_obj=buffer, batch_size=batch_size, **to_csv_kwargs)
+        else:
+            written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
+        return written
+
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+        """Returns the dataset as a Python dict. Can also return a generator for large datasets.
+
+        Args:
+            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
+                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
+                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `dict` or `Iterator[dict]`
+        """
+        if not batched:
+            return query_table(
+                pa_table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            ).to_pydict()
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (
+                query_table(
+                    pa_table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ).to_pydict()
+                for offset in range(0, len(self), batch_size)
+            )
+
+    def to_pandas(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
+        """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
+                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
+                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+        """
+        if not batched:
+            return query_table(
+                pa_table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices.column(0) if self._indices is not None else None,
+            ).to_pandas()
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (
+                query_table(
+                    pa_table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ).to_pandas()
+                for offset in range(0, len(self), batch_size)
+            )
 
     def add_faiss_index(
         self,

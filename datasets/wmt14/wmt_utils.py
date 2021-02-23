@@ -23,7 +23,6 @@ import functools
 import glob
 import gzip
 import itertools
-import logging
 import os
 import re
 import xml.etree.cElementTree as ElementTree
@@ -32,6 +31,9 @@ from abc import ABC, abstractmethod
 import six
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -379,7 +381,7 @@ _TRAIN_SUBSETS = [
         name="setimes_2",
         target="en",
         sources={"ro", "tr"},
-        url="http://opus.nlpl.eu/download.php?f=SETIMES/v2/tmx/en-{src}.tmx.gz",
+        url="https://opus.nlpl.eu/download.php?f=SETIMES/v2/tmx/en-{src}.tmx.gz",
         path="",
     ),
     SubDataset(
@@ -693,10 +695,10 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             for ss_name in ss_names:
                 dataset = DATASET_MAP[ss_name]
                 if dataset.target != target or source not in dataset.sources:
-                    logging.info("Skipping sub-dataset that does not include language pair: %s", ss_name)
+                    logger.info("Skipping sub-dataset that does not include language pair: %s", ss_name)
                 else:
                     filtered_subsets[split].append(ss_name)
-        logging.info("Using sub-datasets: %s", filtered_subsets)
+        logger.info("Using sub-datasets: %s", filtered_subsets)
         return filtered_subsets
 
     def _info(self):
@@ -731,7 +733,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             if dataset.get_manual_dl_files(source):
                 # TODO(PVP): following two lines skip configs that are incomplete for now
                 # +++++++++++++++++++++
-                logging.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
+                logger.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
                 continue
                 # +++++++++++++++++++++
 
@@ -786,11 +788,11 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             dataset = DATASET_MAP[ss_name]
             source, _ = self.config.language_pair
             if dataset.get_manual_dl_files(source):
-                logging.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
+                logger.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
                 continue
             # +++++++++++++++++++++
 
-            logging.info("Generating examples from: %s", ss_name)
+            logger.info("Generating examples from: %s", ss_name)
             dataset = DATASET_MAP[ss_name]
             extract_dirs = extraction_map[ss_name]
             files = _get_local_paths(dataset, extract_dirs)
@@ -962,7 +964,7 @@ def _parse_tsv(path, language_pair=None):
         for j, line in enumerate(f):
             cols = line.split("\t")
             if len(cols) != 2:
-                logging.warning("Skipping line %d in TSV (%s) with %d != 2 columns.", j, path, len(cols))
+                logger.warning("Skipping line %d in TSV (%s) with %d != 2 columns.", j, path, len(cols))
                 continue
             s1, s2 = cols
             yield j, {l1: s1.strip(), l2: s2.strip()}
@@ -986,7 +988,7 @@ def _parse_czeng(*paths, **kwargs):
         re_block = re.compile(r"^[^-]+-b(\d+)-\d\d[tde]")
         with open(filter_path, encoding="utf-8") as f:
             bad_blocks = {blk for blk in re.search(r"qw{([\s\d]*)}", f.read()).groups()[0].split()}
-        logging.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
+        logger.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
 
     for path in paths:
         for gz_path in sorted(glob.glob(path)):
@@ -1013,6 +1015,6 @@ def _parse_hindencorp(path):
         for line_id, line in enumerate(f):
             split_line = line.split("\t")
             if len(split_line) != 5:
-                logging.warning("Skipping invalid HindEnCorp line: %s", line)
+                logger.warning("Skipping invalid HindEnCorp line: %s", line)
                 continue
             yield line_id, {"translation": {"en": split_line[3].strip(), "hi": split_line[4].strip()}}

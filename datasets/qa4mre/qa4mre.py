@@ -18,10 +18,12 @@
 
 from __future__ import division, print_function
 
-import logging
 import xml.etree.ElementTree as ET
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 # pylint: disable=anomalous-backslash-in-string
@@ -52,7 +54,7 @@ Additional gold standard documents are available for two pilot studies: one on
 alzheimers data, and the other on entrance exams data.
 """
 
-_BASE_URL = "http://datasets.uned.es/clef-qa/repository/js/scripts/downloadFile.php?file=/var/www/html/nlp/clef-qa/repository/resources/QA4MRE/"
+_BASE_URL = "http://nlp.uned.es/clef-qa/repository/js/scripts/downloadFile.php?file=/var/www/html/nlp/clef-qa/repository/resources/QA4MRE/"
 
 PATHS = {
     "2011": {
@@ -105,7 +107,7 @@ def _get_question(topic_id, topic_name, test_id, document_id, document_str, ques
             correct_answer_str = answer_str
 
     id_ = "_".join([topic_id, topic_name, test_id, question_id])
-    logging.info("ID: %s", id_)
+    logger.info("ID: %s", id_)
 
     feats = {
         "topic_id": topic_id,
@@ -139,7 +141,7 @@ class Qa4mreConfig(datasets.BuilderConfig):
             raise ValueError("Incorrect track. Track should be one of the following: ", PATHS[year]["_TRACKS"])
 
         if track.lower() != "main" and language.upper() != "EN":
-            logging.warn("Only English documents available for pilot " "tracks. Setting English by default.")
+            logger.warn("Only English documents available for pilot " "tracks. Setting English by default.")
             language = "EN"
 
         if track.lower() == "main" and language.upper() not in PATHS[year]["_LANGUAGES_MAIN"]:
@@ -213,7 +215,7 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
             # No default supervised keys because both passage and question are used
             # to determine the correct answer.
             supervised_keys=None,
-            homepage="http://datasets.uned.es/clef-qa/repository/pastCampaigns.php",
+            homepage="http://nlp.uned.es/clef-qa/repository/pastCampaigns.php",
             citation=_CITATION,
         )
 

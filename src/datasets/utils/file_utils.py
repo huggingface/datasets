@@ -21,11 +21,12 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
 import numpy as np
+import posixpath
 import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
@@ -113,9 +114,20 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
                 delattr(tf_context, "_rng")
 
 
-def is_remote_url(url_or_filename):
+def is_remote_url(url_or_filename: str) -> bool:
     parsed = urlparse(url_or_filename)
     return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
+
+
+def is_local_path(url_or_filename: str) -> bool:
+    # On unix the scheme of a local path is empty (for both absolute and relative),
+    # while on windows the scheme is the drive name (ex: "c") for absolute paths.
+    # for details on the windows behavior, see https://bugs.python.org/issue42215
+    return urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/")
+
+
+def is_relative_path(url_or_filename: str) -> bool:
+    return urlparse(url_or_filename).scheme == "" and not os.path.isabs(url_or_filename)
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -146,6 +158,25 @@ def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = N
         return config.REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:
         return config.REPO_METRICS_URL.format(version=version, path=path, name=name)
+
+
+def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
+    version = version or config.HUB_DEFAULT_VERSION
+    return config.HUB_DATASETS_URL.format(path=path, name=name, version=version)
+
+
+def url_or_path_join(base_name: str, *pathnames: List[str]) -> str:
+    if is_remote_url(base_name):
+        return posixpath.join(base_name, *pathnames)
+    else:
+        return Path(base_name).joinpath(*pathnames).as_posix()
+
+
+def url_or_path_parent(url_or_path: str) -> str:
+    if is_remote_url(url_or_path):
+        return url_or_path[: url_or_path.rindex("/")]
+    else:
+        return os.path.dirname(url_or_path)
 
 
 def hash_url_to_filename(url, etag=None):
@@ -185,6 +216,8 @@ class DownloadConfig:
         force_extract: if True when extract_compressed_file is True and the archive was already extracted,
             re-extract the archive and overide the folder where it was extracted.
         max_retries: the number of times to retry an HTTP request if it fails. Defaults to 1.
+        use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token
+            for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
 
     """
 
@@ -199,6 +232,7 @@ class DownloadConfig:
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
+    use_auth_token: Optional[str] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -208,7 +242,7 @@ def cached_path(
     url_or_filename,
     download_config=None,
     **download_kwargs,
-) -> Optional[str]:
+) -> str:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and
@@ -229,7 +263,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or config.HF_DATASETS_CACHE
+    cache_dir = download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -247,14 +281,13 @@ def cached_path(
             local_files_only=download_config.local_files_only,
             use_etag=download_config.use_etag,
             max_retries=download_config.max_retries,
+            use_auth_token=download_config.use_auth_token,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
-    elif urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/"):
+    elif is_local_path(url_or_filename):
         # File, but it doesn't exist.
-        # On unix the scheme of a local path is empty, while on windows the scheme is the drive name (ex: "c")
-        # for details on the windows behavior, see https://bugs.python.org/issue42215
         raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
@@ -339,6 +372,22 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
+def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] = None) -> dict:
+    """Handle the HF authentication"""
+    headers = {}
+    if url.startswith("https://huggingface.co/"):
+        token = None
+        if isinstance(use_auth_token, str):
+            token = use_auth_token
+        elif bool(use_auth_token):
+            from huggingface_hub import hf_api
+
+            token = hf_api.HfFolder.get_token()
+        if token:
+            headers["authorization"] = "Bearer {}".format(token)
+    return headers
+
+
 def _request_with_retry(
     verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
 ) -> requests.Response:
@@ -378,7 +427,7 @@ def ftp_head(url, timeout=2.0):
     return True
 
 
-def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, timeout=2.0):
+def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
     try:
         logger.info(f"Getting through FTP {url} into {temp_file.name}")
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
@@ -387,8 +436,9 @@ def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookie
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
-    headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
+    headers = copy.deepcopy(headers) or {}
+    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
     response = _request_with_retry(
@@ -415,9 +465,10 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
 
 
 def http_head(
-    url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
+    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
 ) -> requests.Response:
-    headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
+    headers = copy.deepcopy(headers) or {}
+    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     response = _request_with_retry(
         verb="HEAD",
         url=url,
@@ -442,7 +493,8 @@ def get_from_cache(
     local_files_only=False,
     use_etag=True,
     max_retries=0,
-) -> Optional[str]:
+    use_auth_token=None,
+) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
     If it's not there, download it. Then return the path to the cached file.
@@ -477,13 +529,23 @@ def get_from_cache(
     if os.path.exists(cache_path) and not force_download and not use_etag:
         return cache_path
 
+    # Prepare headers for authentication
+    headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
+    if user_agent is not None:
+        headers["user-agent"] = user_agent
+
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
             connected = ftp_head(url)
         try:
             response = http_head(
-                url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
+                url,
+                allow_redirects=True,
+                proxies=proxies,
+                timeout=etag_timeout,
+                max_retries=max_retries,
+                headers=headers,
             )
             if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag") if use_etag else None
@@ -558,16 +620,14 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp://"):
-                ftp_get(
-                    url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies
-                )
+                ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
             else:
                 http_get(
                     url,
                     temp_file,
                     proxies=proxies,
                     resume_size=resume_size,
-                    user_agent=user_agent,
+                    headers=headers,
                     cookies=cookies,
                     max_retries=max_retries,
                 )

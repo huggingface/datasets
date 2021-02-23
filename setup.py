@@ -86,6 +86,8 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # for saving datsets to local
     "fsspec",
+    # To get datasets from the Datasets Hub on huggingface.co
+    "huggingface_hub==0.0.2",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -187,7 +189,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.2.1",
+    version="1.3.0",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",

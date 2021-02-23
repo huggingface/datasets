@@ -17,13 +17,12 @@
 from __future__ import absolute_import, division, print_function
 
 import copy
-import logging
 import xml.etree.ElementTree as etree
 
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 
 # Find for instance the citation on arxiv or on the dataset repo/website

@@ -15,14 +15,14 @@
 """ BLEURT metric. """
 
 import os
-from logging import getLogger
 
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 import datasets
 
 
-logger = getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
+
 
 _CITATION = """\
 @inproceedings{bleurt,

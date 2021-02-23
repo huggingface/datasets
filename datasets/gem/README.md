@@ -307,17 +307,17 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://gem-benchmark.github.io/](https://gem-benchmark.github.io/)
 - **Repository:**
-- **Paper:**
+- **Paper:** [The GEM Benchmark: Natural Language Generation, its Evaluation and Metrics](https://arxiv.org/abs/2102.01672)
 - **Point of Contact:** [Sebastian Gehrman](gehrmann@google.com)
 - **Size of downloaded dataset files:** 2084.23 MB
 - **Size of the generated dataset:** 3734.73 MB
 - **Total amount of disk used:** 5818.96 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 GEM is a benchmark environment for Natural Language Generation with a focus on its Evaluation,
 both through human annotations and automated Metrics.
@@ -369,19 +369,19 @@ The subsets are organized by task:
 
 Each example has one `target` per example in its training set, and a set of `references` (with one or more items) in its validation and test set.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### common_gen
 
@@ -663,7 +663,7 @@ An example of `validation` looks as follows.
  'xsum_id': '10162122'}
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -804,7 +804,7 @@ The data fields are the same among all splits.
 - `target`: a `string` feature.
 - `references`: a `list` of `string` features.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 #### common_gen
 
@@ -902,57 +902,116 @@ The data fields are the same among all splits.
 |----|----:|---------:|---:|
 |xsum|23206|      1117|1166|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Source Data](#source-data)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Annotations](#annotations)
+### Source Data
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
-
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Discussion of Biases](#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Licensing Information
 
 CC-BY-SA-4.0
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
-@InProceedings{acl:gem,
-title = {The GEM Benchmark:Natural Language Generation, its Evaluation and Metrics},
-authors={Sebastian Gehrmann et al.},
-year={2021}
+@article{gem_benchmark,
+  author    = {Sebastian Gehrmann and
+               Tosin P. Adewumi and
+               Karmanya Aggarwal and
+               Pawan Sasanka Ammanamanchi and
+               Aremu Anuoluwapo and
+               Antoine Bosselut and
+               Khyathi Raghavi Chandu and
+               Miruna{-}Adriana Clinciu and
+               Dipanjan Das and
+               Kaustubh D. Dhole and
+               Wanyu Du and
+               Esin Durmus and
+               Ondrej Dusek and
+               Chris Emezue and
+               Varun Gangal and
+               Cristina Garbacea and
+               Tatsunori Hashimoto and
+               Yufang Hou and
+               Yacine Jernite and
+               Harsh Jhamtani and
+               Yangfeng Ji and
+               Shailza Jolly and
+               Dhruv Kumar and
+               Faisal Ladhak and
+               Aman Madaan and
+               Mounica Maddela and
+               Khyati Mahajan and
+               Saad Mahamood and
+               Bodhisattwa Prasad Majumder and
+               Pedro Henrique Martins and
+               Angelina McMillan{-}Major and
+               Simon Mille and
+               Emiel van Miltenburg and
+               Moin Nadeem and
+               Shashi Narayan and
+               Vitaly Nikolaev and
+               Rubungo Andre Niyongabo and
+               Salomey Osei and
+               Ankur P. Parikh and
+               Laura Perez{-}Beltrachini and
+               Niranjan Ramesh Rao and
+               Vikas Raunak and
+               Juan Diego Rodriguez and
+               Sashank Santhanam and
+               Jo{\~{a}}o Sedoc and
+               Thibault Sellam and
+               Samira Shaikh and
+               Anastasia Shimorina and
+               Marco Antonio Sobrevilla Cabezudo and
+               Hendrik Strobelt and
+               Nishant Subramani and
+               Wei Xu and
+               Diyi Yang and
+               Akhila Yerukola and
+               Jiawei Zhou},
+  title     = {The {GEM} Benchmark: Natural Language Generation, its Evaluation and
+               Metrics},
+  journal   = {CoRR},
+  volume    = {abs/2102.01672},
+  year      = {2021},
+  url       = {https://arxiv.org/abs/2102.01672},
+  archivePrefix = {arXiv},
+  eprint    = {2102.01672}
 }
-
 ```
 
 ### Contributions

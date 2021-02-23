@@ -1,7 +1,9 @@
 import os
+import tempfile
 import unittest
 from contextlib import contextmanager
 from distutils.util import strtobool
+from pathlib import Path
 
 from datasets import config
 
@@ -198,3 +200,12 @@ def offline(exception_cls=None):
         yield
     finally:
         socket.socket = online_socket
+
+
+@contextmanager
+def set_current_working_directory_to_temp_dir(*args, **kwargs):
+    original_working_dir = str(Path().resolve())
+    with tempfile.TemporaryDirectory(*args, **kwargs) as tmp_dir:
+        os.chdir(tmp_dir)
+        yield
+        os.chdir(original_working_dir)

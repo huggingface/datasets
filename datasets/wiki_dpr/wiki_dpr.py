@@ -1,9 +1,11 @@
-import logging
 import os
 
 import numpy as np
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -60,13 +62,15 @@ class WikiDprConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         self.with_embeddings = with_embeddings
-        self.with_index = with_index
+        self.with_index = with_index and index_name != "no_index"
         self.wiki_split = wiki_split
         self.embeddings_name = embeddings_name
         self.index_name = index_name if with_index else "no_index"
         self.index_train_size = index_train_size
         self.dummy = dummy
         name = [self.wiki_split, self.embeddings_name, self.index_name]
+        if not self.with_embeddings:
+            name.append("no_embeddings")
         if self.dummy:
             name = ["dummy"] + name
             assert (
@@ -92,10 +96,11 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WikiDprConfig(
             embeddings_name=embeddings_name,
-            with_index=(index_name != "no_index"),
+            with_embeddings=with_embeddings,
             index_name=index_name,
             version=datasets.Version("0.0.0"),
         )
+        for with_embeddings in (True, False)
         for embeddings_name in ("nq", "multiset")
         for index_name in ("exact", "compressed", "no_index")
     ]
@@ -149,7 +154,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
             if self.config.with_embeddings:
                 if vec_idx >= len(vecs):
                     if len(vectors_files) == 0:
-                        logging.warning("Ran out of vector files at index {}".format(i))
+                        logger.warning("Ran out of vector files at index {}".format(i))
                         break
                     vecs = np.load(open(vectors_files.pop(0), "rb"), allow_pickle=True)
                     vec_idx = 0
@@ -192,9 +197,9 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
 
                 d = 768
                 train_size = self.config.index_train_size
-                logging.info("Building wiki_dpr faiss index")
+                logger.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
-                    index = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
+                    index = faiss.IndexHNSWSQ(d, faiss.ScalarQuantizer.QT_8bit, 128, faiss.METRIC_INNER_PRODUCT)
                     index.hnsw.efConstruction = 200
                     index.hnsw.efSearch = 128
                     dataset.add_faiss_index("embeddings", custom_index=index)
@@ -211,6 +216,6 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                         train_size=train_size,
                         custom_index=ivf_index,
                     )
-                logging.info("Saving wiki_dpr faiss index")
+                logger.info("Saving wiki_dpr faiss index")
                 dataset.save_faiss_index("embeddings", index_file)
         return dataset
