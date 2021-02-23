@@ -196,5 +196,4 @@ The Stanford Natural Language Inference Corpus is licensed under a [Creative Com
 
 ### Contributions
 
-Thanks to [@mariamabarham](https://github.com/mariamabarham), [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.
-
+Thanks to [@mariamabarham](https://github.com/mariamabarham), [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@patrickvonplaten](https://github.com/patrickvonplaten) and [@mcmillanmajora](https://github.com/mcmillanmajora) for adding this dataset.
