@@ -39,6 +39,22 @@ _DESCRIPTION = """
 CoVoST 2, a large-scale multilingual speech translation corpus covering translations from 21 languages into English \
 and from English into 15 languages. The dataset is created using Mozilla’s open source Common Voice database of \
 crowdsourced voice recordings.
+
+Note that in order to limit the required storage for preparing this dataset, the audio
+is stored in the .mp3 format and is not converted to a float32 array. To convert, the audio
+file to a float32 array, please make use of the `.map()` function as follows:
+
+
+```python
+import torchaudio
+
+def map_to_array(batch):
+    speech_array, _ = torchaudio.load(batch["file"])
+    batch["speech"] = speech_array.numpy()
+    return batch
+
+dataset = dataset.map(map_to_array, remove_columns=["file"])
+```
 """
 
 _HOMEPAGE = "https://github.com/facebookresearch/covost"
@@ -81,11 +97,12 @@ and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COV
             description=_DESCRIPTION,
             features=datasets.Features(
                 client_id=datasets.Value("string"),
-                path=datasets.Value("string"),
+                file=datasets.Value("string"),
                 sentence=datasets.Value("string"),
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),
             ),
+            supervised_keys=("file", "translation"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
@@ -135,7 +152,7 @@ and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COV
                 "client_id": row["client_id"],
                 "sentence": row["sentence"],
                 "translation": row["translation"],
-                "path": os.path.join(source_path, "clips", row["path"]),
+                "file": os.path.join(source_path, "clips", row["path"]),
             }
 
     def _load_df_from_tsv(self, path):
