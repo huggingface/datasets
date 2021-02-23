@@ -81,6 +81,10 @@ class RemotePath:
 
 
 class FtpPath(RemotePath):
+    def __init__(self, url, timeout=2.0, **kwargs):
+        super().__init__(url)
+        self.timeout = timeout
+
     def open(self, **kwargs):
         return FtpFile(self.url, **kwargs)
 
