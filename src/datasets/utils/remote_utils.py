@@ -104,7 +104,7 @@ class HttpPath(RemotePath):
         super().__init__(url)
         self.cookies = cookies
         self.headers = headers
-        self.max_retires = max_retries
+        self.max_retries = max_retries
         self.proxies = proxies
         self.resume_size = resume_size
         self.use_etag = use_etag
