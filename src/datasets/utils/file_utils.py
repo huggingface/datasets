@@ -26,7 +26,7 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import FtpPath, HttpClient, HttpPath, RemoteManager
+from .remote_utils import FtpResource, HttpClient, HttpResource, RemoteManager
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -420,10 +420,10 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
-            ftp_path = FtpPath(url)
-            connected = ftp_path.exists()
+            ftp_resource = FtpResource(url)
+            connected = ftp_resource.exists()
         else:
-            http_path = HttpPath(
+            http_resource = HttpResource(
                 url,
                 cookies=cookies,
                 headers=headers,
@@ -432,9 +432,14 @@ def get_from_cache(
                 use_etag=use_etag,
                 etag_timeout=etag_timeout,
             )
-            connected = http_path.exists()
+            connected = http_resource.exists()
 
-            cookies, etag, response, url = http_path.cookies, http_path.etag, http_path.response, http_path.url
+            cookies, etag, response, url = (
+                http_resource.cookies,
+                http_resource.etag,
+                http_resource.response,
+                http_resource.url,
+            )
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:

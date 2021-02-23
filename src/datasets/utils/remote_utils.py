@@ -47,7 +47,7 @@ class RemoteManager:
 
             # Download to temporary file, then copy to cache dir once finished.
             # Otherwise you get corrupt cache entries if the download gets interrupted.
-            with RemotePath(
+            with RemoteResource(
                 url,
                 proxies=proxies,
                 resume_size=resume_size,
@@ -71,9 +71,9 @@ class RemoteManager:
                 json.dump(meta, meta_file)
 
 
-class RemotePath:
+class RemoteResource:
     def __new__(cls, url, *args, **kwargs):
-        cls = FtpPath if urllib.parse.urlparse(url).scheme == "ftp" else HttpPath
+        cls = FtpResource if urllib.parse.urlparse(url).scheme == "ftp" else HttpResource
         return super().__new__(cls)
 
     def __init__(self, url):
@@ -81,7 +81,7 @@ class RemotePath:
         self.scheme = urllib.parse.urlparse(url)
 
 
-class FtpPath(RemotePath):
+class FtpResource(RemoteResource):
     def __init__(self, url, timeout=2.0, **kwargs):
         super().__init__(url)
         self.timeout = timeout
@@ -93,7 +93,7 @@ class FtpPath(RemotePath):
         return FtpClient.head(self.url)
 
 
-class HttpPath(RemotePath):
+class HttpResource(RemoteResource):
     def __init__(
         self,
         url,
