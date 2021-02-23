@@ -149,8 +149,12 @@ class DatasetTransformationNotAllowedError(Exception):
 
 def replayable_table_alteration(func):
     """
-    Wrapper for dataset transforms that modify an existing table to save the modification
-    for replay when the Dataset is pickled.
+    Wrapper for dataset transforms that modify an existing table
+    to save the alteration in order to be able to replay it later.
+
+    This happens when the Dataset is pickled and if the table is reloaded from the disk.
+    In this case we have to re-alter the table using the history of transforms.
+
     The replay happens in the __setstate__ method.
     """
 
@@ -161,7 +165,7 @@ def replayable_table_alteration(func):
             args = args[1:]
         else:
             self: "Dataset" = kwargs.pop("self")
-        # an history item is a tuple of the method name to call and then the args and the lwargs
+        # an history item is a tuple of the method name to call and then the args and the kwargs
         new_inplace_history_item = (func.__name__, copy.deepcopy(args), copy.deepcopy(kwargs))
         # apply actual function
         out: Optional["Dataset"] = func(self, *args, **kwargs)
