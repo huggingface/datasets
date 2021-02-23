@@ -120,8 +120,8 @@ class TimitASR(datasets.GeneratorBasedBuilder):
         data_path = os.path.join(os.path.dirname(data_info_csv).strip(), "data")
 
         # Read the data info to extract rows mentioning about non-converted audio only
-        data_info = pd.read_csv(data_info_csv, encoding='utf8')
-        data_info.dropna(how='all', inplace=True)
+        data_info = pd.read_csv(data_info_csv, encoding="utf8")
+        data_info.dropna(how="all", inplace=True)
 
         data_info = data_info.loc[(data_info["is_audio"]) & (~data_info["is_converted_audio"])]
 
