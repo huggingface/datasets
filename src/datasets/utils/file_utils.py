@@ -30,7 +30,7 @@ import requests
 from .. import config
 from .filelock import FileLock
 from .logging import get_logger
-from .remote_utils import FtpClient, HttpClient, FtpFile, HttpFile
+from .remote_utils import FtpClient, HttpClient, RemotePath
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -501,23 +501,16 @@ def get_from_cache(
 
         # Download to temporary file, then copy to cache dir once finished.
         # Otherwise you get corrupt cache entries if the download gets interrupted.
-        with temp_file_manager() as temp_file:
+        with RemotePath(url).open(
+            proxies=proxies,
+            resume_size=resume_size,
+            headers=headers,
+            cookies=cookies,
+            max_retries=max_retries,
+        ) as remote_file, temp_file_manager() as temp_file:
             logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
-
             # GET file object
-            if url.startswith("ftp://"):
-                with FtpFile(url) as remote_file:
-                    remote_file.fetch(temp_file)
-            else:
-                with HttpFile(
-                    url,
-                    proxies=proxies,
-                    resume_size=resume_size,
-                    headers=headers,
-                    cookies=cookies,
-                    max_retries=max_retries,
-                ) as remote_file:
-                    remote_file.fetch(temp_file)
+            remote_file.fetch(temp_file)
 
         logger.info("storing %s in cache at %s", url, cache_path)
         shutil.move(temp_file.name, cache_path)
