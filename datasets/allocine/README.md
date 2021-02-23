@@ -61,7 +61,7 @@ task_ids:
 
 ### Dataset Summary
 
-The Allociné dataset is a French-language dataset for sentiment analysis. The texts are movie reviews written between 2006 and 2020 by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. It contains 100k positive and 100k negative reviews divied into train (160k), validation (20k), and test (20k). 
+The Allociné dataset is a French-language dataset for sentiment analysis. The texts are movie reviews written between 2006 and 2020 by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. It contains 100k positive and 100k negative reviews divided into train (160k), validation (20k), and test (20k). 
 
 ### Supported Tasks and Leaderboards
 
