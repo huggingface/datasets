@@ -211,5 +211,5 @@ The CNN / Daily Mail dataset version 1.0.0 is released under the [Apache-2.0 Lic
 
 ### Contributions
 
-Thanks to [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@jplu](https://github.com/jplu), [@jbragg](https://github.com/jbragg), [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.
+Thanks to [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@jplu](https://github.com/jplu), [@jbragg](https://github.com/jbragg), [@patrickvonplaten](https://github.com/patrickvonplaten) and [@mcmillanmajora](https://github.com/mcmillanmajora) for adding this dataset.
 
