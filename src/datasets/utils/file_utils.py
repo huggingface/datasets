@@ -422,37 +422,38 @@ def get_from_cache(
     if not local_files_only:
         if url.startswith("ftp://"):
             connected = FtpClient.head(url)
-        try:
-            response = HttpClient.head(
-                url,
-                allow_redirects=True,
-                proxies=proxies,
-                timeout=etag_timeout,
-                max_retries=max_retries,
-                headers=headers,
-            )
-            if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag") if use_etag else None
-                for k, v in response.cookies.items():
-                    # In some edge cases, we need to get a confirmation token
-                    if k.startswith("download_warning") and "drive.google.com" in url:
-                        url += "&confirm=" + v
-                        cookies = response.cookies
-                connected = True
-            # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (
-                (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
-                or (response.status_code == 405 and "drive.google.com" in url)
-                or (
-                    response.status_code == 403
-                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+        else:
+            try:
+                response = HttpClient.head(
+                    url,
+                    allow_redirects=True,
+                    proxies=proxies,
+                    timeout=etag_timeout,
+                    max_retries=max_retries,
+                    headers=headers,
                 )
-            ):
-                connected = True
-                logger.info("Couldn't get ETag version for url {}".format(url))
-        except (EnvironmentError, requests.exceptions.Timeout):
-            # not connected
-            pass
+                if response.status_code == 200:  # ok
+                    etag = response.headers.get("ETag") if use_etag else None
+                    for k, v in response.cookies.items():
+                        # In some edge cases, we need to get a confirmation token
+                        if k.startswith("download_warning") and "drive.google.com" in url:
+                            url += "&confirm=" + v
+                            cookies = response.cookies
+                    connected = True
+                # In some edge cases, head request returns 400 but the connection is actually ok
+                elif (
+                    (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
+                    or (response.status_code == 405 and "drive.google.com" in url)
+                    or (
+                        response.status_code == 403
+                        and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                    )
+                ):
+                    connected = True
+                    logger.info("Couldn't get ETag version for url {}".format(url))
+            except (EnvironmentError, requests.exceptions.Timeout):
+                # not connected
+                pass
 
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
