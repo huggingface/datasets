@@ -417,25 +417,21 @@ def get_from_cache(
     if user_agent is not None:
         headers["user-agent"] = user_agent
 
+    remote_resource = RemoteResource(
+        url,
+        cookies=cookies,
+        headers=headers,
+        max_retries=max_retries,
+        proxies=proxies,
+        use_etag=use_etag,
+        etag_timeout=etag_timeout,
+    )
+
     # We don't have the file locally or we need an eTag
     if not local_files_only:
-        remote_resource = RemoteResource(
-            url,
-            cookies=cookies,
-            headers=headers,
-            max_retries=max_retries,
-            proxies=proxies,
-            use_etag=use_etag,
-            etag_timeout=etag_timeout,
-        )
         connected = remote_resource.exists()
         if remote_resource.scheme.startswith("http"):
-            cookies, etag, response, url = (
-                remote_resource.cookies,
-                remote_resource.etag,
-                remote_resource.response,
-                remote_resource.url,
-            )
+            etag, response = remote_resource.etag, remote_resource.response
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
@@ -447,8 +443,8 @@ def get_from_cache(
                 " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
         elif response is not None and response.status_code == 404:
-            raise FileNotFoundError("Couldn't find file at {}".format(url))
-        raise ConnectionError("Couldn't reach {}".format(url))
+            raise FileNotFoundError("Couldn't find file at {}".format(remote_resource.url))
+        raise ConnectionError("Couldn't reach {}".format(remote_resource.url))
 
     # Try a second time
     filename = hash_url_to_filename(original_url, etag)
@@ -458,14 +454,6 @@ def get_from_cache(
         return cache_path
 
     # From now on, connected is True.
-    remote_resource = RemoteResource(
-        url,
-        cookies=cookies,
-        headers=headers,
-        max_retries=max_retries,
-        proxies=proxies,
-        etag=etag,
-    )
     RemoteManager.fetch(remote_resource, cache_path, resume_download, cache_dir)
 
     return cache_path
