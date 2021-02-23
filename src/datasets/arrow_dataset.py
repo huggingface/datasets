@@ -636,32 +636,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @fingerprint_transform(inplace=False)
-    def dictionary_encode_column(self, column: str, new_fingerprint) -> "Dataset":
-        """Dictionary encode a column.
-
-        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-        by storing a dictionary of the strings. This only affect the internal storage.
-
-        Args:
-            column (:obj:`str`):
-
-        Returns:
-            A copy of the dataset with the column dictionary encoded
-        """
-        dataset = copy.deepcopy(self)
-        if column not in dataset._data.column_names:
-            raise ValueError(f"Column ({column}) not in table columns ({dataset._data.column_names}).")
-        casted_schema: pa.Schema = dataset._data.schema
-        field_index = casted_schema.get_field_index(column)
-        field: pa.Field = casted_schema.field(field_index)
-        casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
-        casted_schema.set(field_index, casted_field)
-        dataset._data = dataset._data.cast(casted_schema)
-        dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
-        dataset._fingerprint = new_fingerprint
-        return dataset
-
     @deprecated(help_message="Use the dataset.flatten method instead.")
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
