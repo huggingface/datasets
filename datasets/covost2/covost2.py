@@ -115,9 +115,12 @@ class Covost2(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(source_path):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('covost2', data_dir=...)` that includes files uncompressed files from the COVOST2 archive. Manual download instructions: {}".format(
-                    data_dir, self.manual_download_instructions
+                "{} does not exist. Make sure you insert a manual dir via "
+                "`datasets.load_dataset('covost2', data_dir=...)` that includes files uncompressed files from the "
+                "COVOST2 archive. Manual download instructions: {}".format(
+                    data_root, self.manual_download_instructions
                 )
+            )
 
         covost_url = COVOST_URL_TEMPLATE.format(src_lang=source_lang, tgt_lang=target_lang)
         extracted_path = dl_manager.download_and_extract(covost_url)
@@ -125,6 +128,37 @@ class Covost2(datasets.GeneratorBasedBuilder):
         covost_tsv_path = os.path.join(extracted_path, f"covost_v2.{source_lang}_{target_lang}.tsv")
         cv_tsv_path = os.path.join(source_path, "validated.tsv")
 
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "source_path": source_path,
+                    "covost_tsv_path": covost_tsv_path,
+                    "cv_tsv_path": cv_tsv_path,
+                    "split": "train",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "source_path": source_path,
+                    "covost_tsv_path": covost_tsv_path,
+                    "cv_tsv_path": cv_tsv_path,
+                    "split": "dev",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "source_path": source_path,
+                    "covost_tsv_path": covost_tsv_path,
+                    "cv_tsv_path": cv_tsv_path,
+                    "split": "test",
+                },
+            ),
+        ]
+
+    def _generate_examples(self, source_path, covost_tsv_path, cv_tsv_path, split):
         covost_tsv = self._load_df_from_tsv(covost_tsv_path)
         cv_tsv = self._load_df_from_tsv(cv_tsv_path)
 
@@ -135,21 +169,11 @@ class Covost2(datasets.GeneratorBasedBuilder):
             on="path",
         )
 
-        train_df = df[(df["split"] == "train") | (df["split"] == f"train_covost")]
-        valid_df = df[df["split"] == "dev"]
-        test_df = df[df["split"] == "test"]
+        if split == "train":
+            df = df[(df["split"] == "train") | (df["split"] == f"train_covost")]
+        else:
+            df = df[df["split"] == split]
 
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"df": train_df, "source_path": source_path}
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"df": valid_df, "source_path": source_path}
-            ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"df": test_df, "source_path": source_path}),
-        ]
-
-    def _generate_examples(self, df, source_path):
         for i, row in df.iterrows():
             yield i, {
                 "id": row["path"].replace(".mp3", ""),
