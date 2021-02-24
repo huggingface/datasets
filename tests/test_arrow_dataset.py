@@ -1780,3 +1780,65 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.features == dataset.features
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
     assert increased_allocated_memory == in_memory
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+@pytest.mark.parametrize(
+    "method_and_params",
+    [
+        ("rename_column", tuple(), {"original_column_name": "labels", "new_column_name": "label"}),
+        ("remove_columns", tuple(), {"column_names": "labels"}),
+        (
+            "cast",
+            tuple(),
+            {
+                "features": Features(
+                    {
+                        "tokens": Sequence(Value("string")),
+                        "labels": Sequence(Value("int16")),
+                        "answers": Sequence(
+                            {
+                                "text": Value("string"),
+                                "answer_start": Value("int32"),
+                            }
+                        ),
+                    }
+                )
+            },
+        ),
+        ("flatten", tuple(), {}),
+        ("rename_column_", tuple(), {"original_column_name": "labels", "new_column_name": "label"}),
+        ("remove_columns_", tuple(), {"column_names": "labels"}),
+        (
+            "cast_",
+            tuple(),
+            {
+                "features": Features(
+                    {
+                        "tokens": Sequence(Value("string")),
+                        "labels": Sequence(Value("int16")),
+                        "answers": Sequence(
+                            {
+                                "text": Value("string"),
+                                "answer_start": Value("int32"),
+                            }
+                        ),
+                    }
+                )
+            },
+        ),
+        ("flatten_", tuple(), {}),
+    ],
+)
+def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):
+    method, args, kwargs = method_and_params
+    dataset = Dataset.from_file(arrow_file, in_memory=in_memory)
+    reference_dataset = Dataset.from_file(arrow_file, in_memory=in_memory)
+
+    out = getattr(dataset, method)(*args, **kwargs)
+    dataset = out if out is not None else dataset
+    pickled_dataset = pickle.dumps(dataset)
+    reloaded_dataset = pickle.loads(pickled_dataset)
+
+    assert dataset._data != reference_dataset._data
+    assert dataset._data == reloaded_dataset._data
