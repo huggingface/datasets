@@ -57,7 +57,7 @@ class Sst(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version('1.0.0')
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name='sentences', version=VERSION, description='Sentiment labels for whole sentences.'),
+        datasets.BuilderConfig(name='sentences', version=VERSION, description='Sentiment labels for complete sentences.'),
         datasets.BuilderConfig(name='phrases', version=VERSION, description='Sentiment labels for sentences and their sub-sentences (phrases).'),
     ]
 
@@ -99,7 +99,7 @@ class Sst(datasets.GeneratorBasedBuilder):
         tokens_path = os.path.join(data_dir, "SOStr.txt")
         trees_path = os.path.join(data_dir, "STree.txt")
 
-        # Create a dictionary with all sentences, sub-sentences and their labels
+        # Store the labels of all possible phrases in a dictionary
         sst = {}
         with open(phrases_path) as f, open(labels_path) as g:
             phrase_reader = csv.reader(f, delimiter='|', quoting=csv.QUOTE_NONE)
@@ -112,7 +112,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 sst[row['phrase ids']]['label'] = float(row['sentiment values'])
         sst = {v['phrase']:v['label'] for (k, v) in sst.items()}
 
-        # Read parse trees for each whole sentence
+        # Read parse trees for each complete sentence
         trees = {}
         with open(tokens_path) as tok, open(trees_path) as tr:
             tok_reader = csv. reader(tok, delimiter='\t', quoting=csv.QUOTE_NONE)
@@ -155,12 +155,13 @@ class Sst(datasets.GeneratorBasedBuilder):
 
             splits_reader = csv.DictReader(spl, delimiter=",", quoting=csv.QUOTE_NONE)
             splits = {row['sentence_index']: row['splitset_label'] for row in splits_reader}
-
             sentence_reader = csv.DictReader(snt, delimiter="\t", quoting=csv.QUOTE_NONE)
+
             for id_, row in enumerate(sentence_reader):
                 if splits[row['sentence_index']] == split_id:
                     tokens = trees[int(row['sentence_index'])]['tokens']
                     parse_tree = trees[int(row['sentence_index'])]['tree']
+
                     if self.config.name == 'sentences':
                         yield id_, {
                             'sentence_id': row['sentence_index'],
@@ -171,7 +172,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                         }
 
                     else:
-
+                        # Traverse a parse tree to extract every possible phrase in a sentence
                         token_list = np.array(tokens.split('|'))
                         tree_nodes = np.array([int(t)-1 for t in parse_tree.split('|')])
 
@@ -179,6 +180,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                         root = len(tree_nodes) - 1
                         backstop = 0
 
+                        # Initialize the tree
                         for i, token in enumerate(tree_nodes):
                             tree[i] = {}
                             if i < len(token_list):
@@ -190,6 +192,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                                 tree[i]['is_literal'] = False
                                 tree[i]['leftmost'] = None
 
+                        # Traverse
                         while tree[root]['is_literal'] == False:
                             backstop += 1
                             for top_node in range(len(tree_nodes)-1, len(token_list)-1, -1):
