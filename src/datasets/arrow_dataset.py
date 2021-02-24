@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-if int(pa.__version__.split(".")[0]) == 0:
+if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False

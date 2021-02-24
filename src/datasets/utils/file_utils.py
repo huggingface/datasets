@@ -6,19 +6,13 @@ Copyright by the AllenNLP authors.
 
 import copy
 import gzip
-import json
 import lzma
 import os
-import re
 import shutil
 import sys
 import tarfile
-import tempfile
-import time
-import urllib
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
-from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -27,13 +21,12 @@ from zipfile import ZipFile, is_zipfile
 
 import numpy as np
 import posixpath
-import pyarrow as pa
 import requests
-from tqdm.auto import tqdm
 
-from .. import __version__, config
+from .. import config
 from .filelock import FileLock
-from .logging import WARNING, get_logger
+from .logging import get_logger
+from .remote_utils import HttpClient, RemoteManager, RemoteResource
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -142,7 +135,7 @@ def head_hf_s3(
     identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
 ) -> Union[requests.Response, Exception]:
     try:
-        return http_head(
+        return HttpClient.head(
             hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
             max_retries=max_retries,
         )
@@ -356,22 +349,6 @@ def cached_path(
     return output_path
 
 
-def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(pa.__version__)
-    if config.TORCH_AVAILABLE:
-        ua += "; torch/{}".format(config.TORCH_VERSION)
-    if config.TF_AVAILABLE:
-        ua += "; tensorflow/{}".format(config.TF_VERSION)
-    if config.BEAM_AVAILABLE:
-        ua += "; apache_beam/{}".format(config.BEAM_VERSION)
-    if isinstance(user_agent, dict):
-        ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
-    elif isinstance(user_agent, str):
-        ua += "; " + user_agent
-    return ua
-
-
 def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
@@ -386,100 +363,6 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] =
         if token:
             headers["authorization"] = "Bearer {}".format(token)
     return headers
-
-
-def _request_with_retry(
-    verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
-) -> requests.Response:
-    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff
-
-    Args:
-        verb (str): HTTP verb, such as 'GET' or 'HEAD'
-        url (str): The URL of the ressource to fetch
-        max_retries (int): Maximum number of retries, defaults to 0 (no retries)
-        base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
-            retries then grows exponentially, capped by max_wait_time.
-        max_wait_time (float): Maximum amount of time between two retries, in seconds
-        **params: Params to pass to `requests.request`
-    """
-    tries, success = 0, False
-    while not success:
-        tries += 1
-        try:
-            response = requests.request(verb.upper(), url, **params)
-            success = True
-        except requests.exceptions.ConnectTimeout as err:
-            if tries > max_retries:
-                raise err
-            else:
-                logger.info(f"{verb} request to {url} timed out, retrying... [{tries/max_retries}]")
-                sleep_time = max(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
-                time.sleep(sleep_time)
-    return response
-
-
-def ftp_head(url, timeout=2.0):
-    try:
-        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-            r.read(1)
-    except Exception:
-        return False
-    return True
-
-
-def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
-    try:
-        logger.info(f"Getting through FTP {url} into {temp_file.name}")
-        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-            shutil.copyfileobj(r, temp_file)
-    except urllib.error.URLError as e:
-        raise ConnectionError(e)
-
-
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
-    headers = copy.deepcopy(headers) or {}
-    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
-    if resume_size > 0:
-        headers["Range"] = "bytes=%d-" % (resume_size,)
-    response = _request_with_retry(
-        verb="GET", url=url, stream=True, proxies=proxies, headers=headers, cookies=cookies, max_retries=max_retries
-    )
-    if response.status_code == 416:  # Range not satisfiable
-        return
-    content_length = response.headers.get("Content-Length")
-    total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-    progress = tqdm(
-        unit="B",
-        unit_scale=True,
-        total=total,
-        initial=resume_size,
-        desc="Downloading",
-        disable=not_verbose,
-    )
-    for chunk in response.iter_content(chunk_size=1024):
-        if chunk:  # filter out keep-alive new chunks
-            progress.update(len(chunk))
-            temp_file.write(chunk)
-    progress.close()
-
-
-def http_head(
-    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
-) -> requests.Response:
-    headers = copy.deepcopy(headers) or {}
-    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
-    response = _request_with_retry(
-        verb="HEAD",
-        url=url,
-        proxies=proxies,
-        headers=headers,
-        cookies=cookies,
-        allow_redirects=allow_redirects,
-        timeout=timeout,
-        max_retries=max_retries,
-    )
-    return response
 
 
 def get_from_cache(
@@ -534,42 +417,21 @@ def get_from_cache(
     if user_agent is not None:
         headers["user-agent"] = user_agent
 
+    remote_resource = RemoteResource(
+        url,
+        cookies=cookies,
+        headers=headers,
+        max_retries=max_retries,
+        proxies=proxies,
+        use_etag=use_etag,
+        etag_timeout=etag_timeout,
+    )
+
     # We don't have the file locally or we need an eTag
     if not local_files_only:
-        if url.startswith("ftp://"):
-            connected = ftp_head(url)
-        try:
-            response = http_head(
-                url,
-                allow_redirects=True,
-                proxies=proxies,
-                timeout=etag_timeout,
-                max_retries=max_retries,
-                headers=headers,
-            )
-            if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag") if use_etag else None
-                for k, v in response.cookies.items():
-                    # In some edge cases, we need to get a confirmation token
-                    if k.startswith("download_warning") and "drive.google.com" in url:
-                        url += "&confirm=" + v
-                        cookies = response.cookies
-                connected = True
-            # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (
-                (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
-                or (response.status_code == 405 and "drive.google.com" in url)
-                or (
-                    response.status_code == 403
-                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
-                )
-            ):
-                connected = True
-                logger.info("Couldn't get ETag version for url {}".format(url))
-        except (EnvironmentError, requests.exceptions.Timeout):
-            # not connected
-            pass
-
+        connected = remote_resource.exists()
+        if remote_resource.scheme.startswith("http"):
+            etag, response = remote_resource.etag, remote_resource.response
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
@@ -581,8 +443,8 @@ def get_from_cache(
                 " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
         elif response is not None and response.status_code == 404:
-            raise FileNotFoundError("Couldn't find file at {}".format(url))
-        raise ConnectionError("Couldn't reach {}".format(url))
+            raise FileNotFoundError("Couldn't find file at {}".format(remote_resource.url))
+        raise ConnectionError("Couldn't reach {}".format(remote_resource.url))
 
     # Try a second time
     filename = hash_url_to_filename(original_url, etag)
@@ -592,54 +454,7 @@ def get_from_cache(
         return cache_path
 
     # From now on, connected is True.
-    # Prevent parallel downloads of the same file with a lock.
-    lock_path = cache_path + ".lock"
-    with FileLock(lock_path):
-
-        if resume_download:
-            incomplete_path = cache_path + ".incomplete"
-
-            @contextmanager
-            def _resumable_file_manager():
-                with open(incomplete_path, "a+b") as f:
-                    yield f
-
-            temp_file_manager = _resumable_file_manager
-            if os.path.exists(incomplete_path):
-                resume_size = os.stat(incomplete_path).st_size
-            else:
-                resume_size = 0
-        else:
-            temp_file_manager = partial(tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
-            resume_size = 0
-
-        # Download to temporary file, then copy to cache dir once finished.
-        # Otherwise you get corrupt cache entries if the download gets interrupted.
-        with temp_file_manager() as temp_file:
-            logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
-
-            # GET file object
-            if url.startswith("ftp://"):
-                ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
-            else:
-                http_get(
-                    url,
-                    temp_file,
-                    proxies=proxies,
-                    resume_size=resume_size,
-                    headers=headers,
-                    cookies=cookies,
-                    max_retries=max_retries,
-                )
-
-        logger.info("storing %s in cache at %s", url, cache_path)
-        shutil.move(temp_file.name, cache_path)
-
-        logger.info("creating metadata file for %s", cache_path)
-        meta = {"url": url, "etag": etag}
-        meta_path = cache_path + ".json"
-        with open(meta_path, "w", encoding="utf-8") as meta_file:
-            json.dump(meta, meta_file)
+    RemoteManager.fetch(remote_resource, cache_path, resume_download, cache_dir)
 
     return cache_path
 
