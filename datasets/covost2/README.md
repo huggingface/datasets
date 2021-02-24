@@ -64,6 +64,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -103,7 +104,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Data Fields
 
-- file A path to the downloaded audio file in .mp3 format.
+- file: A path to the downloaded audio file in .mp3 format.
 
 - sentence: The transcription of the audio file in source language.
 

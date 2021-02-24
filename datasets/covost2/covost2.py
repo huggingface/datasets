@@ -90,6 +90,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
         return """\
         You should download the Common Voice v4 dataset from https://commonvoice.mozilla.org/en/datasets.
         and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COVOST_ROOT}` path as `data_dir`
+        via `datasets.load_dataset('covost2', data_dir="path/to/covost_root")`
         """
 
     def _info(self):
@@ -113,7 +114,10 @@ class Covost2(datasets.GeneratorBasedBuilder):
         source_path = os.path.join(data_root, source_lang)
 
         if not os.path.exists(source_path):
-            raise FileNotFoundError("source path not found")
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('covost2', data_dir=...)` that includes files uncompressed files from the COVOST2 archive. Manual download instructions: {}".format(
+                    data_dir, self.manual_download_instructions
+                )
 
         covost_url = COVOST_URL_TEMPLATE.format(src_lang=source_lang, tgt_lang=target_lang)
         extracted_path = dl_manager.download_and_extract(covost_url)
