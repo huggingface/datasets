@@ -85,6 +85,8 @@ def test_classlabel_init(tmp_path_factory):
         classlabel = ClassLabel(num_classes=len(names) + 1, names=names)
     with pytest.raises(ValueError):
         classlabel = ClassLabel(names=names, names_file=names_file)
+    with pytest.raises(ValueError):
+        classlabel = ClassLabel()
 
 
 def test_classlabel_str2int():
