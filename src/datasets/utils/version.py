@@ -19,7 +19,7 @@
 import dataclasses
 import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 
 _VERSION_TMPL = r"^(?P<major>{v})" r"\.(?P<minor>{v})" r"\.(?P<patch>{v})$"
@@ -37,9 +37,9 @@ class Version:
 
     version_str: str
     description: Optional[str] = None
-    major: Optional[str] = None
-    minor: Optional[str] = None
-    patch: Optional[str] = None
+    major: Optional[Union[str, int]] = None
+    minor: Optional[Union[str, int]] = None
+    patch: Optional[Union[str, int]] = None
 
     def __post_init__(self):
         self.major, self.minor, self.patch = _str_to_version(self.version_str)
