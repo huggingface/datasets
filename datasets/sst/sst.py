@@ -59,13 +59,14 @@ class Sst(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name='sentences', version=VERSION, description='Sentiment labels for complete sentences.'),
         datasets.BuilderConfig(name='phrases', version=VERSION, description='Sentiment labels for sentences and their sub-sentences (phrases).'),
+        datasets.BuilderConfig(name='ptb', version=VERSION, description='Penn-treebank-style labelled trees. Labels are binned in 5 bins.'),
     ]
 
     DEFAULT_CONFIG_NAME = 'sentences'
 
     def _info(self):
 
-        if self.config.name=='sentences':
+        if self.config.name == 'sentences':
             features = datasets.Features(
                 {
                     'sentence_id': datasets.Value("int64"),
@@ -75,12 +76,18 @@ class Sst(datasets.GeneratorBasedBuilder):
                     'tree': datasets.Value("string"),
                 }
             )
-        else:
+        elif self.config.name == 'phrases':
             features = datasets.Features(
                 {
                     'sentence_id': datasets.Value("int64"),
                     'phrase': datasets.Value("string"),
                     'label': datasets.Value("float"),
+                }
+            )
+        else:
+            features = datasets.Features(
+                {
+                    'tree': datasets.Value("string"),
                 }
             )
 
@@ -98,6 +105,9 @@ class Sst(datasets.GeneratorBasedBuilder):
         labels_path = os.path.join(data_dir, "sentiment_labels.txt")
         tokens_path = os.path.join(data_dir, "SOStr.txt")
         trees_path = os.path.join(data_dir, "STree.txt")
+        ptb_train = os.path.join(data_dir, "ptb_train.txt")
+        ptb_dev = os.path.join(data_dir, "ptb_dev.txt")
+        ptb_test = os.path.join(data_dir, "ptb_test.txt")
 
         # Store the labels of all possible phrases in a dictionary
         sst = {}
@@ -115,14 +125,13 @@ class Sst(datasets.GeneratorBasedBuilder):
         # Read parse trees for each complete sentence
         trees = {}
         with open(tokens_path) as tok, open(trees_path) as tr:
-            tok_reader = csv. reader(tok, delimiter='\t', quoting=csv.QUOTE_NONE)
+            tok_reader = csv.reader(tok, delimiter='\t', quoting=csv.QUOTE_NONE)
             tree_reader = csv.reader(tr, delimiter='\t', quoting=csv.QUOTE_NONE)
             for i, row in enumerate(tok_reader, start=1):
                 trees[i] = {}
                 trees[i]['tokens'] = row[0]
             for i, row in enumerate(tree_reader, start=1):
-                trees[i]['tree'] = row[0]
-        
+                trees[i]['tree'] = row[0]       
 
         file_paths = {}
         for split_index in range(1, 4):
@@ -131,95 +140,140 @@ class Sst(datasets.GeneratorBasedBuilder):
                 'trees' : trees,
                 "splits_path" : os.path.join(data_dir, "datasetSplit.txt"),
                 "sentences_path" : os.path.join(data_dir, "datasetSentences.txt"),
+                'ptb_filepath': None,
                 'split_id': str(split_index)
             }
 
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs=file_paths[1]
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs=file_paths[3]
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs=file_paths[2]
-            )]
+        if self.config.name == 'ptb':
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        'sst_dict' : None,
+                        'trees' : None,
+                        "splits_path" : None,
+                        "sentences_path" : None,
+                        'ptb_filepath': ptb_train,
+                        'split_id': None
+                    }
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        'sst_dict' : None,
+                        'trees' : None,
+                        "splits_path" : None,
+                        "sentences_path" : None,
+                        'ptb_filepath': ptb_dev,
+                        'split_id': None
+                    }
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        'sst_dict' : None,
+                        'trees' : None,
+                        "splits_path" : None,
+                        "sentences_path" : None,
+                        'ptb_filepath': ptb_test,
+                        'split_id': None
+                    }
+                )]
+        else:
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs=file_paths[1]
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs=file_paths[3]
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs=file_paths[2]
+                )]
 
 
-    def _generate_examples(self, sst_dict, splits_path, sentences_path, trees, split_id):
+    def _generate_examples(self, sst_dict, splits_path, sentences_path, trees, split_id, ptb_filepath):
 
-        with open(splits_path) as spl, open(sentences_path) as snt:
+        if self.config.name == 'ptb':
+            with open(ptb_filepath) as fp:
+                ptb_reader = csv.reader(fp, delimiter='\t', quoting=csv.QUOTE_NONE)
+                for id_, row in enumerate(ptb_reader):
+                    yield id_, {
+                        'tree': row[0]
+                    }
+        else:
+            with open(splits_path) as spl, open(sentences_path) as snt:
 
-            splits_reader = csv.DictReader(spl, delimiter=",", quoting=csv.QUOTE_NONE)
-            splits = {row['sentence_index']: row['splitset_label'] for row in splits_reader}
-            sentence_reader = csv.DictReader(snt, delimiter="\t", quoting=csv.QUOTE_NONE)
+                splits_reader = csv.DictReader(spl, delimiter=",", quoting=csv.QUOTE_NONE)
+                splits = {row['sentence_index']: row['splitset_label'] for row in splits_reader}
 
-            for id_, row in enumerate(sentence_reader):
-                if splits[row['sentence_index']] == split_id:
-                    tokens = trees[int(row['sentence_index'])]['tokens']
-                    parse_tree = trees[int(row['sentence_index'])]['tree']
+                sentence_reader = csv.DictReader(snt, delimiter="\t", quoting=csv.QUOTE_NONE)
+                for id_, row in enumerate(sentence_reader):
+                    if splits[row['sentence_index']] == split_id:
+                        tokens = trees[int(row['sentence_index'])]['tokens']
+                        parse_tree = trees[int(row['sentence_index'])]['tree']
 
-                    if self.config.name == 'sentences':
-                        yield id_, {
-                            'sentence_id': row['sentence_index'],
-                            'sentence': row['sentence'],
-                            'label' : sst_dict[row['sentence']],
-                            'tokens': tokens,
-                            'tree': parse_tree
-                        }
-
-                    else:
-                        # Traverse a parse tree to extract every possible phrase in a sentence
-                        token_list = np.array(tokens.split('|'))
-                        tree_nodes = np.array([int(t)-1 for t in parse_tree.split('|')])
-
-                        tree = {}
-                        root = len(tree_nodes) - 1
-                        backstop = 0
-
-                        # Initialize the tree
-                        for i, token in enumerate(tree_nodes):
-                            tree[i] = {}
-                            if i < len(token_list):
-                                tree[i]['text'] = token_list[i]
-                                tree[i]['is_literal'] = True
-                                tree[i]['leftmost'] = i
-                            else:
-                                tree[i]['text'] = None
-                                tree[i]['is_literal'] = False
-                                tree[i]['leftmost'] = None
-
-                        # Traverse
-                        while tree[root]['is_literal'] == False:
-                            backstop += 1
-                            for top_node in range(len(tree_nodes)-1, len(token_list)-1, -1):
-                                siblings = np.where(tree_nodes == top_node)
-                                left = siblings[0][0]
-                                right = siblings[0][1]
-                                if (tree[left]['is_literal'] == True) & (tree[right]['is_literal'] == True):
-                                    common_parent = tree[tree_nodes[left]]
-                                    if tree[left]['leftmost'] < tree[right]['leftmost']:
-                                        common_parent['text'] = tree[left]['text'] + ' ' + tree[right]['text']
-                                    else:
-                                        common_parent['text'] = tree[right]['text'] + ' ' + tree[left]['text']
-                                    common_parent['is_literal'] = True
-                                    common_parent['leftmost'] = min(tree[left]['leftmost'], tree[right]['leftmost'])
-                                    tree[left]['is_literal'] = False
-                                    tree[right]['is_literal'] = False
-                            if backstop > 1000:
-                                raise(RuntimeError('Couldn\'t parse the tree.'))
-
-                        phrases = [tree[n]['text'] for n in range(len(token_list), len(tree_nodes))]
-
-                        for phrase in phrases:
+                        if self.config.name == 'sentences':
                             yield id_, {
                                 'sentence_id': row['sentence_index'],
-                                'phrase': phrase,
-                                'label': sst_dict[phrase]
+                                'sentence': row['sentence'],
+                                'label' : sst_dict[row['sentence']],
+                                'tokens': tokens,
+                                'tree': parse_tree
                             }
+
+                        else:
+                            # Traverse a parse tree to extract every possible phrase in a sentence
+                            token_list = np.array(tokens.split('|'))
+                            tree_nodes = np.array([int(t)-1 for t in parse_tree.split('|')])
+
+                            tree = {}
+                            root = len(tree_nodes) - 1
+                            backstop = 0
+
+                            # Initialize the tree
+                            for i, token in enumerate(tree_nodes):
+                                tree[i] = {}
+                                if i < len(token_list):
+                                    tree[i]['text'] = token_list[i]
+                                    tree[i]['is_literal'] = True
+                                    tree[i]['leftmost'] = i
+                                else:
+                                    tree[i]['text'] = None
+                                    tree[i]['is_literal'] = False
+                                    tree[i]['leftmost'] = None
+
+                            # Traverse
+                            while tree[root]['is_literal'] == False:
+                                backstop += 1
+                                for top_node in range(len(tree_nodes)-1, len(token_list)-1, -1):
+                                    siblings = np.where(tree_nodes == top_node)
+                                    left = siblings[0][0]
+                                    right = siblings[0][1]
+                                    if (tree[left]['is_literal'] == True) & (tree[right]['is_literal'] == True):
+                                        common_parent = tree[tree_nodes[left]]
+                                        if tree[left]['leftmost'] < tree[right]['leftmost']:
+                                            common_parent['text'] = tree[left]['text'] + ' ' + tree[right]['text']
+                                        else:
+                                            common_parent['text'] = tree[right]['text'] + ' ' + tree[left]['text']
+                                        common_parent['is_literal'] = True
+                                        common_parent['leftmost'] = min(tree[left]['leftmost'], tree[right]['leftmost'])
+                                        tree[left]['is_literal'] = False
+                                        tree[right]['is_literal'] = False
+                                if backstop > 1000:
+                                    raise(RuntimeError('Couldn\'t parse the tree.'))
+
+                            phrases = [tree[n]['text'] for n in range(len(token_list), len(tree_nodes))]
+
+                            for phrase in phrases:
+                                yield id_, {
+                                    'sentence_id': row['sentence_index'],
+                                    'phrase': phrase,
+                                    'label': sst_dict[phrase]
+                                }
 
 
 
