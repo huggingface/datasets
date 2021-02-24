@@ -88,9 +88,9 @@ class Covost2(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-You should download the Common Voice v4 dataset from https://commonvoice.mozilla.org/en/datasets.
-and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COVOST_ROOT}` path as `data_dir`
-"""
+        You should download the Common Voice v4 dataset from https://commonvoice.mozilla.org/en/datasets.
+        and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COVOST_ROOT}` path as `data_dir`
+        """
 
     def _info(self):
         return datasets.DatasetInfo(
