@@ -18,12 +18,14 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import json
-import logging
 import os
 import re
 from pathlib import Path
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -149,7 +151,7 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
             [re.compile(r"\" ([^\"]+) \""), r'"\1"'],
             [re.compile(r"\[ ([^]]+) ]"), r"[\1]"],
         ]
-        logging.info("⏳ Generating %s examples from = %s", split, article_dir)
+        logger.info("⏳ Generating %s examples from = %s", split, article_dir)
         guid = 0
         for path in sorted(
             glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True), key=lambda p: int(Path(p).stem)

@@ -2,10 +2,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = ""
@@ -49,7 +51,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, filenames):
         """Generate TurkishProductReviews examples."""
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         for f in sorted(filenames):
             filename, file_extension = os.path.splitext(f)
             label = "negative" if file_extension == "neg" else "positive"

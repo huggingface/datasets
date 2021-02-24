@@ -1,5 +1,4 @@
 import copy
-import logging
 import os
 import pickle
 import shutil
@@ -22,8 +21,9 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
+from datasets.utils.logging import WARNING
 
-from .utils import require_tf, require_torch, require_transformers
+from .utils import require_tf, require_torch, require_transformers, set_current_working_directory_to_temp_dir
 
 
 class Unpicklable:
@@ -208,9 +208,20 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset_serialize(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
+            with set_current_working_directory_to_temp_dir():
+                dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
+                dataset_path = "my_dataset"  # rel path
+                dset.save_to_disk(dataset_path)
+                dset = dset.load_from_disk(dataset_path)
+
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                self.assertEqual(dset["filename"][0], "my_name-train_0")
+                del dset
 
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            dataset_path = os.path.join(tmp_dir, "my_dataset")
+            dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
             dset.save_to_disk(dataset_path)
             dset = dset.load_from_disk(dataset_path)
 
@@ -802,7 +813,7 @@ class BaseDatasetTest(TestCase):
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(logging.WARNING):
+            with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
                 dset_test1_data_files = list(dset_test1._data_files)
@@ -815,7 +826,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(logging.WARNING):
+            with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
                 dset_test1_data_files = list(dset_test1._data_files)
@@ -830,7 +841,7 @@ class BaseDatasetTest(TestCase):
             try:
                 self._caplog.clear()
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    with self._caplog.at_level(logging.WARNING):
+                    with self._caplog.at_level(WARNING):
                         dset = self._create_dummy_dataset(in_memory, tmp_dir)
                         datasets.set_caching_enabled(False)
                         dset_test1 = dset.map(lambda x: {"foo": "bar"})
