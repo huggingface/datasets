@@ -549,52 +549,41 @@ class ClassLabel:
             classes, one per line.
     """
 
-    num_classes: Optional[int] = None
-    names: Optional[List[str]] = None
+    num_classes: int = None
+    names: List[str] = None
     names_file: Optional[str] = None
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
     pa_type: ClassVar[Any] = pa.int64()
-    _str2int: ClassVar[Optional[Dict[str, int]]] = None
-    _int2str: ClassVar[Optional[Dict[int, int]]] = None
+    _str2int: ClassVar[Dict[str, int]] = None
+    _int2str: ClassVar[Dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self):
-        # The label is explicitly set as undefined (no label defined)
-        if not sum(bool(a) for a in (self.num_classes, self.names, self.names_file)):
-            return
-
-        # if sum(bool(a) for a in (self.num_classes, self.names, self.names_file)) != 1:
-        #     raise ValueError("Only a single argument of ClassLabel() should be provided.")
-
-        if self.num_classes is None:
-            if self.names is None:
+        if self.names_file is not None and self.names is not None:
+            raise ValueError("Please provide either names or names_file but not both.")
+        # Set self.names
+        if self.names is None:
+            if self.names_file is not None:
                 self.names = self._load_names_from_file(self.names_file)
-        else:
-            if self.names is None:
+            elif self.num_classes is not None:
                 self.names = [str(i) for i in range(self.num_classes)]
-            elif len(self.names) != self.num_classes:
-                raise ValueError(
-                    "ClassLabel number of names do not match the defined num_classes. "
-                    "Got {} names VS {} num_classes".format(len(self.names), self.num_classes)
-                )
-
+            else:
+                raise ValueError("Please provide either num_classes, names or names_file.")
+        # Set self.num_classes
+        if self.num_classes is None:
+            self.num_classes = len(self.names)
+        elif self.num_classes != len(self.names):
+            raise ValueError(
+                "ClassLabel number of names do not match the defined num_classes. "
+                "Got {} names VS {} num_classes".format(len(self.names), self.num_classes)
+            )
         # Prepare mappings
         self._int2str = [str(name) for name in self.names]
         self._str2int = {name: i for i, name in enumerate(self._int2str)}
         if len(self._int2str) != len(self._str2int):
             raise ValueError("Some label names are duplicated. Each label name should be unique.")
-
-        # If num_classes has been defined, ensure that num_classes and names match
-        num_classes = len(self._str2int)
-        if self.num_classes is None:
-            self.num_classes = num_classes
-        elif self.num_classes != num_classes:
-            raise ValueError(
-                "ClassLabel number of names do not match the defined num_classes. "
-                "Got {} names VS {} num_classes".format(num_classes, self.num_classes)
-            )
 
     def __call__(self):
         return self.pa_type
