@@ -41,6 +41,8 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
+
+# from .dataset_reader import JsonlDatasetReader
 from .features import Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -420,6 +422,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         from .io.json import JsonlDatasetReader
 
         return JsonlDatasetReader(path, info=info, split=split).read()
+
+    # @classmethod
+    # def from_jsonl(cls, path):
+    #     return JsonlDatasetReader(cls, path).read()
+    #     # return cls(JsonlDatasetReader(path).read())
 
     def __del__(self):
         if hasattr(self, "_data"):
