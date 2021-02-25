@@ -434,6 +434,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
+    @staticmethod
+    def from_csv(
+        path: PathLike,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ):
+        """Create Dataset from CSV file.
+        Args:
+            path (path-like): Path of the CSV file.
+            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            split (NamedSplit, optional): Name of the dataset split.
+        Returns:
+            datasets.Dataset
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetReader
+
+        return CsvDatasetReader(path, info=info, split=split).read()
+
     def __del__(self):
         if hasattr(self, "_data"):
             del self._data
