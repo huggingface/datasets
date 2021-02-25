@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
-from .features import Features, Value, cast_to_python_objects
+from .features import Features, Value, cast_to_python_objects, ClassLabel
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -336,6 +336,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Series, the NumPy dtype is translated to its Arrow equivalent. In the case of `object`, we need to guess the datatype by looking at the
         Python objects in this Series.
 
+        The main exception to this is the Category->ClassLabel conversion.  Pyarrow reads a Category as a Dictionary[int, str]
+        but this is insufficient for the datasets ClassLabel type since it does not include the label information itself.
+        To facilitate this, we deliberately convert any Category types to their `int` codes *prior* to pyarrow conversion,
+        and if features were not *provided*, we perform schema inference here so that we can override the default schema inference.
+
         Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that
         we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to
         null. This behavior can be avoided by constructing explicit features and passing it to this function.
@@ -347,19 +352,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 description, citation, etc.
             split (:obj:``datasets.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
         """
+
+        # Step 1: Pre-process pandas dataframe.  a. Convert Category to int.
+        postprocessed_df = df
+        category_values = {}
+        for colname in df.select_dtypes(include=["category"]):
+            category_values[str(colname)] = postprocessed_df[colname].cat.categories.to_list()
+            postprocessed_df[colname] = postprocessed_df[colname].cat.codes
+
+        # Step 2: Generate the pyarrow table, providing features if they were provided by caller.
         if info is not None and features is not None and info.features != features:
             raise ValueError(
-                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
-                    features, info.features
-                )
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        pa_table: pa.Table = pa.Table.from_pandas(
+            df=postprocessed_df, schema=pa.schema(features.type) if features is not None else None
+        )
+
+        # Step 3: Generate the Dataset, perform schema inference ourselves!
+        if features is None:
+            # No features were provided by caller so perform schema inference here for Category->ClassLabel conversion
+            features = Features.from_arrow_schema(pa_table.schema)
+            for colname, labels in category_values.items():
+                features[colname] = ClassLabel(names=labels)
         if info is None:
             info = DatasetInfo()
         info.features = features
-        pa_table: pa.Table = pa.Table.from_pandas(
-            df=df, schema=pa.schema(features.type) if features is not None else None
-        )
         return cls(pa_table, info=info, split=split)
 
     @classmethod
