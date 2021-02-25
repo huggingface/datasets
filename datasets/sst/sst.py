@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
 import os
 
 import numpy as np
@@ -50,6 +49,7 @@ _HOMEPAGE = "https://nlp.stanford.edu/sentiment/"
 _LICENSE = ""
 
 _URL = 'https://www.dropbox.com/s/9j9dc55hs28wrye/stanfordSentimentTreebank.zip?dl=1'
+
 
 class Sst(datasets.GeneratorBasedBuilder):
     """The Stanford Sentiment Treebank"""
