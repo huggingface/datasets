@@ -8,20 +8,21 @@ from .abc import AbstractDatasetReader
 class JsonlDatasetReader(AbstractDatasetReader):
     def read(self):
         table = self._read_table()
-        table = self._cast_table_to_info_features(table)
+        # table = self._cast_table_to_info_features(table)
         return Dataset(table, info=self.info, split=self.split)
 
     def _read_table(self):
+        schema = pa.schema(self.info.features.type) if self.info and self.info.features else None
         # try:
         with open(self.path, "rb") as f:
-            table = paj.read_json(f)
+            table = paj.read_json(f, parse_options=paj.ParseOptions(explicit_schema=schema))
         return table
 
-    def _cast_table_to_info_features(self, table):
-        if self.info and self.info.features:
-            type = self.info.features.type
-            # try
-            schema = pa.schema({col_name: type[col_name].type for col_name in table.column_names})
-            # try
-            table = table.cast(schema)
-        return table
+    # def _cast_table_to_info_features(self, table):
+    #     if self.info and self.info.features:
+    #         type = self.info.features.type
+    #         # try
+    #         schema = pa.schema({col_name: type[col_name].type for col_name in table.column_names})
+    #         # try
+    #         table = table.cast(schema)
+    #     return table
