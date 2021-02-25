@@ -76,13 +76,21 @@ class DatasetDict(dict):
             dataset.dictionary_encode_column_(column=column)
 
     def flatten_(self, max_depth=16):
+        """
+        In-place version of :func:`Dataset.flatten`
+        This method is deprecated, please use :func:`DatasetDict.flatten` instead.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.flatten_(max_depth=max_depth)
+
+    def flatten(self, max_depth=16):
         """Flatten the Apache Arrow Table of each split (nested features are flatten).
         Each column with a struct type is flattened into one column per struct field.
         Other columns are left unchanged.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.flatten_(max_depth=max_depth)
+        return DatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
 
     def unique(self, column: str) -> Dict[str, List[Any]]:
         """Return a list of the unique elements in a column for each split.
@@ -116,6 +124,21 @@ class DatasetDict(dict):
 
     def cast_(self, features: Features):
         """
+        In-place version of :func:`DatasetDict.cast`
+        This method is deprecated, please use :func:`DatasetDict.cast` instead.
+
+        Args:
+            features (:class:`datasets.Features`): New features to cast the dataset to.
+                The name and order of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.cast_(features=features)
+
+    def cast(self, features: Features):
+        """
         Cast the dataset to a new set of features.
         The transformation is applied to all the datasets of the dataset dictionary.
 
@@ -129,10 +152,21 @@ class DatasetDict(dict):
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.cast_(features=features)
+        return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
 
     def remove_columns_(self, column_names: Union[str, List[str]]):
+        """
+        In-place version of :func:`DatasetDict.remove_columns`
+        This method is deprecated, please use :func:`DatasetDict.remove_columns` instead.
+
+        Args:
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.remove_columns_(column_names=column_names)
+
+    def remove_columns(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) from each split in the dataset
         and the features associated to the column(s).
@@ -146,10 +180,22 @@ class DatasetDict(dict):
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.remove_columns_(column_names=column_names)
+        return DatasetDict({k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()})
 
     def rename_column_(self, original_column_name: str, new_column_name: str):
+        """
+        In-place version of :func:`DatasetDict.rename_column_`
+        This method is deprecated, please use :func:`DatasetDict.rename_column` instead.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
+
+    def rename_column(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -163,8 +209,12 @@ class DatasetDict(dict):
             new_column_name (:obj:`str`): New name for the column.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
+        return DatasetDict(
+            {
+                k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+                for k, dataset in self.items()
+            }
+        )
 
     @contextlib.contextmanager
     def formatted_as(
