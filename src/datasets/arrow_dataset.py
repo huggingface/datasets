@@ -358,7 +358,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         category_values = {}
         for colname in df.select_dtypes(include=["category"]):
             category_values[str(colname)] = postprocessed_df[colname].cat.categories.to_list()
-            postprocessed_df[colname] = postprocessed_df[colname].cat.codes
+            postprocessed_df[colname] = postprocessed_df[colname].cat.codes.astype('int64')
 
         # Step 2: Generate the pyarrow table, providing features if they were provided by caller.
         if info is not None and features is not None and info.features != features:
@@ -376,7 +376,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             features = Features.from_arrow_schema(pa_table.schema)
             for colname, labels in category_values.items():
                 features[colname] = ClassLabel(names=labels)
-            pa_table = pa_table.cast(pa.schema(features.type))
         if info is None:
             info = DatasetInfo()
         info.features = features
