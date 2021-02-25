@@ -274,6 +274,9 @@ class DatasetBuilder:
                     )
                     os.rmdir(self._cache_dir)
 
+        # Set download manager
+        self.dl_manager = None
+
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
     # (this is usually due to some external regulations / rules).
@@ -499,6 +502,7 @@ class DatasetBuilder:
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
+        self.dl_manager = dl_manager
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
