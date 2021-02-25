@@ -48,7 +48,7 @@ describing physical occurrence of motion, with annotated physical entities in mo
 
 _HOMEPAGE = "https://github.com/ilmgut/limit_dataset"
 
-_BASE_URL = "https://raw.githubusercontent.com/ilmgut/limit_dataset/master/data"
+_BASE_URL = "https://raw.githubusercontent.com/ilmgut/limit_dataset/0707d3989cd8848f0f11527c77dcf168fefd2b23/data"
 
 _URLS = {
     "train": f"{_BASE_URL}/train.json",

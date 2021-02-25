@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division, print_function
 
 import glob
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -133,7 +135,7 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
         for file_path in files:
             counter = 0
             file_name = os.path.basename(file_path)
-            logging.info("generating examples from = %s", file_path)
+            logger.info("generating examples from = %s", file_path)
             file_id, gender, age, job, horoscope = tuple(file_name.split(".")[:-1])
 
             # Note: import xml.etree.ElementTree as etree does not work. File cannot be parsed
@@ -151,7 +153,7 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
                             sub_id = counter
                             counter += 1
                             if date == "":
-                                logging.warning("Date missing for {} in {}".format(line, file_name))
+                                logger.warning("Date missing for {} in {}".format(line, file_name))
                             assert date is not None, "Date is missing before {}".format(line)
                             blog = {
                                 "text": line,
@@ -165,4 +167,4 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
                         else:
                             continue
                 except UnicodeDecodeError as e:
-                    logging.warning("{} cannot be loaded. Error message: {}".format(file_path, e))
+                    logger.warning("{} cannot be loaded. Error message: {}".format(file_path, e))

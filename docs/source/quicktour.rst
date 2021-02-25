@@ -14,8 +14,8 @@ Let's have a quick look at the 🤗datasets library. This library has three main
     >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
-    136
-    >>> print(', '.join(dataset.id for dataset in datasets_list))
+    656
+    >>> print(', '.join(dataset for dataset in datasets_list))
     aeslc, ag_news, ai2_arc, allocine, anli, arcd, art, billsum, blended_skill_talk, blimp, blog_authorship_corpus, bookcorpus, boolq, break_data,
     c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e, 
     cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli, 

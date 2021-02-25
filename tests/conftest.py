@@ -3,10 +3,46 @@ import textwrap
 
 import pytest
 
+from datasets.arrow_dataset import Dataset
+from datasets.features import ClassLabel, Features, Sequence, Value
+
 
 FILE_CONTENT = """\
     Text data.
     Second line of data."""
+
+
+@pytest.fixture(scope="session")
+def dataset():
+    n = 10
+    features = Features(
+        {
+            "tokens": Sequence(Value("string")),
+            "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            "answers": Sequence(
+                {
+                    "text": Value("string"),
+                    "answer_start": Value("int32"),
+                }
+            ),
+        }
+    )
+    dataset = Dataset.from_dict(
+        {
+            "tokens": [["foo"] * 5] * n,
+            "labels": [[1] * 5] * n,
+            "answers": [{"answer_start": [97], "text": ["1976"]}] * 10,
+        },
+        features=features,
+    )
+    return dataset
+
+
+@pytest.fixture(scope="session")
+def arrow_file(tmp_path_factory, dataset):
+    filename = str(tmp_path_factory.mktemp("data") / "file.arrow")
+    dataset.map(cache_file_name=filename)
+    return filename
 
 
 @pytest.fixture(scope="session")

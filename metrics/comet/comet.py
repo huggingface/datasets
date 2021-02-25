@@ -35,15 +35,12 @@ predictions['scores']
 ```
 """
 
-import os
-from logging import getLogger
-
 from comet.models import download_model  # From: unbabel-comet
 
 import datasets
 
 
-logger = getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 _CITATION = """\
 @inproceedings{rei-EtAl:2020:WMT,

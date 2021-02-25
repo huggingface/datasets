@@ -107,8 +107,7 @@ class DatasetDict(dict):
             Dict with the number of removed files for each split
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.cleanup_cache_files()
+        return {k: dataset.cleanup_cache_files() for k, dataset in self.items()}
 
     def __repr__(self):
         repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
@@ -213,10 +212,15 @@ class DatasetDict(dict):
         Args:
             type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
-                None means __getitem__ returns all columns (default)
+            columns (Optional ``List[str]``): columns to format in the output.
+                None means __getitem__ returns all columns (default).
             output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
+        It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
+        gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
+
+            new formatted columns = (all columns - previously unformatted columns)
         """
         self._check_values_type()
         for dataset in self.values():
@@ -321,7 +325,7 @@ class DatasetDict(dict):
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
@@ -396,7 +400,7 @@ class DatasetDict(dict):
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
@@ -458,7 +462,7 @@ class DatasetDict(dict):
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        indices_cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a column.
@@ -503,12 +507,12 @@ class DatasetDict(dict):
 
     def shuffle(
         self,
-        seeds: Optional[Union[int, Dict[str, int]]] = None,
+        seeds: Optional[Union[int, Dict[str, Optional[int]]]] = None,
         seed: Optional[int] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        indices_cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
         """Create a new Dataset where the rows are shuffled.
