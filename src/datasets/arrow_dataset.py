@@ -354,11 +354,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
 
         # Step 1: Pre-process pandas dataframe.  a. Convert Category to int.
-        postprocessed_df = df
+        postprocessed_df = df.copy()
         category_values = {}
         for colname in df.select_dtypes(include=["category"]):
             category_values[str(colname)] = postprocessed_df[colname].cat.categories.to_list()
-            postprocessed_df[colname] = postprocessed_df[colname].cat.codes.astype('int64')
+            postprocessed_df[colname] = postprocessed_df[colname].cat.codes.astype("int64")
 
         # Step 2: Generate the pyarrow table, providing features if they were provided by caller.
         if info is not None and features is not None and info.features != features:
