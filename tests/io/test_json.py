@@ -44,7 +44,7 @@ def test_dataset_jsonl_reader(split, expected_split, features, jsonl_path):
     ds = JsonlDatasetReader(path, split=split, info=info).read()
     assert ds.num_rows == 4
     assert ds.num_columns == 3
-    assert ds.column_names == ["col_1", "col_2", "col_3"] # feature_names
+    assert ds.column_names == ["col_1", "col_2", "col_3"]
     for feature, expected_dtype in expected_features.items():
         assert ds.features[feature].dtype == expected_dtype
     assert ds.split == expected_split
