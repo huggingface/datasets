@@ -196,10 +196,10 @@ class DownloadManager(object):
         )
         duration = datetime.now() - start_time
         logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
-        self.downloaded_paths.update(dict(zip(flatten_nested(url_or_urls), flatten_nested(downloaded_path_or_paths))))
-
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
+        self.downloaded_paths.update(dict(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())))
+
         start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         duration = datetime.now() - start_time
@@ -259,8 +259,10 @@ class DownloadManager(object):
             path_or_paths,
             num_proc=num_proc,
         )
-        self.extracted_paths.update(dict(zip(flatten_nested(path_or_paths), flatten_nested(extracted_paths))))
-        return extracted_paths
+        path_or_paths = NestedDataStructure(path_or_paths)
+        extracted_paths = NestedDataStructure(extracted_paths)
+        self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
+        return extracted_paths.data
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.
