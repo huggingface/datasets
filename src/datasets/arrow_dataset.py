@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
-from .features import Features, Value, cast_to_python_objects, ClassLabel
+from .features import ClassLabel, Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -376,6 +376,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             features = Features.from_arrow_schema(pa_table.schema)
             for colname, labels in category_values.items():
                 features[colname] = ClassLabel(names=labels)
+            pa_table = pa_table.cast(pa.schema(features.type))
         if info is None:
             info = DatasetInfo()
         info.features = features
