@@ -185,7 +185,7 @@ def for_all_test_methods(*decorators):
     return decorate
 
 
-class RequestWouldHangIndefinitlyError(Exception):
+class RequestWouldHangIndefinitelyError(Exception):
     pass
 
 
@@ -209,7 +209,7 @@ def offline(connection_times_out=False, timeout=1e-16):
         # Change the url to an invalid url so that the connection hangs
         invalid_url = "https://10.255.255.1"
         if kwargs.get("timeout") is None:
-            raise RequestWouldHangIndefinitlyError(
+            raise RequestWouldHangIndefinitelyError(
                 f"Tried a call to {url} in offline mode with no timeout set. Please set a timeout."
             )
         kwargs["timeout"] = timeout

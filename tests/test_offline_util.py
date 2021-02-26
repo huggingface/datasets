@@ -1,12 +1,12 @@
 import pytest
 import requests
 
-from .utils import RequestWouldHangIndefinitlyError, offline
+from .utils import RequestWouldHangIndefinitelyError, offline
 
 
 def test_offline_with_timeout():
     with offline(connection_times_out=True):
-        with pytest.raises(RequestWouldHangIndefinitlyError):
+        with pytest.raises(RequestWouldHangIndefinitelyError):
             requests.request("GET", "https://huggingface.co")
         with pytest.raises(requests.exceptions.ConnectTimeout):
             requests.request("GET", "https://huggingface.co", timeout=1.0)
