@@ -63,6 +63,7 @@ The dataset is based on Turkish.
 
 A text classification dataset with 10 different news category. 
 
+<<<<<<< HEAD
 Here is an example from the dataset:
 
 ```
@@ -77,6 +78,11 @@ Here is an example from the dataset:
 - **category** : Indicates to which category the news text belongs.
 (Such as "kültürsanat", "ekonomi", "siyaset", "eğitim", "dünya", "spor", "teknoloji", "magazin", "sağlık", "gündem")
 - **content** : Contains the text of the news.
+=======
+### Data Fields
+
+[More Information Needed]
+>>>>>>> e74a51f4a9bae1dac0a52a1ae01321c285812f10
 
 ### Data Splits
 
