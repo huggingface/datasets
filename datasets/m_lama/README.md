@@ -111,38 +111,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-http://cistern.cis.lmu.de/mlama/
-- **Repository:**
-https://github.com/norakassner/mlama
-- **Paper:**
-@article{kassner2021multilingual,
-  author    = {Nora Kassner and
-               Philipp Dufter and
-               Hinrich Sch{\"{u}}tze},
-  title     = {Multilingual {LAMA:} Investigating Knowledge in Multilingual Pretrained
-               Language Models},
-  journal   = {CoRR},
-  volume    = {abs/2102.00894},
-  year      = {2021},
-  url       = {https://arxiv.org/abs/2102.00894},
-  archivePrefix = {arXiv},
-  eprint    = {2102.00894},
-  timestamp = {Tue, 09 Feb 2021 13:35:56 +0100},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-2102-00894.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org},
-  note      = {to appear in EACL2021}
-}
-
-@inproceedings{petroni2019language,
-  title={Language Models as Knowledge Bases?},
-  author={F. Petroni, T. Rockt{\"{a}}schel, A. H. Miller, P. Lewis, A. Bakhtin, Y. Wu and S. Riedel},
-  booktitle={In: Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP), 2019},
-  year={2019}
-}
-- **Leaderboard:**
-- **Point of Contact:**
-http://cistern.cis.lmu.de/mlama/
+- **Homepage:** [Multilingual LAMA](http://cistern.cis.lmu.de/mlama/)
+- **Repository:** [Github](https://github.com/norakassner/mlama)
+- **Paper:** [Arxiv](https://arxiv.org/abs/2102.00894)
+- **Point of Contact:** [Contact section](http://cistern.cis.lmu.de/mlama/)
 
 
 
@@ -235,11 +207,11 @@ Data was created through machine translation and automatic processes.
 
 ### Social Impact of Dataset
 
-Unknown.
+[More Information Needed]
 
 ### Discussion of Biases
 
-Unknown.
+[More Information Needed]
 
 ### Other Known Limitations
 
@@ -258,6 +230,7 @@ The Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC 
 
 ### Citation Information
 
+```
 @article{kassner2021multilingual,
   author    = {Nora Kassner and
                Philipp Dufter and
@@ -275,6 +248,7 @@ The Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC 
   bibsource = {dblp computer science bibliography, https://dblp.org},
   note      = {to appear in EACL2021}
 }
+```
 
 ### Contributions
 
