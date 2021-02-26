@@ -10,7 +10,7 @@ licenses:
 - cc-by-3.0
 - cc-by-sa-3.0-at
 - mit
-- other-Open Portion of the  American National Corpus
+- other-Open Portion of the American National Corpus
 multilinguality:
 - monolingual
 size_categories:
@@ -90,14 +90,14 @@ Example of a data instance:
 {
     "promptID": "31193",
     "pairID": "31193n",
-    "sentence1": "Conceptually cream skimming has two basic dimensions - product and geography.",
-    "sentence1_binary_parse": "( ( Conceptually ( cream skimming ) ) ( ( has ( ( ( two ( basic dimensions ) ) - ) ( ( product and ) geography ) ) ) . ) )",
-    "sentence1_parse": "(ROOT (S (NP (JJ Conceptually) (NN cream) (NN skimming)) (VP (VBZ has) (NP (NP (CD two) (JJ basic) (NNS dimensions)) (: -) (NP (NN product) (CC and) (NN geography)))) (. .)))",
-    "sentence2": "Product and geography are what make cream skimming work. ",
-    "sentence2_binary_parse": "( ( ( Product and ) geography ) ( ( are ( what ( make ( cream ( skimming work ) ) ) ) ) . ) )",
-    "sentence2_parse": "(ROOT (S (NP (NN Product) (CC and) (NN geography)) (VP (VBP are) (SBAR (WHNP (WP what)) (S (VP (VBP make) (NP (NP (NN cream)) (VP (VBG skimming) (NP (NN work)))))))) (. .)))",
+    "premise": "Conceptually cream skimming has two basic dimensions - product and geography.",
+    "premise_binary_parse": "( ( Conceptually ( cream skimming ) ) ( ( has ( ( ( two ( basic dimensions ) ) - ) ( ( product and ) geography ) ) ) . ) )",
+    "premise_parse": "(ROOT (S (NP (JJ Conceptually) (NN cream) (NN skimming)) (VP (VBZ has) (NP (NP (CD two) (JJ basic) (NNS dimensions)) (: -) (NP (NN product) (CC and) (NN geography)))) (. .)))",
+    "hypothesis": "Product and geography are what make cream skimming work. ",
+    "hypothesis_binary_parse": "( ( ( Product and ) geography ) ( ( are ( what ( make ( cream ( skimming work ) ) ) ) ) . ) )",
+    "hypothesis_parse": "(ROOT (S (NP (NN Product) (CC and) (NN geography)) (VP (VBP are) (SBAR (WHNP (WP what)) (S (VP (VBP make) (NP (NP (NN cream)) (VP (VBG skimming) (NP (NN work)))))))) (. .)))",
     "genre": "government",
-    "gold_label": "neutral"
+    "label": "neutral"
 }
 ```
 
@@ -107,11 +107,11 @@ The data fields are the same among all splits.
 
 - `promptID`: Unique identifier for prompt
 - `pairID`: Unique identifier for pair
-- `statement{1,2}`: combination of `premise` and `hypothesis`
-- `sentence{1,2} parse`: Each sentence as parsed by the Stanford PCFG Parser 3.5.2
-- `sentence{1,2} binary parse`: parses in unlabeled binary-branching format
+- `{premise,hypothesis}`: combination of `premise` and `hypothesis`
+- `{premise,hypothesis} parse`: Each sentence as parsed by the Stanford PCFG Parser 3.5.2
+- `{premise,hypothesis} binary parse`: parses in unlabeled binary-branching format
 - `genre`: a `string` feature.
-- `gold_label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
 
 ### Data Splits Sample Size
 

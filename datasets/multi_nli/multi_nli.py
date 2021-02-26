@@ -64,18 +64,16 @@ class MultiNli(datasets.GeneratorBasedBuilder):
                 {
                     "promptID": datasets.Value("int32"),
                     "pairID": datasets.Value("string"),
-                    "sentence1": datasets.Value("string"),
-                    "sentence1_binary_parse": datasets.Value("string"),  # parses in unlabeled binary-branching format
-                    "sentence1_parse": datasets.Value(
-                        "string"
-                    ),  # sentence as parsed by the Stanford PCFG Parser 3.5.2
-                    "sentence2": datasets.Value("string"),
-                    "sentence2_binary_parse": datasets.Value("string"),  # parses in unlabeled binary-branching format
-                    "sentence2_parse": datasets.Value(
+                    "premise": datasets.Value("string"),
+                    "premise_binary_parse": datasets.Value("string"),  # parses in unlabeled binary-branching format
+                    "premise_parse": datasets.Value("string"),  # sentence as parsed by the Stanford PCFG Parser 3.5.2
+                    "hypothesis": datasets.Value("string"),
+                    "hypothesis_binary_parse": datasets.Value("string"),  # parses in unlabeled binary-branching format
+                    "hypothesis_parse": datasets.Value(
                         "string"
                     ),  # sentence as parsed by the Stanford PCFG Parser 3.5.2
                     "genre": datasets.Value("string"),
-                    "gold_label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -110,12 +108,12 @@ class MultiNli(datasets.GeneratorBasedBuilder):
                 yield id_, {
                     "promptID": data["promptID"],
                     "pairID": data["pairID"],
-                    "sentence1": data["sentence1"],
-                    "sentence1_binary_parse": data["sentence1_binary_parse"],
-                    "sentence1_parse": data["sentence1_parse"],
-                    "sentence2": data["sentence2"],
-                    "sentence2_binary_parse": data["sentence2_binary_parse"],
-                    "sentence2_parse": data["sentence2_parse"],
+                    "premise": data["sentence1"],
+                    "premise_binary_parse": data["sentence1_binary_parse"],
+                    "premise_parse": data["sentence1_parse"],
+                    "hypothesis": data["sentence2"],
+                    "hypothesis_binary_parse": data["sentence2_binary_parse"],
+                    "hypothesis_parse": data["sentence2_parse"],
                     "genre": data["genre"],
-                    "gold_label": data["gold_label"],
+                    "label": data["gold_label"],
                 }
