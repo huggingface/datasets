@@ -86,6 +86,8 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # for saving datsets to local
     "fsspec",
+    # To get datasets from the Datasets Hub on huggingface.co
+    "huggingface_hub==0.0.2",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -96,34 +98,62 @@ BENCHMARKS_REQUIRE = [
 ]
 
 TESTS_REQUIRE = [
-    "apache-beam",
+    # test dependencies
     "absl-py",
+    "pytest",
+    "pytest-xdist",
+    # optional dependencies
+    "apache-beam>=2.24.0",
+    "elasticsearch",
+    "boto3==1.16.43",
+    "botocore==1.19.43",
+    "faiss-cpu",
+    "fsspec[s3]",
+    "moto[s3]==1.3.16",
+    "rarfile>=4.0",
+    "tensorflow>=2.3",
+    "torch",
+    "transformers",
+    # datasets dependencies
     "bs4",
     "conllu",
-    "elasticsearch",
-    "faiss-cpu",
     "langdetect",
     "lxml",
     "mwparserfromhell",
     "nltk",
     "openpyxl",
     "py7zr",
-    "pytest",
-    "pytest-xdist",
-    "tensorflow",
-    "torch",
     "tldextract",
-    "transformers",
     "zstandard",
-    "rarfile",
-    "moto[s3]==1.3.16",
-    "fsspec[s3]",
-    "boto3==1.16.43",
-    "botocore==1.19.43",
+    # metrics dependencies
+    "bert_score>=0.3.6",
+    "rouge_score",
+    "sacrebleu",
+    "scipy",
+    "seqeval",
+    "sklearn",
+    "jiwer",
+    # to speed up pip backtracking
+    "toml>=0.10.1",
+    "requests_file>=1.5.1",
+    "tldextract>=3.1.0",
+    "texttable>=1.6.3",
+    "s3fs>=0.4.2",
+    "Werkzeug>=1.0.1",
 ]
 
 if os.name == "nt":  # windows
     TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
+else:
+    # dependencies of unbabel-comet
+    # only test if not on windows since there're issues installing fairseq on windows
+    TESTS_REQUIRE.extend([
+        "wget>=3.2",
+        "pytorch-nlp==0.5.0",
+        "pytorch_lightning",
+        "fastBPE==0.1.0",
+        "fairseq",
+    ])
 
 
 QUALITY_REQUIRE = [
@@ -159,7 +189,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.2.1",
+    version="1.3.0",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",

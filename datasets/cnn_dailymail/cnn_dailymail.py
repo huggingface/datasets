@@ -18,10 +18,12 @@
 from __future__ import absolute_import, division, print_function
 
 import hashlib
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -110,7 +112,7 @@ def _get_url_hashes(path):
         try:
             u = u.encode("utf-8")
         except UnicodeDecodeError:
-            logging.error("Cannot hash url: %s", u)
+            logger.error("Cannot hash url: %s", u)
         h.update(u)
         return h.hexdigest()
 
@@ -130,7 +132,7 @@ def _find_files(dl_paths, publisher, url_dict):
     elif publisher == "dm":
         top_dir = os.path.join(dl_paths["dm_stories"], "dailymail", "stories")
     else:
-        logging.fatal("Unsupported publisher: %s", publisher)
+        logger.fatal("Unsupported publisher: %s", publisher)
     files = sorted(os.listdir(top_dir))
 
     ret_files = []
@@ -151,7 +153,7 @@ def _subset_filenames(dl_paths, split):
     elif split == datasets.Split.TEST:
         urls = _get_url_hashes(dl_paths["test_urls"])
     else:
-        logging.fatal("Unsupported split: %s", split)
+        logger.fatal("Unsupported split: %s", split)
     cnn = _find_files(dl_paths, "cnn", urls)
     dm = _find_files(dl_paths, "dm", urls)
     return cnn + dm

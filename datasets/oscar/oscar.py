@@ -20,9 +20,11 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 import gzip
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -349,16 +351,16 @@ class Oscar(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths):
-        """This function returns the examples in the raw (text) form."""
+        """This function returns the examples in the raw (text) form by iterating on all the files."""
         id_ = 0
         current_lines = []
         for filepath in filepaths:
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             with gzip.open(filepath, "rt") as f:
                 for line in f:
                     if len(line.strip()) > 0:
                         current_lines.append(line)
-                    else:
+                    elif current_lines:
                         feature = id_, {"id": id_, "text": "".join(current_lines).rstrip()}
                         yield feature
                         id_ += 1

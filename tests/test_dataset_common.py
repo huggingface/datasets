@@ -36,17 +36,17 @@ from datasets import (
     hf_api,
     import_main_class,
     load_dataset,
-    logging,
     prepare_module,
 )
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
+from datasets.utils.logging import get_logger
 
 from .utils import for_all_test_methods, local, offline, packaged, remote, slow
 
 
-logger = logging.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 REQUIRE_FAISS = {"wiki_dpr"}

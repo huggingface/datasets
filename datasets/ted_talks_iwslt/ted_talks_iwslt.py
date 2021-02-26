@@ -16,13 +16,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 import xml.etree.ElementTree as ET
 import zipfile
 from collections import defaultdict
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 # TODO: Add BibTeX citation
@@ -342,8 +344,8 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
                         source_ids = [talk.get("head")[0].get("talkid") for talk in source_talks]
                         target_ids = [talk.get("head")[0].get("talkid") for talk in target_talks]
                     except Exception as pe:
-                        logging.warning(f"ERROR: {pe}")
-                        logging.warning(
+                        logger.warning(f"ERROR: {pe}")
+                        logger.warning(
                             f"This likely means that you have a malformed XML file!\nEither {source} or {target}\n"
                         )
                         source_ids = list()

@@ -323,6 +323,10 @@ class FaissIndex(BaseIndex):
             hasattr(self.faiss_index, "device")
             and self.faiss_index.device is not None
             and self.faiss_index.device > -1
+        ) or (
+            hasattr(self.faiss_index, "getDevice")
+            and self.faiss_index.getDevice() is not None
+            and self.faiss_index.getDevice() > -1
         ):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
@@ -406,10 +410,11 @@ class IndexableMixin:
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = FaissIndex(
+        faiss_index = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
         )
-        self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
+        faiss_index.add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
+        self._indexes[index_name] = faiss_index
 
     def add_faiss_index_from_external_arrays(
         self,
@@ -439,12 +444,11 @@ class IndexableMixin:
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
-        self._indexes[index_name] = FaissIndex(
+        faiss_index = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
         )
-        self._indexes[index_name].add_vectors(
-            external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
-        )
+        faiss_index.add_vectors(external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose)
+        self._indexes[index_name] = faiss_index
 
     def save_faiss_index(self, index_name: str, file: Union[str, PurePath]):
         """Save a FaissIndex on disk
@@ -528,10 +532,11 @@ class IndexableMixin:
             }
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = ElasticSearchIndex(
+        es_index = ElasticSearchIndex(
             host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
         )
-        self._indexes[index_name].add_documents(self, column=column)
+        es_index.add_documents(self, column=column)
+        self._indexes[index_name] = es_index
 
     def load_elasticsearch_index(
         self,

@@ -16,10 +16,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -211,7 +213,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        logging.info("⏳ Generating %s examples from = %s", split, filepath)
+        logger.info("⏳ Generating %s examples from = %s", split, filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []

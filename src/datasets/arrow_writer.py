@@ -23,17 +23,15 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
+from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
-from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
+from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
 
-# Batch size constants. For more info, see:
-# https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 type_ = type  # keep python's type function
 
 
@@ -164,14 +162,14 @@ class ArrowWriter(object):
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
-        self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
+        self.writer_batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_rows = []
+        self.current_rows: List[Dict[str, Any]] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
     def __len__(self):
@@ -345,7 +343,7 @@ class BeamWriter(object):
         self._parquet_path = os.path.splitext(path)[0]  # remove extension
         self._namespace = namespace or "default"
         self._num_examples = None
-        self._cache_dir = cache_dir or HF_DATASETS_CACHE
+        self._cache_dir = cache_dir or config.HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
         """Add the final steps of the beam pipeline: write to parquet files."""

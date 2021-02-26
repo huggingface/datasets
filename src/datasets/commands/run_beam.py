@@ -4,7 +4,8 @@ from pathlib import Path
 from shutil import copyfile
 from typing import List
 
-from datasets.builder import FORCE_REDOWNLOAD, HF_DATASETS_CACHE, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
+from datasets import config
+from datasets.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
 from datasets.commands import BaseTransformersCLICommand
 from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module
@@ -95,10 +96,10 @@ class RunBeamCommand(BaseTransformersCLICommand):
         else:
             beam_options = None
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
-            for config in builder_cls.BUILDER_CONFIGS:
+            for builder_config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=config.name,
+                        name=builder_config.name,
                         data_dir=self._data_dir,
                         hash=hash,
                         beam_options=beam_options,
@@ -113,7 +114,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         for builder in builders:
             builder.download_and_prepare(
                 download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
-                download_config=DownloadConfig(cache_dir=os.path.join(HF_DATASETS_CACHE, "downloads")),
+                download_config=DownloadConfig(cache_dir=os.path.join(config.HF_DATASETS_CACHE, "downloads")),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
