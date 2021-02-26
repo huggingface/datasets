@@ -14,10 +14,27 @@ FILE_CONTENT = """\
 
 @pytest.fixture(scope="session")
 def dataset():
+    n = 10
     features = Features(
-        {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        {
+            "tokens": Sequence(Value("string")),
+            "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            "answers": Sequence(
+                {
+                    "text": Value("string"),
+                    "answer_start": Value("int32"),
+                }
+            ),
+        }
     )
-    dataset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+    dataset = Dataset.from_dict(
+        {
+            "tokens": [["foo"] * 5] * n,
+            "labels": [[1] * 5] * n,
+            "answers": [{"answer_start": [97], "text": ["1976"]}] * 10,
+        },
+        features=features,
+    )
     return dataset
 
 

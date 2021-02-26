@@ -169,7 +169,7 @@ class ArrowWriter(object):
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_rows = []
+        self.current_rows: List[Dict[str, Any]] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
     def __len__(self):

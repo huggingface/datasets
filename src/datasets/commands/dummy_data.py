@@ -41,20 +41,20 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
     def __init__(self, mock_download_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mock_download_manager = mock_download_manager
-        self.downloaded_paths = []
+        self.downloaded_dummy_paths = []
         self.expected_dummy_paths = []
 
     def download(self, url_or_urls):
         output = super().download(url_or_urls)
         dummy_output = self.mock_download_manager.download(url_or_urls)
-        map_nested(self.downloaded_paths.append, output, map_tuple=True)
+        map_nested(self.downloaded_dummy_paths.append, output, map_tuple=True)
         map_nested(self.expected_dummy_paths.append, dummy_output, map_tuple=True)
         return output
 
     def download_and_extract(self, url_or_urls):
         output = super().extract(super().download(url_or_urls))
         dummy_output = self.mock_download_manager.download(url_or_urls)
-        map_nested(self.downloaded_paths.append, output, map_tuple=True)
+        map_nested(self.downloaded_dummy_paths.append, output, map_tuple=True)
         map_nested(self.expected_dummy_paths.append, dummy_output, map_tuple=True)
         return output
 
@@ -77,7 +77,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         )
         total = 0
         self.mock_download_manager.load_existing_dummy_data = False
-        for src_path, relative_dst_path in zip(self.downloaded_paths, self.expected_dummy_paths):
+        for src_path, relative_dst_path in zip(self.downloaded_dummy_paths, self.expected_dummy_paths):
             dst_path = os.path.join(
                 self.mock_download_manager.datasets_scripts_dir,
                 self.mock_download_manager.dataset_name,

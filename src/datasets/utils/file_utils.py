@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
@@ -41,7 +41,7 @@ logger = get_logger(__name__)  # pylint: disable=invalid-name
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
-def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
+def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
     """
     Add hf_modules_cache to the python path.
     By default hf_modules_cache='~/.cache/huggingface/modules'.
@@ -165,7 +165,7 @@ def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
     return config.HUB_DATASETS_URL.format(path=path, name=name, version=version)
 
 
-def url_or_path_join(base_name: str, *pathnames: List[str]) -> str:
+def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
         return posixpath.join(base_name, *pathnames)
     else:
@@ -232,7 +232,7 @@ class DownloadConfig:
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
-    use_auth_token: Optional[str] = None
+    use_auth_token: Optional[Union[str, bool]] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -372,7 +372,7 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] = None) -> dict:
+def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
     if url.startswith("https://huggingface.co/"):

@@ -3,10 +3,9 @@ import json
 import os
 import random
 import tempfile
-from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -107,7 +106,7 @@ def hashregister(t):
 class Hasher:
     """Hasher that accepts python objets as inputs."""
 
-    dispatch = {}
+    dispatch: Dict = {}
 
     def __init__(self):
         self.m = xxhash.xxh64()
@@ -168,7 +167,7 @@ def _hash_dataset_info(hasher, value):
 #################
 
 # we show a warning only once when fingerprinting fails to avoid spam
-fingerprint_warnings = {}
+fingerprint_warnings: Dict[str, bool] = {}
 
 
 def generate_fingerprint(dataset) -> str:
@@ -240,8 +239,35 @@ def update_fingerprint(fingerprint, transform, transform_args):
 
 
 def fingerprint_transform(
-    inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=None, randomized_function=None
+    inplace: bool,
+    use_kwargs: Optional[List[str]] = None,
+    ignore_kwargs: Optional[List[str]] = None,
+    fingerprint_names: Optional[List[str]] = None,
+    randomized_function: bool = False,
 ):
+    """
+    Wrapper for dataset transforms to update the dataset fingerprint using ``update_fingerprint``
+
+    Args:
+        inplace (``bool``):  If inplace is True, the fingerprint of the dataset is updated inplace.
+            Otherwise, a parameter "new_fingerprint" is passed to the wrapped method that should take care of
+            setting the fingerprint of the returned Dataset.
+        use_kwargs (Optional ``List[str]``): optional white list of argument names to take into account
+            to update the fingerprint to the wrapped method that should take care of
+            setting the fingerprint of the returned Dataset. By default all the arguments are used.
+        ignore_kwargs (Optional ``List[str]``): optional black list of argument names to take into account
+            to update the fingerprint. Note that ignore_kwargs prevails on use_kwargs.
+        fingerprint_names (Optional ``List[str]``, defaults to ["new_fingerprint"]):
+            If the dataset transforms is not inplace and returns a DatasetDict, then it can require
+            several fingerprints (one per dataset in the DatasetDict). By specifying fingerprint_names,
+            one fingerprint named after each element of fingerprint_names is going to be passed.
+        randomized_function (``bool``, defaults to False): If the dataset transform is random and has
+            optional parameters "seed" and "generator", then you can set randomized_function to True.
+            This way, even if users set "seed" and "generator" to None, then the fingerprint is
+            going to be randomly generated depending on numpy's current state. In this case, the
+            generator is set to np.random.default_rng(np.random.get_state()[1][0]).
+    """
+
     assert use_kwargs is None or isinstance(use_kwargs, list), "use_kwargs is supposed to be a list, not {}".format(
         type(use_kwargs)
     )
@@ -262,7 +288,7 @@ def fingerprint_transform(
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            kwargs_for_fingerprint = dict(kwargs)
+            kwargs_for_fingerprint = kwargs.copy()
             if args:
                 params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
                 self: "Dataset" = args[0]
@@ -298,7 +324,6 @@ def fingerprint_transform(
             transform = func.__module__ + "." + func.__qualname__
             if inplace:
                 new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
-                new_inplace_history_item = (func.__name__, deepcopy(args), deepcopy(kwargs))
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
@@ -315,8 +340,6 @@ def fingerprint_transform(
 
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
                 self._fingerprint = new_fingerprint
-                for inplace_hist_per_file in self._inplace_history:
-                    inplace_hist_per_file["transforms"].append(new_inplace_history_item)
 
             return out
 
