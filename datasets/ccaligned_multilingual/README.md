@@ -1,15 +1,149 @@
 ---
-annotations_creators: []
+annotations_creators:
+- no-annotation
 language_creators:
 - found
-languages: []
+languages:
+- af
+- ak
+- am   
+- ar
+- as
+- ay
+- az
+- be
+- bg
+- bm
+- bn
+- br
+- bs   
+- ca
+- cb
+- cs
+- cx   
+- cy
+- de   
+- dv
+- el
+- eo   
+- es   
+- fa
+- ff
+- fi
+- fo
+- fr   
+- fy   
+- ga
+- gl
+- gn
+- gu   
+- he
+- hi
+- hr
+- hu
+- id
+- ig   
+- is
+- it   
+- iu
+- ja
+- ka
+- kg   
+- kk
+- km   
+- kn   
+- ko
+- ku   
+- ky   
+- la   
+- lg
+- li
+- ln
+- lo   
+- lt
+- lv
+- mg   
+- mi   
+- mk
+- ml   
+- mn   
+- mr   
+- ms
+- mt
+- my   
+- my
+- ne   
+- nl
+- no
+- ns
+- ny   
+- om
+- or
+- pa   
+- pl
+- ps   
+- pt
+- qa   
+- qd   
+- rm
+- ro
+- ru   
+- rw
+- sc
+- sd   
+- se
+- si   
+- sk
+- sl
+- sn   
+- so   
+- sq
+- sr
+- ss
+- st
+- su   
+- sv
+- sw
+- sy
+- sz
+- ta
+- te   
+- tg   
+- th
+- ti
+- tl
+- tn
+- tr
+- ts
+- tt
+- tz   
+- ug
+- uk
+- ur
+- uz
+- ve
+- vi
+- wo
+- wy
+- xh   
+- yi   
+- yo   
+- zh
+- zh
+- zu   
+- zz
 licenses:
 - unknown
 multilinguality:
 - translation
 size_categories:
-- unknown
-source_datasets: []
+- n<1K
+- 1K<n<10K
+- 10K<n<100K
+- 100K<n<1M
+- n>1M
+source_datasets:
+- original
 task_categories:
 - other
 task_ids:
@@ -40,6 +174,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -51,7 +186,18 @@ task_ids:
 
 ### Dataset Summary
 
-CCAligned consists of parallel or comparable web-document pairs in 137 languages aligned with English. These web-document pairs were constructed by performing language identification on raw web-documents, and ensuring corresponding language codes were corresponding in the URLs of web documents. This pattern matching approach yielded more than 100 million aligned documents paired with English. Recognizing that each English document was often aligned to mulitple documents in different target language, we can join on English documents to obtain aligned documents that directly pair two non-English documents (e.g., Arabic-French). This corpus was created from 68 Commoncrawl Snapshots
+CCAligned consists of parallel or comparable web-document pairs in 137 languages aligned with English. These web-document pairs were constructed by performing language identification on raw web-documents, and ensuring corresponding language codes were corresponding in the URLs of web documents. This pattern matching approach yielded more than 100 million aligned documents paired with English. Recognizing that each English document was often aligned to mulitple documents in different target language, we can join on English documents to obtain aligned documents that directly pair two non-English documents (e.g., Arabic-French). This corpus was created from 68 Commoncrawl Snapshots.
+
+
+To load a language which isn't part of the config, all you need to do is specify the language code. You can find the valid languages in http://www.statmt.org/cc-aligned/ E.g.
+```
+dataset = load_dataset("ccaligned_multilingual", language_code="fr_XX", type="documents")
+```
+or
+```
+dataset = load_dataset("ccaligned_multilingual", language_code="fr_XX", type="sentences")
+```
+
 
 ### Supported Tasks and Leaderboards
 
@@ -155,6 +301,7 @@ For `sentences` type:
 
 ### Citation Information
 
+```
 @inproceedings{elkishky_ccaligned_2020,
  author = {El-Kishky, Ahmed and Chaudhary, Vishrav and Guzm{\'a}n, Francisco and Koehn, Philipp},
  booktitle = {Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP 2020)},
@@ -167,3 +314,8 @@ For `sentences` type:
  doi = "10.18653/v1/2020.emnlp-main.480",
  pages = "5960--5969"
 }
+```
+
+### Contributions
+
+Thanks to [@gchhablani](https://github.com/gchhablani) for adding this dataset.

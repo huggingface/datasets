@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""CCAligned Multilingual Translation Dataset"""
+"""Ccaligned Multilingual Translation Dataset"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -77,7 +77,7 @@ reverse_mapped_sentences = [
 ]  # Some languages have the reverse source languages in the URLs.
 
 
-class CCAlignedMultilingualConfig(datasets.BuilderConfig):
+class CcalignedMultilingualConfig(datasets.BuilderConfig):
     def __init__(self, *args, type=None, language_code=None, **kwargs):
         super().__init__(
             *args,
@@ -88,43 +88,43 @@ class CCAlignedMultilingualConfig(datasets.BuilderConfig):
         self.language_code = language_code
 
 
-class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
-    """The CCAligned Multilingual Dataset."""
+class CcalignedMultilingual(datasets.GeneratorBasedBuilder):
+    """The Ccaligned Multilingual Dataset."""
 
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        CCAlignedMultilingualConfig(
+        CcalignedMultilingualConfig(
             type="documents",
             language_code="zz_TR",
             version=VERSION,
             description="The dataset containing document-pairs for en_XX-zz_TR.",
         ),
-        CCAlignedMultilingualConfig(
+        CcalignedMultilingualConfig(
             type="sentences",
             language_code="zz_TR",
             version=VERSION,
             description="The dataset containing sentence-pairs for en_XX-zz_TR.",
         ),
-        CCAlignedMultilingualConfig(
+        CcalignedMultilingualConfig(
             type="documents",
             language_code="tz_MA",
             version=VERSION,
             description="The dataset containing document-pairs for en_XX-tz_MA.",
         ),
-        CCAlignedMultilingualConfig(
+        CcalignedMultilingualConfig(
             type="sentences",
             language_code="tz_MA",
             version=VERSION,
             description="The dataset containing sentence-pairs for en_XX-tz_MA.",
         ),
-        CCAlignedMultilingualConfig(
+        CcalignedMultilingualConfig(
             type="documents",
             language_code="ak_GH",
             version=VERSION,
             description="The dataset containing document-pairs for en_XX-ak_GH.",
         ),
-        CCAlignedMultilingualConfig(
+        CcalignedMultilingualConfig(
             type="sentences",
             language_code="ak_GH",
             version=VERSION,
@@ -132,9 +132,9 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    BUILDER_CONFIG_CLASS = CCAlignedMultilingualConfig
+    BUILDER_CONFIG_CLASS = CcalignedMultilingualConfig
 
-    DEFAULT_CONFIG_NAME = "documents-zz_TR"
+    # DEFAULT_CONFIG_NAME = "documents-zz_TR" # Not Needed
 
     def _info(self):
         if self.config.name[:9] == "documents":
@@ -142,20 +142,18 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
                 {
                     "Domain": datasets.Value("string"),
                     "Source_URL": datasets.Value("string"),
-                    "Source_Content": datasets.Value("string"),
                     "Target_URL": datasets.Value("string"),
-                    "Target_Content": datasets.Value("string"),
+                    "translation": datasets.Translation(languages=("en_XX", self.config.language_code)),
                 }
             )
         else:
             features = datasets.Features(
                 {
-                    "Source_Sentence": datasets.Value("string"),
-                    "Target_Sentence": datasets.Value("string"),
+                    "translation": datasets.Translation(languages=("en_XX", self.config.language_code)),
                     "LASER_similarity": datasets.Value("float"),
-                    "from_english": datasets.Value("bool"),
                 }
             )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -193,6 +191,8 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, from_english=False):
         """ Yields examples. """
+        lc = self.config.language_code
+        reverse = lc in reverse_mapped_sentences
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = row.split("\t")
@@ -200,14 +200,17 @@ class CCAlignedMultilingual(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "Domain": data[0],
                         "Source_URL": data[1],
-                        "Source_Content": data[2],
                         "Target_URL": data[3],
-                        "Target_Content": data[4],
+                        "translation": {"en_XX": data[2].strip(), lc: data[4].strip()},
                     }
                 else:
-                    yield id_, {
-                        "Source_Sentence": data[0],
-                        "Target_Sentence": data[1],
-                        "LASER_similarity": data[2],
-                        "from_english": from_english,
-                    }
+                    if not reverse:
+                        yield id_, {
+                            "translation": {"en_XX": data[0].strip(), lc: data[1].strip()},
+                            "LASER_similarity": data[2],
+                        }
+                    else:
+                        yield id_, {
+                            "translation": {lc: data[0].strip(), "en_XX": data[1].strip()},
+                            "LASER_similarity": data[2],
+                        }
