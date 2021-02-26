@@ -109,84 +109,38 @@ class Sst(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URL)
-        phrases_path = os.path.join(data_dir, "dictionary.txt")
-        labels_path = os.path.join(data_dir, "sentiment_labels.txt")
-        tokens_path = os.path.join(data_dir, "SOStr.txt")
-        trees_path = os.path.join(data_dir, "STree.txt")
-        ptb_train = os.path.join(data_dir, "ptb_train.txt")
-        ptb_dev = os.path.join(data_dir, "ptb_dev.txt")
-        ptb_test = os.path.join(data_dir, "ptb_test.txt")
-
-        # Store the labels of all possible phrases in a dictionary
-        sst = {}
-        with open(phrases_path) as f, open(labels_path) as g:
-            phrase_reader = csv.reader(f, delimiter="|", quoting=csv.QUOTE_NONE)
-            for row in phrase_reader:
-                sst[row[1]] = {}
-                sst[row[1]]["phrase"] = row[0]
-
-            label_reader = csv.DictReader(g, delimiter="|", quoting=csv.QUOTE_NONE)
-            for row in label_reader:
-                sst[row["phrase ids"]]["label"] = float(row["sentiment values"])
-        sst = {v["phrase"]: v["label"] for (k, v) in sst.items()}
-
-        # Read parse trees for each complete sentence
-        trees = {}
-        with open(tokens_path) as tok, open(trees_path) as tr:
-            tok_reader = csv.reader(tok, delimiter="\t", quoting=csv.QUOTE_NONE)
-            tree_reader = csv.reader(tr, delimiter="\t", quoting=csv.QUOTE_NONE)
-            for i, row in enumerate(tok_reader, start=1):
-                trees[i] = {}
-                trees[i]["tokens"] = row[0]
-            for i, row in enumerate(tree_reader, start=1):
-                trees[i]["tree"] = row[0]
 
         file_paths = {}
         for split_index in range(1, 4):
             file_paths[split_index] = {
-                "sst_dict": sst,
-                "trees": trees,
+                "phrases_path": os.path.join(data_dir, "dictionary.txt"),
+                "labels_path": os.path.join(data_dir, "sentiment_labels.txt"),
+                "tokens_path": os.path.join(data_dir, "SOStr.txt"),
+                "trees_path": os.path.join(data_dir, "STree.txt"),
                 "splits_path": os.path.join(data_dir, "datasetSplit.txt"),
                 "sentences_path": os.path.join(data_dir, "datasetSentences.txt"),
                 "ptb_filepath": None,
                 "split_id": str(split_index),
             }
 
+        ptb_file_paths = {}
+        for ptb_split in ['train', 'dev', 'test']:
+            ptb_file_paths[ptb_split] = {
+                "phrases_path": None,
+                "labels_path": None,
+                "tokens_path": None,
+                "trees_path": None,
+                "splits_path": None,
+                "sentences_path": None,
+                "ptb_filepath": os.path.join(data_dir, "ptb_" + ptb_split + ".txt"),
+                "split_id": None,  
+            }
+
         if self.config.name == "ptb":
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "sst_dict": None,
-                        "trees": None,
-                        "splits_path": None,
-                        "sentences_path": None,
-                        "ptb_filepath": ptb_train,
-                        "split_id": None,
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "sst_dict": None,
-                        "trees": None,
-                        "splits_path": None,
-                        "sentences_path": None,
-                        "ptb_filepath": ptb_dev,
-                        "split_id": None,
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "sst_dict": None,
-                        "trees": None,
-                        "splits_path": None,
-                        "sentences_path": None,
-                        "ptb_filepath": ptb_test,
-                        "split_id": None,
-                    },
-                ),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=ptb_file_paths['train']),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=ptb_file_paths['dev']),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=ptb_file_paths['test']),
             ]
         else:
             return [
@@ -195,7 +149,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=file_paths[2]),
             ]
 
-    def _generate_examples(self, sst_dict, splits_path, sentences_path, trees, split_id, ptb_filepath):
+    def _generate_examples(self, phrases_path, labels_path, tokens_path, trees_path, splits_path, sentences_path, split_id, ptb_filepath):
 
         if self.config.name == "ptb":
             with open(ptb_filepath) as fp:
@@ -203,6 +157,31 @@ class Sst(datasets.GeneratorBasedBuilder):
                 for id_, row in enumerate(ptb_reader):
                     yield id_, {"tree": row[0]}
         else:
+
+            # Store the labels of all possible phrases in a dictionary
+            sst = {}
+            with open(phrases_path) as f, open(labels_path) as g:
+                phrase_reader = csv.reader(f, delimiter="|", quoting=csv.QUOTE_NONE)
+                for row in phrase_reader:
+                    sst[row[1]] = {}
+                    sst[row[1]]["phrase"] = row[0]
+
+                label_reader = csv.DictReader(g, delimiter="|", quoting=csv.QUOTE_NONE)
+                for row in label_reader:
+                    sst[row["phrase ids"]]["label"] = float(row["sentiment values"])
+            sst = {v["phrase"]: v["label"] for (k, v) in sst.items()}
+
+            # Read parse trees for each complete sentence
+            trees = {}
+            with open(tokens_path) as tok, open(trees_path) as tr:
+                tok_reader = csv.reader(tok, delimiter="\t", quoting=csv.QUOTE_NONE)
+                tree_reader = csv.reader(tr, delimiter="\t", quoting=csv.QUOTE_NONE)
+                for i, row in enumerate(tok_reader, start=1):
+                    trees[i] = {}
+                    trees[i]["tokens"] = row[0]
+                for i, row in enumerate(tree_reader, start=1):
+                    trees[i]["tree"] = row[0]
+
             with open(splits_path) as spl, open(sentences_path) as snt:
 
                 splits_reader = csv.DictReader(spl, delimiter=",", quoting=csv.QUOTE_NONE)
@@ -218,7 +197,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                             yield id_, {
                                 "sentence_id": row["sentence_index"],
                                 "sentence": row["sentence"],
-                                "label": sst_dict[row["sentence"]],
+                                "label": sst[row["sentence"]],
                                 "tokens": tokens,
                                 "tree": parse_tree,
                             }
@@ -272,5 +251,5 @@ class Sst(datasets.GeneratorBasedBuilder):
                                 yield id_, {
                                     "sentence_id": row["sentence_index"],
                                     "phrase": phrase,
-                                    "label": sst_dict[phrase],
+                                    "label": sst[phrase],
                                 }
