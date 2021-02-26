@@ -48,7 +48,7 @@ _HOMEPAGE = "https://nlp.stanford.edu/sentiment/"
 
 _LICENSE = ""
 
-_URL = 'https://www.dropbox.com/s/9j9dc55hs28wrye/stanfordSentimentTreebank.zip?dl=1'
+_URL = "https://www.dropbox.com/s/9j9dc55hs28wrye/stanfordSentimentTreebank.zip?dl=1"
 
 
 class Sst(datasets.GeneratorBasedBuilder):
@@ -124,7 +124,7 @@ class Sst(datasets.GeneratorBasedBuilder):
             }
 
         ptb_file_paths = {}
-        for ptb_split in ['train', 'dev', 'test']:
+        for ptb_split in ["train", "dev", "test"]:
             ptb_file_paths[ptb_split] = {
                 "phrases_path": None,
                 "labels_path": None,
@@ -133,14 +133,14 @@ class Sst(datasets.GeneratorBasedBuilder):
                 "splits_path": None,
                 "sentences_path": None,
                 "ptb_filepath": os.path.join(data_dir, "ptb_" + ptb_split + ".txt"),
-                "split_id": None,  
+                "split_id": None,
             }
 
         if self.config.name == "ptb":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=ptb_file_paths['train']),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=ptb_file_paths['dev']),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=ptb_file_paths['test']),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=ptb_file_paths["train"]),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=ptb_file_paths["dev"]),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=ptb_file_paths["test"]),
             ]
         else:
             return [
@@ -149,7 +149,9 @@ class Sst(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=file_paths[2]),
             ]
 
-    def _generate_examples(self, phrases_path, labels_path, tokens_path, trees_path, splits_path, sentences_path, split_id, ptb_filepath):
+    def _generate_examples(
+        self, phrases_path, labels_path, tokens_path, trees_path, splits_path, sentences_path, split_id, ptb_filepath
+    ):
 
         if self.config.name == "ptb":
             with open(ptb_filepath) as fp:
