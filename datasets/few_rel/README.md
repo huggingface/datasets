@@ -20,7 +20,7 @@ source_datasets:
 task_categories:
 - other
 task_ids:
-- other-other-relation-classification
+- other-other-relation-extraction
 ---
 
 # Dataset Card for few_rel
@@ -76,11 +76,13 @@ The dataset contaings English text, as used by writers on Wikipedia, and crowdso
 An instance from `train_wiki` split:
 
 ```
-{'head': {'indices': [[16]], 'text': 'tjq', 'type': 'Q1331049'}, 'relation': 'P931', 'tail': {'indices': [[13, 14]], 'text': 'tanjung pandan', 'type': 'Q3056359'}, 'tokens': ['Merpati', 'flight', '106', 'departed', 'Jakarta', '(', 'CGK', ')', 'on', 'a', 'domestic', 'flight', 'to', 'Tanjung', 'Pandan', '(', 'TJQ', ')', '.']}
+{'head': {'indices': [[16]], 'text': 'tjq', 'type': 'Q1331049'}, 'names': ['place served by transport hub', 'territorial entity or entities served by this transport hub (airport, train station, etc.)'], 'relation': 'P931', 'tail': {'indices': [[13, 14]], 'text': 'tanjung pandan', 'type': 'Q3056359'}, 'tokens': ['Merpati', 'flight', '106', 'departed', 'Jakarta', '(', 'CGK', ')', 'on', 'a', 'domestic', 'flight', 'to', 'Tanjung', 'Pandan', '(', 'TJQ', ')', '.']}
 ```
 
 ### Data Fields
+
 For `default`:
+
 - `relation`: a `string` feature containing PID of the relation.
 - `tokens`: a `list` of `string` features containing tokens for the text.
 - `head`: a dictionary containing:
@@ -92,9 +94,10 @@ For `default`:
   - `text`: a `string` feature representing the tail entity.
   - `type`: a `string` feature representing the type of the tail entity.
   - `indices`: a `list` containing `list` of token indices.
-
+- `names`: a `list` of `string` features containing relation names.
 
 For `pid2name`:
+
 - `relation`: a `string` feature representing the PID of the relation.
 - `names`: a `list` of `string` features containings names for the PID.
 

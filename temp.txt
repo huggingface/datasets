@@ -1,0 +1,162 @@
+For `emoji` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: ❤
+
+	`1`: 😍
+
+	`2`: 😂
+
+	`3`: 💕
+
+	`4`: 🔥
+
+	`5`: 😊
+
+	`6`: 😎
+
+	`7`: ✨
+
+	`8`: 💙
+
+	`9`: 😘
+
+	`10`: 📷
+
+	`11`: 🇺🇸
+
+	`12`: ☀
+
+	`13`: 💜
+
+	`14`: 😉
+
+	`15`: 💯
+
+	`16`: 😁
+
+	`17`: 🎄
+
+	`18`: 📸
+
+	`19`: 😜
+
+For `emotion` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: anger
+
+	`1`: joy
+
+	`2`: optimism
+
+	`3`: sadness
+
+For `hate` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: non-hate
+
+	`1`: hate
+
+For `irony` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: non_irony
+
+	`1`: irony
+
+For `offensive` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: non-offensive
+
+	`1`: offensive
+
+For `sentiment` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: negative
+
+	`1`: neutral
+
+	`2`: positive
+
+For `stance_abortion` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: none
+
+	`1`: against
+
+	`2`: favor
+
+For `stance_atheism` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: none
+
+	`1`: against
+
+	`2`: favor
+
+For `stance_climate` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: none
+
+	`1`: against
+
+	`2`: favor
+
+For `stance_feminist` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: none
+
+	`1`: against
+
+	`2`: favor
+
+For `stance_hillary` config:
+
+- `text`: a `string` feature containing the tweet.
+
+- `label`: an `int` classification label with the following mapping:
+
+	`0`: none
+
+	`1`: against
+
+	`2`: favor
+

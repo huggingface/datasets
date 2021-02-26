@@ -75,34 +75,27 @@ class FewRelDataset(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="default", version=VERSION, description="This covers the entire FewRel dataset."),
-        datasets.BuilderConfig(
-            name="pid2name", version=VERSION, description="This part coverts the pid2name mapping."
-        ),
     ]
 
     def _info(self):
-        if self.config.name == "default":
-            features = datasets.Features(
-                {
-                    "relation": datasets.Value("string"),
-                    "tokens": datasets.Sequence(datasets.Value("string")),
-                    "head": {
-                        "text": datasets.Value("string"),
-                        "type": datasets.Value("string"),
-                        "indices": datasets.Sequence(datasets.Sequence(datasets.Value("int64"))),
-                    },
-                    "tail": {
-                        "text": datasets.Value("string"),
-                        "type": datasets.Value("string"),
-                        "indices": datasets.Sequence(datasets.Sequence(datasets.Value("int64"))),
-                    }
-                    # These are the features of your dataset like images, labels ...
-                }
-            )
-        else:
-            features = datasets.Features(
-                {"relation": datasets.Value("string"), "names": datasets.Sequence(datasets.Value("string"))}
-            )
+        features = datasets.Features(
+            {
+                "relation": datasets.Value("string"),
+                "tokens": datasets.Sequence(datasets.Value("string")),
+                "head": {
+                    "text": datasets.Value("string"),
+                    "type": datasets.Value("string"),
+                    "indices": datasets.Sequence(datasets.Sequence(datasets.Value("int64"))),
+                },
+                "tail": {
+                    "text": datasets.Value("string"),
+                    "type": datasets.Value("string"),
+                    "indices": datasets.Sequence(datasets.Sequence(datasets.Value("int64"))),
+                },
+                "names": datasets.Sequence(datasets.Value("string"))
+                # These are the features of your dataset like images, labels ...
+            }
+        )
 
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -124,75 +117,73 @@ class FewRelDataset(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLs)
-        if self.config.name == "default":
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split(key),
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": data_dir[key],
-                    },
-                )
-                for key in data_dir.keys()
-                if key != "pid2name"
-            ]
-        else:
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split("pid2name"),
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": data_dir["pid2name"],
-                    },
-                )
-            ]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split(key),
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": data_dir[key],
+                    "pid2name": data_dir["pid2name"],
+                    "return_names": key in ["train_wiki", "val_wiki", "val_nyt"],
+                },
+            )
+            for key in data_dir.keys()
+            if key != "pid2name"
+        ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, pid2name, return_names):
         """ Yields examples. """
+        pid2name_dict = {}
+        with open(pid2name, encoding="utf-8") as f:
+            data = json.load(f)
+        for key in list(data.keys()):
+            name_1 = data[key][0]
+            name_2 = data[key][1]
+            pid2name_dict[key] = [name_1, name_2]
+
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             # print(data)
-            if self.config.name == "default":
-                if isinstance(data, dict):
-                    id = 0
-                    for key in list(data.keys()):
-                        for items in data[key]:
-                            tokens = items["tokens"]
-                            h_0 = items["h"][0]
-                            h_1 = items["h"][1]
-                            h_2 = items["h"][2]
-                            t_0 = items["t"][0]
-                            t_1 = items["t"][1]
-                            t_2 = items["t"][2]
-                            id += 1
-                            yield id, {
-                                "relation": key,
-                                "tokens": tokens,
-                                "head": {"text": h_0, "type": h_1, "indices": h_2},
-                                "tail": {"text": t_0, "type": t_1, "indices": t_2},
-                            }
-                else:  # For `pubmed_unsupervised.json`
-                    id = 0
-                    for items in data:
-                        tokens = items["tokens"]
-                        h_0 = items["h"][0]
-                        h_1 = items["h"][1]
-                        h_2 = items["h"][2]
-                        t_0 = items["t"][0]
-                        t_1 = items["t"][1]
-                        t_2 = items["t"][2]
-                        id += 1
-                        yield id, {
-                            "relation": "",
-                            "tokens": tokens,
-                            "head": {"text": h_0, "type": h_1, "indices": h_2},
-                            "tail": {"text": t_0, "type": t_1, "indices": t_2},
-                        }
-
-            else:
-                id = 0
-                for key in list(data.keys()):
-                    name_1 = data[key][0]
-                    name_2 = data[key][1]
+        if isinstance(data, dict):
+            id = 0
+            for key in list(data.keys()):
+                for items in data[key]:
+                    tokens = items["tokens"]
+                    h_0 = items["h"][0]
+                    h_1 = items["h"][1]
+                    h_2 = items["h"][2]
+                    t_0 = items["t"][0]
+                    t_1 = items["t"][1]
+                    t_2 = items["t"][2]
                     id += 1
-                    yield id, {"relation": key, "names": [name_1, name_2]}
+                    yield id, {
+                        "relation": key,
+                        "tokens": tokens,
+                        "head": {"text": h_0, "type": h_1, "indices": h_2},
+                        "tail": {"text": t_0, "type": t_1, "indices": t_2},
+                        "names": pid2name_dict[key]
+                        if return_names
+                        else [
+                            key,
+                        ],
+                    }
+        else:  # For `pubmed_unsupervised.json`
+            id = 0
+            for items in data:
+                tokens = items["tokens"]
+                h_0 = items["h"][0]
+                h_1 = items["h"][1]
+                h_2 = items["h"][2]
+                t_0 = items["t"][0]
+                t_1 = items["t"][1]
+                t_2 = items["t"][2]
+                id += 1
+                yield id, {
+                    "relation": "",
+                    "tokens": tokens,
+                    "head": {"text": h_0, "type": h_1, "indices": h_2},
+                    "tail": {"text": t_0, "type": t_1, "indices": t_2},
+                    "names": [
+                        "",
+                    ],
+                }
