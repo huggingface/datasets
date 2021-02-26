@@ -144,8 +144,21 @@ af,ar,az,be,bg,bn,ca,ceb,cs,cy,da,de,el,en,es,et,eu,fa,fi,fr,ga,gl,he,hi,hr,hu,h
 For each of the 53 languages and each of the 43 relations/predicates there is a set of triples.
 
 ### Data Instances
+For each language and relation there are triples, that consists of an object, a predicate and a subject. For each predicate there is a template available. An example for `dataset["test"][0]` is given here:
+```python
+{
+'language': 'af',
+'lineid': 0, 
+'obj_label': 'Frankryk', 
+'obj_uri': 'Q142', 
+'predicate_id': 'P1001', 
+'sub_label': 'President van Frankryk', 
+'sub_uri': 'Q191954', 
+'template': "[X] is 'n wettige term in [Y].", 
+'uuid': '3fe3d4da-9df9-45ba-8109-784ce5fba38a'
+}
+```
 
-Each triple consists of an object, a predicate and a subject. For each predicate there is a template available. 
 
 ### Data Fields
 
