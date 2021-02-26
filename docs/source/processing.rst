@@ -496,7 +496,7 @@ Exporting a dataset to csv, or to python objects
 
 You can save your dataset in csv format using :func:`datasets.Dataset.to_csv`, so that you can use your dataset in other applications if you want to.
 
-To get directly python objects, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as python objects.
+To get directly python objects, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as a pandas DataFrame or a python dict.
 
 Controling the cache behavior
 -----------------------------------
