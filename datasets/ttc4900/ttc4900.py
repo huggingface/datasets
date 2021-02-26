@@ -18,10 +18,12 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -108,7 +110,7 @@ class TTC4900(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate TTC4900 examples."""
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             rdr = csv.reader(f, delimiter=",")
             next(rdr)

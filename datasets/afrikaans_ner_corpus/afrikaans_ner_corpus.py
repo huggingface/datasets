@@ -16,10 +16,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -107,7 +109,7 @@ class AfrikaansNerCorpus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []

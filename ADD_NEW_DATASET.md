@@ -110,6 +110,7 @@ You can also start (or copy any part) from one of the datasets of reference list
 - benchmark: [glue](https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py) (original data are various formats)
 - multilingual: [xquad](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data are in json)
 - multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/matinf/matinf.py) (original data need to be downloaded by the user because it requires authentication)
+- speech recognition: [librispeech_asr](https://github.com/huggingface/datasets/blob/master/datasets/librispeech_asr/librispeech_asr.py) (original data is in .flac format)
 
 While you are developing the dataset script you can list test it by opening a python interpreter and running the script (the script is dynamically updated each time you modify it):
 
@@ -143,12 +144,12 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 **Last step:** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 ```bash
-python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 ```
 
 **Note:** If your dataset requires manually downloading the data and having the user provide the path to the dataset you can run the following command:
 ```bash
-python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
+datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
 ```
 To have the configs use the path from `--data_dir` when generating them.
 
@@ -163,19 +164,19 @@ Now that your dataset script runs and create a dataset with the format you expec
 If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 	```bash
- 	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+	datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 	```
 
 	Example:
 
 	```bash
- 	python datasets-cli dummy_data ./datasets/snli --auto_generate
+	datasets-cli dummy_data ./datasets/snli --auto_generate
 	```
 
 If your data files are not in the supported format, you can run the same command without the `--auto_generate` flag. It should give you instructions on the files to manually create (basically, the same ones as for the real dataset but with only five items).
-
+	
 	```bash
- 	python datasets-cli dummy_data datasets/<your-dataset-folder>
+	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 
 If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
@@ -207,13 +208,18 @@ Go to the next step (open a Pull Request) and we'll help you cross the finish li
 3. If all tests pass, your dataset works correctly. You can finally create the metadata JSON by running the command:
 
 	```bash
-	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+	datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
 	This first command should create a `dataset_infos.json` file in your dataset folder.
 
 
 You have now finished the coding part, congratulation! 🎉 You are Awesome! 😎
+
+Note: You can use the CLI tool from the root of the repository with the following command:
+```bash
+python src/datasets/commands/datasets_cli.py <command>
+```
 
 ### Open a Pull Request on the main HuggingFace repo and share your work!!
 

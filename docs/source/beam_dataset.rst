@@ -46,7 +46,7 @@ If you want to run the Beam pipeline of a dataset anyway, here are the different
 
 .. code::
 
-    python -mdatasets-cli run_beam datasets/$DATASET_NAME \
+    datasets-cli run_beam datasets/$DATASET_NAME \
     --name $CONFIG_NAME \
     --save_infos \
     --cache_dir gs://$BUCKET/cache/datasets \

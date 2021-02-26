@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 import bz2
 import io
 import json
-import logging
 import lzma
 import os
 import re
@@ -29,6 +28,9 @@ from os.path import join as pjoin
 from time import time
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _SUB_REDDITS = ["explainlikeimfive", "askscience", "AskHistorians"]
@@ -300,13 +302,13 @@ class Eli5(datasets.GeneratorBasedBuilder):
             self._cache_dir_root, self._relative_data_dir(with_version=False), "reddit_downloaded_qa_lists.json"
         )
         if isfile(qa_data_file):
-            logging.info("loading pre-computed QA list")
+            logger.info("loading pre-computed QA list")
             self.filtered_reddit = json.load(open(qa_data_file))
         else:
             self.filtered_reddit = _download_and_filter_reddit(
                 dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7
             )
-            logging.info("saving pre-computed QA list")
+            logger.info("saving pre-computed QA list")
             json.dump(self.filtered_reddit, open(qa_data_file, "w"))
         # download data splits from AWS
         fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
@@ -351,7 +353,7 @@ class Eli5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, split, subreddit_name):
-        logging.info("generating examples from = {}, {} set".format(subreddit_name, split))
+        logger.info("generating examples from = {}, {} set".format(subreddit_name, split))
         if split in self.data_split.get(subreddit_name, []):
             id_list = self.data_split[subreddit_name][split]
             data = [

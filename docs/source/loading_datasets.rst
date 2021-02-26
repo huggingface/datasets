@@ -25,8 +25,8 @@ All the datasets currently available on the `Hub <https://huggingface.co/dataset
     >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
-    136
-    >>> print(', '.join(dataset.id for dataset in datasets_list))
+    656
+    >>> print(', '.join(dataset for dataset in datasets_list))
     aeslc, ag_news, ai2_arc, allocine, anli, arcd, art, billsum, blended_skill_talk, blimp, blog_authorship_corpus, bookcorpus, boolq, break_data,
     c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e, 
     cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli, 
@@ -63,7 +63,7 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
 
     An Apache Arrow Table is the internal storing format for 🤗datasets. It allows to store arbitrarily long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗datasets is thus to always memory-map dataset on drive.
 
-3. Return a **dataset build from the splits** asked by the user (default: all), in the above example we create a dataset with the first 10% of the validation split.
+3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 
 
 Selecting a split

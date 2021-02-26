@@ -64,7 +64,7 @@ task_ids:
 
 - **Homepage:** https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/
 - **Leaderboard:** 
-- **Paper:** [Introduction of the Asian Language Treebank]https://ieeexplore.ieee.org/abstract/document/7918974)
+- **Paper:** [Introduction of the Asian Language Treebank](https://ieeexplore.ieee.org/abstract/document/7918974)
 - **Point of Contact:** [ALT info](alt-info@khn.nict.go.jp)
 
 ### Dataset Summary

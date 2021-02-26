@@ -73,9 +73,22 @@ Returns:
             'precision': precision,
             'recall': recall,
             'f1': F1 score, also known as balanced F-score or F-measure
+Examples:
+
+    >>> predictions = [['O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
+    >>> references = [['O', 'O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
+    >>> seqeval = datasets.load_metric("seqeval")
+    >>> results = seqeval.compute(predictions=predictions, references=references)
+    >>> print(list(results.keys()))
+    ['MISC', 'PER', 'overall_precision', 'overall_recall', 'overall_f1', 'overall_accuracy']
+    >>> print(results["overall_f1"])
+    0.5
+    >>> print(results["PER"]["f1"])
+    1.0
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Seqeval(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
