@@ -27,7 +27,7 @@ logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
-It is a Turkish news data set consisting of 273601 news in 10 categories, compiled from print media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company.
+It is a Turkish news data set consisting of 273601 news in 10 categories, compiled from print media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company. It has been rearranged as easily separable and with fewer classes.
 """
 
 _CITATION = ""
@@ -69,7 +69,20 @@ class InterpressNewsCategoryTRLite(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "content": datasets.Value("string"),
-                    "category": datasets.features.ClassLabel(num_classes=10),
+                    "category": datasets.features.ClassLabel(
+                        names=[
+                            "kültürsanat",
+                            "ekonomi",
+                            "siyaset",
+                            "eğitim",
+                            "dünya",
+                            "spor",
+                            "teknoloji",
+                            "magazin",
+                            "sağlık",
+                            "gündem",
+                        ]
+                    ),
                 }
             ),
             supervised_keys=None,
@@ -96,5 +109,5 @@ class InterpressNewsCategoryTRLite(datasets.GeneratorBasedBuilder):
             for idx, row in enumerate(reader):
                 yield idx, {
                     "content": row["news"],
-                    "category": row["label"],
+                    "category": int(row["label"]),
                 }
