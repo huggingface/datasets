@@ -85,7 +85,7 @@ class DatasetInfoMixin(object):
     @property
     def info(self):
         """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
-        return self._info.copy()
+        return self._info
 
     @property
     def split(self):
@@ -122,7 +122,7 @@ class DatasetInfoMixin(object):
 
     @property
     def features(self) -> Features:
-        return self._info.features.copy()
+        return self._info.features
 
     @property
     def homepage(self) -> Optional[str]:
