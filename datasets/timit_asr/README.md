@@ -107,61 +107,11 @@ A typical data point comprises the path to the audio file, usually called `file`
 ### Data Splits
 
 The speech material has been subdivided into portions for training and
-testing.  The criteria for the subdivision is described in the file
-"testset.doc".  THIS SUBDIVISION HAS NO RELATION TO THE DATA DISTRIBUTED ON
-THE PROTOTYPE VERSION OF THE CDROM.
+testing. The default train-test split will be made available on data download.
 
-
-Core Test Set:
-
-The test data has a core portion containing 24 speakers, 2 male and 1 female
-from each dialect region.  The core test speakers are shown in Table 3.  Each
-speaker read a different set of SX sentences.  Thus the core test material
-contains 192 sentences, 5 SX and 3 SI for each speaker, each having a distinct
-text prompt.
-
-
-    Table 3:  The core test set of 24 speakers
-
-     Dialect        Male      Female
-     -------       ------     ------
-        1        DAB0, WBT0    ELC0    
-        2        TAS1, WEW0    PAS0    
-        3        JMP0, LNT0    PKT0    
-        4        LLL0, TLS0    JLM0    
-        5        BPM0, KLT0    NLP0    
-        6        CMJ0, JDH0    MGD0    
-        7        GRT0, NJM0    DHC0
-        8        JLN0, PAM0    MLD0    
-
-
-
-Complete Test Set:
-
-A more extensive test set was obtained by including the sentences from all
-speakers that read any of the SX texts included in the core test set.  In
-doing so, no sentence text appears in both the training and test sets.  This
-complete test set contains a total of 168 speakers and 1344 utterances,
-accounting for about 27% of the total speech material.  The resulting dialect
-distribution of the 168 speaker test set is given in Table 4.  The complete
-test material contains 624 distinct texts.
-
-
-     Table 4:  Dialect distribution for complete test set
-
-      Dialect    #Male   #Female   Total
-      -------    -----   -------   -----
-        1           7        4       11
-        2          18        8       26
-        3          23        3       26
-        4          16       16       32
-        5          17       11       28
-        6           8        3       11
-        7          15        8       23
-        8           8        3       11
-      -----      -----   -------   ------
-      Total       112       56      168
-
+The test data alone has a core portion containing 24 speakers, 2 male and 1 female
+from each dialect region. More information about the test set can 
+be found [here](https://catalog.ldc.upenn.edu/docs/LDC93S1/TESTSET.TXT)
 
 
 ## Dataset Creation
@@ -219,6 +169,7 @@ The dataset was created by John S. Garofolo, Lori F. Lamel, William M. Fisher, J
 LDC User Agreement for Non-Members
 
 ### Citation Information
+```
 @inproceedings{
   title={TIMIT Acoustic-Phonetic Continuous Speech Corpus},
   author={Garofolo, John S., et al},
@@ -227,6 +178,7 @@ LDC User Agreement for Non-Members
   journal={Linguistic Data Consortium, Philadelphia},
   year={1983}
 }
+```
 
 ### Contributions
 Thanks to [@vrindaprabhu](https://github.com/vrindaprabhu) for adding this dataset.
