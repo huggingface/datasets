@@ -30,7 +30,7 @@ if [ -f "${pathToFolder}/${datasetName}.py" ]; then
 	echo "### STEP 1 ### ${datasetName} is already converted. To convert it again remove ${pathToFolder}/${datasetName}."
 else
 	echo "### STEP 1 ### Converting ${datasetName} dataset ..."
-	eval "python datasets-cli convert --tfds_path ${pathToFile} --datasets_directory datasets/"
+	eval "datasets-cli convert --tfds_path ${pathToFile} --datasets_directory datasets/"
 fi
 
 if [ -f "${pathToFolder}/${datasetName}.py" ]; then
@@ -51,9 +51,9 @@ if [ -f "${pathToFolder}/dataset_infos.json" ]; then
 else
 	echo "### STEP 2 ### Create infos ..."
 	if [ -z "${manual_dir}" ]; then
-		eval "python datasets-cli test ${pathToFolder} --save_infos --all_configs"
+		eval "datasets-cli test ${pathToFolder} --save_infos --all_configs"
 	else
-		eval "python datasets-cli test ${pathToFolder} --data_dir ${manual_dir} --save_infos --all_configs"
+		eval "datasets-cli test ${pathToFolder} --data_dir ${manual_dir} --save_infos --all_configs"
 	fi
 fi
 
