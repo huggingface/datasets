@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import json
 import os
 
 import datasets
@@ -53,37 +54,28 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 """
 
 
-class MultiNLIConfig(datasets.BuilderConfig):
-    """BuilderConfig for MultiNLI."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for MultiNLI.
-
-            Args:
-        .
-              **kwargs: keyword arguments forwarded to super.
-        """
-        super(MultiNLIConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
-
-
 class MultiNli(datasets.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
-
-    BUILDER_CONFIGS = [
-        MultiNLIConfig(
-            name="plain_text",
-            description="Plain text",
-        ),
-    ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "premise": datasets.Value("string"),
-                    "hypothesis": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "promptID": datasets.Value("int32"),
+                    "pairID": datasets.Value("string"),
+                    "sentence1": datasets.Value("string"),
+                    "sentence1_binary_parse": datasets.Value("string"),  # parses in unlabeled binary-branching format
+                    "sentence1_parse": datasets.Value(
+                        "string"
+                    ),  # sentence as parsed by the Stanford PCFG Parser 3.5.2
+                    "sentence2": datasets.Value("string"),
+                    "sentence2_binary_parse": datasets.Value("string"),  # parses in unlabeled binary-branching format
+                    "sentence2_parse": datasets.Value(
+                        "string"
+                    ),  # sentence as parsed by the Stanford PCFG Parser 3.5.2
+                    "genre": datasets.Value("string"),
+                    "gold_label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -93,19 +85,13 @@ class MultiNli(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-    def _vocab_text_gen(self, filepath):
-        for _, ex in self._generate_examples(filepath):
-            yield " ".join([ex["premise"], ex["hypothesis"]])
-
     def _split_generators(self, dl_manager):
 
-        downloaded_dir = dl_manager.download_and_extract(
-            "http://storage.googleapis.com/tfds-data/downloads/multi_nli/multinli_1.0.zip"
-        )
+        downloaded_dir = dl_manager.download_and_extract("https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip")
         mnli_path = os.path.join(downloaded_dir, "multinli_1.0")
-        train_path = os.path.join(mnli_path, "multinli_1.0_train.txt")
-        matched_validation_path = os.path.join(mnli_path, "multinli_1.0_dev_matched.txt")
-        mismatched_validation_path = os.path.join(mnli_path, "multinli_1.0_dev_mismatched.txt")
+        train_path = os.path.join(mnli_path, "multinli_1.0_train.jsonl")
+        matched_validation_path = os.path.join(mnli_path, "multinli_1.0_dev_matched.jsonl")
+        mismatched_validation_path = os.path.join(mnli_path, "multinli_1.0_dev_mismatched.jsonl")
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
@@ -114,22 +100,22 @@ class MultiNli(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """Generate mnli examples.
+        """Generate mnli examples"""
 
-        Args:
-          filepath: a string
-
-        Yields:
-          dictionaries containing "premise", "hypothesis" and "label" strings
-        """
-        for idx, line in enumerate(open(filepath, "rb")):
-            if idx == 0:
-                continue  # skip header
-            line = line.strip().decode("utf-8")
-            split_line = line.split("\t")
-            # Examples not marked with a three out of five consensus are marked with
-            # "-" and should not be used in standard evaluations.
-            if split_line[0] == "-":
-                continue
-            # Works for both splits even though dev has some extra human labels.
-            yield idx, {"premise": split_line[5], "hypothesis": split_line[6], "label": split_line[0]}
+        with open(filepath, encoding="utf-8") as f:
+            for id_, row in enumerate(f):
+                data = json.loads(row)
+                if data["gold_label"] == "-":
+                    continue
+                yield id_, {
+                    "promptID": data["promptID"],
+                    "pairID": data["pairID"],
+                    "sentence1": data["sentence1"],
+                    "sentence1_binary_parse": data["sentence1_binary_parse"],
+                    "sentence1_parse": data["sentence1_parse"],
+                    "sentence2": data["sentence2"],
+                    "sentence2_binary_parse": data["sentence2_binary_parse"],
+                    "sentence2_parse": data["sentence2_parse"],
+                    "genre": data["genre"],
+                    "gold_label": data["gold_label"],
+                }
