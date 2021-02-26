@@ -204,7 +204,7 @@ setup(
             "scripts/templates/*",
         ],
     },
-    scripts=["datasets-cli"],
+    entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[

@@ -308,7 +308,7 @@ You can check that the new dataset loading script works correctly and create the
 
 .. code-block::
 
-    python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+    datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
 If the command was succesful, you should now have a ``dataset_infos.json`` file created in the folder of your dataset loading script. Here is a dummy example of the content for a dataset with a single configuration:
 
@@ -379,7 +379,7 @@ Now that we have the metadata prepared we can also create some dummy data for au
 
 .. code-block::
 
-    python datasets-cli dummy_data datasets/<your-dataset-folder>
+    datasets-cli dummy_data datasets/<your-dataset-folder>
 
 This command will output instructions specifically tailored to your dataset and will look like:
 
@@ -408,15 +408,15 @@ If the extensions of the raw data files of your dataset are in this list, then y
 
 .. code-block::
 
-    python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+    datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 
 Examples:
 
 .. code-block::
 
-    python datasets-cli dummy_data ./datasets/snli --auto_generate
-    python datasets-cli dummy_data ./datasets/squad --auto_generate --json_field data
-    python datasets-cli dummy_data ./datasets/iwslt2017 --auto_generate --xml_tag seg --match_text_files "train*" --n_lines 15
+    datasets-cli dummy_data ./datasets/snli --auto_generate
+    datasets-cli dummy_data ./datasets/squad --auto_generate --json_field data
+    datasets-cli dummy_data ./datasets/iwslt2017 --auto_generate --xml_tag seg --match_text_files "train*" --n_lines 15
     # --xml_tag seg => each sample corresponds to a "seg" tag in the xml tree
     # --match_text_files "train*" =>  also match text files that don't have a proper text file extension (no suffix like ".txt" for example)
     # --n_lines 15 => some text files have headers so we have to use at least 15 lines
@@ -489,7 +489,7 @@ If all tests pass, your dataset works correctly. Awesome! You can now follow the
 
 .. code-block::
 
-        python datasets-cli dummy_data datasets/<your-dataset-folder>
+        datasets-cli dummy_data datasets/<your-dataset-folder>
 
 and make sure you follow the exact instructions provided by the command.
 
