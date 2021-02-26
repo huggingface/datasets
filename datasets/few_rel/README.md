@@ -94,7 +94,7 @@ For `default`:
   - `text`: a `string` feature representing the tail entity.
   - `type`: a `string` feature representing the type of the tail entity.
   - `indices`: a `list` containing `list` of token indices.
-- `names`: a `list` of `string` features containing relation names.
+- `names`: a `list` of `string` features containing relation names. For `pubmed_unsupervised` split, this is set to a `list` with an empty `string`. For `val_semeval` and `val_pubmed` split, this is set to a `list` with the `string` from the `relation` field.
 
 For `pid2name`:
 
@@ -223,3 +223,7 @@ SOFTWARE.
     pages = "6251--6256"
 }
 ```
+
+### Contributions
+
+Thanks to [@gchhablani](https://github.com/gchhablani) for adding this dataset.
