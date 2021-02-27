@@ -148,17 +148,17 @@ This way it's possible to perform distributed predictions (which is important fo
 The synchronization is performed with the help of file locks on the filesystem.
 
 
-Multiple and independant distributed setups
+Multiple and independent distributed setups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases, several **independant and not related** distributed evaluations might be running on the same server and the same file system at the same time (e.g. two independant multi-processing trainings running on the same server) and it is then important to distinguish these experiemnts and allow them to operate in independantly.
+In some cases, several **independent and not related** distributed evaluations might be running on the same server and the same file system at the same time (e.g. two independent multi-processing trainings running on the same server) and it is then important to distinguish these experiemnts and allow them to operate in independently.
 
 In this situation you should provide an ``experiment_id`` to :func:`datasets.load_metric` which has to be a unique identifier of the current distributed experiment.
 
 This identifier will be added to the cache file used by each process of this evaluation to avoid conflicting access to the same cache files for storing predictions and references for each node.
 
 .. note::
-    Specifying an ``experiment_id`` to :func:`datasets.load_metric` is only required in the specific situation where you have **independant (i.e. not related) distributed** evaluations running on the same file system at the same time.
+    Specifying an ``experiment_id`` to :func:`datasets.load_metric` is only required in the specific situation where you have **independent (i.e. not related) distributed** evaluations running on the same file system at the same time.
 
 Here is an example:
 
