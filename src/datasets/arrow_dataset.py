@@ -51,7 +51,7 @@ from .fingerprint import (
     is_caching_enabled,
     update_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import PandasFormatter, format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -2218,8 +2218,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 key=slice(offset, offset + batch_size),
                 indices=self._indices.column(0) if self._indices is not None else None,
             )
-            csv_str = batch.to_pandas().to_csv(
-                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
+            csv_str = (
+                PandasFormatter()
+                .format_batch_with_category(batch, self.features)
+                .to_csv(
+                    path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
+                )
             )
             written += file_obj.write(csv_str.encode(encoding))
         return written
@@ -2294,19 +2298,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
         """
         if not batched:
-            return query_table(
-                pa_table=self._data,
-                key=slice(0, len(self)),
-                indices=self._indices.column(0) if self._indices is not None else None,
-            ).to_pandas()
+            return PandasFormatter().format_batch_with_category(
+                query_table(
+                    pa_table=self._data,
+                    key=slice(0, len(self)),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ),
+                self.features,
+            )
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
-                query_table(
-                    pa_table=self._data,
-                    key=slice(offset, offset + batch_size),
-                    indices=self._indices.column(0) if self._indices is not None else None,
-                ).to_pandas()
+                PandasFormatter().format_batch_with_category(
+                    query_table(
+                        pa_table=self._data,
+                        key=slice(offset, offset + batch_size),
+                        indices=self._indices.column(0) if self._indices is not None else None,
+                    ),
+                    self.features,
+                )
                 for offset in range(0, len(self), batch_size)
             )
 

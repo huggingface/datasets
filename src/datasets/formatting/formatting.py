@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import pandas_types_mapper
+from ..features import ClassLabel, Features, pandas_types_mapper
 
 
 T = TypeVar("T")
@@ -157,6 +157,15 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
 
+    def extract_batch_with_category(self, pa_table: pa.Table, features: Features) -> pd.DataFrame:
+        df = pa_table.to_pandas(types_mapper=pandas_types_mapper)
+        for colname, feature in features.items():
+            if isinstance(feature, ClassLabel):
+                df[colname] = df[colname].astype("category")
+                existing_indices = df[colname].cat.categories
+                df[colname] = df[colname].cat.rename_categories([feature.names[idx] for idx in existing_indices])
+        return df
+
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
@@ -220,6 +229,9 @@ class PandasFormatter(Formatter):
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return self.pandas_arrow_extractor().extract_batch(pa_table)
+
+    def format_batch_with_category(self, pa_table: pa.Table, features: Features) -> pd.DataFrame:
+        return self.pandas_arrow_extractor().extract_batch_with_category(pa_table, features)
 
 
 class CustomFormatter(Formatter[dict, ColumnFormat, dict]):

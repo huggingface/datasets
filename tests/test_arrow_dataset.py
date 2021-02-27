@@ -62,6 +62,26 @@ class BaseDatasetTest(TestCase):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
+    def _create_dummy_classlabel_dataset(self, in_memory: bool, tmp_dir: str):
+        data = {
+            "col_1": [3, 2, 1, 0],
+            "col_2": ["a", "b", "c", "d"],
+            "col_3": [False, True, False, True],
+            "col_4": ["name_one", "name_two", "name_three", "name_one"],
+        }
+        features = Features(
+            {
+                "col_1": Value(dtype="int64"),
+                "col_2": Value(dtype="string"),
+                "col_3": Value(dtype="bool"),
+                "col_4": ClassLabel(names=["name_one", "name_two", "name_three"]),
+            }
+        )
+        dset = Dataset.from_dict(data, features=features)
+        if not in_memory:
+            dset = self._to(in_memory, tmp_dir, dset)
+        return dset
+
     def _create_dummy_dataset(
         self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False
     ) -> Dataset:
@@ -1361,15 +1381,15 @@ class BaseDatasetTest(TestCase):
     def test_to_pandas(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            bacth_size = dset.num_rows - 1
-            to_pandas_generator = dset.to_pandas(batched=True, batch_size=bacth_size)
+            dset = self._create_dummy_classlabel_dataset(in_memory, tmp_dir)
+            batch_size = dset.num_rows - 1
+            to_pandas_generator = dset.to_pandas(batched=True, batch_size=batch_size)
 
             for batch in to_pandas_generator:
                 self.assertIsInstance(batch, pd.DataFrame)
                 self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
                 for col_name in dset.column_names:
-                    self.assertLessEqual(len(batch[col_name]), bacth_size)
+                    self.assertLessEqual(len(batch[col_name]), batch_size)
 
             # Full
             dset_to_pandas = dset.to_pandas()
@@ -1377,6 +1397,10 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(sorted(dset_to_pandas.columns), sorted(dset.column_names))
             for col_name in dset.column_names:
                 self.assertEqual(len(dset_to_pandas[col_name]), len(dset))
+
+            # Reversed
+            reverse_ds = Dataset.from_pandas(dset_to_pandas)
+            self.assertTrue(isinstance(reverse_ds.features["col_4"], ClassLabel))
 
             # With index mapping
             dset = dset.select([1, 0, 3])
