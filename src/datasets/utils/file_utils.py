@@ -433,7 +433,7 @@ def ftp_head(url, timeout=10.0):
     return True
 
 
-def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0):
+def ftp_get(url, temp_file, timeout=10.0):
     try:
         logger.info(f"Getting through FTP {url} into {temp_file.name}")
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
@@ -633,7 +633,7 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp://"):
-                ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
+                ftp_get(url, temp_file)
             else:
                 http_get(
                     url,

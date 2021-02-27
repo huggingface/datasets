@@ -509,7 +509,6 @@ class Metric(MetricInfoMixin):
         self,
         download_config: Optional[DownloadConfig] = None,
         dl_manager: Optional[DownloadManager] = None,
-        **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 

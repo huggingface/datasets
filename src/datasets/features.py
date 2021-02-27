@@ -457,7 +457,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         else:
             return self._data.astype(dtype)
 
-    def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
+    def copy(self) -> "PandasArrayExtensionArray":
         return PandasArrayExtensionArray(self._data, copy=True)
 
     @classmethod
