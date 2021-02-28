@@ -1474,7 +1474,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # We set this variable in `apply_function_on_filtered_inputs` to True if
         # function returns a dict. If set to False, no new arrow table will be created
         update_data = None
-        # This variable is set in `check_if_cached` that gets called in 
+        # This variable is set in `check_if_cached` that gets called in
         # `apply_function_on_filtered_inputs` once we know the value of `update_data`
         is_cached = None
 
@@ -1629,7 +1629,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         writer.write_batch(batch)
             if update_data and not is_cached:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
-        except (Exception, KeyboardInterrupt) as e:
+        except (Exception, KeyboardInterrupt):
             if update_data and not is_cached:
                 writer.finalize()
             if update_data and not is_cached and tmp_file is not None:
