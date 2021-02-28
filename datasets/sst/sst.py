@@ -158,6 +158,7 @@ class Sst(datasets.GeneratorBasedBuilder):
             phrases = {}
             with open(labels_path, encoding="utf-8") as g, open(phrases_path, encoding="utf-8") as f:
                 label_reader = csv.DictReader(g, delimiter="|", quoting=csv.QUOTE_NONE)
+                next(label_reader)
                 for row in label_reader:
                     labels[row["phrase ids"]] = float(row["sentiment values"])
 
