@@ -19,8 +19,6 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import numpy as np
-
 import datasets
 
 
@@ -58,10 +56,14 @@ class Sst(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="default", version=VERSION, description="Sentences and relative parse trees annotated with sentiment labels."
+            name="default",
+            version=VERSION,
+            description="Sentences and relative parse trees annotated with sentiment labels.",
         ),
         datasets.BuilderConfig(
-            name="dictionary", version=VERSION, description="List of all possible sub-sentences (phrases) with their sentiment label."
+            name="dictionary",
+            version=VERSION,
+            description="List of all possible sub-sentences (phrases) with their sentiment label.",
         ),
         datasets.BuilderConfig(
             name="ptb", version=VERSION, description="Penn Treebank-formatted trees with labelled sub-sentences."
@@ -82,12 +84,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 }
             )
         elif self.config.name == "dictionary":
-            features = datasets.Features(
-                {
-                    "phrase": datasets.Value("string"),
-                    "label": datasets.Value("float")
-                }
-            )
+            features = datasets.Features({"phrase": datasets.Value("string"), "label": datasets.Value("float")})
         else:
             features = datasets.Features(
                 {
@@ -120,7 +117,7 @@ class Sst(datasets.GeneratorBasedBuilder):
             }
 
         ptb_file_paths = {}
-        for ptb_split in ['train', 'dev', 'test']:
+        for ptb_split in ["train", "dev", "test"]:
             ptb_file_paths[ptb_split] = {
                 "phrases_path": None,
                 "labels_path": None,
@@ -132,7 +129,6 @@ class Sst(datasets.GeneratorBasedBuilder):
                 "split_id": None,
             }
 
-
         if self.config.name == "default":
             return [
                 datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=file_paths[1]),
@@ -140,14 +136,12 @@ class Sst(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=file_paths[2]),
             ]
         elif self.config.name == "dictionary":
-            return [
-                datasets.SplitGenerator(name="dictionary", gen_kwargs=file_paths[0])
-            ]
+            return [datasets.SplitGenerator(name="dictionary", gen_kwargs=file_paths[0])]
         else:
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=ptb_file_paths['train']),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=ptb_file_paths['dev']),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=ptb_file_paths['test']),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=ptb_file_paths["train"]),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=ptb_file_paths["dev"]),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=ptb_file_paths["test"]),
             ]
 
     def _generate_examples(
@@ -170,10 +164,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 phrase_reader = csv.reader(f, delimiter="|", quoting=csv.QUOTE_NONE)
                 if self.config.name == "dictionary":
                     for id_, row in enumerate(phrase_reader):
-                        yield id_, {
-                            'phrase': row[0],
-                            'label': labels[row[1]]
-                        }
+                        yield id_, {"phrase": row[0], "label": labels[row[1]]}
                 else:
                     for row in phrase_reader:
                         phrases[row[0]] = labels[row[1]]
@@ -205,6 +196,3 @@ class Sst(datasets.GeneratorBasedBuilder):
                             "tokens": tokens,
                             "tree": parse_tree,
                         }
-
-            
-        
