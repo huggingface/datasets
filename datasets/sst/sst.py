@@ -149,14 +149,14 @@ class Sst(datasets.GeneratorBasedBuilder):
     ):
 
         if self.config.name == "ptb":
-            with open(ptb_filepath) as fp:
+            with open(ptb_filepath, encoding="utf-8") as fp:
                 ptb_reader = csv.reader(fp, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for id_, row in enumerate(ptb_reader):
                     yield id_, {"ptb_tree": row[0]}
         else:
             labels = {}
             phrases = {}
-            with open(labels_path) as g, open(phrases_path) as f:
+            with open(labels_path, encoding="utf-8") as g, open(phrases_path, encoding="utf-8") as f:
                 label_reader = csv.DictReader(g, delimiter="|", quoting=csv.QUOTE_NONE)
                 for row in label_reader:
                     labels[row["phrase ids"]] = float(row["sentiment values"])
@@ -172,7 +172,7 @@ class Sst(datasets.GeneratorBasedBuilder):
             # Case config=="default"
             # Read parse trees for each complete sentence
             trees = {}
-            with open(tokens_path) as tok, open(trees_path) as tr:
+            with open(tokens_path, encoding="utf-8") as tok, open(trees_path, encoding="utf-8") as tr:
                 tok_reader = csv.reader(tok, delimiter="\t", quoting=csv.QUOTE_NONE)
                 tree_reader = csv.reader(tr, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for i, row in enumerate(tok_reader, start=1):
@@ -181,7 +181,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 for i, row in enumerate(tree_reader, start=1):
                     trees[i]["tree"] = row[0]
 
-            with open(splits_path) as spl, open(sentences_path) as snt:
+            with open(splits_path, encoding="utf-8") as spl, open(sentences_path, encoding="utf-8") as snt:
                 splits_reader = csv.DictReader(spl, delimiter=",", quoting=csv.QUOTE_NONE)
                 splits = {row["sentence_index"]: row["splitset_label"] for row in splits_reader}
 
