@@ -1474,8 +1474,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # We set this variable in `apply_function_on_filtered_inputs` to True if
         # function returns a dict. If set to False, no new arrow table will be created
         update_data = None
-        # This variable is set in `check_if_cached` that gets called in
-        # `apply_function_on_filtered_inputs` once we know the value of `update_data`
+        # This variable is set in `apply_function_on_filtered_inputs` once we know
+        # the value of `update_data`
         is_cached = None
 
         class NumExamplesMismatch(Exception):
@@ -1509,6 +1509,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
             """ Utility to apply the function on a selection of columns. """
             nonlocal update_data
+            nonlocal cache_file_name
+            nonlocal is_cached
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
                 effective_indices = indices
@@ -1519,7 +1521,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
             if update_data is None:
                 update_data = does_function_return_dict(processed_inputs, indices)
-                check_if_cached()
+                # Check if we've already cached this computation (indexed by a hash)
+                if update_data and self._data_files:
+                    if cache_file_name is None:
+                        # we create a unique hash from the function,
+                        # current dataset file and the mapping args
+                        cache_file_name = self._get_cache_file_path(new_fingerprint)
+                    is_cached = os.path.exists(cache_file_name) and load_from_cache_file
+                else:
+                    is_cached = False
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
@@ -1539,19 +1549,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     raise NumExamplesMismatch()
             inputs.update(processed_inputs)
             return inputs
-
-        # Check if we've already cached this computation (indexed by a hash)
-        def check_if_cached():
-            nonlocal is_cached
-            nonlocal cache_file_name
-            if self._data_files:
-                if cache_file_name is None:
-                    # we create a unique hash from the function,
-                    # current dataset file and the mapping args
-                    cache_file_name = self._get_cache_file_path(new_fingerprint)
-                is_cached = os.path.exists(cache_file_name) and load_from_cache_file
-            else:
-                is_cached = False
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         def init_buffer_and_writer():
@@ -1597,10 +1594,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     example = apply_function_on_filtered_inputs(example, i, offset=offset)
                     # If cached, break and return a cached dataset, otherwise prepare resources
                     if i == 0 and update_data:
-                        if is_cached:
-                            break
-                        else:
+                        if not is_cached:
                             buf_writer, writer, tmp_file = init_buffer_and_writer()
+                        else:
+                            break
                     if update_data:
                         example = cast_to_python_objects(example)
                         writer.write(example)
@@ -1620,10 +1617,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         )
                     # If cached, break and return a cached dataset, otherwise prepare resources
                     if i == 0 and update_data:
-                        if is_cached:
-                            break
-                        else:
+                        if not is_cached:
                             buf_writer, writer, tmp_file = init_buffer_and_writer()
+                        else:
+                            break
                     if update_data:
                         batch = cast_to_python_objects(batch)
                         writer.write_batch(batch)
