@@ -1595,7 +1595,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if not batched:
                 for i, example in enumerate(pbar):
                     example = apply_function_on_filtered_inputs(example, i, offset=offset)
-                    # If cached, break and return, otherwise prepare resources
+                    # If cached, break and return a cached dataset, otherwise prepare resources
                     if i == 0 and update_data:
                         if is_cached:
                             break
@@ -1603,7 +1603,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             buf_writer, writer, tmp_file = init_buffer_and_writer()
                     if update_data:
                         example = cast_to_python_objects(example)
-
                         writer.write(example)
             else:
                 for i in pbar:
@@ -1619,7 +1618,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         raise DatasetTransformationNotAllowedError(
                             "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                         )
-                    # If cached, break and return, otherwise prepare resources
+                    # If cached, break and return a cached dataset, otherwise prepare resources
                     if i == 0 and update_data:
                         if is_cached:
                             break
