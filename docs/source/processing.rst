@@ -141,7 +141,7 @@ Renaming, removing, casting and flattening columns
 Renaming a column: ``rename_column``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This method renames a column in the dataset, and move the features associated to the original column under the new column name.
+This method renames a column in the dataset, and move the features associated to the original column under the new column name. This operation will fail if the new column name already exists.
 
 :func:`datasets.Dataset.rename_column` takes the name of the original column and the new name as arguments.
 
@@ -162,7 +162,7 @@ Removing one or several columns: ``remove_columns``
 It allows to remove one or several column(s) in the dataset and the features associated to them.
 
 You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
-is in-place (doesn't copy the data to a new dataset) and is thus faster.
+doesn't copy the data to a new dataset object and is thus faster.
 
 :func:`datasets.Dataset.remove_columns` takes the names of the column to remove as argument.
 You can provide one single column names or a list of column names.
