@@ -13,6 +13,7 @@ import pyarrow as pa
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .utils.deprecation_utils import deprecated
 
 
 class DatasetDict(dict):
@@ -136,8 +137,8 @@ class DatasetDict(dict):
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.cast_(features=features)
+        new_dataset_dict = {k: dataset.cast(features=features) for k, dataset in self.items()}
+        self.update(new_dataset_dict)
 
     def cast(self, features: Features):
         """
@@ -166,8 +167,8 @@ class DatasetDict(dict):
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.remove_columns_(column_names=column_names)
+        new_dataset_dict = {k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()}
+        self.update(new_dataset_dict)
 
     def remove_columns(self, column_names: Union[str, List[str]]):
         """
@@ -196,8 +197,11 @@ class DatasetDict(dict):
             new_column_name (:obj:`str`): New name for the column.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
+        new_dataset_dict = {
+            k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+            for k, dataset in self.items()
+        }
+        self.update(new_dataset_dict)
 
     def rename_column(self, original_column_name: str, new_column_name: str):
         """
