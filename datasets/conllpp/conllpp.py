@@ -32,7 +32,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-CoNLLpp is a corrected version of the CoNLL2003 NER dataset where labels of 5.38% of the sentences in the test set 
+CoNLLpp is a corrected version of the CoNLL2003 NER dataset where labels of 5.38% of the sentences in the test set
 have been manually corrected. The training set and development set are included for completeness.
 For more details see https://www.aclweb.org/anthology/D19-1519/ and https://github.com/ZihanWangKi/CrossWeigh
 """
@@ -219,10 +219,11 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                     chunk_tags.append(splits[2])
                     ner_tags.append(splits[3].rstrip())
             # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "pos_tags": pos_tags,
-                "chunk_tags": chunk_tags,
-                "ner_tags": ner_tags,
-            }
+            if tokens:
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "pos_tags": pos_tags,
+                    "chunk_tags": chunk_tags,
+                    "ner_tags": ner_tags,
+                }

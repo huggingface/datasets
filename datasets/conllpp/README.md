@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- extended|other-conll2003
+- extended|conll2003
 task_categories:
 - structure-prediction
 task_ids:
@@ -53,16 +53,23 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [https://www.aclweb.org/anthology/D19-1519/](https://www.aclweb.org/anthology/D19-1519/)
+- **Homepage:** [https://github.com/ZihanWangKi/CrossWeigh](https://github.com/ZihanWangKi/CrossWeigh)
 - **Repository:** [https://github.com/ZihanWangKi/CrossWeigh](https://github.com/ZihanWangKi/CrossWeigh)
-- **Paper:** 
+- **Paper:** [https://www.aclweb.org/anthology/D19-1519/](https://www.aclweb.org/anthology/D19-1519/)
 - **Leaderboard:**
 - **Point of Contact:**
 
 ### Dataset Summary
 
-CoNLLpp is a corrected version of the CoNLL2003 NER dataset where labels of 5.38% of the sentences in the test set 
-have been manually corrected. The training set and development set from CoNLL2003 is included for completeness.
+CoNLLpp is a corrected version of the CoNLL2003 NER dataset where labels of 5.38% of the sentences in the test set
+have been manually corrected. The training set and development set from CoNLL2003 is included for completeness. One 
+correction on the test set for example, is:
+
+{
+    "tokens": "[\"SOCCER\", \"-\", \"JAPAN\", \"GET\", \"LUCKY\", \"WIN\", \",\", \"CHINA\", \"IN\", \"SURPRISE\", \"DEFEAT\", \".\"]",
+    "original_ner_tags_in_conll2003": ["O", "O", "B-LOC", "O", "O", "O", "O", "B-PER", "O", "O", "O", "O"],
+    "corrected_ner_tags_in_conllpp": ["O", "O", "B-LOC", "O", "O", "O", "O", "B-LOC", "O", "O", "O", "O"],
+}
 
 ### Supported Tasks and Leaderboards
 
@@ -74,17 +81,45 @@ have been manually corrected. The training set and development set from CoNLL200
 
 ## Dataset Structure
 
+We show detailed information for up to 5 configurations of the dataset.
+
 ### Data Instances
 
-[More Information Needed]
+#### conllpp
+
+- **Size of downloaded dataset files:** 4.63 MB
+- **Size of the generated dataset:** 9.78 MB
+- **Total amount of disk used:** 14.41 MB
+
+An example of 'train' looks as follows.
+```
+This example was too long and was cropped:
+
+{
+    "chunk_tags": [11, 12, 12, 21, 13, 11, 11, 21, 13, 11, 12, 13, 11, 21, 22, 11, 12, 17, 11, 21, 17, 11, 12, 12, 21, 22, 22, 13, 11, 0],
+    "id": "0",
+    "ner_tags": [0, 3, 4, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "pos_tags": [12, 22, 22, 38, 15, 22, 28, 38, 15, 16, 21, 35, 24, 35, 37, 16, 21, 15, 24, 41, 15, 16, 21, 21, 20, 37, 40, 35, 21, 7],
+    "tokens": "[\"The\", \"European\", \"Commission\", \"said\", \"on\", \"Thursday\", \"it\", \"disagreed\", \"with\", \"German\", \"advice\", \"to\", \"consumers\", \"t..."
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+The data fields are the same among all splits.
 
-### Data Splits
+#### conllpp
+- `id`: a `string` feature.
+- `tokens`: a `list` of `string` features.
+- `pos_tags`: a `list` of classification labels, with possible values including `"` (0), `''` (1), `#` (2), `$` (3), `(` (4).
+- `chunk_tags`: a `list` of classification labels, with possible values including `O` (0), `B-ADJP` (1), `I-ADJP` (2), `B-ADVP` (3), `I-ADVP` (4).
+- `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-PER` (1), `I-PER` (2), `B-ORG` (3), `I-ORG` (4).
 
-[More Information Needed]
+### Data Splits Sample Size
+
+|  name   |train|validation|test|
+|---------|----:|---------:|---:|
+|conll2003|14041|      3250|3453|
 
 ## Dataset Creation
 
@@ -146,4 +181,4 @@ have been manually corrected. The training set and development set from CoNLL200
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@ZihanWangKi](https://github.com/ZihanWangKi) for adding this dataset.
