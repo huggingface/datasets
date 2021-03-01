@@ -34,13 +34,27 @@ class DatasetDictTest(TestCase):
             }
         )
 
-    def test_flatten(self):
+    def test_flatten_in_place(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
             features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
         )
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset.flatten_()
+        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
+        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertDictEqual(
+            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+        )
+        del dset
+
+    def test_flatten(self):
+        dset_split = Dataset.from_dict(
+            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
+            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+        )
+        dset = DatasetDict({"train": dset_split, "test": dset_split})
+        dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
         self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
@@ -188,7 +202,7 @@ class DatasetDictTest(TestCase):
             self.assertDictEqual(dset_split.format, dset_split2.format)
         del dset, dset2
 
-    def test_cast_(self):
+    def test_cast_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features
         features["col_1"] = Value("float64")
@@ -199,7 +213,18 @@ class DatasetDictTest(TestCase):
             self.assertIsInstance(dset_split[0]["col_1"], float)
         del dset
 
-    def test_remove_columns_(self):
+    def test_cast(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        features = dset["train"].features
+        features["col_1"] = Value("float64")
+        dset = dset.cast(features)
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+            self.assertEqual(dset_split.features["col_1"], Value("float64"))
+            self.assertIsInstance(dset_split[0]["col_1"], float)
+        del dset
+
+    def test_remove_columns_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset.remove_columns_(column_names="col_1")
         for dset_split in dset.values():
@@ -212,9 +237,30 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 0)
         del dset
 
-    def test_rename_column_(self):
+    def test_remove_columns(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.remove_columns(column_names="col_1")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_2"])
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.remove_columns(column_names=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 0)
+        del dset
+
+    def test_rename_column_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
+        del dset
+
+    def test_rename_column(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 2)
             self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])

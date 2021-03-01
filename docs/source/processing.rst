@@ -134,6 +134,111 @@ The :func:`datasets.Dataset.shard` takes as arguments the total number of shards
 
 This method can be used to slice a very large dataset in a predefined number of chunks.
 
+
+Renaming, removing, casting and flattening columns
+--------------------------------------------------
+
+Renaming a column: ``rename_column``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This method renames a column in the dataset, and move the features associated to the original column under the new column name. This operation will fail if the new column name already exists.
+
+:func:`datasets.Dataset.rename_column` takes the name of the original column and the new name as arguments.
+
+.. code-block::
+
+    >>> dataset = dataset.rename_column("sentence1", "sentenceA")
+    >>> dataset = dataset.rename_column("sentence2", "sentenceB")
+    >>> dataset
+    Dataset({
+        features: ['sentenceA', 'sentenceB', 'label', 'idx'],
+        num_rows: 3668
+    })
+
+
+Removing one or several columns: ``remove_columns``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It allows to remove one or several column(s) in the dataset and the features associated to them.
+
+You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+doesn't copy the data to a new dataset object and is thus faster.
+
+:func:`datasets.Dataset.remove_columns` takes the names of the column to remove as argument.
+You can provide one single column names or a list of column names.
+
+.. code-block::
+
+    >>> dataset = dataset.remove_columns("label")
+    >>> dataset
+    Dataset({
+        features: ['sentence1', 'sentence2', 'idx'],
+        num_rows: 3668
+    })
+    >>> dataset = dataset.remove_columns(['sentence1', 'sentence2'])
+    >>> dataset
+    Dataset({
+        features: ['idx'],
+        num_rows: 3668
+    })
+
+Casting the dataset to a new set of features types: ``cast``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This method is used to cast the dataset to a new set of features.
+You can change the feature type of one or several columns.
+
+For the dataset casting to work, the original features type and the new feature types must be compatible for casting one to the other.
+For example you can cast a column with the feature type ``Value("int32")`` to ``Value("bool")`` only if it only contains ones and zeros.
+In general, you can only cast a column to a new type if pyarrow allows to cast between the underlying pyarrow data types.
+
+:func:`datasets.Dataset.cast` takes the new :obj:`datasets.Features` definition as argument.
+
+In this example, we change the :obj:`datasets.ClassLabel` label names, and we also change the ``idx`` from ``int32`` to ``int64``:
+
+.. code-block::
+
+    >>> dataset.features
+    {'sentence1': Value(dtype='string', id=None),
+    'sentence2': Value(dtype='string', id=None),
+    'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+    'idx': Value(dtype='int32', id=None)}
+    >>> from datasets import ClassLabel, Value
+    >>> new_features = dataset.features.copy()
+    >>> new_features["label"] = ClassLabel(names=['negative', 'positive'])
+    >>> new_features["idx"] = Value('int64')
+    >>> dataset = dataset.cast(new_features)
+    >>> dataset.features
+    {'sentence1': Value(dtype='string', id=None),
+    'sentence2': Value(dtype='string', id=None),
+    'label': ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None),
+    'idx': Value(dtype='int64', id=None)}
+
+
+Flattening columns: ``flatten``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A column type can be a nested struct of several types.
+For example a column "answers" may have two subfields "answer_start" and "text".
+In this case if you want each of the two subfields to be actual columns, you can use :func:`datasets.Dataset.flatten`:
+
+.. code-block::
+
+    >>> squad = load_dataset("squad", split="train")
+    >>> squad
+    Dataset({
+        features: ['id', 'title', 'context', 'question', 'answers'],
+        num_rows: 87599
+    })
+    >>> flattened_squad = squad.flatten()
+    >>> flattened_squad
+    Dataset({
+        features: ['answers.answer_start', 'answers.text', 'context', 'id', 'question', 'title'],
+        num_rows: 87599
+    })
+
+
+
 Processing data with ``map``
 --------------------------------
 
@@ -463,7 +568,7 @@ When you have several :obj:`datasets.Dataset` objects that share the same column
     >>>
     >>> bookcorpus = load_dataset("bookcorpus", split="train")
     >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
-    >>> wiki.remove_columns_("title")  # only keep the text
+    >>> wiki = wiki.remove_columns("title")  # only keep the text
     >>>
     >>> assert bookcorpus.features.type == wiki.features.type
     >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
