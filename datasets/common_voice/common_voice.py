@@ -46,99 +46,9 @@ _HOMEPAGE = "https://commonvoice.mozilla.org/en/datasets"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = "https://github.com/common-voice/common-voice/blob/main/LICENSE"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = {
-    'first_domain': "https://mozilla-common-voice-datasets.s3.dualstack.us-west-2.amazonaws.com/cv-corpus-6.1-2020-12-11/en.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQ3GQRTO3CAFSOHXG%2F20210212%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210212T082132Z&X-Amz-Expires=43200&X-Amz-Security-Token=FwoGZXIvYXdzEOr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDDBRxPQbFwld%2BrOewCKSBOR7k7VaqtnM0zucItVC0gdXyV4Uh5qtOx0vhTzhGRJ2r0mKkJ5FNL8bMe5TWtcX0IEH8HHTs28S%2BDerVhBD%2FGKfxy6J4BQCjhR0J8AoqwEYm0qRVm5b7tbWBNYetD5c8HxYGWWRppvaYxRxdnRbupfKuGpMEf3eYskfH8tAA739HbcKj44LGe4lkKsGvI1avxrxrNugcrNF%2BOccEdNInU%2F%2BVQvoFUu93oAEhJWl8dWXswDtZSCmuvfTjCbsZjphoSfTz5t0T25qXwP3PpcZTRVrYm9rQ4GGwaiva9qs0Q0nA0mC0skcMLF%2BZMxfo4wtaDfneDoPgNITqHtLyXLKeXRwIhHUzjNriniNNTp3XJyivc6qr6uNJ23IysUKfqNfQ2EiZC07VEQlVcYoSBKNHvGEIHsXfICaQ4MyHSl7dJa0CaSOAjBytNMxxhqCCLylJ%2BEgnO45VS5X12z8D3vTyyjR67hqXKDHwdTioVTlK3j%2FTXWRHDw31EbikSkhDKubD%2F2VDJLMul7cXjpCWygmJXHKG%2BNQKM09vP3pdmuVuQ1Z8an8OPMTnGKJEOsKXkrCJTOjvQVAl7z4KKlA9UW0Hp0u%2FoZnT%2Fxgi7dvqwu1Fq7%2BRQ%2BkXi3LT6lA%2B%2BJfO2HEOnlcsg1TFompSGp0dD12F3iTQNmKAuakCdunLyQRd%2Bgi2vRmwfsPyHOnRiJVbyghoEWyKLHtmIEGMir%2B01wURSgc46vtaXqBOz5Gtj4bF5wkpw6TCh%2FiHFn7Fx6igw69uJmKtpI%3D&X-Amz-Signature=573df56b8f6aa8e13b2fa26fa0763718e25f2d7a33e0be97ea5ff82680d82474&X-Amz-SignedHeaders=host"
-}
-
-#_FILES = {
-#    "dev.tsv": "fields": {
-#        "client_id": "client_id",	
-#        "path": "path to sound file"	
-#        "sentence": "sentence pronounced",
-#        "up_votes": "upvotes by reviewers",
-#        "down_votes": "down votes by reviewers"	
-#        "age": "Age of the speaker":
-#        "gender" "Gender of the speaker",
-#        "accent": "accent of the speaker",
-#        "locale": "location of the speaker",
-#        "segment": "segment",
-#    }
-#    "invalidated.tsv": {
-#        "client_id": "client_id",	
-#        "path": "path to sound file"	
-#        "sentence": "sentence pronounced",
-#        "up_votes": "upvotes by reviewers",
-#        "down_votes": "down votes by reviewers"	
-#        "age": "Age of the speaker":
-#        "gender" "Gender of the speaker",
-#        "accent": "accent of the speaker",
-#        "locale": "location of the speaker",
-#        "segment": "segment"}
-#    "other.tsv": 
-#        {
-#        "client_id": "client_id",	
-#        "path": "path to sound file"	
-#        "sentence": "sentence pronounced",
-#        "up_votes": "upvotes by reviewers",
-#        "down_votes": "down votes by reviewers"	
-#        "age": "Age of the speaker":
-#        "gender" "Gender of the speaker",
-#        "accent": "accent of the speaker",
-#        "locale": "location of the speaker",
-#        "segment": "segment", }
-#    "reported.tsv": {
-#        {
-#        "sentence": "sentence",	
-#        "senetence_id": "sentence_id"	
-#        "locale": "location of the speakr",
-#        "reason": "reason for report"
-#    }
-#    "test.tsv": {
-#         {
-#        "client_id": "client_id",	
-#        "path": "path to sound file"	
-#        "sentence": "sentence pronounced",
-#        "up_votes": "upvotes by reviewers",
-#        "down_votes": "down votes by reviewers"	
-#        "age": "Age of the speaker":
-#        "gender" "Gender of the speaker",
-#        "accent": "accent of the speaker",
-#        "locale": "location of the speaker",
-#        "segment": "segment", }
-#    }
-#    "train.tsv": {
-#         {
-#        "client_id": "client_id",	
-#        "path": "path to sound file"	
-#        "sentence": "sentence pronounced",
-#        "up_votes": "upvotes by reviewers",
-#        "down_votes": "down votes by reviewers"	
-#        "age": "Age of the speaker":
-#        "gender" "Gender of the speaker",
-#        "accent": "accent of the speaker",
-#        "locale": "location of the speaker",
-#        "segment": "segment", }
-#    }
-#    "validated.tsv": {
-#         {
-#        "client_id": "client_id",	
-#        "path": "path to sound file"	
-#        "sentence": "sentence pronounced",
-#        "up_votes": "upvotes by reviewers",
-#        "down_votes": "down votes by reviewers"	
-#        "age": "Age of the speaker":
-#        "gender" "Gender of the speaker",
-#        "accent": "accent of the speaker",
-#        "locale": "location of the speaker",
-#        "segment": "segment", }
-#    }
-#}
-
 _LANGUAGES = {
-    "Abkhaz": {
+    "ab": {
+        "Language": "Abkhaz",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -146,7 +56,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Arabic": {
+    "ar": {
+        "Language": "Arabic",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -154,7 +65,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Assamese": {
+    "as": {
+        "Language": "Assamese",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -162,7 +74,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Breton": {
+    "br": {
+        "Language": "Breton",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -170,7 +83,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Catalan": {
+    "ca": {
+        "Language": "Catalan",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -178,7 +92,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Hakha Chin": {
+    "cnh": {
+        "Language": "Hakha Chin",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -186,7 +101,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Czech": {
+    "cs": {
+        "Language": "Czech",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -194,7 +110,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Chuvash": {
+    "cv": {
+        "Language": "Chuvash",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -202,7 +119,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Welsh": {
+    "cy": {
+        "Language": "Welsh",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -210,7 +128,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Abkhaz": {
+    "de": {
+        "Language": "German",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -218,7 +137,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "German": {
+    "dv": {
+        "Language": "Dhivehi",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -226,7 +146,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Dhivehi": {
+    "el": {
+        "Language": "Greek",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -234,7 +155,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Greek": {
+    "en": {
+        "Language": "English",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -242,7 +164,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "English": {
+    "eo": {
+        "Language": "Esperanto",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -250,7 +173,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Esperanto": {
+    "es": {
+        "Language": "Spanish",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -258,7 +182,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Spanish": {
+    "et": {
+        "Language": "Estonian",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -266,7 +191,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Estonian": {
+    "eu": {
+        "Language": "Basque",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -274,15 +200,8 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Basque": {
-        "Date": "2020-12-11",
-        "Size": "39 MB",
-        "Version": "ab_1h_2020-12-11",
-        "Validated_Hr_Total": 0.05,
-        "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },
-    "Persian": {
+    "fa": {
+        "Language": "Persian",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -290,181 +209,53 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },   
-    "Finnish": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
+    "fi": {
+        "Language": "Finnish",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
     },    
-    "French": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
+    "fr": {
+        "Language": "French",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
     },    
-    "Frisian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
+    "fy-NL": {
+        "Language": "Frisian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
     },    
-    "Irish": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
+    "ga-IE": {
+        "Language": "Irish",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
     },    
-    "Hindi": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
+    "hi": {
+        "Language": "Hindi",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
     },    
-    "Sorbian, Upper": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Hungarian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },    
-    "InterLinguia": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },    
-    "Indonesian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Italian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Japanese": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Georgian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Kabyle": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Kyrgyz": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Luganda": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "German": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Lithuanian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Latvian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },    
-    "Mongolian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Maltese": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Dutch": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14,
-    "Download_Link": "https://mozilla-common-voice-datasets.s3.dualstack.us-west-2.amazonaws.com/cv-corpus-6.1-2020-12-11/nl.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQ3GQRTO3ND4UAQXB%2F20210217%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210217T080740Z&X-Amz-Expires=43200&X-Amz-Security-Token=FwoGZXIvYXdzEGIaDCC6ALh%2FwIK9ovvRdCKSBCs5WaSJNsZ2h0SnhpnWFv4yiAJHJTe%2BY6pBcCqadRMs0RABHeQ2n1QDACJ5V9WOqIHfMfT0AI%2Bfe6iFkTGLgRrJOMYpgV%2FmIBcXCjeb72r4ZvudMA8tprkSxZsEh53bJkIDQx1tXqfpz0yoefM0geD3461suEGhHnLIyiwffrUpRg%2BkNZN9%2FLZZXpF5F2pogieKKV533Jetkd1xlWOR%2Bem9R2bENu2RV563XX3JvbWxSYN9IHkVT1xwd4ZiOpUtX7%2F2RoluJUKw%2BUPpyml3J%2FOPPGdr7CyPLjqNxdq9ceRi8lRybty64XvNYZGt45VNTQ3pkTTz4VpUCJAGkgxq95Ve%2BOwW%2Fsc8JtblTFKrH11vej62NB7C0n7JPPS4SLKXHKW%2B7ZbybcNf3BnsAVouPdsGTMslcgkD81b9trnjyXJdOZkzdHUf2KcWVXVceEsZnMhcCZQ1cJpI7qXPEk8QrKCQcNByPLHmPIEdHpj9IrIBKDkl2qO7VX7CCB65WDt2eZRltOcNHXWVFXFktMdQOQztI1j0XSZz2iOX4jPKKaqz193VEytlAqmehNi8pePOnxkP9Z1SP7d3I6rayuBF3phmpHxw499tY3ECYYgoCnJ6QSFa3KxMjFmEpQlmjxuwEMHd4CDL2FJYGcCiIxbCcL1r8ZE3%2BbGdcu7PRsVCHX3Huh%2FqGIaF4h40FgteN6teyKCHKOebs4EGMipb9xmEMZ9ZbVopz4bkhLdMTrjKon9w624Xem0MTPqN7XY%2BB6lRgrW8rd4%3D&X-Amz-Signature=28eabdfce72a472a70b0f9e1e2c37fe1471b5ec8ed60614fbe900bfa97ae1ac8&X-Amz-SignedHeaders=host"
-    },"Odia": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },
-    "Punjabi": {
+    "hsb": {
+        "Language": "Sorbian, Upper",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -472,140 +263,323 @@ _LANGUAGES = {
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
     },
-    "Polish": {
+    "hu": {
+        "Language": "Hungarian",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
         "Number_Of_Voice": 14
-    },"Portuguese": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Romansh Sursilvan": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Romansh Vallader": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Romanian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Russian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Kinyarwanda": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Sakha": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Slovenian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Swedish": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Tamil": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Thai": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Turkish": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Tatar": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Ukrainian": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Vietnamese": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Votic": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Chinese (China)": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Chinese (Hong Kong)": {
-    "Date": "2020-12-11",
-    "Size": "39 MB",
-    "Version": "ab_1h_2020-12-11",
-    "Validated_Hr_Total": 0.05,
-    "Overall_Hr_Total": 1,
-    "Number_Of_Voice": 14
-    },"Chinese (Taiwan": {
+    },    
+    "ia": {
+        "Language": "InterLinguia",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },    
+    "id": {
+        "Language": "Indonesian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "it": {
+        "Language": "Italian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "ja": {
+        "Language": "Japanese",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "ka": {
+        "Language": "Georgian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "kab": {
+        "Language": "Kabyle",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "ky": {
+        "Language": "Kyrgyz",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "lg": {
+        "Language": "Luganda",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "lt": {
+        "Language": "Lithuanian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "lv": {
+        "Language": "Latvian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },    
+    "mn": {
+        "Language": "Mongolian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "mt": {
+        "Language": "Maltese",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "nl": {
+        "Language": "Dutch",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14,
+    },
+    "or": {
+        "Language": "Odia",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "pa-IN": {
+        "Language": "Punjabi",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "pl": {
+        "Language": "Polish",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "pt": {
+        "Language": "Portuguese",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "rm-sursilv": {
+        "Language": "Romansh Sursilvan",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "rm-vallader": {
+        "Language": "Romansh Vallader",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "ro": {
+        "Language": "Romanian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "ru": {
+        "Language": "Russian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "rw": {
+        "Language": "Kinyarwanda",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "sah": {
+        "Language": "Sakha",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "sl": {
+        "Language": "Slovenian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "sv-SE": {
+        "Language": "Swedish",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "ta": {
+        "Language": "Tamil",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "th": {
+        "Language": "Thai",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "tr": {
+        "Language": "Turkish",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "tt": {
+        "Language": "Tatar",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "uk": {
+        "Language": "Ukrainian",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "vi": {
+        "Language": "Vietnamese",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "vot": {
+        "Language": "Votic",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "zh-CN": {
+        "Language": "Chinese (China)",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "zh-HK": {
+        "Language": "Chinese (Hong Kong)",
+        "Date": "2020-12-11",
+        "Size": "39 MB",
+        "Version": "ab_1h_2020-12-11",
+        "Validated_Hr_Total": 0.05,
+        "Overall_Hr_Total": 1,
+        "Number_Of_Voice": 14
+    },
+    "zh-TW": {
+        "Language": "Chinese (Taiwan)",
         "Date": "2020-12-11",
         "Size": "39 MB",
         "Version": "ab_1h_2020-12-11",
@@ -628,8 +602,8 @@ class CommonVoiceConfig(datasets.BuilderConfig):
           url: `string`, url for information about the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        self.language = name
         self.sub_version = sub_version
+        self.language = kwargs.pop("language", None)
         self.date_of_snapshot = kwargs.pop("date", None)
         self.size = kwargs.pop("size", None)
         self.validated_hr_total = kwargs.pop("val_hrs", None)
@@ -653,39 +627,22 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         CommonVoiceConfig(
-            name=lang, 
-            sub_version=_LANGUAGES[lang]["Version"], 
-            date=_LANGUAGES[lang]["Date"], 
-            size=_LANGUAGES[lang]["Size"], 
-            val_hrs=_LANGUAGES[lang]["Validated_Hr_Total"], 
-            total_hrs=_LANGUAGES[lang]["Overall_Hr_Total"], 
-            num_of_voice=_LANGUAGES[lang]["Number_Of_Voice"], 
+            name=lang_id, 
+            language=_LANGUAGES[lang_id]["Language"],
+            sub_version=_LANGUAGES[lang_id]["Version"], 
+            date=_LANGUAGES[lang_id]["Date"], 
+            size=_LANGUAGES[lang_id]["Size"], 
+            val_hrs=_LANGUAGES[lang_id]["Validated_Hr_Total"], 
+            total_hrs=_LANGUAGES[lang_id]["Overall_Hr_Total"], 
+            num_of_voice=_LANGUAGES[lang_id]["Number_Of_Voice"], 
         )
-        for lang in _LANGUAGES.keys()
+        for lang_id in _LANGUAGES.keys()
     ]
 
 #    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-#        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
-#            features = datasets.Features(
-#                {
-#                    "client_id": datasets.Value("string"),
-#                    "path": datasets.Value("string"),
-#                    "sentence": datasets.Value("string"),
-#                    "up_votes": datasets.Value("int64"),
-#                    "down_votes": datasets.Value("int64"),
-#                    "age": datasets.Value("string"),
-#                    "gender": datasets.Value("string"),
-#                    "locale": datasets.Value("string"),
-#                    "segmet": datasets.Value("string"),
-#
-                    # These are the features of your dataset like images, labels ...
-#                }
-#            )
-#
-#        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
         features = datasets.Features(
             {
                 "client_id": datasets.Value("string"),
@@ -726,7 +683,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
-        abs_path_to_data = os.path.abspath(dl_manager.manual_dir)
+        abs_path_to_data = os.path.abspath(os.path.join(dl_manager.manual_dir, self.config.name))
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
         return [
