@@ -96,11 +96,6 @@ For `default`:
   - `indices`: a `list` containing `list` of token indices.
 - `names`: a `list` of `string` features containing relation names. For `pubmed_unsupervised` split, this is set to a `list` with an empty `string`. For `val_semeval` and `val_pubmed` split, this is set to a `list` with the `string` from the `relation` field.
 
-For `pid2name`:
-
-- `relation`: a `string` feature representing the PID of the relation.
-- `names`: a `list` of `string` features containings names for the PID.
-
 ### Data Splits
 
 `train_wiki`: 44800
