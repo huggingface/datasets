@@ -88,7 +88,7 @@ Example of a data instance:
 
 ```
 {
-    "promptID": "31193",
+    "promptID": 31193,
     "pairID": "31193n",
     "premise": "Conceptually cream skimming has two basic dimensions - product and geography.",
     "premise_binary_parse": "( ( Conceptually ( cream skimming ) ) ( ( has ( ( ( two ( basic dimensions ) ) - ) ( ( product and ) geography ) ) ) . ) )",
@@ -97,7 +97,7 @@ Example of a data instance:
     "hypothesis_binary_parse": "( ( ( Product and ) geography ) ( ( are ( what ( make ( cream ( skimming work ) ) ) ) ) . ) )",
     "hypothesis_parse": "(ROOT (S (NP (NN Product) (CC and) (NN geography)) (VP (VBP are) (SBAR (WHNP (WP what)) (S (VP (VBP make) (NP (NP (NN cream)) (VP (VBG skimming) (NP (NN work)))))))) (. .)))",
     "genre": "government",
-    "label": "neutral"
+    "label": 1
 }
 ```
 
@@ -185,4 +185,4 @@ The majority of the corpus is released under the OANC’s license, which allows 
 
 ### Contributions
 
-Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten), [@thomwolf](https://github.com/thomwolf), [@mariamabarham](https://github.com/mariamabarham) for adding this dataset.
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik), [@patrickvonplaten](https://github.com/patrickvonplaten), [@thomwolf](https://github.com/thomwolf), [@mariamabarham](https://github.com/mariamabarham) for adding this dataset.
