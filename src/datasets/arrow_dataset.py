@@ -2376,10 +2376,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Exports the dataset to csv
 
         Args:
-            `path_or_buf` (:obj:`PathLike` or :obj:`FileOrBuffer): Either a path to a file or a BinaryIO.
-            `batch_size` (`Optional[int]`): Size of the batch to load in memory and write at once. Defaults to
-                :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
-            `**to_csv_kwargs`: Parameters to pass to pandas's :func:`DataFrame.to_csv`
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            to_csv_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
 
         Returns:
             int: The number of characters or bytes written
@@ -2397,10 +2397,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
-                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
-                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `dict` or `Iterator[dict]`
@@ -2428,10 +2428,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
-                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
-                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
