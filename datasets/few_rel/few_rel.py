@@ -68,7 +68,7 @@ _URLs = {
 }
 
 
-class FewRelDataset(datasets.GeneratorBasedBuilder):
+class FewRel(datasets.GeneratorBasedBuilder):
     """The FewRelDataset."""
 
     VERSION = datasets.Version("1.0.0")
