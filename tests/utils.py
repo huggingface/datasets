@@ -4,6 +4,7 @@ import unittest
 from contextlib import contextmanager
 from distutils.util import strtobool
 from pathlib import Path
+from unittest.mock import patch
 
 from datasets import config
 
@@ -184,22 +185,55 @@ def for_all_test_methods(*decorators):
     return decorate
 
 
+class RequestWouldHangIndefinitelyError(Exception):
+    pass
+
+
 @contextmanager
-def offline(exception_cls=None):
-    """inspired from https://stackoverflow.com/a/18601897"""
+def offline(connection_times_out=False, timeout=1e-16):
+    """
+    Simulate offline mode.
+
+    By default a ConnectionError is raised for each network call.
+    With connection_times_out=True on the other hand, the connection hangs until it times out.
+    The default timeout value is low (1e-16) to speed up the tests.
+
+    Connection errors are created by mocking socket.socket,
+    while the timeout errors are created by mocking requests.request.
+    """
     import socket
 
-    online_socket = socket.socket
+    from requests import request as online_request
 
-    def guard(*args, **kwargs):
-        error = exception_cls if exception_cls is not None else socket.error
-        raise error("Offline mode is enabled.")
+    def timeout_request(method, url, **kwargs):
+        # Change the url to an invalid url so that the connection hangs
+        invalid_url = "https://10.255.255.1"
+        if kwargs.get("timeout") is None:
+            raise RequestWouldHangIndefinitelyError(
+                f"Tried a call to {url} in offline mode with no timeout set. Please set a timeout."
+            )
+        kwargs["timeout"] = timeout
+        try:
+            return online_request(method, invalid_url, **kwargs)
+        except Exception as e:
+            # The following changes in the error are just here to make the offline timeout error prettier
+            e.request.url = url
+            max_retry_error = e.args[0]
+            max_retry_error.args = (max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),)
+            e.args = (max_retry_error,)
+            raise
 
-    try:
-        socket.socket = guard
-        yield
-    finally:
-        socket.socket = online_socket
+    def offline_socket(*args, **kwargs):
+        raise socket.error("Offline mode is enabled.")
+
+    if connection_times_out:
+        # inspired from https://stackoverflow.com/a/904609
+        with patch("requests.request", timeout_request):
+            yield
+    else:
+        # inspired from https://stackoverflow.com/a/18601897
+        with patch("socket.socket", offline_socket):
+            yield
 
 
 @contextmanager

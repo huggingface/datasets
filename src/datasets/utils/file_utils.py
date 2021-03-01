@@ -389,12 +389,18 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[
 
 
 def _request_with_retry(
-    verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
+    method: str,
+    url: str,
+    max_retries: int = 0,
+    base_wait_time: float = 0.5,
+    max_wait_time: float = 2,
+    timeout: float = 10.0,
+    **params,
 ) -> requests.Response:
     """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff
 
     Args:
-        verb (str): HTTP verb, such as 'GET' or 'HEAD'
+        method (str): HTTP method, such as 'GET' or 'HEAD'
         url (str): The URL of the ressource to fetch
         max_retries (int): Maximum number of retries, defaults to 0 (no retries)
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
@@ -406,19 +412,19 @@ def _request_with_retry(
     while not success:
         tries += 1
         try:
-            response = requests.request(verb.upper(), url, **params)
+            response = requests.request(method=method.upper(), url=url, timeout=timeout, **params)
             success = True
         except requests.exceptions.ConnectTimeout as err:
             if tries > max_retries:
                 raise err
             else:
-                logger.info(f"{verb} request to {url} timed out, retrying... [{tries/max_retries}]")
+                logger.info(f"{method} request to {url} timed out, retrying... [{tries/max_retries}]")
                 sleep_time = max(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
                 time.sleep(sleep_time)
     return response
 
 
-def ftp_head(url, timeout=2.0):
+def ftp_head(url, timeout=10.0):
     try:
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
             r.read(1)
@@ -427,7 +433,7 @@ def ftp_head(url, timeout=2.0):
     return True
 
 
-def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
+def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0):
     try:
         logger.info(f"Getting through FTP {url} into {temp_file.name}")
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
@@ -436,13 +442,20 @@ def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=N
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0, max_retries=0):
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
     response = _request_with_retry(
-        verb="GET", url=url, stream=True, proxies=proxies, headers=headers, cookies=cookies, max_retries=max_retries
+        method="GET",
+        url=url,
+        stream=True,
+        proxies=proxies,
+        headers=headers,
+        cookies=cookies,
+        max_retries=max_retries,
+        timeout=timeout,
     )
     if response.status_code == 416:  # Range not satisfiable
         return
@@ -465,12 +478,12 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
 
 
 def http_head(
-    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
+    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10.0, max_retries=0
 ) -> requests.Response:
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     response = _request_with_retry(
-        verb="HEAD",
+        method="HEAD",
         url=url,
         proxies=proxies,
         headers=headers,
