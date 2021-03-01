@@ -172,10 +172,10 @@ class CcalignedMultilingual(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name[:9]]
         if self.config.name[:9] == "sentences" and self.config.language_code in reverse_mapped_sentences:
-            url = os.path.join(my_urls, self.config.language_code + "-en_XX.tsv.xz")
+            url = my_urls + self.config.language_code + "-en_XX.tsv.xz"
             from_english = False
         else:
-            url = os.path.join(my_urls, "en_XX-" + self.config.language_code + ".tsv.xz")
+            url = my_urls + "en_XX-" + self.config.language_code + ".tsv.xz"
             from_english = True
         data_file = dl_manager.download_and_extract(url)
         return [
