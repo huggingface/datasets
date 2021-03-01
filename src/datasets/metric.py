@@ -246,7 +246,7 @@ class Metric(MetricInfoMixin):
                 if self.num_process != 1:
                     raise ValueError(
                         f"Error in _create_cache_file: another metric instance is already using the local cache file at {file_path}. "
-                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
                     )
                 if i == self.max_concurrent_cache_files - 1:
@@ -357,7 +357,7 @@ class Metric(MetricInfoMixin):
             except FileNotFoundError:
                 raise ValueError(
                     "Error in finalize: another metric instance is already using the local cache file. "
-                    "Please specify an experiment_id to avoid colision between distributed metric instances."
+                    "Please specify an experiment_id to avoid collision between distributed metric instances."
                 )
 
             # Store file paths and locks and we will release/delete them after the computation.
@@ -461,7 +461,7 @@ class Metric(MetricInfoMixin):
                 except TimeoutError:
                     raise ValueError(
                         f"Error in _init_writer: another metric instance is already using the local cache file at {file_path}. "
-                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
                     )
 
