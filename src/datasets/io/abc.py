@@ -1,22 +1,26 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from .. import DatasetInfo, NamedSplit
+from .. import Features, NamedSplit
 from ..arrow_dataset import Dataset
 from ..utils.typing import PathLike
 
 
-class AbstractDatasetReader(ABC):
+class AbstractDatasetBuilder(ABC):
     def __init__(
         self,
         path: PathLike,
-        info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        **kwargs,
     ):
         self.path = path
-        self.info = info
         self.split = split
+        self.features = features
+        self.cache_dir = cache_dir
+        self.kwargs = kwargs
 
     @abstractmethod
-    def read(self) -> Dataset:
+    def build(self) -> Dataset:
         pass

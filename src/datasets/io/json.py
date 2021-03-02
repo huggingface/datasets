@@ -1,39 +1,50 @@
-import json
-
-import pyarrow as pa
-import pyarrow.json as paj
-
-from ..arrow_dataset import Dataset
-from .abc import AbstractDatasetReader
+from ..packaged_modules.json.json import Json
+from .abc import AbstractDatasetBuilder
 
 
-class JsonlDatasetReader(AbstractDatasetReader):
-    def read(self):
-        table = self._read_table()
-        # table = self._cast_table_to_info_features(table)
-        return Dataset(table, info=self.info, split=self.split)
+class JsonDatasetBuilder(AbstractDatasetBuilder):
+    def __init__(
+        self,
+        path,
+        split=None,
+        features=None,
+        cache_dir=None,
+        **kwargs,
+    ):
+        super().__init__(path, split=split, features=features, cache_dir=cache_dir, **kwargs)
+        self.builder = Json(
+            cache_dir=cache_dir,
+            data_files=path,
+            features=features,
+            **kwargs,
+        )
 
-    def _read_table(self):
-        schema = pa.schema(self.info.features.type) if self.info and self.info.features else None
-        try:
-            with open(self.path, "rb") as f:
-                table = paj.read_json(f, parse_options=paj.ParseOptions(explicit_schema=schema))
-        except pa.ArrowInvalid:
-            with open(self.path, encoding="utf-8") as f:
-                dataset = json.load(f)
-            raise ValueError(
-                f"Not able to read records in the JSON file at {self.path}. "
-                f"You should probably indicate the field of the JSON file containing your records. "
-                f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                f"Select the correct one and provide it as `field='XXX'` to the `load_dataset` method. "
-            )
-        return table
+    def build(self):
+        download_config = None
+        download_mode = None
+        ignore_verifications = False
 
-    # def _cast_table_to_info_features(self, table):
-    #     if self.info and self.info.features:
-    #         type = self.info.features.type
-    #         # try
-    #         schema = pa.schema({col_name: type[col_name].type for col_name in table.column_names})
-    #         # try
-    #         table = table.cast(schema)
-    #     return table
+        use_auth_token = None
+
+        keep_in_memory = False
+        save_infos = False
+
+        base_path = None
+
+        self.builder.download_and_prepare(
+            download_config=download_config,
+            download_mode=download_mode,
+            ignore_verifications=ignore_verifications,
+            # try_from_hf_gcs=try_from_hf_gcs,
+            base_path=base_path,
+            use_auth_token=use_auth_token,
+        )
+
+        # Build dataset for splits
+        ds = self.builder.as_dataset(
+            split=self.split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory
+        )
+        if save_infos:
+            self.builder._save_infos()
+
+        return ds
