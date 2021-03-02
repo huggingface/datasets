@@ -134,7 +134,7 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
             if raise_exception:
                 raise pa.lib.ArrowInvalid()
             else:
-                pass
+                writer.stream.close()
     except pa.lib.ArrowInvalid:
         pass
     finally:
