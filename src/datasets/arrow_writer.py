@@ -191,7 +191,7 @@ class ArrowWriter:
                 self.pa_writer.close()
             except pa.lib.ArrowInvalid:
                 pass
-        if self._closable_stream:
+        if self._closable_stream and not self.stream.closed:
             self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
