@@ -95,7 +95,7 @@ _URLs = {
         "train": "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/de_train.zip",
         "validation": "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/de_val.zip",
         "test": "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/de_test.zip",
-        "bad_ids": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_mlsum_bad_ids.json",
+        "bad_ids": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_mlsum_bad_ids_fixed.json",
     },
     "mlsum_es": {
         "train": "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/es_train.zip",
