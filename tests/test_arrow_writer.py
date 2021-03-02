@@ -3,6 +3,7 @@ import tempfile
 from unittest import TestCase
 
 import pyarrow as pa
+import pytest
 
 from datasets.arrow_writer import ArrowWriter, TypedSequence
 from datasets.features import Array2DExtensionType
@@ -123,3 +124,18 @@ class ArrowWriterTest(TestCase):
             self.assertGreater(num_bytes, 0)
             self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
             self._check_output(output)
+
+
+@pytest.mark.parametrize("raise_exception", [False, True])
+def test_arrow_writer_closes_stream(raise_exception, tmp_path):
+    path = str(tmp_path / "dataset-train.arrow")
+    try:
+        with ArrowWriter(path=path) as writer:
+            if raise_exception:
+                raise pa.lib.ArrowInvalid()
+            else:
+                pass
+    except pa.lib.ArrowInvalid:
+        pass
+    finally:
+        assert writer.stream.closed
