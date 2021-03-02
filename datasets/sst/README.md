@@ -79,17 +79,23 @@ The text in the dataset is in English
 ### Data Instances
 
 For the `default` configuration:
+```
 {'label': 0.7222200036048889,
  'sentence': 'Yet the act is still charming here .',
  'tokens': 'Yet|the|act|is|still|charming|here|.',
  'tree': '15|13|13|10|9|9|11|12|10|11|12|14|14|15|0'}
+```
 
 For the `dictionary` configuration:
+```
 {'label': 0.7361099720001221, 
 'phrase': 'still charming'}
+```
 
 For the `ptb` configuration:
+```
 {'ptb_tree': '(3 (2 Yet) (3 (2 (2 the) (2 act)) (3 (4 (3 (2 is) (3 (2 still) (4 charming))) (2 here)) (2 .))))'}
+```
 
 ### Data Fields
 
