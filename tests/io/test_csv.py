@@ -2,7 +2,7 @@ import csv
 
 import pytest
 
-from datasets import DatasetInfo, Features, NamedSplit, Value
+from datasets import Features, NamedSplit, Value
 from datasets.io.csv import CsvDatasetBuilder
 
 
