@@ -437,24 +437,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @staticmethod
     def from_csv(
         path: PathLike,
-        info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
     ):
-        """Create Dataset from CSV file.
+        """Create Dataset from CSV file(s).
         Args:
-            path (path-like): Path of the CSV file.
-            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            path (path-like): Path of the CSV file(s).
             split (NamedSplit, optional): Name of the dataset split.
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
         Returns:
             datasets.Dataset
         """
         # Dynamic import to avoid circular dependency
-        # from .io.csv import CsvDatasetReader
-        #
-        # return CsvDatasetReader(path, info=info, split=split).read()
         from .io.csv import CsvDatasetBuilder
 
-        return CsvDatasetBuilder(path, info=info, split=split).build()
+        return CsvDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir).build()
 
     def __del__(self):
         if hasattr(self, "_data"):
