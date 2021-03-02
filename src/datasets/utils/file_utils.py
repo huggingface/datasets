@@ -411,7 +411,7 @@ def _request_with_retry(
 ) -> requests.Response:
     """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
 
-    Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a ConnectionError is raised.
+    Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
         method (str): HTTP method, such as 'GET' or 'HEAD'
