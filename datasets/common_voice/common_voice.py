@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+""" Common Voice Dataset"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -21,8 +21,6 @@ import os
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{commonvoice:2020,
   author = {Ardila, R. and Branson, M. and Davis, K. and Henretty, M. and Kohler, M. and Meyer, J. and Morais, R. and Saunders, L. and Tyers, F. M. and Weber, G.},
@@ -33,17 +31,13 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
 Common Voice is Mozilla's initiative to help teach machines how real people speak.
 The dataset currently consists of 7,335 validated hours of speech in 60 languages, but we’re always adding more voices and languages.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://commonvoice.mozilla.org/en/datasets"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = "https://github.com/common-voice/common-voice/blob/main/LICENSE"
 
 _LANGUAGES = {
@@ -54,7 +48,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ar": {
         "Language": "Arabic",
@@ -63,7 +57,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "as": {
         "Language": "Assamese",
@@ -72,7 +66,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "br": {
         "Language": "Breton",
@@ -81,7 +75,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ca": {
         "Language": "Catalan",
@@ -90,7 +84,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "cnh": {
         "Language": "Hakha Chin",
@@ -99,7 +93,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "cs": {
         "Language": "Czech",
@@ -108,7 +102,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "cv": {
         "Language": "Chuvash",
@@ -117,7 +111,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "cy": {
         "Language": "Welsh",
@@ -126,7 +120,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "de": {
         "Language": "German",
@@ -135,7 +129,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "dv": {
         "Language": "Dhivehi",
@@ -144,7 +138,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "el": {
         "Language": "Greek",
@@ -153,7 +147,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "en": {
         "Language": "English",
@@ -162,7 +156,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "eo": {
         "Language": "Esperanto",
@@ -171,7 +165,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "es": {
         "Language": "Spanish",
@@ -180,7 +174,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "et": {
         "Language": "Estonian",
@@ -189,7 +183,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "eu": {
         "Language": "Basque",
@@ -198,7 +192,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "fa": {
         "Language": "Persian",
@@ -207,8 +201,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },   
+        "Number_Of_Voice": 14,
+    },
     "fi": {
         "Language": "Finnish",
         "Date": "2020-12-11",
@@ -216,8 +210,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "fr": {
         "Language": "French",
         "Date": "2020-12-11",
@@ -225,8 +219,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "fy-NL": {
         "Language": "Frisian",
         "Date": "2020-12-11",
@@ -234,8 +228,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "ga-IE": {
         "Language": "Irish",
         "Date": "2020-12-11",
@@ -243,8 +237,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "hi": {
         "Language": "Hindi",
         "Date": "2020-12-11",
@@ -252,8 +246,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "hsb": {
         "Language": "Sorbian, Upper",
         "Date": "2020-12-11",
@@ -261,7 +255,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "hu": {
         "Language": "Hungarian",
@@ -270,8 +264,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "ia": {
         "Language": "InterLinguia",
         "Date": "2020-12-11",
@@ -279,8 +273,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "id": {
         "Language": "Indonesian",
         "Date": "2020-12-11",
@@ -288,7 +282,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "it": {
         "Language": "Italian",
@@ -297,7 +291,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ja": {
         "Language": "Japanese",
@@ -306,7 +300,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ka": {
         "Language": "Georgian",
@@ -315,7 +309,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "kab": {
         "Language": "Kabyle",
@@ -324,7 +318,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ky": {
         "Language": "Kyrgyz",
@@ -333,7 +327,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "lg": {
         "Language": "Luganda",
@@ -342,7 +336,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "lt": {
         "Language": "Lithuanian",
@@ -351,7 +345,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "lv": {
         "Language": "Latvian",
@@ -360,8 +354,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    },    
+        "Number_Of_Voice": 14,
+    },
     "mn": {
         "Language": "Mongolian",
         "Date": "2020-12-11",
@@ -369,7 +363,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "mt": {
         "Language": "Maltese",
@@ -378,7 +372,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "nl": {
         "Language": "Dutch",
@@ -396,7 +390,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "pa-IN": {
         "Language": "Punjabi",
@@ -405,7 +399,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "pl": {
         "Language": "Polish",
@@ -414,7 +408,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "pt": {
         "Language": "Portuguese",
@@ -423,7 +417,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "rm-sursilv": {
         "Language": "Romansh Sursilvan",
@@ -432,7 +426,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "rm-vallader": {
         "Language": "Romansh Vallader",
@@ -441,7 +435,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ro": {
         "Language": "Romanian",
@@ -450,7 +444,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ru": {
         "Language": "Russian",
@@ -459,7 +453,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "rw": {
         "Language": "Kinyarwanda",
@@ -468,7 +462,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "sah": {
         "Language": "Sakha",
@@ -477,7 +471,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "sl": {
         "Language": "Slovenian",
@@ -486,7 +480,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "sv-SE": {
         "Language": "Swedish",
@@ -495,7 +489,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "ta": {
         "Language": "Tamil",
@@ -504,7 +498,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "th": {
         "Language": "Thai",
@@ -513,7 +507,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "tr": {
         "Language": "Turkish",
@@ -522,7 +516,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "tt": {
         "Language": "Tatar",
@@ -531,7 +525,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "uk": {
         "Language": "Ukrainian",
@@ -540,7 +534,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "vi": {
         "Language": "Vietnamese",
@@ -549,7 +543,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "vot": {
         "Language": "Votic",
@@ -558,7 +552,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "zh-CN": {
         "Language": "Chinese (China)",
@@ -567,7 +561,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "zh-HK": {
         "Language": "Chinese (Hong Kong)",
@@ -576,7 +570,7 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
+        "Number_Of_Voice": 14,
     },
     "zh-TW": {
         "Language": "Chinese (Taiwan)",
@@ -585,8 +579,8 @@ _LANGUAGES = {
         "Version": "ab_1h_2020-12-11",
         "Validated_Hr_Total": 0.05,
         "Overall_Hr_Total": 1,
-        "Number_Of_Voice": 14
-    }
+        "Number_Of_Voice": 14,
+    },
 }
 
 
@@ -610,10 +604,11 @@ class CommonVoiceConfig(datasets.BuilderConfig):
         self.total_hr_total = kwargs.pop("total_hrs", None)
         self.num_of_voice = kwargs.pop("num_of_voice", None)
         description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
-        super(CommonVoiceConfig, self).__init__(name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs)
+        super(CommonVoiceConfig, self).__init__(
+            name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs
+        )
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class CommonVoice(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
@@ -623,26 +618,37 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
     You need to go to https://commonvoice.mozilla.org/en/datasets,
     and manually download the dataset as a .tar file. Once it is completed,
     a folder will be made containing the files, validated.tsv, train.tsv, test.tsv, reported.tsv, other.tsv, invalidated.tsv, dev.tsv
-    and the folder clips containing audiofiles sampled at 48khz. Each clip is around 3-4 seconds in duration with a size of around 20-50 khz"""
+    and the folder clips containing audiofiles sampled at 48khz. Each clip is around 3-4 seconds in duration with a size of around 20-50 khz
+
+    The downloaded .tar file can be extracted using the `$ tar -xzvf <path/to/downloaded/file>` command.
+    The extracted folder is usually called ``cv-corpus-6.1-2020-12-11`` and should contain a folder 
+    named after the language id, *e.g.* `en`. Make sure to pass the ``data_dir`` argument to process the Common Voice dataset.
+
+    *E.g.*:
+
+    ```
+    from datasets import load_dataset
+
+    # here it is assumed that the folder `cv-corpus-6.1-2020-12-11` has `en` as a subfolder
+    common_voice_ds = load_dataset("common_voice", "en", data_dir="./cv-corpus-6.1-2020-12-11")
+    ```
+    """
 
     BUILDER_CONFIGS = [
         CommonVoiceConfig(
-            name=lang_id, 
+            name=lang_id,
             language=_LANGUAGES[lang_id]["Language"],
-            sub_version=_LANGUAGES[lang_id]["Version"], 
-            date=_LANGUAGES[lang_id]["Date"], 
-            size=_LANGUAGES[lang_id]["Size"], 
-            val_hrs=_LANGUAGES[lang_id]["Validated_Hr_Total"], 
-            total_hrs=_LANGUAGES[lang_id]["Overall_Hr_Total"], 
-            num_of_voice=_LANGUAGES[lang_id]["Number_Of_Voice"], 
+            sub_version=_LANGUAGES[lang_id]["Version"],
+            date=_LANGUAGES[lang_id]["Date"],
+            size=_LANGUAGES[lang_id]["Size"],
+            val_hrs=_LANGUAGES[lang_id]["Validated_Hr_Total"],
+            total_hrs=_LANGUAGES[lang_id]["Overall_Hr_Total"],
+            num_of_voice=_LANGUAGES[lang_id]["Number_Of_Voice"],
         )
         for lang_id in _LANGUAGES.keys()
     ]
 
-#    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         features = datasets.Features(
             {
                 "client_id": datasets.Value("string"),
@@ -659,30 +665,16 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         )
 
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
         abs_path_to_data = os.path.abspath(os.path.join(dl_manager.manual_dir, self.config.name))
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
@@ -726,9 +718,6 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, path_to_clips):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
         data_fields = list(self._info().features.keys())
         path_idx = data_fields.index("path")
 
@@ -737,7 +726,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             headline = lines[0]
 
             column_names = headline.strip().split("\t")
-            assert column_names == data_fields, f"The file should have {data_fields} as column names, but has {column_names}"
+            assert (
+                column_names == data_fields
+            ), f"The file should have {data_fields} as column names, but has {column_names}"
 
             for id_, line in enumerate(lines[1:]):
                 field_values = line.strip().split("\t")
@@ -749,6 +740,4 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 if len(field_values) < len(data_fields):
                     field_values += (len(data_fields) - len(field_values)) * ["''"]
 
-                yield id_, {
-                    key: value for key, value in zip(data_fields, field_values)
-                }
+                yield id_, {key: value for key, value in zip(data_fields, field_values)}
