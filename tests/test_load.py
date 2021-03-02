@@ -14,7 +14,7 @@ import requests
 import datasets
 from datasets import load_dataset
 
-from .utils import offline
+from .utils import OfflineSimulationMode, offline
 
 
 DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
@@ -113,8 +113,8 @@ class LoadTest(TestCase):
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
             # missing module
-            for connection_times_out in (False, True):
-                with offline(connection_times_out=connection_times_out):
+            for offline_simulation_mode in list(OfflineSimulationMode):
+                with offline(offline_simulation_mode):
                     with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
                         datasets.load.prepare_module(
                             "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
@@ -133,8 +133,8 @@ class LoadTest(TestCase):
             importable_module_path2, _ = datasets.load.prepare_module(
                 module_dir, dynamic_modules_path=self.dynamic_modules_path
             )
-        for connection_times_out in (False, True):
-            with offline(connection_times_out=connection_times_out):
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
                 self._caplog.clear()
                 # allow provide the module name without an explicit path to remote or local actual file
                 importable_module_path3, _ = datasets.load.prepare_module(
@@ -158,8 +158,8 @@ class LoadTest(TestCase):
             "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
             str(context.exception),
         )
-        for connection_times_out in (False, True):
-            with offline(connection_times_out=connection_times_out):
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("_dummy")
                 self.assertIn(
@@ -174,8 +174,8 @@ class LoadTest(TestCase):
             "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
             str(context.exception),
         )
-        for connection_times_out in (False, True):
-            with offline(connection_times_out=connection_times_out):
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
                 self.assertIn(
@@ -191,8 +191,8 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert len(dataset) == 2
     assert increased_allocated_memory == keep_in_memory
-    for connection_times_out in (False, True):
-        with offline(connection_times_out=connection_times_out):
+    for offline_simulation_mode in list(OfflineSimulationMode):
+        with offline(offline_simulation_mode):
             caplog.clear()
             # Load dataset from cache
             dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
