@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 100k<n<1M
 source_datasets:
-- original
+- extended|interpress_news_category_tr
 task_categories:
 - text_classification
 task_ids:
@@ -75,7 +75,7 @@ Here is an example from the dataset:
 ### Data Fields
 
 - **category** : Indicates to which category the news text belongs.
-(Such as "kültürsanat", "ekonomi", "siyaset", "eğitim", "dünya", "spor", "teknoloji", "magazin", "sağlık", "gündem")
+(Such as "kültürsanat" (0), "ekonomi" (1), "siyaset" (2), "eğitim" (3), "dünya" (4), "spor" (5), "teknoloji" (6), "magazin" (7), "sağlık" (8), "gündem" (9))
 - **content** : Contains the text of the news.
 
 ### Data Splits
