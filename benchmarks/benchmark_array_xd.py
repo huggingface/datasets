@@ -24,11 +24,11 @@ RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.r
 
 @get_duration
 def write(my_features, dummy_data, tmp_dir):
-    with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
-        for key, record in dummy_data:
-            example = my_features.encode_example(record)
-            writer.write(example)
-        num_examples, num_bytes = writer.finalize()
+    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
+    for key, record in dummy_data:
+        example = my_features.encode_example(record)
+        writer.write(example)
+    num_examples, num_bytes = writer.finalize()
 
 
 @get_duration

@@ -27,9 +27,9 @@ class DummyBuilder(DatasetBuilder):
 
     def _prepare_split(self, split_generator, **kwargs):
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
-        with ArrowWriter(features=self.info.features, path=os.path.join(self._cache_dir, fname)) as writer:
-            writer.write_batch({"text": ["foo"] * 100})
-            num_examples, num_bytes = writer.finalize()
+        writer = ArrowWriter(features=self.info.features, path=os.path.join(self._cache_dir, fname))
+        writer.write_batch({"text": ["foo"] * 100})
+        num_examples, num_bytes = writer.finalize()
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
 
@@ -190,19 +190,19 @@ class BuilderTest(TestCase):
             dummy_builder.info.splits.add(SplitInfo("test", num_examples=10))
 
             for split in dummy_builder.info.splits:
-                with ArrowWriter(
+                writer = ArrowWriter(
                     path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
                     features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10})
-                    writer.finalize()
+                )
+                writer.write_batch({"text": ["foo"] * 10})
+                writer.finalize()
 
-                with ArrowWriter(
+                writer = ArrowWriter(
                     path=os.path.join(dummy_builder.cache_dir, f"tokenized_dataset-{split}.arrow"),
                     features=Features({"text": Value("string"), "tokens": [Value("string")]}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10, "tokens": [list("foo")] * 10})
-                    writer.finalize()
+                )
+                writer.write_batch({"text": ["foo"] * 10, "tokens": [list("foo")] * 10})
+                writer.finalize()
 
             dsets = dummy_builder.as_dataset()
             self.assertIsInstance(dsets, DatasetDict)
@@ -252,19 +252,19 @@ class BuilderTest(TestCase):
             dummy_builder.info.splits.add(SplitInfo("test", num_examples=10))
 
             for split in dummy_builder.info.splits:
-                with ArrowWriter(
+                writer = ArrowWriter(
                     path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
                     features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10})
-                    writer.finalize()
+                )
+                writer.write_batch({"text": ["foo"] * 10})
+                writer.finalize()
 
-                with ArrowWriter(
+                writer = ArrowWriter(
                     path=os.path.join(dummy_builder.cache_dir, f"small_dataset-{split}.arrow"),
                     features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 2})
-                    writer.finalize()
+                )
+                writer.write_batch({"text": ["foo"] * 2})
+                writer.finalize()
 
             dsets = dummy_builder.as_dataset()
             self.assertIsInstance(dsets, DatasetDict)
@@ -320,19 +320,19 @@ class BuilderTest(TestCase):
             dummy_builder.info.splits.add(SplitInfo("test", num_examples=10))
 
             for split in dummy_builder.info.splits:
-                with ArrowWriter(
+                writer = ArrowWriter(
                     path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
                     features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10})
-                    writer.finalize()
+                )
+                writer.write_batch({"text": ["foo"] * 10})
+                writer.finalize()
 
-                with ArrowWriter(
+                writer = ArrowWriter(
                     path=os.path.join(dummy_builder.cache_dir, f"small_dataset-{split}.arrow"),
                     features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 2})
-                    writer.finalize()
+                )
+                writer.write_batch({"text": ["foo"] * 2})
+                writer.finalize()
 
             dsets = dummy_builder.as_dataset()
             self.assertIsInstance(dsets, DatasetDict)
@@ -637,12 +637,12 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
     dummy_builder.info.splits.add(SplitInfo("test", num_examples=10))
 
     for info_split in dummy_builder.info.splits:
-        with ArrowWriter(
+        writer = ArrowWriter(
             path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{info_split}.arrow"),
             features=Features({"text": Value("string")}),
-        ) as writer:
-            writer.write_batch({"text": ["foo"] * 10})
-            writer.finalize()
+        )
+        writer.write_batch({"text": ["foo"] * 10})
+        writer.finalize()
 
     previous_allocated_memory = pa.total_allocated_bytes()
     dataset = dummy_builder.as_dataset(split=split, in_memory=in_memory)

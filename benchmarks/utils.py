@@ -46,12 +46,12 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
 def generate_example_dataset(dataset_path, features, num_examples=100, seq_shapes=None):
     dummy_data = generate_examples(features, num_examples=num_examples, seq_shapes=seq_shapes)
 
-    with datasets.ArrowWriter(features=features, path=dataset_path) as writer:
-        for key, record in dummy_data:
-            example = features.encode_example(record)
-            writer.write(example)
+    writer = datasets.ArrowWriter(features=features, path=dataset_path)
+    for key, record in dummy_data:
+        example = features.encode_example(record)
+        writer.write(example)
 
-        num_final_examples, num_bytes = writer.finalize()
+    num_final_examples, num_bytes = writer.finalize()
 
     assert (
         num_final_examples == num_examples

@@ -968,18 +968,18 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
+        writer = ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
-            try:
-                for key, record in utils.tqdm(
-                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
-                ):
-                    example = self.info.features.encode_example(record)
-                    writer.write(example)
-            finally:
-                num_examples, num_bytes = writer.finalize()
+        try:
+            for key, record in utils.tqdm(
+                generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+            ):
+                example = self.info.features.encode_example(record)
+                writer.write(example)
+        finally:
+            num_examples, num_bytes = writer.finalize()
 
         assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
@@ -1026,12 +1026,13 @@ class ArrowBasedBuilder(DatasetBuilder):
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
 
+        writer = ArrowWriter(path=fpath)
+
         generator = self._generate_tables(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
-                writer.write_table(table)
-            num_examples, num_bytes = writer.finalize()
+        for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
+            writer.write_table(table)
+        num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes

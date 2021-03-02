@@ -336,8 +336,7 @@ class Metric(MetricInfoMixin):
         from all the nodes if main node or all_process is True.
         """
         if self.writer is not None:
-            with self.writer as writer:
-                writer.finalize()
+            self.writer.finalize()
         self.writer = None
         if self.filelock is not None:
             self.filelock.release()
