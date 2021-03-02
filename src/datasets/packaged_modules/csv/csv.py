@@ -1,6 +1,5 @@
 # coding=utf-8
 
-import logging
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -10,7 +9,7 @@ import pyarrow as pa
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
@@ -38,14 +37,14 @@ class CsvConfig(datasets.BuilderConfig):
     verbose: bool = False
     skip_blank_lines: bool = True
     thousands: Optional[str] = None
-    decimal: str = b"."
+    decimal: str = "."
     lineterminator: Optional[str] = None
     quotechar: str = '"'
     quoting: int = 0
     escapechar: Optional[str] = None
     comment: Optional[str] = None
     encoding: Optional[str] = None
-    dialect: str = None
+    dialect: Optional[str] = None
     error_bad_lines: bool = True
     warn_bad_lines: bool = True
     skipfooter: int = 0
@@ -53,7 +52,7 @@ class CsvConfig(datasets.BuilderConfig):
     memory_map: bool = False
     float_precision: Optional[str] = None
     chunksize: int = 10_000
-    features: datasets.Features = None
+    features: Optional[datasets.Features] = None
 
     def __post_init__(self):
         if self.delimiter is not None:

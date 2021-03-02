@@ -25,7 +25,7 @@ import shutil
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
@@ -76,9 +76,9 @@ class BuilderConfig:
 
     name: str = "default"
     version: Optional[Union[str, utils.Version]] = "0.0.0"
-    data_dir: str = None
-    data_files: Union[Dict, List] = None
-    description: str = None
+    data_dir: Optional[str] = None
+    data_files: Optional[Union[str, Dict, List, Tuple]] = None
+    description: Optional[str] = None
 
     def __post_init__(self):
         # The config name is used to name the cache directory.
@@ -113,14 +113,16 @@ class BuilderConfig:
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
         suffix: Optional[str] = None
-        config_kwargs_to_add_to_suffix = dict(config_kwargs)
+        config_kwargs_to_add_to_suffix = config_kwargs.copy()
         # name and version are already used to build the cache directory
         config_kwargs_to_add_to_suffix.pop("name", None)
         config_kwargs_to_add_to_suffix.pop("version", None)
         # data files are handled differently
         config_kwargs_to_add_to_suffix.pop("data_files", None)
-        # data dir is ignored (when specified it points to the manually downloaded data)
-        config_kwargs_to_add_to_suffix.pop("data_dir", None)
+        # data dir handling (when specified it points to the manually downloaded data):
+        # it was previously ignored before the introduction of config id because we didn't want
+        # to change the config name. Now it's fine to take it into account for the config id.
+        # config_kwargs_to_add_to_suffix.pop("data_dir", None)
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
@@ -182,7 +184,7 @@ class DatasetBuilder:
             names, types, and shapes, version, splits, citation, etc.
         * `datasets.DatasetBuilder.download_and_prepare`: downloads the source data
             and writes it to disk.
-        * `datasets.DatasetBuilder.as_dataset`: generate an `Dataset`.
+        * `datasets.DatasetBuilder.as_dataset`: generates a `Dataset`.
 
     **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
     dataset by defining a `datasets.BuilderConfig` subclass and accepting a
@@ -204,10 +206,10 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        cache_dir=None,
-        name=None,
-        hash=None,
-        features=None,
+        cache_dir: Optional[str] = None,
+        name: Optional[str] = None,
+        hash: Optional[str] = None,
+        features: Optional[Features] = None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -228,11 +230,11 @@ class DatasetBuilder:
 
         """
         # DatasetBuilder name
-        self.name = camelcase_to_snakecase(self.__class__.__name__)
-        self.hash = hash
+        self.name: str = camelcase_to_snakecase(self.__class__.__name__)
+        self.hash: Optional[str] = hash
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
+        config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
         self.config, self.config_id = self._create_builder_config(
@@ -272,6 +274,9 @@ class DatasetBuilder:
                     )
                     os.rmdir(self._cache_dir)
 
+        # Set download manager
+        self.dl_manager = None
+
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
     # (this is usually due to some external regulations / rules).
@@ -294,7 +299,7 @@ class DatasetBuilder:
         """Empty DatasetInfo if doesn't exist"""
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
-    def _create_builder_config(self, name=None, custom_features=None, **config_kwargs):
+    def _create_builder_config(self, name=None, custom_features=None, **config_kwargs) -> Tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and name and DEFAULT_CONFIG_NAME are None.
         config_kwargs override the defaults kwargs in config
@@ -459,6 +464,8 @@ class DatasetBuilder:
         ignore_verifications: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -470,6 +477,10 @@ class DatasetBuilder:
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
+            base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+                If True, will get token from ~/.huggingface.
+
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
@@ -480,13 +491,18 @@ class DatasetBuilder:
                     cache_dir=os.path.join(self._cache_dir_root, "downloads"),
                     force_download=bool(download_mode == FORCE_REDOWNLOAD),
                     use_etag=False,
+                    use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
-                dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+                dataset_name=self.name,
+                download_config=download_config,
+                data_dir=self.config.data_dir,
+                base_path=base_path,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
+        self.dl_manager = dl_manager
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
@@ -685,9 +701,21 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
     ) -> Union[Dataset, DatasetDict]:
-        """Return a Dataset for the specified split."""
+        """Return a Dataset for the specified split.
+
+        Args:
+            split (`datasets.Split`): Which subset of the data to return.
+            run_post_process (bool, default=True): Whether to run post-processing dataset transforms and/or add
+                indexes.
+            ignore_verifications (bool, default=False): Whether to ignore the verifications of the
+                downloaded/processed dataset information (checksums/size/splits/...).
+            in_memory (bool, default=False): Whether to copy the data in-memory.
+
+        Returns:
+            datasets.Dataset
+        """
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
                 (
@@ -712,6 +740,7 @@ class DatasetBuilder:
                 self._build_single_dataset,
                 run_post_process=run_post_process,
                 ignore_verifications=ignore_verifications,
+                in_memory=in_memory,
             ),
             split,
             map_tuple=True,
@@ -720,7 +749,9 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool):
+    def _build_single_dataset(
+        self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool, in_memory: bool = False
+    ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
         if isinstance(split, str):
@@ -729,6 +760,7 @@ class DatasetBuilder:
         # Build base dataset
         ds = self._as_dataset(
             split=split,
+            in_memory=in_memory,
         )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
@@ -781,7 +813,7 @@ class DatasetBuilder:
 
         return ds
 
-    def _as_dataset(self, split: Split = Split.TRAIN) -> Dataset:
+    def _as_dataset(self, split: Split = Split.TRAIN, in_memory: bool = False) -> Dataset:
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -790,6 +822,7 @@ class DatasetBuilder:
 
         Args:
             split: `datasets.Split` which subset of the data to read.
+            in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
             `Dataset`
@@ -799,10 +832,11 @@ class DatasetBuilder:
             name=self.name,
             instructions=split,
             split_infos=self.info.splits.values(),
+            in_memory=in_memory,
         )
         return Dataset(**dataset_kwargs)
 
-    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Dataset:
+    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
 
@@ -882,18 +916,22 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
-    # GeneratorBasedBulder should have dummy data for tests by default
+    # GeneratorBasedBuilder should have dummy data for tests by default
     test_dummy_data = True
 
-    # Batch size used by the ArrowWriter
+    # Default batch size used by the ArrowWriter
     # It defines the number of samples that are kept in memory before writing them
     # and also the length of the arrow chunks
     # None means that the ArrowWriter will use its default value
-    _writer_batch_size = None
+    DEFAULT_WRITER_BATCH_SIZE = None
 
-    def __init__(self, *args, **kwargs):
-        self._writer_batch_size = kwargs.pop("writer_batch_size", self._writer_batch_size)
+    def __init__(self, *args, writer_batch_size=None, **kwargs):
         super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
+        # Batch size used by the ArrowWriter
+        # It defines the number of samples that are kept in memory before writing them
+        # and also the length of the arrow chunks
+        # None means that the ArrowWriter will use its default value
+        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):

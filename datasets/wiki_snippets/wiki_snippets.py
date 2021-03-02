@@ -1,8 +1,10 @@
 import json
-import logging
 import math
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -194,7 +196,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, wikipedia):
-        logging.info(
+        logger.info(
             "generating examples from = {} {}".format(self.config.wikipedia_name, self.config.wikipedia_version_name)
         )
         for split in wikipedia:
