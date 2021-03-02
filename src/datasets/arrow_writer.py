@@ -188,7 +188,7 @@ class ArrowWriter(object):
         # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
         try:
             self.pa_writer.close()
-        except:
+        except pa.lib.ArrowInvalid:
             pass
         if self._closable_stream:
             self.stream.close()  # This also closes self.pa_writer if it is opened
