@@ -64,18 +64,23 @@ def test_dataset_csv_reader(split, features, csv_path):
     ],
 )
 @pytest.mark.parametrize("split", [None, NamedSplit("train")])
-def test_dataset_csv_builder(split, csv_path, features, tmp_path):
-    path = csv_path
+@pytest.mark.parametrize("path_type", [str, list, dict])
+def test_dataset_csv_builder(path_type, split, csv_path, features, tmp_path):
+    if issubclass(path_type, str):
+        path = csv_path
+    elif issubclass(path_type, list):
+        path = [csv_path]
+    elif issubclass(path_type, dict):
+        path = {"train": csv_path}
     cache_dir = tmp_path / "cache"
 
-    # split = "train"   # None  # if None: num_rows = {'train': 4} instead of 4
     # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
 
     ds = CsvDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir).build()
-    ds = ds if split else ds["train"]
+    ds = ds if split else ds["train"]  # # if split is None: ds.num_rows = {'train': 4} instead of 4
     assert ds.num_rows == 4
     assert ds.num_columns == 3
     assert ds.column_names == ["col_1", "col_2", "col_3"]
