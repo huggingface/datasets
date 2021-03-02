@@ -621,7 +621,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
     and the folder clips containing audiofiles sampled at 48khz. Each clip is around 3-4 seconds in duration with a size of around 20-50 khz
 
     The downloaded .tar file can be extracted using the `$ tar -xzvf <path/to/downloaded/file>` command.
-    The extracted folder is usually called ``cv-corpus-6.1-2020-12-11`` and should contain a folder 
+    The extracted folder is usually called ``cv-corpus-6.1-2020-12-11`` and should contain a folder
     named after the language id, *e.g.* `en`. Make sure to pass the ``data_dir`` argument to process the Common Voice dataset.
 
     *E.g.*:
