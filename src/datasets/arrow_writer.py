@@ -189,7 +189,7 @@ class ArrowWriter(object):
         if self.pa_writer:  # it might be None
             try:
                 self.pa_writer.close()
-            except pa.lib.ArrowInvalid:
+            except Exception:  # pyarrow.lib.ArrowInvalid, OSError
                 pass
         if self._closable_stream and not self.stream.closed:
             self.stream.close()  # This also closes self.pa_writer if it is opened
