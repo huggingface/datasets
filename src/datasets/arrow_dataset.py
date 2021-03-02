@@ -403,30 +403,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
-    def from_jsonl(
+    def from_json(
         path: PathLike,
-        info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        **kwargs,
     ):
-        """Create Dataset from JSON Lines file.
-
+        """Create Dataset from JSON Lines file(s).
         Args:
-            path (path-like): Path of the JSON Lines file.
-            info (DatasetInfo, optional): Dataset information, like description, citation, etc.
+            path (path-like): Path of the JSON Lines file(s).
             split (NamedSplit, optional): Name of the dataset split.
-
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
         Returns:
             datasets.Dataset
         """
         # Dynamic import to avoid circular dependency
-        from .io.json import JsonlDatasetReader
+        from .io.json import JsonDatasetBuilder
 
-        return JsonlDatasetReader(path, info=info, split=split).read()
-
-    # @classmethod
-    # def from_jsonl(cls, path):
-    #     return JsonlDatasetReader(cls, path).read()
-    #     # return cls(JsonlDatasetReader(path).read())
+        return JsonDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir, **kwargs).build()
 
     def __del__(self):
         if hasattr(self, "_data"):
