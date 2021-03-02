@@ -160,4 +160,22 @@ Rotten Tomatoes reviewers.
 
 ### Citation Information
 
-[Needs More Information]
+```
+@inproceedings{socher-etal-2013-recursive,
+    title = "Recursive Deep Models for Semantic Compositionality Over a Sentiment Treebank",
+    author = "Socher, Richard  and
+      Perelygin, Alex  and
+      Wu, Jean  and
+      Chuang, Jason  and
+      Manning, Christopher D.  and
+      Ng, Andrew  and
+      Potts, Christopher",
+    booktitle = "Proceedings of the 2013 Conference on Empirical Methods in Natural Language Processing",
+    month = oct,
+    year = "2013",
+    address = "Seattle, Washington, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D13-1170",
+    pages = "1631--1642",
+}
+```
