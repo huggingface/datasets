@@ -440,6 +440,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
+        **kwargs,
     ):
         """Create Dataset from CSV file(s).
         Args:
@@ -453,7 +454,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetBuilder
 
-        return CsvDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir).build()
+        return CsvDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir, **kwargs).build()
 
     def __del__(self):
         if hasattr(self, "_data"):

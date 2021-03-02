@@ -9,14 +9,14 @@ class CsvDatasetBuilder(AbstractDatasetBuilder):
         split=None,
         features=None,
         cache_dir=None,
-        **config_kwargs,
+        **kwargs,
     ):
-        self.split = split
+        super().__init__(path, split=split, features=features, cache_dir=cache_dir, **kwargs)
         self.builder = Csv(
             cache_dir=cache_dir,
             data_files=path,
             features=features,
-            **config_kwargs,
+            **kwargs,
         )
 
     def build(self):
