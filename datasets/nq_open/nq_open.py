@@ -88,7 +88,7 @@ class NQOpen(datasets.GeneratorBasedBuilder):
         NQOpenConfig(
             name="nq_open",
             version=datasets.Version("1.0.0", ""),
-            description=f"NQ_Open open domain question answering dataset.",
+            description="NQ_Open open domain question answering dataset.",
         ),
     ]
     BUILDER_CONFIG_CLASS = NQOpenConfig
