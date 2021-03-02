@@ -57,8 +57,8 @@ def test_dataset_csv_reader(split, features, csv_path):
     "features",
     [
         None,
-        # {"col_1": "string", "col_2": "int64", "col_3": "float64"},
-        # {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
         {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
