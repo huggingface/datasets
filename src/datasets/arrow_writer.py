@@ -157,8 +157,10 @@ class ArrowWriter(object):
         self._path = path
         if stream is None:
             self.stream = pa.OSFile(self._path, "wb")
+            self._closable_stream = True
         else:
             self.stream = stream
+            self._closable_stream = False
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
@@ -175,6 +177,21 @@ class ArrowWriter(object):
     def __len__(self):
         """ Return the number of writed and staged examples """
         return self._num_examples + len(self.current_rows)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
+        try:
+            self.pa_writer.close()
+        except:
+            pass
+        if self._closable_stream:
+            self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
         inferred_features = Features.from_arrow_schema(inferred_schema)
