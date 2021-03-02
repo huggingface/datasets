@@ -79,8 +79,11 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = paj.read_json(
                         file,
                         read_options=self.config.pa_read_options,
-                        parse_options=self.config.pa_parse_options,
+                        # parse_options=self.config.pa_parse_options,
                     )
+                    if self.config.schema:
+                        # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
+                        pa_table = pa_table.cast(self.config.schema)
                 except pa.ArrowInvalid:
                     with open(file, encoding="utf-8") as f:
                         dataset = json.load(f)
