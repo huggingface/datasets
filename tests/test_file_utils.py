@@ -114,7 +114,7 @@ def test_cached_path_offline():
 def test_http_offline(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.html"
     with pytest.raises(OfflineModeIsEnabled):
-        http_get("https://huggingface.co", filename)
+        http_get("https://huggingface.co", temp_file=filename)
     with pytest.raises(OfflineModeIsEnabled):
         http_head("https://huggingface.co")
 
@@ -123,6 +123,6 @@ def test_http_offline(tmp_path_factory):
 def test_ftp_offline(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.html"
     with pytest.raises(OfflineModeIsEnabled):
-        ftp_get("ftp://huggingface.co", filename)
+        ftp_get("ftp://huggingface.co", temp_file=filename)
     with pytest.raises(OfflineModeIsEnabled):
-        ftp_head("ftp://huggingface.co", filename)
+        ftp_head("ftp://huggingface.co")
