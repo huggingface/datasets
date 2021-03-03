@@ -126,17 +126,17 @@ class Drop(datasets.GeneratorBasedBuilder):
                         # and 1 of validation.
                         continue
 
-    @staticmehtod
+    @staticmethod
     def build_answers(answers):
         returned_answers = {
             "spans": list(),
             "types": list(),
         }
         for answer in answers:
-            date = DropDate(answer["date"])
+            date = DropDateObject(answer["date"])
 
             if answer["number"] != "":
-                d = answer["date"]
+                date = answer["date"]
                 assert not date
                 assert len(answer["spans"]) == 0
                 returned_answers["spans"].append(answer["number"])
