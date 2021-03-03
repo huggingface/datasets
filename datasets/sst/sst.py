@@ -190,7 +190,13 @@ class Sst(datasets.GeneratorBasedBuilder):
 
                 sentence_reader = csv.DictReader(snt, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for id_, row in enumerate(sentence_reader):
-                    row["sentence"] = row["sentence"].encode("utf-8").replace(b"\xc3\x83\xc2", b"\xc3").replace(b"\xc3\x82\xc2", b"\xc2").decode("utf-8")
+                    row["sentence"] = (
+                        row["sentence"]
+                        .encode("utf-8")
+                        .replace(b"\xc3\x83\xc2", b"\xc3")
+                        .replace(b"\xc3\x82\xc2", b"\xc2")
+                        .decode("utf-8")
+                    )
                     row["sentence"] = row["sentence"].replace("-LRB-", "(").replace("-RRB-", ")")
                     if splits[row["sentence_index"]] == split_id:
                         tokens = trees[int(row["sentence_index"])]["tokens"]
