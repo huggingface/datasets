@@ -85,7 +85,7 @@ from datasets import list_datasets, load_dataset, list_metrics, load_metric
 # Print all the available datasets
 print(list_datasets())
 
-# Load a dataset and print the first examples in the training set
+# Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
 
@@ -98,20 +98,20 @@ squad_metric = load_metric('squad')
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
 
-# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗 transformers library)
+# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗Transformers library)
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
-For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on
+For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on:
 
 - Loading a dataset https://huggingface.co/docs/datasets/loading_datasets.html
 - What's in a Dataset: https://huggingface.co/docs/datasets/exploring.html
 - Processing data with `🤗Datasets`: https://huggingface.co/docs/datasets/processing.html
 - Writing your own dataset loading script: https://huggingface.co/docs/datasets/add_dataset.html
-- etc
+- etc.
 
 Another introduction to `🤗Datasets` is the tutorial on Google Colab here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
