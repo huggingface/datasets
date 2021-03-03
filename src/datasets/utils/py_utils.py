@@ -268,7 +268,7 @@ def flatten_nest_dict(d):
 
 class NestedDataStructure:
     def __init__(self, data=None):
-        self.data = data if data else []
+        self.data = data if data is not None else []
 
     def flatten(self, data=None):
         data = data if data is not None else self.data
