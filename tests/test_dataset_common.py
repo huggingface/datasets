@@ -281,9 +281,10 @@ class PackagedDatasetTest(parameterized.TestCase):
         self.dataset_tester = DatasetTester(self)
 
     def test_load_dataset_offline(self, dataset_name):
-        with offline():
-            configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
-            self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
+        for connection_times_out in (False, True):
+            with offline(connection_times_out=connection_times_out):
+                configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
+                self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)

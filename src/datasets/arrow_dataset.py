@@ -676,7 +676,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
-        """In-place version of :func:`Dataset.flatten`"""
+        """
+        In-place version of :func:`Dataset.flatten`
+        This method is deprecated, please use :func:`Dataset.flatten` instead.
+        """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
                 self._data = self._data.flatten()
@@ -718,6 +721,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def cast_(self, features: Features):
         """
         In-place version of :func:`Dataset.cast`
+        This method is deprecated, please use :func:`Dataset.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -741,9 +745,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def cast(self, features: Features, new_fingerprint) -> "Dataset":
         """
         Cast the dataset to a new set of features.
-
-        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -774,6 +775,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
         In-place version of :func:`Dataset.remove_columns`
+        This method is deprecated, please use :func:`Dataset.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -833,6 +835,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         In-place version of :func:`Dataset.rename_column`
+        This method is deprecated, please use :func:`Dataset.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -864,10 +867,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
         Rename a column in the dataset, and move the features associated to the original column under the new column name.
-
-        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
-            - takes care of moving the original features under the new column name.
-            - doesn't copy the data to a new dataset and is thus much faster.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -2376,10 +2375,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Exports the dataset to csv
 
         Args:
-            `path_or_buf` (:obj:`PathLike` or :obj:`FileOrBuffer): Either a path to a file or a BinaryIO.
-            `batch_size` (`Optional[int]`): Size of the batch to load in memory and write at once. Defaults to
-                :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
-            `**to_csv_kwargs`: Parameters to pass to pandas's :func:`DataFrame.to_csv`
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            to_csv_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
 
         Returns:
             int: The number of characters or bytes written
@@ -2397,10 +2396,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
-                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
-                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `dict` or `Iterator[dict]`
@@ -2428,10 +2427,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
-                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
-                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
