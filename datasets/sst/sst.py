@@ -47,6 +47,8 @@ _HOMEPAGE = "https://nlp.stanford.edu/sentiment/"
 _LICENSE = ""
 
 _URL = "https://www.dropbox.com/s/9j9dc55hs28wrye/stanfordSentimentTreebank.zip?dl=1"
+_DEFAULT_URL = "https://nlp.stanford.edu/~socherr/stanfordSentimentTreebank.zip"
+_PTB_URL = "https://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"
 
 
 class Sst(datasets.GeneratorBasedBuilder):
@@ -101,17 +103,18 @@ class Sst(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_dir = dl_manager.download_and_extract(_URL)
+        default_dir = dl_manager.download_and_extract(_DEFAULT_URL)
+        ptb_dir = dl_manager.download_and_extract(_PTB_URL)
 
         file_paths = {}
         for split_index in range(0, 4):
             file_paths[split_index] = {
-                "phrases_path": os.path.join(data_dir, "dictionary.txt"),
-                "labels_path": os.path.join(data_dir, "sentiment_labels.txt"),
-                "tokens_path": os.path.join(data_dir, "SOStr.txt"),
-                "trees_path": os.path.join(data_dir, "STree.txt"),
-                "splits_path": os.path.join(data_dir, "datasetSplit.txt"),
-                "sentences_path": os.path.join(data_dir, "datasetSentences.txt"),
+                "phrases_path": os.path.join(default_dir, "stanfordSentimentTreebank/dictionary.txt"),
+                "labels_path": os.path.join(default_dir, "stanfordSentimentTreebank/sentiment_labels.txt"),
+                "tokens_path": os.path.join(default_dir, "stanfordSentimentTreebank/SOStr.txt"),
+                "trees_path": os.path.join(default_dir, "stanfordSentimentTreebank/STree.txt"),
+                "splits_path": os.path.join(default_dir, "stanfordSentimentTreebank/datasetSplit.txt"),
+                "sentences_path": os.path.join(default_dir, "stanfordSentimentTreebank/datasetSentences.txt"),
                 "ptb_filepath": None,
                 "split_id": str(split_index),
             }
@@ -125,7 +128,7 @@ class Sst(datasets.GeneratorBasedBuilder):
                 "trees_path": None,
                 "splits_path": None,
                 "sentences_path": None,
-                "ptb_filepath": os.path.join(data_dir, "ptb_" + ptb_split + ".txt"),
+                "ptb_filepath": os.path.join(ptb_dir, "trees/" + ptb_split + ".txt"),
                 "split_id": None,
             }
 
@@ -187,6 +190,8 @@ class Sst(datasets.GeneratorBasedBuilder):
 
                 sentence_reader = csv.DictReader(snt, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for id_, row in enumerate(sentence_reader):
+                    row["sentence"] = row["sentence"].encode("utf-8").replace(b"\xc3\x83\xc2", b"\xc3").replace(b"\xc3\x82\xc2", b"\xc2").decode("utf-8")
+                    row["sentence"] = row["sentence"].replace("-LRB-", "(").replace("-RRB-", ")")
                     if splits[row["sentence_index"]] == split_id:
                         tokens = trees[int(row["sentence_index"])]["tokens"]
                         parse_tree = trees[int(row["sentence_index"])]["tree"]
