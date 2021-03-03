@@ -38,7 +38,7 @@ def list_datasets(with_community_datasets=True, with_details=False):
     return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
 
 
-def list_metrics(with_community_metrics=True, id_only=False, with_details=False):
+def list_metrics(with_community_metrics=True, with_details=False):
     """List all the metrics script available on HuggingFace AWS bucket
 
     Args:

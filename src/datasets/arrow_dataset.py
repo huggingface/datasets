@@ -1536,6 +1536,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
                     fingerprint=new_fingerprint,
+                    disable_nullable=disable_nullable,
                 )
             else:
                 buf_writer = None
@@ -1547,6 +1548,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
                     fingerprint=new_fingerprint,
+                    disable_nullable=disable_nullable,
                 )
 
         try:

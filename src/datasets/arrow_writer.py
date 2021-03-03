@@ -274,7 +274,7 @@ class ArrowWriter(object):
             typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
-        self.write_table(pa_table)
+        self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         """Write a batch of Example to file.
