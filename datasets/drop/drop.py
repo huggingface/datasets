@@ -119,7 +119,7 @@ class Drop(datasets.GeneratorBasedBuilder):
                         answers = qa["validated_answers"]
 
                     try:
-                        example["answers"] = self.build_answers(answers)
+                        example["answers_spans"] = self.build_answers(answers)
                         yield example["query_id"], example
                     except AssertionError:
                         # This is expected for 9 examples of train
