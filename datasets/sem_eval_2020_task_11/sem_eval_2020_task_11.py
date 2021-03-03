@@ -17,6 +17,7 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import os
+from collections import defaultdict
 
 import datasets
 
@@ -75,6 +76,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
+                "article_id": datasets.Value("string"),
                 "text": datasets.Value("string"),
                 "span_identification": datasets.features.Sequence(
                     {"start_char_offset": datasets.Value("int64"), "end_char_offset": datasets.Value("int64")}
@@ -127,6 +129,12 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
+        tc_labels_template = os.path.join(path_to_manual_file, "test-task-tc-template.out")
+        if os.path.isfile(tc_labels_template):
+            tc_test_template = self._process_tc_labels_template(tc_labels_template)
+        else:
+            tc_test_template = None
+
         keys = {}
         for split in ["train", "dev", "test"]:
             articles_path = os.path.join(path_to_manual_file, f"{split}-articles")
@@ -142,7 +150,13 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": path_to_manual_file, "keys": keys["test"], "split": "test", "labels": False},
+                gen_kwargs={
+                    "data_dir": path_to_manual_file,
+                    "keys": keys["test"],
+                    "split": "test",
+                    "labels": False,
+                    "tc_test_template": tc_test_template,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -151,7 +165,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, data_dir, keys, split, labels):
+    def _generate_examples(self, data_dir, keys, split, labels, **kwargs):
         """ Yields examples. """
 
         # Get the main path for the articles
@@ -202,14 +216,36 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
                 ]
 
             else:
-
                 # If the split _doesn't_ have labels, return empty lists
                 # for the span and technique classification labels
                 span_identification = []
                 technique_classification = []
 
+                # Add span offsets for technique classification task if provided
+                if kwargs.get("tc_test_template") is not None:
+                    tc_labels = kwargs["tc_test_template"][key]
+                    technique_classification = [
+                        {"start_char_offset": int(i[2]), "end_char_offset": int(i[3]), "technique": -1}
+                        for i in tc_labels
+                    ]
+
             yield id_, {
+                "article_id": key,
                 "text": text,
                 "span_identification": span_identification,
                 "technique_classification": technique_classification,
             }
+
+    def _process_tc_labels_template(self, tc_labels_template):
+        with open(tc_labels_template, encoding="utf-8") as f:
+            tc_labels_test = f.readlines()
+
+        tc_labels_test = [l.rstrip("\n").split("\t") for l in tc_labels_test]
+
+        tc_test_template = defaultdict(lambda: [])
+
+        for tc_label in tc_labels_test:
+            key = tc_label[0]
+            tc_test_template[f"article{key}"].append(tc_label)
+
+        return tc_test_template
