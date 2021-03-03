@@ -76,9 +76,9 @@ class BuilderConfig:
 
     name: str = "default"
     version: Optional[Union[str, utils.Version]] = "0.0.0"
-    data_dir: str = None
-    data_files: Union[Dict, List] = None
-    description: str = None
+    data_dir: Optional[str] = None
+    data_files: Optional[Union[str, Dict, List, Tuple]] = None
+    description: Optional[str] = None
 
     def __post_init__(self):
         # The config name is used to name the cache directory.
@@ -113,7 +113,7 @@ class BuilderConfig:
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
         suffix: Optional[str] = None
-        config_kwargs_to_add_to_suffix = dict(config_kwargs)
+        config_kwargs_to_add_to_suffix = config_kwargs.copy()
         # name and version are already used to build the cache directory
         config_kwargs_to_add_to_suffix.pop("name", None)
         config_kwargs_to_add_to_suffix.pop("version", None)
@@ -234,7 +234,7 @@ class DatasetBuilder:
         self.hash: Optional[str] = hash
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
+        config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
         self.config, self.config_id = self._create_builder_config(
@@ -273,6 +273,9 @@ class DatasetBuilder:
                         )
                     )
                     os.rmdir(self._cache_dir)
+
+        # Set download manager
+        self.dl_manager = None
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -353,10 +356,6 @@ class DatasetBuilder:
         if is_custom:
             logger.warning("Using custom data configuration %s", config_id)
         else:
-            # datasets requiring a manual data dir should set data at init to
-            # pre-instantiated dataset config
-            if builder_config.data_dir is not None:
-                self.builder_configs[builder_config.name].data_dir = builder_config.data_dir
             if builder_config != self.builder_configs[builder_config.name]:
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "
@@ -503,6 +502,7 @@ class DatasetBuilder:
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
+        self.dl_manager = dl_manager
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
@@ -836,7 +836,7 @@ class DatasetBuilder:
         )
         return Dataset(**dataset_kwargs)
 
-    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Dataset:
+    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
 
