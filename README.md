@@ -42,11 +42,23 @@
 
 # Installation
 
+## With pip
+
 `🤗Datasets` can be installed from PyPi and has to be installed in a virtual environment (venv or conda for instance)
 
 ```bash
 pip install datasets
 ```
+
+## With conda
+
+`🤗Datasets` can be installed using conda as follows:
+
+```bash
+conda install -c huggingface -c conda-forge datasets
+```
+
+Follow the installation pages of TensorFlow and PyTorch to see how to install them with conda.
 
 For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation.html
 
