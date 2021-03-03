@@ -388,6 +388,18 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[
     return headers
 
 
+class OfflineModeIsEnabled(ConnectionError):
+    pass
+
+
+def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
+    """Raise a OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
+    if config.HF_DATASETS_OFFLINE:
+        raise OfflineModeIsEnabled(
+            "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
+        )
+
+
 def _request_with_retry(
     method: str,
     url: str,
@@ -397,7 +409,9 @@ def _request_with_retry(
     timeout: float = 10.0,
     **params,
 ) -> requests.Response:
-    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff
+    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
+
+    Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
         method (str): HTTP method, such as 'GET' or 'HEAD'
@@ -408,6 +422,7 @@ def _request_with_retry(
         max_wait_time (float): Maximum amount of time between two retries, in seconds
         **params: Params to pass to `requests.request`
     """
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False
     while not success:
         tries += 1
@@ -425,6 +440,7 @@ def _request_with_retry(
 
 
 def ftp_head(url, timeout=10.0):
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     try:
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
             r.read(1)
@@ -434,6 +450,7 @@ def ftp_head(url, timeout=10.0):
 
 
 def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0):
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     try:
         logger.info(f"Getting through FTP {url} into {temp_file.name}")
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
@@ -595,6 +612,7 @@ def get_from_cache(
             )
         elif response is not None and response.status_code == 404:
             raise FileNotFoundError("Couldn't find file at {}".format(url))
+        _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
         raise ConnectionError("Couldn't reach {}".format(url))
 
     # Try a second time

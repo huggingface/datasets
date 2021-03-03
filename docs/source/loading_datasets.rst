@@ -417,3 +417,17 @@ For example, run the following to skip integrity verifications when loading the 
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('imdb', ignore_verifications=True)
+
+
+Loading datasets offline
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the huggingface/datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
+Only the ``text``, ``csv``, ``json`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
+
+Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.
+Indeed, if you've already loaded the dataset once before (when you had an internet connection), then the dataset is reloaded from the cache and you can use it offline.
+
+You can even set the environment variable `HF_DATASETS_OFFLINE` to ``1`` to tell ``datasets`` to run in full offline mode.
+This mode disables all the network calls of the library.
+This way, instead of waiting for a dataset builder download to time out, the library looks directly at the cache.
