@@ -154,8 +154,8 @@ _LANGUAGES = {
         "Date": "2020-12-11",
         "Size": "56 GB",
         "Version": "en_2181h_2020-12-11",
-        "Validated_Hr_Total": 1,686,
-        "Overall_Hr_Total": 2,181,
+        "Validated_Hr_Total": 1686,
+        "Overall_Hr_Total": 2181,
         "Number_Of_Voice": 66173,
     },
     "eo": {
