@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 from distutils.util import strtobool
+from enum import Enum
 from pathlib import Path
 from unittest.mock import patch
 
@@ -189,17 +190,26 @@ class RequestWouldHangIndefinitelyError(Exception):
     pass
 
 
+class OfflineSimulationMode(Enum):
+    CONNECTION_FAILS = 0
+    CONNECTION_TIMES_OUT = 1
+    HF_DATASETS_OFFLINE_SET_TO_1 = 2
+
+
 @contextmanager
-def offline(connection_times_out=False, timeout=1e-16):
+def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     """
     Simulate offline mode.
 
-    By default a ConnectionError is raised for each network call.
-    With connection_times_out=True on the other hand, the connection hangs until it times out.
-    The default timeout value is low (1e-16) to speed up the tests.
+    There are three offline simulatiom modes:
 
-    Connection errors are created by mocking socket.socket,
-    while the timeout errors are created by mocking requests.request.
+    CONNECTION_FAILS (default mode): a ConnectionError is raised for each network call.
+        Connection errors are created by mocking socket.socket
+    CONNECTION_TIMES_OUT: the connection hangs until it times out.
+        The default timeout value is low (1e-16) to speed up the tests.
+        Timeout errors are created by mocking requests.request
+    HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
+        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
     import socket
 
@@ -226,14 +236,19 @@ def offline(connection_times_out=False, timeout=1e-16):
     def offline_socket(*args, **kwargs):
         raise socket.error("Offline mode is enabled.")
 
-    if connection_times_out:
-        # inspired from https://stackoverflow.com/a/904609
-        with patch("requests.request", timeout_request):
-            yield
-    else:
+    if mode is OfflineSimulationMode.CONNECTION_FAILS:
         # inspired from https://stackoverflow.com/a/18601897
         with patch("socket.socket", offline_socket):
             yield
+    elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
+        # inspired from https://stackoverflow.com/a/904609
+        with patch("requests.request", timeout_request):
+            yield
+    elif mode is OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
+        with patch("datasets.config.HF_DATASETS_OFFLINE", True):
+            yield
+    else:
+        raise ValueError("Please use a value from the OfflineSimulationMode enum.")
 
 
 @contextmanager
