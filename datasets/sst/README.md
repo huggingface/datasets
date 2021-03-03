@@ -52,6 +52,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -185,3 +186,7 @@ Rotten Tomatoes reviewers.
     pages = "1631--1642",
 }
 ```
+
+### Contributions
+
+Thanks to [@patpizio](https://github.com/patpizio) for adding this dataset.
