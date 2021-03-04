@@ -37,9 +37,9 @@ type_ = type  # keep python's type function
 
 class TypedSequence:
     """
-    This data container generalizes the typing when instantiating pyarrow arrays, tabels or batches.
+    This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
 
-    More specifically it add several features:
+    More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
         ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
