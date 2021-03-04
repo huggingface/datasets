@@ -133,7 +133,13 @@ def test_optimized_int_type_for_typed_sequence(optimized_int_type, expected_dtyp
 
 
 @pytest.mark.parametrize(
-    "col, expected_dtype", [("attention_mask", pa.int8()), ("attention_mask", pa.int8()), ("other", pa.int32())]
+    "col, expected_dtype",
+    [
+        ("attention_mask", pa.int8()),
+        ("special_tokens_mask", pa.int8()),
+        ("token_type_ids", pa.int8()),
+        ("other", pa.int32()),
+    ],
 )
 def test_optimized_typed_sequence(col, expected_dtype):
     arr = pa.array(OptimizedTypedSequence([1, 2, 3], col=col))
