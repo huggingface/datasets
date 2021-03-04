@@ -138,7 +138,8 @@ def test_optimized_int_type_for_typed_sequence(optimized_int_type, expected_dtyp
         ("attention_mask", pa.int8()),
         ("special_tokens_mask", pa.int8()),
         ("token_type_ids", pa.int8()),
-        ("other", pa.int32()),
+        ("token_ids", pa.int32()),
+        ("other", pa.int64()),
     ],
 )
 def test_optimized_typed_sequence(col, expected_dtype):

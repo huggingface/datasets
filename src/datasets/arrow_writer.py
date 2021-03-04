@@ -130,13 +130,15 @@ class TypedSequence:
 
 
 class OptimizedTypedSequence(TypedSequence):
-    def __init__(self, data, type=None, try_type=None, col=None, optimized_int_type=pa.int32()):
+    def __init__(self, data, type=None, try_type=None, col=None, optimized_int_type=None):
         if type is None and try_type is None:
             if col == "attention_mask":  # binary tensor
                 # pa.bool_()  # ArrowInvalid: Could not convert 1 with type int: tried to convert to boolean
                 optimized_int_type = pa.int8()
             elif col == "special_tokens_mask":
                 optimized_int_type = pa.int8()
+            elif col == "token_ids":
+                optimized_int_type = pa.int32()
             elif col == "token_type_ids":
                 # binary mask; Some models, like XLNetModel use an additional token represented by a 2
                 optimized_int_type = pa.int8()
