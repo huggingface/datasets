@@ -2,14 +2,14 @@ from typing import Optional
 
 from .. import Features, NamedSplit
 from ..packaged_modules.json.json import Json
-from ..utils.typing import PathLike
+from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
 
 class JsonDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
-        path: PathLike,
+        path_or_paths: NestedDataStructureLike[PathLike],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -17,11 +17,11 @@ class JsonDatasetReader(AbstractDatasetReader):
         **kwargs,
     ):
         super().__init__(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         )
         self.builder = Json(
             cache_dir=cache_dir,
-            data_files=path,
+            data_files=path_or_paths,
             features=features,
             **kwargs,
         )
