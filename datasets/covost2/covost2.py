@@ -170,7 +170,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
         )
 
         if split == "train":
-            df = df[(df["split"] == "train") | (df["split"] == f"train_covost")]
+            df = df[(df["split"] == "train") | (df["split"] == "train_covost")]
         else:
             df = df[df["split"] == split]
 

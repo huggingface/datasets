@@ -52,9 +52,9 @@ class SimpleQuestionsV2Config(datasets.BuilderConfig):
 
 class SimpleQuestionsV2(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        SimpleQuestionsV2Config(name="annotated", data_type="annotated", description=f"Annotated dataset"),
-        SimpleQuestionsV2Config(name="freebase2m", data_type="freebase2m", description=f"Freebase subset 2M"),
-        SimpleQuestionsV2Config(name="freebase5m", data_type="freebase5m", description=f"Freebase subset 5M"),
+        SimpleQuestionsV2Config(name="annotated", data_type="annotated", description="Annotated dataset"),
+        SimpleQuestionsV2Config(name="freebase2m", data_type="freebase2m", description="Freebase subset 2M"),
+        SimpleQuestionsV2Config(name="freebase5m", data_type="freebase5m", description="Freebase subset 5M"),
     ]
     BUILDER_CONFIG_CLASS = SimpleQuestionsV2Config
     DEFAULT_CONFIG_NAME = "annotated"
