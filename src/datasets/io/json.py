@@ -31,7 +31,6 @@ class JsonDatasetReader(AbstractDatasetReader):
         download_mode = None
         ignore_verifications = False
         use_auth_token = None
-        save_infos = False
         base_path = None
 
         self.builder.download_and_prepare(
@@ -44,10 +43,7 @@ class JsonDatasetReader(AbstractDatasetReader):
         )
 
         # Build dataset for splits
-        ds = self.builder.as_dataset(
+        dataset = self.builder.as_dataset(
             split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
         )
-        if save_infos:
-            self.builder._save_infos()
-
-        return ds
+        return dataset
