@@ -46,7 +46,6 @@ _HOMEPAGE = "https://nlp.stanford.edu/sentiment/"
 
 _LICENSE = ""
 
-_URL = "https://www.dropbox.com/s/9j9dc55hs28wrye/stanfordSentimentTreebank.zip?dl=1"
 _DEFAULT_URL = "https://nlp.stanford.edu/~socherr/stanfordSentimentTreebank.zip"
 _PTB_URL = "https://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"
 
@@ -190,6 +189,7 @@ class Sst(datasets.GeneratorBasedBuilder):
 
                 sentence_reader = csv.DictReader(snt, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for id_, row in enumerate(sentence_reader):
+                    # fix encoding, see https://github.com/huggingface/datasets/pull/1961#discussion_r585969890
                     row["sentence"] = (
                         row["sentence"]
                         .encode("utf-8")
