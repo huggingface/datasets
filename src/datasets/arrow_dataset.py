@@ -408,6 +408,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
+        keep_in_memory: bool = False,
         **kwargs,
     ):
         """Create Dataset from JSON Lines file(s).
@@ -416,13 +417,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             split (NamedSplit, optional): Name of the dataset split.
             features (Features, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
         Returns:
             datasets.Dataset
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetReader
 
-        return JsonDatasetReader(path, split=split, features=features, cache_dir=cache_dir, **kwargs).read()
+        return JsonDatasetReader(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
 
     def __del__(self):
         if hasattr(self, "_data"):

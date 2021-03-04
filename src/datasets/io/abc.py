@@ -13,12 +13,14 @@ class AbstractDatasetReader(ABC):
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
+        keep_in_memory: bool = False,
         **kwargs,
     ):
         self.path = path
         self.split = split
         self.features = features
         self.cache_dir = cache_dir
+        self.keep_in_memory = keep_in_memory
         self.kwargs = kwargs
 
     @abstractmethod
