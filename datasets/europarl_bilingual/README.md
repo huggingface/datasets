@@ -63,30 +63,26 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** http://www.statmt.org/europarl/
-- **Repository:** https://opus.nlpl.eu/Europarl.php
-- **Paper:** @InProceedings{TIEDEMANN12.463,
-  author = {J�rg Tiedemann},
-  title = {Parallel Data, Tools and Interfaces in OPUS},
-  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
-  year = {2012},
-  month = {may},
-  date = {23-25},
-  address = {Istanbul, Turkey},
-  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
-  publisher = {European Language Resources Association (ELRA)},
-  isbn = {978-2-9517408-7-7},
-  language = {english}
- }
+- **Homepage:** [Statmt](http://www.statmt.org/europarl/)
+- **Repository:** [OPUS Europarl](https://opus.nlpl.eu/Europarl.php)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/L12-1246/)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
 ### Dataset Summary
 
 A parallel corpus extracted from the European Parliament web site by Philipp Koehn (University of Edinburgh). The main intended use is to aid statistical machine translation research.
+
+To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
+You can find the valid pairs in Homepage section of Dataset Description: https://opus.nlpl.eu/Europarl.php
+E.g.
+
+`dataset = load_dataset("europarl_bilingual", lang1="fi", lang2="fr")`
+
 
 ### Supported Tasks and Leaderboards
 
@@ -127,7 +123,15 @@ Every pair of the following languages is available:
 
 ### Data Instances
 
-[Needs More Information]
+Here is an example from the en-fr pair:
+```
+{
+  'translation': {
+    'en': 'Resumption of the session',
+    'fr': 'Reprise de la session'
+  }
+}
+```
 
 ### Data Fields
 
@@ -197,6 +201,7 @@ http://opus.nlpl.eu/Europarl-v8.php
 
 ### Citation Information
 
+```
 @InProceedings{TIEDEMANN12.463,
   author = {J�rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -210,3 +215,8 @@ http://opus.nlpl.eu/Europarl-v8.php
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
+ ```
+
+### Contributions
+
+Thanks to [@lucadiliello](https://github.com/lucadiliello) for adding this dataset.

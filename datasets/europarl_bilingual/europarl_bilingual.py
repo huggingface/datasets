@@ -99,28 +99,12 @@ class EuroparlBilingualConfig(datasets.BuilderConfig):
 class EuroparlBilingual(datasets.GeneratorBasedBuilder):
     """ Europarl contains aligned sentences in multiple west language pairs."""
 
-    VERSION = datasets.Version("0.0.1")
+    VERSION = datasets.Version(_VERSION)
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIG_CLASS = EuroparlBilingualConfig
     BUILDER_CONFIGS = [
-        EuroparlBilingualConfig(
-            lang1=lang1,
-            lang2=lang2,
-            description=f"Translating {lang1} to {lang2} or vice versa",
-            version=datasets.Version(_VERSION),
-        )
-        for lang1, lang2 in ALL_PAIRS
+        EuroparlBilingualConfig(lang1=lang1, lang2=lang2, version=datasets.Version(_VERSION))
+        for lang1, lang2 in ALL_PAIRS[:5]
     ]
 
     def _info(self):
@@ -132,19 +116,11 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
         )
 
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -183,12 +159,7 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
         return {tag.attrib["id"]: tag.text for tag in document.iter("s")}
 
     def _generate_examples(self, path_datafiles, path_relation_file):
-        """ Yields examples. """
-        # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
-
-        """
+        """Yields examples.
         In parenthesis the useful attributes
 
         Lang files XML
