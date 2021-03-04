@@ -70,7 +70,7 @@ The text dataset is in Romanian (`ro`)
 An example looks like this:
 
 ```
-{'score': '1.5',
+{'score': 1.5,
  'sentence1': 'Un bărbat cântă la harpă.',
  'sentence2': 'Un bărbat cântă la claviatură.',
 }
