@@ -247,6 +247,7 @@ class ArrowWriter(object):
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
+            # import pdb;pdb.set_trace()
             first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 raise OverflowError(
@@ -289,8 +290,10 @@ class ArrowWriter(object):
         for col in sorted(batch_examples.keys()):
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
+            # typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
+            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
             typed_sequence_examples[col] = typed_sequence
+            # import pdb;pdb.set_trace()
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
         self.write_table(pa_table, writer_batch_size)
 

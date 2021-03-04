@@ -91,7 +91,7 @@ class ArrowWriterTest(TestCase):
         self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
         self._check_output(output.getvalue())
 
-    def test_write_batch_no_schema(self):
+    def test_write_batch_no_schema(self):  # TODO
         output = pa.BufferOutputStream()
         writer = ArrowWriter(stream=output)
         writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
