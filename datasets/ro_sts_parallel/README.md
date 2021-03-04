@@ -11,7 +11,8 @@ multilinguality:
 - multilingual
 size_categories:
 - 10K<n<100K
-source_datasets: []
+source_datasets:
+- extended|other-sts-b
 task_categories:
 - conditional-text-generation
 task_ids:
@@ -46,10 +47,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/dumitrescustefan/RO-STS
-- **Repository:** https://github.com/dumitrescustefan/RO-STS
+- **Homepage:** [GitHub](https://github.com/dumitrescustefan/RO-STS)
+- **Repository:** [GitHub](https://github.com/dumitrescustefan/RO-STS)
 - **Paper:** [Needs More Information]
-- **Leaderboard:** [LiRo]
+- **Leaderboard:** [Needs More Information]
 - **Point of Contact:** dumitrescu.stefan@gmail.com
 
 ### Dataset Summary
@@ -62,7 +63,7 @@ We present RO-STS-Parallel - a Parallel Romanian-English dataset obtained by tra
 
 ### Languages
 
-The text dataset is in Romanian (`ro`, `en`)
+The text dataset is in Romanian and English (`ro`, `en`)
 
 ## Dataset Structure
 
@@ -73,8 +74,8 @@ An example looks like this:
 ```
 {
   'translation': {
-    'en': 'The problem is simpler than that.',
-    'ro': 'Problema e si mai simpla.'
+    'ro': 'Problema e si mai simpla.',
+    'en': 'The problem is simpler than that.'
     }
 }
 ```
@@ -82,8 +83,8 @@ An example looks like this:
 ### Data Fields
 
 - translation:
-  - en: text in English
   - ro: text in Romanian
+  - en: text in English
 
 ### Data Splits
 
@@ -143,4 +144,4 @@ CC BY-SA 4.0 License
 
 ### Contributions
 
-Thanks to [@dumitrescustefan](https://github.com/dumitrescustefan/), etc. for translating this dataset.
+Thanks to [@lorinczb](https://github.com/lorinczb) for adding this dataset.

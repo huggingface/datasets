@@ -49,7 +49,7 @@ task_ids:
 - **Homepage:** [GitHub](https://github.com/dumitrescustefan/RO-STS)
 - **Repository:** [GitHub](https://github.com/dumitrescustefan/RO-STS)
 - **Paper:** [Needs More Information]
-- **Leaderboard:** [LiRo]
+- **Leaderboard:** [Needs More Information]
 - **Point of Contact:** dumitrescu.stefan@gmail.com
 
 ### Dataset Summary

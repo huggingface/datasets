@@ -55,18 +55,14 @@ class ROSTSParallelConfig(datasets.BuilderConfig):
         self.language_pair = language_pair
 
 
-class ROSTSParallel(datasets.GeneratorBasedBuilder):
+class RoStsParallel(datasets.GeneratorBasedBuilder):
     """RO-STS-Parallel dataset"""
 
     BUILDER_CONFIGS = [
         ROSTSParallelConfig(
             name="rosts-parallel-ro-en",
             language_pair=("ro", "en"),
-        ),
-        ROSTSParallelConfig(
-            name="rosts-parallel-en-ro",
-            language_pair=("en", "ro"),
-        ),
+        )
     ]
     BUILDER_CONFIG_CLASS = ROSTSParallelConfig
 

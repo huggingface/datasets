@@ -115,7 +115,6 @@ class RoSts(datasets.GeneratorBasedBuilder):
             reader = f.readlines()
             for idx, row in enumerate(reader):
                 splits = row.strip().split("\t")
-                # print(splits[0], splits[1], splits[2])
                 yield idx, {
                     "score": splits[0],  # row["score"],
                     "sentence1": splits[1],  # row["sentence1"],
