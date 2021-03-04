@@ -59,7 +59,11 @@ class RoStsParallel(datasets.GeneratorBasedBuilder):
     """RO-STS-Parallel dataset"""
 
     VERSION = datasets.Version("1.0.0")
-    BUILDER_CONFIGS = [ROSTSParallelConfig(name="ro_sts_parallel", version=VERSION, description="RO-STS Parallel dataset", language_pair=("ro", "en"))]
+    BUILDER_CONFIGS = [
+        ROSTSParallelConfig(
+            name="ro_sts_parallel", version=VERSION, description="RO-STS Parallel dataset", language_pair=("ro", "en")
+        )
+    ]
 
     def _info(self):
 
