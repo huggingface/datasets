@@ -1,8 +1,8 @@
 from ..packaged_modules.csv.csv import Csv
-from .abc import AbstractDatasetBuilder
+from .abc import AbstractDatasetReader
 
 
-class CsvDatasetBuilder(AbstractDatasetBuilder):
+class CsvDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
         path,
@@ -19,7 +19,7 @@ class CsvDatasetBuilder(AbstractDatasetBuilder):
             **kwargs,
         )
 
-    def build(self):
+    def read(self):
         download_config = None
         download_mode = None
         ignore_verifications = False

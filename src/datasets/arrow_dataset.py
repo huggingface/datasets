@@ -452,9 +452,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             datasets.Dataset
         """
         # Dynamic import to avoid circular dependency
-        from .io.csv import CsvDatasetBuilder
+        from .io.csv import CsvDatasetReader
 
-        return CsvDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir, **kwargs).build()
+        return CsvDatasetReader(path, split=split, features=features, cache_dir=cache_dir, **kwargs).read()
 
     def __del__(self):
         if hasattr(self, "_data"):

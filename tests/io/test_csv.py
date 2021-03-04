@@ -3,7 +3,7 @@ import csv
 import pytest
 
 from datasets import Features, NamedSplit, Value
-from datasets.io.csv import CsvDatasetBuilder
+from datasets.io.csv import CsvDatasetReader
 
 
 DATA = [
@@ -51,7 +51,7 @@ def test_dataset_csv_builder(path_type, split, csv_path, features, tmp_path):
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
 
-    ds = CsvDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir).build()
+    ds = CsvDatasetReader(path, split=split, features=features, cache_dir=cache_dir).read()
     ds = ds if split else ds["train"]  # # if split is None: ds.num_rows = {'train': 4} instead of 4
     assert ds.num_rows == 4
     assert ds.num_columns == 3
