@@ -3,7 +3,7 @@ import json
 import pytest
 
 from datasets import Features, NamedSplit, Value
-from datasets.io.json import JsonDatasetBuilder
+from datasets.io.json import JsonDatasetReader
 
 
 DATA = [
@@ -48,7 +48,7 @@ def test_dataset_json_builder(path_type, split, jsonl_path, features, tmp_path):
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
 
-    ds = JsonDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir).build()
+    ds = JsonDatasetReader(path, split=split, features=features, cache_dir=cache_dir).read()
     ds = ds if split else ds["train"]  # # if split is None: ds.num_rows = {'train': 4} instead of 4
     assert ds.num_rows == 4
     assert ds.num_columns == 3

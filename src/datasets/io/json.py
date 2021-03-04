@@ -1,8 +1,8 @@
 from ..packaged_modules.json.json import Json
-from .abc import AbstractDatasetBuilder
+from .abc import AbstractDatasetReader
 
 
-class JsonDatasetBuilder(AbstractDatasetBuilder):
+class JsonDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
         path,
@@ -19,7 +19,7 @@ class JsonDatasetBuilder(AbstractDatasetBuilder):
             **kwargs,
         )
 
-    def build(self):
+    def read(self):
         download_config = None
         download_mode = None
         ignore_verifications = False

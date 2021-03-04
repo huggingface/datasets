@@ -420,9 +420,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             datasets.Dataset
         """
         # Dynamic import to avoid circular dependency
-        from .io.json import JsonDatasetBuilder
+        from .io.json import JsonDatasetReader
 
-        return JsonDatasetBuilder(path, split=split, features=features, cache_dir=cache_dir, **kwargs).build()
+        return JsonDatasetReader(path, split=split, features=features, cache_dir=cache_dir, **kwargs).read()
 
     def __del__(self):
         if hasattr(self, "_data"):

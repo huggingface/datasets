@@ -6,7 +6,7 @@ from ..arrow_dataset import Dataset
 from ..utils.typing import PathLike
 
 
-class AbstractDatasetBuilder(ABC):
+class AbstractDatasetReader(ABC):
     def __init__(
         self,
         path: PathLike,
@@ -22,5 +22,5 @@ class AbstractDatasetBuilder(ABC):
         self.kwargs = kwargs
 
     @abstractmethod
-    def build(self) -> Dataset:
+    def read(self) -> Dataset:
         pass
