@@ -145,4 +145,4 @@ CC BY-SA 4.0 License
 
 ### Contributions
 
-Thanks to [@adrianastan](http://www.adrianastan.com/), [@dumitrescustefan](https://github.com/dumitrescustefan/), etc. for translating this dataset.
+Thanks to [@lorinczb](https://github.com/lorinczb) for adding this dataset.
