@@ -48,7 +48,7 @@ class ROSTSConfig(datasets.BuilderConfig):
         super(ROSTSConfig, self).__init__(**kwargs)
 
 
-class ROSTS(datasets.GeneratorBasedBuilder):
+class RoSts(datasets.GeneratorBasedBuilder):
     """RO-STS dataset"""
 
     VERSION = datasets.Version("1.0.0")
