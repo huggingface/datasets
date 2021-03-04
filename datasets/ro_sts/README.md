@@ -10,7 +10,8 @@ multilinguality:
 - monolingual
 size_categories:
 - 1K<n<10K
-source_datasets: []
+source_datasets:
+- extended|other-sts-b
 task_categories:
 - text-scoring
 task_ids:
