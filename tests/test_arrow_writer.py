@@ -3,8 +3,9 @@ import tempfile
 from unittest import TestCase
 
 import pyarrow as pa
+import pytest
 
-from datasets.arrow_writer import ArrowWriter, TypedSequence
+from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
 from datasets.features import Array2DExtensionType
 
 
@@ -123,3 +124,17 @@ class ArrowWriterTest(TestCase):
             self.assertGreater(num_bytes, 0)
             self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
             self._check_output(output)
+
+
+@pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (pa.int32(), pa.int32())])
+def test_optimized_int_type_for_typed_sequence(optimized_int_type, expected_dtype):
+    arr = pa.array(TypedSequence([1, 2, 3], optimized_int_type=optimized_int_type))
+    assert arr.type == expected_dtype
+
+
+@pytest.mark.parametrize(
+    "col, expected_dtype", [("attention_mask", pa.int8()), ("attention_mask", pa.int8()), ("other", pa.int32())]
+)
+def test_optimized_typed_sequence(col, expected_dtype):
+    arr = pa.array(OptimizedTypedSequence([1, 2, 3], col=col))
+    assert arr.type == expected_dtype
