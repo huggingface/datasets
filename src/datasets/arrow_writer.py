@@ -75,11 +75,12 @@ class TypedSequence:
 
     """
 
-    def __init__(self, data, type=None, try_type=None):
+    def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
+        self.optimized_int_type = optimized_int_type
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
@@ -99,6 +100,11 @@ class TypedSequence:
                 raise TypeError(
                     "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
                 )
+            if self.optimized_int_type and self.type is None and self.try_type is None:
+                if pa.types.is_int64(out.type):
+                    out = out.cast(self.optimized_int_type)
+                elif pa.types.is_list(out.type) and pa.types.is_int64(out.type.value_type):
+                    out = out.cast(pa.list_(self.optimized_int_type))
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
@@ -121,6 +127,18 @@ class TypedSequence:
                 )
             else:
                 raise
+
+
+class OptimizedTypedSequence(TypedSequence):
+    def __init__(self, data, type=None, try_type=None, col=None, optimized_int_type=pa.int32()):
+        if type is None and try_type is None:
+            if col == "attention_mask":  # binary tensor
+                # pa.bool_()  # ArrowInvalid: Could not convert 1 with type int: tried to convert to boolean
+                optimized_int_type = pa.int8()
+            elif col == "token_type_ids":
+                # binary mask; Some models, like XLNetModel use an additional token represented by a 2
+                optimized_int_type = pa.int8()
+        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
 
 
 class ArrowWriter(object):
