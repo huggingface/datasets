@@ -50,8 +50,8 @@ class ROSTSParallelConfig(datasets.BuilderConfig):
 
     def __init__(self, language_pair=(None, None), **kwargs):
 
-        description = ("RO-STS Parallel dataset, translation from %s to %s") % (language_pair[0], language_pair[1])
-        super(ROSTSParallelConfig, self).__init__(description=description, **kwargs)
+        # description = ("RO-STS Parallel dataset, translation from %s to %s") % (language_pair[0], language_pair[1])
+        super(ROSTSParallelConfig, self).__init__(**kwargs)
         self.language_pair = language_pair
 
 
@@ -59,7 +59,7 @@ class RoStsParallel(datasets.GeneratorBasedBuilder):
     """RO-STS-Parallel dataset"""
 
     VERSION = datasets.Version("1.0.0")
-    BUILDER_CONFIGS = [ROSTSParallelConfig(name="ro_sts_parallel", version=VERSION, language_pair=("ro", "en"))]
+    BUILDER_CONFIGS = [ROSTSParallelConfig(name="ro_sts_parallel", version=VERSION, description="RO-STS Parallel dataset", language_pair=("ro", "en"))]
 
     def _info(self):
 
@@ -70,7 +70,8 @@ class RoStsParallel(datasets.GeneratorBasedBuilder):
                 {"translation": datasets.features.Translation(languages=self.config.language_pair)}
             ),
             supervised_keys=(source, target),
-            homepage="https://github.com/dumitrescustefan/RO-STS/",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
