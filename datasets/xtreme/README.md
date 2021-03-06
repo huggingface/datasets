@@ -124,6 +124,8 @@ An example of 'validation' looks as follows.
 
 ```
 
+Note that all lines starting with the `-DOCSTART-` token, a special token that acts as a boundary between different documents, are filtered out.
+
 ### Data Fields
 
 The data fields are the same among all splits.

@@ -427,6 +427,8 @@ WikiANN (sometimes called PAN-X) is a multilingual named entity recognition data
 
 [More Information Needed]
 
+Note that all lines starting with the `-DOCSTART-` token, a special token that acts as a boundary between different documents, are filtered out.
+
 ### Data Fields
 
 [More Information Needed]

@@ -86,6 +86,9 @@ An example from the dataset looks as follows:
     "EMENTA", ":", "APELAÇÃO", "CÍVEL", "-", "AÇÃO", "DE", "INDENIZAÇÃO", "POR", "DANOS", "MORAIS", "-", "PRELIMINAR", "-", "ARGUIDA", "PELO", "MINISTÉRIO", "PÚBLICO", "EM", "GRAU", "RECURSAL"]
 }
 ```
+
+Note that all lines starting with the `-DOCSTART-` token, a special token that acts as a boundary between different documents, are filtered out.
+
 ### Data Fields
 
 - `id`: id of the sample

@@ -73,6 +73,8 @@ A data point consists of sentences seperated by empty line and tab-seperated tok
  'tokens': ['Trump', 'ya', 'ce', 'Rasha', 'ma']
 }
 
+Note that all lines starting with the `-DOCSTART-` token, a special token that acts as a boundary between different documents, are filtered out.
+
 ### Data Fields
 
 - `id`: id of the sample
