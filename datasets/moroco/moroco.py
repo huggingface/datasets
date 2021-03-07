@@ -51,9 +51,9 @@ _LICENSE = "CC BY-SA 4.0 License"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/"
-_URL_TRAIN = os.path.join(_URL, "train")
-_URL_VAL = os.path.join(_URL, "validation")
-_URL_TEST = os.path.join(_URL, "test")
+_URL_TRAIN = _URL + "train/"
+_URL_VAL = _URL + "validation/"
+_URL_TEST = _URL + "test/"
 
 _SAMPLES_FILE = "samples.txt"
 _LABELS_FILE = "category_labels.txt"
@@ -114,12 +114,12 @@ class MOROCO(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         urls_to_download = {
-            "train_samples.txt": os.path.join(_URL_TRAIN, _SAMPLES_FILE),
-            "train_labels.txt": os.path.join(_URL_TRAIN, _LABELS_FILE),
-            "val_samples.txt": os.path.join(_URL_VAL, _SAMPLES_FILE),
-            "val_labels.txt": os.path.join(_URL_VAL, _LABELS_FILE),
-            "test_samples.txt": os.path.join(_URL_TEST, _SAMPLES_FILE),
-            "test_labels.txt": os.path.join(_URL_TEST, _LABELS_FILE),
+            "train_samples.txt": _URL_TRAIN + _SAMPLES_FILE,
+            "train_labels.txt": _URL_TRAIN + _LABELS_FILE,
+            "val_samples.txt": _URL_VAL + _SAMPLES_FILE,
+            "val_labels.txt": _URL_VAL + _LABELS_FILE,
+            "test_samples.txt": _URL_TEST + _SAMPLES_FILE,
+            "test_labels.txt": _URL_TEST + _LABELS_FILE,
         }
 
         downloaded_files = dl_manager.download(urls_to_download)
