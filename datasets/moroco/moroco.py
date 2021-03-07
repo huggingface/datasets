@@ -34,7 +34,7 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-        The MOROCO (Moldavian and Romanian Dialectal Corpus) dataset contains 33564 samples of text collected from the news domain. 
+        The MOROCO (Moldavian and Romanian Dialectal Corpus) dataset contains 33564 samples of text collected from the news domain.
         The samples belong to one of the following six topics:
             - culture
             - finance
@@ -89,7 +89,6 @@ class MOROCO(datasets.GeneratorBasedBuilder):
                         "tech",
                     ]
                 ),
-                # datasets.Value("int64"),
                 "sample": datasets.Value("string"),
             }
         )
