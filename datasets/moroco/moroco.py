@@ -16,9 +16,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+import os
+
 import datasets
 
-import os
 
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
