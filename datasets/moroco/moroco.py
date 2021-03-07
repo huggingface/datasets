@@ -114,12 +114,12 @@ class MOROCO(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         urls_to_download = {
-            "train_samples": os.path.join(_URL_TRAIN, _SAMPLES_FILE),
-            "train_labels": os.path.join(_URL_TRAIN, _LABELS_FILE),
-            "val_samples": os.path.join(_URL_VAL, _SAMPLES_FILE),
-            "val_labels": os.path.join(_URL_VAL, _LABELS_FILE),
-            "test_samples": os.path.join(_URL_TEST, _SAMPLES_FILE),
-            "test_labels": os.path.join(_URL_TEST, _LABELS_FILE),
+            "train_samples.txt": os.path.join(_URL_TRAIN, _SAMPLES_FILE),
+            "train_labels.txt": os.path.join(_URL_TRAIN, _LABELS_FILE),
+            "val_samples.txt": os.path.join(_URL_VAL, _SAMPLES_FILE),
+            "val_labels.txt": os.path.join(_URL_VAL, _LABELS_FILE),
+            "test_samples.txt": os.path.join(_URL_TEST, _SAMPLES_FILE),
+            "test_labels.txt": os.path.join(_URL_TEST, _LABELS_FILE),
         }
 
         downloaded_files = dl_manager.download(urls_to_download)
@@ -129,24 +129,24 @@ class MOROCO(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "samples_filepath": downloaded_files["train_samples"],
-                    "labels_filepath": downloaded_files["train_labels"],
+                    "samples_filepath": downloaded_files["train_samples.txt"],
+                    "labels_filepath": downloaded_files["train_labels.txt"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "samples_filepath": downloaded_files["test_samples"],
-                    "labels_filepath": downloaded_files["test_labels"],
+                    "samples_filepath": downloaded_files["test_samples.txt"],
+                    "labels_filepath": downloaded_files["test_labels.txt"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "samples_filepath": downloaded_files["val_samples"],
-                    "labels_filepath": downloaded_files["val_labels"],
+                    "samples_filepath": downloaded_files["val_samples.txt"],
+                    "labels_filepath": downloaded_files["val_labels.txt"],
                 },
             ),
         ]
@@ -154,10 +154,10 @@ class MOROCO(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, samples_filepath, labels_filepath):
         """This function returns the examples in the raw (text) form."""
 
-        with open(samples_filepath, "r") as fsamples:
+        with open(samples_filepath, "r", encoding="utf-8") as fsamples:
             sample_rows = fsamples.read().splitlines()
 
-        with open(labels_filepath, "r") as flabels:
+        with open(labels_filepath, "r", encoding="utf-8") as flabels:
             label_rows = flabels.readlines()
 
         for i, row in enumerate(sample_rows):
