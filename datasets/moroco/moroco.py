@@ -49,9 +49,7 @@ _LICENSE = "CC BY-SA 4.0 License"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = (
-    "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/"
-)
+_URL = "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/"
 _URL_TRAIN = os.path.join(_URL, "train")
 _URL_VAL = os.path.join(_URL, "validation")
 _URL_TEST = os.path.join(_URL, "test")
