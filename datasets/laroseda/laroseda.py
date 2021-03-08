@@ -45,8 +45,7 @@ _LICENSE = "CC BY-SA 4.0 License"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://raw.githubusercontent.com/MihaelaGaman/LaRoSeDa/splits-branch/data_splitted/"
-# "https://raw.githubusercontent.com/ancatache/LaRoSeDa/data/"
+_URL = "https://raw.githubusercontent.com/ancatache/LaRoSeDa/main/data_splitted/"
 
 _TRAIN_FILE = "laroseda_train.json"
 _TEST_FILE = "laroseda_test.json"
