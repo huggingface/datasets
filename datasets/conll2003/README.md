@@ -82,8 +82,6 @@ For more details see https://www.clips.uantwerpen.be/conll2003/ner/ and https://
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### conll2003

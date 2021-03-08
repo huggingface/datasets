@@ -417,8 +417,8 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
 
             # Iterate through the links data, which is in a simple tab-delimited format
             links = []
-            for l in links_raw:
-                _, relation_label, start_span_id, end_span_id = l.split("\t")
+            for link in links_raw:
+                _, relation_label, start_span_id, end_span_id = link.split("\t")
 
                 link_out = {
                     "relation_label": relation_label,

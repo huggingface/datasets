@@ -24,7 +24,7 @@ author = 'HuggingFace'
 # The short X.Y version
 version = u''
 # The full version, including alpha/beta/rc tags
-release = '1.3.0'
+release = '1.4.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -85,7 +85,8 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 #
 html_theme_options = {
-    'analytics_id': 'UA-83738774-2'
+    'analytics_id': 'UA-83738774-2',
+    'navigation_with_keys': True
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
