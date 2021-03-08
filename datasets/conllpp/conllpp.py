@@ -54,8 +54,8 @@ class ConllppConfig(datasets.BuilderConfig):
         super(ConllppConfig, self).__init__(**kwargs)
 
 
-class Conll2003(datasets.GeneratorBasedBuilder):
-    """Conll2003 dataset."""
+class Conllpp(datasets.GeneratorBasedBuilder):
+    """Conllpp dataset."""
 
     BUILDER_CONFIGS = [
         ConllppConfig(name="conllpp", version=datasets.Version("1.0.0"), description="Conllpp dataset"),
@@ -213,7 +213,6 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                 else:
                     # conll2003 tokens are space separated
                     splits = line.split(" ")
-                    assert len(splits) >= 4, line
                     tokens.append(splits[0])
                     pos_tags.append(splits[1])
                     chunk_tags.append(splits[2])

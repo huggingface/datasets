@@ -53,9 +53,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/ZihanWangKi/CrossWeigh](https://github.com/ZihanWangKi/CrossWeigh)
-- **Repository:** [https://github.com/ZihanWangKi/CrossWeigh](https://github.com/ZihanWangKi/CrossWeigh)
-- **Paper:** [https://www.aclweb.org/anthology/D19-1519/](https://www.aclweb.org/anthology/D19-1519/)
+- **Homepage:** [Github](https://github.com/ZihanWangKi/CrossWeigh)
+- **Repository:** [Github](https://github.com/ZihanWangKi/CrossWeigh)
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/D19-1519)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -65,11 +65,13 @@ CoNLLpp is a corrected version of the CoNLL2003 NER dataset where labels of 5.38
 have been manually corrected. The training set and development set from CoNLL2003 is included for completeness. One 
 correction on the test set for example, is:
 
+```
 {
-    "tokens": "[\"SOCCER\", \"-\", \"JAPAN\", \"GET\", \"LUCKY\", \"WIN\", \",\", \"CHINA\", \"IN\", \"SURPRISE\", \"DEFEAT\", \".\"]",
+    "tokens": ["SOCCER", "-", "JAPAN", "GET", "LUCKY", "WIN", ",", "CHINA", "IN", "SURPRISE", "DEFEAT", "."],
     "original_ner_tags_in_conll2003": ["O", "O", "B-LOC", "O", "O", "O", "O", "B-PER", "O", "O", "O", "O"],
     "corrected_ner_tags_in_conllpp": ["O", "O", "B-LOC", "O", "O", "O", "O", "B-LOC", "O", "O", "O", "O"],
 }
+```
 
 ### Supported Tasks and Leaderboards
 
@@ -100,7 +102,7 @@ This example was too long and was cropped:
     "id": "0",
     "ner_tags": [0, 3, 4, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "pos_tags": [12, 22, 22, 38, 15, 22, 28, 38, 15, 16, 21, 35, 24, 35, 37, 16, 21, 15, 24, 41, 15, 16, 21, 21, 20, 37, 40, 35, 21, 7],
-    "tokens": "[\"The\", \"European\", \"Commission\", \"said\", \"on\", \"Thursday\", \"it\", \"disagreed\", \"with\", \"German\", \"advice\", \"to\", \"consumers\", \"t..."
+    "tokens": ["The", "European", "Commission", "said", "on", "Thursday", "it", "disagreed", "with", "German", "advice", "to", "consumers", "to", "shun", "British", "lamb", "until", "scientists", "determine", "whether", "mad", "cow", "disease", "can", "be", "transmitted", "to", "sheep", "."]
 }
 ```
 
