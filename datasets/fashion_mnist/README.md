@@ -94,6 +94,7 @@ The data is split into training and test set. The training set contains 60,000 i
 
 ### Curation Rationale
 
+**From the arXiv paper:**
 The original MNIST dataset contains a lot of handwritten digits. Members of the AI/ML/Data Science community love this dataset and use it as a benchmark to validate their algorithms. In fact, MNIST is often the first dataset researchers try. "If it doesn't work on MNIST, it won't work at all", they said. "Well, if it does work on MNIST, it may still fail on others."
 
 Here are some good reasons:
@@ -106,6 +107,7 @@ Here are some good reasons:
 
 #### Initial Data Collection and Normalization
 
+**From the arXiv paper:**
 Fashion-MNIST is based on the assortment on Zalando’s website. Every fashion product on Zalando has a set of pictures shot by professional photographers, demonstrating different aspects of the product, i.e. front and back looks, details, looks with model and in an outfit. The original picture has a light-gray background (hexadecimal color: #fdfdfd) and stored in 762 × 1000 JPEG format. For efficiently serving different frontend components, the original picture is resampled with multiple resolutions, e.g. large, medium, small, thumbnail and tiny.
 
 We use the front look thumbnail images of 70,000 unique products to build Fashion-MNIST. Those products come from different gender groups: men, women, kids and neutral. In particular, whitecolor products are not included in the dataset as they have low contrast to the background. The thumbnails (51 × 73) are then fed into the following conversion pipeline:
@@ -120,16 +122,19 @@ We use the front look thumbnail images of 70,000 unique products to build Fashio
 
 #### Who are the source image producers?
 
+**From the arXiv paper:**
 Every fashion product on Zalando has a set of pictures shot by professional photographers, demonstrating different aspects of the product, i.e. front and back looks, details, looks with model and in an outfit.
 
 ### Annotations
 
 #### Annotation process
 
+**From the arXiv paper:**
 For the class labels, they use the silhouette code of the product. The silhouette code is manually labeled by the in-house fashion experts and reviewed by a separate team at Zalando. Each product Zalando is the Europe’s largest online fashion platform. Each product contains only one silhouette code.
 
 #### Who are the annotators?
 
+**From the arXiv paper:**
 The silhouette code is manually labeled by the in-house fashion experts and reviewed by a separate team at Zalando.
 
 ### Personal and Sensitive Information
