@@ -48,13 +48,18 @@ _LICENSE = "CC BY-SA 4.0 License"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/"
-_URL_TRAIN = _URL + "train/"
-_URL_VAL = _URL + "validation/"
-_URL_TEST = _URL + "test/"
+_URL = "https://raw.githubusercontent.com/MihaelaGaman/MOROCO/huggingface-datasets-addition/MOROCO/preprocessed/all/"
 
-_SAMPLES_FILE = "samples.txt"
-_LABELS_FILE = "category_labels.txt"
+# "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/"
+
+_TRAIN_SAMPLES_FILE = "train_samples.txt"
+_TRAIN_LABELS_FILE = "train_category_labels.txt"
+
+_VAL_SAMPLES_FILE = "validation_samples.txt"
+_VAL_LABELS_FILE = "validation_category_labels.txt"
+
+_TEST_SAMPLES_FILE = "test_samples.txt"
+_TEST_LABELS_FILE = "test_category_labels.txt"
 
 
 class MOROCOConfig(datasets.BuilderConfig):
@@ -112,12 +117,12 @@ class MOROCO(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         urls_to_download = {
-            "train_samples.txt": _URL_TRAIN + _SAMPLES_FILE,
-            "train_labels.txt": _URL_TRAIN + _LABELS_FILE,
-            "val_samples.txt": _URL_VAL + _SAMPLES_FILE,
-            "val_labels.txt": _URL_VAL + _LABELS_FILE,
-            "test_samples.txt": _URL_TEST + _SAMPLES_FILE,
-            "test_labels.txt": _URL_TEST + _LABELS_FILE,
+            "train_samples": _URL + _TRAIN_SAMPLES_FILE,
+            "train_labels": _URL + _TRAIN_LABELS_FILE,
+            "val_samples": _URL + _VAL_SAMPLES_FILE,
+            "val_labels": _URL + _VAL_LABELS_FILE,
+            "test_samples": _URL + _TEST_SAMPLES_FILE,
+            "test_labels": _URL + _TEST_LABELS_FILE,
         }
 
         downloaded_files = dl_manager.download(urls_to_download)
@@ -127,24 +132,24 @@ class MOROCO(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "samples_filepath": downloaded_files["train_samples.txt"],
-                    "labels_filepath": downloaded_files["train_labels.txt"],
+                    "samples_filepath": downloaded_files["train_samples"],
+                    "labels_filepath": downloaded_files["train_labels"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "samples_filepath": downloaded_files["test_samples.txt"],
-                    "labels_filepath": downloaded_files["test_labels.txt"],
+                    "samples_filepath": downloaded_files["test_samples"],
+                    "labels_filepath": downloaded_files["test_labels"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "samples_filepath": downloaded_files["val_samples.txt"],
-                    "labels_filepath": downloaded_files["val_labels.txt"],
+                    "samples_filepath": downloaded_files["val_samples"],
+                    "labels_filepath": downloaded_files["val_labels"],
                 },
             ),
         ]
