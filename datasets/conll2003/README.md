@@ -82,8 +82,6 @@ For more details see https://www.clips.uantwerpen.be/conll2003/ner/ and https://
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### conll2003
@@ -104,6 +102,9 @@ This example was too long and was cropped:
     "tokens": "[\"The\", \"European\", \"Commission\", \"said\", \"on\", \"Thursday\", \"it\", \"disagreed\", \"with\", \"German\", \"advice\", \"to\", \"consumers\", \"t..."
 }
 ```
+
+The original data files have `-DOCSTART-` lines used to separate documents, but these lines are removed here.
+Indeed `-DOCSTART-` is a special line that acts as a boundary between two different documents, and it is filtered out in this implementation.
 
 ### Data Fields
 
