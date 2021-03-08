@@ -1,19 +1,19 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators: []
 languages: []
 licenses:
-  - mit
+- mit
 multilinguality: []
 size_categories:
-  - 10K<n<100K
+- 10K<n<100K
 source_datasets:
-  - original
+- original
 task_categories:
-  - other
+- other
 task_ids:
-  - other-other-image-classification
+- other-other-image-classification
 ---
 
 # Dataset Card for FashionMNIST
