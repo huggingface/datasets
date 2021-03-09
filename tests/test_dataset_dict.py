@@ -5,6 +5,7 @@ from unittest import TestCase
 import boto3
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import pytest
 from moto import mock_s3
 
@@ -415,6 +416,7 @@ class DatasetDictTest(TestCase):
         del dsets
 
 
+@pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
     [
@@ -426,7 +428,7 @@ class DatasetDictTest(TestCase):
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])
-def test_datasetdict_from_csv(split, features, csv_path, tmp_path):
+def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_path):
     if split:
         path = {split: csv_path}
     else:
@@ -437,8 +439,9 @@ def test_datasetdict_from_csv(split, features, csv_path, tmp_path):
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-
-    dataset = DatasetDict.from_csv(path, features=features, cache_dir=cache_dir)
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset = DatasetDict.from_csv(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
@@ -447,3 +450,4 @@ def test_datasetdict_from_csv(split, features, csv_path, tmp_path):
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+    assert increased_allocated_memory == keep_in_memory
