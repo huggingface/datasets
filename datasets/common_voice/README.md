@@ -1,4 +1,82 @@
-[Needs More Information]
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- "ab"
+- "ar"
+- "as"
+- "br"
+- "ca"
+- "cnh"
+- "cs"
+- "cv"
+- "cy"
+- "de"
+- "dv"
+- "el"
+- "en"
+- "eo"
+- "es"
+- "et"
+- "eu"
+- "fa"
+- "fi"
+- "fr"
+- "fy-NL"
+- "ga-IE"
+- "hi"
+- "hsb"
+- "hu"
+- "ia"
+- "id"
+- "it"
+- "ja"
+- "ka"
+- "kab"
+- "ky"
+- "lg"
+- "lt"
+- "lv"
+- "mn"
+- "mt"
+- "nl"
+- "or"
+- "pa-IN"
+- "pl"
+- "pt"
+- "rm-sursilv"
+- "rm-vallader"
+- "ro"
+- "ru"
+- "rw"
+- "sah"
+- "sl"
+- "sv-SE"
+- "ta"
+- "th"
+- "tr"
+- "tt"
+- "uk"
+- "vi"
+- "vot"
+- "zh-CN"
+- "zh-HK"
+- "zh-TW"
+licenses:
+- cc-by-nc-4.0
+multilinguality:
+- multilingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|other-common-voice
+task_categories:
+- other
+task_ids:
+- other-other-speech-translation
+---
 
 # Dataset Card for common_voice
 
