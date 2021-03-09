@@ -5,6 +5,7 @@ from unittest import TestCase
 import boto3
 import numpy as np
 import pandas as pd
+import pytest
 from moto import mock_s3
 
 from datasets import Features, Sequence, Value, load_from_disk
@@ -412,3 +413,37 @@ class DatasetDictTest(TestCase):
         self.assertEqual(len(dsets["test"]), 30)
         self.assertListEqual(dsets["test"].column_names, ["filename"])
         del dsets
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, "train", "test"])
+def test_datasetdict_from_json(split, features, jsonl_path, tmp_path):
+    if split:
+        path = {split: jsonl_path}
+    else:
+        split = "train"
+        path = {"train": jsonl_path, "test": jsonl_path}
+    cache_dir = tmp_path / "cache"
+
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+
+    dataset = DatasetDict.from_json(path, features=features, cache_dir=cache_dir)
+    assert isinstance(dataset, DatasetDict)
+    dataset = dataset[split]
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    assert dataset.split == split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
