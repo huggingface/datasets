@@ -144,12 +144,37 @@ class RecurseDumpTest(TestCase):
             "co_cellvars",
         )
 
+        def _create_code(*args):
+            """Create CodeType for any python 3 version. From dill._dill._create_code"""
+            if hasattr(args[-3], "encode"):
+                args = list(args)
+                args[-3] = args[-3].encode()  # co_lnotab
+                args[-10] = args[-10].encode()  # co_code
+            if hasattr(CodeType, "co_posonlyargcount"):
+                if len(args) == 16:
+                    return CodeType(*args)
+                elif len(args) == 15:
+                    return CodeType(args[0], 0, *args[1:])
+                return CodeType(args[0], 0, 0, *args[1:])
+            elif hasattr(CodeType, "co_kwonlyargcount"):
+                if len(args) == 16:
+                    return CodeType(args[0], *args[2:])
+                elif len(args) == 15:
+                    return CodeType(*args)
+                return CodeType(args[0], 0, *args[1:])
+            if len(args) == 16:
+                return CodeType(args[0], *args[3:])
+            elif len(args) == 15:
+                return CodeType(args[0], *args[2:])
+            return CodeType(*args)
+
         def create_ipython_func(co_filename, returned_obj):
             def func():
                 return returned_obj
 
             code = func.__code__
-            code = CodeType(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
+            # Use _create_code from dill in order to make it work for different python versions
+            code = _create_code(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
             return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
