@@ -125,7 +125,6 @@ class Medal(datasets.GeneratorBasedBuilder):
             data = csv.reader(f)
             # Skip header
             next(data)
-            # print(split, filepath, next(data))
             if split == "full":
                 id_ = 0
                 for id_, row in enumerate(data):

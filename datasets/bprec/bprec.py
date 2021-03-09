@@ -185,7 +185,6 @@ class Bprec(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         cats = [cat for cat in self.config.categories]
         for cat, filepath in zip(cats, filedirs):
-            # print(cat, filepath)
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for key in data.keys():
