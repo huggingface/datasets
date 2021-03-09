@@ -69,6 +69,8 @@ English
 
 ## Dataset Structure
 
+### Data Instances
+
 This is one example from the train set.
 
 ```json
@@ -113,9 +115,47 @@ Train, val, test.
 
 ## Dataset Creation
 
+### Curation Rationale
 
 Crosswords from the Times and the Telegraph.
 
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
 
 ## Additional Information
 
