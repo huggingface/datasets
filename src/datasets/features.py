@@ -958,3 +958,7 @@ class Features(dict):
 
     def copy(self):
         return Features(super().copy())
+
+
+class FeatureConnector:
+    pass
