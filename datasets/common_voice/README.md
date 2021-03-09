@@ -51,15 +51,42 @@ English
 
 ### Data Instances
 
-[Needs More Information]
-
 ### Data Fields
 
-[Needs More Information]
+client_id: An id for which client (voice) made the recording
+
+path: The path to the audio file
+
+sentence: The sentence the user was prompted to speak
+
+up_votes: How many upvotes the audio file has received from reviewers
+
+down_votes: How many downvotes the audio file has received from reviewers
+
+age: The age of the speaker.
+
+gender: The gender of the speaker
+
+accent: Accent of the speaker
+
+locale: The locale of the speaker
+
+segment: Usually empty field
 
 ### Data Splits
 
-[Needs More Information]
+The speech material has been subdivided into portions for dev, train, test, validated, invalidated, reported and other.
+
+The validated data is data that has been validated with reviewers and recieved upvotes that the data is of high quality.
+
+The invalidated data is data has been invalidated by reviewers
+and recieved downvotes that the data is of low quality.
+
+The reported data is data that has been reported, for different reasons.
+
+The other data is data that has not yet been reviewed.
+
+The dev, test, train are all data that has been reviewed, deemed of high quality and split into dev, test and train.
 
 ## Dataset Creation
 
