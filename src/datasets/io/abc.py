@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
-from .. import Features, NamedSplit
+from .. import DatasetDict, Features, NamedSplit
 from ..arrow_dataset import Dataset
 from ..utils.typing import NestedDataStructureLike, PathLike
 
@@ -17,12 +17,12 @@ class AbstractDatasetReader(ABC):
         **kwargs,
     ):
         self.path_or_paths = path_or_paths
-        self.split = split
+        self.split = split if split or isinstance(path_or_paths, dict) else "train"
         self.features = features
         self.cache_dir = cache_dir
         self.keep_in_memory = keep_in_memory
         self.kwargs = kwargs
 
     @abstractmethod
-    def read(self) -> Dataset:
+    def read(self) -> Union[Dataset, DatasetDict]:
         pass
