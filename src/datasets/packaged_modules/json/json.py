@@ -3,6 +3,7 @@
 import json
 from dataclasses import dataclass
 from io import BytesIO
+from typing import Optional
 
 import pyarrow as pa
 import pyarrow.json as paj
@@ -14,11 +15,11 @@ import datasets
 class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
 
-    features: datasets.Features = None
-    field: str = None
+    features: Optional[datasets.Features] = None
+    field: Optional[str] = None
     use_threads: bool = True
-    block_size: int = None
-    newlines_in_values: bool = None
+    block_size: Optional[int] = None
+    newlines_in_values: Optional[bool] = None
 
     @property
     def pa_read_options(self):

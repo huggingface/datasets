@@ -189,7 +189,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.3.0",
+    version="1.4.1",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
@@ -204,7 +204,7 @@ setup(
             "scripts/templates/*",
         ],
     },
-    scripts=["datasets-cli"],
+    entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[

@@ -178,7 +178,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
                 si_labels_path = os.path.join(si_labels_dir, f"{key}.task-si.labels")
                 with open(si_labels_path, encoding="utf-8") as f:
                     si_labels = f.readlines()
-                si_labels = [l.rstrip("\n").split("\t") for l in si_labels]
+                si_labels = [label.rstrip("\n").split("\t") for label in si_labels]
 
                 # Span identification task is binary span classification,
                 # so there is no associated label for the span
@@ -192,7 +192,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
                 tc_labels_path = os.path.join(tc_labels_dir, f"{key}.task-flc-tc.labels")
                 with open(tc_labels_path, encoding="utf-8") as f:
                     tc_labels = f.readlines()
-                tc_labels = [l.rstrip("\n").split("\t") for l in tc_labels]
+                tc_labels = [label.rstrip("\n").split("\t") for label in tc_labels]
 
                 # Technique classification task is a multi-class span classification task
                 # so we load the start/end char offsets _as well as_ the class label for the span

@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
@@ -41,7 +41,7 @@ logger = get_logger(__name__)  # pylint: disable=invalid-name
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
-def init_hf_modules(hf_modules_cache: Optional[str] = None) -> str:
+def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
     """
     Add hf_modules_cache to the python path.
     By default hf_modules_cache='~/.cache/huggingface/modules'.
@@ -165,7 +165,7 @@ def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
     return config.HUB_DATASETS_URL.format(path=path, name=name, version=version)
 
 
-def url_or_path_join(base_name: str, *pathnames: List[str]) -> str:
+def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
         return posixpath.join(base_name, *pathnames)
     else:
@@ -232,7 +232,7 @@ class DownloadConfig:
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
-    use_auth_token: Optional[str] = None
+    use_auth_token: Optional[Union[str, bool]] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -372,7 +372,7 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] = None) -> dict:
+def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
     if url.startswith("https://huggingface.co/"):
@@ -388,13 +388,33 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[str] =
     return headers
 
 
+class OfflineModeIsEnabled(ConnectionError):
+    pass
+
+
+def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
+    """Raise a OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
+    if config.HF_DATASETS_OFFLINE:
+        raise OfflineModeIsEnabled(
+            "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
+        )
+
+
 def _request_with_retry(
-    verb: str, url: str, max_retries: int = 0, base_wait_time: float = 0.5, max_wait_time: float = 2, **params
+    method: str,
+    url: str,
+    max_retries: int = 0,
+    base_wait_time: float = 0.5,
+    max_wait_time: float = 2,
+    timeout: float = 10.0,
+    **params,
 ) -> requests.Response:
-    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff
+    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
+
+    Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
-        verb (str): HTTP verb, such as 'GET' or 'HEAD'
+        method (str): HTTP method, such as 'GET' or 'HEAD'
         url (str): The URL of the ressource to fetch
         max_retries (int): Maximum number of retries, defaults to 0 (no retries)
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
@@ -402,23 +422,25 @@ def _request_with_retry(
         max_wait_time (float): Maximum amount of time between two retries, in seconds
         **params: Params to pass to `requests.request`
     """
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False
     while not success:
         tries += 1
         try:
-            response = requests.request(verb.upper(), url, **params)
+            response = requests.request(method=method.upper(), url=url, timeout=timeout, **params)
             success = True
         except requests.exceptions.ConnectTimeout as err:
             if tries > max_retries:
                 raise err
             else:
-                logger.info(f"{verb} request to {url} timed out, retrying... [{tries/max_retries}]")
+                logger.info(f"{method} request to {url} timed out, retrying... [{tries/max_retries}]")
                 sleep_time = max(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
                 time.sleep(sleep_time)
     return response
 
 
-def ftp_head(url, timeout=2.0):
+def ftp_head(url, timeout=10.0):
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     try:
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
             r.read(1)
@@ -427,7 +449,8 @@ def ftp_head(url, timeout=2.0):
     return True
 
 
-def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=2.0):
+def ftp_get(url, temp_file, timeout=10.0):
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     try:
         logger.info(f"Getting through FTP {url} into {temp_file.name}")
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
@@ -436,13 +459,20 @@ def ftp_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=N
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, max_retries=0):
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0, max_retries=0):
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
     response = _request_with_retry(
-        verb="GET", url=url, stream=True, proxies=proxies, headers=headers, cookies=cookies, max_retries=max_retries
+        method="GET",
+        url=url,
+        stream=True,
+        proxies=proxies,
+        headers=headers,
+        cookies=cookies,
+        max_retries=max_retries,
+        timeout=timeout,
     )
     if response.status_code == 416:  # Range not satisfiable
         return
@@ -465,12 +495,12 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
 
 
 def http_head(
-    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10, max_retries=0
+    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10.0, max_retries=0
 ) -> requests.Response:
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     response = _request_with_retry(
-        verb="HEAD",
+        method="HEAD",
         url=url,
         proxies=proxies,
         headers=headers,
@@ -582,6 +612,7 @@ def get_from_cache(
             )
         elif response is not None and response.status_code == 404:
             raise FileNotFoundError("Couldn't find file at {}".format(url))
+        _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
         raise ConnectionError("Couldn't reach {}".format(url))
 
     # Try a second time
@@ -620,7 +651,7 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp://"):
-                ftp_get(url, temp_file, proxies=proxies, resume_size=resume_size, headers=headers, cookies=cookies)
+                ftp_get(url, temp_file)
             else:
                 http_get(
                     url,

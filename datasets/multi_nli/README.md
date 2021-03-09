@@ -1,4 +1,26 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- found
+languages:
+- en
+licenses:
+- cc-by-3.0
+- cc-by-sa-3.0-at
+- mit
+- other-Open Portion of the American National Corpus
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-scoring
+task_ids:
+- semantic-similarity-scoring
 ---
 
 # Dataset Card for "multi_nli"
@@ -52,26 +74,30 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset contains samples in English only.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
-
-#### plain_text
 
 - **Size of downloaded dataset files:** 216.34 MB
 - **Size of the generated dataset:** 73.39 MB
 - **Total amount of disk used:** 289.74 MB
 
-An example of 'validation_matched' looks as follows.
+Example of a data instance:
+
 ```
 {
-    "hypothesis": "flammable",
-    "label": 0,
-    "premise": "inflammable"
+    "promptID": 31193,
+    "pairID": "31193n",
+    "premise": "Conceptually cream skimming has two basic dimensions - product and geography.",
+    "premise_binary_parse": "( ( Conceptually ( cream skimming ) ) ( ( has ( ( ( two ( basic dimensions ) ) - ) ( ( product and ) geography ) ) ) . ) )",
+    "premise_parse": "(ROOT (S (NP (JJ Conceptually) (NN cream) (NN skimming)) (VP (VBZ has) (NP (NP (CD two) (JJ basic) (NNS dimensions)) (: -) (NP (NN product) (CC and) (NN geography)))) (. .)))",
+    "hypothesis": "Product and geography are what make cream skimming work. ",
+    "hypothesis_binary_parse": "( ( ( Product and ) geography ) ( ( are ( what ( make ( cream ( skimming work ) ) ) ) ) . ) )",
+    "hypothesis_parse": "(ROOT (S (NP (NN Product) (CC and) (NN geography)) (VP (VBP are) (SBAR (WHNP (WP what)) (S (VP (VBP make) (NP (NP (NN cream)) (VP (VBG skimming) (NP (NN work)))))))) (. .)))",
+    "genre": "government",
+    "label": 1
 }
 ```
 
@@ -79,26 +105,29 @@ An example of 'validation_matched' looks as follows.
 
 The data fields are the same among all splits.
 
-#### plain_text
-- `premise`: a `string` feature.
-- `hypothesis`: a `string` feature.
-- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2).
+- `promptID`: Unique identifier for prompt
+- `pairID`: Unique identifier for pair
+- `{premise,hypothesis}`: combination of `premise` and `hypothesis`
+- `{premise,hypothesis} parse`: Each sentence as parsed by the Stanford PCFG Parser 3.5.2
+- `{premise,hypothesis} binary parse`: parses in unlabeled binary-branching format
+- `genre`: a `string` feature.
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
 
 ### Data Splits Sample Size
 
-|   name   |train |validation_matched|validation_mismatched|
-|----------|-----:|-----------------:|--------------------:|
-|plain_text|392702|              9815|                 9832|
+|train |validation_matched|validation_mismatched|
+|-----:|-----------------:|--------------------:|
+|392702|              9815|                 9832|
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+They constructed MultiNLI so as to make it possible to explicitly evaluate models both on the quality of their sentence representations within the training domain and on their ability to derive reasonable representations in unfamiliar domains.
 
 ### Source Data
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+They created each sentence pair by selecting a premise sentence from a preexisting text source and asked a human annotator to compose a novel sentence to pair with it as a hypothesis.
 
 ### Annotations
 
@@ -106,21 +135,21 @@ The data fields are the same among all splits.
 
 ### Personal and Sensitive Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[More Information Needed]
 
 ### Discussion of Biases
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[More Information Needed]
 
 ### Other Known Limitations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[More Information Needed]
 
 ## Additional Information
 
@@ -130,7 +159,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The majority of the corpus is released under the OANC’s license, which allows all content to be freely used, modi- fied, and shared under permissive terms. The data in the FICTION section falls under several per- missive licenses; Seven Swords is available under a Creative Commons Share-Alike 3.0 Unported License, and with the explicit permission of the author, Living History and Password Incorrect are available under Creative Commons Attribution 3.0 Unported Licenses; the remaining works of fiction are in the public domain in the United States (but may be licensed differently elsewhere).
 
 ### Citation Information
 
@@ -152,10 +181,8 @@ The data fields are the same among all splits.
   location = "New Orleans, Louisiana",
   url = "http://aclweb.org/anthology/N18-1101"
 }
-
 ```
-
 
 ### Contributions
 
-Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten), [@thomwolf](https://github.com/thomwolf), [@mariamabarham](https://github.com/mariamabarham) for adding this dataset.
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik), [@patrickvonplaten](https://github.com/patrickvonplaten), [@thomwolf](https://github.com/thomwolf), [@mariamabarham](https://github.com/mariamabarham) for adding this dataset.

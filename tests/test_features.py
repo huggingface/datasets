@@ -4,9 +4,11 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pytest
 
 from datasets.arrow_dataset import Dataset
 from datasets.features import (
+    ClassLabel,
     Features,
     Sequence,
     Value,
@@ -65,6 +67,47 @@ class FeaturesTest(TestCase):
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
 
+
+def test_classlabel_init(tmp_path_factory):
+    names = ["negative", "positive"]
+    names_file = str(tmp_path_factory.mktemp("features") / "labels.txt")
+    with open(names_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(names))
+    classlabel = ClassLabel(names=names)
+    assert classlabel.names == names and classlabel.num_classes == len(names)
+    classlabel = ClassLabel(names_file=names_file)
+    assert classlabel.names == names and classlabel.num_classes == len(names)
+    classlabel = ClassLabel(num_classes=len(names), names=names)
+    assert classlabel.names == names and classlabel.num_classes == len(names)
+    classlabel = ClassLabel(num_classes=len(names))
+    assert classlabel.names == [str(i) for i in range(len(names))] and classlabel.num_classes == len(names)
+    with pytest.raises(ValueError):
+        classlabel = ClassLabel(num_classes=len(names) + 1, names=names)
+    with pytest.raises(ValueError):
+        classlabel = ClassLabel(names=names, names_file=names_file)
+    with pytest.raises(ValueError):
+        classlabel = ClassLabel()
+
+
+def test_classlabel_str2int():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+    for label in names:
+        assert classlabel.str2int(label) == names.index(label)
+    with pytest.raises(KeyError):
+        classlabel.str2int("__bad_label_name__")
+
+
+def test_classlabel_int2str():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+    for i in range(len(names)):
+        assert classlabel.int2str(i) == names[i]
+    with pytest.raises(ValueError):
+        classlabel.int2str(len(names))
+
+
+class CastToPythonObjectsTest(TestCase):
     def test_cast_to_python_objects_list(self):
         obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
         expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}

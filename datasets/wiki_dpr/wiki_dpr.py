@@ -202,7 +202,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                     index = faiss.IndexHNSWSQ(d, faiss.ScalarQuantizer.QT_8bit, 128, faiss.METRIC_INNER_PRODUCT)
                     index.hnsw.efConstruction = 200
                     index.hnsw.efSearch = 128
-                    dataset.add_faiss_index("embeddings", custom_index=index)
+                    dataset.add_faiss_index("embeddings", custom_index=index, train_size=train_size)
                 else:
                     quantizer = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
                     quantizer.hnsw.efConstruction = 200

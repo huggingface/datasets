@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import Any, Callable, Dict, Generic, Iterable, List, Mapping, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -109,7 +109,7 @@ class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
 def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
     """Return the first element of a batch (dict) as a row (dict)"""
-    return dict((key, array[0]) for key, array in py_dict.items())
+    return {key: array[0] for key, array in py_dict.items()}
 
 
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
@@ -382,7 +382,7 @@ def format_table(
         pa_table_to_format = pa_table.drop(col for col in pa_table.column_names if col not in format_columns)
         formatted_output = formatter(pa_table_to_format, query_type=query_type)
         if output_all_columns:
-            if isinstance(formatted_output, Mapping):
+            if isinstance(formatted_output, MutableMapping):
                 pa_table_with_remaining_columns = pa_table.drop(
                     col for col in pa_table.column_names if col in format_columns
                 )

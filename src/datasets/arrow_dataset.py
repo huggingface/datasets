@@ -58,6 +58,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
+from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
@@ -149,8 +150,41 @@ class DatasetTransformationNotAllowedError(Exception):
     pass
 
 
+def replayable_table_alteration(func):
+    """
+    Wrapper for dataset transforms that modify an existing table
+    to save the alteration in order to be able to replay it later.
+
+    This happens when the Dataset is pickled and if the table is reloaded from the disk.
+    In this case we have to re-alter the table using the history of transforms.
+
+    The replay happens in the __setstate__ method.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # an history item is a tuple of the method name to call and then the args and the kwargs
+        new_inplace_history_item = (func.__name__, copy.deepcopy(args), copy.deepcopy(kwargs))
+        # apply actual function
+        out: Optional["Dataset"] = func(self, *args, **kwargs)
+        # get the dataset to update (to handle both in-place and not in-place transforms)
+        dataset: "Dataset" = out if out is not None else self
+        # update the history to be able to replay it later
+        for inplace_hist_per_file in dataset._inplace_history:
+            inplace_hist_per_file["transforms"].append(new_inplace_history_item)
+        return out
+
+    wrapper._decorator_name_ = "table_alteration"
+    return wrapper
+
+
 def transmit_format(func):
-    """Wrapper for dataset transforms that are not in-place to transmit the format of the original dataset to the new dataset"""
+    """Wrapper for dataset transforms that recreate a new Dataset to transmit the format of the original dataset to the new dataset"""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -172,7 +206,7 @@ def transmit_format(func):
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         # re-apply format to the output
         for dataset in datasets:
-            new_format = dict(self_format)
+            new_format = self_format.copy()
             if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
                 # sort the columns to have a deterministic list of columns that we can compare with `out_format`
                 new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
@@ -435,7 +469,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del self._indices
 
     def __getstate__(self):
-        state = dict(self.__dict__)
+        state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
         state["_split"] = str(state["_split"]) if state["_split"] is not None else None
         if self._data_files:
@@ -450,7 +484,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         assert (
             state.get("_data") is not None or state.get("_data_files") is not None
         ), "tried to unpickle a dataset without arrow_table or data_files"
-        state = dict(state)
+        state = state.copy()
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
         state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
         self.__dict__ = state
@@ -463,7 +497,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pa_table = reader._read_files([data_file])
                 sub_dataset = Dataset(pa_table, fingerprint="")
                 for inplace_transform_name, args, kwargs in inplace_hist_per_file["transforms"]:
-                    getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
+                    out = getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
+                    sub_dataset = sub_dataset if out is None else out
                 tables.append(sub_dataset._data)
             tables = [t for t in tables if len(t) > 0]
             # fix all-empty tables
@@ -611,7 +646,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column_names
 
     @property
-    def shape(self) -> Tuple[int]:
+    def shape(self) -> Tuple[int, int]:
         """Shape of the dataset (number of columns, number of rows)."""
         if self._indices is not None:
             return (self._indices.num_rows, self._data.num_columns)
@@ -641,6 +676,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
+    @deprecated(help_message="Use the dataset.dictionary_encode_column method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
@@ -662,11 +699,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
+    @deprecated(help_message="Use the dataset.flatten method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
-        """Flatten the Table.
-        Each column with a struct type is flattened into one column per struct field.
-        Other columns are left unchanged.
+        """
+        In-place version of :func:`Dataset.flatten`
+        This method is deprecated, please use :func:`Dataset.flatten` instead.
         """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
@@ -679,13 +718,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
+    @replayable_table_alteration
+    @fingerprint_transform(inplace=False)
+    def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
+        """Flattens the table.
+        Each column with a struct type is flattened into one column per struct field.
+        Other columns are left unchanged.
+
+        Returns:
+            A copy of the dataset with flattened columns
+        """
+        dataset = copy.deepcopy(self)
+        for depth in range(1, max_depth):
+            if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
+                dataset._data = dataset._data.flatten()
+            else:
+                break
+        if dataset.info is not None:
+            dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        logger.info(
+            "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
+        )
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
+    @deprecated(help_message="Use the dataset.cast method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
         """
-        Cast the dataset to a new set of features.
-
-        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        In-place version of :func:`Dataset.cast`
+        This method is deprecated, please use :func:`Dataset.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -704,14 +767,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
+    @replayable_table_alteration
+    @fingerprint_transform(inplace=False)
+    def cast(self, features: Features, new_fingerprint) -> "Dataset":
+        """
+        Cast the dataset to a new set of features.
+
+        Args:
+            features (:class:`datasets.Features`): New features to cast the dataset to.
+                The name of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+
+        Returns:
+            A copy of the dataset with casted features
+        """
+        dataset = copy.deepcopy(self)
+        if sorted(features) != sorted(dataset._data.column_names):
+            raise ValueError(
+                f"The columns in features ({list(features)}) must be identical "
+                f"as the columns in the dataset: {dataset._data.column_names}"
+            )
+
+        dataset._info.features = features
+        type = features.type
+        schema = pa.schema({col_name: type[col_name].type for col_name in dataset._data.column_names})
+        dataset._data = dataset._data.cast(schema)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
+    @deprecated(help_message="Use the dataset.remove_columns method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
-        Remove one or several column(s) in the dataset and
-        the features associated to them.
-
-        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        In-place version of :func:`Dataset.remove_columns`
+        This method is deprecated, please use :func:`Dataset.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -731,14 +822,47 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
+    @replayable_table_alteration
+    @fingerprint_transform(inplace=False)
+    def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
+        """
+        Remove one or several column(s) in the dataset and
+        the features associated to them.
+
+        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+
+        Returns:
+            A copy of the dataset object without the columns to remove
+        """
+        dataset = copy.deepcopy(self)
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        for column_name in column_names:
+            if column_name not in dataset._data.column_names:
+                raise ValueError(
+                    f"Column name {column_name} not in the dataset. "
+                    f"Current columns in the dataset: {dataset._data.column_names}"
+                )
+
+        for column_name in column_names:
+            del dataset._info.features[column_name]
+
+        dataset._data = dataset._data.drop(column_names)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
+    @deprecated(help_message="Use the dataset.rename_column method instead.")
+    @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
-        Rename a column in the dataset and move the features associated to the original column under the new column name.
-
-        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
-            - takes care of moving the original features under the new column name.
-            - doesn't copy the data to a new dataset and is thus much faster.
+        In-place version of :func:`Dataset.rename_column`
+        This method is deprecated, please use :func:`Dataset.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -764,6 +888,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         del self._info.features[original_column_name]
 
         self._data = self._data.rename_columns(new_column_names)
+
+    @replayable_table_alteration
+    @fingerprint_transform(inplace=False)
+    def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
+        """
+        Rename a column in the dataset, and move the features associated to the original column under the new column name.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+
+        Returns:
+            A copy of the dataset with a renamed column
+        """
+        dataset = copy.deepcopy(self)
+        if original_column_name not in dataset._data.column_names:
+            raise ValueError(
+                f"Original column name {original_column_name} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+        if new_column_name in dataset._data.column_names:
+            raise ValueError(
+                f"New column name {original_column_name} already in the dataset. "
+                f"Please choose a column name which is not already in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+        if not new_column_name:
+            raise ValueError("New column name is empty.")
+
+        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+
+        dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
+        del dataset._info.features[original_column_name]
+
+        dataset._data = dataset._data.rename_columns(new_column_names)
+        dataset._fingerprint = new_fingerprint
+        return dataset
 
     def __len__(self):
         """ Number of rows in the dataset """
@@ -1116,7 +1277,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
-            fn_kwargs = dict()
+            fn_kwargs = {}
 
         # Check if the function returns updated examples
         def does_function_return_dict(inputs, indices):
@@ -1183,7 +1344,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
-            prev_env = dict(os.environ)
+            prev_env = os.environ.copy()
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
             if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
@@ -1336,9 +1497,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         if fn_kwargs is None:
-            fn_kwargs = dict()
+            fn_kwargs = {}
 
-        # If we do batch computation but no batch sze is provided, default to the full dataset
+        # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
@@ -1402,6 +1563,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
                     fingerprint=new_fingerprint,
+                    disable_nullable=disable_nullable,
                 )
             else:
                 buf_writer = None
@@ -1413,6 +1575,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
                     fingerprint=new_fingerprint,
+                    disable_nullable=disable_nullable,
                 )
 
         try:
@@ -1541,7 +1704,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         if fn_kwargs is None:
-            fn_kwargs = dict()
+            fn_kwargs = {}
         fn_kwargs["input_columns"] = input_columns
 
         # return map function
@@ -2241,10 +2404,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Exports the dataset to csv
 
         Args:
-            `path_or_buf` (:obj:`PathLike` or :obj:`FileOrBuffer): Either a path to a file or a BinaryIO.
-            `batch_size` (`Optional[int]`): Size of the batch to load in memory and write at once. Defaults to
-                :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
-            `**to_csv_kwargs`: Parameters to pass to pandas's :func:`DataFrame.to_csv`
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            to_csv_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
 
         Returns:
             int: The number of characters or bytes written
@@ -2262,10 +2425,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
-                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
-                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `dict` or `Iterator[dict]`
@@ -2293,10 +2456,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches of
-                :param:`batch_size` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (`Optional[int]`): The size (number of rows) of the batches if :param:`batched` is `True`.
-                Defaults to :obj:`.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
