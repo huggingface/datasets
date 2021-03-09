@@ -29,7 +29,27 @@ question, perhaps to multiple input positions, and perform discrete operations o
 _URl = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
 
 
+class AnswerParsingError(Exception):
+    pass
+
+
 class DropDateObject:
+    """
+    Custom parser for date answers in DROP.
+    A date answer is a dict <date> with at least one of day|month|year.
+
+    Example: date == {
+        'day': '9',
+        'month': 'March',
+        'year': '2021'
+    }
+
+    This dict is parsed and flattend to '{day} {month} {year}', not including
+    blank values.
+
+    Example: str(DropDateObject(date)) == '9 March 2021'
+    """
+
     def __init__(self, dict_date):
         self.year = dict_date.get("year", "")
         self.month = dict_date.get("month", "")
@@ -101,7 +121,7 @@ class Drop(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         # TODO(drop): Yields (key, example) tuples from the dataset
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, mode="r", encoding="utf-8") as f:
             data = json.load(f)
             for i, (section_id, section) in enumerate(data.items()):
                 for j, qa in enumerate(section["qa_pairs"]):
@@ -121,13 +141,22 @@ class Drop(datasets.GeneratorBasedBuilder):
                     try:
                         example["answers_spans"] = self.build_answers(answers)
                         yield example["query_id"], example
-                    except AssertionError:
+                    except AnswerParsingError:
                         # This is expected for 9 examples of train
                         # and 1 of validation.
                         continue
 
     @staticmethod
-    def build_answers(answers):
+    def _raise(message):
+        """
+        Raise a custom AnswerParsingError, to be sure to only catch our own
+        errors. Messages are irrelavant for this script, but are written to
+        ease understanding the code.
+        """
+        raise AnswerParsingError(message)
+
+    def build_answers(self, answers):
+
         returned_answers = {
             "spans": list(),
             "types": list(),
@@ -136,28 +165,39 @@ class Drop(datasets.GeneratorBasedBuilder):
             date = DropDateObject(answer["date"])
 
             if answer["number"] != "":
-                date = answer["date"]
-                assert not date
-                assert len(answer["spans"]) == 0
+                # sanity checks
+                if date:
+                    self._raise("This answer is both number and date!")
+                if len(answer["spans"]):
+                    self._raise("This answer is both number and text!")
+
                 returned_answers["spans"].append(answer["number"])
                 returned_answers["types"].append("number")
 
-            if date:
-                assert answer["number"] == ""
-                assert len(answer["spans"]) == 0
+            elif date:
+                # sanity check
+                if len(answer["spans"]):
+                    self._raise("This answer is both date and text!")
+
                 returned_answers["spans"].append(str(date))
                 returned_answers["types"].append("date")
 
             # won't triger if len(answer['spans']) == 0
             for span in answer["spans"]:
-                assert answer["number"] == ""
-                assert not date
+                # sanity checks
+                if answer["number"] != "":
+                    self._raise("This answer is both text and number!")
+                if date:
+                    self._raise("This answer is both text and date!")
+
                 returned_answers["spans"].append(span)
                 returned_answers["types"].append("span")
 
         # sanity check
         _len = len(returned_answers["spans"])
-        assert _len > 0
-        assert all(len(l) == _len for _, l in returned_answers.items())
+        if not _len:
+            self._raise("Empty answer.")
+        if any(len(l) != _len for _, l in returned_answers.items()):
+            self._raise("Something went wrong while parsing answer values/types")
 
         return returned_answers
