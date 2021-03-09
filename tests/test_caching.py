@@ -145,11 +145,14 @@ class RecurseDumpTest(TestCase):
         )
 
         def create_ipython_func(co_filename, returned_obj):
+            from dill._dill import _create_code
+
             def func():
                 return returned_obj
 
             code = func.__code__
-            code = CodeType(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
+            # Use _create_code from dill in order to make it work for different python versions
+            code = _create_code(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
             return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
