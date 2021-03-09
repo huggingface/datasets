@@ -1,28 +1,28 @@
 ---
 annotations_creators:
-- expert-generated
-  language_creators:
-- expert-generated
-  languages:
-- en
-  licenses:
+- expert-generated 
+language_creators:
+- expert-generated 
+languages:
+- en 
+licenses:
 - cc-by-nc-4.0
-  multilinguality:
+multilinguality:
 - monolingual
-  size_categories:
+size_categories:
 - n<1K
-  source_datasets:
+source_datasets:
 - original
-  task_categories:
+task_categories:
 - question-answering
-  task_ids:
+task_ids:
 - open-domain-qa
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Cryptonite
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for Cryptonite](#dataset-card-for-cryptonite)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -53,11 +53,11 @@ annotations_creators:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/aviaefrat/cryptonite
-- **Repository:** https://github.com/aviaefrat/cryptonite
-- **Paper:** https://arxiv.org/pdf/2103.01242.pdf
+- **Homepage:** [Github](https://github.com/aviaefrat/cryptonite)
+- **Repository:** [Github](https://github.com/aviaefrat/cryptonite)
+- **Paper:** [Arxiv](https://arxiv.org/pdf/2103.01242.pdf)
 - **Leaderboard:**
-- **Point of Contact:** https://twitter.com/AviaEfrat
+- **Point of Contact:** [Twitter](https://twitter.com/AviaEfrat)
 
 ### Dataset Summary
 
@@ -73,45 +73,31 @@ English
 
 This is one example from the train set.
 
-```json
+```python
 {
-  "url": "https://puzzles.telegraph.co.uk/puzzle?puzzle_id=6419",
-  "publisher": "Telegraph",
-  "crossword_id": 6419,
-  "date": 1229126400000,
-  "title": "CROSSWORD NO: 25,799",
-  "author": null,
-  "setter": null,
-  "number": 3,
-  "orientation": "down",
-  "clue": "ski-slope in poor condition (3,4)",
-  "answer": "run down",
-  "demarcation": null,
-  "enumeration": "(3,4)",
-  "length": null,
-  "quick": false,
-  "sub_publisher": null
+  'clue': 'make progress socially in stated region (5)',
+  'answer': 'climb',
+  'date': 971654400000,
+  'enumeration': '(5)',
+  'id': 'Times-31523-6across',
+  'publisher': 'Times',
+  'quick': False
 }
 ```
 
 ### Data Fields
 
-```python
-{
-    "clue": datasets.Value("string"),
-    "answer": datasets.Value("string"),
-    "enumeration": datasets.Value("string"),
-    "publisher": datasets.Value("string"),
-    "date": datasets.Value("int64"),
-    "quick": datasets.Value("bool"),
-    "id": datasets.Value("string")
-}
-```
-
+- `clue`: a string representing the clue provided for the crossword
+- `answer`: a string representing the answer to the clue
+- `enumeration`: a string representing the 
+- `publisher`: a string representing the publisher of the crossword
+- `date`: a int64 representing the UNIX timestamp of the date of publication of the crossword
+- `quick`: a bool representing whether the crossword is quick (a crossword aimed at beginners, easier to solve)
+- `id`: a string to uniquely identify a given example in the dataset
 
 ### Data Splits
 
-Train, val, test.
+Train (470,804 examples), validation (26,156 examples), test (26,157 examples).
 
 ## Dataset Creation
 
