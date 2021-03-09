@@ -436,7 +436,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @staticmethod
     def from_csv(
-        path: PathLike,
+        path_or_paths: Union[PathLike, List[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -445,8 +445,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     ):
         """Create Dataset from CSV file(s).
         Args:
-            path (path-like): Path of the CSV file(s).
-            split (NamedSplit, optional): Name of the dataset split.
+            path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
+            split (NamedSplit, optional): Split name to be assigned to the dataset.
             features (Features, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
@@ -457,7 +457,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
     def __del__(self):
