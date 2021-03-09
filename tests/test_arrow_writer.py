@@ -91,7 +91,7 @@ class ArrowWriterTest(TestCase):
         self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
         self._check_output(output.getvalue())
 
-    def test_write_batch_no_schema(self):  # TODO
+    def test_write_batch_no_schema(self):
         output = pa.BufferOutputStream()
         writer = ArrowWriter(stream=output)
         writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
@@ -126,10 +126,18 @@ class ArrowWriterTest(TestCase):
             self._check_output(output)
 
 
+def get_base_dtype(arr_type):
+    if pa.types.is_list(arr_type):
+        return get_base_dtype(arr_type.value_type)
+    else:
+        return arr_type
+
+
 @pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (pa.int32(), pa.int32())])
-def test_optimized_int_type_for_typed_sequence(optimized_int_type, expected_dtype):
-    arr = pa.array(TypedSequence([1, 2, 3], optimized_int_type=optimized_int_type))
-    assert arr.type == expected_dtype
+@pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
+def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, expected_dtype):
+    arr = pa.array(TypedSequence(sequence, optimized_int_type=optimized_int_type))
+    assert get_base_dtype(arr.type) == expected_dtype
 
 
 @pytest.mark.parametrize(
@@ -142,6 +150,7 @@ def test_optimized_int_type_for_typed_sequence(optimized_int_type, expected_dtyp
         ("other", pa.int64()),
     ],
 )
-def test_optimized_typed_sequence(col, expected_dtype):
-    arr = pa.array(OptimizedTypedSequence([1, 2, 3], col=col))
-    assert arr.type == expected_dtype
+@pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
+def test_optimized_typed_sequence(sequence, col, expected_dtype):
+    arr = pa.array(OptimizedTypedSequence(sequence, col=col))
+    assert get_base_dtype(arr.type) == expected_dtype
