@@ -18,7 +18,7 @@ Here is a quick general overview of the classes and method involved when generat
 
 On the left is the general organization inside the library to create a :class:`datasets.Dataset` instance and on the right, the elements which are specific to each dataset loading script. To create a new dataset loading script one mostly needs to specify three methods in a :class:`datasets.DatasetBuilder` class:
 
-- :func:`datasets.DatasetBuilder._info` which is in charge of specifying the dataset metadata as a :obj:`datasets.DatasetInfo` dataclass and in particular the :class:`datasets.Features` which define the names and types of each column in the dataset,
+- :func:`datasets.DatasetBuilder._info` which is in charge of specifying the dataset metadata as a :obj:`datasets.DatasetInfo` dataclass and in particular the :class:`datasets.Features` which defines the names and types of each column in the dataset,
 - :func:`datasets.DatasetBuilder._split_generator` which is in charge of downloading or retrieving the data files, organizing them by splits and defining specific arguments for the generation process if needed,
 - :func:`datasets.DatasetBuilder._generate_examples` which is in charge of loading the files for a split and yielding examples with the format specified in the ``features``.
 
