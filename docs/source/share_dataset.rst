@@ -394,9 +394,9 @@ This command will output instructions specifically tailored to your dataset and 
 
     - If the method `_generate_examples(...)` includes multiple `open()` statements, you might have to create other files in addition to 'dummy_data/TREC_10.label, dummy_data/train_5500.label'. In this case please refer to the `_generate_examples(...)` method
 
-    -After all dummy data files are created, they should be zipped recursively to 'dummy_data.zip' with the command `zip -r dummy_data.zip dummy_data/`
+    - After all dummy data files are created, they should be zipped recursively to 'dummy_data.zip' with the command `zip -r dummy_data.zip dummy_data/`
 
-    -You can now delete the folder 'dummy_data' with the command `rm -r dummy_data`
+    - You can now delete the folder 'dummy_data' with the command `rm -r dummy_data`
 
     - To get the folder 'dummy_data' back for further changes to the dummy data, simply unzip dummy_data.zip with the command `unzip dummy_data.zip`
 
