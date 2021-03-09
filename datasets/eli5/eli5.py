@@ -30,7 +30,7 @@ from time import time
 import datasets
 
 
-logger = datasets.get_logger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 
 _SUB_REDDITS = ["explainlikeimfive", "askscience", "AskHistorians"]
@@ -147,7 +147,9 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
                     else:
                         reddit_res[k] = line[k]
                 processed_items[name] += [reddit_res]
-    logger.info("Total found {} {} {:.2f}".format(sum([len(ls) for ls in processed_items.values()]), mode, time() - st_time))
+    logger.info(
+        "Total found {} {} {:.2f}".format(sum([len(ls) for ls in processed_items.values()]), mode, time() - st_time)
+    )
     return processed_items
 
 
