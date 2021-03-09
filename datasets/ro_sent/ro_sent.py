@@ -36,7 +36,8 @@ _DESCRIPTION = """\
 This dataset is a Romanian Sentiment Analysis dataset.
 It is present in a processed form, as used by the authors of `Romanian Transformers`
 in their examples and based on the original data present in
-`https://github.com/katakonst/sentiment-analysis-tensorflow`.
+`https://github.com/katakonst/sentiment-analysis-tensorflow`. The original dataset is collected
+from product and movie reviews in Romanian.
 """
 
 _HOMEPAGE = "https://github.com/dumitrescustefan/Romanian-Transformers/tree/examples/examples/sentiment_analysis"

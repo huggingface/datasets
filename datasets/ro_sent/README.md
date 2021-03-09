@@ -59,7 +59,7 @@ task_ids:
 
 ### Dataset Summary
 
-This dataset is a Romanian Sentiment Analysis dataset. It is present in a processed form, as used by the authors of [`Romanian Transformers`](https://github.com/dumitrescustefan/Romanian-Transformers) in their examples and based on the original data present in at [this GitHub repository](https://github.com/katakonst/sentiment-analysis-tensorflow).
+This dataset is a Romanian Sentiment Analysis dataset. It is present in a processed form, as used by the authors of [`Romanian Transformers`](https://github.com/dumitrescustefan/Romanian-Transformers) in their examples and based on the original data present in at [this GitHub repository](https://github.com/katakonst/sentiment-analysis-tensorflow). The original data contains product and movie reviews in Romanian.
 
 ### Supported Tasks and Leaderboards
 
