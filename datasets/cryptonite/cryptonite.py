@@ -20,9 +20,10 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 @misc{efrat2021cryptonite,
-      title={Cryptonite: A Cryptic Crossword Benchmark for Extreme Ambiguity in Language}, 
+      title={Cryptonite: A Cryptic Crossword Benchmark for Extreme Ambiguity in Language},
       author={Avia Efrat and Uri Shaham and Dan Kilman and Omer Levy},
       year={2021},
       eprint={2103.01242},
@@ -33,12 +34,12 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 Cryptonite: A Cryptic Crossword Benchmark for Extreme Ambiguity in Language
-Current NLP datasets targeting ambiguity can be solved by a native speaker with relative ease. We present Cryptonite, 
-a large-scale dataset based on cryptic crosswords, which is both linguistically complex and naturally sourced. Each 
-example in Cryptonite is a cryptic clue, a short phrase or sentence with a misleading surface reading, whose solving 
-requires disambiguating semantic, syntactic, and phonetic wordplays, as well as world knowledge. Cryptic clues pose a 
-challenge even for experienced solvers, though top-tier experts can solve them with almost 100% accuracy. Cryptonite 
-is a challenging task for current models; fine-tuning T5-Large on 470k cryptic clues achieves only 7.6% accuracy, on 
+Current NLP datasets targeting ambiguity can be solved by a native speaker with relative ease. We present Cryptonite,
+a large-scale dataset based on cryptic crosswords, which is both linguistically complex and naturally sourced. Each
+example in Cryptonite is a cryptic clue, a short phrase or sentence with a misleading surface reading, whose solving
+requires disambiguating semantic, syntactic, and phonetic wordplays, as well as world knowledge. Cryptic clues pose a
+challenge even for experienced solvers, though top-tier experts can solve them with almost 100% accuracy. Cryptonite
+is a challenging task for current models; fine-tuning T5-Large on 470k cryptic clues achieves only 7.6% accuracy, on
 par with the accuracy of a rule-based clue solver (8.6%).
 """
 
@@ -70,7 +71,7 @@ class Cryptonite(datasets.GeneratorBasedBuilder):
                     "publisher": datasets.Value("string"),
                     "date": datasets.Value("int64"),
                     "quick": datasets.Value("bool"),
-                    "id": datasets.Value("string")
+                    "id": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -94,7 +95,7 @@ class Cryptonite(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "cryptonite-official-split/cryptonite-val.jsonl"),
-                    "split": "val"
+                    "split": "val",
                 },
             ),
             datasets.SplitGenerator(
@@ -113,10 +114,10 @@ class Cryptonite(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(f):
                 data = json.loads(row)
 
-                publisher = data['publisher']
-                crossword_id = data['crossword_id']
-                number = data['number']
-                orientation = data['orientation']
+                publisher = data["publisher"]
+                crossword_id = data["crossword_id"]
+                number = data["number"]
+                orientation = data["orientation"]
                 d_id = f"{publisher}-{crossword_id}-{number}{orientation}"
 
                 yield id_, {
