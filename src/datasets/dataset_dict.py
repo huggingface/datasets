@@ -13,6 +13,7 @@ import pyarrow as pa
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .utils.typing import PathLike
 
 
 class DatasetDict(dict):
@@ -614,3 +615,27 @@ class DatasetDict(dict):
             )
             dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
         return dataset_dict
+
+    @staticmethod
+    def from_json(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create DatasetDict from JSON Lines file(s).
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the JSON Lines file(s).
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+        Returns:
+            datasets.DatasetDict
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetReader
+
+        return JsonDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
