@@ -5,6 +5,7 @@ from unittest import TestCase
 import boto3
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import pytest
 from moto import mock_s3
 
@@ -461,6 +462,7 @@ class DatasetDictTest(TestCase):
         del dsets
 
 
+@pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
     [
@@ -472,19 +474,19 @@ class DatasetDictTest(TestCase):
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])
-def test_datasetdict_from_json(split, features, jsonl_path, tmp_path):
+def test_datasetdict_from_json(split, features, keep_in_memory, jsonl_path, tmp_path):
     if split:
         path = {split: jsonl_path}
     else:
         split = "train"
         path = {"train": jsonl_path, "test": jsonl_path}
     cache_dir = tmp_path / "cache"
-
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-
-    dataset = DatasetDict.from_json(path, features=features, cache_dir=cache_dir)
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset = DatasetDict.from_json(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
@@ -493,3 +495,4 @@ def test_datasetdict_from_json(split, features, jsonl_path, tmp_path):
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+    assert increased_allocated_memory == keep_in_memory

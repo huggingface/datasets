@@ -1883,6 +1883,7 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert increased_allocated_memory == in_memory
 
 
+@pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
     [
@@ -1895,20 +1896,21 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
 )
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 @pytest.mark.parametrize("path_type", [str, list])
-def test_dataset_from_json(path_type, split, features, jsonl_path, tmp_path):
+def test_dataset_from_json(path_type, split, features, keep_in_memory, jsonl_path, tmp_path):
     if issubclass(path_type, str):
         path = jsonl_path
     elif issubclass(path_type, list):
         path = [jsonl_path]
     cache_dir = tmp_path / "cache"
-
     expected_split = str(split) if split else "train"
-
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-
-    dataset = Dataset.from_json(path, split=split, features=features, cache_dir=cache_dir)
+    previous_allocated_memory = pa.total_allocated_bytes()
+    dataset = Dataset.from_json(
+        path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+    )
+    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
@@ -1916,6 +1918,7 @@ def test_dataset_from_json(path_type, split, features, jsonl_path, tmp_path):
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+    assert increased_allocated_memory == keep_in_memory
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
