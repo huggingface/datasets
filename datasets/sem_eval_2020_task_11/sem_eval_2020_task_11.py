@@ -165,7 +165,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, data_dir, keys, split, labels, **kwargs):
+    def _generate_examples(self, data_dir, keys, split, labels, tc_test_template=None):
         """ Yields examples. """
 
         # Get the main path for the articles
@@ -222,8 +222,8 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
                 technique_classification = []
 
                 # Add span offsets for technique classification task if provided
-                if kwargs.get("tc_test_template") is not None:
-                    tc_labels = kwargs["tc_test_template"][key]
+                if tc_test_template is not None:
+                    tc_labels = tc_test_template[key]
                     technique_classification = [
                         {"start_char_offset": int(i[2]), "end_char_offset": int(i[3]), "technique": -1}
                         for i in tc_labels
