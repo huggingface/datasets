@@ -1,6 +1,6 @@
 import pickle
 from hashlib import md5
-from types import CodeType, FunctionType
+from types import FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
