@@ -15,7 +15,7 @@ from absl.testing import parameterized
 from moto import mock_s3
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, load_from_disk, temp_seed
+from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -1834,3 +1834,38 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.features == dataset.features
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
     assert increased_allocated_memory == in_memory
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_json(path_type, split, features, jsonl_path, tmp_path):
+    if issubclass(path_type, str):
+        path = jsonl_path
+    elif issubclass(path_type, list):
+        path = [jsonl_path]
+    cache_dir = tmp_path / "cache"
+
+    expected_split = str(split) if split else "train"
+
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+
+    dataset = Dataset.from_json(path, split=split, features=features, cache_dir=cache_dir)
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    assert dataset.split == expected_split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
