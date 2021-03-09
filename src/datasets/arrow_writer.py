@@ -103,8 +103,11 @@ class TypedSequence:
             if self.optimized_int_type and self.type is None and self.try_type is None:
                 if pa.types.is_int64(out.type):
                     out = out.cast(self.optimized_int_type)
-                elif pa.types.is_list(out.type) and pa.types.is_int64(out.type.value_type):
-                    out = out.cast(pa.list_(self.optimized_int_type))
+                elif pa.types.is_list(out.type):
+                    if pa.types.is_int64(out.type.value_type):
+                        out = out.cast(pa.list_(self.optimized_int_type))
+                    elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
+                        out = out.cast(pa.list_(pa.list_(self.optimized_int_type)))
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
