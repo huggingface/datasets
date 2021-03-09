@@ -93,12 +93,12 @@ _FILE_PATHS = {
     "release_v3.0_en": {
         "train": [f"release_v3.0/en/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v3.0/en/dev/{i}triples/" for i in range(1, 8)],
-        "test": [f"release_v3.0/en/test/"],
+        "test": ["release_v3.0/en/test/"],
     },
     "release_v3.0_ru": {
         "train": [f"release_v3.0/ru/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v3.0/ru/dev/{i}triples/" for i in range(1, 8)],
-        "test": [f"release_v3.0/ru/test/"],
+        "test": ["release_v3.0/ru/test/"],
     },
 }
 

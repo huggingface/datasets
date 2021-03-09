@@ -5,7 +5,7 @@ Datasets and evaluation metrics for natural language processing
 
 Compatible with NumPy, Pandas, PyTorch and TensorFlow
 
-🤗datasets is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
+🤗Datasets is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
 
 🤗Datasets has many interesting features (beside easy sharing and accessing datasets/metrics):
 

@@ -232,9 +232,9 @@ class MathDataset(datasets.GeneratorBasedBuilder):
                 with open(data_file, encoding="utf-8") as f:
                     ls = f.read().split("\n")
 
-                    for l in ls[::-1]:
-                        if not l:
-                            ls.remove(l)
+                    for line in ls[::-1]:
+                        if not line:
+                            ls.remove(line)
 
                     lines.extend(ls)
 
