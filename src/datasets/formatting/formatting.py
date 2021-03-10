@@ -14,13 +14,29 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterable,
+    List,
+    MutableMapping,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 
 from ..features import pandas_types_mapper
+
+
+if TYPE_CHECKING:
+    from ..table import Table
 
 
 T = TypeVar("T")
@@ -80,7 +96,7 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        return pa_table.drop(column for column in pa_table.column_names if column != key)
+        return pa_table.drop([column for column in pa_table.column_names if column != key])
     if isinstance(key, Iterable):
         if len(key) == 0:
             return pa_table.slice(0, 0)
@@ -303,7 +319,9 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
 
 
 def query_table(
-    pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: Optional[pa.lib.UInt64Array] = None
+    pa_table: Union[pa.Table, "Table"],
+    key: Union[int, slice, range, str, Iterable],
+    indices: Optional[pa.lib.UInt64Array] = None,
 ) -> pa.Table:
     """
     Query a pyarrow Table to extract the subtable that correspond to the given key.
@@ -323,6 +341,8 @@ def query_table(
     Returns:
         ``pyarrow.Table``: the result of the query on the input table
     """
+    if not isinstance(pa_table, pa.Table):
+        pa_table = pa_table.table
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
@@ -340,7 +360,7 @@ def query_table(
 
 
 def format_table(
-    pa_table: pa.Table,
+    pa_table: Union[pa.Table, "Table"],
     key: Union[int, slice, range, str, Iterable],
     formatter: Formatter,
     format_columns: Optional[list] = None,
@@ -369,6 +389,8 @@ def format_table(
         - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
         - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
     """
+    if not isinstance(pa_table, pa.Table):
+        pa_table = pa_table.table
     query_type = key_to_query_type(key)
     python_formatter = PythonFormatter()
     if format_columns is None:

@@ -171,7 +171,7 @@ fingerprint_warnings: Dict[str, bool] = {}
 
 
 def generate_fingerprint(dataset) -> str:
-    state = dataset.__getstate__()
+    state = dataset.__dict__
     hasher = Hasher()
     for key in sorted(state):
         if key == "_fingerprint":
@@ -179,8 +179,8 @@ def generate_fingerprint(dataset) -> str:
         hasher.update(key)
         hasher.update(state[key])
     # hash data files last modification timestamps as well
-    for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-        hasher.update(os.path.getmtime(data_file["filename"]))
+    for cache_file in dataset.cache_files:
+        hasher.update(os.path.getmtime(cache_file))
     return hasher.hexdigest()
 
 

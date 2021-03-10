@@ -22,7 +22,7 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet
@@ -30,6 +30,7 @@ import pyarrow.parquet
 from datasets.utils.file_utils import DownloadConfig
 
 from .naming import _split_re, filename_for_dataset_split
+from .table import InMemoryTable, MemoryMappedTable, concat_tables
 from .utils import cached_path, logging
 
 
@@ -149,7 +150,7 @@ class BaseReader:
         self._info: Optional["DatasetInfo"] = info
         self._filetype_suffix: Optional[str] = None
 
-    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
@@ -168,7 +169,7 @@ class BaseReader:
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
         for f_dict in files:
-            pa_table: pa.Table = self._get_dataset_from_filename(f_dict, in_memory=in_memory)
+            pa_table: pa.Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
             pa_tables.append(pa_table)
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
@@ -176,7 +177,7 @@ class BaseReader:
                 "Tried to read an empty table. Please specify at least info.features to create an empty table with the right type."
             )
         pa_tables = pa_tables or [pa.Table.from_batches([], schema=pa.schema(self._info.features.type))]
-        pa_table = pa.concat_tables(pa_tables)
+        pa_table = concat_tables(pa_tables)
         return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):
@@ -234,10 +235,7 @@ class BaseReader:
         """
         # Prepend path to filename
         pa_table = self._read_files(files, in_memory=in_memory)
-        files = copy.deepcopy(files)
-        for f in files:
-            f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
+        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=original_instructions)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
@@ -292,21 +290,21 @@ class ArrowReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "arrow"
 
-    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
-        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
+        table = ArrowReader.read_table(filename, in_memory=in_memory)
         # here we don't want to slice an empty table, or it may segfault
-        if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
-            pa_table = pa_table.slice(skip, take)
-        return pa_table
+        if skip is not None and take is not None and not (skip == 0 and take == len(table)):
+            table = table.slice(skip, take)
+        return table
 
     @staticmethod
-    def read_table(filename, in_memory=False):
+    def read_table(filename, in_memory=False) -> Union[InMemoryTable, MemoryMappedTable]:
         """
         Read table from file.
 
@@ -317,12 +315,8 @@ class ArrowReader(BaseReader):
         Returns:
             pyarrow.Table
         """
-        # Stream backed by memory-mapped file / file descriptor
-        stream_from = pa.memory_map if not in_memory else pa.input_stream
-        stream = stream_from(filename)
-        f = pa.ipc.open_stream(stream)
-        pa_table = f.read_all()
-        return pa_table
+        table_cls = InMemoryTable if in_memory else MemoryMappedTable
+        return table_cls.from_file(filename)
 
 
 class ParquetReader(BaseReader):
@@ -341,7 +335,7 @@ class ParquetReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "parquet"
 
-    def _get_dataset_from_filename(self, filename_skip_take, **kwargs):
+    def _get_table_from_filename(self, filename_skip_take, **kwargs):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
