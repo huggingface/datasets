@@ -113,6 +113,12 @@ class PyUtilsTest(TestCase):
         self.assertEqual(foo.my_attr, "bar")
 
 
+@pytest.mark.parametrize("input_data", [{}])
+def test_nested_data_structure_data(input_data):
+    output_data = NestedDataStructure(input_data).data
+    assert output_data == input_data
+
+
 @pytest.mark.parametrize(
     "data, expected_output",
     [

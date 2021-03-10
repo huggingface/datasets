@@ -122,7 +122,7 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
         for lang in _LANGUAGES
     ] + [
         PolyglotNERConfig(
-            name=_COMBINED, languages=_LANGUAGES, description=f"Complete Polyglot-NER dataset with all languages."
+            name=_COMBINED, languages=_LANGUAGES, description="Complete Polyglot-NER dataset with all languages."
         )
     ]
 

@@ -100,3 +100,9 @@ HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
+
+HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper()
+if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
+    HF_DATASETS_OFFLINE = True
+else:
+    HF_DATASETS_OFFLINE = False

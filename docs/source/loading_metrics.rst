@@ -71,7 +71,7 @@ This call to :func:`datasets.load_metric` does the following steps under the hoo
 
 .. note::
 
-    The :class:`datasets.Metric` object use Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗datasets is to always memory-map metrics data on drive.
+    The :class:`datasets.Metric` object use Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗Datasets is to always memory-map metrics data on drive.
 
 Using a custom metric script
 -----------------------------------------------------------
@@ -151,7 +151,7 @@ The synchronization is performed with the help of file locks on the filesystem.
 Multiple and independent distributed setups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases, several **independent and not related** distributed evaluations might be running on the same server and the same file system at the same time (e.g. two independent multi-processing trainings running on the same server) and it is then important to distinguish these experiemnts and allow them to operate in independently.
+In some cases, several **independent and not related** distributed evaluations might be running on the same server and the same file system at the same time (e.g. two independent multiprocessing trainings running on the same server) and it is then important to distinguish these experiemnts and allow them to operate in independently.
 
 In this situation you should provide an ``experiment_id`` to :func:`datasets.load_metric` which has to be a unique identifier of the current distributed experiment.
 

@@ -37,9 +37,9 @@ type_ = type  # keep python's type function
 
 class TypedSequence:
     """
-    This data container generalizes the typing when instantiating pyarrow arrays, tabels or batches.
+    This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
 
-    More specifically it add several features:
+    More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
         ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
@@ -292,7 +292,7 @@ class ArrowWriter:
             typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
-        self.write_table(pa_table)
+        self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         """Write a batch of Example to file.

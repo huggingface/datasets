@@ -125,7 +125,7 @@ class MetricInfoMixin(object):
 
 
 class Metric(MetricInfoMixin):
-    """A Metrics is the base class and common API for all metrics.
+    """A Metric is the base class and common API for all metrics.
 
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
@@ -285,13 +285,16 @@ class Metric(MetricInfoMixin):
         # Let's acquire a lock on each process files to be sure they are finished writing
         filelocks = []
         for process_id, file_path in enumerate(file_paths):
-            filelock = FileLock(file_path + ".lock")
-            try:
-                filelock.acquire(timeout=self.timeout)
-            except Timeout:
-                raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+            if process_id == 0:  # process 0 already has its lock file
+                filelocks.append(self.filelock)
             else:
-                filelocks.append(filelock)
+                filelock = FileLock(file_path + ".lock")
+                try:
+                    filelock.acquire(timeout=self.timeout)
+                except Timeout:
+                    raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+                else:
+                    filelocks.append(filelock)
 
         return file_paths, filelocks
 
@@ -338,7 +341,8 @@ class Metric(MetricInfoMixin):
         if self.writer is not None:
             self.writer.finalize()
         self.writer = None
-        if self.filelock is not None:
+        # release the locks of the processes > 0 so that process 0 can lock them to read + delete the data
+        if self.filelock is not None and self.process_id > 0:
             self.filelock.release()
 
         if self.keep_in_memory:
@@ -403,8 +407,8 @@ class Metric(MetricInfoMixin):
                 del self.data
                 self.data = None
             else:
-                # Release locks and delete all the cache files
-                for filelock, file_path in zip(self.filelocks, self.file_paths):
+                # Release locks and delete all the cache files. Process 0 is released last.
+                for filelock, file_path in reversed(list(zip(self.filelocks, self.file_paths))):
                     logger.info(f"Removing {file_path}")
                     del self.data
                     self.data = None
@@ -505,7 +509,6 @@ class Metric(MetricInfoMixin):
         self,
         download_config: Optional[DownloadConfig] = None,
         dl_manager: Optional[DownloadManager] = None,
-        **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 

@@ -106,9 +106,9 @@ class Wmt20MlqeTask3(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name=f"plain_text",
+            name="plain_text",
             version=datasets.Version("1.1.0"),
-            description=f"Plain text",
+            description="Plain text",
         )
     ]
 

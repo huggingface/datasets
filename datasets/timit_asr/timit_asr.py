@@ -129,7 +129,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
 
         # Iterating the contents of the data to extract the relevant information
         for audio_idx in range(data_info.shape[0]):
-            audio_data = data_info.iloc[0]
+            audio_data = data_info.iloc[audio_idx]
 
             # extract the path to audio
             wav_path = os.path.join(data_path, *(audio_data["path_from_data_dir"].split("/")))

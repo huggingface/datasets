@@ -89,7 +89,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
         for corpus in _CORPORA
     ] + [
         LargeSpanishCorpusConfig(
-            name=_COMBINED, corpora=_CORPORA, description=f"Complete Spanish dataset with all corpora."
+            name=_COMBINED, corpora=_CORPORA, description="Complete Spanish dataset with all corpora."
         )
     ]
     BUILDER_CONFIG_CLASS = LargeSpanishCorpusConfig

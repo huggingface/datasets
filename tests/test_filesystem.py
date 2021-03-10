@@ -34,7 +34,7 @@ def test_extract_path_from_uri(s3):
     dataset_path = extract_path_from_uri(dataset_path)
     assert dataset_path.startswith("s3://") is False
 
-    dataset_path = f"./local/path"
+    dataset_path = "./local/path"
     new_dataset_path = extract_path_from_uri(dataset_path)
     assert dataset_path == new_dataset_path
 
