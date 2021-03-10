@@ -153,11 +153,12 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
-        """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
+    def _generate_examples(
+        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+    ):
+        """ Yields examples as (key, example) tuples. """
+        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
+        # The `key` is here for legacy reason (tfds) and is not important in itself.
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
