@@ -28,7 +28,7 @@ across 11 languages.
 """
 
 _URL = "https://github.com/deepmind/xquad/raw/master/"
-_LANG = ["ar", "de", "zh", "vi", "en", "es", "hi", "el", "th", "tr", "ru"]
+_LANG = ["ar", "de", "zh", "vi", "en", "es", "hi", "el", "th", "tr", "ru", "ro"]
 
 
 class XquadConfig(datasets.BuilderConfig):
