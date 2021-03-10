@@ -18,7 +18,7 @@ class ReaderTest(BaseReader):
     This reader is made for testing. It mocks file reads.
     """
 
-    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
@@ -74,14 +74,11 @@ class BaseReaderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             reader = ReaderTest(tmp_dir, info)
 
-            files = [
-                {"filename": os.path.join(tmp_dir, "train")},
-                {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
-            ]
+            files = [os.path.join(tmp_dir, "train"), os.path.join(tmp_dir, "test")]
             dset = Dataset(**reader.read_files(files, original_instructions=""))
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
-            self.assertEqual(dset._data_files, files)
+            self.assertEqual(dset.cache_files, files)
             del dset
 
 
