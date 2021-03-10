@@ -29,7 +29,8 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         list_indexes, get_index, drop_index, search, search_batch, get_nearest_examples, get_nearest_examples_batch,
         info, split, builder_name, citation, config_name, dataset_size,
         description, download_checksums, download_size, features, homepage,
-        license, size_in_bytes, supervised_keys, version
+        license, size_in_bytes, supervised_keys, version,
+        from_csv,
 
 .. autofunction:: datasets.concatenate_datasets
 
@@ -51,6 +52,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         flatten_, cast_, remove_columns_, rename_column_,
         flatten, cast, remove_columns, rename_column,
         save_to_disk, load_from_disk,
+        from_csv,
 
 
 ``Features``
@@ -106,7 +108,7 @@ The base class ``Metric`` implements a Metric backed by one or several :class:`d
 
 
 .. autoclass:: datasets.filesystems.S3FileSystem(anon=False, key=None, secret=None, token=None, use_ssl=True, client_kwargs=None, requester_pays=False, default_block_size=None, default_fill_cache=True, default_cache_type='bytes', version_aware=False, config_kwargs=None, s3_additional_kwargs=None, session=None, username=None, password=None, asynchronous=False, loop=None, **kwargs)
- 
+
 .. autofunction:: datasets.filesystems.extract_path_from_uri
 
 .. autofunction:: datasets.filesystems.is_remote_filesystem
