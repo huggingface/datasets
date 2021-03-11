@@ -58,6 +58,7 @@ from .splits import NamedSplit
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
+from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
@@ -69,8 +70,6 @@ if int(pa.__version__.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
-
-PathLike = Union[str, bytes, os.PathLike]
 
 
 class DatasetInfoMixin(object):
