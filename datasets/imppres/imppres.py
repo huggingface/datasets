@@ -234,10 +234,6 @@ class Imppres(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 if "presupposition" in self.config.name:
-                    # for k, v in data.items():
-                    #     print('{}({}): {}'.format(k, type(v), v))
-                    # print('-'*55)
-
                     if "trigger1" not in list(data.keys()):
                         yield id_, {
                             "premise": data["sentence1"],
