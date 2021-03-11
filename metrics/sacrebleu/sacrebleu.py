@@ -15,6 +15,7 @@
 """ SACREBLEU metric. """
 
 import sacrebleu as scb
+from packaging import version
 
 import datasets
 
@@ -77,6 +78,11 @@ Examples:
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Sacrebleu(datasets.Metric):
     def _info(self):
+        if version.parse(scb.__version__) < version.parse("1.4.12"):
+            raise ImportWarning(
+                "To use `sacrebleu`, the module `sacrebleu>=1.4.12` is required, and the current version of `sacrebleu` doesn't match this condition.\n"
+                'You can install it with `pip install "sacrebleu>=1.4.12"`.'
+            )
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
