@@ -296,7 +296,7 @@ class Wikiann(datasets.GeneratorBasedBuilder):
             ner_tags = []
             langs = []
             for line in f:
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                if line == "" or line == "\n":
                     if tokens:
                         yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs}
                         guid_index += 1
