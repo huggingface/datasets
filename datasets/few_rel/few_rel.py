@@ -143,7 +143,6 @@ class FewRel(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-            # print(data)
         if isinstance(data, dict):
             id = 0
             for key in list(data.keys()):

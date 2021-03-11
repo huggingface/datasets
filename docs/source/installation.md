@@ -69,7 +69,7 @@ Unless you specify a location with `cache_dir=...` when you use methods like `lo
 The HuggingFace cache home is (by order of priority):
 
   * shell environment variable ``HF_HOME``
-  * shell environment variable ``ENV_XDG_CACHE_HOME`` + ``/huggingface/``
+  * shell environment variable ``XDG_CACHE_HOME`` + ``/huggingface/``
   * default: ``~/.cache/huggingface/``
 
 So if you don't have any specific environment variable set, the cache directory for dataset scripts and data will be at ``~/.cache/huggingface/datasets/``.

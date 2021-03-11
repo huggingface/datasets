@@ -855,7 +855,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not new_column_name:
             raise ValueError("New column name is empty.")
 
-        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+        def rename(columns):
+            return [new_column_name if col == original_column_name else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            self._format_columns = rename(self._format_columns)
 
         self._info.features[new_column_name] = self._info.features[original_column_name]
         del self._info.features[original_column_name]
@@ -890,7 +895,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not new_column_name:
             raise ValueError("New column name is empty.")
 
-        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+        def rename(columns):
+            return [new_column_name if col == original_column_name else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
 
         dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
         del dataset._info.features[original_column_name]
@@ -1550,6 +1560,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
                 )
+        else:
+            # we don't need a writer so we use an empty context
+            writer = contextlib.ExitStack()
 
         with writer:
             try:

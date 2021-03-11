@@ -686,6 +686,15 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
 
+        # no transform
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            fingerprint = dset._fingerprint
+            dset_test = dset.map(lambda x: None)
+            self.assertEqual(len(dset_test), 30)
+            self.assertEqual(dset_test._fingerprint, fingerprint)
+            del dset, dset_test
+
         # with indices
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
