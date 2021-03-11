@@ -67,7 +67,7 @@ class ParsinluReadingComprehension(datasets.GeneratorBasedBuilder):
             {
                 "question": datasets.Value("string"),
                 "url": datasets.Value("string"),
-                "passage": datasets.Value("string"),
+                "context": datasets.Value("string"),
                 "answers": datasets.features.Sequence(
                     {
                         "answer_start": datasets.Value("int32"),
@@ -123,17 +123,20 @@ class ParsinluReadingComprehension(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         logger.info("generating examples from = %s", filepath)
 
+        def get_answer_index(passage, answer):
+            return passage.index(answer) if answer in passage else -1
+
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 answer = data["answers"]
                 if type(answer[0]) == str:
-                    answer = [{"answer_start": -1, "answer_text": x} for x in answer]
+                    answer = [{"answer_start": get_answer_index(data["passage"], x), "answer_text": x} for x in answer]
                 else:
                     answer = [{"answer_start": x[0], "answer_text": x[1]} for x in answer]
                 yield id_, {
                     "question": data["question"],
                     "url": str(data["url"]),
-                    "passage": data["passage"],
+                    "context": data["passage"],
                     "answers": answer,
                 }

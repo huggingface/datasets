@@ -19,10 +19,10 @@ task_ids:
 - extractive-qa
 ---
 
-# Dataset Card for PersiNLU
+# Dataset Card for PersiNLU (Reading Comprehension)
 
 ## Table of Contents
-- [Dataset Card for PersiNLU](#dataset-card-for-persi_nlu_reading_comprehension)
+- [Dataset Card for PersiNLU (Reading Comprehension)](#dataset-card-for-persi_nlu_reading_comprehension)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
