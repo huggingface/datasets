@@ -452,6 +452,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             features (Features, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
         Returns:
             datasets.Dataset
         """
