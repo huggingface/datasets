@@ -53,9 +53,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/persiannlp/parsinlu/
-- **Repository:** https://github.com/persiannlp/parsinlu/
-- **Paper:** https://arxiv.org/abs/2012.06154 
+- **Homepage:** [Github](https://github.com/persiannlp/parsinlu/)
+- **Repository:** [Github](https://github.com/persiannlp/parsinlu/)
+- **Paper:** [Arxiv](https://arxiv.org/abs/2012.06154)
 - **Leaderboard:** 
 - **Point of Contact:** d.khashabi@gmail.com
 
