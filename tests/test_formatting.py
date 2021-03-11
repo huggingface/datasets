@@ -131,12 +131,12 @@ class FormatterTest(TestCase):
         formatter = TorchFormatter()
         row = formatter.format_row(pa_table)
         torch.testing.assert_allclose(row["a"], torch.tensor(_COL_A, dtype=torch.int64)[0])
-        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float64)[0])
+        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float32)[0])
         col = formatter.format_column(pa_table)
         torch.testing.assert_allclose(col, torch.tensor(_COL_A, dtype=torch.int64))
         batch = formatter.format_batch(pa_table)
         torch.testing.assert_allclose(batch["a"], torch.tensor(_COL_A, dtype=torch.int64))
-        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float64))
+        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float32))
 
     @require_torch
     def test_torch_formatter_np_array_kwargs(self):
