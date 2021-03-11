@@ -3,6 +3,7 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pytest
 
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
@@ -448,3 +449,42 @@ class QueryTest(TestCase):
                     start += 1
 
             query_table(pa_table, iter_to_inf())
+
+
+@pytest.fixture(scope="session")
+def arrow_table():
+    return pa.Table.from_pydict({"col_int": [0, 1, 2], "col_float": [0.0, 1.0, 2.0]})
+
+
+@require_torch
+@pytest.mark.parametrize(
+    "cast_schema",
+    [
+        None,
+        [("col_int", pa.int64()), ("col_float", pa.float64())],
+        [("col_int", pa.int32()), ("col_float", pa.float64())],
+        [("col_int", pa.int64()), ("col_float", pa.float32())],
+    ],
+)
+def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
+    import torch
+
+    from datasets.formatting import TorchFormatter
+
+    if cast_schema:
+        arrow_table = arrow_table.cast(pa.schema(cast_schema))
+    arrow_table_dict = arrow_table.to_pydict()
+    list_int = arrow_table_dict["col_int"]
+    list_float = arrow_table_dict["col_float"]
+    formatter = TorchFormatter()
+
+    row = formatter.format_row(arrow_table)
+    torch.testing.assert_allclose(row["col_int"], torch.tensor(list_int, dtype=torch.int64)[0])
+    torch.testing.assert_allclose(row["col_float"], torch.tensor(list_float, dtype=torch.float32)[0])
+
+    col = formatter.format_column(arrow_table)
+    torch.testing.assert_allclose(col, torch.tensor(list_int, dtype=torch.int64))
+
+    batch = formatter.format_batch(arrow_table)
+    torch.testing.assert_allclose(batch["col_int"], torch.tensor(list_int, dtype=torch.int64))
+    torch.testing.assert_allclose(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))
