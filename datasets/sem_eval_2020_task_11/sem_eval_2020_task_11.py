@@ -130,10 +130,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
         path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         tc_labels_template = os.path.join(path_to_manual_file, "test-task-tc-template.out")
-        if os.path.isfile(tc_labels_template):
-            tc_test_template = self._process_tc_labels_template(tc_labels_template)
-        else:
-            tc_test_template = None
+        tc_test_template = self._process_tc_labels_template(tc_labels_template)
 
         keys = {}
         for split in ["train", "dev", "test"]:
