@@ -137,7 +137,7 @@ class OptimizedTypedSequence(TypedSequence):
         optimized_int_type_by_col = {
             "attention_mask": pa.int8(),  # binary tensor
             "special_tokens_mask": pa.int8(),
-            "token_ids": pa.int32(),  # typical vocab size: 0-50k (max ~500k, never > 1M)
+            "input_ids": pa.int32(),  # typical vocab size: 0-50k (max ~500k, never > 1M)
             "token_type_ids": pa.int8(),  # binary mask; some (XLNetModel) use an additional token represented by a 2
         }
         if type is None and try_type is None:

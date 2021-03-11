@@ -146,7 +146,7 @@ def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, exp
         ("attention_mask", pa.int8()),
         ("special_tokens_mask", pa.int8()),
         ("token_type_ids", pa.int8()),
-        ("token_ids", pa.int32()),
+        ("input_ids", pa.int32()),
         ("other", pa.int64()),
     ],
 )
