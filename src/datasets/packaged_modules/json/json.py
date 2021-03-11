@@ -27,7 +27,7 @@ class JsonConfig(datasets.BuilderConfig):
 
     @property
     def pa_parse_options(self):
-        return paj.ParseOptions(explicit_schema=self.schema, newlines_in_values=self.newlines_in_values)
+        return paj.ParseOptions(newlines_in_values=self.newlines_in_values)
 
     @property
     def schema(self):
@@ -80,7 +80,7 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = paj.read_json(
                         file,
                         read_options=self.config.pa_read_options,
-                        # parse_options=self.config.pa_parse_options,
+                        parse_options=self.config.pa_parse_options,
                     )
                     if self.config.schema:
                         # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
