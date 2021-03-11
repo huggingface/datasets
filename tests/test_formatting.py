@@ -165,18 +165,18 @@ class FormatterTest(TestCase):
         row = formatter.format_row(pa_table)
         tf.debugging.assert_equal(row["a"], tf.ragged.constant(_COL_A, dtype=tf.int64)[0])
         tf.debugging.assert_equal(row["b"], tf.ragged.constant(_COL_B, dtype=tf.string)[0])
-        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float64)[0])
+        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float32)[0])
         col = formatter.format_column(pa_table)
         tf.debugging.assert_equal(col, tf.ragged.constant(_COL_A, dtype=tf.int64))
         batch = formatter.format_batch(pa_table)
         tf.debugging.assert_equal(batch["a"], tf.ragged.constant(_COL_A, dtype=tf.int64))
         tf.debugging.assert_equal(batch["b"], tf.ragged.constant(_COL_B, dtype=tf.string))
         self.assertIsInstance(batch["c"], tf.RaggedTensor)
-        self.assertEqual(batch["c"].dtype, tf.float64)
+        self.assertEqual(batch["c"].dtype, tf.float32)
         tf.debugging.assert_equal(
-            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float64).bounding_shape()
+            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float32).bounding_shape()
         )
-        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float64).flat_values)
+        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float32).flat_values)
 
     @require_tf
     def test_tf_formatter_np_array_kwargs(self):
