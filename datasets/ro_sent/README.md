@@ -1,5 +1,6 @@
 ---
-annotations_creators: []
+annotations_creators:
+- found
 language_creators:
 - found
 languages:
@@ -10,7 +11,8 @@ multilinguality:
 - monolingual
 size_categories:
 - 10K<n<100K
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - text-classification
 task_ids:
@@ -20,7 +22,7 @@ task_ids:
 # Dataset Card for RoSent
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for RoSent](#dataset-card-for-ro_sent)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -83,7 +85,7 @@ An instance from the `train` split:
 - `original_id`: a `string` feature containing the original id from the file.
 - `id`: a `string` feature .
 - `sentence`: a `string` feature.
-- `label`: a classification label, with possible values including `negative`, `positive`.
+- `label`: a classification label, with possible values including `negative` (0), `positive` (1).
 
 ### Data Splits
 

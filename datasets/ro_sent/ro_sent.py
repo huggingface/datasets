@@ -50,7 +50,7 @@ _URL = (
 _URLs = {"train": _URL + "train.csv", "test": _URL + "test.csv"}
 
 
-class RoSentDataset(datasets.GeneratorBasedBuilder):
+class RoSent(datasets.GeneratorBasedBuilder):
     """Romanian Sentiment Analysis dataset."""
 
     VERSION = datasets.Version("1.0.0")
