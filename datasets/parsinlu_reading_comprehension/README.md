@@ -19,7 +19,7 @@ task_ids:
 - extractive-qa
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for PersiNLU
 
 ## Table of Contents
 - [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
