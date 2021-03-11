@@ -1550,6 +1550,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
                 )
+        else:
+            # we don't need a writer so we use an empty context
+            writer = contextlib.ExitStack()
 
         with writer:
             try:
