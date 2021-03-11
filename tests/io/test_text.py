@@ -11,8 +11,8 @@ from datasets.io.text import TextDatasetReader
     [
         None,
         {"text": "string"},
-        # {"text": "int32"},
-        # {"text": "float32"},
+        {"text": "int32"},
+        {"text": "float32"},
     ],
 )
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
@@ -50,8 +50,8 @@ def test_text_dataset_reader(path_type, split, features, keep_in_memory, text_pa
     [
         None,
         {"text": "string"},
-        # {"text": "int32"},
-        # {"text": "float32"},
+        {"text": "int32"},
+        {"text": "float32"},
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])

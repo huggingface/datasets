@@ -468,8 +468,8 @@ class DatasetDictTest(TestCase):
     [
         None,
         {"text": "string"},
-        # {"text": "int32"},
-        # {"text": "float32"},
+        {"text": "int32"},
+        {"text": "float32"},
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])
