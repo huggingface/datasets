@@ -450,7 +450,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             features (Features, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            kwargs: Keyword arguments passed to `pandas.read_csv`.
+            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
         Returns:
             datasets.Dataset
         """
