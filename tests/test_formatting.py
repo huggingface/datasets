@@ -456,6 +456,40 @@ def arrow_table():
     return pa.Table.from_pydict({"col_int": [0, 1, 2], "col_float": [0.0, 1.0, 2.0]})
 
 
+@require_tf
+@pytest.mark.parametrize(
+    "cast_schema",
+    [
+        None,
+        [("col_int", pa.int64()), ("col_float", pa.float64())],
+        [("col_int", pa.int32()), ("col_float", pa.float64())],
+        [("col_int", pa.int64()), ("col_float", pa.float32())],
+    ],
+)
+def test_tf_formatter_sets_default_dtypes(cast_schema, arrow_table):
+    import tensorflow as tf
+
+    from datasets.formatting import TFFormatter
+
+    if cast_schema:
+        arrow_table = arrow_table.cast(pa.schema(cast_schema))
+    arrow_table_dict = arrow_table.to_pydict()
+    list_int = arrow_table_dict["col_int"]
+    list_float = arrow_table_dict["col_float"]
+    formatter = TFFormatter()
+
+    row = formatter.format_row(arrow_table)
+    tf.debugging.assert_equal(row["col_int"], tf.ragged.constant(list_int, dtype=tf.int64)[0])
+    tf.debugging.assert_equal(row["col_float"], tf.ragged.constant(list_float, dtype=tf.float32)[0])
+
+    col = formatter.format_column(arrow_table)
+    tf.debugging.assert_equal(col, tf.ragged.constant(list_int, dtype=tf.int64))
+
+    batch = formatter.format_batch(arrow_table)
+    tf.debugging.assert_equal(batch["col_int"], tf.ragged.constant(list_int, dtype=tf.int64))
+    tf.debugging.assert_equal(batch["col_float"], tf.ragged.constant(list_float, dtype=tf.float32))
+
+
 @require_torch
 @pytest.mark.parametrize(
     "cast_schema",
