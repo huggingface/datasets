@@ -22,7 +22,7 @@ task_ids:
 # Dataset Card for PersiNLU
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for PersiNLU](#dataset-card-for-persi_nlu_reading_comprehension)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
