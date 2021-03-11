@@ -1,7 +1,7 @@
 Processing data in a Dataset
 ==============================================================
 
-🤗datasets provides many methods to modify a Dataset, be it to reorder, split or shuffle the dataset or to apply data processing functions or evaluation functions to its elements.
+🤗Datasets provides many methods to modify a Dataset, be it to reorder, split or shuffle the dataset or to apply data processing functions or evaluation functions to its elements.
 
 We'll start by presenting the methods which change the order or number of elements before presenting methods which access and can change the content of the elements themselves.
 
@@ -22,7 +22,7 @@ As always, let's start by loading a small dataset for our demonstrations:
 
     A subsequent call to any of the methods detailed here (like :func:`datasets.Dataset.sort`, :func:`datasets.Dataset.map`, etc) will thus **reuse the cached file instead of recomputing the operation** (even in another python session).
 
-    This usually makes it very efficient to process data with 🤗datasets.
+    This usually makes it very efficient to process data with 🤗Datasets.
 
     If the disk space is critical, these methods can be called with arguments to avoid this behavior (see the last section), or the cache files can be cleaned using the method :func:`datasets.Dataset.cleanup_cache_files`.
 
@@ -46,7 +46,7 @@ Let's see them in action:
 Sorting the dataset according to a column: ``sort``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The provided column has to be of a NumPy compatible column (typically a column containing numerical values).
+The provided column has to be NumPy compatible (typically a column containing numerical values).
 
 .. code-block::
 
@@ -92,7 +92,7 @@ You can filter rows according to a list of indices (:func:`datasets.Dataset.sele
      'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
     ]
 
-:func:`datasets.Dataset.filter` expect a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and return a boolean value. It's also possible to use the indice of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, indice: int) -> bool`:
+:func:`datasets.Dataset.filter` expects a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and returns a boolean value. It's also possible to use the indice of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, indice: int) -> bool`:
 
 .. code-block::
 
@@ -141,7 +141,7 @@ Renaming, removing, casting and flattening columns
 Renaming a column: ``rename_column``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This method renames a column in the dataset, and move the features associated to the original column under the new column name. This operation will fail if the new column name already exists.
+This method renames a column in the dataset, and moves the features associated to the original column under the new column name. This operation will fail if the new column name already exists.
 
 :func:`datasets.Dataset.rename_column` takes the name of the original column and the new name as arguments.
 
@@ -165,7 +165,7 @@ You can also remove a column using :func:`Dataset.map` with `remove_columns` but
 doesn't copy the data to a new dataset object and is thus faster.
 
 :func:`datasets.Dataset.remove_columns` takes the names of the column to remove as argument.
-You can provide one single column names or a list of column names.
+You can provide one single column name or a list of column names.
 
 .. code-block::
 
@@ -242,11 +242,11 @@ In this case if you want each of the two subfields to be actual columns, you can
 Processing data with ``map``
 --------------------------------
 
-All the methods we seen up to now operate on examples taken as a whole and don't inspect (excepted for the ``filter`` method) or modify the content of the samples.
+All the methods we've seen up to now operate on examples taken as a whole and don't inspect (excepted for the ``filter`` method) or modify the content of the samples.
 
-We now turn to the :func:`datasets.Dataset.map` method which is a powerful method inspired by ``tf.data.Dataset`` map method and which you can use to apply a processing function to each examples in a dataset, independently or in batch and even generate new rows or columns.
+We now turn to the :func:`datasets.Dataset.map` method which is a powerful method inspired by ``tf.data.Dataset`` map method and which you can use to apply a processing function to each example in a dataset, independently or in batch and even generate new rows or columns.
 
-:func:`datasets.Dataset.map` takes a callable accepting a dict as argument (same dict as returned by :obj:`dataset[i]`) and iterate over the dataset by calling the function with each example.
+:func:`datasets.Dataset.map` takes a callable accepting a dict as argument (same dict as returned by :obj:`dataset[i]`) and iterates over the dataset by calling the function with each example.
 
 Let's print the length of the ``sentence1`` value for each sample in our dataset:
 
@@ -279,7 +279,7 @@ The above example had no effect on the dataset because the method we supplied to
 
 In such a case, :func:`datasets.Dataset.map` will return the original dataset (:obj:`self`) and the user is usually only interested in side effects of the provided method.
 
-Now let's see how we can use a method that actually modify the dataset with :func:`datasets.Dataset.map`.
+Now let's see how we can use a method that actually modifies the dataset with :func:`datasets.Dataset.map`.
 
 Processing data row by row
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -288,7 +288,7 @@ The main interest of :func:`datasets.Dataset.map` is to update and modify the co
 
 To use :func:`datasets.Dataset.map` to update elements in the table you need to provide a function with the following signature: :obj:`function(example: dict) -> dict`.
 
-Let's add a prefix ``'My sentence: '`` to each ``sentence1`` values in our small dataset:
+Let's add a prefix ``'My sentence: '`` to each ``sentence1`` value in our small dataset:
 
 .. code-block::
 
@@ -310,13 +310,13 @@ This call to :func:`datasets.Dataset.map` computed and returned an updated table
 
     Calling :func:`datasets.Dataset.map` also stored the updated table in a cache file indexed by the current state and the mapped function.
     A subsequent call to :func:`datasets.Dataset.map` (even in another python session) will reuse the cached file instead of recomputing the operation.
-    You can test this by running again the previous cell, you will see that the result are directly loaded from the cache and not re-computed again.
+    You can test this by running again the previous cell, you will see that the result is directly loaded from the cache and not re-computed again.
 
 The function you provide to :func:`datasets.Dataset.map` should accept an input with the format of an item of the dataset: :obj:`function(dataset[0])` and return a python dict.
 
 The columns and type of the outputs **can be different** from columns and type of the input dict. In this case the new keys will be **added** as additional columns in the dataset.
 
-Each dataset example dict is updated with the dictionary returned by the function. Under the hood :obj:`map` operate like this:
+Each dataset example dict is updated with the dictionary returned by the function. Under the hood :obj:`map` operates like this:
 
 .. code-block::
 
@@ -341,7 +341,7 @@ Since the input example dict is **updated** with output dict generated by our :o
 If a dataset was formatted using :func:`datasets.Dataset.set_format`, then:
 
 - if a format type was set, then the format type doesn't change
-- if a list of columns that __getitem__ should return was set, then the new columns added by map are added to this list
+- if a list of columns that :func:`datasets.Dataset.__getitem__` should return was set, then the new columns added by map are added to this list
 
 Removing columns
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -351,7 +351,7 @@ This process of **updating** the original example with the output of the mapped 
 
 To this aim, the :obj:`remove_columns=List[str]` argument can be used and provided with a single name or a list of names of columns which should be removed during the :func:`datasets.Dataset.map` operation.
 
-Column to remove are removed **after** the example has been provided to the mapped function so that the mapped function can use the content of these columns before they are removed.
+Columns to remove are removed **after** the example has been provided to the mapped function so that the mapped function can use the content of these columns before they are removed.
 
 Here is an example removing the ``sentence1`` column while adding a ``new_sentence`` column with the content of the ``new_sentence``. Said more simply, we are renaming the ``sentence1`` column as ``new_sentence``:
 
@@ -367,7 +367,7 @@ Using row indices
 
 When the argument :obj:`with_indices` is set to :obj:`True`, the indices of the rows (from ``0`` to ``len(dataset)``) will be provided to the mapped function. This function must then have the following signature: :obj:`function(example: dict, indice: int) -> Union[None, dict]`.
 
-In the following example, we add the index of the example as a prefix to the 'sentence2' field of each example:
+In the following example, we add the index of the example as a prefix to the ``sentence2`` field of each example:
 
 .. code-block::
 
@@ -391,7 +391,7 @@ To operate on batch of example, just set :obj:`batched=True` when calling :func:
 
 In other words, the mapped function should accept an input with the format of a slice of the dataset: :obj:`function(dataset[:10])`.
 
-Let's take an example with a fast tokenizer of the 🤗transformers library.
+Let's take an example with a fast tokenizer of the 🤗Transformers library.
 
 First install this library if you haven't already done it:
 
@@ -406,11 +406,11 @@ Then we will import a fast tokenizer, for instance the tokenizer of the Bert mod
     >>> from transformers import BertTokenizerFast
     >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 
-Now let's batch tokenize the 'sentence1' fields of our dataset. The tokenizers of the 🤗transformers library can accept lists of texts as inputs and tokenize them efficiently in batch (for the fast tokenizers in particular).
+Now let's batch tokenize the ``sentence1`` fields of our dataset. The tokenizers of the 🤗Transformers library can accept lists of texts as inputs and tokenize them efficiently in batch (for the fast tokenizers in particular).
 
-For more details on the tokenizers of the 🤗transformers library Please refer to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
+For more details on the tokenizers of the 🤗Transformers library please refer to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
 
-This tokenizer will output a dictionary-like object with three fields: ``input_ids``, ``token_type_ids``, ``attention_mask`` corresponding to Bert model's required inputs. Each field contain a list (batch) of samples.
+This tokenizer will output a dictionary-like object with three fields: ``input_ids``, ``token_type_ids``, ``attention_mask`` corresponding to Bert model's required inputs. Each field contains a list (batch) of samples.
 
 The output of the tokenizer is thus compatible with the :func:`datasets.Dataset.map` method which is also expected to return a dictionary. We can thus directly return the dictionary generated by the tokenizer as the output of our mapped function:
 
@@ -429,16 +429,16 @@ The output of the tokenizer is thus compatible with the :func:`datasets.Dataset.
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
 
-We have indeed the added columns for ``input_ids``, ``token_type_ids``, ``attention_mask`` which contains the encoded version of the ``sentence1`` field.
+We have indeed added the columns for ``input_ids``, ``token_type_ids``, ``attention_mask`` which contain the encoded version of the ``sentence1`` field.
 
 The batch size provided to the mapped function can be controlled by the :obj:`batch_size` argument. The default value is ``1000``, i.e. batches of 1000 samples will be provided to the mapped function by default.
 
 Augmenting the dataset
 ---------------------------
 
-Using :func:`datasets.Dataset.map` in batched mode (i.e. with :obj:`batched=True`) actually let you control the size of the generate dataset freely.
+Using :func:`datasets.Dataset.map` in batched mode (i.e. with :obj:`batched=True`) actually let you control the size of the generated dataset freely.
 
-More precisely, in batched mode :func:`datasets.Dataset.map` will provide batch of examples (as a dict of lists) to the mapped function and expect the mapped function to return back a batch of examples (as a dict of lists) but **the input and output batch are not required to be of the same size**.
+More precisely, in batched mode :func:`datasets.Dataset.map` will provide a batch of examples (as a dict of lists) to the mapped function and expect the mapped function to return back a batch of examples (as a dict of lists) but **the input and output batch are not required to be of the same size**.
 
 In other words, a batch mapped function can take as input a batch of size ``N`` and return a batch of size ``M`` where ``M`` can be greater or less than ``N`` and can even be zero.
 
@@ -452,11 +452,11 @@ This can be taken advantage of for several use-cases:
 
 .. note::
 
-    **One important condition on the output of the mapped function** Each field in the output dictionary returned by the mapped function must contain the **same number of elements** as the other field in this output dictionary otherwise it's not possible to define the number of examples in the output returned the mapped function. This number can vary between the successive batches processed by the mapped function but in a single batch, all fields of the output dictionary should have the same number of elements.
+    **One important condition on the output of the mapped function.** Each field in the output dictionary returned by the mapped function must contain the **same number of elements** as the other field in this output dictionary otherwise it's not possible to define the number of examples in the output returned the mapped function. This number can vary between the successive batches processed by the mapped function but in a single batch, all fields of the output dictionary should have the same number of elements.
 
 Let's show how we can implemented the two simple examples we mentioned: "cutting examples which are too long in several snippets" and do some "data augmentation".
 
-We'll start by chunking the ``sentence1`` field of our dataset in chunk of 50 characters and stack all these chunks to make our new dataset.
+We'll start by chunking the ``sentence1`` field of our dataset in chunks of 50 characters and stack all these chunks to make our new dataset.
 
 We will also remove all the columns of the dataset and only keep the chunks in order to avoid the issue of uneven field lengths mentioned in the above note (we could also duplicate the other fields to compensated but let's make it as simple as possible here):
 
@@ -487,7 +487,7 @@ As we can see, our dataset is now much longer (10470 row) and contains a single 
 
 Now let's finish with the other example and try to do some data augmentation. We will use a Roberta model to sample some masked tokens.
 
-Here we can use the `FillMaskPipeline of transformers <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.pipeline>`__ to generate options for a masked token in a sentence.
+Here we can use the `FillMaskPipeline of 🤗Transformers <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`__ to generate options for a masked token in a sentence.
 
 We will randomly select a word to mask in the sentence and return the original sentence plus the two top replacements by Roberta.
 
@@ -509,7 +509,7 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
     ...         K = randint(1, len(words)-1)
     ...         masked_sentence = " ".join(words[:K]  + [mask_token] + words[K+1:])
     ...         predictions = fillmask(masked_sentence)
-    ...         augmented_sequences = [predictions[i]['sequence']for i in range(3)]
+    ...         augmented_sequences = [predictions[i]['sequence'] for i in range(3)]
     ...         outputs += [sentence] + augmented_sequences
     ...     
     ...     return {'data': outputs}
@@ -527,9 +527,9 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
      "Yucaipa owned Dominick's before selling the chain to Safeway in 1998 for $ 2.5 billion.", 
      'Yucaipa owned Dominick Pizza before selling the chain to Safeway in 1998 for $ 2.5 billion.']
 
-Here we have now multiply the size of our dataset by ``4`` by adding three alternatives generated with Roberta to each example.  We can see that the word ``distorting`` in the first example was augmented with other possibilities by the Roberta model: ``withholding``, ``suppressing``, ``destroying``, while in the second sentence, it was the ``'s`` token which was randomly sampled and replaced by ``Stores`` and ``Pizza``.
+Here we have now multiplied the size of our dataset by ``4`` by adding three alternatives generated with Roberta to each example. We can see that the word ``distorting`` in the first example was augmented with other possibilities by the Roberta model: ``withholding``, ``suppressing``, ``destroying``, while in the second sentence, it was the ``'s`` token which was randomly sampled and replaced by ``Stores`` and ``Pizza``.
 
-Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-aways is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
+Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-away is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
 
 Processing several splits at once
 -----------------------------------
@@ -555,7 +555,7 @@ You can directly call map, filter, shuffle, and sort directly on a :obj:`dataset
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
 
-This concludes our chapter on data processing with 🤗datasets (and 🤗transformers).
+This concludes our chapter on data processing with 🤗Datasets (and 🤗Transformers).
 
 Concatenate several datasets
 ----------------------------
@@ -594,7 +594,7 @@ Saving a dataset creates a directory with various files:
 Both :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` objects can be saved on disk, by using respectively :func:`datasets.Dataset.save_to_disk` and :func:`datasets.DatasetDict.save_to_disk`.
 
 Furthermore it is also possible to save :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` to other filesystems and cloud storages such as S3 by using respectively :func:`datasets.Dataset.save_to_disk` 
-and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`
+and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`.
 
 Exporting a dataset to csv, or to python objects
 ------------------------------------------------
@@ -611,14 +611,14 @@ The caching mechanism allows to reload an existing cache file if it's already be
 
 Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated after each transform.
 
-Note that the caching extend beyond sessions. Re-running the very same dataset processing methods (in the same order and on the same data files) in a different session will load from the same cache files.
+Note that the caching extends beyond sessions. Re-running the very same dataset processing methods (in the same order and on the same data files) in a different session will load from the same cache files.
 This is possible thanks to a custom hashing function that works with most python objects (see fingerprinting section below).
 
 
 Fingerprinting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied. (Transform are all the processing method for transforming a dataset that we listed in this chapter (:func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc)
+The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied. (Transforms are all the processing method for transforming a dataset that we listed in this chapter (:func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc)
 The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
 
 For example:
@@ -644,7 +644,7 @@ You can also specify the name of path where the cache file will be written using
 
 It is also possible to disable caching globally with :func:`datasets.set_caching_enabled`.
 
-If the caching is disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+If the caching is disabled, the library will no longer reload cached dataset files when applying transforms to the datasets.
 More precisely, if the caching is disabled:
 - cache files are always recreated
 - cache files are written to a temporary directory that is deleted when session closes

@@ -441,18 +441,18 @@ class DummyDataCommand(BaseTransformersCLICommand):
             dummy_data_guidance_print += f"- If the method `_generate_examples(...)` includes multiple `open()` statements, you might have to create other files in addition to '{files_string}'. In this case please refer to the `_generate_examples(...)` method \n\n"
 
         if len(files_to_create) == 1 and next(iter(files_to_create)) == dummy_file_name:
-            dummy_data_guidance_print += f"-After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
+            dummy_data_guidance_print += f"- After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
 
             dummy_data_guidance_print += (
-                f"-You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
+                f"- You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
             )
 
             dummy_data_guidance_print += f"- To get the file '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"
         else:
-            dummy_data_guidance_print += f"-After all dummy data files are created, they should be zipped recursively to '{dummy_file_name}.zip' with the command `zip -r {dummy_file_name}.zip {dummy_file_name}/` \n\n"
+            dummy_data_guidance_print += f"- After all dummy data files are created, they should be zipped recursively to '{dummy_file_name}.zip' with the command `zip -r {dummy_file_name}.zip {dummy_file_name}/` \n\n"
 
             dummy_data_guidance_print += (
-                f"-You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
+                f"- You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
             )
 
             dummy_data_guidance_print += f"- To get the folder '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"

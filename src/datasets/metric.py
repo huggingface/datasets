@@ -125,7 +125,7 @@ class MetricInfoMixin(object):
 
 
 class Metric(MetricInfoMixin):
-    """A Metrics is the base class and common API for all metrics.
+    """A Metric is the base class and common API for all metrics.
 
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data

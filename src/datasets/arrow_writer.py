@@ -145,7 +145,7 @@ class OptimizedTypedSequence(TypedSequence):
         super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
 
 
-class ArrowWriter(object):
+class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
     def __init__(
@@ -179,8 +179,10 @@ class ArrowWriter(object):
         self._path = path
         if stream is None:
             self.stream = pa.OSFile(self._path, "wb")
+            self._closable_stream = True
         else:
             self.stream = stream
+            self._closable_stream = False
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
@@ -197,6 +199,22 @@ class ArrowWriter(object):
     def __len__(self):
         """ Return the number of writed and staged examples """
         return self._num_examples + len(self.current_rows)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
+        if self.pa_writer:  # it might be None
+            try:
+                self.pa_writer.close()
+            except Exception:  # pyarrow.lib.ArrowInvalid, OSError
+                pass
+        if self._closable_stream and not self.stream.closed:
+            self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
         inferred_features = Features.from_arrow_schema(inferred_schema)
@@ -438,14 +456,14 @@ class BeamWriter(object):
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    writer = ArrowWriter(path=destination, stream=stream)
     not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-    for source in tqdm(sources, unit="sources", disable=not_verbose):
-        pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
-            df = pf.read_row_group(i).to_pandas()
-            for col in df.columns:
-                df[col] = df[col].apply(json.loads)
-            reconstructed_table = pa.Table.from_pandas(df)
-            writer.write_table(reconstructed_table)
+    with ArrowWriter(path=destination, stream=stream) as writer:
+        for source in tqdm(sources, unit="sources", disable=not_verbose):
+            pf = pa.parquet.ParquetFile(source)
+            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
+                df = pf.read_row_group(i).to_pandas()
+                for col in df.columns:
+                    df[col] = df[col].apply(json.loads)
+                reconstructed_table = pa.Table.from_pandas(df)
+                writer.write_table(reconstructed_table)
     return destination
