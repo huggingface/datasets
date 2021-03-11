@@ -308,7 +308,7 @@ class Wikiann(datasets.GeneratorBasedBuilder):
                     splits = line.split("\t")
                     # strip out en: prefix
                     langs.append(splits[0].split(":")[0])
-                    tokens.append(":".join(splits[0].split(":")[1:])
+                    tokens.append(":".join(splits[0].split(":")[1:]))
                     if len(splits) > 1:
                         ner_tags.append(splits[-1].replace("\n", ""))
                     else:
