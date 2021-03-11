@@ -62,10 +62,6 @@ class ParsinluReadingComprehension(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = (
-        "parsinlu-repo"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
-
     def _info(self):
         features = datasets.Features(
             {

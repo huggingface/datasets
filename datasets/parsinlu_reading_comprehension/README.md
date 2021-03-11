@@ -19,10 +19,10 @@ task_ids:
 - extractive-qa
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for PersiNLU
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for PersiNLU](#dataset-card-for-persi_nlu_reading_comprehension)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -53,9 +53,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/persiannlp/parsinlu/
-- **Repository:** https://github.com/persiannlp/parsinlu/
-- **Paper:** https://arxiv.org/abs/2012.06154 
+- **Homepage:** [Github](https://github.com/persiannlp/parsinlu/)
+- **Repository:** [Github](https://github.com/persiannlp/parsinlu/)
+- **Paper:** [Arxiv](https://arxiv.org/abs/2012.06154)
 - **Leaderboard:** 
 - **Point of Contact:** d.khashabi@gmail.com
 
