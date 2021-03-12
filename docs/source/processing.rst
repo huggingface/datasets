@@ -433,6 +433,15 @@ We have indeed added the columns for ``input_ids``, ``token_type_ids``, ``attent
 
 The batch size provided to the mapped function can be controlled by the :obj:`batch_size` argument. The default value is ``1000``, i.e. batches of 1000 samples will be provided to the mapped function by default.
 
+Multiprocessing
+---------------------------
+
+Multiprocessing can speed up significantly the processing of your dataset.
+
+The :func:`datasets.Dataset.map` method has an argument ``num_proc`` that allows you to set the number of processes to use.
+
+In this case, each process takes care of processing one shard of the dataset and all the processes are ran in parallel.
+
 Augmenting the dataset
 ---------------------------
 

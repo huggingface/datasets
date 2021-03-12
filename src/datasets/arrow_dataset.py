@@ -437,6 +437,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
+    def from_csv(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create Dataset from CSV file(s).
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
+            split (NamedSplit, optional): Split name to be assigned to the dataset.
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+        Returns:
+            datasets.Dataset
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetReader
+
+        return CsvDatasetReader(
+            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
     def from_json(
         path_or_paths: Union[PathLike, List[PathLike]],
         split: Optional[NamedSplit] = None,
@@ -883,7 +910,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not new_column_name:
             raise ValueError("New column name is empty.")
 
-        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+        def rename(columns):
+            return [new_column_name if col == original_column_name else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            self._format_columns = rename(self._format_columns)
 
         self._info.features[new_column_name] = self._info.features[original_column_name]
         del self._info.features[original_column_name]
@@ -918,7 +950,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not new_column_name:
             raise ValueError("New column name is empty.")
 
-        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+        def rename(columns):
+            return [new_column_name if col == original_column_name else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
 
         dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
         del dataset._info.features[original_column_name]
@@ -1578,6 +1615,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
                 )
+        else:
+            # we don't need a writer so we use an empty context
+            writer = contextlib.ExitStack()
 
         with writer:
             try:
