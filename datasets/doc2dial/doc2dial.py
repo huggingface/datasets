@@ -301,6 +301,8 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict = dial["turns"][idx + 1]
                                     else:
                                         continue
+                                else:
+                                    continue
                                 question = " ".join(list(reversed(all_prev_utterances))).strip()
                                 id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                                 qa = {
