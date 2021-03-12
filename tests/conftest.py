@@ -110,6 +110,7 @@ DATA = [
 ]
 
 
+@pytest.fixture(scope="session")
 def csv_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
     with open(path, "w") as f:
