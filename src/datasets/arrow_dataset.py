@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
-from .features import Features, Value, cast_to_python_objects
+from .features import ClassLabel, Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -51,7 +51,7 @@ from .fingerprint import (
     is_caching_enabled,
     update_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import PandasFormatter, format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -369,6 +369,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Series, the NumPy dtype is translated to its Arrow equivalent. In the case of `object`, we need to guess the datatype by looking at the
         Python objects in this Series.
 
+        The main exception to this is the Category->ClassLabel conversion.  Pyarrow reads a Category as a Dictionary[int, str]
+        but this is insufficient for the datasets ClassLabel type since it does not include the label information itself.
+        To facilitate this, we deliberately convert any Category types to their `int` codes *prior* to pyarrow conversion,
+        and if features were not *provided*, we perform schema inference here so that we can override the default schema inference.
+
         Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that
         we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to
         null. This behavior can be avoided by constructing explicit features and passing it to this function.
@@ -380,19 +385,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 description, citation, etc.
             split (:obj:``datasets.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
         """
+
+        # Step 1: Pre-process pandas dataframe.  a. Convert Category to int.
+        postprocessed_df = df.copy()
+        category_values = {}
+        for colname in df.select_dtypes(include=["category"]):
+            category_values[str(colname)] = postprocessed_df[colname].cat.categories.to_list()
+            postprocessed_df[colname] = postprocessed_df[colname].cat.codes.astype("int64")
+
+        # Step 2: Generate the pyarrow table, providing features if they were provided by caller.
         if info is not None and features is not None and info.features != features:
             raise ValueError(
-                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
-                    features, info.features
-                )
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        pa_table: pa.Table = pa.Table.from_pandas(
+            df=postprocessed_df, schema=pa.schema(features.type) if features is not None else None
+        )
+
+        # Step 3: Generate the Dataset, perform schema inference ourselves!
+        if features is None:
+            # No features were provided by caller so perform schema inference here for Category->ClassLabel conversion
+            features = Features.from_arrow_schema(pa_table.schema)
+            for colname, labels in category_values.items():
+                features[colname] = ClassLabel(names=labels)
         if info is None:
             info = DatasetInfo()
         info.features = features
-        pa_table: pa.Table = pa.Table.from_pandas(
-            df=df, schema=pa.schema(features.type) if features is not None else None
-        )
         return cls(pa_table, info=info, split=split)
 
     @classmethod
@@ -2403,8 +2422,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 key=slice(offset, offset + batch_size),
                 indices=self._indices.column(0) if self._indices is not None else None,
             )
-            csv_str = batch.to_pandas().to_csv(
-                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
+            csv_str = (
+                PandasFormatter()
+                .format_batch_with_category(batch, self.features)
+                .to_csv(
+                    path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
+                )
             )
             written += file_obj.write(csv_str.encode(encoding))
         return written
@@ -2479,19 +2502,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
         """
         if not batched:
-            return query_table(
-                pa_table=self._data,
-                key=slice(0, len(self)),
-                indices=self._indices.column(0) if self._indices is not None else None,
-            ).to_pandas()
+            return PandasFormatter().format_batch_with_category(
+                query_table(
+                    pa_table=self._data,
+                    key=slice(0, len(self)),
+                    indices=self._indices.column(0) if self._indices is not None else None,
+                ),
+                self.features,
+            )
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
-                query_table(
-                    pa_table=self._data,
-                    key=slice(offset, offset + batch_size),
-                    indices=self._indices.column(0) if self._indices is not None else None,
-                ).to_pandas()
+                PandasFormatter().format_batch_with_category(
+                    query_table(
+                        pa_table=self._data,
+                        key=slice(offset, offset + batch_size),
+                        indices=self._indices.column(0) if self._indices is not None else None,
+                    ),
+                    self.features,
+                )
                 for offset in range(0, len(self), batch_size)
             )
 
