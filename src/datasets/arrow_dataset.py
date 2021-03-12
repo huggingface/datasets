@@ -18,6 +18,7 @@
 
 import contextlib
 import copy
+import copyreg
 import json
 import os
 import pickle
@@ -39,7 +40,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
-from .arrow_reader import ArrowReader
+from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -470,7 +471,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def __getstate__(self):
         state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
-        state["_split"] = str(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = str(state["_split"]) if isinstance(state["_split"], NamedSplit) else state["_split"]
         if self._data_files:
             state["_data"] = None
         if self._indices_data_files:
@@ -485,7 +486,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "tried to unpickle a dataset without arrow_table or data_files"
         state = state.copy()
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
-        state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = NamedSplit(state["_split"]) if isinstance(state["_split"], str) else state["_split"]
         self.__dict__ = state
         reader = ArrowReader("", self.info)
         # Read arrow tables
@@ -2841,3 +2842,13 @@ def map_function(batch, *args, function=None, with_indices=None, **fn_kwargs):
             result[key] = []
 
     return result
+
+
+# Register custom reduction to support pickle protocol for splits (dataset._split) defined as ReadInstruction
+
+
+def pickle_read_instruction(read_instruction):
+    return ReadInstruction, ("placeholder_split",), read_instruction.__dict__
+
+
+copyreg.pickle(ReadInstruction, pickle_read_instruction)
