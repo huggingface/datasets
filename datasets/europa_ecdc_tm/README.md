@@ -67,6 +67,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -250,3 +251,7 @@ to the Work.
         url={https://doi.org/10.1007/s10579-014-9277-0}
 }
 ```
+
+### Contributions
+
+Thanks to [@SBrandeis](https://github.com/SBrandeis) for adding this dataset.

@@ -23,13 +23,14 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pyarrow as pa
 
+from . import config
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
+from .utils import copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
 from .utils.filelock import BaseFileLock, FileLock, Timeout
@@ -124,7 +125,7 @@ class MetricInfoMixin(object):
 
 
 class Metric(MetricInfoMixin):
-    """A Metrics is the base class and common API for all metrics.
+    """A Metric is the base class and common API for all metrics.
 
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
@@ -177,7 +178,7 @@ class Metric(MetricInfoMixin):
         self.max_concurrent_cache_files = max_concurrent_cache_files
 
         self.keep_in_memory = keep_in_memory
-        self._data_dir_root = os.path.expanduser(cache_dir or HF_METRICS_CACHE)
+        self._data_dir_root = os.path.expanduser(cache_dir or config.HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
         self.timeout: Union[int, float] = timeout
@@ -245,7 +246,7 @@ class Metric(MetricInfoMixin):
                 if self.num_process != 1:
                     raise ValueError(
                         f"Error in _create_cache_file: another metric instance is already using the local cache file at {file_path}. "
-                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
                     )
                 if i == self.max_concurrent_cache_files - 1:
@@ -284,13 +285,16 @@ class Metric(MetricInfoMixin):
         # Let's acquire a lock on each process files to be sure they are finished writing
         filelocks = []
         for process_id, file_path in enumerate(file_paths):
-            filelock = FileLock(file_path + ".lock")
-            try:
-                filelock.acquire(timeout=self.timeout)
-            except Timeout:
-                raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+            if process_id == 0:  # process 0 already has its lock file
+                filelocks.append(self.filelock)
             else:
-                filelocks.append(filelock)
+                filelock = FileLock(file_path + ".lock")
+                try:
+                    filelock.acquire(timeout=self.timeout)
+                except Timeout:
+                    raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+                else:
+                    filelocks.append(filelock)
 
         return file_paths, filelocks
 
@@ -337,7 +341,8 @@ class Metric(MetricInfoMixin):
         if self.writer is not None:
             self.writer.finalize()
         self.writer = None
-        if self.filelock is not None:
+        # release the locks of the processes > 0 so that process 0 can lock them to read + delete the data
+        if self.filelock is not None and self.process_id > 0:
             self.filelock.release()
 
         if self.keep_in_memory:
@@ -356,7 +361,7 @@ class Metric(MetricInfoMixin):
             except FileNotFoundError:
                 raise ValueError(
                     "Error in finalize: another metric instance is already using the local cache file. "
-                    "Please specify an experiment_id to avoid colision between distributed metric instances."
+                    "Please specify an experiment_id to avoid collision between distributed metric instances."
                 )
 
             # Store file paths and locks and we will release/delete them after the computation.
@@ -402,8 +407,8 @@ class Metric(MetricInfoMixin):
                 del self.data
                 self.data = None
             else:
-                # Release locks and delete all the cache files
-                for filelock, file_path in zip(self.filelocks, self.file_paths):
+                # Release locks and delete all the cache files. Process 0 is released last.
+                for filelock, file_path in reversed(list(zip(self.filelocks, self.file_paths))):
                     logger.info(f"Removing {file_path}")
                     del self.data
                     self.data = None
@@ -460,7 +465,7 @@ class Metric(MetricInfoMixin):
                 except TimeoutError:
                     raise ValueError(
                         f"Error in _init_writer: another metric instance is already using the local cache file at {file_path}. "
-                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
                     )
 
@@ -504,7 +509,6 @@ class Metric(MetricInfoMixin):
         self,
         download_config: Optional[DownloadConfig] = None,
         dl_manager: Optional[DownloadManager] = None,
-        **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 
@@ -541,9 +545,9 @@ class Metric(MetricInfoMixin):
         raise NotImplementedError
 
     def __del__(self):
-        if self.filelock is not None:
+        if hasattr(self, "filelock") and self.filelock is not None:
             self.filelock.release()
-        if self.rendez_vous_lock is not None:
+        if hasattr(self, "rendez_vous_lock") and self.rendez_vous_lock is not None:
             self.rendez_vous_lock.release()
         if hasattr(self, "writer"):  # in case it was already deleted
             del self.writer

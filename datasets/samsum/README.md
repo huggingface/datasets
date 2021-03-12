@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -147,6 +148,7 @@ non-commercial licence: CC BY-NC-ND 4.0
 
 ### Citation Information
 
+```
 @inproceedings{gliwa-etal-2019-samsum,
     title = "{SAMS}um Corpus: A Human-annotated Dialogue Dataset for Abstractive Summarization",
     author = "Gliwa, Bogdan  and
@@ -162,3 +164,8 @@ non-commercial licence: CC BY-NC-ND 4.0
     doi = "10.18653/v1/D19-5409",
     pages = "70--79"
 }
+```
+
+### Contributions
+
+Thanks to [@cccntu](https://github.com/cccntu) for adding this dataset.

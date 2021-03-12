@@ -53,6 +53,12 @@ Args:
     sample_weight: Sample weights.
 Returns:
     f1: F1 score.
+Examples:
+
+    >>> f1_metric = datasets.load_metric("f1")
+    >>> results = f1_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'f1': 1.0}
 """
 
 _CITATION = """\
@@ -70,6 +76,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class F1(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(

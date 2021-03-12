@@ -1,12 +1,49 @@
+import csv
 import lzma
 import textwrap
 
 import pytest
 
+from datasets.arrow_dataset import Dataset
+from datasets.features import ClassLabel, Features, Sequence, Value
+
 
 FILE_CONTENT = """\
     Text data.
     Second line of data."""
+
+
+@pytest.fixture(scope="session")
+def dataset():
+    n = 10
+    features = Features(
+        {
+            "tokens": Sequence(Value("string")),
+            "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            "answers": Sequence(
+                {
+                    "text": Value("string"),
+                    "answer_start": Value("int32"),
+                }
+            ),
+        }
+    )
+    dataset = Dataset.from_dict(
+        {
+            "tokens": [["foo"] * 5] * n,
+            "labels": [[1] * 5] * n,
+            "answers": [{"answer_start": [97], "text": ["1976"]}] * 10,
+        },
+        features=features,
+    )
+    return dataset
+
+
+@pytest.fixture(scope="session")
+def arrow_file(tmp_path_factory, dataset):
+    filename = str(tmp_path_factory.mktemp("data") / "file.arrow")
+    dataset.map(cache_file_name=filename)
+    return filename
 
 
 @pytest.fixture(scope="session")
@@ -62,3 +99,22 @@ def xml_file(tmp_path_factory):
     with open(filename, "w") as f:
         f.write(data)
     return filename
+
+
+DATA = [
+    {"col_1": "0", "col_2": 0, "col_3": 0.0},
+    {"col_1": "1", "col_2": 1, "col_3": 1.0},
+    {"col_1": "2", "col_2": 2, "col_3": 2.0},
+    {"col_1": "3", "col_2": 3, "col_3": 3.0},
+]
+
+
+@pytest.fixture(scope="session")
+def csv_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
+    with open(path, "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["col_1", "col_2", "col_3"])
+        writer.writeheader()
+        for item in DATA:
+            writer.writerow(item)
+    return path

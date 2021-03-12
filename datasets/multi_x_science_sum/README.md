@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -154,3 +155,7 @@ The data is split into a training, validation and test.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@moussaKam](https://github.com/moussaKam) for adding this dataset.

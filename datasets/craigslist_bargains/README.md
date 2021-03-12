@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -275,3 +276,7 @@ program under ARO prime contract no. W911NF15-1-0462
 }
 ```
 
+
+### Contributions
+
+Thanks to [@ZacharySBrown](https://github.com/ZacharySBrown) for adding this dataset.

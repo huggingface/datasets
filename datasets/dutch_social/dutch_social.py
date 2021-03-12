@@ -180,8 +180,8 @@ class DutchSocial(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
         with open(filepath, encoding="utf-8") as f:
-            tweets = json.load(f)
-            for id_, data in enumerate(tweets):
+            for id_, data in enumerate(f):
+                data = json.loads(data)
                 yield id_, {
                     "full_text": "" if not isinstance(data["full_text"], str) else data["full_text"],
                     "text_translation": ""

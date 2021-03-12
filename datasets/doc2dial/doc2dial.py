@@ -19,10 +19,12 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -225,7 +227,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         if self.config.name == "dialogue_domain":
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for domain in data["dial_data"]:
@@ -243,7 +245,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
 
         elif self.config.name == "document_domain":
 
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for domain in data["doc_data"]:
@@ -281,7 +283,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             """Load dialog data in the reading comprehension task setup, where context is the grounding document,
             input query is dialog history in reversed order, and output to predict is the next agent turn."""
 
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             doc_data = self._load_doc_data_rc(filepath)
             with open(filepath, encoding="utf-8") as f:
                 dial_data = json.load(f)["dial_data"]

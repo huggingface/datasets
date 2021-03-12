@@ -88,6 +88,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -187,3 +188,7 @@ The copyright of the data belongs to original book/article authors or translator
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

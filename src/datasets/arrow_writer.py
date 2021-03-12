@@ -23,25 +23,23 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
+from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
-from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
+from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
 
-# Batch size constants. For more info, see:
-# https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 type_ = type  # keep python's type function
 
 
 class TypedSequence:
     """
-    This data container generalizes the typing when instantiating pyarrow arrays, tabels or batches.
+    This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
 
-    More specifically it add several features:
+    More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
         ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
@@ -125,7 +123,7 @@ class TypedSequence:
                 raise
 
 
-class ArrowWriter(object):
+class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
     def __init__(
@@ -159,24 +157,42 @@ class ArrowWriter(object):
         self._path = path
         if stream is None:
             self.stream = pa.OSFile(self._path, "wb")
+            self._closable_stream = True
         else:
             self.stream = stream
+            self._closable_stream = False
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
-        self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
+        self.writer_batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_rows = []
+        self.current_rows: List[Dict[str, Any]] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
     def __len__(self):
         """ Return the number of writed and staged examples """
         return self._num_examples + len(self.current_rows)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
+        if self.pa_writer:  # it might be None
+            try:
+                self.pa_writer.close()
+            except Exception:  # pyarrow.lib.ArrowInvalid, OSError
+                pass
+        if self._closable_stream and not self.stream.closed:
+            self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
         inferred_features = Features.from_arrow_schema(inferred_schema)
@@ -276,7 +292,7 @@ class ArrowWriter(object):
             typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
-        self.write_table(pa_table)
+        self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         """Write a batch of Example to file.
@@ -345,7 +361,7 @@ class BeamWriter(object):
         self._parquet_path = os.path.splitext(path)[0]  # remove extension
         self._namespace = namespace or "default"
         self._num_examples = None
-        self._cache_dir = cache_dir or HF_DATASETS_CACHE
+        self._cache_dir = cache_dir or config.HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
         """Add the final steps of the beam pipeline: write to parquet files."""
@@ -418,14 +434,14 @@ class BeamWriter(object):
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    writer = ArrowWriter(path=destination, stream=stream)
     not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-    for source in tqdm(sources, unit="sources", disable=not_verbose):
-        pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
-            df = pf.read_row_group(i).to_pandas()
-            for col in df.columns:
-                df[col] = df[col].apply(json.loads)
-            reconstructed_table = pa.Table.from_pandas(df)
-            writer.write_table(reconstructed_table)
+    with ArrowWriter(path=destination, stream=stream) as writer:
+        for source in tqdm(sources, unit="sources", disable=not_verbose):
+            pf = pa.parquet.ParquetFile(source)
+            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
+                df = pf.read_row_group(i).to_pandas()
+                for col in df.columns:
+                    df[col] = df[col].apply(json.loads)
+                reconstructed_table = pa.Table.from_pandas(df)
+                writer.write_table(reconstructed_table)
     return destination

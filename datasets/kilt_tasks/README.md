@@ -226,6 +226,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -463,3 +464,7 @@ Examples from all configurations have the following features:
 ### Citation Information
 
 [Needs More Information]
+
+### Contributions
+
+Thanks to [@thomwolf](https://github.com/thomwolf), [@yjernite](https://github.com/yjernite) for adding this dataset.

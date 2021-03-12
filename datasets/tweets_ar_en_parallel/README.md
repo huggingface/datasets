@@ -45,12 +45,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Bilingual Corpus of Arabic-English Parallel Tweets](https://alt.qcri.org/resources/bilingual_corpus_of_parallel_tweets)
 - **Repository:**
-- **Paper:**
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.bucc-1.3/)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -137,3 +138,6 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+### Contributions
+
+Thanks to [@sumanthd17](https://github.com/sumanthd17) for adding this dataset.

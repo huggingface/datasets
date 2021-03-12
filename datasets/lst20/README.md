@@ -17,7 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 - structure-prediction-other-clause-segmentation
 - structure-prediction-other-sentence-segmentation
 - structure-prediction-other-word-segmentation
@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -208,3 +209,7 @@ In both options, please contact Dr. Thepchai Supnithi via thepchai@nectec.or.th 
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.

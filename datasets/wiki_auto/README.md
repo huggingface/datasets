@@ -4,6 +4,10 @@ annotations_creators:
   - machine-generated
   auto_acl:
   - machine-generated
+  auto_full_no_split:
+  - machine-generated
+  auto_full_with_split:
+  - machine-generated
   manual:
   - crowdsourced
 language_creators:
@@ -48,6 +52,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -61,7 +66,7 @@ WikiAuto provides a set of aligned sentences from English Wikipedia and Simple E
 
 The authors first crowd-sourced a set of manual alignments between sentences in a subset of the Simple English Wikipedia and their corresponding versions in English Wikipedia (this corresponds to the `manual` config in this version of dataset), then trained a neural CRF system to predict these alignments.
 
-The trained alignment prediction model was then applied to the other articles in Simple English Wikipedia with an English counterpart to create a larger corpus of aligned sentences (corresponding to the `auto` and `auto_acl` configs here).
+The trained alignment prediction model was then applied to the other articles in Simple English Wikipedia with an English counterpart to create a larger corpus of aligned sentences (corresponding to the `auto`, `auto_acl`, `auto_full_no_split`, and `auto_full_with_split` configs here).
 
 ### Supported Tasks and Leaderboards
 
@@ -127,7 +132,7 @@ The `auto` config shows a pair of an English and corresponding Simple English Wi
   'simple_article_url': 'https://simple.wikipedia.org/wiki?curid=702227'}}
 ```
 
-Finally, the `auto_acl` config was obtained by selecting the aligned pairs of sentences from `auto` to provide a ready-to-go aligned dataset to train a sequence-to-sequence system, so an instance is a single pair of sentences:
+Finally, the `auto_acl`, the `auto_full_no_split`, and the `auto_full_with_split` configs were obtained by selecting the aligned pairs of sentences from `auto` to provide a ready-to-go aligned dataset to train a sequence-to-sequence system. While `auto_acl` corresponds to the filtered version of the data used to train the systems in the paper, `auto_full_no_split` and `auto_full_with_split` correspond to the unfiltered versions with and without sentence splits respectively. In the `auto_full_with_split` config, we join the sentences in the simple article mapped to the same sentence in the complex article to capture sentence splitting. Split sentences are seperated by a `<SEP>` token.  In the `auto_full_no_split` config, we do not join the splits and treat them as seperate pairs. An instance is a single pair of sentences:
 ```
 {'normal_sentence': 'In early work , Rutherford discovered the concept of radioactive half-life , the radioactive element radon , and differentiated and named alpha and beta radiation .\n',
  'simple_sentence': 'Rutherford discovered the radioactive half-life , and the three parts of radiation which he named Alpha , Beta , and Gamma .\n'}
@@ -232,3 +237,7 @@ You can cite the paper presenting the dataset as:
   url       = {https://www.aclweb.org/anthology/2020.acl-main.709/}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite), [@mounicam](https://github.com/mounicam) for adding this dataset.

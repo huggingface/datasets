@@ -403,7 +403,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Massively Multilingual Transfer for NER](https://github.com/afshinrahimi/mmner)
 - **Repository:** [Massively Multilingual Transfer for NER](https://github.com/afshinrahimi/mmner)
 - **Paper:** The original datasets come from the _Cross-lingual name tagging and linking for 282 languages_ [paper](https://www.aclweb.org/anthology/P17-1178/) by Xiaoman Pan et al. (2018). This version corresponds to the balanced train, dev, and test splits of the original data from the _Massively Multilingual Transfer for NER_ [paper](https://arxiv.org/abs/1902.00193) by Afshin Rahimi et al. (2019).
 - **Leaderboard:**
@@ -532,3 +532,7 @@ while the 176 languages supported in this version are associated with the follow
 }
 ```
 
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun) for adding this dataset.

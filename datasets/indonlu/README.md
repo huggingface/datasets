@@ -63,7 +63,7 @@ task_categories:
   - text-classification
 task_ids:
   bapos:
-  - structure-prediction-other-part-of-speech-tagging
+  - part-of-speech-tagging
   casa:
   - text-classification-other-aspect-based-sentiment-analysis
   emot:
@@ -79,14 +79,15 @@ task_ids:
   nerp:
   - named-entity-recognition
   posp:
-  - structure-prediction-other-part-of-speech-tagging
+  - part-of-speech-tagging
   smsa:
   - sentiment-classification
   terma:
   - structure-prediction-other-span-extraction
   wrete:
   - semantic-similarity-classification
-  ---
+---
+
 
 # Dataset Card for IndoNLU
 
@@ -112,6 +113,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -607,3 +609,7 @@ IndoNLU citation
   year={2007}
 }
 ```
+
+### Contributions
+
+Thanks to [@yasirabd](https://github.com/yasirabd) for adding this dataset.

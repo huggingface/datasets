@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -456,3 +457,7 @@ Creative Commons Attribution 3.0 Unported
     publisher = "Association for Computational Linguistics",
     url = "https://www.aclweb.org/anthology/2020.emnlp-main.652",
 }
+
+### Contributions
+
+Thanks to [@songfeng](https://github.com/songfeng), [@KMFODA](https://github.com/KMFODA) for adding this dataset.

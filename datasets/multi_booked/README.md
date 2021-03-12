@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -177,3 +178,7 @@ Dataset is under the [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/) l
     language = {english}
 }
 ```
+
+### Contributions
+
+Thanks to [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.

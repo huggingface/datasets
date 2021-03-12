@@ -43,12 +43,21 @@ Args:
 Returns:
     accuracy: description of the first score,
     another_score: description of the second score,
+Examples:
+    Examples should be written in doctest format, and should illustrate how
+    to use the function.
+
+    >>> my_new_metric = datasets.load_metric("my_new_metric")
+    >>> results = my_new_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'accuracy': 1.0}
 """
 
 # TODO: Define external resources urls if needed
 BAD_WORDS_URL = "http://url/to/external/resource/bad_words.txt"
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class NewMetric(datasets.Metric):
     """TODO: Short description of my metric."""
 

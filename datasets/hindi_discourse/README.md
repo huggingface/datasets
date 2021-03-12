@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -203,3 +204,7 @@ Please cite the following publication if you make use of the dataset: https://ww
     ISBN = "979-10-95546-34-4",
 }
 ```
+
+### Contributions
+
+Thanks to [@duttahritwik](https://github.com/duttahritwik) for adding this dataset.

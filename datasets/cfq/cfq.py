@@ -19,11 +19,13 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 import re
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -141,10 +143,10 @@ class Cfq(datasets.GeneratorBasedBuilder):
         splits_path = os.path.join(base_directory, splits_file)
         with open(samples_path, encoding="utf-8") as samples_file:
             with open(splits_path, encoding="utf-8") as splits_file:
-                logging.info("Reading json from %s into memory...", samples_path)
+                logger.info("Reading json from %s into memory...", samples_path)
                 samples = json.loads(self._scrub_json(samples_file.read()))
-                logging.info("%d samples loaded", len(samples))
-                logging.info("Loaded json data from %s.", samples_path)
+                logger.info("%d samples loaded", len(samples))
+                logger.info("Loaded json data from %s.", samples_path)
                 splits = json.load(splits_file)
                 for idx in splits[split_id]:
                     sample = samples[idx]

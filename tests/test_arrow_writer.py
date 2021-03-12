@@ -3,6 +3,7 @@ import tempfile
 from unittest import TestCase
 
 import pyarrow as pa
+import pytest
 
 from datasets.arrow_writer import ArrowWriter, TypedSequence
 from datasets.features import Array2DExtensionType
@@ -68,10 +69,10 @@ class ArrowWriterTest(TestCase):
 
     def test_write_no_schema(self):
         output = pa.BufferOutputStream()
-        writer = ArrowWriter(stream=output)
-        writer.write({"col_1": "foo", "col_2": 1})
-        writer.write({"col_1": "bar", "col_2": 2})
-        num_examples, num_bytes = writer.finalize()
+        with ArrowWriter(stream=output) as writer:
+            writer.write({"col_1": "foo", "col_2": 1})
+            writer.write({"col_1": "bar", "col_2": 2})
+            num_examples, num_bytes = writer.finalize()
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
@@ -81,10 +82,10 @@ class ArrowWriterTest(TestCase):
     def test_write_schema(self):
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
         output = pa.BufferOutputStream()
-        writer = ArrowWriter(stream=output, schema=pa.schema(fields))
-        writer.write({"col_1": "foo", "col_2": 1})
-        writer.write({"col_1": "bar", "col_2": 2})
-        num_examples, num_bytes = writer.finalize()
+        with ArrowWriter(stream=output, schema=pa.schema(fields)) as writer:
+            writer.write({"col_1": "foo", "col_2": 1})
+            writer.write({"col_1": "bar", "col_2": 2})
+            num_examples, num_bytes = writer.finalize()
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
         self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
@@ -92,9 +93,9 @@ class ArrowWriterTest(TestCase):
 
     def test_write_batch_no_schema(self):
         output = pa.BufferOutputStream()
-        writer = ArrowWriter(stream=output)
-        writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
-        num_examples, num_bytes = writer.finalize()
+        with ArrowWriter(stream=output) as writer:
+            writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+            num_examples, num_bytes = writer.finalize()
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
@@ -104,9 +105,9 @@ class ArrowWriterTest(TestCase):
     def test_write_batch_schema(self):
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
         output = pa.BufferOutputStream()
-        writer = ArrowWriter(stream=output, schema=pa.schema(fields))
-        writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
-        num_examples, num_bytes = writer.finalize()
+        with ArrowWriter(stream=output, schema=pa.schema(fields)) as writer:
+            writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+            num_examples, num_bytes = writer.finalize()
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
         self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
@@ -116,10 +117,25 @@ class ArrowWriterTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             fields = {"col_1": pa.string(), "col_2": pa.int64()}
             output = os.path.join(tmp_dir, "test.arrow")
-            writer = ArrowWriter(path=output, schema=pa.schema(fields))
-            writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(path=output, schema=pa.schema(fields)) as writer:
+                writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+                num_examples, num_bytes = writer.finalize()
             self.assertEqual(num_examples, 2)
             self.assertGreater(num_bytes, 0)
             self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
             self._check_output(output)
+
+
+@pytest.mark.parametrize("raise_exception", [False, True])
+def test_arrow_writer_closes_stream(raise_exception, tmp_path):
+    path = str(tmp_path / "dataset-train.arrow")
+    try:
+        with ArrowWriter(path=path) as writer:
+            if raise_exception:
+                raise pa.lib.ArrowInvalid()
+            else:
+                writer.stream.close()
+    except pa.lib.ArrowInvalid:
+        pass
+    finally:
+        assert writer.stream.closed

@@ -163,3 +163,7 @@ An example of an instance:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@mattbui](https://github.com/mattbui) for adding this dataset.

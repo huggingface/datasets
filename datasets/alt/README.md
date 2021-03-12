@@ -58,12 +58,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Homepage:** https://www2.nict.go.jp/astrec-att/member/mutiyama/ALT/
 - **Leaderboard:** 
-- **Paper:** [Introduction of the Asian Language Treebank]https://ieeexplore.ieee.org/abstract/document/7918974)
+- **Paper:** [Introduction of the Asian Language Treebank](https://ieeexplore.ieee.org/abstract/document/7918974)
 - **Point of Contact:** [ALT info](alt-info@khn.nict.go.jp)
 
 ### Dataset Summary
@@ -250,3 +251,7 @@ BibTeX:
   organization={IEEE}
 }
 ```
+
+### Contributions
+
+Thanks to [@chameleonTK](https://github.com/chameleonTK) for adding this dataset.

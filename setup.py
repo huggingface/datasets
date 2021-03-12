@@ -59,19 +59,19 @@ import sys
 from setuptools import find_packages
 from setuptools import setup
 
-DOCLINES = __doc__.split('\n')
+DOCLINES = __doc__.split("\n")
 
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    'numpy>=1.17',
+    "numpy>=1.17",
     # Backend and serialization. Minimum 0.17.1 to support extension array
-    'pyarrow>=0.17.1',
+    "pyarrow>=0.17.1",
     # For smart caching dataset processing
-    'dill',
+    "dill",
     # For performance gains with apache arrow
-    'pandas',
+    "pandas",
     # for downloading datasets over HTTPS
-    'requests>=2.19.0',
+    "requests>=2.19.0",
     # progress bars in download and scripts
     # tqdm 4.50.0 introduced permission errors on windows
     # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
@@ -81,41 +81,79 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess"
+    "multiprocess",
+    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
+    "importlib_metadata;python_version<'3.8'",
+    # for saving datsets to local
+    "fsspec",
+    # To get datasets from the Datasets Hub on huggingface.co
+    "huggingface_hub==0.0.2",
 ]
 
 BENCHMARKS_REQUIRE = [
-    'numpy==1.18.5',
-    'tensorflow==2.3.0',
-    'torch==1.6.0',
-    'transformers==3.0.2',
+    "numpy==1.18.5",
+    "tensorflow==2.3.0",
+    "torch==1.6.0",
+    "transformers==3.0.2",
 ]
 
 TESTS_REQUIRE = [
-    'apache-beam',
-    'absl-py',
-    'bs4',
-    'conllu',
-    'elasticsearch',
-    'faiss-cpu',
-    'langdetect',
-    'lxml',
-    'mwparserfromhell',
-    'nltk',
-    'py7zr',
-    'pytest',
-    'pytest-xdist',
-    'tensorflow',
-    'torch',
-    'tldextract',
-    'transformers',
-    'xlrd==1.2.0',  # pinning to keep the xlsx support. We should eventually use something else
-    'zstandard',
-    'rarfile',
+    # test dependencies
+    "absl-py",
+    "pytest",
+    "pytest-xdist",
+    # optional dependencies
+    "apache-beam>=2.24.0",
+    "elasticsearch",
+    "boto3==1.16.43",
+    "botocore==1.19.43",
+    "faiss-cpu",
+    "fsspec[s3]",
+    "moto[s3]==1.3.16",
+    "rarfile>=4.0",
+    "tensorflow>=2.3",
+    "torch",
+    "transformers",
+    # datasets dependencies
+    "bs4",
+    "conllu",
+    "langdetect",
+    "lxml",
+    "mwparserfromhell",
+    "nltk",
+    "openpyxl",
+    "py7zr",
+    "tldextract",
+    "zstandard",
+    # metrics dependencies
+    "bert_score>=0.3.6",
+    "rouge_score",
+    "sacrebleu",
+    "scipy",
+    "seqeval",
+    "sklearn",
+    "jiwer",
+    # to speed up pip backtracking
+    "toml>=0.10.1",
+    "requests_file>=1.5.1",
+    "tldextract>=3.1.0",
+    "texttable>=1.6.3",
+    "s3fs>=0.4.2",
+    "Werkzeug>=1.0.1",
 ]
 
 if os.name == "nt":  # windows
     TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
+else:
+    # dependencies of unbabel-comet
+    # only test if not on windows since there're issues installing fairseq on windows
+    TESTS_REQUIRE.extend([
+        "wget>=3.2",
+        "pytorch-nlp==0.5.0",
+        "pytorch_lightning",
+        "fastBPE==0.1.0",
+        "fairseq",
+    ])
 
 
 QUALITY_REQUIRE = [
@@ -126,35 +164,47 @@ QUALITY_REQUIRE = [
 
 
 EXTRAS_REQUIRE = {
-    'apache-beam': ['apache-beam'],
-    'tensorflow': ['tensorflow>=2.2.0'],
-    'tensorflow_gpu': ['tensorflow-gpu>=2.2.0'],
-    'torch': ['torch'],
-    'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
-    'tests': TESTS_REQUIRE,
-    'quality': QUALITY_REQUIRE,
-    'benchmarks': BENCHMARKS_REQUIRE,
-    'docs': ["recommonmark", "sphinx==3.1.2", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
+    "apache-beam": ["apache-beam"],
+    "tensorflow": ["tensorflow>=2.2.0"],
+    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
+    "torch": ["torch"],
+    "s3": [
+        "fsspec[s3]",
+        "boto3==1.16.43",
+        "botocore==1.19.43",
+    ],
+    "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
+    "tests": TESTS_REQUIRE,
+    "quality": QUALITY_REQUIRE,
+    "benchmarks": BENCHMARKS_REQUIRE,
+    "docs": [
+        "recommonmark",
+        "sphinx==3.1.2",
+        "sphinx-markdown-tables",
+        "sphinx-rtd-theme==0.4.3",
+        "sphinx-copybutton",
+        "fsspec[s3]",
+    ],
 }
 
 setup(
-    name='datasets',
-    version="1.1.3",
+    name="datasets",
+    version="1.4.1",
     description=DOCLINES[0],
-    long_description='\n'.join(DOCLINES[2:]),
-    author='HuggingFace Inc.',
-    author_email='thomas@huggingface.co',
-    url='https://github.com/huggingface/datasets',
-    download_url='https://github.com/huggingface/datasets/tags',
-    license='Apache 2.0',
+    long_description="\n".join(DOCLINES[2:]),
+    author="HuggingFace Inc.",
+    author_email="thomas@huggingface.co",
+    url="https://github.com/huggingface/datasets",
+    download_url="https://github.com/huggingface/datasets/tags",
+    license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
     package_data={
-        'datasets': [
-            'scripts/templates/*',
+        "datasets": [
+            "scripts/templates/*",
         ],
     },
-    scripts=["datasets-cli"],
+    entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -169,5 +219,5 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords='datasets machine learning datasets metrics',
+    keywords="datasets machine learning datasets metrics",
 )

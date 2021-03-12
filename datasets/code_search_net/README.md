@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 - **Homepage:** https://wandb.ai/github/CodeSearchNet/benchmark
@@ -193,3 +194,7 @@ Each example in the dataset has is extracted from a GitHub repository, and each 
   journal={arXiv preprint arXiv:1909.09436},
   year={2019}
 }
+
+### Contributions
+
+Thanks to [@SBrandeis](https://github.com/SBrandeis) for adding this dataset.

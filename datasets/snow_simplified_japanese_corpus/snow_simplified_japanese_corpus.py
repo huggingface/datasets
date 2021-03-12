@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
 
 import datasets
@@ -147,22 +148,23 @@ class SnowSimplifiedJapaneseCorpus(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        df = pd.read_excel(filepath).astype("str")
+        with open(filepath, "rb") as f:
+            df = pd.read_excel(f, engine="openpyxl").astype("str")
 
-        if self.config.name == "snow_t15":
-            for id_, row in df.iterrows():
-                yield id_, {
-                    "ID": row["ID"],
-                    "original_ja": row["#日本語(原文)"],
-                    "simplified_ja": row["#やさしい日本語"],
-                    "original_en": row["#英語(原文)"],
-                }
-        else:
-            for id_, row in df.iterrows():
-                yield id_, {
-                    "ID": row["ID"],
-                    "original_ja": row["#日本語(原文)"],
-                    "simplified_ja": row["#やさしい日本語"],
-                    "original_en": row["#英語(原文)"],
-                    "proper_noun": row["#固有名詞"],
-                }
+            if self.config.name == "snow_t15":
+                for id_, row in df.iterrows():
+                    yield id_, {
+                        "ID": row["ID"],
+                        "original_ja": row["#日本語(原文)"],
+                        "simplified_ja": row["#やさしい日本語"],
+                        "original_en": row["#英語(原文)"],
+                    }
+            else:
+                for id_, row in df.iterrows():
+                    yield id_, {
+                        "ID": row["ID"],
+                        "original_ja": row["#日本語(原文)"],
+                        "simplified_ja": row["#やさしい日本語"],
+                        "original_en": row["#英語(原文)"],
+                        "proper_noun": row["#固有名詞"],
+                    }

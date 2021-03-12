@@ -41,6 +41,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -146,3 +147,7 @@ No annotation was provided with the dataset.
   journal={arXiv preprint arXiv:2004.05861},
   year={2020}
 }
+
+### Contributions
+
+Thanks to [@Fatima-Haouari](https://github.com/Fatima-Haouari) for adding this dataset.

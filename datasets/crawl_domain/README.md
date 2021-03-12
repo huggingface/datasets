@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -161,3 +162,7 @@ The curators of this dataset are [Jae Hun Ro](https://github.com/JaeHunRo) and [
 }
 ```
 
+
+### Contributions
+
+Thanks to [@Karthik-Bhaskar](https://github.com/Karthik-Bhaskar) for adding this dataset.

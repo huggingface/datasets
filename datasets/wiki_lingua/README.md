@@ -112,6 +112,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -247,3 +248,7 @@ ______________________________
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@katnoria](https://github.com/katnoria) for adding this dataset.

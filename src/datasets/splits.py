@@ -34,7 +34,7 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: str = None
+    dataset_name: Optional[str] = None
 
     @property
     def file_instructions(self):
