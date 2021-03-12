@@ -888,8 +888,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._format_columns is not None:
             self._format_columns = rename(self._format_columns)
 
-        self._info.features[new_column_name] = self._info.features[original_column_name]
-        del self._info.features[original_column_name]
+        self._info.features = Features(
+            {
+                new_column_name if col == original_column_name else col: feature
+                for col, feature in self._info.features.items()
+            }
+        )
 
         self._data = self._data.rename_columns(new_column_names)
 
@@ -928,8 +932,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._format_columns is not None:
             dataset._format_columns = rename(self._format_columns)
 
-        dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
-        del dataset._info.features[original_column_name]
+        dataset._info.features = Features(
+            {
+                new_column_name if col == original_column_name else col: feature
+                for col, feature in self._info.features.items()
+            }
+        )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._fingerprint = new_fingerprint
