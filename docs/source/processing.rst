@@ -438,7 +438,7 @@ Multiprocessing
 
 Multiprocessing can speed up significantly the processing of your dataset.
 
-The :func:`datasets.Dataset.map` has an argument ``num_proc`` that allows you to set the number of processes to use.
+The :func:`datasets.Dataset.map` method has an argument ``num_proc`` that allows you to set the number of processes to use.
 
 In this case, each process takes care of processing one shard of the dataset and all the processes are ran in parallel.
 
