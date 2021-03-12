@@ -19,6 +19,8 @@ from datasets.io.csv import CsvDatasetReader
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 @pytest.mark.parametrize("path_type", [str, list])
 def test_csv_dataset_reader(path_type, split, features, keep_in_memory, csv_path, tmp_path):
+    import gc
+    gc.collect()
     if issubclass(path_type, str):
         path = csv_path
     elif issubclass(path_type, list):
