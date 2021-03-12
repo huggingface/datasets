@@ -7,14 +7,13 @@ from hashlib import sha256
 from unittest import TestCase
 from unittest.mock import patch
 
-import pyarrow as pa
 import pytest
 import requests
 
 import datasets
 from datasets import load_dataset
 
-from .utils import OfflineSimulationMode, offline
+from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
 
 DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
@@ -186,11 +185,9 @@ class LoadTest(TestCase):
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
     assert len(dataset) == 2
-    assert increased_allocated_memory == keep_in_memory
     for offline_simulation_mode in list(OfflineSimulationMode):
         with offline(offline_simulation_mode):
             caplog.clear()

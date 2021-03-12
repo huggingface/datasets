@@ -23,7 +23,14 @@ from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 from datasets.utils.logging import WARNING
 
-from .utils import require_tf, require_torch, require_transformers, set_current_working_directory_to_temp_dir
+from .utils import (
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    require_tf,
+    require_torch,
+    require_transformers,
+    set_current_working_directory_to_temp_dir,
+)
 
 
 class Unpicklable:
@@ -159,10 +166,9 @@ class BaseDatasetTest(TestCase):
     def test_dummy_dataset_deepcopy(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            total_allocated_bytes = pa.total_allocated_bytes()
-            dset2 = copy.deepcopy(dset)
+            with assert_arrow_memory_doesnt_increase():
+                dset2 = copy.deepcopy(dset)
             # don't copy the underlying arrow data using memory
-            self.assertEqual(pa.total_allocated_bytes(), total_allocated_bytes)
             self.assertEqual(len(dset2), 10)
             self.assertDictEqual(dset2.features, Features({"filename": Value("string")}))
             self.assertEqual(dset2[0]["filename"], "my_name-train_0")
@@ -1904,11 +1910,10 @@ def test_dataset_from_csv(path_type, split, features, keep_in_memory, csv_path, 
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = Dataset.from_csv(
-        path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-    )
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_csv(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
@@ -1916,19 +1921,16 @@ def test_dataset_from_csv(path_type, split, features, keep_in_memory, csv_path, 
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_dataset_from_file(in_memory, dataset, arrow_file):
     filename = arrow_file
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
     assert dataset_from_file.features.type == dataset.features.type
     assert dataset_from_file.features == dataset.features
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
-    assert increased_allocated_memory == in_memory
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
