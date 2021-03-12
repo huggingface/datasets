@@ -5,7 +5,6 @@ from unittest import TestCase
 import boto3
 import numpy as np
 import pandas as pd
-import pyarrow as pa
 import pytest
 from moto import mock_s3
 
@@ -14,7 +13,7 @@ from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 from datasets.filesystems import S3FileSystem
 
-from .utils import require_tf, require_torch
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
 
 
 class DatasetDictTest(TestCase):
@@ -485,9 +484,8 @@ def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_pat
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = DatasetDict.from_csv(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_csv(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
@@ -496,4 +494,3 @@ def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_pat
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory

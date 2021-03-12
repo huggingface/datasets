@@ -4,7 +4,6 @@ import types
 from unittest import TestCase
 
 import numpy as np
-import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
@@ -15,7 +14,7 @@ from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 
-from .utils import require_faiss
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_faiss
 
 
 class DummyBuilder(DatasetBuilder):
@@ -644,9 +643,8 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
             writer.write_batch({"text": ["foo"] * 10})
             writer.finalize()
 
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = dummy_builder.as_dataset(split=split, in_memory=in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = dummy_builder.as_dataset(split=split, in_memory=in_memory)
     assert isinstance(dataset, expected_dataset_class)
     if isinstance(dataset, DatasetDict):
         assert list(dataset.keys()) == ["train", "test"]
@@ -660,7 +658,6 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         assert len(dataset) == expected_dataset_length
         assert dataset.features == Features({"text": Value("string")})
         dataset.column_names == ["text"]
-    assert increased_allocated_memory == in_memory
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
@@ -670,11 +667,9 @@ def test_generator_based_builder_as_dataset(in_memory, tmp_path):
     cache_dir = str(cache_dir)
     dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy")
     dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = dummy_builder.as_dataset("train", in_memory=in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = dummy_builder.as_dataset("train", in_memory=in_memory)
     assert dataset.data.to_pydict() == {"text": ["foo"] * 100}
-    assert increased_allocated_memory == in_memory
 
 
 @pytest.mark.parametrize(
