@@ -1,4 +1,3 @@
-import pyarrow as pa
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
