@@ -29,14 +29,14 @@ _CITATION = """\
     authors = {Khashabi, Daniel and Cohan, Arman and Shakeri, Siamak and Hosseini, Pedram and Pezeshkpour, Pouya and Alikhani, Malihe and Aminnaseri, Moin and Bitaab, Marzieh and Brahman, Faeze and Ghazarian, Sarik and others},
     year={2020}
     journal = {arXiv e-prints},
-    eprint = {2012.06154},    
+    eprint = {2012.06154},
 }
 """
 
 # You can copy an official description
 _DESCRIPTION = """\
-A Persian reading comprehenion task (generating an answer, given a question and a context paragraph). 
-The questions are mined using Google auto-complete, their answers and the corresponding evidence documents are manually annotated by native speakers.    
+A Persian reading comprehenion task (generating an answer, given a question and a context paragraph).
+The questions are mined using Google auto-complete, their answers and the corresponding evidence documents are manually annotated by native speakers.
 """
 
 _HOMEPAGE = "https://github.com/persiannlp/parsinlu/"
