@@ -4,6 +4,8 @@ import pytest
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.io.json import JsonDatasetReader
 
+from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
+
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
@@ -30,11 +32,10 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, jsonl_p
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = JsonDatasetReader(
-        path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-    ).read()
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = JsonDatasetReader(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
@@ -42,7 +43,6 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, jsonl_p
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
@@ -68,9 +68,8 @@ def test_json_datasetdict_reader(split, features, keep_in_memory, jsonl_path, tm
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = JsonDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = JsonDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
@@ -79,4 +78,3 @@ def test_json_datasetdict_reader(split, features, keep_in_memory, jsonl_path, tm
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory
