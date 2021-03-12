@@ -1,5 +1,49 @@
 ---
-
+annotations_creators:
+  - machine-generated
+language_creators:
+  - found
+languages:
+  - en
+licenses:
+  - gfdl-1.3
+multilinguality:
+  - monolingual
+size_categories:
+  CN:
+    - 100K<n<1M
+  NE:
+    - 100K<n<1M
+  P:
+    - 100K<n<1M
+  V:
+    - 100K<n<1M
+  raw:
+    - n<1K
+source_datasets:
+  - original
+task_categories:
+  CN:
+    - question-answering
+  NE:
+    - question-answering
+  P:
+    - question-answering
+  V:
+    - question-answering
+  raw:
+    - other
+task_ids:
+  CN:
+    - multiple-choice-qa
+  NE:
+    - multiple-choice-qa
+  P:
+    - multiple-choice-qa
+  V:
+    - multiple-choice-qa
+  raw:
+    - other-other-raw-dataset
 ---
 
 # Dataset Card for CBT
@@ -66,6 +110,15 @@ An instance from the `V` config:
 
 ### Data Fields
 
+For the `raw` config, the data fields are:
+  - `title`: a `string` feature containing the title of the book present in the dataset.
+  - `content`: a `string` feature containing the content of the book present in the dataset.
+
+For all other configs, the data fields are:
+  - `sentences`: a `list` of `string` features containing 20 sentences from a book.
+  - `question`: a `string` feature containing a question with blank marked as `XXXX` which is to be filled with one of the options.
+  - `answer`: a `string` feature containing the answer.
+  - `options`: a `list` of `string` features containing the options for the question.
 
 
 ### Data Splits
