@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
-- text_classification-other-news-category-classification
+- text-classification-other-news-category-classification
 ---
 
 # Dataset Card for Interpress Turkish News Category Dataset (270K)
