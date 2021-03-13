@@ -291,7 +291,6 @@ class Cbt(datasets.GeneratorBasedBuilder):
         if self.config.name != "raw":
             with open(filepath, encoding="utf-8") as f:
                 data = f.readlines()
-
                 sentences = []
                 example_idx = 0
                 for idx, line in enumerate(data):
