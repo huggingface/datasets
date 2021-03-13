@@ -1593,9 +1593,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     if update_data:
                         if i == 0:
                             cache_file_name = determine_cache_file_name(cache_file_name)
-                            is_cached = check_if_cached(cache_file_name)
-                            if is_cached:
-                                break
+                            if check_if_cached(cache_file_name):
+                                logger.warning("Loading cached processed dataset at %s", cache_file_name)
+                                info = self.info.copy()
+                                info.features = features
+                                return Dataset.from_file(cache_file_name, info=info, split=self.split)
                             else:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer(cache_file_name)
                         example = cast_to_python_objects(example)
@@ -1617,9 +1619,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     if update_data:
                         if i == 0:
                             cache_file_name = determine_cache_file_name(cache_file_name)
-                            is_cached = check_if_cached(cache_file_name)
-                            if is_cached:
-                                break
+                            if check_if_cached(cache_file_name):
+                                logger.warning("Loading cached processed dataset at %s", cache_file_name)
+                                info = self.info.copy()
+                                info.features = features
+                                return Dataset.from_file(cache_file_name, info=info, split=self.split)
                             else:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer(cache_file_name)
                         batch = cast_to_python_objects(batch)
@@ -1635,12 +1639,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     if os.path.exists(tmp_file.name):
                         os.remove(tmp_file.name)
             raise
-
-        if update_data and is_cached:
-            logger.warning("Loading cached processed dataset at %s", cache_file_name)
-            info = self.info.copy()
-            info.features = features
-            return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         if update_data and tmp_file is not None:
             tmp_file.close()
