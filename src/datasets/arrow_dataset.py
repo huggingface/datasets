@@ -1471,8 +1471,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
-        # We set this variable in `apply_function_on_filtered_inputs` to True if
-        # function returns a dict. If set to False, no new arrow table will be created
+        # We set this variable to True After processing the first example/batch in
+        # `apply_function_on_filtered_inputs` if the map function returns a dict.
+        # If set to False, no new arrow table will be created
         update_data = None
 
         class NumExamplesMismatch(Exception):
@@ -1546,10 +1547,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return os.path.exists(cache_file_name) and load_from_cache_file
             return False
 
+        # To initalize these resources, we have to know the value of `update_data` to determine
+        # the name of the cache file which we then pass to `init_buffer_and_writer` and
+        # we know that value once we've processed the first example/batch
         buf_writer, writer, tmp_file = None, None, None
 
-        # Prepare output buffer and batched writer in memory or on file if we update the table
         def init_buffer_and_writer(cache_file_name):
+            # Prepare output buffer and batched writer in memory or on file if we update the table
             writer_features = features
             if writer_features is None:
                 writer_features = self.features
