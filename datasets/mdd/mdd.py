@@ -548,10 +548,11 @@ class Mdd(datasets.GeneratorBasedBuilder):
                 dialogue_turns = []
                 example_idx = 0
                 for idx, line in enumerate(data):
-                    if line.strip() == "":
-                        yield example_idx, {"dialogue_turns": dialogue_turns}
-                        example_idx += 1
-                        dialogue_turns = []
+                    if line.strip() == "" or idx == len(data) - 1:
+                        if dialogue_turns != []:
+                            yield example_idx, {"dialogue_turns": dialogue_turns}
+                            example_idx += 1
+                            dialogue_turns = []
                     elif line.strip().split()[0] == "1":  # New convo
                         if dialogue_turns != []:  # Already some convo, flush it out
                             yield example_idx, {"dialogue_turns": dialogue_turns}
