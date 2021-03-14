@@ -29,7 +29,7 @@ task_ids:
 # Dataset Card for MDD
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for MDD](#dataset-card-for-dataset-name)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
