@@ -1,8 +1,9 @@
-import pyarrow as pa
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.io.csv import CsvDatasetReader
+
+from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
@@ -31,11 +32,10 @@ def test_csv_dataset_reader(path_type, split, features, keep_in_memory, csv_path
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = CsvDatasetReader(
-        path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-    ).read()
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = CsvDatasetReader(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
@@ -43,7 +43,6 @@ def test_csv_dataset_reader(path_type, split, features, keep_in_memory, csv_path
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
@@ -70,9 +69,8 @@ def test_csv_datasetdict_reader(split, features, keep_in_memory, csv_path, tmp_p
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = CsvDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = CsvDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
@@ -81,4 +79,3 @@ def test_csv_datasetdict_reader(split, features, keep_in_memory, csv_path, tmp_p
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory

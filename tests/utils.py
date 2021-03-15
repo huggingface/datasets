@@ -7,6 +7,8 @@ from enum import Enum
 from pathlib import Path
 from unittest.mock import patch
 
+import pyarrow as pa
+
 from datasets import config
 
 
@@ -258,3 +260,23 @@ def set_current_working_directory_to_temp_dir(*args, **kwargs):
         os.chdir(tmp_dir)
         yield
         os.chdir(original_working_dir)
+
+
+@contextmanager
+def assert_arrow_memory_increases():
+    import gc
+
+    gc.collect()
+    previous_allocated_memory = pa.total_allocated_bytes()
+    yield
+    assert pa.total_allocated_bytes() - previous_allocated_memory > 0
+
+
+@contextmanager
+def assert_arrow_memory_doesnt_increase():
+    import gc
+
+    gc.collect()
+    previous_allocated_memory = pa.total_allocated_bytes()
+    yield
+    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0
