@@ -20,6 +20,7 @@ import os
 
 import datasets
 
+
 _DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-6.1-2020-12-11/{}.tar.gz"
 
 _CITATION = """\
@@ -613,27 +614,27 @@ class CommonVoiceConfig(datasets.BuilderConfig):
 class CommonVoice(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
-#    @property
-#    def manual_download_instructions(self):
-#        return """\
-#    You need to go to https://commonvoice.mozilla.org/en/datasets,
-#    and manually download the dataset as a .tar file. Once it is completed,
-#    a folder will be made containing the files, validated.tsv, train.tsv, test.tsv, reported.tsv, other.tsv, invalidated.tsv, dev.tsv
-#    and the folder clips containing audiofiles sampled at 48khz. Each clip is around 3-4 seconds in duration with a size of around 20-50 khz
-#
-#    The downloaded .tar file can be extracted using the `$ tar -xzvf <path/to/downloaded/file>` command.
-#    The extracted folder is usually called ``cv-corpus-6.1-2020-12-11`` and should contain a folder
-#    named after the language id, *e.g.* `en`. Make sure to pass the ``data_dir`` argument to process the Common Voice dataset.
-#
-#    *E.g.*:
-#
-#    ```
-#    from datasets import load_dataset
-#
+    #    @property
+    #    def manual_download_instructions(self):
+    #        return """\
+    #    You need to go to https://commonvoice.mozilla.org/en/datasets,
+    #    and manually download the dataset as a .tar file. Once it is completed,
+    #    a folder will be made containing the files, validated.tsv, train.tsv, test.tsv, reported.tsv, other.tsv, invalidated.tsv, dev.tsv
+    #    and the folder clips containing audiofiles sampled at 48khz. Each clip is around 3-4 seconds in duration with a size of around 20-50 khz
+    #
+    #    The downloaded .tar file can be extracted using the `$ tar -xzvf <path/to/downloaded/file>` command.
+    #    The extracted folder is usually called ``cv-corpus-6.1-2020-12-11`` and should contain a folder
+    #    named after the language id, *e.g.* `en`. Make sure to pass the ``data_dir`` argument to process the Common Voice dataset.
+    #
+    #    *E.g.*:
+    #
+    #    ```
+    #    from datasets import load_dataset
+    #
     # here it is assumed that the folder `cv-corpus-6.1-2020-12-11` has `en` as a subfolder
-#    common_voice_ds = load_dataset("common_voice", "en", data_dir="./cv-corpus-6.1-2020-12-11")
-#    ```
-#    """
+    #    common_voice_ds = load_dataset("common_voice", "en", data_dir="./cv-corpus-6.1-2020-12-11")
+    #    ```
+    #    """
 
     BUILDER_CONFIGS = [
         CommonVoiceConfig(
