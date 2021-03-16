@@ -23,10 +23,9 @@ import os
 import pickle
 import shutil
 import tempfile
-from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import asdict
-from functools import partial, wraps
+from functools import wraps
 from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
@@ -55,7 +54,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import columns_dict_to_list_of_dicts, exact_zip, map_nested
+from .utils import columns_dict_to_list_of_dicts, exact_zip
 from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike

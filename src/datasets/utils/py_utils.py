@@ -29,7 +29,7 @@ from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, ClassVar, Dict, Generic, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, Generic, List, Optional, Tuple, Union
 
 import dill
 import numpy as np
