@@ -6,7 +6,7 @@ from datasets.io.json import JsonDatasetReader
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
-@pytest.mark.parametrize("json_format", [None, "jsonl", "json"])
+@pytest.mark.parametrize("json_format", [None, "jsonl", "json_list_of_dicts", "json_dict_of_lists"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -20,9 +20,22 @@ from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_inc
 )
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 @pytest.mark.parametrize("path_type", [str, list])
-def test_json_dataset_reader(path_type, split, features, keep_in_memory, json_format, json_path, jsonl_path, tmp_path):
-    if json_format == "json":
-        file_path = json_path
+def test_json_dataset_reader(
+    path_type,
+    split,
+    features,
+    keep_in_memory,
+    json_format,
+    jsonl_path,
+    json_list_of_dicts_path,
+    json_dict_of_lists_path,
+    tmp_path,
+):
+    if json_format == "json_list_of_dicts":
+        file_path = json_list_of_dicts_path
+        field = "data"
+    elif json_format == "json_dict_of_lists":
+        file_path = json_dict_of_lists_path
         field = "data"
     else:
         file_path = jsonl_path
@@ -51,7 +64,7 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, json_fo
         assert dataset.features[feature].dtype == expected_dtype
 
 
-@pytest.mark.parametrize("json_format", [None, "jsonl", "json"])
+@pytest.mark.parametrize("json_format", [None, "jsonl", "json_list_of_dicts", "json_dict_of_lists"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -64,9 +77,21 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, json_fo
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])
-def test_json_datasetdict_reader(split, features, keep_in_memory, json_format, json_path, jsonl_path, tmp_path):
-    if json_format == "json":
-        file_path = json_path
+def test_json_datasetdict_reader(
+    split,
+    features,
+    keep_in_memory,
+    json_format,
+    jsonl_path,
+    json_list_of_dicts_path,
+    json_dict_of_lists_path,
+    tmp_path,
+):
+    if json_format == "json_list_of_dicts":
+        file_path = json_list_of_dicts_path
+        field = "data"
+    elif json_format == "json_dict_of_lists":
+        file_path = json_dict_of_lists_path
         field = "data"
     else:
         file_path = jsonl_path
