@@ -233,7 +233,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = TedTalksIWSLTConfig
 
     BUILDER_CONFIGS = [
-        TedTalksIWSLTConfig(language_pair=language_pair, year=year)
+        TedTalksIWSLTConfig(language_pair=language_pair, year=year, version=datasets.Version("1.1.0"))
         for language_pair in _LANGUAGE_PAIRS
         for year in _YEAR.keys()
     ]
