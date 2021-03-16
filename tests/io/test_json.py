@@ -6,7 +6,6 @@ from datasets.io.json import JsonDatasetReader
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
-@pytest.mark.parametrize("json_format", [None, "jsonl", "json_list_of_dicts", "json_dict_of_lists"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -25,21 +24,11 @@ def test_json_dataset_reader(
     split,
     features,
     keep_in_memory,
-    json_format,
     jsonl_path,
-    json_list_of_dicts_path,
-    json_dict_of_lists_path,
     tmp_path,
 ):
-    if json_format == "json_list_of_dicts":
-        file_path = json_list_of_dicts_path
-        field = "data"
-    elif json_format == "json_dict_of_lists":
-        file_path = json_dict_of_lists_path
-        field = "data"
-    else:
-        file_path = jsonl_path
-        field = None
+    file_path = jsonl_path
+    field = None
     if issubclass(path_type, str):
         path = file_path
     elif issubclass(path_type, list):
@@ -64,7 +53,6 @@ def test_json_dataset_reader(
         assert dataset.features[feature].dtype == expected_dtype
 
 
-@pytest.mark.parametrize("json_format", [None, "jsonl", "json_list_of_dicts", "json_dict_of_lists"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -81,21 +69,11 @@ def test_json_datasetdict_reader(
     split,
     features,
     keep_in_memory,
-    json_format,
     jsonl_path,
-    json_list_of_dicts_path,
-    json_dict_of_lists_path,
     tmp_path,
 ):
-    if json_format == "json_list_of_dicts":
-        file_path = json_list_of_dicts_path
-        field = "data"
-    elif json_format == "json_dict_of_lists":
-        file_path = json_dict_of_lists_path
-        field = "data"
-    else:
-        file_path = jsonl_path
-        field = None
+    file_path = jsonl_path
+    field = None
     if split:
         path = {split: file_path}
     else:

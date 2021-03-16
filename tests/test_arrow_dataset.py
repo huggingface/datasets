@@ -1933,7 +1933,6 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
-@pytest.mark.parametrize("json_format", [None, "jsonl", "json_list_of_dicts", "json_dict_of_lists"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -1952,21 +1951,11 @@ def test_dataset_from_json(
     split,
     features,
     keep_in_memory,
-    json_format,
     jsonl_path,
-    json_list_of_dicts_path,
-    json_dict_of_lists_path,
     tmp_path,
 ):
-    if json_format == "json_list_of_dicts":
-        file_path = json_list_of_dicts_path
-        field = "data"
-    elif json_format == "json_dict_of_lists":
-        file_path = json_dict_of_lists_path
-        field = "data"
-    else:
-        file_path = jsonl_path
-        field = None
+    file_path = jsonl_path
+    field = None
     if issubclass(path_type, str):
         path = file_path
     elif issubclass(path_type, list):
