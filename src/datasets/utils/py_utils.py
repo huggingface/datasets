@@ -29,7 +29,7 @@ from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Callable, ClassVar, Generic, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, Generic, Iterator, List, Optional, Tuple, Union
 
 import dill
 import numpy as np
@@ -286,6 +286,25 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     except OSError:
         return True
     return needed_bytes < free_bytes
+
+
+def columns_dict_to_list_of_dicts(columns_dict: Dict[str, List]) -> List[Dict[str, Any]]:
+    """Transform a dict of columns to a list of dicts.
+
+    Example call:
+        {'a': [1, 2, 3], 'b': [0, 0, 0]}
+            outputs: [{'a': 1, 'b': 0}, {'a': 2, 'b': 0}, {'a': 3, 'b': 0}]
+    """
+    column_names = columns_dict.keys()
+    rows = exact_zip(*columns_dict.values())
+    return [dict(exact_zip(column_names, row)) for row in rows]
+
+
+def exact_zip(*lists):
+    """Standard lib `zip` method silently handles lists of different sizes."""
+    lengths = set(len(lst) for lst in lists)
+    assert len(lengths) == 1, f"found lists of different sizes: {sorted(lengths)}"
+    return zip(*lists)
 
 
 class Pickler(dill.Pickler):

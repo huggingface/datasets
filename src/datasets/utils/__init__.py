@@ -24,8 +24,10 @@ from .mock_download_manager import MockDownloadManager
 from .py_utils import (
     NonMutableDict,
     classproperty,
+    columns_dict_to_list_of_dicts,
     copyfunc,
     dumps,
+    exact_zip,
     flatten_nest_dict,
     has_sufficient_disk_space,
     map_nested,

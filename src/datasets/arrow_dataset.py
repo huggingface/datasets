@@ -55,7 +55,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import map_nested
+from .utils import columns_dict_to_list_of_dicts, exact_zip, map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
@@ -1252,7 +1252,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
+            disable_nullable (`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
@@ -1289,7 +1289,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs = {}
 
         # Check if the function returns updated examples
-        def does_function_return_dict(inputs, indices):
+        def do_update_data(inputs, indices):
             """ Does the function returns a dict. """
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             processed_inputs = (
@@ -1322,7 +1322,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info("Testing the mapped function outputs")
         test_inputs = self[:2] if batched else self[0]
         test_indices = [0, 1] if batched else 0
-        update_data = does_function_return_dict(test_inputs, test_indices)
+        update_data = do_update_data(test_inputs, test_indices)
         logger.info("Testing finished, running the mapping function on the dataset")
 
         if num_proc is None or num_proc == 1:
@@ -1460,7 +1460,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
+            disable_nullable (`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
@@ -1650,19 +1650,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
     def filter(
         self,
+        # filter procedure args
         function: Optional[Callable] = None,
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batch_size: Optional[int] = 1000,
-        remove_columns: Optional[List[str]] = None,
-        keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 1000,
-        fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
-        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
+        # output dataset args
+        remove_columns: Optional[List[str]] = None,
         new_fingerprint: Optional[str] = None,
+        # deprecated, use functool.partial to build function with the right signature.
+        fn_kwargs: Optional[dict] = None,
+        **deprecated_kwargs,
     ) -> "Dataset":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -1680,19 +1679,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
-            suffix_template (`str`, defaults to "_{rank:05d}_of_{num_proc:05d}"): If cache_file_name is specified, then this suffix
-                will be added at the end of the base name of each. For example, if cache_file_name is "processed.arrow", then for
-                rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
@@ -1700,6 +1689,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise DatasetTransformationNotAllowedError(
                 "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
             )
+
+        if len(deprecated_kwargs) > 0:
+            logger.warning(f"Received deprecated kwargs: {deprecated_kwargs}")
 
         if function is None:
             function = lambda x: True  # noqa: E731
@@ -1718,26 +1710,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         if fn_kwargs is None:
             fn_kwargs = {}
-        fn_kwargs["input_columns"] = input_columns
+        fn_kwargs.pop("input_columns", None)
 
         mask = self.map(
-            partial(map_function, function=function, with_indices=with_indices),
+            predicate_wrapper(function, with_indices, input_columns, **fn_kwargs),
             batched=True,
             with_indices=with_indices,
-            features=self.features,
             batch_size=batch_size,
-            remove_columns=remove_columns,
+            remove_columns=self.column_names,
             keep_in_memory=True,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
-            writer_batch_size=writer_batch_size,
             fn_kwargs=fn_kwargs,
             num_proc=num_proc,
-            suffix_template=suffix_template,
-            new_fingerprint=new_fingerprint,
+            input_columns=input_columns,
         )
-        filtered = self._data.filter(mask)
-        return Dataset(filtered)
+        filtered: pa.Table = self._data.filter(mask["mask"])
+        filtered_ds = Dataset(filtered, fingerprint=new_fingerprint)
+        return filtered_ds.remove_columns(remove_columns) if remove_columns is not None else filtered_ds
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
@@ -2809,36 +2797,25 @@ def concatenate_datasets(
 
 
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
+def predicate_wrapper(predicate_fn, with_indices: bool = False, input_columns: List[str] = None, **fn_kwargs):
+    """Wrap the `Dataset.filter` predicate function to conform to the quirks of `Dataset.map`. """
 
-# transform the filter function into the map function
-def map_function(batch, *args, function=None, with_indices=None, **fn_kwargs):
-    assert function is not None and with_indices is not None
-    result = defaultdict(list)
-    num_examples = len(batch[next(iter(batch.keys()))])
-    input_columns = fn_kwargs.pop("input_columns", None)
-
-    # create single examples
-    for i in range(num_examples):
-        example = map_nested(lambda x: x[i], batch, dict_only=True)
-        fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
-
-        # check if example should be filtered or not
-        if with_indices:
-            keep_example = function(*fn_args, args[0][i], **fn_kwargs)
+    def wrapped_with_indices(examples: Dict[str, List], indices: List[int]):
+        if input_columns is None:
+            transposed = columns_dict_to_list_of_dicts(examples)
+            return dict(mask=[predicate_fn(e, i, **fn_kwargs) for e, i in exact_zip(transposed, indices)])
         else:
-            keep_example = function(*fn_args, **fn_kwargs)
+            selected_values = [examples[col] for col in input_columns]
+            return dict(
+                mask=[predicate_fn(*vals, i, **fn_kwargs) for *vals, i in exact_zip(*selected_values, indices)]
+            )
 
-        assert isinstance(
-            keep_example, bool
-        ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
-        # if example shall be kept add to result
-        if keep_example:
-            for key in batch.keys():
-                result[key].append(example[key])
+    def wrapped(examples: Dict[str, List]):
+        if input_columns is None:
+            transposed = columns_dict_to_list_of_dicts(examples)
+            return dict(mask=[predicate_fn(e, **fn_kwargs) for e in transposed])
+        else:
+            selected_values = [examples[col] for col in input_columns]
+            return dict(mask=[predicate_fn(*vals, **fn_kwargs) for *vals, i in exact_zip(*selected_values)])
 
-    # if no example shall be kept, init with empty list
-    if bool(result) is False:
-        for key in batch.keys():
-            result[key] = []
-
-    return result
+    return wrapped_with_indices if with_indices else wrapped
