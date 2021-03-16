@@ -1933,6 +1933,7 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
+@pytest.mark.parametrize("json_format", [None, "jsonl", "json"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -1946,11 +1947,17 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
 )
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 @pytest.mark.parametrize("path_type", [str, list])
-def test_dataset_from_json(path_type, split, features, keep_in_memory, jsonl_path, tmp_path):
+def test_dataset_from_json(path_type, split, features, keep_in_memory, json_format, json_path, jsonl_path, tmp_path):
+    if json_format == "json":
+        file_path = json_path
+        field = "data"
+    else:
+        file_path = jsonl_path
+        field = None
     if issubclass(path_type, str):
-        path = jsonl_path
+        path = file_path
     elif issubclass(path_type, list):
-        path = [jsonl_path]
+        path = [file_path]
     cache_dir = tmp_path / "cache"
     expected_split = str(split) if split else "train"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
@@ -1958,7 +1965,7 @@ def test_dataset_from_json(path_type, split, features, keep_in_memory, jsonl_pat
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = Dataset.from_json(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
         )
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4

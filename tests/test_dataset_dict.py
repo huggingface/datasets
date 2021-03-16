@@ -496,6 +496,7 @@ def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_pat
         assert dataset.features[feature].dtype == expected_dtype
 
 
+@pytest.mark.parametrize("json_format", [None, "jsonl", "json"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -508,18 +509,26 @@ def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_pat
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])
-def test_datasetdict_from_json(split, features, keep_in_memory, jsonl_path, tmp_path):
+def test_datasetdict_from_json(split, features, keep_in_memory, json_format, json_path, jsonl_path, tmp_path):
+    if json_format == "json":
+        file_path = json_path
+        field = "data"
+    else:
+        file_path = jsonl_path
+        field = None
     if split:
-        path = {split: jsonl_path}
+        path = {split: file_path}
     else:
         split = "train"
-        path = {"train": jsonl_path, "test": jsonl_path}
+        path = {"train": file_path, "test": file_path}
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_json(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+        dataset = DatasetDict.from_json(
+            path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
+        )
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4

@@ -6,6 +6,7 @@ from datasets.io.json import JsonDatasetReader
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
+@pytest.mark.parametrize("json_format", [None, "jsonl", "json"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -19,11 +20,17 @@ from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_inc
 )
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 @pytest.mark.parametrize("path_type", [str, list])
-def test_json_dataset_reader(path_type, split, features, keep_in_memory, jsonl_path, tmp_path):
+def test_json_dataset_reader(path_type, split, features, keep_in_memory, json_format, json_path, jsonl_path, tmp_path):
+    if json_format == "json":
+        file_path = json_path
+        field = "data"
+    else:
+        file_path = jsonl_path
+        field = None
     if issubclass(path_type, str):
-        path = jsonl_path
+        path = file_path
     elif issubclass(path_type, list):
-        path = [jsonl_path]
+        path = [file_path]
     cache_dir = tmp_path / "cache"
 
     expected_split = str(split) if split else "train"
@@ -33,7 +40,7 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, jsonl_p
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = JsonDatasetReader(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
         ).read()
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
@@ -44,6 +51,7 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, jsonl_p
         assert dataset.features[feature].dtype == expected_dtype
 
 
+@pytest.mark.parametrize("json_format", [None, "jsonl", "json"])
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
@@ -56,19 +64,27 @@ def test_json_dataset_reader(path_type, split, features, keep_in_memory, jsonl_p
     ],
 )
 @pytest.mark.parametrize("split", [None, "train", "test"])
-def test_json_datasetdict_reader(split, features, keep_in_memory, jsonl_path, tmp_path):
+def test_json_datasetdict_reader(split, features, keep_in_memory, json_format, json_path, jsonl_path, tmp_path):
+    if json_format == "json":
+        file_path = json_path
+        field = "data"
+    else:
+        file_path = jsonl_path
+        field = None
     if split:
-        path = {split: jsonl_path}
+        path = {split: file_path}
     else:
         split = "train"
-        path = {"train": jsonl_path, "test": jsonl_path}
+        path = {"train": file_path, "test": file_path}
     cache_dir = tmp_path / "cache"
 
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = JsonDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+        dataset = JsonDatasetReader(
+            path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
+        ).read()
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
