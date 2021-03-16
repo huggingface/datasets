@@ -92,6 +92,6 @@ class Json(datasets.ArrowBasedBuilder):
                         f"Not able to read records in the JSON file at {file}. "
                         f"You should probably indicate the field of the JSON file containing your records. "
                         f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                        f"Select the correct one and provide it as `field='XXX'` to the `load_dataset` method. "
+                        f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
                     )
             yield i, pa_table
