@@ -122,6 +122,15 @@ def csv_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def json_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.json")
+    data = {"data": DATA}
+    with open(path, "w") as f:
+        json.dump(data, f)
+    return path
+
+
+@pytest.fixture(scope="session")
 def jsonl_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
     with open(path, "w") as f:
