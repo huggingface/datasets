@@ -677,7 +677,8 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        abs_path_to_data = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
+        dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
+        abs_path_to_data = os.path.join(dl_path, "cv-corpus-6.1-2020-12-11", self.config.name)
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
         return [
