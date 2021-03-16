@@ -73,6 +73,9 @@ class Json(datasets.ArrowBasedBuilder):
                         read_options=self.config.pa_read_options,
                         parse_options=self.config.pa_parse_options,
                     )
+                    if self.config.schema:
+                        # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
+                        pa_table = pa_table.cast(self.config.schema)
                 else:
                     pa_table = pa.Table.from_pydict(mapping=dataset, schema=self.config.schema)
             else:
