@@ -33,7 +33,8 @@ class JsonDatasetReader(AbstractDatasetReader):
     def read(self):
         download_config = None
         download_mode = None
-        ignore_verifications = False
+        ignore_verifications = True
+        try_from_hf_gcs = False
         use_auth_token = None
         base_path = None
 
@@ -41,7 +42,7 @@ class JsonDatasetReader(AbstractDatasetReader):
             download_config=download_config,
             download_mode=download_mode,
             ignore_verifications=ignore_verifications,
-            # try_from_hf_gcs=try_from_hf_gcs,
+            try_from_hf_gcs=try_from_hf_gcs,
             base_path=base_path,
             use_auth_token=use_auth_token,
         )
