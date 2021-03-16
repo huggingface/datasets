@@ -1720,15 +1720,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs = {}
         fn_kwargs["input_columns"] = input_columns
 
-        # return map function
-        return self.map(
+        mask = self.map(
             partial(map_function, function=function, with_indices=with_indices),
             batched=True,
             with_indices=with_indices,
             features=self.features,
             batch_size=batch_size,
             remove_columns=remove_columns,
-            keep_in_memory=keep_in_memory,
+            keep_in_memory=True,
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
@@ -1737,6 +1736,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
         )
+        filtered = self._data.filter(mask)
+        return Dataset(filtered)
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
