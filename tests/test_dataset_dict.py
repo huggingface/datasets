@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 from unittest import TestCase
 
@@ -534,8 +533,7 @@ def test_datasetdict_from_json(
     else:
         split = "train"
         path = {"train": file_path, "test": file_path}
-    # cache_dir = tmp_path / "cache"
-    cache_dir = tempfile.mkdtemp()
+    cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
@@ -551,4 +549,3 @@ def test_datasetdict_from_json(
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    shutil.rmtree(cache_dir, ignore_errors=True)

@@ -1,6 +1,3 @@
-import shutil
-import tempfile
-
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -47,8 +44,7 @@ def test_json_dataset_reader(
         path = file_path
     elif issubclass(path_type, list):
         path = [file_path]
-    # cache_dir = tmp_path / "cache"
-    cache_dir = tempfile.mkdtemp()
+    cache_dir = tmp_path / "cache"
 
     expected_split = str(split) if split else "train"
 
@@ -66,7 +62,6 @@ def test_json_dataset_reader(
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    shutil.rmtree(cache_dir, ignore_errors=True)
 
 
 @pytest.mark.parametrize("json_format", [None, "jsonl", "json_list_of_dicts", "json_dict_of_lists"])
@@ -106,8 +101,7 @@ def test_json_datasetdict_reader(
     else:
         split = "train"
         path = {"train": file_path, "test": file_path}
-    # cache_dir = tmp_path / "cache"
-    cache_dir = tempfile.mkdtemp()
+    cache_dir = tmp_path / "cache"
 
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
@@ -124,4 +118,3 @@ def test_json_datasetdict_reader(
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    shutil.rmtree(cache_dir, ignore_errors=True)
