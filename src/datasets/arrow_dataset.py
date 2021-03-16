@@ -471,9 +471,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         field: Optional[str] = None,
         **kwargs,
     ):
-        """Create Dataset from JSON (Lines) file(s).
+        """Create Dataset from JSON or JSON Lines file(s).
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the JSON (Lines) file(s).
+            path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
             split (NamedSplit, optional): Split name to be assigned to the dataset.
             features (Features, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
