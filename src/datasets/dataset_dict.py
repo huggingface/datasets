@@ -457,10 +457,6 @@ class DatasetDict(dict):
         input_columns: Optional[Union[str, List[str]]] = None,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
-        keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
-        writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
     ) -> "DatasetDict":
@@ -493,8 +489,6 @@ class DatasetDict(dict):
                 use multiprocessing.
         """
         self._check_values_type()
-        if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
                 k: dataset.filter(
@@ -503,10 +497,6 @@ class DatasetDict(dict):
                     input_columns=input_columns,
                     batch_size=batch_size,
                     remove_columns=remove_columns,
-                    keep_in_memory=keep_in_memory,
-                    load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
-                    writer_batch_size=writer_batch_size,
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
                 )
