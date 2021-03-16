@@ -1971,7 +1971,8 @@ def test_dataset_from_json(
         path = file_path
     elif issubclass(path_type, list):
         path = [file_path]
-    cache_dir = tmp_path / "cache"
+    # cache_dir = tmp_path / "cache"
+    cache_dir = tempfile.mkdtemp()
     expected_split = str(split) if split else "train"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
@@ -1987,6 +1988,7 @@ def test_dataset_from_json(
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+    shutil.rmtree(cache_dir, ignore_errors=True)
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
