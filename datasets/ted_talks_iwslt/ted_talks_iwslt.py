@@ -217,7 +217,6 @@ class TedTalksIWSLTConfig(datasets.BuilderConfig):
         super(TedTalksIWSLTConfig, self).__init__(
             name=name,
             description=description,
-            version=datasets.Version("1.1.0", ""),
             **kwargs,
         )
 
@@ -239,9 +238,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         for year in _YEAR.keys()
     ]
 
-    # DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
-    def _info(self, language_pair=(None, None), year=None, **kwargs):
+    def _info(self):
         features = datasets.Features(
             {
                 "translation": datasets.features.Translation(languages=self.config.language_pair),
