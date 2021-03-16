@@ -75,11 +75,12 @@ class TypedSequence:
 
     """
 
-    def __init__(self, data, type=None, try_type=None):
+    def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
+        self.optimized_int_type = optimized_int_type
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
@@ -99,6 +100,14 @@ class TypedSequence:
                 raise TypeError(
                     "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
                 )
+            if self.optimized_int_type and self.type is None and self.try_type is None:
+                if pa.types.is_int64(out.type):
+                    out = out.cast(self.optimized_int_type)
+                elif pa.types.is_list(out.type):
+                    if pa.types.is_int64(out.type.value_type):
+                        out = out.cast(pa.list_(self.optimized_int_type))
+                    elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
+                        out = out.cast(pa.list_(pa.list_(self.optimized_int_type)))
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
@@ -121,6 +130,19 @@ class TypedSequence:
                 )
             else:
                 raise
+
+
+class OptimizedTypedSequence(TypedSequence):
+    def __init__(self, data, type=None, try_type=None, col=None, optimized_int_type=None):
+        optimized_int_type_by_col = {
+            "attention_mask": pa.int8(),  # binary tensor
+            "special_tokens_mask": pa.int8(),
+            "input_ids": pa.int32(),  # typical vocab size: 0-50k (max ~500k, never > 1M)
+            "token_type_ids": pa.int8(),  # binary mask; some (XLNetModel) use an additional token represented by a 2
+        }
+        if type is None and try_type is None:
+            optimized_int_type = optimized_int_type_by_col.get(col, None)
+        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
 
 
 class ArrowWriter:
@@ -242,12 +264,12 @@ class ArrowWriter:
         for col in cols:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = TypedSequence(
-                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type
+            typed_sequence = OptimizedTypedSequence(
+                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
-            first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
+            first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 raise OverflowError(
                     "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
@@ -289,7 +311,7 @@ class ArrowWriter:
         for col in sorted(batch_examples.keys()):
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
+            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
         self.write_table(pa_table, writer_batch_size)

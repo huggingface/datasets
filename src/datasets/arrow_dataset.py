@@ -40,7 +40,7 @@ from tqdm.auto import tqdm
 
 from . import config
 from .arrow_reader import ArrowReader
-from .arrow_writer import ArrowWriter, TypedSequence
+from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -428,7 +428,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             mapping = cast_to_python_objects(mapping)
         mapping = {
-            col: TypedSequence(data, type=features.type[col].type if features is not None else None)
+            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
             for col, data in mapping.items()
         }
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
