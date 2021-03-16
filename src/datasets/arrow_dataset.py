@@ -470,7 +470,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def __getstate__(self):
         state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
-        state["_split"] = str(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = str(state["_split"]) if isinstance(state["_split"], NamedSplit) else state["_split"]
         if self._data_files:
             state["_data"] = None
         if self._indices_data_files:
@@ -485,7 +485,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "tried to unpickle a dataset without arrow_table or data_files"
         state = state.copy()
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
-        state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = NamedSplit(state["_split"]) if isinstance(state["_split"], str) else state["_split"]
         self.__dict__ = state
         reader = ArrowReader("", self.info)
         # Read arrow tables

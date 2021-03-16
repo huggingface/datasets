@@ -466,8 +466,8 @@ class ReadInstruction(object):
     ds = datasets.load_dataset('mnist', split=ReadInstruction.from_spec(
             'test[:33%]+train[1:-1]'))
     ds = datasets.load_dataset('mnist', split=(
-            ReadInstruction.('test', to=33, unit='%') +
-            ReadInstruction.('train', from_=1, to=-1, unit='abs')))
+            ReadInstruction('test', to=33, unit='%') +
+            ReadInstruction('train', from_=1, to=-1, unit='abs')))
 
     # 10-fold validation:
     tests = datasets.load_dataset(
@@ -476,7 +476,7 @@ class ReadInstruction(object):
              for k in range(0, 100, 10)])
     trains = datasets.load_dataset(
             'mnist',
-            [RI('train', to=k, unit='%') + RI('train', from_=k+10, unit='%')
+            [ReadInstruction('train', to=k, unit='%') + ReadInstruction('train', from_=k+10, unit='%')
              for k in range(0, 100, 10)])
     ```
 
@@ -554,7 +554,7 @@ class ReadInstruction(object):
             raise AssertionError(msg)
         other_ris = other._relative_instructions  # pylint: disable=protected-access
         if self._relative_instructions[0].rounding != other_ris[0].rounding:
-            raise AssertionError("It is forbidden to sum ReadInstruction instances " "with different rounding values.")
+            raise AssertionError("It is forbidden to sum ReadInstruction instances with different rounding values.")
         return self._read_instruction_from_relative_instructions(self._relative_instructions + other_ris)
 
     def __str__(self):
