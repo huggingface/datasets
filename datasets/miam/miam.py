@@ -106,9 +106,7 @@ class MiamConfig(datasets.BuilderConfig):
             `datasets.Value('float32')`.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MiamConfig, self).__init__(
-            version=datasets.Version("1.0.0", ""), **kwargs
-        )
+        super(MiamConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
@@ -395,14 +393,9 @@ class Miam(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {
-            text_feature: datasets.Value("string")
-            for text_feature in six.iterkeys(self.config.text_features)
-        }
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if self.config.label_classes:
-            features["Label"] = datasets.features.ClassLabel(
-                names=self.config.label_classes
-            )
+            features["Label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         features["Idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
             description=_MIAM_DESCRIPTION,
