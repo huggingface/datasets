@@ -240,11 +240,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(
                 range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
             )
-            if not in_memory:
-                dset._data = Unpicklable()
-            dset._indices = Unpicklable()
-
-            dset.save_to_disk(dataset_path)
+            with assert_arrow_memory_doesnt_increase():
+                dset.save_to_disk(dataset_path)
             dset = dset.load_from_disk(dataset_path)
 
             self.assertEqual(len(dset), 10)
