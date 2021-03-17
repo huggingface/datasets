@@ -20,11 +20,11 @@ import contextlib
 import copy
 import json
 import os
-import pickle
 import shutil
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
@@ -52,7 +52,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .info import DatasetInfo
+from .info import DATASET_INFO_FILENAME, DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
@@ -71,6 +71,11 @@ if int(pa.__version__.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+
+DATASET_ARROW_FILENAME = "dataset.arrow"
+DATASET_INDICES_FILENAME = "indices.arrow"
+DATASET_STATE_JSON_FILENAME = "state.json"
 
 
 class DatasetInfoMixin(object):
@@ -426,85 +431,75 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
             fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
-        raise NotImplementedError()
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
-        self = pickle.loads(pickle.dumps(self))
 
         if is_remote_filesystem(fs):
             dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
 
-        # create temporary directory for saving
-        with tempfile.TemporaryDirectory() as temp_dataset_path:
-            fs.makedirs(dataset_path, exist_ok=True)
+        # Get json serializable state
+        state = {
+            key: self.__dict__[key]
+            for key in [
+                "_fingerprint",
+                "_format_columns",
+                "_format_kwargs",
+                "_format_type",
+                "_indexes",
+                "_output_all_columns",
+                "_split",
+            ]
+        }
+        state["_data_files"] = [{"filename": DATASET_ARROW_FILENAME}]
+        state["_indices_files"] = [{"filename": DATASET_INDICES_FILENAME}] if self._indices is not None else None
+        for k in state["_format_kwargs"].keys():
+            try:
+                json.dumps(state["_format_kwargs"][k])
+            except TypeError as e:
+                raise TypeError(str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't.")
 
-            # Write indices if needed
-            if self._indices is not None:
-                if not self._indices_data_files:
-                    cache_file_name = os.path.join(temp_dataset_path, "indices.arrow")
-                    with ArrowWriter(path=cache_file_name) as writer:
-                        writer.write_table(self._indices)
-                        writer.finalize()
-                    self._indices_data_files = [{"filename": cache_file_name}]
-            # Write dataset if needed
-            if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
-                cache_file_name = os.path.join(temp_dataset_path, "dataset.arrow")
-                with ArrowWriter(path=cache_file_name) as writer:
-                    writer.write_table(self._data)
+        # Get json serializable dataset info
+        dataset_info = asdict(self._info)
+
+        # Save dataset + indices + state + info
+        fs.makedirs(dataset_path, exist_ok=True)
+        with fs.open(Path(dataset_path).joinpath(DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
+            with ArrowWriter(stream=dataset_file) as writer:
+                writer.write_table(self._data)
+                writer.finalize()
+        if self._indices is not None:
+            with fs.open(Path(dataset_path).joinpath(DATASET_INDICES_FILENAME).as_posix(), "wb") as indices_file:
+                with ArrowWriter(stream=indices_file) as writer:
+                    writer.write_table(self._indices)
                     writer.finalize()
-                self._data_files = [{"filename": cache_file_name}]
-                self._inplace_history = [{"transforms": []}]
-            # Copy all files into the dataset directory
-            for data_file in self._data_files + self._indices_data_files:
-                src = Path(data_file["filename"])
-                dest = Path(dataset_path).joinpath(src.name)
-                if fs.protocol != "file":
-                    fs.put(src.as_posix(), dest.as_posix())
-                elif src.as_posix() != dest.as_posix():
-                    fs.put(src.as_posix(), dest.as_posix())
-                # Change path to relative path from inside the destination directory
-                data_file["filename"] = src.name
-
-            # Get state
-            state = self.__getstate__()
-            dataset_info = json.loads(state.pop("_info"))
-            assert state.get("_data") is None, "arrow table needs to be memory mapped"
-            assert state.get("_indices") is None, "arrow table needs to be memory mapped"
-            assert all(
-                len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
-            ), "in-place history needs to be empty"
-            for k in state["_format_kwargs"].keys():
-                try:
-                    json.dumps(state["_format_kwargs"][k])
-                except TypeError as e:
-                    raise TypeError(str(e) + f"\nThe format kwargs must be jSON serializable, but key '{k}' isn't.")
-            # Serialize state
-            with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
-                json.dump(state, state_file, indent=2, sort_keys=True)
-            with fs.open(
-                Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
-            ) as dataset_info_file:
-                json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
-            logger.info("Dataset saved in {}".format(dataset_path))
+        with fs.open(
+            Path(dataset_path).joinpath(DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
+        ) as state_file:
+            json.dump(state, state_file, indent=2, sort_keys=True)
+        with fs.open(
+            Path(dataset_path).joinpath(DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
+        ) as dataset_info_file:
+            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+        logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
+    def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> "Dataset":
         """
         Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
             fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
 
         Returns:
             ``datasets.Dataset`` or ``datasets.DatasetDict``
                 if `dataset_path` is a path of a dataset directory: the dataset requested,
                 if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
-        raise NotImplementedError()
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
@@ -512,23 +507,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
+        with open(
+            Path(dataset_path).joinpath(DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
+        ) as state_file:
             state = json.load(state_file)
         with open(
-            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "r", encoding="utf-8"
+            Path(dataset_path).joinpath(DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
         ) as dataset_info_file:
-            dataset_info = json.load(dataset_info_file)
-        state["_info"] = json.dumps(dataset_info)
-        dataset = Dataset.from_dict({})
-        state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
-        # Change path to absolute path
-        for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"]).as_posix()
-        dataset.__setstate__(state)
+            dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
+
+        table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
+        arrow_table = concat_tables(
+            table_cls.from_file(Path(dataset_path).joinpath(data_file["filename"]).as_posix())
+            for data_file in state["_data_files"]
+        )
+        if state["_indices_files"]:
+            indices_table = concat_tables(
+                table_cls.from_file(Path(dataset_path).joinpath(indices_file["filename"]).as_posix())
+                for indices_file in state["_indices_files"]
+            )
+        else:
+            indices_table = None
 
         if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
             shutil.rmtree(tmp_dir.name, ignore_errors=True)
-        return dataset
+
+        return Dataset(
+            arrow_table=arrow_table,
+            indices_table=indices_table,
+            info=dataset_info,
+            split=state["_split"],
+            fingerprint=state["_fingerprint"],
+        )
 
     @property
     def data(self) -> pa.Table:
