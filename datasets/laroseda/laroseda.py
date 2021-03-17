@@ -36,7 +36,7 @@ _CITATION = """\
 _DESCRIPTION = """\
         LaRoSeDa (A Large Romanian Sentiment Data Set) contains 15,000 reviews written in Romanian, of which 7,500 are positive and 7,500 negative.
         Star ratings of 1 and 2 and of 4 and 5 are provided for negative and positive reviews respectively.
-        The current dataset uses star rating as the label for multi-class clasification.
+        The current dataset uses star rating as the label for multi-class classification.
 """
 
 _HOMEPAGE = "https://github.com/ancatache/LaRoSeDa"
@@ -51,19 +51,19 @@ _TRAIN_FILE = "laroseda_train.json"
 _TEST_FILE = "laroseda_test.json"
 
 
-class LaRoSeDaConfig(datasets.BuilderConfig):
+class LarosedaConfig(datasets.BuilderConfig):
     """BuilderConfig for the LaRoSeDa dataset"""
 
     def __init__(self, **kwargs):
-        super(LaRoSeDaConfig, self).__init__(**kwargs)
+        super(LarosedaConfig, self).__init__(**kwargs)
 
 
-class LaRoSeDa(datasets.GeneratorBasedBuilder):
+class Laroseda(datasets.GeneratorBasedBuilder):
     """LaRoSeDa dataset"""
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        LaRoSeDaConfig(name="laroseda", version=VERSION, description="LaRoSeDa dataset"),
+        LarosedaConfig(name="laroseda", version=VERSION, description="LaRoSeDa dataset"),
     ]
 
     def _info(self):

@@ -47,9 +47,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/ancatache/LaRoSeDa
-- **Repository:** https://github.com/ancatache/LaRoSeDa
-- **Paper:** Anca Maria Tache, Mihaela Gaman, Radu Tudor Ionescu. Clustering Word Embeddings with Self-Organizing Maps. Application on LaRoSeDa – A Large Romanian Sentiment Data Set. ArXiv, 2021 [(link to paper)](https://arxiv.org/pdf/2101.04197.pdf).
+- **Homepage:** [Github](https://github.com/ancatache/LaRoSeDa)
+- **Repository:** [Github](https://github.com/ancatache/LaRoSeDa)
+- **Paper:** [Arxiv](https://arxiv.org/pdf/2101.04197.pdf)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** raducu.ionescu@gmail.com
 
@@ -158,6 +158,7 @@ CC BY-SA 4.0 License
 
 ### Citation Information
 
+```
 @article{
     tache2101clustering,
     title={Clustering Word Embeddings with Self-Organizing Maps. Application on LaRoSeDa -- A Large Romanian Sentiment Data Set},
@@ -165,6 +166,7 @@ CC BY-SA 4.0 License
     journal={ArXiv},
     year = {2021}
 }
+```
 
 ### Contributions
 
