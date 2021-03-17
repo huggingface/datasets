@@ -655,6 +655,8 @@ class DatasetDict(dict):
             dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from.
             fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
+        Returns:
+            :class:`DatasetDict`.
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):

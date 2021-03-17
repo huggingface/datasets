@@ -590,9 +590,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
         Returns:
-            ``datasets.Dataset`` or ``datasets.DatasetDict``
-                if `dataset_path` is a path of a dataset directory: the dataset requested,
-                if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+            :class:`Dataset` or :class:`DatasetDict`.
+                - if `dataset_path` is a path of a dataset directory: the :class:`Dataset` requested,
+                - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         if is_remote_filesystem(fs):
