@@ -409,9 +409,7 @@ class Split(object):
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
-    See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
-    for more information.
+    See the :doc:`guide on splits </splits>` for more information.
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
