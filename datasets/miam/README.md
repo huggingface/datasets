@@ -195,7 +195,7 @@ For the `maptask` configuration, the different fields are:
 For the `vm2` configuration, the different fields are:
 - `Utterance`: Utterance as a string.
 - `Dialogue_Act: Dialogue act label of the utterance. It can be one of "ACCEPT" (0), "BACKCHANNEL" (1), "BYE" (2), "CLARIFY" (3), "CLOSE" (4), "COMMIT" (5), "CONFIRM" (6), "DEFER" (7), "DELIBERATE" (8), "DEVIATE_SCENARIO" (9), "EXCLUDE" (10), "EXPLAINED_REJECT" (11), "FEEDBACK" (12), "FEEDBACK_NEGATIVE" (13), "FEEDBACK_POSITIVE" (14), "GIVE_REASON" (15), "GREET" (16), "INFORM" (17), "INIT" (18), "INTRODUCE" (19), "NOT_CLASSIFIABLE" (20), "OFFER" (21), "POLITENESS_FORMULA" (22), "REJECT" (23), "REQUEST" (24), "REQUEST_CLARIFY" (25), "REQUEST_COMMENT" (26), "REQUEST_COMMIT" (27), "REQUEST_SUGGEST" (28), "SUGGEST" (29), "THANK" (30).
-- `Speaker`: Speaker as a string.
+- `Speaker`: identifier of the speaker as a string.
 - `Dialogue_ID`: identifier of the dialogue as a string.
 
 ### Data Splits

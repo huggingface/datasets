@@ -22,11 +22,9 @@ import csv
 import os
 import textwrap
 
+import datasets
 import pandas as pd
 import six
-
-import datasets
-
 
 _MIAM_CITATION = """\
 @inproceedings{anonymous,
@@ -108,9 +106,7 @@ class MiamConfig(datasets.BuilderConfig):
             `datasets.Value('float32')`.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MiamConfig, self).__init__(
-            version=datasets.Version("1.0.0", ""), **kwargs
-        )
+        super(MiamConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
@@ -175,7 +171,7 @@ class Miam(datasets.GeneratorBasedBuilder):
             description=textwrap.dedent(
                 """\
             "itaLIan Speech acT labEliNg" (iLISTEN) is a corpus of annotated dialogue turns labeled
-             for speech acts."""
+            for speech acts."""
             ),
             text_features={
                 "Speaker": "Speaker",
@@ -223,8 +219,8 @@ class Miam(datasets.GeneratorBasedBuilder):
             name="loria",
             description=textwrap.dedent(
                 """\
-            The LORIA Nancy dialog corpus is derived from human-machine interactions in a
-            serious game setting."""
+            The LORIA Nancy dialog corpus is derived from human-machine interactions in a serious
+            game setting."""
             ),
             text_features={
                 "Speaker": "Speaker",
@@ -289,8 +285,8 @@ class Miam(datasets.GeneratorBasedBuilder):
             description=textwrap.dedent(
                 """\
             The HCRC MapTask Corpus was constructed through the verbal collaboration of participants
-             in order to construct a map route. This corpus is small (27k utterances). As there is
-             no standard train/dev/test split performance depends on the split."""
+            in order to construct a map route. This corpus is small (27k utterances). As there is
+            no standard train/dev/test split performance depends on the split."""
             ),
             text_features={
                 "Speaker": "Speaker",
@@ -335,8 +331,8 @@ class Miam(datasets.GeneratorBasedBuilder):
             name="vm2",
             description=textwrap.dedent(
                 """\
-            The VERBMOBIL corpus consist of transcripts of multi-party meetings hand-annotated with dialog
-            acts. It is the second biggest dataset with around 110k utterances."""
+            The VERBMOBIL corpus consist of transcripts of multi-party meetings hand-annotated with
+            dialog acts. It is the second biggest dataset with around 110k utterances."""
             ),
             text_features={
                 "Utterance": "Utterance",
@@ -397,14 +393,9 @@ class Miam(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {
-            text_feature: datasets.Value("string")
-            for text_feature in six.iterkeys(self.config.text_features)
-        }
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if self.config.label_classes:
-            features["Label"] = datasets.features.ClassLabel(
-                names=self.config.label_classes
-            )
+            features["Label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         features["Idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
             description=_MIAM_DESCRIPTION,
