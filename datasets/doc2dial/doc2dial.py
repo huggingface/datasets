@@ -250,34 +250,33 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                 data = json.load(f)
                 for domain in data["doc_data"]:
                     for doc_id in data["doc_data"][domain]:
-                        for dialogue in data["doc_data"][domain][doc_id]:
 
-                            yield doc_id, {
-                                "domain": domain,
-                                "doc_id": doc_id,
-                                "title": data["doc_data"][domain][doc_id]["title"],
-                                "doc_text": data["doc_data"][domain][doc_id]["doc_text"],
-                                "spans": [
-                                    {
-                                        "id_sp": data["doc_data"][domain][doc_id]["spans"][i]["id_sp"],
-                                        "tag": data["doc_data"][domain][doc_id]["spans"][i]["tag"],
-                                        "start_sp": data["doc_data"][domain][doc_id]["spans"][i]["start_sp"],
-                                        "end_sp": data["doc_data"][domain][doc_id]["spans"][i]["end_sp"],
-                                        "text_sp": data["doc_data"][domain][doc_id]["spans"][i]["text_sp"],
-                                        "title": data["doc_data"][domain][doc_id]["spans"][i]["title"],
-                                        "parent_titles": str(
-                                            data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"]
-                                        ),
-                                        "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
-                                        "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
-                                        "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
-                                        "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
-                                    }
-                                    for i in data["doc_data"][domain][doc_id]["spans"]
-                                ],
-                                "doc_html_ts": data["doc_data"][domain][doc_id]["doc_html_ts"],
-                                "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
-                            }
+                        yield doc_id, {
+                            "domain": domain,
+                            "doc_id": doc_id,
+                            "title": data["doc_data"][domain][doc_id]["title"],
+                            "doc_text": data["doc_data"][domain][doc_id]["doc_text"],
+                            "spans": [
+                                {
+                                    "id_sp": data["doc_data"][domain][doc_id]["spans"][i]["id_sp"],
+                                    "tag": data["doc_data"][domain][doc_id]["spans"][i]["tag"],
+                                    "start_sp": data["doc_data"][domain][doc_id]["spans"][i]["start_sp"],
+                                    "end_sp": data["doc_data"][domain][doc_id]["spans"][i]["end_sp"],
+                                    "text_sp": data["doc_data"][domain][doc_id]["spans"][i]["text_sp"],
+                                    "title": data["doc_data"][domain][doc_id]["spans"][i]["title"],
+                                    "parent_titles": str(
+                                        data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"]
+                                    ),
+                                    "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
+                                    "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
+                                    "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
+                                    "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
+                                }
+                                for i in data["doc_data"][domain][doc_id]["spans"]
+                            ],
+                            "doc_html_ts": data["doc_data"][domain][doc_id]["doc_html_ts"],
+                            "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
+                        }
 
         elif self.config.name == "doc2dial_rc":
             """Load dialog data in the reading comprehension task setup, where context is the grounding document,
@@ -301,6 +300,8 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                         turn_to_predict = dial["turns"][idx + 1]
                                     else:
                                         continue
+                                else:
+                                    continue
                                 question = " ".join(list(reversed(all_prev_utterances))).strip()
                                 id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                                 qa = {

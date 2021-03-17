@@ -75,7 +75,7 @@ source_datasets:
 task_categories:
 - other
 task_ids:
-- other-other-speech-translation
+- other-other-automatic-speech-recognition
 ---
 
 # Dataset Card for common_voice
