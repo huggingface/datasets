@@ -626,11 +626,11 @@ class DatasetDict(dict):
 
     def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
-        Saves a dataset dict to a filesystem using either :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be saved to.
-            fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): Instance of the remote filesystem used to download the files from.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): Instance of the remote filesystem used to download the files from.
         """
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
@@ -649,11 +649,11 @@ class DatasetDict(dict):
     @staticmethod
     def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
         """
-        Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be loaded from.
-            fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): Instance of the remote filesystem used to download the files from.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): Instance of the remote filesystem used to download the files from.
 
         Returns:
             :class:`DatasetDict`.
