@@ -243,7 +243,7 @@ One common occurence is to have a JSON file with a single root dictionary where 
 
 .. code-block::
 
-    {"version: "0.1.0",
+    {"version": "0.1.0",
      "data": [{"a": 1, "b": 2.0, "c": "foo", "d": false},
               {"a": 4, "b": -5.5, "c": null, "d": true}]
     }

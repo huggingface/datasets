@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
 - sentiment-classification
 ---

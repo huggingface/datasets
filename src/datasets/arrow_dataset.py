@@ -40,7 +40,7 @@ from tqdm.auto import tqdm
 
 from . import config
 from .arrow_reader import ArrowReader
-from .arrow_writer import ArrowWriter, TypedSequence
+from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -428,7 +428,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             mapping = cast_to_python_objects(mapping)
         mapping = {
-            col: TypedSequence(data, type=features.type[col].type if features is not None else None)
+            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
             for col, data in mapping.items()
         }
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
@@ -444,6 +444,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         **kwargs,
     ):
         """Create Dataset from CSV file(s).
+
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
             split (NamedSplit, optional): Split name to be assigned to the dataset.
@@ -451,6 +452,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+
         Returns:
             datasets.Dataset
         """
@@ -470,7 +472,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def __getstate__(self):
         state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
-        state["_split"] = str(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = str(state["_split"]) if isinstance(state["_split"], NamedSplit) else state["_split"]
         if self._data_files:
             state["_data"] = None
         if self._indices_data_files:
@@ -485,7 +487,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "tried to unpickle a dataset without arrow_table or data_files"
         state = state.copy()
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
-        state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = NamedSplit(state["_split"]) if isinstance(state["_split"], str) else state["_split"]
         self.__dict__ = state
         reader = ArrowReader("", self.info)
         # Read arrow tables
@@ -888,8 +890,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._format_columns is not None:
             self._format_columns = rename(self._format_columns)
 
-        self._info.features[new_column_name] = self._info.features[original_column_name]
-        del self._info.features[original_column_name]
+        self._info.features = Features(
+            {
+                new_column_name if col == original_column_name else col: feature
+                for col, feature in self._info.features.items()
+            }
+        )
 
         self._data = self._data.rename_columns(new_column_names)
 
@@ -928,8 +934,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._format_columns is not None:
             dataset._format_columns = rename(self._format_columns)
 
-        dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
-        del dataset._info.features[original_column_name]
+        dataset._info.features = Features(
+            {
+                new_column_name if col == original_column_name else col: feature
+                for col, feature in self._info.features.items()
+            }
+        )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._fingerprint = new_fingerprint
