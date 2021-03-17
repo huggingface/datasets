@@ -507,11 +507,11 @@ class ConcatenationTable(Table):
             new_tables = []
             for table in tables:
                 subschema = pa.schema(
-                    [
-                        (type, name)
+                    {
+                        name: type
                         for (type, name) in zip(target_schema.types, target_schema.names)
                         if name in table.schema.names
-                    ]
+                    }
                 )
                 new_tables.append(table.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
