@@ -473,10 +473,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
                 else:
                     utf_f = f
 
-                # To clear root, to free-up more memory than just `elem.clear()`.
                 context = etree.iterparse(utf_f, events=("end",))
-                context = iter(context)
-                unused_event, root = next(context)
                 for unused_event, elem in context:
                     if not elem.tag.endswith("page"):
                         continue
@@ -487,11 +484,11 @@ class Wikipedia(datasets.BeamBasedBuilder):
 
                     # Filter pages that are not in the "main" namespace.
                     if ns != "0":
-                        root.clear()
+                        elem.clear()
                         continue
 
                     raw_content = elem.find("./{0}revision/{0}text".format(namespace)).text
-                    root.clear()
+                    elem.clear()
 
                     # Filter redirects.
                     if raw_content is None or raw_content.lower().startswith("#redirect"):

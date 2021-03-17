@@ -5,7 +5,7 @@ from unittest import TestCase
 import pyarrow as pa
 import pytest
 
-from datasets.arrow_writer import ArrowWriter, TypedSequence
+from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
 from datasets.features import Array2DExtensionType
 
 
@@ -124,6 +124,36 @@ class ArrowWriterTest(TestCase):
             self.assertGreater(num_bytes, 0)
             self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
             self._check_output(output)
+
+
+def get_base_dtype(arr_type):
+    if pa.types.is_list(arr_type):
+        return get_base_dtype(arr_type.value_type)
+    else:
+        return arr_type
+
+
+@pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (pa.int32(), pa.int32())])
+@pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
+def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, expected_dtype):
+    arr = pa.array(TypedSequence(sequence, optimized_int_type=optimized_int_type))
+    assert get_base_dtype(arr.type) == expected_dtype
+
+
+@pytest.mark.parametrize(
+    "col, expected_dtype",
+    [
+        ("attention_mask", pa.int8()),
+        ("special_tokens_mask", pa.int8()),
+        ("token_type_ids", pa.int8()),
+        ("input_ids", pa.int32()),
+        ("other", pa.int64()),
+    ],
+)
+@pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
+def test_optimized_typed_sequence(sequence, col, expected_dtype):
+    arr = pa.array(OptimizedTypedSequence(sequence, col=col))
+    assert get_base_dtype(arr.type) == expected_dtype
 
 
 @pytest.mark.parametrize("raise_exception", [False, True])
