@@ -91,7 +91,7 @@ An instance from the `task4_reddit` config's `cand-valid` split:
 
 For all configurations:
 - `dialogue_turns`: a dictionary feature containing:
-  - `speaker`: a classification label, with possible values including `0`, `1`, indicating which speaker wrote the utterance.
+  - `speaker`: an integer with possible values including `0`, `1`, indicating which speaker wrote the utterance.
   - `utterance`: a `string` feature containing the text utterance.
 
 ### Data Splits
