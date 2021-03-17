@@ -514,7 +514,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to.
             fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         assert (
@@ -586,7 +586,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
+            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from.
             fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
         Returns:

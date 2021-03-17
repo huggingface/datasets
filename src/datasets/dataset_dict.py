@@ -629,7 +629,7 @@ class DatasetDict(dict):
         Saves a dataset dict to a filesystem using either :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to.
             fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
         """
         if is_remote_filesystem(fs):
@@ -652,7 +652,7 @@ class DatasetDict(dict):
         Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from
+            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from.
             fs (:class:`datasets.filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
         """
