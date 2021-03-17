@@ -74,11 +74,13 @@ class BaseReaderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             reader = ReaderTest(tmp_dir, info)
 
-            files = [os.path.join(tmp_dir, "train"), os.path.join(tmp_dir, "test")]
+            files = [
+                {"filename": os.path.join(tmp_dir, "train")},
+                {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
+            ]
             dset = Dataset(**reader.read_files(files, original_instructions=""))
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
-            self.assertEqual(dset.cache_files, files)
             del dset
 
 
@@ -101,7 +103,7 @@ def test_read_files(in_memory, dataset, arrow_file):
     previous_allocated_memory = pa.total_allocated_bytes()
     dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
     increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
-    assert dataset_kwargs.keys() == set(["arrow_table", "data_files", "info", "split"])
+    assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
