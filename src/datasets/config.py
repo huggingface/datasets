@@ -1,6 +1,8 @@
 import os
 import sys
+import importlib
 from pathlib import Path
+from packaging import version
 
 from .utils.logging import get_logger
 
@@ -46,15 +48,48 @@ else:
 
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
+
 if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-    try:
-        TF_VERSION = importlib_metadata.version("tensorflow")
-        TF_AVAILABLE = True
-        logger.info("TensorFlow version {} available.".format(TF_VERSION))
-    except importlib_metadata.PackageNotFoundError:
-        pass
+    TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
+    if TF_AVAILABLE:
+        # For the metadata, we have to look for both tensorflow and tensorflow-cpu
+        try:
+            TF_VERSION = importlib_metadata.version("tensorflow")
+        except importlib_metadata.PackageNotFoundError:
+            try:
+                TF_VERSION = importlib_metadata.version("tensorflow-cpu")
+            except importlib_metadata.PackageNotFoundError:
+                try:
+                    TF_VERSION = importlib_metadata.version("tensorflow-gpu")
+                except importlib_metadata.PackageNotFoundError:
+                    try:
+                        TF_VERSION = importlib_metadata.version("tf-nightly")
+                    except importlib_metadata.PackageNotFoundError:
+                        try:
+                            TF_VERSION = importlib_metadata.version("tf-nightly-cpu")
+                        except importlib_metadata.PackageNotFoundError:
+                            try:
+                                TF_VERSION = importlib_metadata.version("tf-nightly-gpu")
+                            except importlib_metadata.PackageNotFoundError:
+                                TF_VERSION = None
+                                TF_AVAILABLE = False
+    if TF_AVAILABLE:
+        if version.parse(TF_VERSION) < version.parse("2"):
+            logger.info(f"TensorFlow found but with version {TF_VERSION}. Transformers requires version 2 minimum.")
+            TF_AVAILABLE = False
+        else:
+            logger.info(f"TensorFlow version {TF_VERSION} available.")
 else:
     logger.info("Disabling Tensorflow because USE_TORCH is set")
+    TF_AVAILABLE = False
+
+
+
+
+
+
+
+
 
 USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
 BEAM_VERSION = "N/A"
