@@ -67,9 +67,7 @@ task_ids:
 - **Point of Contact:** 
 ### Dataset Summary
 
-The Movie Dialog dataset (MDD) is designed to measure how well models can perform at goal and non-goal orientated dialog centered around the topic of movies (question answering, 
-recommendation and discussion), from various movie reviews sources such as MovieLens and OMDb.
-
+The Movie Dialog dataset (MDD) is designed to measure how well models can perform at goal and non-goal orientated dialog centered around the topic of movies (question answering, recommendation and discussion), from various movie reviews sources such as MovieLens and OMDb.
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
