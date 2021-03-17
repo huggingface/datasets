@@ -91,6 +91,10 @@ The examples look like this :
 }
 ```
 
+The original data files within the Dutch sub-dataset have `-DOCSTART-` lines used to separate documents, but these lines are removed here.
+Indeed `-DOCSTART-` is a special line that acts as a boundary between two different documents, and it is filtered out in this implementation.
+
+
 ### Data Fields
 
 - `id`: id of the sample

@@ -86,10 +86,13 @@ class Csv(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type) if self.config.features is not None else None
+        # dtype allows reading an int column as str
+        dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
         for file_idx, file in enumerate(files):
             csv_file_reader = pd.read_csv(
                 file,
                 iterator=True,
+                dtype=dtype,
                 sep=self.config.sep,
                 header=self.config.header,
                 names=self.config.names,

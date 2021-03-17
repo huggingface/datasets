@@ -11,6 +11,8 @@ from datasets.arrow_reader import ArrowReader, BaseReader
 from datasets.info import DatasetInfo
 from datasets.splits import SplitDict, SplitInfo
 
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
+
 
 class ReaderTest(BaseReader):
     """
@@ -87,25 +89,21 @@ class BaseReaderTest(TestCase):
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_read_table(in_memory, dataset, arrow_file):
     filename = arrow_file
-    previous_allocated_memory = pa.total_allocated_bytes()
-    table = ArrowReader.read_table(filename, in_memory=in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        table = ArrowReader.read_table(filename, in_memory=in_memory)
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
     assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
-    assert increased_allocated_memory == in_memory
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_read_files(in_memory, dataset, arrow_file):
     filename = arrow_file
     reader = ArrowReader("", None)
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
     assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
     assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
-    assert increased_allocated_memory == in_memory

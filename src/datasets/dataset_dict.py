@@ -14,6 +14,7 @@ from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .utils.deprecation_utils import deprecated
+from .utils.typing import PathLike
 
 
 class DatasetDict(dict):
@@ -671,3 +672,30 @@ class DatasetDict(dict):
             )
             dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
         return dataset_dict
+
+    @staticmethod
+    def from_csv(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create DatasetDict from CSV file(s).
+
+        Args:
+            path_or_paths (dict of path-like): Path(s) of the CSV file(s).
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+
+        Returns:
+            datasets.DatasetDict
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetReader
+
+        return CsvDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()

@@ -123,7 +123,7 @@ class Species800(datasets.GeneratorBasedBuilder):
             tokens = []
             ner_tags = []
             for line in f:
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                if line == "" or line == "\n":
                     if tokens:
                         yield guid, {
                             "id": str(guid),
