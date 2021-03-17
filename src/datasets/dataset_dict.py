@@ -649,7 +649,7 @@ class DatasetDict(dict):
     @staticmethod
     def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
         """
-        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from.

@@ -583,7 +583,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
         """
-        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from.
