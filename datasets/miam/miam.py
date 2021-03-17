@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
+# Lint as:
+# python3
 """The Multilingual dIalogAct benchMark."""
 
 from __future__ import absolute_import, division, print_function
@@ -22,9 +23,11 @@ import csv
 import os
 import textwrap
 
-import datasets
 import pandas as pd
 import six
+
+import datasets
+
 
 _MIAM_CITATION = """\
 @inproceedings{anonymous,
