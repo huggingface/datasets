@@ -4,13 +4,14 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ro, md
+- ro
+- ro-md
 licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
-- n>30K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -47,9 +48,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/butnaruandrei/MOROCO
-- **Repository:** https://github.com/butnaruandrei/MOROCO
-- **Paper:** Andrei M. Butnaru, Radu Tudor Ionescu. MOROCO: The Moldavian and Romanian Dialectal Corpus. ArXiv, 2019 [(link to paper)](https://arxiv.org/abs/1901.06543).
+- **Homepage:** [Github](https://github.com/butnaruandrei/MOROCO)
+- **Repository:** [Github](https://github.com/butnaruandrei/MOROCO)
+- **Paper:** [Arxiv](https://arxiv.org/abs/1901.06543)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** raducu.ionescu@gmail.com
 
@@ -155,6 +156,7 @@ CC BY-SA 4.0 License
 
 ### Citation Information
 
+```
 @inproceedings{ Butnaru-ACL-2019,
     author = {Andrei M. Butnaru and Radu Tudor Ionescu},
     title = "{MOROCO: The Moldavian and Romanian Dialectal Corpus}",
@@ -162,6 +164,7 @@ CC BY-SA 4.0 License
     year = {2019},
     pages={688--698},
 }
+```
 
 ### Contributions
 

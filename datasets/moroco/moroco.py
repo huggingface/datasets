@@ -32,14 +32,14 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-        The MOROCO (Moldavian and Romanian Dialectal Corpus) dataset contains 33564 samples of text collected from the news domain.
-        The samples belong to one of the following six topics:
-            - culture
-            - finance
-            - politics
-            - science
-            - sports
-            - tech
+The MOROCO (Moldavian and Romanian Dialectal Corpus) dataset contains 33564 samples of text collected from the news domain.
+The samples belong to one of the following six topics:
+    - culture
+    - finance
+    - politics
+    - science
+    - sports
+    - tech
 """
 
 _HOMEPAGE = "https://github.com/butnaruandrei/MOROCO"
@@ -48,9 +48,7 @@ _LICENSE = "CC BY-SA 4.0 License"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://raw.githubusercontent.com/MihaelaGaman/MOROCO/huggingface-datasets-addition/MOROCO/preprocessed/all/"
-
-# "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/"
+_URL = "https://raw.githubusercontent.com/butnaruandrei/MOROCO/master/MOROCO/preprocessed/all/"
 
 _TRAIN_SAMPLES_FILE = "train_samples.txt"
 _TRAIN_LABELS_FILE = "train_category_labels.txt"
