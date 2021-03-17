@@ -559,14 +559,14 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    `GeneratorBasedBuilder._split_generators`.
-    See `GeneratorBasedBuilder._split_generators` for more info and example
+    :meth:`GeneratorBasedBuilder._split_generators`.
+    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name: `str`, name of the Split for which the generator will
+        name (str): Name of the Split for which the generator will
             create the examples.
-        gen_kwargs: `dict`, kwargs to forward to the _generate_examples() method
+        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
     """
 
