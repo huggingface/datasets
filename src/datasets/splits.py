@@ -400,12 +400,12 @@ class Split(object):
     Datasets are typically split into different subsets to be used at various
     stages of training and evaluation.
 
-    * `TRAIN`: the training data.
-    * `VALIDATION`: the validation data. If present, this is typically used as
-        evaluation data while iterating on a model (e.g. changing hyperparameters,
-        model architecture, etc.).
-    * `TEST`: the testing data. This is the data to report metrics on. Typically
-        you do not want to use this during model iteration as you may overfit to it.
+    - `TRAIN`: the training data.
+    - `VALIDATION`: the validation data. If present, this is typically used as
+      evaluation data while iterating on a model (e.g. changing hyperparameters,
+      model architecture, etc.).
+    - `TEST`: the testing data. This is the data to report metrics on. Typically
+      you do not want to use this during model iteration as you may overfit to it.
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
