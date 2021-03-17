@@ -444,6 +444,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         **kwargs,
     ):
         """Create Dataset from CSV file(s).
+
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
             split (NamedSplit, optional): Split name to be assigned to the dataset.
@@ -451,6 +452,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+
         Returns:
             datasets.Dataset
         """
