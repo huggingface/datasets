@@ -13,14 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as:
-# python3
+# Lint as: python3
 """The Multilingual dIalogAct benchMark."""
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import os
 import textwrap
 
 import pandas as pd
@@ -149,7 +146,7 @@ class Miam(datasets.GeneratorBasedBuilder):
                 """\
             @inproceedings{benedi2006design,
             title={Design and acquisition of a telephone spontaneous speech dialogue corpus in Spanish: DIHANA},
-            author={Bened{\i}, Jos{\'e}-Miguel and Lleida, Eduardo and Varona, Amparo and Castro, Mar{\i}a-Jos{\'e} and Galiano, Isabel and Justo, Raquel and L{\'o}pez, I and Miguel, Antonio},
+            author={Bened{\'i}, Jos{\'e}-Miguel and Lleida, Eduardo and Varona, Amparo and Castro, Mar{\'i}a-Jos{\'e} and Galiano, Isabel and Justo, Raquel and L{\'o}pez, I and Miguel, Antonio},
             booktitle={Fifth International Conference on Language Resources and Evaluation (LREC)},
             pages={1636--1639},
             year={2006}
