@@ -1553,7 +1553,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split, in_memory=keep_in_memory)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if update_data:
@@ -1658,6 +1658,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # output dataset args
         remove_columns: Optional[List[str]] = None,
         new_fingerprint: Optional[str] = None,
+        # caching args
+        cache_file_name: Optional[str] = None,
         # deprecated, use functool.partial to build function with the right signature.
         fn_kwargs: Optional[dict] = None,
         **deprecated_kwargs,
@@ -1719,6 +1721,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             remove_columns=self.column_names,
             keep_in_memory=True,
             fn_kwargs=fn_kwargs,
+            cache_file_name=cache_file_name,
             num_proc=num_proc,
             input_columns=input_columns,
         )
