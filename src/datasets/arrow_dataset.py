@@ -447,14 +447,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
-            split (NamedSplit, optional): Split name to be assigned to the dataset.
-            features (Features, optional): Dataset features.
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
-            datasets.Dataset
+            :class:`Dataset`
         """
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetReader
@@ -474,16 +474,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         **kwargs,
     ):
         """Create Dataset from JSON or JSON Lines file(s).
+
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
-            split (NamedSplit, optional): Split name to be assigned to the dataset.
-            features (Features, optional): Dataset features.
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             field (str, optional): Field name of the JSON file where the dataset is contained in.
             **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+
         Returns:
-            datasets.Dataset
+            :class:`Dataset`
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetReader
@@ -508,15 +510,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         **kwargs,
     ):
         """Create Dataset from text file(s).
+
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
-            split (NamedSplit, optional): Split name to be assigned to the dataset.
-            features (Features, optional): Dataset features.
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
+
         Returns:
-            datasets.Dataset
+            :class:`Dataset`
         """
         # Dynamic import to avoid circular dependency
         from .io.text import TextDatasetReader
