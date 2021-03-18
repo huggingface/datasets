@@ -305,46 +305,39 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Each descriptor can be composed with other using addition or slice. Ex:
+    Examples:
+        Each descriptor can be composed with other using addition or slice. Ex::
 
-    ```
-    split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
-    ```
+            split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
 
-    The resulting split will correspond to 25% of the train split merged with
-    100% of the test split.
-
-    Warning:
-        A split cannot be added twice, so the following will fail:
-
-    ```
-    split = (
-            datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
-            datasets.Split.TRAIN.subsplit(datasets.percent[75:])
-    )  # Error
-    split = datasets.Split.TEST + datasets.Split.ALL  # Error
-    ```
+        The resulting split will correspond to 25% of the train split merged with
+        100% of the test split.
 
     Warning:
-        The slices can be applied only one time. So the following are valid:
+        A split cannot be added twice, so the following will fail::
 
-    ```
-    split = (
-            datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
-            datasets.Split.TEST.subsplit(datasets.percent[:50])
-    )
-    split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
-    ```
+            split = (
+                    datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
+                    datasets.Split.TRAIN.subsplit(datasets.percent[75:])
+            )  # Error
+            split = datasets.Split.TEST + datasets.Split.ALL  # Error
 
-        But not:
+    Warning:
+        The slices can be applied only one time. So the following are valid::
 
-    ```
-    train = datasets.Split.TRAIN
-    test = datasets.Split.TEST
-    split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
-    split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
-    ```
+            split = (
+                    datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
+                    datasets.Split.TEST.subsplit(datasets.percent[:50])
+            )
+            split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
 
+
+        But not::
+
+            train = datasets.Split.TRAIN
+            test = datasets.Split.TEST
+            split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
+            split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
     """
 
     def __init__(self, name):
