@@ -5,10 +5,7 @@ from unittest import TestCase
 import boto3
 import numpy as np
 import pandas as pd
-<<<<<<< HEAD
 import pyarrow as pa
-=======
->>>>>>> upstream/master
 import pytest
 from moto import mock_s3
 
