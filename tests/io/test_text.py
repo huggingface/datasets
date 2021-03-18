@@ -1,8 +1,9 @@
-import pyarrow as pa
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.io.text import TextDatasetReader
+
+from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
@@ -29,11 +30,10 @@ def test_text_dataset_reader(path_type, split, features, keep_in_memory, text_pa
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = TextDatasetReader(
-        path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-    ).read()
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = TextDatasetReader(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 1
@@ -41,7 +41,6 @@ def test_text_dataset_reader(path_type, split, features, keep_in_memory, text_pa
     assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
@@ -66,9 +65,8 @@ def test_text_datasetdict_reader(split, features, keep_in_memory, text_path, tmp
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = TextDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = TextDatasetReader(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
     assert isinstance(dataset, DatasetDict)
     dataset = dataset[split]
     assert dataset.num_rows == 4
@@ -77,4 +75,3 @@ def test_text_datasetdict_reader(split, features, keep_in_memory, text_path, tmp
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
-    assert increased_allocated_memory == keep_in_memory
