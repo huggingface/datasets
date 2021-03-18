@@ -30,7 +30,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         info, split, builder_name, citation, config_name, dataset_size,
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version,
-        from_csv, from_json,
+        from_csv, from_json, from_text,
 
 .. autofunction:: datasets.concatenate_datasets
 
@@ -52,7 +52,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         flatten_, cast_, remove_columns_, rename_column_,
         flatten, cast, remove_columns, rename_column,
         save_to_disk, load_from_disk,
-        from_csv, from_json,
+        from_csv, from_json, from_text,
 
 
 ``Features``

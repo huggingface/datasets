@@ -695,13 +695,13 @@ class DatasetDict(dict):
 
         Args:
             path_or_paths (dict of path-like): Path(s) of the CSV file(s).
-            features (Features, optional): Dataset features.
+            features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
-            datasets.DatasetDict
+            :class:`DatasetDict`
         """
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetReader
@@ -719,18 +719,47 @@ class DatasetDict(dict):
         **kwargs,
     ):
         """Create DatasetDict from JSON Lines file(s).
+
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the JSON Lines file(s).
-            features (Features, optional): Dataset features.
+            features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+
         Returns:
-            datasets.DatasetDict
+            :class:`DatasetDict`
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetReader
 
         return JsonDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_text(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create DatasetDict from text file(s).
+
+        Args:
+            path_or_paths (dict of path-like): Path(s) of the text file(s).
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
+
+        Returns:
+            :class:`DatasetDict`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.text import TextDatasetReader
+
+        return TextDatasetReader(
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()

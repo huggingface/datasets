@@ -538,3 +538,36 @@ def test_datasetdict_from_json(
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"text": "string"},
+        {"text": "int32"},
+        {"text": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, "train", "test"])
+def test_datasetdict_from_text(split, features, keep_in_memory, text_path, tmp_path):
+    if split:
+        path = {split: text_path}
+    else:
+        split = "train"
+        path = {"train": text_path, "test": text_path}
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"text": "string"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_text(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, DatasetDict)
+    dataset = dataset[split]
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 1
+    assert dataset.column_names == ["text"]
+    assert dataset.split == split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
