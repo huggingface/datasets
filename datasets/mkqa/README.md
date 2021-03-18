@@ -19,7 +19,7 @@ languages:
 - km
 - ms
 - nl
-- no
+- false
 - pl
 - pt
 - ru
@@ -34,7 +34,7 @@ multilinguality:
 - multilingual
 - translation
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - extended|natural_questions
 - original

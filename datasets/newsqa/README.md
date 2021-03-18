@@ -10,6 +10,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
+  combined-csv:
+  - 100K<n<1M
   combined-json:
   - 10K<n<100K
   split:

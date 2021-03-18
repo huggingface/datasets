@@ -61,7 +61,7 @@ size_categories:
   light_inferred:
   - 100K<n<1M
   name_genders:
-  - n>1M
+  - 1M<n<10M
   new_data:
   - 1K<n<10K
   opensubtitles_inferred:
@@ -69,7 +69,7 @@ size_categories:
   wizard:
   - 10K<n<100K
   yelp_inferred:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
   convai2_inferred:
   - extended|other-convai2

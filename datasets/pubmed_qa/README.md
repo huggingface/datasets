@@ -11,7 +11,12 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<1M
+  pqa_artificial:
+  - 100K<n<1M
+  pqa_labeled:
+  - 1K<n<10K
+  pqa_unlabeled:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:

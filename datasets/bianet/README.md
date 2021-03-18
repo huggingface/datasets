@@ -3,22 +3,27 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  en-to-ku
-  - en
-  - ku
-  en-to-tr
-  - en
-  - tr
-  ku-to-tr
-  - ku
+languages: 
+  en-to-ku: 
+  - en 
+  - ku 
+  en-to-tr: 
+  - en 
+  - tr 
+  ku-to-tr: 
+  - ku 
   - tr
 licenses:
 - unknown
 multilinguality:
 - translation
 size_categories:
-- n>1M
+  en_to_ku:
+  - 1K<n<10K
+  en_to_tr:
+  - 10K<n<100K
+  ku_to_tr:
+  - 1K<n<10K
 source_datasets:
 - original
 task_categories:

@@ -25,7 +25,18 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  autshumato-en-tn:
+  - 100K<n<1M
+  autshumato-en-ts:
+  - 100K<n<1M
+  autshumato-en-ts-manual:
+  - 10K<n<100K
+  autshumato-en-zu:
+  - 10K<n<100K
+  autshumato-tn:
+  - 10K<n<100K
+  autshumato-ts:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
