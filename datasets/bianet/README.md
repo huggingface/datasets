@@ -3,15 +3,15 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages: 
-  en-to-ku: 
-  - en 
-  - ku 
-  en-to-tr: 
-  - en 
-  - tr 
-  ku-to-tr: 
-  - ku 
+languages:
+  en-to-ku:
+  - en
+  - ku
+  en-to-tr:
+  - en
+  - tr
+  ku-to-tr:
+  - ku
   - tr
 licenses:
 - unknown
