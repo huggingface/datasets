@@ -575,13 +575,14 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
     ):
         """Create a new Dataset where the rows are shuffled.
+
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Currently shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seeds (Optional `Dict[str, int]` or `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+            seeds (`Dict[str, int]` or `int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
                 You can provide one :obj:`seed` per dataset in the dataset dictionary.
@@ -592,7 +593,7 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_names (`Dict[str, str]`, optional): Provide the name of a path for the cache file. It is used to store the
                 indices mappings instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
