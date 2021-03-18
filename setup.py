@@ -87,7 +87,7 @@ REQUIRED_PKGS = [
     # for saving datsets to local
     "fsspec",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub==0.0.2",
+    "huggingface_hub==0.0.6",
 ]
 
 BENCHMARKS_REQUIRE = [
