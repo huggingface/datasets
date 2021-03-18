@@ -40,7 +40,7 @@ from tqdm.auto import tqdm
 
 from . import config
 from .arrow_reader import ArrowReader
-from .arrow_writer import ArrowWriter, TypedSequence
+from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -428,11 +428,75 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             mapping = cast_to_python_objects(mapping)
         mapping = {
-            col: TypedSequence(data, type=features.type[col].type if features is not None else None)
+            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
             for col, data in mapping.items()
         }
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
+
+    @staticmethod
+    def from_csv(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create Dataset from CSV file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
+            split (NamedSplit, optional): Split name to be assigned to the dataset.
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+
+        Returns:
+            datasets.Dataset
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetReader
+
+        return CsvDatasetReader(
+            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_json(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        field: Optional[str] = None,
+        **kwargs,
+    ):
+        """Create Dataset from JSON or JSON Lines file(s).
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
+            split (NamedSplit, optional): Split name to be assigned to the dataset.
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            field (str, optional): Field name of the JSON file where the dataset is contained in.
+            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+        Returns:
+            datasets.Dataset
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetReader
+
+        return JsonDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            field=field,
+            **kwargs,
+        ).read()
 
     @staticmethod
     def from_text(
@@ -470,7 +534,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def __getstate__(self):
         state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
-        state["_split"] = str(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = str(state["_split"]) if isinstance(state["_split"], NamedSplit) else state["_split"]
         if self._data_files:
             state["_data"] = None
         if self._indices_data_files:
@@ -485,7 +549,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "tried to unpickle a dataset without arrow_table or data_files"
         state = state.copy()
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
-        state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
+        state["_split"] = NamedSplit(state["_split"]) if isinstance(state["_split"], str) else state["_split"]
         self.__dict__ = state
         reader = ArrowReader("", self.info)
         # Read arrow tables
@@ -881,10 +945,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not new_column_name:
             raise ValueError("New column name is empty.")
 
-        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+        def rename(columns):
+            return [new_column_name if col == original_column_name else col for col in columns]
 
-        self._info.features[new_column_name] = self._info.features[original_column_name]
-        del self._info.features[original_column_name]
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            self._format_columns = rename(self._format_columns)
+
+        self._info.features = Features(
+            {
+                new_column_name if col == original_column_name else col: feature
+                for col, feature in self._info.features.items()
+            }
+        )
 
         self._data = self._data.rename_columns(new_column_names)
 
@@ -916,10 +989,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not new_column_name:
             raise ValueError("New column name is empty.")
 
-        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+        def rename(columns):
+            return [new_column_name if col == original_column_name else col for col in columns]
 
-        dataset._info.features[new_column_name] = dataset._info.features[original_column_name]
-        del dataset._info.features[original_column_name]
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
+        dataset._info.features = Features(
+            {
+                new_column_name if col == original_column_name else col: feature
+                for col, feature in self._info.features.items()
+            }
+        )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._fingerprint = new_fingerprint
@@ -1576,6 +1658,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
                 )
+        else:
+            # we don't need a writer so we use an empty context
+            writer = contextlib.ExitStack()
 
         with writer:
             try:

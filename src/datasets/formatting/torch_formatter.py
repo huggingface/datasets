@@ -35,7 +35,13 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
     def _tensorize(self, value):
         import torch
 
-        return torch.tensor(value, **self.torch_tensor_kwargs)
+        default_dtype = {}
+        if np.issubdtype(value.dtype, np.integer):
+            default_dtype = {"dtype": torch.int64}
+        elif np.issubdtype(value.dtype, np.floating):
+            default_dtype = {"dtype": torch.float32}
+
+        return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct

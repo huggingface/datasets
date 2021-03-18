@@ -273,7 +273,6 @@ class DiscoveryConfig(datasets.BuilderConfig):
 
 
 class Discovery(datasets.GeneratorBasedBuilder):
-
     """Discourse marker prediction with 174 different markers"""
 
     BUILDER_CONFIG_CLASS = DiscoveryConfig
@@ -332,10 +331,8 @@ class Discovery(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_file, split):
-
         process_label = self.config.process_label
         label_classes = self.config.label_classes
-        print(data_file)
         with open(data_file, encoding="utf8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
 

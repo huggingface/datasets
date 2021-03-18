@@ -139,7 +139,7 @@ class YorubaGvNer(datasets.GeneratorBasedBuilder):
             ner_tags = []
             for line in f:
                 line = line.strip()
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                if line == "" or line == "\n":
                     if tokens:
                         yield guid, {
                             "id": str(guid),

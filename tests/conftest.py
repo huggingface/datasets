@@ -1,3 +1,5 @@
+import csv
+import json
 import lzma
 import textwrap
 
@@ -98,6 +100,57 @@ def xml_file(tmp_path_factory):
     with open(filename, "w") as f:
         f.write(data)
     return filename
+
+
+DATA = [
+    {"col_1": "0", "col_2": 0, "col_3": 0.0},
+    {"col_1": "1", "col_2": 1, "col_3": 1.0},
+    {"col_1": "2", "col_2": 2, "col_3": 2.0},
+    {"col_1": "3", "col_2": 3, "col_3": 3.0},
+]
+DATA_DICT_OF_LISTS = {
+    "col_1": ["0", "1", "2", "3"],
+    "col_2": [0, 1, 2, 3],
+    "col_3": [0.0, 1.0, 2.0, 3.0],
+}
+
+
+@pytest.fixture(scope="session")
+def csv_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
+    with open(path, "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["col_1", "col_2", "col_3"])
+        writer.writeheader()
+        for item in DATA:
+            writer.writerow(item)
+    return path
+
+
+@pytest.fixture(scope="session")
+def json_list_of_dicts_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.json")
+    data = {"data": DATA}
+    with open(path, "w") as f:
+        json.dump(data, f)
+    return path
+
+
+@pytest.fixture(scope="session")
+def json_dict_of_lists_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.json")
+    data = {"data": DATA_DICT_OF_LISTS}
+    with open(path, "w") as f:
+        json.dump(data, f)
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
+    with open(path, "w") as f:
+        for item in DATA:
+            f.write(json.dumps(item))
+    return path
 
 
 @pytest.fixture(scope="session")
