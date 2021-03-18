@@ -463,6 +463,41 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
+    @staticmethod
+    def from_json(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        field: Optional[str] = None,
+        **kwargs,
+    ):
+        """Create Dataset from JSON or JSON Lines file(s).
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
+            split (NamedSplit, optional): Split name to be assigned to the dataset.
+            features (Features, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            field (str, optional): Field name of the JSON file where the dataset is contained in.
+            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+        Returns:
+            datasets.Dataset
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetReader
+
+        return JsonDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            field=field,
+            **kwargs,
+        ).read()
+
     def __del__(self):
         if hasattr(self, "_data"):
             del self._data
