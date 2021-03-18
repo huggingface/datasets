@@ -575,13 +575,14 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
     ):
         """Create a new Dataset where the rows are shuffled.
+
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Currently shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seeds (Optional `Dict[str, int]` or `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+            seeds (`Dict[str, int]` or `int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
                 You can provide one :obj:`seed` per dataset in the dataset dictionary.
@@ -592,7 +593,7 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_names (`Dict[str, str]`, optional): Provide the name of a path for the cache file. It is used to store the
                 indices mappings instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
@@ -626,11 +627,15 @@ class DatasetDict(dict):
 
     def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
-        Saves a dataset dict to a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
+        ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to
-            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI
+                (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
+                saved to.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
         """
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
@@ -649,12 +654,17 @@ class DatasetDict(dict):
     @staticmethod
     def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
         """
-        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
+        :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from
-            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`)
+                of the dataset dict directory where the dataset dict will be loaded from.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
 
+        Returns:
+            :class:`DatasetDict`.
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):

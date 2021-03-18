@@ -104,9 +104,9 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-# This must be the name of an image file (path relative to the configuration 
-# directory) that is the favicon of the docs. Modern browsers use this as 
-# the icon for tabs, windows and bookmarks. It should be a Windows-style 
+# This must be the name of an image file (path relative to the configuration
+# directory) that is the favicon of the docs. Modern browsers use this as
+# the icon for tabs, windows and bookmarks. It should be a Windows-style
 # icon file (.ico).
 html_favicon = 'favicon.ico'
 
@@ -190,3 +190,5 @@ def setup(app):
     app.add_js_file('js/custom.js')
 
 # -- Extension configuration -------------------------------------------------
+# Napoleon settings
+napoleon_use_ivar = True

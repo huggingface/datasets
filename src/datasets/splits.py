@@ -393,18 +393,16 @@ class Split(object):
     Datasets are typically split into different subsets to be used at various
     stages of training and evaluation.
 
-    * `TRAIN`: the training data.
-    * `VALIDATION`: the validation data. If present, this is typically used as
-        evaluation data while iterating on a model (e.g. changing hyperparameters,
-        model architecture, etc.).
-    * `TEST`: the testing data. This is the data to report metrics on. Typically
-        you do not want to use this during model iteration as you may overfit to it.
+    - `TRAIN`: the training data.
+    - `VALIDATION`: the validation data. If present, this is typically used as
+      evaluation data while iterating on a model (e.g. changing hyperparameters,
+      model architecture, etc.).
+    - `TEST`: the testing data. This is the data to report metrics on. Typically
+      you do not want to use this during model iteration as you may overfit to it.
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
-    See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
-    for more information.
+    See the :doc:`guide on splits </splits>` for more information.
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -552,14 +550,14 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    `GeneratorBasedBuilder._split_generators`.
-    See `GeneratorBasedBuilder._split_generators` for more info and example
+    :meth:`GeneratorBasedBuilder._split_generators`.
+    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name: `str`, name of the Split for which the generator will
+        name (str): Name of the Split for which the generator will
             create the examples.
-        gen_kwargs: `dict`, kwargs to forward to the _generate_examples() method
+        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
     """
 
