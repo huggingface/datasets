@@ -1007,15 +1007,15 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset_filter_even_num.format["type"], "numpy")
             del dset, dset_filter_even_num
 
-    def test_filter_multiprocessing(self, in_memory):
+    def test_filter_multiprocessing(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            dset = self._create_dummy_dataset(True, tmp_dir)
             fingerprint = dset._fingerprint
             dset_filter_first_ten = dset.filter(picklable_filter_function, num_proc=2)
             self.assertEqual(len(dset_filter_first_ten), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
-            self.assertEqual(len(dset_filter_first_ten._data_files), 0 if in_memory else 2)
+            self.assertEqual(len(dset_filter_first_ten._data_files), 0)
             self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
             del dset, dset_filter_first_ten
 
