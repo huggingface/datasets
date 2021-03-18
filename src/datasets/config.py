@@ -79,7 +79,7 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
                                 pass
     if TF_AVAILABLE:
         if version.parse(TF_VERSION) < version.parse("2"):
-            logger.info(f"TensorFlow found but with version {TF_VERSION}. Transformers requires version 2 minimum.")
+            logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
             TF_AVAILABLE = False
         else:
             logger.info(f"TensorFlow version {TF_VERSION} available.")
