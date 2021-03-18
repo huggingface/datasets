@@ -448,7 +448,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
-            features (:class:`Features, optional): Dataset features.
+            features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
