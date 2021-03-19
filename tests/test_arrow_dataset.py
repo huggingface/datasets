@@ -585,6 +585,7 @@ class BaseDatasetTest(TestCase):
             # no cache files since both dset_concat._data and dset_concat._indices are in memory
             self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 3)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+            del dset_concat, dset1, dset2, dset3
 
     def test_concatenate_with_indices_from_disk(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7]}
