@@ -439,6 +439,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
+            cache_files_paths = [Path(cache_filename) for cache_filename in self.cache_files]
+            # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
+            if Path(dataset_path).joinpath(DATASET_ARROW_FILENAME) in cache_files_paths:
+                raise PermissionError(f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself.")
+            if Path(dataset_path).joinpath(DATASET_INDICES_FILENAME) in cache_files_paths:
+                raise PermissionError(f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself.")
 
         # Get json serializable state
         state = {
