@@ -644,7 +644,7 @@ class DatasetDict(dict):
             fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(Path(dataset_dict_path).joinpath(k).as_posix(), fs)
+            dataset.save_to_disk(Path(dest_dataset_dict_path).joinpath(k).as_posix(), fs)
 
     @staticmethod
     def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
