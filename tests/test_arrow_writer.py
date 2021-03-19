@@ -1,10 +1,10 @@
 import os
 import tempfile
 from unittest import TestCase
-from packaging import version
 
 import pyarrow as pa
 import pytest
+from packaging import version
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
 from datasets.features import Array2DExtensionType
