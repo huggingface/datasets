@@ -424,7 +424,7 @@ The "types" are are:
 - `en-valid` and `en-valid-10k`
    - are the same as `en` and `en10k` except the train sets have been conveniently split into train and valid portions (90% and 10% split).
 
-To get a particular dataset, use `load_datasets('babi_qa',f'{type}-{task_no}')` where `type` is one of the types, and `task_no` is one of the task numbers. For example, `load_dataset('babi_qa','en-qa1')`.
+To get a particular dataset, use `load_datasets('babi_qa',type=f'{type}',task_no=f'{task_no}')` where `type` is one of the types, and `task_no` is one of the task numbers. For example, `load_dataset('babi_qa', type='en', task_no='qa1')`.
 ### Languages
 
 
