@@ -64,8 +64,9 @@ DOCLINES = __doc__.split("\n")
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
-    # Backend and serialization. Minimum 0.17.1 to support extension array
-    "pyarrow>=0.17.1",
+    # Backend and serialization.
+    # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
+    "pyarrow>=1.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -103,7 +104,7 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.24.0",
+    "apache-beam>=2.26.0",
     "elasticsearch",
     "boto3==1.16.43",
     "botocore==1.19.43",
@@ -164,7 +165,7 @@ QUALITY_REQUIRE = [
 
 
 EXTRAS_REQUIRE = {
-    "apache-beam": ["apache-beam"],
+    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
