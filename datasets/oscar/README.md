@@ -116,7 +116,7 @@ languages:
 - new
 - nl
 - nn
-- false
+- "no"
 - oc
 - or
 - os
