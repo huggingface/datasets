@@ -466,8 +466,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Save dataset + indices + state + info
         fs.makedirs(dataset_path, exist_ok=True)
-        with fs.open(Path(dataset_path).joinpath(DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
-            with ArrowWriter(stream=dataset_file) as writer:
+        with fs.open(Path(dataset_path).joinpath(DATASET_ARROW_FILENAME)), "wb") as dataset_file:
+            with ArrowpWriter(stream=dataset_file) as writer:
                 writer.write_table(self._data)
                 writer.finalize()
         if self._indices is not None:
