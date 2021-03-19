@@ -442,9 +442,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_files_paths = [Path(cache_filename) for cache_filename in self.cache_files]
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path).joinpath(DATASET_ARROW_FILENAME) in cache_files_paths:
-                raise PermissionError(f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself.")
+                raise PermissionError(
+                    f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
+                )
             if Path(dataset_path).joinpath(DATASET_INDICES_FILENAME) in cache_files_paths:
-                raise PermissionError(f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself.")
+                raise PermissionError(
+                    f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself."
+                )
 
         # Get json serializable state
         state = {
@@ -534,9 +538,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         else:
             indices_table = None
-
-        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
-            shutil.rmtree(tmp_dir.name, ignore_errors=True)
 
         return Dataset(
             arrow_table=arrow_table,
