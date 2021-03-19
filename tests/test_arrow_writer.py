@@ -1,6 +1,7 @@
 import os
 import tempfile
 from unittest import TestCase
+from packaging import version
 
 import pyarrow as pa
 import pytest
@@ -55,8 +56,9 @@ class TypedSequenceTest(TestCase):
         self.assertEqual(arr.type, pa.string())
 
     def test_catch_overflow(self):
-        with self.assertRaises(OverflowError):
-            _ = pa.array(TypedSequence([["x" * 1024]] * ((2 << 20) + 1)))  # ListArray with a bit more than 2GB
+        if version.parse(pa.__version__) < version.parse("2.0.0"):
+            with self.assertRaises(OverflowError):
+                _ = pa.array(TypedSequence([["x" * 1024]] * ((2 << 20) + 1)))  # ListArray with a bit more than 2GB
 
 
 class ArrowWriterTest(TestCase):
