@@ -207,11 +207,13 @@ def update_metadata(func):
         dataset: "Dataset" = out if out is not None else self
         if dataset._data.schema.metadata is not None:
             metadata = json.loads(dataset._data.schema.metadata["huggingface".encode("utf-8")].decode())
-            fingerprint =  dataset._fingerprint if 'fingerprint' in metadata and dataset._fingerprint is not None else None
+            fingerprint = (
+                dataset._fingerprint if "fingerprint" in metadata and dataset._fingerprint is not None else None
+            )
             new_schema = dataset._data.schema.with_metadata(ArrowWriter._build_metadata(dataset._info, fingerprint))
             dataset._data = dataset._data.cast(new_schema)
         return out
-    
+
     wrapper._decorator_name_ = "update_metadata"
     return wrapper
 
