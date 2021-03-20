@@ -172,7 +172,7 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
             csv_dict_reader = csv.DictReader(
                 csvfile,
                 fieldnames=["sentence1", "sentence2", "similarity_score"],
-                dialect='excel',
+                dialect="excel",
             )
             for id_, row in enumerate(csv_dict_reader):
                 # do asserts
