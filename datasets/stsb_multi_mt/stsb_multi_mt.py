@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""Machine translated multilingual STS benchmark dataset."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -23,54 +23,46 @@ import os
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @InProceedings{huggingface:dataset:stsb_multi_mt,
 title = {Machine translated multilingual STS benchmark dataset.},
 author={Philip May},
-year={2021}
+year={2021},
+url={https://github.com/PhilipMay/stsb-multi-mt}
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care.
+This is a multilingual translation of the STSbenchmark dataset. Translation has been done with deepl.com.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://github.com/PhilipMay/stsb-multi-mt"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "custom license - see project page"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _BASE_URL = "https://raw.githubusercontent.com/PhilipMay/stsb-multi-mt/main/data"
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class StsbMultiMt(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """This is a multilingual translation of the STSbenchmark dataset.
+
+    Translation has been done with deepl.com.
+    """
 
     VERSION = datasets.Version("1.0.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="en", version=VERSION, description="This is the original English STS benchmark data set."),
         datasets.BuilderConfig(name="de", version=VERSION, description="This is the German STS benchmark data set."),
+        datasets.BuilderConfig(name="es", version=VERSION, description="This is the Spanish STS benchmark data set."),
+        datasets.BuilderConfig(name="fr", version=VERSION, description="This is the French STS benchmark data set."),
+        datasets.BuilderConfig(name="it", version=VERSION, description="This is the Italian STS benchmark data set."),
+        # datasets.BuilderConfig(name="ja", version=VERSION, description="This is the Japanese STS benchmark data set."),
+        datasets.BuilderConfig(name="nl", version=VERSION, description="This is the Dutch STS benchmark data set."),
+        datasets.BuilderConfig(name="pl", version=VERSION, description="This is the Polish STS benchmark data set."),
+        datasets.BuilderConfig(name="pt", version=VERSION, description="This is the Portuguese STS benchmark data set."),
+        datasets.BuilderConfig(name="ru", version=VERSION, description="This is the Russian STS benchmark data set."),
+        datasets.BuilderConfig(name="zh", version=VERSION, description="This is the Chinese (simplified) STS benchmark data set."),
     ]
 
     def _info(self):
