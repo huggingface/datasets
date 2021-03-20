@@ -191,6 +191,31 @@ def transmit_format(func):
     return wrapper
 
 
+def update_metadata(func):
+    """Wrapper for dataset transforms that modify the features of the dataset, which makes it necessary to update the metadata of its schema."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # apply actual function
+        out: Optional["Dataset"] = func(self, *args, **kwargs)
+        # get the dataset to update its metadata (to handle both in-place and not in-place transforms)
+        dataset: "Dataset" = out if out is not None else self
+        if dataset._data.schema.metadata is not None:
+            metadata = json.loads(dataset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            fingerprint =  dataset._fingerprint if 'fingerprint' in metadata and dataset._fingerprint is not None else None
+            new_schema = dataset._data.schema.with_metadata(ArrowWriter._build_metadata(dataset._info, fingerprint))
+            dataset._data = dataset._data.cast(new_schema)
+        return out
+    
+    wrapper._decorator_name_ = "update_metadata"
+    return wrapper
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -706,6 +731,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
     @deprecated(help_message="Use Dataset.flatten instead.")
+    @update_metadata
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """In-place version of :meth:`Dataset.flatten`.
@@ -724,6 +750,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
+    @update_metadata
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flattens the table.
@@ -801,6 +828,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use Dataset.remove_columns instead.")
+    @update_metadata
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """In-place version of :meth:`Dataset.remove_columns`.
@@ -826,6 +854,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
+    @update_metadata
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -860,6 +889,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use Dataset.rename_column instead.")
+    @update_metadata
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """In-place version of :meth:`Dataset.rename_column`.
@@ -901,6 +931,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.rename_columns(new_column_names)
 
+    @update_metadata
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
