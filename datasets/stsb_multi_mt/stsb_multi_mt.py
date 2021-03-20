@@ -57,7 +57,10 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="es", version=VERSION, description="This is the Spanish STS benchmark data set."),
         datasets.BuilderConfig(name="fr", version=VERSION, description="This is the French STS benchmark data set."),
         datasets.BuilderConfig(name="it", version=VERSION, description="This is the Italian STS benchmark data set."),
+
+        # here seems to be an issue - see https://github.com/PhilipMay/stsb-multi-mt/issues/1
         # datasets.BuilderConfig(name="ja", version=VERSION, description="This is the Japanese STS benchmark data set."),
+
         datasets.BuilderConfig(name="nl", version=VERSION, description="This is the Dutch STS benchmark data set."),
         datasets.BuilderConfig(name="pl", version=VERSION, description="This is the Polish STS benchmark data set."),
         datasets.BuilderConfig(name="pt", version=VERSION, description="This is the Portuguese STS benchmark data set."),
@@ -71,7 +74,6 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
                 "sentence1": datasets.Value("string"),
                 "sentence2": datasets.Value("string"),
                 "similarity_score": datasets.Value("float")
-                # These are the features of your dataset like images, labels ...
             }
         )
         return datasets.DatasetInfo(
@@ -93,12 +95,6 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         urls_to_download = {
             "train": "{}/stsb-{}-train.csv".format(_BASE_URL, self.config.name),
             "dev": "{}/stsb-{}-dev.csv".format(_BASE_URL, self.config.name),
