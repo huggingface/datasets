@@ -52,20 +52,58 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="en", version=VERSION, description="This is the original English STS benchmark data set."),
-        datasets.BuilderConfig(name="de", version=VERSION, description="This is the German STS benchmark data set."),
-        datasets.BuilderConfig(name="es", version=VERSION, description="This is the Spanish STS benchmark data set."),
-        datasets.BuilderConfig(name="fr", version=VERSION, description="This is the French STS benchmark data set."),
-        datasets.BuilderConfig(name="it", version=VERSION, description="This is the Italian STS benchmark data set."),
-
+        datasets.BuilderConfig(
+            name="en",
+            version=VERSION,
+            description="This is the original English STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="de",
+            version=VERSION,
+            description="This is the German STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="es",
+            version=VERSION,
+            description="This is the Spanish STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="fr",
+            version=VERSION,
+            description="This is the French STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="it",
+            version=VERSION,
+            description="This is the Italian STS benchmark data set.",
+        ),
         # here seems to be an issue - see https://github.com/PhilipMay/stsb-multi-mt/issues/1
         # datasets.BuilderConfig(name="ja", version=VERSION, description="This is the Japanese STS benchmark data set."),
-
-        datasets.BuilderConfig(name="nl", version=VERSION, description="This is the Dutch STS benchmark data set."),
-        datasets.BuilderConfig(name="pl", version=VERSION, description="This is the Polish STS benchmark data set."),
-        datasets.BuilderConfig(name="pt", version=VERSION, description="This is the Portuguese STS benchmark data set."),
-        datasets.BuilderConfig(name="ru", version=VERSION, description="This is the Russian STS benchmark data set."),
-        datasets.BuilderConfig(name="zh", version=VERSION, description="This is the Chinese (simplified) STS benchmark data set."),
+        datasets.BuilderConfig(
+            name="nl",
+            version=VERSION,
+            description="This is the Dutch STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="pl",
+            version=VERSION,
+            description="This is the Polish STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="pt",
+            version=VERSION,
+            description="This is the Portuguese STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="ru",
+            version=VERSION,
+            description="This is the Russian STS benchmark data set.",
+        ),
+        datasets.BuilderConfig(
+            name="zh",
+            version=VERSION,
+            description="This is the Chinese (simplified) STS benchmark data set.",
+        ),
     ]
 
     def _info(self):
@@ -73,7 +111,7 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
             {
                 "sentence1": datasets.Value("string"),
                 "sentence2": datasets.Value("string"),
-                "similarity_score": datasets.Value("float")
+                "similarity_score": datasets.Value("float"),
             }
         )
         return datasets.DatasetInfo(
@@ -126,12 +164,13 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self, filepath  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self,
+        filepath,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         """ Yields examples as (key, example) tuples. """
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
-        with open(filepath, newline='', encoding="utf-8") as csvfile:
+        with open(filepath, newline="", encoding="utf-8") as csvfile:
             csv_dict_reader = csv.DictReader(
                 csvfile,
                 fieldnames=["sentence1", "sentence2", "similarity_score"],
@@ -139,20 +178,20 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(csv_dict_reader):
                 # do asserts
                 assert "sentence1" in row
-                assert isinstance(row['sentence1'], str)
-                assert len(row['sentence1'].strip()) > 0
+                assert isinstance(row["sentence1"], str)
+                assert len(row["sentence1"].strip()) > 0
                 assert "sentence2" in row
-                assert isinstance(row['sentence2'], str)
-                assert len(row['sentence2'].strip()) > 0
+                assert isinstance(row["sentence2"], str)
+                assert len(row["sentence2"].strip()) > 0
                 assert "similarity_score" in row
-                assert isinstance(row['similarity_score'], str)
-                assert len(row['similarity_score'].strip()) > 0
+                assert isinstance(row["similarity_score"], str)
+                assert len(row["similarity_score"].strip()) > 0
 
                 # convert similarity_score from str to float
-                row['similarity_score'] = float(row['similarity_score'])
+                row["similarity_score"] = float(row["similarity_score"])
 
                 # do more asserts
-                assert row['similarity_score'] >= 0.0
-                assert row['similarity_score'] <= 5.0
+                assert row["similarity_score"] >= 0.0
+                assert row["similarity_score"] <= 5.0
 
                 yield id_, row
