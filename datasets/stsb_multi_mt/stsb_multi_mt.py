@@ -77,10 +77,8 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="This is the Italian STS benchmark data set.",
         ),
-
         # here seems to be an issue - see https://github.com/PhilipMay/stsb-multi-mt/issues/1
         # datasets.BuilderConfig(name="ja", version=VERSION, description="This is the Japanese STS benchmark data set."),
-
         datasets.BuilderConfig(
             name="nl",
             version=VERSION,
