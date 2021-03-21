@@ -40,6 +40,10 @@ These are different multilingual translations and the English original of the [S
 
 It can be used to train [sentence embeddings](https://github.com/UKPLab/sentence-transformers) like [T-Systems-onsite/cross-en-de-roberta-sentence-transformer](https://huggingface.co/T-Systems-onsite/cross-en-de-roberta-sentence-transformer).
 
+The dataset with translations is hosted here: <https://github.com/PhilipMay/stsb-multi-mt>
+Please [open an issue](https://github.com/PhilipMay/stsb-multi-mt/issues/new) if you have questions or want to report problems.
+
+
 ## Examples of Use
 
 ### Load German dev Dataset
