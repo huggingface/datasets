@@ -43,7 +43,6 @@ It can be used to train [sentence embeddings](https://github.com/UKPLab/sentence
 The dataset with translations is hosted here: <https://github.com/PhilipMay/stsb-multi-mt>
 Please [open an issue](https://github.com/PhilipMay/stsb-multi-mt/issues/new) if you have questions or want to report problems.
 
-
 ## Examples of Use
 
 ### Load German dev Dataset
