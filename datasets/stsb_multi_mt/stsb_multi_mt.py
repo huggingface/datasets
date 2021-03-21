@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Machine translated multilingual STS benchmark dataset."""
+"""These are different multilingual translations and the English original of the STSbenchmark dataset."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -31,7 +31,8 @@ url={https://github.com/PhilipMay/stsb-multi-mt}
 """
 
 _DESCRIPTION = """\
-This is a multilingual translation of the STSbenchmark dataset. Translation has been done with deepl.com.
+These are different multilingual translations and the English original of the STSbenchmark dataset. \
+Translation has been done with deepl.com.
 """
 
 _HOMEPAGE = "https://github.com/PhilipMay/stsb-multi-mt"
@@ -42,7 +43,7 @@ _BASE_URL = "https://raw.githubusercontent.com/PhilipMay/stsb-multi-mt/main/data
 
 
 class StsbMultiMt(datasets.GeneratorBasedBuilder):
-    """This is a multilingual translation of the STSbenchmark dataset.
+    """These are different multilingual translations and the English original of the STSbenchmark dataset.
 
     Translation has been done with deepl.com.
     """
