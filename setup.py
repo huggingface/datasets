@@ -56,8 +56,8 @@ import itertools
 import os
 import sys
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
+
 
 DOCLINES = __doc__.split("\n")
 
@@ -140,6 +140,9 @@ TESTS_REQUIRE = [
     "texttable>=1.6.3",
     "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
+    # metadata validation
+    "langcodes[data]>=3.1.0",
+    "pydantic>=1.8.1",
 ]
 
 if os.name == "nt":  # windows
@@ -147,13 +150,15 @@ if os.name == "nt":  # windows
 else:
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend([
-        "wget>=3.2",
-        "pytorch-nlp==0.5.0",
-        "pytorch_lightning",
-        "fastBPE==0.1.0",
-        "fairseq",
-    ])
+    TESTS_REQUIRE.extend(
+        [
+            "wget>=3.2",
+            "pytorch-nlp==0.5.0",
+            "pytorch_lightning",
+            "fastBPE==0.1.0",
+            "fairseq",
+        ]
+    )
 
 
 QUALITY_REQUIRE = [
