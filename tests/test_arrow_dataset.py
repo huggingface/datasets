@@ -1007,7 +1007,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset_filter_even_num.format["type"], "numpy")
             del dset, dset_filter_even_num
 
-    def test_filter_multiprocessing(self):
+    def test_filter_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(True, tmp_dir)
             fingerprint = dset._fingerprint
