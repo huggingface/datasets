@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 import pyarrow as pa
 
@@ -7,17 +8,12 @@ import datasets
 
 logger = datasets.utils.logging.get_logger(__name__)
 
-FEATURES = datasets.Features(
-    {
-        "text": datasets.Value("string"),
-    }
-)
-
 
 @dataclass
 class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files."""
 
+    features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
@@ -27,7 +23,7 @@ class Text(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = TextConfig
 
     def _info(self):
-        return datasets.DatasetInfo(features=FEATURES)
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """The `data_files` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
@@ -51,6 +47,7 @@ class Text(datasets.ArrowBasedBuilder):
         return splits
 
     def _generate_tables(self, files):
+        schema = pa.schema(self.config.features.type if self.config.features is not None else {"text": pa.string()})
         for file_idx, file in enumerate(files):
             batch_idx = 0
             with open(file, "r", encoding=self.config.encoding) as f:
@@ -60,7 +57,7 @@ class Text(datasets.ArrowBasedBuilder):
                         break
                     batch += f.readline()  # finish current line
                     batch = batch.splitlines(keepends=self.config.keep_linebreaks)
-                    pa_table = pa.Table.from_arrays([pa.array(batch)], schema=pa.schema({"text": pa.string()}))
+                    pa_table = pa.Table.from_arrays([pa.array(batch)], schema=schema)
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))

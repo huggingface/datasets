@@ -27,7 +27,7 @@ class JsonConfig(datasets.BuilderConfig):
 
     @property
     def pa_parse_options(self):
-        return paj.ParseOptions(explicit_schema=self.schema, newlines_in_values=self.newlines_in_values)
+        return paj.ParseOptions(newlines_in_values=self.newlines_in_values)
 
     @property
     def schema(self):
@@ -74,7 +74,7 @@ class Json(datasets.ArrowBasedBuilder):
                         parse_options=self.config.pa_parse_options,
                     )
                 else:
-                    pa_table = pa.Table.from_pydict(mapping=dataset, schema=self.config.schema)
+                    pa_table = pa.Table.from_pydict(mapping=dataset)
             else:
                 try:
                     pa_table = paj.read_json(
@@ -89,6 +89,9 @@ class Json(datasets.ArrowBasedBuilder):
                         f"Not able to read records in the JSON file at {file}. "
                         f"You should probably indicate the field of the JSON file containing your records. "
                         f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                        f"Select the correct one and provide it as `field='XXX'` to the `load_dataset` method. "
+                        f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
                     )
+            if self.config.schema:
+                # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
+                pa_table = pa_table.cast(self.config.schema)
             yield i, pa_table

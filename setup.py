@@ -46,7 +46,7 @@ To create the package for pypi.
 7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js
+   Update the version mapping in docs/source/_static/js/custom.js, and set version to X.X.Xdev0 in setup.py
 
 9. Update README.md to redirect to correct documentation.
 """
@@ -87,7 +87,7 @@ REQUIRED_PKGS = [
     # for saving datsets to local
     "fsspec",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub==0.0.2",
+    "huggingface_hub<0.1.0",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -189,7 +189,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.4.1",
+    version="1.5.0dev0",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",

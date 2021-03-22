@@ -1,6 +1,9 @@
+import importlib
 import os
 import sys
 from pathlib import Path
+
+from packaging import version
 
 from .utils.logging import get_logger
 
@@ -28,33 +31,61 @@ if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
 else:
     import importlib.metadata as importlib_metadata
 
+ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
+ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
 TORCH_VERSION = "N/A"
 TORCH_AVAILABLE = False
-if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
-    try:
-        TORCH_VERSION = importlib_metadata.version("torch")
-        TORCH_AVAILABLE = True
-        logger.info("PyTorch version {} available.".format(TORCH_VERSION))
-    except importlib_metadata.PackageNotFoundError:
-        pass
+
+if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
+    TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
+    if TORCH_AVAILABLE:
+        try:
+            TORCH_VERSION = importlib_metadata.version("torch")
+            logger.info(f"PyTorch version {TORCH_VERSION} available.")
+        except importlib_metadata.PackageNotFoundError:
+            pass
 else:
     logger.info("Disabling PyTorch because USE_TF is set")
 
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
-if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-    try:
-        TF_VERSION = importlib_metadata.version("tensorflow")
-        TF_AVAILABLE = True
-        logger.info("TensorFlow version {} available.".format(TF_VERSION))
-    except importlib_metadata.PackageNotFoundError:
-        pass
+
+if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
+    TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
+    if TF_AVAILABLE:
+        # For the metadata, we have to look for both tensorflow and tensorflow-cpu
+        try:
+            TF_VERSION = importlib_metadata.version("tensorflow")
+        except importlib_metadata.PackageNotFoundError:
+            try:
+                TF_VERSION = importlib_metadata.version("tensorflow-cpu")
+            except importlib_metadata.PackageNotFoundError:
+                try:
+                    TF_VERSION = importlib_metadata.version("tensorflow-gpu")
+                except importlib_metadata.PackageNotFoundError:
+                    try:
+                        TF_VERSION = importlib_metadata.version("tf-nightly")
+                    except importlib_metadata.PackageNotFoundError:
+                        try:
+                            TF_VERSION = importlib_metadata.version("tf-nightly-cpu")
+                        except importlib_metadata.PackageNotFoundError:
+                            try:
+                                TF_VERSION = importlib_metadata.version("tf-nightly-gpu")
+                            except importlib_metadata.PackageNotFoundError:
+                                pass
+    if TF_AVAILABLE:
+        if version.parse(TF_VERSION) < version.parse("2"):
+            logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
+            TF_AVAILABLE = False
+        else:
+            logger.info(f"TensorFlow version {TF_VERSION} available.")
 else:
     logger.info("Disabling Tensorflow because USE_TORCH is set")
+
 
 USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
 BEAM_VERSION = "N/A"

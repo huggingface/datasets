@@ -95,6 +95,24 @@ class DatasetInfo:
     See the constructor arguments and properties for a full list.
 
     Note: Not all fields are known on construction and may be updated later.
+
+    Attributes:
+        description (str):
+        citation (str):
+        homepage (str):
+        license (str):
+        features (Features, optional):
+        post_processed (PostProcessedInfo, optional):
+        supervised_keys (SupervisedKeysData, optional):
+        builder_name (str, optional)
+        config_name (str, optional)
+        version (str or Version, optional):
+        splits (dict, optional):
+        download_checksums (dict, optional):
+        download_size (int, optional):
+        post_processing_size (int, optional):
+        dataset_size (int, optional):
+        size_in_bytes (int, optional):
     """
 
     # Set in the dataset scripts

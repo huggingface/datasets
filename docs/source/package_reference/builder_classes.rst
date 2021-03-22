@@ -18,3 +18,5 @@ Two main classes are mostly used during the dataset building process.
 .. autoclass:: datasets.SplitGenerator
 
 .. autoclass:: datasets.Split
+
+.. autoclass:: datasets.NamedSplit
