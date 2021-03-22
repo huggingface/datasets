@@ -36,7 +36,7 @@ from ..features import pandas_types_mapper
 
 
 if TYPE_CHECKING:
-    from ..table import Table
+    from ..table import Table  # noqa: F401
 
 
 T = TypeVar("T")
