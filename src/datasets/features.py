@@ -886,10 +886,11 @@ def generate_from_dict(obj: Any):
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
         return [generate_from_dict(value) for value in obj]
+    try:
+        class_type = globals()[obj.pop("_type")]
     # Otherwise we have a dict or a dataclass
-    if "_type" not in obj:
+    except (KeyError, TypeError):
         return {key: generate_from_dict(value) for key, value in obj.items()}
-    class_type = globals()[obj.pop("_type")]
 
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
