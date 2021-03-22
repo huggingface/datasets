@@ -1966,6 +1966,7 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
                                 "answer_start": Value("int32"),
                             }
                         ),
+                        "id": Value("int32"),
                     }
                 )
             },
@@ -1987,6 +1988,7 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
                                 "answer_start": Value("int32"),
                             }
                         ),
+                        "id": Value("int32"),
                     }
                 )
             },

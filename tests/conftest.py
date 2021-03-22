@@ -26,6 +26,7 @@ def dataset():
                     "answer_start": Value("int32"),
                 }
             ),
+            "id": Value("int64"),
         }
     )
     dataset = Dataset.from_dict(
@@ -33,6 +34,7 @@ def dataset():
             "tokens": [["foo"] * 5] * n,
             "labels": [[1] * 5] * n,
             "answers": [{"answer_start": [97], "text": ["1976"]}] * 10,
+            "id": list(range(n)),
         },
         features=features,
     )
