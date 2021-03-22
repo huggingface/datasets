@@ -398,7 +398,7 @@ class ConcatenationTable(Table):
     and the blocks by accessing the ConcatenationTable.blocks attribute.
     """
 
-    def __init__(self, table: pa.Table, blocks: List[List[Table]]):
+    def __init__(self, table: pa.Table, blocks: List[List[TableBlock]]):
         super().__init__(table)
         self.blocks = blocks
         assert all(isinstance(subtable, TableBlock) for subtables in blocks for subtable in subtables)
@@ -417,7 +417,7 @@ class ConcatenationTable(Table):
     def from_blocks(blocks_part: BlockPart):
         if isinstance(blocks_part, Table):
             table = blocks_part
-            return ConcatenationTable(table, [[table]])
+            return ConcatenationTable(table.table, [[table]])
         elif isinstance(blocks_part[0], Table):
             table = pa.concat_tables([t.table for t in blocks_part])
             blocks = [[t] for t in blocks_part]
@@ -425,13 +425,18 @@ class ConcatenationTable(Table):
         else:
             tables_to_concat = []
             blocks = blocks_part
-            for tables in blocks:
-                for i, table in enumerate(tables):
-                    if i == 0:
+            for i, tables in enumerate(blocks):
+                for j, table in enumerate(tables):
+                    if j == 0:
                         combined_table = table.table
                     else:
                         for name, col in zip(table.column_names, table.columns):
-                            combined_table.append_column(name, col)
+                            combined_table = combined_table.append_column(name, col)
+                if i > 0 and combined_table.schema != tables_to_concat[0].schema:
+                    # re-order the columns to make the schema match and concat the tables
+                    names = tables_to_concat[0].schema.names
+                    arrays = [combined_table[name] for name in names]
+                    combined_table = pa.Table.from_arrays(arrays, names=names)
                 tables_to_concat.append(combined_table)
             table = pa.concat_tables(tables_to_concat)
             return ConcatenationTable(table, blocks)
@@ -468,7 +473,7 @@ class ConcatenationTable(Table):
                 offset = offset - n_rows
             elif n_rows <= offset + length:
                 blocks.append([t.slice(offset) for t in tables])
-                length, offset = length - n_rows - offset, 0
+                length, offset = length + offset - n_rows, 0
             else:
                 blocks.append([t.slice(offset, length) for t in tables])
                 length, offset = 0, 0
@@ -493,7 +498,7 @@ class ConcatenationTable(Table):
 
     @wraps_arrow_table_method(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
-        table = self.table.flatten(*args, **kwargs)
+        table = self.table.combine_chunks(*args, **kwargs)
         blocks = []
         for tables in self.blocks:
             blocks.append([t.combine_chunks(*args, **kwargs) for t in tables])
@@ -503,17 +508,17 @@ class ConcatenationTable(Table):
     def cast(self, target_schema, *args, **kwargs):
         table = self.table.cast(target_schema, *args, **kwargs)
         blocks = []
-        for tables in self.blocks:
+        for subtables in self.blocks:
             new_tables = []
-            for table in tables:
+            for subtable in subtables:
                 subschema = pa.schema(
                     {
                         name: type
                         for (type, name) in zip(target_schema.types, target_schema.names)
-                        if name in table.schema.names
+                        if name in subtable.schema.names
                     }
                 )
-                new_tables.append(table.cast(subschema, *args, **kwargs))
+                new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
 
