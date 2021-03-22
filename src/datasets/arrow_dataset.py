@@ -1471,6 +1471,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
+        # Check if we've already cached this computation (indexed by a hash)
+        if self._data_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function,
+                # current dataset file and the mapping args
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.warning("Loading cached processed dataset at %s", cache_file_name)
+                info = self.info.copy()
+                info.features = features
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
         # We set this variable to True After processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
         # If set to False, no new arrow table will be created
@@ -1534,25 +1546,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             inputs.update(processed_inputs)
             return inputs
 
-        def determine_cache_file_name(cache_file_name):
-            if self._data_files:
-                if cache_file_name is None:
-                    # we create a unique hash from the function,
-                    # current dataset file and the mapping args
-                    cache_file_name = self._get_cache_file_path(new_fingerprint)
-            return cache_file_name
-
-        def check_if_cached(cache_file_name):
-            if self._data_files:
-                return os.path.exists(cache_file_name) and load_from_cache_file
-            return False
-
-        # To initalize these resources, we have to know the value of `update_data` to determine
-        # the name of the cache file which we then pass to `init_buffer_and_writer` and
-        # we know that value once we've processed the first example/batch
-        buf_writer, writer, tmp_file = None, None, None
-
-        def init_buffer_and_writer(cache_file_name):
+        def init_buffer_and_writer():
             # Prepare output buffer and batched writer in memory or on file if we update the table
             writer_features = features
             if writer_features is None:
@@ -1585,6 +1579,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             return buf_writer, writer, tmp_file
 
+        # If `update_data` is True after processing the first example/batch, initalize these resources with `init_buffer_and_writer`
+        buf_writer, writer, tmp_file = None, None, None
+
+        # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
@@ -1597,15 +1595,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
                         if update_data:
                             if i == 0:
-                                cache_file_name = determine_cache_file_name(cache_file_name)
-                                if check_if_cached(cache_file_name):
-                                    logger.warning("Loading cached processed dataset at %s", cache_file_name)
-                                    info = self.info.copy()
-                                    info.features = features
-                                    return Dataset.from_file(cache_file_name, info=info, split=self.split)
-                                else:
-                                    buf_writer, writer, tmp_file = init_buffer_and_writer(cache_file_name)
-                                    stack.enter_context(writer)
+                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                stack.enter_context(writer)
                             example = cast_to_python_objects(example)
                             writer.write(example)
                 else:
@@ -1624,15 +1615,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             )
                         if update_data:
                             if i == 0:
-                                cache_file_name = determine_cache_file_name(cache_file_name)
-                                if check_if_cached(cache_file_name):
-                                    logger.warning("Loading cached processed dataset at %s", cache_file_name)
-                                    info = self.info.copy()
-                                    info.features = features
-                                    return Dataset.from_file(cache_file_name, info=info, split=self.split)
-                                else:
-                                    buf_writer, writer, tmp_file = init_buffer_and_writer(cache_file_name)
-                                    stack.enter_context(writer)
+                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                stack.enter_context(writer)
                             batch = cast_to_python_objects(batch)
                             writer.write_batch(batch)
                 if update_data and writer is not None:
