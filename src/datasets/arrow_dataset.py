@@ -447,19 +447,85 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
-            split (NamedSplit, optional): Split name to be assigned to the dataset.
-            features (Features, optional): Dataset features.
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
-            datasets.Dataset
+            :class:`Dataset`
         """
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
+            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_json(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        field: Optional[str] = None,
+        **kwargs,
+    ):
+        """Create Dataset from JSON or JSON Lines file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            field (str, optional): Field name of the JSON file where the dataset is contained in.
+            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+
+        Returns:
+            :class:`Dataset`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetReader
+
+        return JsonDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            field=field,
+            **kwargs,
+        ).read()
+
+    @staticmethod
+    def from_text(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create Dataset from text file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
+
+        Returns:
+            :class:`Dataset`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.text import TextDatasetReader
+
+        return TextDatasetReader(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
@@ -511,11 +577,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def save_to_disk(self, dataset_path: str, fs=None):
         """
-        Saves a dataset to a dataset directory, or in a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
+        any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be saved to
-            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            dataset_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`) of
+                the dataset directory where the dataset will be saved to.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
         """
         assert (
             not self.list_indexes()
@@ -583,16 +652,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
         """
-        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
+        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset directory where the dataset will be loaded from
-            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            dataset_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
+                the dataset directory where the dataset will be loaded from.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
 
         Returns:
-            ``datasets.Dataset`` or ``datasets.DatasetDict``
-                if `dataset_path` is a path of a dataset directory: the dataset requested,
-                if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+            :class:`Dataset` or :class:`DatasetDict`.
+                - if `dataset_path` is a path of a dataset directory: the :class:`Dataset` requested,
+                - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         if is_remote_filesystem(fs):
