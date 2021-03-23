@@ -279,7 +279,7 @@ title={Cross-Lingual Pretraining Methods for Spoken Dialog},
 author={Anonymous},
 journal={OpenReview Preprint},
 year={2021},
-howpublished = "\url{https://openreview.net/forum?id=c1oDhu_hagR}",
+url{https://openreview.net/forum?id=c1oDhu_hagR},
 note={anonymous preprint under review}
 }
 ```
