@@ -1483,7 +1483,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
-        # We set this variable to True After processing the first example/batch in
+        # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
         # If set to False, no new arrow table will be created
         update_data = None
