@@ -63,11 +63,14 @@ class DatasetDict(dict):
         self._check_values_type()
         return {k: dataset.shape for k, dataset in self.items()}
 
+    @deprecated()
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column in each split.
 
-            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionary of the strings. This only affect the internal storage.
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        .. deprecated:: 1.4.0
 
         Args:
             column (:obj:`str`):

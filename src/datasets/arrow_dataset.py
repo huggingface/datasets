@@ -749,14 +749,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @deprecated(help_message="Use the dataset.dictionary_encode_column method instead.")
+    @deprecated()
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
-            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionary of the strings. This only affect the internal storage.
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        .. deprecated:: 1.4.0
 
         Args:
             column (:obj:`str`):
