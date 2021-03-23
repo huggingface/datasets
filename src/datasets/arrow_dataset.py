@@ -1253,8 +1253,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return formatted_output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
-        """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools).
-        """
+        """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
         return self._getitem(
             key,
             format_type=self._format_type,
