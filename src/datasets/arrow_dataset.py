@@ -311,7 +311,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
-            datasets.Dataset
+            :class:`Dataset`
         """
         pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
         data_files = [{"filename": filename}] if not in_memory else None
@@ -340,7 +340,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         split: Optional[NamedSplit] = None,
         indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
-        """ Instantiate a Dataset backed by an Arrow buffer """
+        """Instantiate a Dataset backed by an Arrow buffer.
+
+        Args:
+            buffer (``pyarrow.Buffer``): Arrow buffer.
+            info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (:class:`NamedSplit`, optional): Name of the dataset split.
+            indices_buffer (``pyarrow.Buffer``, optional): Indices Arrow buffer.
+
+        Returns:
+            :class:`Dataset`
+        """
         stream = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(stream)
         pa_table = f.read_all()
@@ -363,7 +373,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
-        Convert :obj:``pandas.DataFrame`` to a "obj"``pyarrow.Table`` to create a :obj:``datasets.Dataset``.
+        Convert ``pandas.DataFrame`` to a ``pyarrow.Table`` to create a :class:`Dataset`.
 
         The column types in the resulting Arrow Table are inferred from the dtypes of the pandas.Series in the DataFrame. In the case of non-object
         Series, the NumPy dtype is translated to its Arrow equivalent. In the case of `object`, we need to guess the datatype by looking at the
@@ -374,11 +384,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         null. This behavior can be avoided by constructing explicit features and passing it to this function.
 
         Args:
-            df (:obj:``pandas.DataFrame``): the dataframe that contains the dataset.
-            features (:obj:``datasets.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
-            info (:obj:``datasets.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-                description, citation, etc.
-            split (:obj:``datasets.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+            df (``pandas.DataFrame``): Dataframe that contains the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (:class:`NamedSplit`, optional): Name of the dataset split.
+
+        Returns:
+            :class:`Dataset`
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
@@ -404,14 +416,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         split: Optional[Any] = None,
     ) -> "Dataset":
         """
-        Convert :obj:``dict`` to a "obj"``pyarrow.Table`` to create a :obj:``datasets.Dataset``.
+        Convert ``dict`` to a ``pyarrow.Table`` to create a :class:`Dataset`.
 
         Args:
-            mapping (:obj:``mapping``): A mapping of strings to Arrays or Python lists.
-            features (:obj:``datasets.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
-            info (:obj:``datasets.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-                description, citation, etc.
-            split (:obj:``datasets.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+            mapping (``mapping``): Mapping of strings to Arrays or Python lists.
+            features (:class:`Features`, optional): Dataset features.
+            info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (:class:`NamedSplit`, optional): Name of the dataset split.
+
+        Returns:
+            :class:`Dataset`
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
@@ -708,7 +722,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @property
     def num_rows(self) -> int:
-        """Number of rows in the dataset (same as :func:`datasets.Dataset.__len__`)."""
+        """Number of rows in the dataset (same as :meth:`Dataset.__len__`)."""
         if self._indices is not None:
             return self._indices.num_rows
         return self._data.num_rows
@@ -794,12 +808,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
-        """Flattens the table.
+        """Flatten the table.
         Each column with a struct type is flattened into one column per struct field.
         Other columns are left unchanged.
 
         Returns:
-            A copy of the dataset with flattened columns
+            A copy of the dataset with flattened columns.
         """
         dataset = copy.deepcopy(self)
         for depth in range(1, max_depth):
@@ -853,7 +867,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
 
         Returns:
-            A copy of the dataset with casted features
+            A copy of the dataset with casted features.
         """
         dataset = copy.deepcopy(self)
         if sorted(features) != sorted(dataset._data.column_names):
@@ -899,17 +913,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
-        Remove one or several column(s) in the dataset and
-        the features associated to them.
+        Remove one or several column(s) in the dataset and the features associated to them.
 
         You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+            new_fingerprint
 
         Returns:
-            A copy of the dataset object without the columns to remove
+            A copy of the dataset object without the columns to remove.
         """
         dataset = copy.deepcopy(self)
         if isinstance(column_names, str):
@@ -980,9 +994,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
             new_column_name (:obj:`str`): New name for the column.
+            new_fingerprint
 
         Returns:
-            A copy of the dataset with a renamed column
+            :class:`Dataset`: A copy of the dataset with a renamed column.
         """
         dataset = copy.deepcopy(self)
         if original_column_name not in dataset._data.column_names:
@@ -1018,12 +1033,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def __len__(self):
-        """ Number of rows in the dataset """
+        """ Number of rows in the dataset."""
         return self.num_rows
 
     def __iter__(self):
         """Iterate through the examples.
-        If a formatting is set with :func:`datasets.Dataset.set_format` rows will be returned with the
+
+        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
         format_type = self._format_type
@@ -1059,7 +1075,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         output_all_columns: bool = False,
         **format_kwargs,
     ):
-        """To be used in a `with` statement. Set __getitem__ return format (type and columns)
+        """To be used in a `with` statement. Set __getitem__ return format (type and columns).
 
         Args:
             type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
@@ -1237,8 +1253,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return formatted_output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
-        """
-        Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)
+        """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools).
         """
         return self._getitem(
             key,
@@ -1249,11 +1264,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def cleanup_cache_files(self):
-        """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
-        Be carefull when running this command that no other process is currently using other cache files.
+        """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is
+        one.
 
-        Return:
-            Number of removed files
+        Be careful when running this command that no other process is currently using other cache files.
+
+        Returns:
+            Number of removed files.
         """
         if not self._data_files or "filename" not in self._data_files[0]:
             return None
@@ -1308,41 +1325,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         and update the table (if function does updated examples).
 
         Args:
-            function (`callable`): with one of the following signature:
+            function (`callable`): Function with one of the following signatures:
+
                 - `function(example: Union[Dict, Any]) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
                 - `function(example: Union[Dict, Any], indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
                 - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                 - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
-                If no function is provided, default to identity function: lambda x: x
-            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
-                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            drop_last_batch (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+
+                If no function is provided, default to identity function: ``lambda x: x``.
+            with_indices (`bool`, default `False`): Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
+                as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (`bool`, default `False`): Provide batch of examples to `function`.
+            batch_size (`Optional[int]`, default `1000`): Number of examples per batch provided to `function` if `batched=True`
+                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[List[str]]`, default `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
+            features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
-            fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
-            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            disable_nullable (`bool`, default `True`): Disallow null values in the table.
+            fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
+            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
-            suffix_template (`str`, defaults to "_{rank:05d}_of_{num_proc:05d}"): If cache_file_name is specified, then this suffix
-                will be added at the end of the base name of each. For example, if cache_file_name is "processed.arrow", then for
+            suffix_template (`str`):
+                If cache_file_name is specified, then this suffix
+                will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
                 rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
-            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+            new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
         """
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
 
@@ -1750,33 +1771,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         and update the table so that the dataset only includes examples according to the filter function.
 
         Args:
-            function (`callable`): with one of the following signature:
-                - `function(example: Union[Dict, Any]) -> bool` if `with_indices=False`
-                - `function(example: Union[Dict, Any], indices: int) -> bool` if `with_indices=True`
-                If no function is provided, default to an always True function: lambda x: True
-            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+            function (`callable`): Callable with one of the following signatures:
+
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True``
+
+                If no function is provided, defaults to an always True function: ``lambda x: True``.
+            with_indices (`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`str` or `List[str]`, optional): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            batch_size (`Optional[int]`, default `1000`): Number of examples per batch provided to `function` if
+                ``batched = True``. If ``batch_size <= 0`` or ``batch_size == None``: provide the full dataset as a
+                single batch to `function`
+            remove_columns (`List[str]`, optional): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, default `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
-            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            fn_kwargs (`dict`, optional): Keyword arguments to be passed to `function`
+            num_proc (`int`, optional): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
-            suffix_template (`str`, defaults to "_{rank:05d}_of_{num_proc:05d}"): If cache_file_name is specified, then this suffix
-                will be added at the end of the base name of each. For example, if cache_file_name is "processed.arrow", then for
-                rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
-            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+            suffix_template (`str`):
+                If `cache_file_name` is specified, then this suffix will be added at the end of the base name of each.
+                For example, if `cache_file_name` is `"processed.arrow"`, then for ``rank = 1`` and ``num_proc = 4``,
+                the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix (default
+                `_{rank:05d}_of_{num_proc:05d}`)
+            new_fingerprint (`str`, optional): The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1834,15 +1860,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Create and cache a new Dataset by flattening the indices mapping.
 
         Args:
-            keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            keep_in_memory (`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
+            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            features (`Optional[datasets.Features]`, default: `None`): Use a specific Features to store the cache file
+            features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, default: `True`): Allow null values in the table.
-            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+            disable_nullable (`bool`, default `True`): Allow null values in the table.
+            new_fingerprint (`Optional[str]`, default `None`): The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
 
@@ -1862,7 +1888,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_buffer: Optional[pa.Buffer] = None,
         fingerprint: Optional[str] = None,
     ) -> "Dataset":
-        """ Return a new Dataset obtained by adding indices (provided in indices_cache_file_name or in a buffer) to the current Dataset. """
+        """Return a new Dataset obtained by adding indices (provided in indices_cache_file_name or in a buffer) to the
+        current Dataset.
+        """
 
         assert (
             indices_cache_file_name is not None or indices_buffer is not None
@@ -1909,13 +1937,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Create a new dataset with rows selected following the list/array of indices.
 
         Args:
-            `indices` (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
-            `keep_in_memory` (`bool`, default: `False`): Keep the indices mapping in memory instead of writing it to a cache file.
-            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
+            indices (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
+            keep_in_memory (`bool`, default `False`): Keep the indices mapping in memory instead of writing it to a cache file.
+            indices_cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
-            `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+            new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         assert (
@@ -2397,10 +2425,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         keys from `dataset._format_columns`.
 
         Args:
-            `filename` (`str`): The filename, including the .tfrecord extension, to write to.
-            `format` (`Optional[str]`, default: `"tfrecord"`): The type of output file. Currently this is a no-op, as
-                TFRecords are the only option. This enables a more flexible function signature
-                later.
+            filename (`str`): The filename, including the `.tfrecord` extension, to write to.
+            format (`Optional[str]`, default `"tfrecord"`): The type of output file. Currently this is a no-op, as
+                TFRecords are the only option. This enables a more flexible function signature later.
         """
         try:
             import tensorflow as tf  # noqa: F401
@@ -2594,7 +2621,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         You can specify :obj:`device` if you want to run it on GPU (:obj:`device` must be the GPU index).
         You can find more information about Faiss here:
 
-            - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
+        - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
 
         Args:
             column (:obj:`str`):
@@ -2620,21 +2647,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dtype (data-type): The dtype of the numpy arrays that are indexed.
                 Default is ``np.float32``.
 
-        Example::
+        Example:
+            .. code-block:: python
 
-            ds = datasets.load_dataset('crime_and_punish', split='train')
-            ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
-            ds_with_embeddings.add_faiss_index(column='embeddings')
-            # query
-            scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
-            # save index
-            ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
+                ds = datasets.load_dataset('crime_and_punish', split='train')
+                ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+                ds_with_embeddings.add_faiss_index(column='embeddings')
+                # query
+                scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
+                # save index
+                ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 
-            ds = datasets.load_dataset('crime_and_punish', split='train')
-            # load index
-            ds.load_faiss_index('embeddings', 'my_index.faiss')
-            # query
-            scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+                ds = datasets.load_dataset('crime_and_punish', split='train')
+                # load index
+                ds.load_faiss_index('embeddings', 'my_index.faiss')
+                # query
+                scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
         """
         with self.formatted_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
@@ -2665,6 +2693,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         The index is created using the vectors of `external_arrays`.
         You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
         You can find more information about Faiss here:
+
         - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
 
         Args:
@@ -2718,7 +2747,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The column of the documents to add to the index.
             index_name (Optional :obj:`str`):
                 The index_name/identifier of the index.
-                This is the index name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
+                This is the index name that is used to call :meth:`Dataset.get_nearest_examples` or :meth:`Dataset.search`.
                 By default it corresponds to :obj:`column`.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
@@ -2730,32 +2759,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The elasticsearch index name used to create the index.
             es_index_config (Optional :obj:`dict`):
                 The configuration of the elasticsearch index.
-                Default config is:
+                Default config is::
 
-        Config::
-
-            {
-                "settings": {
-                    "number_of_shards": 1,
-                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-                },
-                "mappings": {
-                    "properties": {
-                        "text": {
-                            "type": "text",
-                            "analyzer": "standard",
-                            "similarity": "BM25"
+                    {
+                        "settings": {
+                            "number_of_shards": 1,
+                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                        },
+                        "mappings": {
+                            "properties": {
+                                "text": {
+                                    "type": "text",
+                                    "analyzer": "standard",
+                                    "similarity": "BM25"
+                                },
+                            }
                         },
                     }
-                },
-            }
 
-        Example::
+        Example:
+            .. code-block:: python
 
-            es_client = elasticsearch.Elasticsearch()
-            ds = datasets.load_dataset('crime_and_punish', split='train')
-            ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
-            scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+                es_client = elasticsearch.Elasticsearch()
+                ds = datasets.load_dataset('crime_and_punish', split='train')
+                ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+                scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
 
         """
         with self.formatted_as(type=None, columns=[column]):
@@ -2777,13 +2805,12 @@ def concatenate_datasets(
     split: Optional[Any] = None,
 ):
     """
-    Converts a list of :obj:``datasets.Dataset`` with the same schema into a single :obj:``datasets.Dataset``.
+    Converts a list of :class:`Dataset` with the same schema into a single :class:`Dataset`.
 
     Args:
-        dsets (:obj:``List[datasets.Dataset]``): A list of Datasets to concatenate
-        info (:obj:``datasets.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-            description, citation, etc.
-        split (:obj:``datasets.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        dsets (:obj:`List[datasets.Dataset]`): List of Datasets to concatenate.
+        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (:class:`NamedSplit`, optional): Name of the dataset split.
     """
     if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
         raise ValueError("Features must match for all datasets")
