@@ -273,29 +273,13 @@ This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareA
 ### Citation Information
 
 ```
-@inproceedings{anonymous,
-    title = "Cross-Lingual Pretraining Methods for Spoken Dialog",
-    author = "Anonymous",
-    booktitle = "Transactions of the Association for Computational Linguistics",
-    month = ,
-    year = "",
-    address = "Online",
-    publisher = "Association for Computational Linguistics",
-    url = "",
-    doi = "",
-    pages = "",
-    abstract = "There has been an increasing interest among NLP researchers towards learning generic
-    representations. However, in the field of multilingual spoken dialogue systems, this problem
-    remains overlooked. Indeed most of the pre-training methods focus on learning representations
-    for written and non-conversational data or are restricted to the monolingual setting. In this
-    work we (1) generalise existing losses to the multilingual setting, (2) develop a new set of
-    losses to leverage parallel conversations when available. These losses improve the learning of
-    representations by fostering the deep encoder to better learn contextual dependencies. The
-    pre-training relies on OpenSubtitles, a huge multilingual corpus that is composed of 24.3G tokens;
-    a by-product of the pre-processing includes multilingual aligned conversations. We also introduce
-    two new multilingual tasks and a new benchmark on multilingual dialogue act labels called MIAM.
-    We validate our pre-training on the three aforementioned tasks and show that our model using our
-    newly designed losses achieves better performances than existing models. Our implementation will
-    be available on github.com and pre-processed data will be available in Datasets (Wolf et al., 2020).",
+@unpublished{
+anonymous2021cross-lingual,
+title={Cross-Lingual Pretraining Methods for Spoken Dialog},
+author={Anonymous},
+journal={OpenReview Preprint},
+year={2021},
+howpublished = "\url{https://openreview.net/forum?id=c1oDhu_hagR}",
+note={anonymous preprint under review}
 }
 ```
