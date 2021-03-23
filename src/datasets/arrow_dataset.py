@@ -772,7 +772,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @deprecated(help_message="Use the dataset.flatten method instead.")
+    @deprecated(help_message="Use Dataset.flatten instead.")
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
@@ -816,7 +816,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.cast method instead.")
+    @deprecated(help_message="Use Dataset.cast instead.")
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
@@ -871,7 +871,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.remove_columns method instead.")
+    @deprecated(help_message="Use Dataset.remove_columns instead.")
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
@@ -932,7 +932,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.rename_column method instead.")
+    @deprecated(help_message="Use Dataset.rename_column instead.")
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):

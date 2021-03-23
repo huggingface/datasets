@@ -77,7 +77,7 @@ class DatasetDict(dict):
         for dataset in self.values():
             dataset.dictionary_encode_column_(column=column)
 
-    @deprecated(help_message="Please use :func:`DatasetDict.flatten` instead.")
+    @deprecated(help_message="Use DatasetDict.flatten instead.")
     def flatten_(self, max_depth=16):
         """In-place version of :meth:`DatasetDict.flatten`.
 
@@ -126,7 +126,7 @@ class DatasetDict(dict):
         repr = re.sub(r"^", " " * 4, repr, 0, re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
-    @deprecated(help_message="Please use :func:`DatasetDict.cast` instead.")
+    @deprecated(help_message="Use DatasetDict.cast instead.")
     def cast_(self, features: Features):
         """In-place version of :meth:`DatasetDict.cast`.
 
@@ -160,7 +160,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
 
-    @deprecated(help_message="Please use :func:`DatasetDict.remove_columns` instead.")
+    @deprecated(help_message="Use DatasetDict.remove_columns instead.")
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """In-place version of :meth:`DatasetDict.remove_columns`.
 
@@ -190,7 +190,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()})
 
-    @deprecated(help_message="Please use :func:`DatasetDict.rename_column` instead.")
+    @deprecated(help_message="Use DatasetDict.rename_column instead.")
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """In-place version of :meth:`DatasetDict.rename_column`.
 
