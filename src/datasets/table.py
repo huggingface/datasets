@@ -40,7 +40,7 @@ class Table:
     Wraps a pyarrow Table by using composition.
     This is the base class for InMemoryTable, MemoryMappedTable and ConcatenationTable.
 
-    It implements all the basic attributes/methdos of the pyarrow Table class except
+    It implements all the basic attributes/methods of the pyarrow Table class except
     the Table transforms: slice, filter, flatten, combine_chunks, cast, add_column,
     append_column, remove_column, set_column, rename_columns and drop.
 
@@ -173,6 +173,12 @@ class Table:
 
 
 class TableBlock(Table):
+    """
+    TableBlock is the allowed class inside a ConcanetationTable.
+    Only MemoryMappedTable and InMemoryTable are TableBlock.
+    This is because we don't want a ConcanetationTable made out of other ConcanetationTables.
+    """
+
     pass
 
 

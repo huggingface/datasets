@@ -1170,7 +1170,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             format_kwargs=self._format_kwargs,
         )
 
-    def cleanup_cache_files(self):
+    def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
         Be carefull when running this command that no other process is currently using other cache files.
 
@@ -1179,7 +1179,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         current_cache_files = [os.path.abspath(cache_file) for cache_file in self.cache_files]
         if not current_cache_files:
-            return
+            return 0
         cache_directory = os.path.dirname(current_cache_files[0])
         logger.info(f"Listing files in {cache_directory}")
         files: List[str] = os.listdir(cache_directory)
