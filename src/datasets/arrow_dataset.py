@@ -2469,28 +2469,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
 
-    def _write_csv(
-        self, file_obj: BinaryIO, batch_size: int, header: bool = True, encoding: str = "utf-8", **to_csv_kwargs
-    ) -> int:
-        """
-        Writes the pyarrow table as CSV to a binary file handle.
-        Caller is responsible for opening and closing the handle.
-        """
-        written = 0
-        _ = to_csv_kwargs.pop("path_or_buf", None)
-
-        for offset in range(0, len(self), batch_size):
-            batch = query_table(
-                pa_table=self._data,
-                key=slice(offset, offset + batch_size),
-                indices=self._indices.column(0) if self._indices is not None else None,
-            )
-            csv_str = batch.to_pandas().to_csv(
-                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
-            )
-            written += file_obj.write(csv_str.encode(encoding))
-        return written
-
     def to_csv(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
@@ -2508,14 +2486,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             int: The number of characters or bytes written
         """
-        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetWriter
 
-        if isinstance(path_or_buf, (str, bytes, os.PathLike)):
-            with open(path_or_buf, "wb+") as buffer:
-                written = self._write_csv(file_obj=buffer, batch_size=batch_size, **to_csv_kwargs)
-        else:
-            written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
-        return written
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
