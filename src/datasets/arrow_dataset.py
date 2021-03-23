@@ -2469,15 +2469,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
 
-    def _write_csv(self, file_obj: BinaryIO, batch_size: int, **to_csv_kwargs) -> int:
+    def _write_csv(
+        self, file_obj: BinaryIO, batch_size: int, header: bool = True, encoding: str = "utf-8", **to_csv_kwargs
+    ) -> int:
         """
         Writes the pyarrow table as CSV to a binary file handle.
         Caller is responsible for opening and closing the handle.
         """
         written = 0
-        header = to_csv_kwargs.pop("header", True)
-        encoding = to_csv_kwargs.pop("encoding", "utf-8")
-        to_csv_kwargs.pop("path_or_buf", None)
+        _ = to_csv_kwargs.pop("path_or_buf", None)
 
         for offset in range(0, len(self), batch_size):
             batch = query_table(
@@ -2496,7 +2496,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         **to_csv_kwargs,
-    ):
+    ) -> int:
         """Exports the dataset to csv
 
         Args:
