@@ -22,9 +22,9 @@ def deprecated(help_message: Optional[str] = None):
         warning_msg = (
             (
                 f"{deprecated_function.__name__} is deprecated and will be removed "
-                "in the next major version of datasets. "
+                "in the next major version of datasets."
             )
-            + help_message
+            + f" {help_message}"
             if help_message
             else ""
         )
