@@ -14,7 +14,16 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 1M<n<5M
+  de:
+  - 100K<n<1M
+  es:
+  - 100K<n<1M
+  fr:
+  - 100K<n<1M
+  ru:
+  - 10K<n<100K
+  tu:
+  - 100K<n<1M
 source_datasets:
 - extended|cnn_dailymail
 - original

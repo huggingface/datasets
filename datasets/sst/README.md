@@ -13,11 +13,7 @@ size_categories:
   - 10K<n<100K
   dictionary:
   - 100K<n<1M
-  phrases:
-  - 100K<n<1M
   ptb:
-  - 10K<n<100K
-  sentences:
   - 10K<n<100K
 source_datasets: []
 task_categories:

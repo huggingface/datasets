@@ -25,11 +25,11 @@ size_categories:
   SQuAD:
   - 100K<n<1M
   SearchQA:
-  - n>1M
+  - 1M<n<10M
   TextbookQA:
   - 10K<n<100K
   TriviaQA:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
   BioASQ:
   - extended|other-BioASQ

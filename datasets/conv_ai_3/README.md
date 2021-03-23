@@ -1,23 +1,23 @@
 ---
 annotations_creators:
-  - crowdsourced
+- crowdsourced
 language_creators:
-  - crowdsourced
+- crowdsourced
 languages:
-  - en
+- en
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 10K<n<100K
 source_datasets:
-  - original
+- original
 task_categories:
-  - conditional-text-generation
-  - text-scoring
+- conditional-text-generation
+- text-scoring
 task_ids:
-  - text-scoring-other-evaluating-dialogue-systems
+- text-scoring-other-evaluating-dialogue-systems
 ---
 
 # Dataset Card for [More Information Needed]

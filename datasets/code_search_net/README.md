@@ -10,7 +10,20 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n>1M
+  all:
+  - 1M<n<10M
+  go:
+  - 100K<n<1M
+  java:
+  - 100K<n<1M
+  javascript:
+  - 100K<n<1M
+  php:
+  - 100K<n<1M
+  python:
+  - 100K<n<1M
+  ruby:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:

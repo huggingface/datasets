@@ -19,7 +19,7 @@ size_categories:
   facqa:
   - 1K<n<10K
   hoasa:
-  - n<1K
+  - 1K<n<10K
   keps:
   - 1K<n<10K
   nergrit:

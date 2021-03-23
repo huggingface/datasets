@@ -66,7 +66,7 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-- 1M>n>100K
+- 100K<n<1M
 source_datasets:
 - extended|lama
 task_categories:
