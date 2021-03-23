@@ -40,7 +40,7 @@ if __name__ == "__main__":
     for readme in changed_readmes:
         try:
             DatasetMetadata.from_readme(readme)
-            logging.debug(f"✔️ Validated '{readme.absolute()}'")
+            logging.debug(f"✅️ Validated '{readme.absolute()}'")
         except ValidationError as e:
             failed.append(readme)
             logging.warning(f"❌ Failed to validate '{readme.absolute()}':\n{e}")
