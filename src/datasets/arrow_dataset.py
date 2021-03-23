@@ -776,9 +776,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
-        """
-        In-place version of :func:`Dataset.flatten`
-        This method is deprecated, please use :func:`Dataset.flatten` instead.
+        """In-place version of :meth:`Dataset.flatten`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.flatten` instead.
         """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
@@ -819,9 +820,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
-        """
-        In-place version of :func:`Dataset.cast`
-        This method is deprecated, please use :func:`Dataset.cast` instead.
+        """In-place version of :meth:`Dataset.cast`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -873,9 +875,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
-        """
-        In-place version of :func:`Dataset.remove_columns`
-        This method is deprecated, please use :func:`Dataset.remove_columns` instead.
+        """In-place version of :meth:`Dataset.remove_columns`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -933,9 +936,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @replayable_table_alteration
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
-        """
-        In-place version of :func:`Dataset.rename_column`
-        This method is deprecated, please use :func:`Dataset.rename_column` instead.
+        """In-place version of :meth:`Dataset.rename_column`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.

@@ -79,9 +79,10 @@ class DatasetDict(dict):
 
     @deprecated(help_message="Please use :func:`DatasetDict.flatten` instead.")
     def flatten_(self, max_depth=16):
-        """
-        In-place version of :func:`DatasetDict.flatten`
-        This method is deprecated, please use :func:`DatasetDict.flatten` instead.
+        """In-place version of :meth:`DatasetDict.flatten`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.flatten` instead.
         """
         self._check_values_type()
         for dataset in self.values():
@@ -127,9 +128,10 @@ class DatasetDict(dict):
 
     @deprecated(help_message="Please use :func:`DatasetDict.cast` instead.")
     def cast_(self, features: Features):
-        """
-        In-place version of :func:`DatasetDict.cast`
-        This method is deprecated, please use :func:`DatasetDict.cast` instead.
+        """In-place version of :meth:`DatasetDict.cast`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -160,9 +162,10 @@ class DatasetDict(dict):
 
     @deprecated(help_message="Please use :func:`DatasetDict.remove_columns` instead.")
     def remove_columns_(self, column_names: Union[str, List[str]]):
-        """
-        In-place version of :func:`DatasetDict.remove_columns`
-        This method is deprecated, please use :func:`DatasetDict.remove_columns` instead.
+        """In-place version of :meth:`DatasetDict.remove_columns`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -189,9 +192,10 @@ class DatasetDict(dict):
 
     @deprecated(help_message="Please use :func:`DatasetDict.rename_column` instead.")
     def rename_column_(self, original_column_name: str, new_column_name: str):
-        """
-        In-place version of :func:`DatasetDict.rename_column_`
-        This method is deprecated, please use :func:`DatasetDict.rename_column` instead.
+        """In-place version of :meth:`DatasetDict.rename_column`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
