@@ -19,7 +19,7 @@ languages:
 - km
 - ms
 - nl
-- false
+- "no"
 - pl
 - pt
 - ru

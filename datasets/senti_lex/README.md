@@ -60,7 +60,7 @@ languages:
 - mt
 - nl
 - nn
-- false
+- "no"
 - pl
 - pt
 - rm

@@ -42,7 +42,7 @@ languages:
 - ml
 - ms
 - nl
-- false
+- "no"
 - pl
 - pt
 - pt_br

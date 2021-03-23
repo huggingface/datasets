@@ -197,7 +197,7 @@ languages:
   - nn
   en-no:
   - en
-  - false
+  - "no"
   en-oc:
   - en
   - oc
