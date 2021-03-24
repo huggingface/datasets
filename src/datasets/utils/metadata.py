@@ -3,9 +3,19 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+
+# loading package files: https://stackoverflow.com/a/20885799
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
+
 import langcodes as lc
 import yaml
 from pydantic import BaseModel, conlist, validator
+
+from . import resources
 
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
@@ -14,9 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 def load_json_resource(resource: str) -> Tuple[Dict, str]:
-    utils_dir = Path(__file__).parent
-    with open(utils_dir / "resources" / resource) as fi:
-        return json.load(fi), f"{BASE_REF_URL}/resources/{resource}"
+    content = pkg_resources.read_text(resources, resource)
+    return json.loads(content), f"{BASE_REF_URL}/resources/{resource}"
 
 
 known_licenses, known_licenses_url = load_json_resource("licenses.json")
