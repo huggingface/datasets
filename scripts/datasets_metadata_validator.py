@@ -5,16 +5,15 @@
 """
 
 from pathlib import Path
-from subprocess import check_call, check_output
+from subprocess import check_output
 from typing import List
 
 from pydantic import ValidationError
 
-from datasets.utils.metadata_validator import DatasetMetadata
+from datasets.utils.metadata import DatasetMetadata
 
 
 def get_changed_files(repo_path: Path) -> List[Path]:
-    # check_call(["git", "fetch"], cwd=repo_path)
     diff_output = check_output(["git", "diff", "--name-only", "HEAD..origin/master"], cwd=repo_path)
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
     return changed_files
