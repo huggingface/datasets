@@ -70,13 +70,17 @@ def tagset_validator(values: List[str], reference_values: List[str], name: str, 
     return values
 
 
-def splitter(values: List[Any], predicate_fn: Callable[[Any], bool]) -> Tuple[List[Any], List[Any]]:
+def escape_validation_for_predicate(
+    values: List[Any], predicate_fn: Callable[[Any], bool]
+) -> Tuple[List[Any], List[Any]]:
     trues, falses = list(), list()
     for v in values:
         if predicate_fn(v):
             trues.append(v)
         else:
             falses.append(v)
+    if len(trues) > 0:
+        logger.warning(f"The following values will escape validation: {trues}")
     return trues, falses
 
 
@@ -128,14 +132,15 @@ class DatasetMetadata(BaseModel):
 
     @validator("licenses")
     def licenses_must_be_in_known_set(cls, licenses: List[str]):
-        return tagset_validator(licenses, list(known_licenses.keys()), "licenses", known_licenses_url)
+        others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e)
+        return [*tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url), *others]
 
     @validator("task_categories")
     def task_category_must_be_in_known_set(cls, task_categories: List[str]):
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        others, to_validate = splitter(task_categories, lambda e: e.startswith("other"))
+        others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other"))
         return [*tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url), *others]
 
     @validator("task_ids")
@@ -143,16 +148,33 @@ class DatasetMetadata(BaseModel):
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
-        others, to_validate = splitter(task_ids, lambda e: e.startswith("other"))
+        others, to_validate = escape_validation_for_predicate(task_ids, lambda e: "-other-" in e)
         return [*tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url), *others]
 
     @validator("multilinguality")
     def multilinguality_must_be_in_known_set(cls, multilinguality: List[str]):
-        return tagset_validator(multilinguality, list(known_multilingualities.keys()), "multilinguality", this_url)
+        others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other"))
+        return [
+            *tagset_validator(to_validate, list(known_multilingualities.keys()), "multilinguality", this_url),
+            *others,
+        ]
 
     @validator("size_categories")
     def size_categories_must_be_in_known_set(cls, size_cats: List[str]):
         return tagset_validator(size_cats, known_size_categories, "size_categories", this_url)
+
+    @validator("source_datasets")
+    def source_datasets_must_be_in_known_set(cls, sources: List[str]):
+        invalid_values = []
+        for src in sources:
+            is_ok = src in ["original", "extended"] or src.startswith("extended|")
+            if not is_ok:
+                invalid_values.append(src)
+        if len(invalid_values) > 0:
+            raise ValueError(
+                f"'source_datasets' has invalid values: {invalid_values}, refer to source code to understand {this_url}"
+            )
+        return sources
 
 
 if __name__ == "__main__":
