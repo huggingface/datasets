@@ -63,12 +63,12 @@ This dataset provides pairs of sentences and a score of their similarity.
 
 score | 2 example sentences | explanation
 ------|---------|------------
-5 | The bird is bathing in the sink.<br/>Birdie is washing itself in the water basin. | The two sentences are completely equivalent, as they mean the same thing.
-4 | Two boys on a couch are playing video games.<br/>Two boys are playing a video game. | The two sentences are mostly equivalent, but some unimportant details differ.
-3 | John said he is considered a witness but not a suspect.<br/>“He is not a suspect anymore.” John said. | The two sentences are roughly equivalent, but some important information differs/missing.
-2 | They flew out of the nest in groups.<br/>They flew into the nest together. | The two sentences are not equivalent, but share some details.
-1 | The woman is playing the violin.<br/>The young lady enjoys listening to the guitar. | The two sentences are not equivalent, but are on the same topic.
-0 | The black dog is running through the snow.<br/>A race car driver is driving his car through the mud. | The two sentences are completely dissimilar.
+5 | *The bird is bathing in the sink.<br/>Birdie is washing itself in the water basin.* | The two sentences are completely equivalent, as they mean the same thing.
+4 | *Two boys on a couch are playing video games.<br/>Two boys are playing a video game.* | The two sentences are mostly equivalent, but some unimportant details differ.
+3 | *John said he is considered a witness but not a suspect.<br/>“He is not a suspect anymore.” John said.* | The two sentences are roughly equivalent, but some important information differs/missing.
+2 | *They flew out of the nest in groups.<br/>They flew into the nest together.* | The two sentences are not equivalent, but share some details.
+1 | *The woman is playing the violin.<br/>The young lady enjoys listening to the guitar.* | The two sentences are not equivalent, but are on the same topic.
+0 | *The black dog is running through the snow.<br/>A race car driver is driving his car through the mud.* | The two sentences are completely dissimilar.
 
 An example:
 ```text
