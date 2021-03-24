@@ -161,13 +161,7 @@ else:
     )
 
 
-QUALITY_REQUIRE = [
-    "black",
-    "flake8==3.7.9",
-    "isort",
-    "langcodes[data]>=3.1.0",
-    "pydantic>=1.8.1",
-]
+QUALITY_REQUIRE = ["black", "flake8==3.7.9", "isort", "langcodes[data]>=3.1.0", "pydantic>=1.8.1", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
