@@ -991,6 +991,34 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string"), "name": Value("string")}))
             del dset
 
+    def test_map_stateful_callable(self, in_memory):
+        # be sure that the state of the map callable is unaffected
+        # before processing the dataset examples
+
+        class ExampleCounter:
+            def __init__(self, batched=False):
+                self.batched = batched
+                # state
+                self.cnt = 0
+
+            def __call__(self, example):
+                if self.batched:
+                    self.cnt += len(example)
+                else:
+                    self.cnt += 1
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+
+            ex_cnt = ExampleCounter()
+            dset.map(ex_cnt)
+            self.assertEqual(ex_cnt.cnt, len(dset))
+
+            ex_cnt = ExampleCounter(batched=True)
+            dset.map(ex_cnt)
+            self.assertEqual(ex_cnt.cnt, len(dset))
+            del dset
+
     def test_filter(self, in_memory):
         # keep only first five examples
 

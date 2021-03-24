@@ -20,7 +20,12 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  conceptnet5:
+  - 10M<n<100M
+  omcs_sentences_free:
+  - 100K<n<1M
+  omcs_sentences_more:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:

@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<10K
+- 1K<n<10K
 source_datasets:
 - extended|image-flickr-8k
 - extended|semeval2012-sts-msr-video

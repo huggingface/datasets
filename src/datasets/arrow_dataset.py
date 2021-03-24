@@ -680,13 +680,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @deprecated(help_message="Use the dataset.dictionary_encode_column method instead.")
+    @deprecated()
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
-            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionary of the strings. This only affect the internal storage.
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        .. deprecated:: 1.4.0
 
         Args:
             column (:obj:`str`):
@@ -702,12 +704,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @deprecated(help_message="Use the dataset.flatten method instead.")
+    @deprecated(help_message="Use Dataset.flatten instead.")
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
-        """
-        In-place version of :func:`Dataset.flatten`
-        This method is deprecated, please use :func:`Dataset.flatten` instead.
+        """In-place version of :meth:`Dataset.flatten`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.flatten` instead.
         """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
@@ -743,12 +746,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.cast method instead.")
+    @deprecated(help_message="Use Dataset.cast instead.")
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
-        """
-        In-place version of :func:`Dataset.cast`
-        This method is deprecated, please use :func:`Dataset.cast` instead.
+        """In-place version of :meth:`Dataset.cast`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -795,12 +799,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.remove_columns method instead.")
+    @deprecated(help_message="Use Dataset.remove_columns instead.")
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
-        """
-        In-place version of :func:`Dataset.remove_columns`
-        This method is deprecated, please use :func:`Dataset.remove_columns` instead.
+        """In-place version of :meth:`Dataset.remove_columns`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -853,12 +858,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.rename_column method instead.")
+    @deprecated(help_message="Use Dataset.rename_column instead.")
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
-        """
-        In-place version of :func:`Dataset.rename_column`
-        This method is deprecated, please use :func:`Dataset.rename_column` instead.
+        """In-place version of :meth:`Dataset.rename_column`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -1227,7 +1233,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        and update the table (if function does update examples).
 
         Args:
             function (`callable`): with one of the following signature:
@@ -1292,43 +1298,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
-        # Check if the function returns updated examples
-        def does_function_return_dict(inputs, indices):
-            """ Does the function returns a dict. """
-            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
-            processed_inputs = (
-                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
-            )
-            does_return_dict = isinstance(processed_inputs, Mapping)
-
-            if does_return_dict is False and processed_inputs is not None:
-                raise TypeError(
-                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
-                        type(processed_inputs)
-                    )
-                )
-            elif isinstance(test_indices, list) and does_return_dict is True:
-                allowed_batch_return_types = (list, np.ndarray)
-                all_dict_values_are_lists = all(
-                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
-                )
-                if all_dict_values_are_lists is False:
-                    raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
-                        )
-                    )
-
-            return does_return_dict
-
-        # We only update the data table (and use the cache) if the function returns a dict.
-        # Test it on the first element or a small batch (0, 1) for batched inputs
-        logger.info("Testing the mapped function outputs")
-        test_inputs = self[:2] if batched else self[0]
-        test_indices = [0, 1] if batched else 0
-        update_data = does_function_return_dict(test_inputs, test_indices)
-        logger.info("Testing finished, running the mapping function on the dataset")
-
         if num_proc is None or num_proc == 1:
             return self._map_single(
                 function=function,
@@ -1346,7 +1315,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
-                update_data=update_data,
             )
         else:
 
@@ -1398,7 +1366,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
-                        update_data=update_data,
                     )
                     for rank in range(num_proc)
                 ]
@@ -1432,10 +1399,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
-        update_data=True,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        and update the table (if function does update examples).
 
         Args:
             function (`callable`): with one of the following signature:
@@ -1470,7 +1436,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
-            update_data (`bool`, defaults to `True`): If False, no new arrow table will be created
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1516,11 +1481,49 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
+        # Check if we've already cached this computation (indexed by a hash)
+        if self.cache_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function,
+                # current dataset file and the mapping args
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.warning("Loading cached processed dataset at %s", cache_file_name)
+                info = self.info.copy()
+                info.features = features
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
+        # We set this variable to True after processing the first example/batch in
+        # `apply_function_on_filtered_inputs` if the map function returns a dict.
+        # If set to False, no new arrow table will be created
+        update_data = None
+
         class NumExamplesMismatch(Exception):
             pass
 
+        def validate_function_output(does_return_dict, processed_inputs, indices):
+            """ Validate output of the map function. """
+            if does_return_dict is False and processed_inputs is not None:
+                raise TypeError(
+                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
+                        type(processed_inputs)
+                    )
+                )
+            elif isinstance(indices, list) and does_return_dict is True:
+                allowed_batch_return_types = (list, np.ndarray)
+                all_dict_values_are_lists = all(
+                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
+                )
+                if all_dict_values_are_lists is False:
+                    raise TypeError(
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
+                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
+                        )
+                    )
+
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
             """ Utility to apply the function on a selection of columns. """
+            nonlocal update_data
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
                 effective_indices = indices
@@ -1529,6 +1532,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             processed_inputs = (
                 function(*fn_args, effective_indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
             )
+            if update_data is None:
+                # Check if the function returns updated examples
+                update_data = isinstance(processed_inputs, Mapping)
+                validate_function_output(update_data, processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
@@ -1549,21 +1556,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             inputs.update(processed_inputs)
             return inputs
 
-        # Check if we've already cached this computation (indexed by a hash)
-        if update_data and self.cache_files:
-            if cache_file_name is None:
-                # we create a unique hash from the function, current dataset file and the mapping args
-                cache_file_name = self._get_cache_file_path(new_fingerprint)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached processed dataset at %s", cache_file_name)
-                info = self.info.copy()
-                info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
-
-        # Prepare output buffer and batched writer in memory or on file if we update the table
-        if update_data:
-            if features is None:
-                features = self.features
+        def init_buffer_and_writer():
+            # Prepare output buffer and batched writer in memory or on file if we update the table
+            writer_features = features
+            if writer_features is None:
+                writer_features = self.features
                 update_features = True
             else:
                 update_features = False
@@ -1571,7 +1568,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 buf_writer = pa.BufferOutputStream()
                 tmp_file = None
                 writer = ArrowWriter(
-                    features=features,
+                    features=writer_features,
                     stream=buf_writer,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
@@ -1583,18 +1580,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Caching processed dataset at %s", cache_file_name)
                 tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
                 writer = ArrowWriter(
-                    features=features,
+                    features=writer_features,
                     path=tmp_file.name,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
                 )
-        else:
-            # we don't need a writer so we use an empty context
-            writer = contextlib.ExitStack()
+            return buf_writer, writer, tmp_file
 
-        with writer:
+        # If `update_data` is True after processing the first example/batch, initalize these resources with `init_buffer_and_writer`
+        buf_writer, writer, tmp_file = None, None, None
+
+        # Optionally initialize the writer as a context manager
+        with contextlib.ExitStack() as stack:
             try:
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 pbar_iterable = self if not batched else range(0, len(self), batch_size)
@@ -1605,6 +1604,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
                         if update_data:
+                            if i == 0:
+                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                stack.enter_context(writer)
                             example = cast_to_python_objects(example)
                             writer.write(example)
                 else:
@@ -1622,22 +1624,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                             )
                         if update_data:
+                            if i == 0:
+                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                stack.enter_context(writer)
                             batch = cast_to_python_objects(batch)
                             writer.write_batch(batch)
-                if update_data:
+                if update_data and writer is not None:
                     writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
             except (Exception, KeyboardInterrupt):
                 if update_data:
-                    writer.finalize()
-                if update_data and tmp_file is not None:
-                    tmp_file.close()
-                    if os.path.exists(tmp_file.name):
-                        os.remove(tmp_file.name)
+                    if writer is not None:
+                        writer.finalize()
+                    if tmp_file is not None:
+                        tmp_file.close()
+                        if os.path.exists(tmp_file.name):
+                            os.remove(tmp_file.name)
                 raise
 
         if update_data and tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
+            os.chmod(cache_file_name, 0o644)
 
         if update_data:
             # Create new Dataset from buffer or file
@@ -1879,6 +1886,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
+            os.chmod(indices_cache_file_name, 0o644)
 
         # Return new Dataset object
         if buf_writer is None:
@@ -2379,34 +2387,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
 
-    def _write_csv(self, file_obj: BinaryIO, batch_size: int, **to_csv_kwargs) -> int:
-        """
-        Writes the pyarrow table as CSV to a binary file handle.
-        Caller is responsible for opening and closing the handle.
-        """
-        written = 0
-        header = to_csv_kwargs.pop("header", True)
-        encoding = to_csv_kwargs.pop("encoding", "utf-8")
-        to_csv_kwargs.pop("path_or_buf", None)
-
-        for offset in range(0, len(self), batch_size):
-            batch = query_table(
-                pa_table=self._data,
-                key=slice(offset, offset + batch_size),
-                indices=self._indices.column(0) if self._indices is not None else None,
-            )
-            csv_str = batch.to_pandas().to_csv(
-                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
-            )
-            written += file_obj.write(csv_str.encode(encoding))
-        return written
-
     def to_csv(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         **to_csv_kwargs,
-    ):
+    ) -> int:
         """Exports the dataset to csv
 
         Args:
@@ -2418,14 +2404,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             int: The number of characters or bytes written
         """
-        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetWriter
 
-        if isinstance(path_or_buf, (str, bytes, os.PathLike)):
-            with open(path_or_buf, "wb+") as buffer:
-                written = self._write_csv(file_obj=buffer, batch_size=batch_size, **to_csv_kwargs)
-        else:
-            written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
-        return written
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.

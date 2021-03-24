@@ -12,7 +12,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<n<10k
+- 1K<n<10K
 source_datasets:
 - extended|other-tirasaroj-aroonmanakun
 task_categories:
