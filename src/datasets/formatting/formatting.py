@@ -15,7 +15,6 @@
 
 # Lint as: python3
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -34,10 +33,6 @@ import pyarrow as pa
 
 from ..features import pandas_types_mapper
 from ..table import Table
-
-
-if TYPE_CHECKING:
-    from ..table import Table  # noqa: F401
 
 
 T = TypeVar("T")

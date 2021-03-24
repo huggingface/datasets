@@ -22,7 +22,7 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
 import pyarrow as pa
 import pyarrow.parquet
