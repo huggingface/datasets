@@ -201,9 +201,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     package_data={
-        "datasets": [
-            "scripts/templates/*",
-        ],
+        "datasets": ["scripts/templates/*", "*.json"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
