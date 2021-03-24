@@ -13,16 +13,6 @@ this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
 
-def dict_from_readme(f: Path) -> Optional[Dict[str, List[str]]]:
-    with f.open() as fi:
-        content = [line.strip() for line in fi]
-
-    if content[0] == "---" and "---" in content[1:]:
-        yamlblock = "\n".join(content[1 : content[1:].index("---") + 1])
-        metada_dict = yaml.safe_load(yamlblock) or dict()
-        return metada_dict
-
-
 def load_json_resource(resource: str) -> Tuple[Dict, str]:
     utils_dir = Path(__file__).parent
     with open(utils_dir / "resources" / resource) as fi:
@@ -41,10 +31,20 @@ known_multilingualities = {
 }
 
 
+def dict_from_readme(f: Path) -> Optional[Dict[str, List[str]]]:
+    with f.open() as fi:
+        content = [line.strip() for line in fi]
+
+    if content[0] == "---" and "---" in content[1:]:
+        yamlblock = "\n".join(content[1 : content[1:].index("---") + 1])
+        metada_dict = yaml.safe_load(yamlblock) or dict()
+        return metada_dict
+
+
 def tagset_validator(values: List[str], reference_values: List[str], name: str, url: str) -> List[str]:
     invalid_values = [v for v in values if v not in reference_values]
     if len(invalid_values) > 0:
-        raise ValueError(f"'{invalid_values}' is not a registered tag for '{name}', reference at {url}")
+        raise ValueError(f"{invalid_values} are not registered tags for '{name}', reference at {url}")
     return values
 
 
@@ -82,20 +82,6 @@ class DatasetMetadata(BaseModel):
         metada_dict = yaml.safe_load(string) or dict()
         return cls(**metada_dict)
 
-    @classmethod
-    def empty(cls) -> "DatasetMetadata":
-        return cls(
-            annotations_creators=list(),
-            language_creators=list(),
-            languages=list(),
-            licenses=list(),
-            multilinguality=list(),
-            size_categories=list(),
-            source_datasets=list(),
-            task_categories=list(),
-            task_ids=list(),
-        )
-
     @validator("annotations_creators")
     def annotations_creators_must_be_in_known_set(cls, annotations_creators: List[str]) -> List[str]:
         return tagset_validator(annotations_creators, known_creators["annotations"], "annotations", known_creators_url)
@@ -106,13 +92,16 @@ class DatasetMetadata(BaseModel):
 
     @validator("languages")
     def language_code_must_be_recognized(cls, languages: List[str]):
+        invalid_values = []
         for code in languages:
             try:
                 lc.get(code)
             except lc.tag_parser.LanguageTagError:
-                raise ValueError(
-                    f"'{code}' is not recognised as a valid language code (BCP47 norm), you can refer to https://github.com/LuminosoInsight/langcodes"
-                )
+                invalid_values.append(code)
+        if len(invalid_values) > 0:
+            raise ValueError(
+                f"{invalid_values} are not recognised as valid language codes (BCP47 norm), you can refer to https://github.com/LuminosoInsight/langcodes"
+            )
         return languages
 
     @validator("licenses")
