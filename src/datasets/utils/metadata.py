@@ -31,7 +31,20 @@ def load_json_resource(resource: str) -> Tuple[Dict, str]:
 known_licenses, known_licenses_url = load_json_resource("licenses.json")
 known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
 known_creators, known_creators_url = load_json_resource("creators.json")
-known_size_categories = ["unknown", "n<1K", "1K<n<10K", "10K<n<100K", "100K<n<1M", "n>1M"]
+known_size_categories = [
+    "unknown",
+    "n<1K",
+    "1K<n<10K",
+    "10K<n<100K",
+    "100K<n<1M",
+    "1M<n<10M",
+    "10M<n<100M",
+    "100M<n<1B",
+    "1B<n<10B",
+    "10B<n<100B",
+    "100B<n<1T",
+    "n>1T",
+]
 known_multilingualities = {
     "monolingual": "contains a single language",
     "multilingual": "contains multiple languages",
