@@ -4,11 +4,14 @@ from pathlib import Path
 from unittest import TestCase
 
 import pyarrow as pa
+import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import BaseReader
+from datasets.arrow_reader import ArrowReader, BaseReader
 from datasets.info import DatasetInfo
 from datasets.splits import SplitDict, SplitInfo
+
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
 class ReaderTest(BaseReader):
@@ -17,7 +20,7 @@ class ReaderTest(BaseReader):
     This reader is made for testing. It mocks file reads.
     """
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
@@ -82,3 +85,26 @@ class BaseReaderTest(TestCase):
             self.assertEqual(dset.num_columns, 1)
             self.assertEqual(dset._data_files, files)
             del dset
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_read_table(in_memory, dataset, arrow_file):
+    filename = arrow_file
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        table = ArrowReader.read_table(filename, in_memory=in_memory)
+    assert table.shape == dataset.data.shape
+    assert set(table.column_names) == set(dataset.data.column_names)
+    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_read_files(in_memory, dataset, arrow_file):
+    filename = arrow_file
+    reader = ArrowReader("", None)
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
+    assert dataset_kwargs.keys() == set(["arrow_table", "data_files", "info", "split"])
+    table = dataset_kwargs["arrow_table"]
+    assert table.shape == dataset.data.shape
+    assert set(table.column_names) == set(dataset.data.column_names)
+    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict

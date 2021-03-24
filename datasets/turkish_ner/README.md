@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -153,3 +154,7 @@ Creative Commons Attribution 4.0 International
   biburl    = {https://dblp.org/rec/journals/corr/SahinTYES17.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+
+### Contributions
+
+Thanks to [@merveenoyan](https://github.com/merveenoyan) for adding this dataset.

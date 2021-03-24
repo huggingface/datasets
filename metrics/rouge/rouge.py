@@ -69,9 +69,22 @@ Returns:
     rouge2: rouge_2 (precision, recall, f1),
     rougeL: rouge_l (precision, recall, f1),
     rougeLsum: rouge_lsum (precision, recall, f1)
+Examples:
+
+    >>> rouge = datasets.load_metric('rouge')
+    >>> predictions = ["hello there", "general kenobi"]
+    >>> references = ["hello there", "general kenobi"]
+    >>> results = rouge.compute(predictions=predictions, references=references)
+    >>> print(list(results.keys()))
+    ['rouge1', 'rouge2', 'rougeL', 'rougeLsum']
+    >>> print(results["rouge1"])
+    AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0))
+    >>> print(results["rouge1"].mid.fmeasure)
+    1.0
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Rouge(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(

@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -18,7 +18,7 @@ task_categories:
 task_ids:
 - coreference-resolution
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 ---
 
 # Dataset Card for Wino_Bias dataset
@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -166,3 +167,7 @@ MIT Licence
   biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+
+### Contributions
+
+Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset.

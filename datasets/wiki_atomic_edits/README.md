@@ -41,7 +41,38 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n>1M
+  chinese_deletions:
+  - 100K<n<1M
+  chinese_insertions:
+  - 100K<n<1M
+  english_deletions:
+  - 1M<n<10M
+  english_insertions:
+  - 10M<n<100M
+  french_deletions:
+  - 1M<n<10M
+  french_insertions:
+  - 1M<n<10M
+  german_deletions:
+  - 1M<n<10M
+  german_insertions:
+  - 1M<n<10M
+  italian_deletions:
+  - 100K<n<1M
+  italian_insertions:
+  - 1M<n<10M
+  japanese_deletions:
+  - 1M<n<10M
+  japanese_insertions:
+  - 1M<n<10M
+  russian_deletions:
+  - 100K<n<1M
+  russian_insertions:
+  - 1M<n<10M
+  spanish_deletions:
+  - 100K<n<1M
+  spanish_insertions:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -75,6 +106,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -172,3 +204,7 @@ Here are some examples of questions and facts:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.

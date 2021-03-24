@@ -12,7 +12,7 @@ In this section we study each option.
 From the HuggingFace Hub
 -------------------------------------------------
 
-Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/datasets/viewer>`__.
+Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗Datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 .. note::
 
@@ -25,8 +25,8 @@ All the datasets currently available on the `Hub <https://huggingface.co/dataset
     >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
-    136
-    >>> print(', '.join(dataset.id for dataset in datasets_list))
+    656
+    >>> print(', '.join(dataset for dataset in datasets_list))
     aeslc, ag_news, ai2_arc, allocine, anli, arcd, art, billsum, blended_skill_talk, blimp, blog_authorship_corpus, bookcorpus, boolq, break_data,
     c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e, 
     cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli, 
@@ -61,9 +61,9 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
 
 .. note::
 
-    An Apache Arrow Table is the internal storing format for 🤗datasets. It allows to store arbitrarily long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗datasets is thus to always memory-map dataset on drive.
+    An Apache Arrow Table is the internal storing format for 🤗Datasets. It allows to store arbitrarily long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗Datasets is thus to always memory-map dataset on drive.
 
-3. Return a **dataset build from the splits** asked by the user (default: all), in the above example we create a dataset with the first 10% of the validation split.
+3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 
 
 Selecting a split
@@ -123,7 +123,7 @@ Some dataset require you to download manually some files, usually because of lic
 
 In this case specific instruction for dowloading the missing files will be provided when running the script with :func:`datasets.load_dataset` for the first time to explain where and how you can get the files.
 
-After you've downloaded the files, you can point to the folder hosting them locally with the :obj:`data_dir` argument as follow
+After you've downloaded the files, you can point to the folder hosting them locally with the :obj:`data_dir` argument as follows:
 
 .. code-block::
 
@@ -135,7 +135,7 @@ After you've downloaded the files, you can point to the folder hosting them loca
 
 Apart from :obj:`name` and :obj:`split`, the :func:`datasets.load_dataset` method provide a few arguments which can be used to control where the data is cached (:obj:`cache_dir`), some options for the download process it-self like the proxies and whether the download cache should be used (:obj:`download_config`, :obj:`download_mode`).
 
-You can find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
+The use of these arguments is discussed in the :ref:`load_dataset_cache_management` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
 
 
 .. _loading-from-local-files:
@@ -178,7 +178,7 @@ Let's see an example of all the various ways you can provide files to :func:`dat
 CSV files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗datasets can read a dataset made of on or several CSV files.
+🤗Datasets can read a dataset made of on or several CSV files.
 
 All the CSV files in the dataset should have the same organization and in particular the same datatypes for the columns.
 
@@ -199,15 +199,15 @@ Here is an example loading two CSV file to create a ``train`` split (default spl
 
 The ``csv`` loading script provides a few simple access options to control parsing and reading the CSV files:
 
-    - :obj:`skip_rows` (int) - Number of first rows in the file to skip (default is 0)
+    - :obj:`skiprows` (int) - Number of first rows in the file to skip (default is 0)
     - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
-    - :obj:`autogenerate_column_names` (bool) – Whether to autogenerate column names if column_names is empty. If true, column names will be of the form “f0”, “f1”… If false, column names will be read from the first CSV row after skip_rows (default False).
     - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
-    - :obj:`quote_char` (1-character string or False) – The character used optionally for quoting CSV values (False if quoting is not allowed, default '"').
+    - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default '"').
+    - :obj:`quoting` (bool) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to pandas.read_csv documentation for more details).
 
 If you want more control, the ``csv`` script provide full control on reading, parsong and convertion through the Apache Arrow `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__, `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ and `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__
 
-    - :obj:`read_options` — Can be provided with a `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__ to control all the reading options. If :obj:`skip_rows`, :obj:`column_names` or :obj:`autogenerate_column_names` are also provided (see above), they will take priority over the attributes in :obj:`read_options`.
+    - :obj:`read_options` — Can be provided with a `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__ to control all the reading options. If :obj:`skiprows`, :obj:`column_names` or :obj:`autogenerate_column_names` are also provided (see above), they will take priority over the attributes in :obj:`read_options`.
     - :obj:`parse_options` — Can be provided with a `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ to control all the parsing options. If :obj:`delimiter` or :obj:`quote_char` are also provided (see above), they will take priority over the attributes in :obj:`parse_options`.
     - :obj:`convert_options` — Can be provided with a `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__ to control all the conversion options.
 
@@ -215,7 +215,7 @@ If you want more control, the ``csv`` script provide full control on reading, pa
 JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗datasets supports building a dataset from JSON files in various format.
+🤗Datasets supports building a dataset from JSON files in various format.
 
 The most efficient format is to have JSON files consisting of multiple JSON objects, one per line, representing individual data rows:
 
@@ -243,12 +243,12 @@ One common occurence is to have a JSON file with a single root dictionary where 
 
 .. code-block::
 
-    {"version: "0.1.0",
+    {"version": "0.1.0",
      "data": [{"a": 1, "b": 2.0, "c": "foo", "d": false},
               {"a": 4, "b": -5.5, "c": null, "d": true}]
     }
 
-In this case you will need to specify which field contains the dataset using the :obj:`field` argument as follow:
+In this case you will need to specify which field contains the dataset using the :obj:`field` argument as follows:
 
 .. code-block::
 
@@ -259,7 +259,7 @@ In this case you will need to specify which field contains the dataset using the
 Text files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗datasets also supports building a dataset from text files read line by line (each line will be a row in the dataset).
+🤗Datasets also supports building a dataset from text files read line by line (each line will be a row in the dataset).
 
 This is simply done using the ``text`` loading script which will generate a dataset with a single column called ``text`` containing all the text lines of the input files as strings.
 
@@ -338,4 +338,96 @@ You can use a local loading script just by providing its path instead of the usu
 
 We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__.
 
+.. _load_dataset_cache_management:
 
+Cache management and integrity verifications
+-----------------------------------------------------------
+
+Cache directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To avoid re-downloading the whole dataset every time you use it, the `datasets` library caches the data on your computer.
+
+By default, the `datasets` library caches the datasets and the downloaded data files under the following directory: `~/.cache/huggingface/datasets`.
+
+If you want to change the location where the datasets cache is stored, simply set the `HF_DATASETS_CACHE` environment variable. For example, if you're using linux:
+
+.. code-block::
+
+    $ export HF_DATASETS_CACHE="/path/to/another/directory"
+
+In addition, you can control where the data is cached when invoking the loading script, by setting the :obj:`cache_dir` parameter:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('LOADING_SCRIPT', cache_dir="PATH/TO/MY/CACHE/DIR")
+
+Download mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can control the way the the :func:`datasets.load_dataset` function handles already downloaded data by setting its :obj:`download_mode` parameter.
+
+By default, :obj:`download_mode` is set to ``"reuse_dataset_if_exists"``. The :func:`datasets.load_dataset` function will reuse both raw downloads and the prepared dataset, if they exist in the cache directory.
+
+The following table describes the three available modes for download:
+
+.. list-table:: Behavior of :func:`datasets.load_dataset` depending on :obj:`download_mode`
+   :header-rows: 1
+
+   * - :obj:`download_mode` parameter value
+     - Downloaded files (raw data)
+     - Dataset object
+   * - ``"reuse_dataset_if_exists"`` (default)
+     - Reuse
+     - Reuse
+   * - ``"reuse_cache_if_exists"``
+     - Reuse
+     - Fresh
+   * - ``"force_redownload"``  
+     - Fresh
+     - Fresh
+
+For example, you can run the following if you want to force the re-download of the SQuAD raw data files:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('squad', download_mode="force_redownload")
+
+
+Integrity verifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When downloading a dataset from the 🤗 dataset hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
+
+- Verifying the list of downloaded files
+- Verifying the number of bytes of the downloaded files
+- Verifying the SHA256 checksums of the downloaded files
+- Verifying the number of splits in the generated `DatasetDict`
+- Verifying the number of samples in each split of the generated `DatasetDict`
+
+You can disable these verifications by setting the :obj:`ignore_verifications` parameter to ``True``.
+
+You also have the possibility to locally override the informations used to perform the integrity verifications by setting the :obj:`save_infos` parameter to ``True``.
+
+For example, run the following to skip integrity verifications when loading the IMDB dataset:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('imdb', ignore_verifications=True)
+
+
+Loading datasets offline
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the huggingface/datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
+Only the ``text``, ``csv``, ``json`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
+
+Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.
+Indeed, if you've already loaded the dataset once before (when you had an internet connection), then the dataset is reloaded from the cache and you can use it offline.
+
+You can even set the environment variable `HF_DATASETS_OFFLINE` to ``1`` to tell ``datasets`` to run in full offline mode.
+This mode disables all the network calls of the library.
+This way, instead of waiting for a dataset builder download to time out, the library looks directly at the cache.

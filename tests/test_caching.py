@@ -1,9 +1,11 @@
+import pickle
 from hashlib import md5
 from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
 import datasets
+from datasets.fingerprint import Hasher
 
 from .utils import require_regex, require_transformers
 
@@ -16,7 +18,19 @@ class Foo:
         return self.foo
 
 
-class TokenizersCachingTest(TestCase):
+class UnpicklableCallable:
+    def __init__(self, callable):
+        self.callable = callable
+
+    def __call__(self, *args, **kwargs):
+        if self.callable is not None:
+            return self.callable(*args, **kwargs)
+
+    def __getstate__(self):
+        raise pickle.PicklingError()
+
+
+class TokenizersDumpTest(TestCase):
     @require_transformers
     def test_hash_tokenizer(self):
         from transformers import AutoTokenizer
@@ -82,6 +96,18 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    def test_dump_ignores_line_definition_of_function(self):
+        def func():
+            pass
+
+        hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+
+        def func():
+            pass
+
+        hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+        self.assertEqual(hash1, hash2)
+
     def test_recurse_dump_for_class(self):
 
         hash1 = md5(datasets.utils.dumps(Foo([0]))).hexdigest()
@@ -118,12 +144,37 @@ class RecurseDumpTest(TestCase):
             "co_cellvars",
         )
 
+        def _create_code(*args):
+            """Create CodeType for any python 3 version. From dill._dill._create_code"""
+            if hasattr(args[-3], "encode"):
+                args = list(args)
+                args[-3] = args[-3].encode()  # co_lnotab
+                args[-10] = args[-10].encode()  # co_code
+            if hasattr(CodeType, "co_posonlyargcount"):
+                if len(args) == 16:
+                    return CodeType(*args)
+                elif len(args) == 15:
+                    return CodeType(args[0], 0, *args[1:])
+                return CodeType(args[0], 0, 0, *args[1:])
+            elif hasattr(CodeType, "co_kwonlyargcount"):
+                if len(args) == 16:
+                    return CodeType(args[0], *args[2:])
+                elif len(args) == 15:
+                    return CodeType(*args)
+                return CodeType(args[0], 0, *args[1:])
+            if len(args) == 16:
+                return CodeType(args[0], *args[3:])
+            elif len(args) == 15:
+                return CodeType(args[0], *args[2:])
+            return CodeType(*args)
+
         def create_ipython_func(co_filename, returned_obj):
             def func():
                 return returned_obj
 
             code = func.__code__
-            code = CodeType(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
+            # Use _create_code from dill in order to make it work for different python versions
+            code = _create_code(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
             return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
@@ -171,3 +222,39 @@ class TypeHintDumpTest(TestCase):
         hash3 = md5(datasets.utils.dumps(t3)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
+
+
+class HashingTest(TestCase):
+    def test_hash_simple(self):
+        hash1 = Hasher.hash("hello")
+        hash2 = Hasher.hash("hello")
+        hash3 = Hasher.hash("there")
+        self.assertEqual(hash1, hash2)
+        self.assertNotEqual(hash1, hash3)
+
+    def test_hash_class_instance(self):
+        hash1 = Hasher.hash(Foo("hello"))
+        hash2 = Hasher.hash(Foo("hello"))
+        hash3 = Hasher.hash(Foo("there"))
+        self.assertEqual(hash1, hash2)
+        self.assertNotEqual(hash1, hash3)
+
+    def test_hash_update(self):
+        hasher = Hasher()
+        for x in ["hello", Foo("hello")]:
+            hasher.update(x)
+        hash1 = hasher.hexdigest()
+        hasher = Hasher()
+        for x in ["hello", Foo("hello")]:
+            hasher.update(x)
+        hash2 = hasher.hexdigest()
+        hasher = Hasher()
+        for x in ["there", Foo("there")]:
+            hasher.update(x)
+        hash3 = hasher.hexdigest()
+        self.assertEqual(hash1, hash2)
+        self.assertNotEqual(hash1, hash3)
+
+    def test_hash_unpicklable(self):
+        with self.assertRaises(pickle.PicklingError):
+            Hasher.hash(UnpicklableCallable(Foo("hello")))

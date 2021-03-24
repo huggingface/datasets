@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 200<n<1k
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -172,3 +173,6 @@ The data is under the [Creative Commons Attribution 3.0 ](https://creativecommon
     ISBN = "979-10-95546-34-4",
 }
 ```
+### Contributions
+
+Thanks to [@dadelani](https://github.com/dadelani) for adding this dataset.

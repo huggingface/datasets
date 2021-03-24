@@ -166,7 +166,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
                 self._logger.info("Adding directory %s", output_dir)
-                imports_to_builder_map.update(dict((imp, output_dir) for imp in tfds_imports))
+                imports_to_builder_map.update({imp: output_dir for imp in tfds_imports})
             else:
                 # Utilities will be moved at the end
                 utils_files.append(output_file)

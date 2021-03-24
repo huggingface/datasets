@@ -121,6 +121,10 @@ Dataset Split | Number of Articles in Split | Number of paragraphs in split | Nu
 Train | 117 | 4921 | 20731
 Validation | 768 | 51.0% | 3188
 Test | 10 | 532 | 2189
+=======
+| name  |train|validation|
+|-------|----:|---------:|
+|default| 4921|       768|
 
 ## Dataset Creation
 
@@ -191,3 +195,4 @@ archivePrefix = {arXiv},
 
 Thanks to [@thomwolf](https://github.com/thomwolf), [@mariamabarham](https://github.com/mariamabarham), [@patrickvonplaten](https://github.com/patrickvonplaten), [@lewtun](https://github.com/lewtun), [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.
 Thanks to [@ManuelFay](https://github.com/manuelfay) for providing information on the dataset creation process.
+

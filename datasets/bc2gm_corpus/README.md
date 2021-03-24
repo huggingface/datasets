@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -52,9 +52,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/spyysalo/bc2gm-corpus/)
+- **Repository:** [Github](https://github.com/spyysalo/bc2gm-corpus/)
+- **Paper:** [NCBI](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2559986/)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -143,3 +143,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@mahajandiwakar](https://github.com/mahajandiwakar) for adding this dataset.

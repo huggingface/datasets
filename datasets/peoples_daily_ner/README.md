@@ -43,11 +43,12 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/OYE93/Chinese-NLP-Corpus/tree/master/NER/People's%20Daily)
+- **Repository:** [Github](https://github.com/OYE93/Chinese-NLP-Corpus/)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -135,3 +136,6 @@ task_ids:
 ### Citation Information
 
 No citation available for this dataset.
+### Contributions
+
+Thanks to [@JetRunner](https://github.com/JetRunner) for adding this dataset.

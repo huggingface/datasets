@@ -64,6 +64,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -231,3 +232,6 @@ The licenses are:
     primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@jplu](https://github.com/jplu) for adding this dataset.

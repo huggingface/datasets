@@ -24,7 +24,7 @@ author = 'HuggingFace'
 # The short X.Y version
 version = u''
 # The full version, including alpha/beta/rc tags
-release = '1.1.3'
+release = '1.5.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -71,7 +71,8 @@ exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
 pygments_style = None
 
 # Remove the prompt when copying examples
-copybutton_prompt_text = ">>> "
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -85,7 +86,8 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 #
 html_theme_options = {
-    'analytics_id': 'UA-83738774-2'
+    'analytics_id': 'UA-83738774-2',
+    'navigation_with_keys': True
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -103,9 +105,9 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-# This must be the name of an image file (path relative to the configuration 
-# directory) that is the favicon of the docs. Modern browsers use this as 
-# the icon for tabs, windows and bookmarks. It should be a Windows-style 
+# This must be the name of an image file (path relative to the configuration
+# directory) that is the favicon of the docs. Modern browsers use this as
+# the icon for tabs, windows and bookmarks. It should be a Windows-style
 # icon file (.ico).
 html_favicon = 'favicon.ico'
 
@@ -189,3 +191,5 @@ def setup(app):
     app.add_js_file('js/custom.js')
 
 # -- Extension configuration -------------------------------------------------
+# Napoleon settings
+napoleon_use_ivar = True

@@ -18,10 +18,12 @@ from __future__ import absolute_import, division, print_function
 
 import glob
 import json
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -44,9 +46,9 @@ from the online news website
 
 _HOMEPAGE = "https://github.com/feryandi/Dataset-Artikel"
 
-_LICENSE = ""
+_LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International Public License"
 
-_URLs = ["http://cloud.uncool.ai/index.php/s/Do8ngbi9ZYjaLkf/download"]
+_URLs = ["http://cloud.uncool.ai/index.php/s/kF83dQHfGeS2LX2/download"]
 
 
 class IdNewspapers2018Config(datasets.BuilderConfig):
@@ -104,14 +106,14 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, article_dir, split):
-        logging.info("⏳ Generating %s examples from = %s", split, article_dir)
+        logger.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
         for path in sorted(glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True)):
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
                 yield id, {
                     "id": str(id),
-                    "url": data["date"],
+                    "url": data["url"],
                     "date": data["date"],
                     "title": data["title"],
                     "content": data["content"],

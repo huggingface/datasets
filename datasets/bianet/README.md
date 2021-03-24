@@ -4,13 +4,13 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  en-to-ku
+  en-to-ku:
   - en
   - ku
-  en-to-tr
+  en-to-tr:
   - en
   - tr
-  ku-to-tr
+  ku-to-tr:
   - ku
   - tr
 licenses:
@@ -18,7 +18,12 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-- n>1M
+  en_to_ku:
+  - 1K<n<10K
+  en_to_tr:
+  - 10K<n<100K
+  ku_to_tr:
+  - 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -51,6 +56,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -162,3 +168,7 @@ CC-BY-SA-4.0
   isbn = {979-10-95546-15-3},
   language = {english}
   }
+
+### Contributions
+
+Thanks to [@param087](https://github.com/param087) for adding this dataset.

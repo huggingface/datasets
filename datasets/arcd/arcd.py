@@ -3,9 +3,11 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -91,7 +93,7 @@ class Arcd(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             arcd = json.load(f)
             for article in arcd["data"]:

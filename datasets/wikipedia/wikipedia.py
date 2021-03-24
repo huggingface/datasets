@@ -20,13 +20,15 @@ from __future__ import absolute_import, division, print_function
 
 import codecs
 import json
-import logging
 import re
 import xml.etree.cElementTree as etree
 
 import six
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 if six.PY3:
@@ -461,7 +463,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
 
         def _extract_content(filepath):
             """Extracts article content from a single WikiMedia XML file."""
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             with beam.io.filesystems.FileSystems.open(filepath) as f:
                 f = bz2.BZ2File(filename=f)
                 if six.PY3:
@@ -471,10 +473,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
                 else:
                     utf_f = f
 
-                # To clear root, to free-up more memory than just `elem.clear()`.
                 context = etree.iterparse(utf_f, events=("end",))
-                context = iter(context)
-                unused_event, root = next(context)
                 for unused_event, elem in context:
                     if not elem.tag.endswith("page"):
                         continue
@@ -485,11 +484,11 @@ class Wikipedia(datasets.BeamBasedBuilder):
 
                     # Filter pages that are not in the "main" namespace.
                     if ns != "0":
-                        root.clear()
+                        elem.clear()
                         continue
 
                     raw_content = elem.find("./{0}revision/{0}text".format(namespace)).text
-                    root.clear()
+                    elem.clear()
 
                     # Filter redirects.
                     if raw_content is None or raw_content.lower().startswith("#redirect"):
@@ -506,7 +505,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
                 text = _parse_and_clean_wikicode(raw_content, parser=mwparserfromhell)
             except (mwparserfromhell.parser.ParserError) as e:
                 beam.metrics.Metrics.counter(language, "parser-error").inc()
-                logging.error("mwparserfromhell ParseError: %s", e)
+                logger.error("mwparserfromhell ParseError: %s", e)
                 return
 
             if not text:

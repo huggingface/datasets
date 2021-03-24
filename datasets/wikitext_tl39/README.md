@@ -11,7 +11,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -146,3 +147,7 @@ Tagalog Wikipedia
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jcblaisecruz02](https://github.com/jcblaisecruz02) for adding this dataset.

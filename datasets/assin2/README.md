@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -73,7 +74,17 @@ The language supported is Portuguese.
 
 ### Data Instances
 
-[More Information Needed]
+An example from the ASSIN 2 dataset looks as follows:
+
+```
+{
+  "entailment_judgment": 1,
+  "hypothesis": "Uma criança está segurando uma pistola de água",
+  "premise": "Uma criança risonha está segurando uma pistola de água e sendo espirrada com água",
+  "relatedness_score": 4.5,
+  "sentence_pair_id": 1
+}
+```
 
 ### Data Fields
 
@@ -85,7 +96,11 @@ The language supported is Portuguese.
 
 ### Data Splits
 
-[More Information Needed]
+The data is split into train, validation and test set. The split sizes are as follow:
+
+| Train  | Val   | Test |
+| ------ | ----- | ---- |
+| 6500   | 500   | 2448 |
 
 ## Dataset Creation
 
@@ -143,6 +158,7 @@ The language supported is Portuguese.
 
 ### Citation Information
 
+```
 @inproceedings{real2020assin,
   title={The assin 2 shared task: a quick overview},
   author={Real, Livy and Fonseca, Erick and Oliveira, Hugo Goncalo},
@@ -151,3 +167,8 @@ The language supported is Portuguese.
   year={2020},
   organization={Springer}
 }
+```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.

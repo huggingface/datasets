@@ -151,14 +151,15 @@ class Thainer(datasets.GeneratorBasedBuilder):
                     # thainer tokens are tab separated
                     splits = line.split("\t")
                     # replace junk ner tags
-                    ner_tag = splits[2] if splits[2] in self._NER_TAGS else "O"
+                    ner_tag = splits[2].strip() if splits[2].strip() in self._NER_TAGS else "O"
                     tokens.append(splits[0])
                     pos_tags.append(splits[1])
-                    ner_tags.append(ner_tag.rstrip())
+                    ner_tags.append(ner_tag)
             # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "pos_tags": pos_tags,
-                "ner_tags": ner_tags,
-            }
+            if tokens:
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "pos_tags": pos_tags,
+                    "ner_tags": ner_tags,
+                }

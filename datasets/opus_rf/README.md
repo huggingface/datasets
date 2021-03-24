@@ -15,7 +15,7 @@ languages:
   - fr
   de-sv:
   - de
-  -sv
+  - sv
   en-es:
   - en
   - es
@@ -72,6 +72,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -178,3 +179,7 @@ English (en), Spanish (es), German (de), French (fr), Swedish (sv)
   language = {english}
  }
 ```
+
+### Contributions
+
+Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset.

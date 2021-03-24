@@ -40,14 +40,14 @@ class MockDownloadManager(object):
         config: str,
         version: Union[Version, str],
         cache_dir: Optional[str] = None,
-        is_local: bool = False,
+        use_local_dummy_data: bool = False,
         load_existing_dummy_data: bool = True,
         download_callbacks: Optional[List[Callable]] = None,
     ):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
-        self.is_local = is_local
+        self.use_local_dummy_data = use_local_dummy_data
         self.config = config
         # download_callbacks take a single url as input
         self.download_callbacks: List[Callable] = download_callbacks or []
@@ -81,7 +81,7 @@ class MockDownloadManager(object):
 
     def download_dummy_data(self):
         path_to_dummy_data_dir = (
-            self.local_path_to_dummy_data if self.is_local is True else self.github_path_to_dummy_data
+            self.local_path_to_dummy_data if self.use_local_dummy_data is True else self.github_path_to_dummy_data
         )
 
         local_path = cached_path(
@@ -171,7 +171,11 @@ class MockDownloadManager(object):
     def create_dummy_data_list(self, path_to_dummy_data, data_url):
         dummy_data_list = []
         # trick: if there are many shards named like `data.txt-000001-of-00300`, only use the first one
-        if all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url):
+        is_tf_records = all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url)
+        is_pubmed_records = all(
+            url.startswith("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed21n") for url in data_url
+        )
+        if is_tf_records or is_pubmed_records:
             data_url = [data_url[0]] * len(data_url)
         for single_url in data_url:
             for download_callback in self.download_callbacks:

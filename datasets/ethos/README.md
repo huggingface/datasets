@@ -18,12 +18,12 @@ task_categories:
 - text-classification
 task_ids:
   binary:
-- sentiment-classification
-- text-classification-other-Hate Speech Detection
+  - sentiment-classification
+  - text-classification-other-Hate Speech Detection
   multilabel:
-- multi-label-classification
-- sentiment-classification
-- text-classification-other-Hate Speech Detection
+  - multi-label-classification
+  - sentiment-classification
+  - text-classification-other-Hate Speech Detection
 ---
 
 # Dataset Card for Ethos
@@ -50,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -197,3 +198,7 @@ The licensing status of the datasets is [GNU GPLv3](https://choosealicense.com/l
 
 ## License
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
+
+### Contributions
+
+Thanks to [@iamollas](https://github.com/iamollas) for adding this dataset.

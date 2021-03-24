@@ -35,15 +35,15 @@ size_categories:
   raw_ca:
   - 100K<n<1M
   raw_en:
-  - n>1M
+  - 1M<n<10M
   raw_es:
   - 100K<n<1M
   tagged_ca:
-  - n>1M
+  - 1M<n<10M
   tagged_en:
-  - n>1M
+  - 10M<n<100M
   tagged_es:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -71,15 +71,15 @@ task_ids:
   - language-modeling
   tagged_ca:
   - structure-prediction-other-lemmatization
-  - structure-prediction-other-pos-tagging
+  - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
   tagged_en:
   - structure-prediction-other-lemmatization
-  - structure-prediction-other-pos-tagging
+  - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
   tagged_es:
   - structure-prediction-other-lemmatization
-  - structure-prediction-other-pos-tagging
+  - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
 ---
 
@@ -107,6 +107,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -220,3 +221,7 @@ The WikiCorpus is licensed under the same license as Wikipedia, that is, the [GN
     abstract = "This article presents a new freely available trilingual corpus (Catalan, Spanish, English) that contains large portions of the Wikipedia and has been automatically enriched with linguistic information. To our knowledge, this is the largest such corpus that is freely available to the community: In its present version, it contains over 750 million words. The corpora have been annotated with lemma and part of speech information using the open source library FreeLing. Also, they have been sense annotated with the state of the art Word Sense Disambiguation algorithm UKB. As UKB assigns WordNet senses, and WordNet has been aligned across languages via the InterLingual Index, this sort of annotation opens the way to massive explorations in lexical semantics that were not possible before. We present a first attempt at creating a trilingual lexical resource from the sense-tagged Wikipedia corpora, namely, WikiNet. Moreover, we present two by-products of the project that are of use for the NLP community: An open source Java-based parser for Wikipedia pages developed for the construction of the corpus, and the integration of the WSD algorithm UKB in FreeLing.",
 }
 ```
+
+### Contributions
+
+Thanks to [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.

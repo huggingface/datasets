@@ -10,7 +10,20 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n>1M
+  all:
+  - 1M<n<10M
+  go:
+  - 100K<n<1M
+  java:
+  - 100K<n<1M
+  javascript:
+  - 100K<n<1M
+  php:
+  - 100K<n<1M
+  python:
+  - 100K<n<1M
+  ruby:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -43,6 +56,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 - **Homepage:** https://wandb.ai/github/CodeSearchNet/benchmark
@@ -193,3 +207,7 @@ Each example in the dataset has is extracted from a GitHub repository, and each 
   journal={arXiv preprint arXiv:1909.09436},
   year={2019}
 }
+
+### Contributions
+
+Thanks to [@SBrandeis](https://github.com/SBrandeis) for adding this dataset.

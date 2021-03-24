@@ -28,7 +28,7 @@ import datasets
 _CITATION = """\
 @InProceedings{huggingface:dataset,
 title = {A great new dataset},
-authors={huggingface, Inc.
+author={huggingface, Inc.
 },
 year={2020}
 }
@@ -37,7 +37,7 @@ year={2020}
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
+This new dataset is designed to solve this great NLP task and is crafted with a lot of care.
 """
 
 # TODO: Add a link to an official homepage for the dataset here
@@ -81,7 +81,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
+        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
@@ -123,7 +123,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
+        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
@@ -153,11 +153,12 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
-        """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
+    def _generate_examples(
+        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+    ):
+        """ Yields examples as (key, example) tuples. """
+        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
+        # The `key` is here for legacy reason (tfds) and is not important in itself.
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):

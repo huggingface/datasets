@@ -10,13 +10,13 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100k<n<1M
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
-- text_classification-other-news-category-classification
+- text-classification-other-news-category-classification
 ---
 
 # Dataset Card for Interpress Turkish News Category Dataset (270K)
@@ -42,6 +42,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -132,3 +133,7 @@ The dataset does not contain any additional annotations.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@basakbuluz](https://github.com/basakbuluz) for adding this dataset.
