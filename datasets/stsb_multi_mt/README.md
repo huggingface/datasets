@@ -71,7 +71,7 @@ score | 2 example sentences | explanation
 0 | The black dog is running through the snow.<br/>A race car driver is driving his car through the mud. | The two sentences are completely dissimilar.
 
 An example:
-```json
+```text
 {
     'sentence1': 'A man is playing a large flute.',
     'sentence2': 'A man is playing a flute.',
