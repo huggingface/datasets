@@ -14,18 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    Iterable,
-    List,
-    MutableMapping,
-    Optional,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
