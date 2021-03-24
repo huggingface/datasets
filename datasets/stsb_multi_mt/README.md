@@ -73,9 +73,9 @@ score | 2 example sentences | explanation
 An example:
 ```text
 {
-    'sentence1': 'A man is playing a large flute.',
-    'sentence2': 'A man is playing a flute.',
-    'similarity_score': 3.8
+    "sentence1": "A man is playing a large flute.",
+    "sentence2": "A man is playing a flute.",
+    "similarity_score": 3.8
 }
 ```
 
