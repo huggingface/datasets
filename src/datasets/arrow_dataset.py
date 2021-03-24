@@ -1722,6 +1722,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data and tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
+            os.chmod(cache_file_name, 0o644)
 
         if update_data:
             # Create new Dataset from buffer or file
@@ -1975,6 +1976,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
+            os.chmod(indices_cache_file_name, 0o644)
 
         # Return new Dataset object
         if buf_writer is None:
