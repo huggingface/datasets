@@ -109,7 +109,7 @@ dataset = load_dataset('stsb_multi_mt', name="en", split='train')
 
 ### Licensing Information
 
-See [download or original dataset](https://ixa2.si.ehu.eus/stswiki/index.php/STSbenchmark) and [LICENSE](https://github.com/PhilipMay/stsb-multi-mt/blob/main/LICENSE).
+See [LICENSE](https://github.com/PhilipMay/stsb-multi-mt/blob/main/LICENSE) and [download at original dataset](https://ixa2.si.ehu.eus/stswiki/index.php/STSbenchmark).
 
 ### Citation Information
 
