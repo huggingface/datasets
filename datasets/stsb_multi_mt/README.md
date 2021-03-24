@@ -96,13 +96,13 @@ An example:
 ### Load German dev Dataset
 ```python
 from datasets import load_dataset
-dataset = load_dataset('stsb_multi_mt', name="de", split='dev')
+dataset = load_dataset("stsb_multi_mt", name="de", split="dev")
 ```
 
 ### Load English train Dataset
 ```python
 from datasets import load_dataset
-dataset = load_dataset('stsb_multi_mt', name="en", split='train')
+dataset = load_dataset("stsb_multi_mt", name="en", split="train")
 ```
 
 ## Additional Information
