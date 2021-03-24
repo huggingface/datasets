@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-- esXXX_CI_SHOULD_FAIL_HERE
+- es
 licenses:
 - cc-by-sa-4.0
 multilinguality:
