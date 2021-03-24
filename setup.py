@@ -163,8 +163,10 @@ else:
 
 QUALITY_REQUIRE = [
     "black",
-    "isort",
     "flake8==3.7.9",
+    "isort",
+    "langcodes[data]>=3.1.0",
+    "pydantic>=1.8.1",
 ]
 
 
