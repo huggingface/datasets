@@ -42,9 +42,9 @@ known_multilingualities = {
 
 
 def tagset_validator(values: List[str], reference_values: List[str], name: str, url: str) -> List[str]:
-    for v in values:
-        if v not in reference_values:
-            raise ValueError(f"'{v}' is not a registered tag for '{name}', reference at {url}")
+    invalid_values = [v for v in values if v not in reference_values]
+    if len(invalid_values) > 0:
+        raise ValueError(f"'{invalid_values}' is not a registered tag for '{name}', reference at {url}")
     return values
 
 
