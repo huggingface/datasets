@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import langcodes as lc
 import yaml
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, conlist, validator
 
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
@@ -59,15 +59,15 @@ def splitter(values: List[Any], predicate_fn: Callable[[Any], bool]) -> Tuple[Li
 
 
 class DatasetMetadata(BaseModel):
-    annotations_creators: List[str]
-    language_creators: List[str]
-    languages: List[str]
-    licenses: List[str]
-    multilinguality: List[str]
-    size_categories: List[str]
-    source_datasets: List[str]
-    task_categories: List[str]
-    task_ids: List[str]
+    annotations_creators: conlist(str, min_items=1)
+    language_creators: conlist(str, min_items=1)
+    languages: conlist(str, min_items=1)
+    licenses: conlist(str, min_items=1)
+    multilinguality: conlist(str, min_items=1)
+    size_categories: conlist(str, min_items=1)
+    source_datasets: conlist(str, min_items=1)
+    task_categories: conlist(str, min_items=1)
+    task_ids: conlist(str, min_items=1)
 
     @classmethod
     def from_readme(cls, f: Path) -> "DatasetMetadata":
