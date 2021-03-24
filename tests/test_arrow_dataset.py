@@ -1252,7 +1252,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset._indices["indices"].to_pylist(), [1])
             if not in_memory:
                 self.assertEqual(
-                    dset._data.replay,
+                    dset._data.replays,
                     [("rename_columns", (["file", "number"],), {})],
                 )
             if not in_memory:

@@ -326,11 +326,11 @@ def test_memory_mapped_table_from_file(arrow_file, in_memory_pa_table):
 
 
 def test_memory_mapped_table_from_file_with_replay(arrow_file, in_memory_pa_table):
-    replay = [("slice", (0, 1), {}), ("flatten", tuple(), {})]
+    replays = [("slice", (0, 1), {}), ("flatten", tuple(), {})]
     with assert_arrow_memory_doesnt_increase():
-        table = MemoryMappedTable.from_file(arrow_file, replay=replay)
+        table = MemoryMappedTable.from_file(arrow_file, replays=replays)
     assert len(table) == 1
-    for method, args, kwargs in replay:
+    for method, args, kwargs in replays:
         in_memory_pa_table = getattr(in_memory_pa_table, method)(*args, **kwargs)
     assert table.table == in_memory_pa_table
     assert_pickle_without_bringing_data_in_memory(table)
@@ -343,11 +343,11 @@ def test_memory_mapped_table_pickle_doesnt_fill_memory(arrow_file):
 
 
 def test_memory_mapped_table_pickle_applies_replay(arrow_file):
-    replay = [("slice", (0, 1), {}), ("flatten", tuple(), {})]
+    replays = [("slice", (0, 1), {}), ("flatten", tuple(), {})]
     with assert_arrow_memory_doesnt_increase():
-        table = MemoryMappedTable.from_file(arrow_file, replay=replay)
+        table = MemoryMappedTable.from_file(arrow_file, replays=replays)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == replay
+    assert table.replays == replays
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -355,7 +355,7 @@ def test_memory_mapped_table_slice(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).slice(1, 2)
     assert table.table == in_memory_pa_table.slice(1, 2)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("slice", (1, 2), {})]
+    assert table.replays == [("slice", (1, 2), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -364,7 +364,7 @@ def test_memory_mapped_table_filter(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).filter(mask)
     assert table.table == in_memory_pa_table.filter(mask)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("filter", (mask,), {})]
+    assert table.replays == [("filter", (mask,), {})]
     # filter DOES increase memory
     # assert_pickle_without_bringing_data_in_memory(table)
     assert_pickle_does_bring_data_in_memory(table)
@@ -374,7 +374,7 @@ def test_memory_mapped_table_flatten(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).flatten()
     assert table.table == in_memory_pa_table.flatten()
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("flatten", tuple(), {})]
+    assert table.replays == [("flatten", tuple(), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -382,7 +382,7 @@ def test_memory_mapped_table_combine_chunks(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).combine_chunks()
     assert table.table == in_memory_pa_table.combine_chunks()
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("combine_chunks", tuple(), {})]
+    assert table.replays == [("combine_chunks", tuple(), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -397,7 +397,7 @@ def test_memory_mapped_table_cast(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("cast", (schema,), {})]
+    assert table.replays == [("cast", (schema,), {})]
     # cast DOES increase memory when converting integers precision for example
     # assert_pickle_without_bringing_data_in_memory(table)
     assert_pickle_does_bring_data_in_memory(table)
@@ -410,7 +410,7 @@ def test_memory_mapped_table_add_column(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).add_column(i, field_, column)
     assert table.table == in_memory_pa_table.add_column(i, field_, column)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("add_column", (i, field_, column), {})]
+    assert table.replays == [("add_column", (i, field_, column), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -420,7 +420,7 @@ def test_memory_mapped_table_append_column(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).append_column(field_, column)
     assert table.table == in_memory_pa_table.append_column(field_, column)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("append_column", (field_, column), {})]
+    assert table.replays == [("append_column", (field_, column), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -428,7 +428,7 @@ def test_memory_mapped_table_remove_column(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).remove_column(0)
     assert table.table == in_memory_pa_table.remove_column(0)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("remove_column", (0,), {})]
+    assert table.replays == [("remove_column", (0,), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -439,7 +439,7 @@ def test_memory_mapped_table_set_column(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).set_column(i, field_, column)
     assert table.table == in_memory_pa_table.set_column(i, field_, column)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("set_column", (i, field_, column), {})]
+    assert table.replays == [("set_column", (i, field_, column), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -449,7 +449,7 @@ def test_memory_mapped_table_rename_columns(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).rename_columns(names)
     assert table.table == in_memory_pa_table.rename_columns(names)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("rename_columns", (names,), {})]
+    assert table.replays == [("rename_columns", (names,), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 
@@ -458,7 +458,7 @@ def test_memory_mapped_table_drop(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).drop(names)
     assert table.table == in_memory_pa_table.drop(names)
     assert isinstance(table, MemoryMappedTable)
-    assert table.replay == [("drop", (names,), {})]
+    assert table.replays == [("drop", (names,), {})]
     assert_pickle_without_bringing_data_in_memory(table)
 
 

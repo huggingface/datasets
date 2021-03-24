@@ -2413,7 +2413,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if not batched:
             return query_table(
-                pa_table=self._data,
+                table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices.column(0) if self._indices is not None else None,
             ).to_pydict()
@@ -2421,7 +2421,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
                 query_table(
-                    pa_table=self._data,
+                    table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices.column(0) if self._indices is not None else None,
                 ).to_pydict()
@@ -2444,7 +2444,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if not batched:
             return query_table(
-                pa_table=self._data,
+                table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices.column(0) if self._indices is not None else None,
             ).to_pandas()
@@ -2452,7 +2452,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
                 query_table(
-                    pa_table=self._data,
+                    table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices.column(0) if self._indices is not None else None,
                 ).to_pandas()
