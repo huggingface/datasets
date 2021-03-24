@@ -10,11 +10,11 @@ from datasets.table import (
     MemoryMappedTable,
     Table,
     TableBlock,
+    _in_memory_arrow_table_from_buffer,
+    _in_memory_arrow_table_from_file,
+    _memory_mapped_arrow_table_from_file,
     concat_tables,
-    in_memory_arrow_table_from_buffer,
-    in_memory_arrow_table_from_file,
-    memory_mapped_arrow_table_from_file,
-    wraps_arrow_table_method,
+    inject_arrow_table_documentation,
 )
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -67,39 +67,39 @@ def assert_pickle_does_bring_data_in_memory(table: MemoryMappedTable):
     assert unpickled_table.table == table.table
 
 
-def test_wraps_arrow_table_method(in_memory_pa_table):
+def test_inject_arrow_table_documentation(in_memory_pa_table):
     method = pa.Table.slice
 
     def function_to_wrap(*args):
         return method(*args)
 
     args = (0, 1)
-    wrapped_method = wraps_arrow_table_method(method)(function_to_wrap)
+    wrapped_method = inject_arrow_table_documentation(method)(function_to_wrap)
     assert method(in_memory_pa_table, *args) == wrapped_method(in_memory_pa_table, *args)
     assert "pyarrow.Table" not in wrapped_method.__doc__
     assert "Table" in wrapped_method.__doc__
 
 
-def test_in_memory_arrow_table_from_file(arrow_file, in_memory_pa_table):
+def test__in_memory_arrow_table_from_file(arrow_file, in_memory_pa_table):
     with assert_arrow_memory_increases():
-        pa_table = in_memory_arrow_table_from_file(arrow_file)
+        pa_table = _in_memory_arrow_table_from_file(arrow_file)
         assert in_memory_pa_table == pa_table
 
 
-def test_in_memory_arrow_table_from_buffer(in_memory_pa_table):
+def test__in_memory_arrow_table_from_buffer(in_memory_pa_table):
     with assert_arrow_memory_increases():
         buf_writer = pa.BufferOutputStream()
         writer = pa.RecordBatchStreamWriter(buf_writer, schema=in_memory_pa_table.schema)
         writer.write_table(in_memory_pa_table)
         writer.close()
         buf_writer.close()
-        pa_table = in_memory_arrow_table_from_buffer(buf_writer.getvalue())
+        pa_table = _in_memory_arrow_table_from_buffer(buf_writer.getvalue())
         assert in_memory_pa_table == pa_table
 
 
-def test_memory_mapped_arrow_table_from_file(arrow_file, in_memory_pa_table):
+def test__memory_mapped_arrow_table_from_file(arrow_file, in_memory_pa_table):
     with assert_arrow_memory_doesnt_increase():
-        pa_table = memory_mapped_arrow_table_from_file(arrow_file)
+        pa_table = _memory_mapped_arrow_table_from_file(arrow_file)
         assert in_memory_pa_table == pa_table
 
 
@@ -311,7 +311,7 @@ def test_in_memory_table_drop(in_memory_pa_table):
 
 
 def test_memory_mapped_table_init(arrow_file, in_memory_pa_table):
-    table = MemoryMappedTable(memory_mapped_arrow_table_from_file(arrow_file), arrow_file)
+    table = MemoryMappedTable(_memory_mapped_arrow_table_from_file(arrow_file), arrow_file)
     assert table.table == in_memory_pa_table
     assert isinstance(table, MemoryMappedTable)
     assert_pickle_without_bringing_data_in_memory(table)

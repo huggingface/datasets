@@ -30,7 +30,7 @@ import pyarrow.parquet
 from datasets.utils.file_utils import DownloadConfig
 
 from .naming import _split_re, filename_for_dataset_split
-from .table import InMemoryTable, MemoryMappedTable, concat_tables
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import cached_path, logging
 
 
@@ -150,11 +150,11 @@ class BaseReader:
         self._info: Optional["DatasetInfo"] = info
         self._filetype_suffix: Optional[str] = None
 
-    def _get_table_from_filename(self, filename_skip_take, in_memory=False):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False) -> Table:
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files, in_memory=False) -> pa.Table:
+    def _read_files(self, files, in_memory=False) -> Table:
         """Returns Dataset for given file instructions.
 
         Args:
@@ -169,15 +169,15 @@ class BaseReader:
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
         for f_dict in files:
-            pa_table: pa.Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
+            pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
             pa_tables.append(pa_table)
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
             raise ValueError(
                 "Tried to read an empty table. Please specify at least info.features to create an empty table with the right type."
             )
-        pa_tables = pa_tables or [pa.Table.from_batches([], schema=pa.schema(self._info.features.type))]
-        pa_table = concat_tables(pa_tables)
+        pa_tables = pa_tables or [InMemoryTable.from_batches([], schema=pa.schema(self._info.features.type))]
+        pa_table = concat_tables(pa_tables) if len(pa_tables) != 1 else pa_tables[0]
         return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):
@@ -290,7 +290,7 @@ class ArrowReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "arrow"
 
-    def _get_table_from_filename(self, filename_skip_take, in_memory=False):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False) -> Table:
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
@@ -304,7 +304,7 @@ class ArrowReader(BaseReader):
         return table
 
     @staticmethod
-    def read_table(filename, in_memory=False) -> Union[InMemoryTable, MemoryMappedTable]:
+    def read_table(filename, in_memory=False) -> Table:
         """
         Read table from file.
 

@@ -1,11 +1,11 @@
 import copy
 from functools import wraps
-from typing import List, TypeVar, Union
+from typing import List, Optional, Tuple, TypeVar, Union
 
 import pyarrow as pa
 
 
-def wraps_arrow_table_method(arrow_table_method):
+def inject_arrow_table_documentation(arrow_table_method):
     def wrapper(method):
         out = wraps(arrow_table_method)(method)
         out.__doc__ = out.__doc__.replace("pyarrow.Table", "Table")
@@ -14,21 +14,21 @@ def wraps_arrow_table_method(arrow_table_method):
     return wrapper
 
 
-def in_memory_arrow_table_from_file(filename: str) -> pa.Table:
+def _in_memory_arrow_table_from_file(filename: str) -> pa.Table:
     in_memory_stream = pa.input_stream(filename)
     opened_stream = pa.ipc.open_stream(in_memory_stream)
     pa_table = opened_stream.read_all()
     return pa_table
 
 
-def in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
+def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
     stream = pa.BufferReader(buffer)
     opened_stream = pa.ipc.open_stream(stream)
     table = opened_stream.read_all()
     return table
 
 
-def memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
+def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     memory_mapped_stream = pa.memory_map(filename)
     opened_stream = pa.ipc.open_stream(memory_mapped_stream)
     pa_table = opened_stream.read_all()
@@ -50,40 +50,40 @@ class Table:
     def __init__(self, table: pa.Table):
         self.table = table
 
-    @wraps_arrow_table_method(pa.Table.validate)
+    @inject_arrow_table_documentation(pa.Table.validate)
     def validate(self, *args, **kwargs):
         return self.table.validate(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.equals)
+    @inject_arrow_table_documentation(pa.Table.equals)
     def equals(self, *args, **kwargs):
         args = tuple(arg.table if isinstance(arg, Table) else arg for arg in args)
         kwargs = {k: v.table if isinstance(v, Table) else v for k, v in kwargs}
         return self.table.equals(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.to_batches)
+    @inject_arrow_table_documentation(pa.Table.to_batches)
     def to_batches(self, *args, **kwargs):
         return self.table.to_batches(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.to_pydict)
+    @inject_arrow_table_documentation(pa.Table.to_pydict)
     def to_pydict(self, *args, **kwargs):
         return self.table.to_pydict(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.to_pandas)
+    @inject_arrow_table_documentation(pa.Table.to_pandas)
     def to_pandas(self, *args, **kwargs):
         return self.table.to_pandas(*args, **kwargs)
 
     def to_string(self, *args, **kwargs):
         return self.table.to_string(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.field)
+    @inject_arrow_table_documentation(pa.Table.field)
     def field(self, *args, **kwargs):
         return self.table.field(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.column)
+    @inject_arrow_table_documentation(pa.Table.column)
     def column(self, *args, **kwargs):
         return self.table.column(*args, **kwargs)
 
-    @wraps_arrow_table_method(pa.Table.itercolumns)
+    @inject_arrow_table_documentation(pa.Table.itercolumns)
     def itercolumns(self, *args, **kwargs):
         return self.table.itercolumns(*args, **kwargs)
 
@@ -127,47 +127,47 @@ class Table:
     def __str__(self):
         return self.table.__str__().replace("pyarrow.Table", self.__class__.__name__)
 
-    @wraps_arrow_table_method(pa.Table.slice)
+    @inject_arrow_table_documentation(pa.Table.slice)
     def slice(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.filter)
+    @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.flatten)
+    @inject_arrow_table_documentation(pa.Table.flatten)
     def flatten(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.combine_chunks)
+    @inject_arrow_table_documentation(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.cast)
+    @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.add_column)
+    @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.append_column)
+    @inject_arrow_table_documentation(pa.Table.append_column)
     def append_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.remove_column)
+    @inject_arrow_table_documentation(pa.Table.remove_column)
     def remove_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.set_column)
+    @inject_arrow_table_documentation(pa.Table.set_column)
     def set_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.rename_columns)
+    @inject_arrow_table_documentation(pa.Table.rename_columns)
     def rename_columns(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.drop)
+    @inject_arrow_table_documentation(pa.Table.drop)
     def drop(self, *args, **kwargs):
         raise NotImplementedError()
 
@@ -184,89 +184,98 @@ class TableBlock(Table):
 
 class InMemoryTable(TableBlock):
     """
-    Wraps a pyarrow Table using composition.
     The table is said in-memory so pickling it does copy all the data using memory.
     Its implementation is simple and uses the underlying pyarrow Table methods directly.
+
+    This is different from the MemoryMapped table, for which pickling doesn't copy all the
+    data in memory. For a MemoryMapped, unpickling instead reloads the table from the disk.
+
+    InMemoryTable must be used when data fit in memory, while MemoryMapped are reserved for
+    data bigger than memory or when you want the memory footprint of your application to
+    stay low.
     """
 
     @classmethod
     def from_file(cls, filename: str):
-        table = in_memory_arrow_table_from_file(filename)
+        table = _in_memory_arrow_table_from_file(filename)
         return cls(table)
 
     @classmethod
     def from_buffer(cls, buffer: pa.Buffer):
-        table = in_memory_arrow_table_from_buffer(buffer)
+        table = _in_memory_arrow_table_from_buffer(buffer)
         return cls(table)
 
-    @wraps_arrow_table_method(pa.Table.from_pandas)
-    @staticmethod
-    def from_pandas(*args, **kwargs):
-        return InMemoryTable(pa.Table.from_pandas(*args, **kwargs))
+    @inject_arrow_table_documentation(pa.Table.from_pandas)
+    @classmethod
+    def from_pandas(cls, *args, **kwargs):
+        return cls(pa.Table.from_pandas(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.from_arrays)
-    @staticmethod
-    def from_arrays(*args, **kwargs):
-        return InMemoryTable(pa.Table.from_arrays(*args, **kwargs))
+    @inject_arrow_table_documentation(pa.Table.from_arrays)
+    @classmethod
+    def from_arrays(cls, *args, **kwargs):
+        return cls(pa.Table.from_arrays(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.from_pydict)
-    @staticmethod
-    def from_pydict(*args, **kwargs):
-        return InMemoryTable(pa.Table.from_pydict(*args, **kwargs))
+    @inject_arrow_table_documentation(pa.Table.from_pydict)
+    @classmethod
+    def from_pydict(cls, *args, **kwargs):
+        return cls(pa.Table.from_pydict(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.from_batches)
-    @staticmethod
-    def from_batches(*args, **kwargs):
-        return InMemoryTable(pa.Table.from_batches(*args, **kwargs))
+    @inject_arrow_table_documentation(pa.Table.from_batches)
+    @classmethod
+    def from_batches(cls, *args, **kwargs):
+        return cls(pa.Table.from_batches(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.slice)
+    @inject_arrow_table_documentation(pa.Table.slice)
     def slice(self, *args, **kwargs):
         return InMemoryTable(self.table.slice(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.filter)
+    @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):
         return InMemoryTable(self.table.filter(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.flatten)
+    @inject_arrow_table_documentation(pa.Table.flatten)
     def flatten(self, *args, **kwargs):
         return InMemoryTable(self.table.flatten(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.combine_chunks)
+    @inject_arrow_table_documentation(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
         return InMemoryTable(self.table.combine_chunks(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.cast)
+    @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
         return InMemoryTable(self.table.cast(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.add_column)
+    @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
         return InMemoryTable(self.table.add_column(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.append_column)
+    @inject_arrow_table_documentation(pa.Table.append_column)
     def append_column(self, *args, **kwargs):
         return InMemoryTable(self.table.append_column(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.remove_column)
+    @inject_arrow_table_documentation(pa.Table.remove_column)
     def remove_column(self, *args, **kwargs):
         return InMemoryTable(self.table.remove_column(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.set_column)
+    @inject_arrow_table_documentation(pa.Table.set_column)
     def set_column(self, *args, **kwargs):
         return InMemoryTable(self.table.set_column(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.rename_columns)
+    @inject_arrow_table_documentation(pa.Table.rename_columns)
     def rename_columns(self, *args, **kwargs):
         return InMemoryTable(self.table.rename_columns(*args, **kwargs))
 
-    @wraps_arrow_table_method(pa.Table.drop)
+    @inject_arrow_table_documentation(pa.Table.drop)
     def drop(self, *args, **kwargs):
         return InMemoryTable(self.table.drop(*args, **kwargs))
 
 
+# The MemoryMappedTable needs replays to properly reload tables from the disk
+Replay = Tuple[str, tuple, dict]
+
+
 class MemoryMappedTable(TableBlock):
     """
-    Wraps a pyarrow Table using composition.
     The table is said memory mapped so pickling it doesn't copy the data into memory.
     Instead, only the path to the memory mapped arrow file is pickled, as well as the list
     of transforms to "replay" when reloading the table from the disk.
@@ -274,18 +283,25 @@ class MemoryMappedTable(TableBlock):
     Its implementation requires to store an history of all the transforms that were applied
     to the underlying pyarrow Table, so that they can be "replayed" when reloading the Table
     from the disk.
+
+    This is different from the InMemoryTable table, for which pickling does copy all the
+    data in memory.
+
+    InMemoryTable must be used when data fit in memory, while MemoryMapped are reserved for
+    data bigger than memory or when you want the memory footprint of your application to
+    stay low.
     """
 
-    def __init__(self, table: pa.Table, path: str, replay=None):
+    def __init__(self, table: pa.Table, path: str, replays: Optional[List[Replay]] = None):
         super().__init__(table)
         self.path = path
-        self.replay = replay if replay is not None else []
+        self.replays: List[Replay] = replays if replays is not None else []
 
     @classmethod
-    def from_file(cls, filename: str, replay=None):
-        table = memory_mapped_arrow_table_from_file(filename)
-        table = cls._apply_replay(table, replay)
-        return cls(table, filename, replay)
+    def from_file(cls, filename: str, replays=None):
+        table = _memory_mapped_arrow_table_from_file(filename)
+        table = cls._apply_replays(table, replays)
+        return cls(table, filename, replays)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -294,97 +310,101 @@ class MemoryMappedTable(TableBlock):
 
     def __setstate__(self, state):
         state = state.copy()
-        table = memory_mapped_arrow_table_from_file(state["path"])
-        table = self._apply_replay(table, state["replay"])
+        table = _memory_mapped_arrow_table_from_file(state["path"])
+        table = self._apply_replays(table, state["replays"])
         state["table"] = table
         self.__dict__ = state
 
     @staticmethod
-    def _apply_replay(table: pa.Table, replay=None):
-        if replay is not None:
-            for name, args, kwargs in replay:
+    def _apply_replays(table: pa.Table, replays: Optional[List[Replay]] = None) -> pa.Table:
+        if replays is not None:
+            for name, args, kwargs in replays:
                 table = getattr(table, name)(*args, **kwargs)
         return table
 
-    def _merge_replay(self, new_replay):
-        replay = copy.deepcopy(self.replay)
-        replay.extend(new_replay)
-        return replay
+    def _append_replay(self, replay: Replay) -> List[Replay]:
+        replays = copy.deepcopy(self.replays)
+        replays.append(replay)
+        return replays
 
-    @wraps_arrow_table_method(pa.Table.slice)
+    @inject_arrow_table_documentation(pa.Table.slice)
     def slice(self, *args, **kwargs):
-        replay = [("slice", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.slice(*args, **kwargs), self.path, replay)
+        replay = ("slice", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.slice(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.filter)
+    @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):
-        replay = [("filter", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.filter(*args, **kwargs), self.path, replay)
+        replay = ("filter", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.filter(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.flatten)
+    @inject_arrow_table_documentation(pa.Table.flatten)
     def flatten(self, *args, **kwargs):
-        replay = [("flatten", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.flatten(*args, **kwargs), self.path, replay)
+        replay = ("flatten", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.flatten(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.combine_chunks)
+    @inject_arrow_table_documentation(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
-        replay = [("combine_chunks", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.combine_chunks(*args, **kwargs), self.path, replay)
+        replay = ("combine_chunks", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.combine_chunks(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.cast)
+    @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
-        replay = [("cast", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.cast(*args, **kwargs), self.path, replay)
+        replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.cast(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.add_column)
+    @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
-        replay = [("add_column", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.add_column(*args, **kwargs), self.path, replay)
+        replay = ("add_column", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.add_column(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.append_column)
+    @inject_arrow_table_documentation(pa.Table.append_column)
     def append_column(self, *args, **kwargs):
-        replay = [("append_column", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.append_column(*args, **kwargs), self.path, replay)
+        replay = ("append_column", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.append_column(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.remove_column)
+    @inject_arrow_table_documentation(pa.Table.remove_column)
     def remove_column(self, *args, **kwargs):
-        replay = [("remove_column", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.remove_column(*args, **kwargs), self.path, replay)
+        replay = ("remove_column", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.remove_column(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.set_column)
+    @inject_arrow_table_documentation(pa.Table.set_column)
     def set_column(self, *args, **kwargs):
-        replay = [("set_column", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.set_column(*args, **kwargs), self.path, replay)
+        replay = ("set_column", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.set_column(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.rename_columns)
+    @inject_arrow_table_documentation(pa.Table.rename_columns)
     def rename_columns(self, *args, **kwargs):
-        replay = [("rename_columns", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.rename_columns(*args, **kwargs), self.path, replay)
+        replay = ("rename_columns", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.rename_columns(*args, **kwargs), self.path, replays)
 
-    @wraps_arrow_table_method(pa.Table.drop)
+    @inject_arrow_table_documentation(pa.Table.drop)
     def drop(self, *args, **kwargs):
-        replay = [("drop", copy.deepcopy(args), copy.deepcopy(kwargs))]
-        replay = self._merge_replay(replay)
-        return MemoryMappedTable(self.table.drop(*args, **kwargs), self.path, replay)
+        replay = ("drop", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.drop(*args, **kwargs), self.path, replays)
 
 
-BlockPart = TypeVar("BlockPart", TableBlock, List[TableBlock], List[List[TableBlock]])
+# A ConcatenationTable is the concatenation of several tables.
+# The ``blocks`` attributes stores a list of list of blocks.
+# The first axis concatenates the tables along the axis 0 (it appends rows),
+# while the second axis concatenates tables along the axis 1 (it appends columns).
+TableBlockContainer = TypeVar("TableBlockContainer", TableBlock, List[TableBlock], List[List[TableBlock]])
 
 
 class ConcatenationTable(Table):
     """
-    Wraps a pyarrow Table using composition.
-    The table comes from the concatenation of several tables.
+    The table comes from the concatenation of several tables called blocks.
+    It enables concatenation on both axis 0 (append rows) and axis 1 (append columns).
 
     The underlying tables are called "blocks" and can be either InMemoryTable
     or MemoryMappedTable objects.
@@ -393,7 +413,7 @@ class ConcatenationTable(Table):
     - the InMemoryTable objects are pickled by copying all the data in memory;
     - the MemoryMappedTable objects are pickled without copying the data into memory.
     Instead, only the path to the memory mapped arrow file is pickled, as well as the list
-    of transforms to "replay" when reloading the table from the disk.
+    of transforms to "replays" when reloading the table from the disk.
 
     Its implementation requires to store each block separately.
     The ``blocks`` attributes stores a list of list of blocks.
@@ -407,7 +427,15 @@ class ConcatenationTable(Table):
     def __init__(self, table: pa.Table, blocks: List[List[TableBlock]]):
         super().__init__(table)
         self.blocks = blocks
-        assert all(isinstance(subtable, TableBlock) for subtables in blocks for subtable in subtables)
+        # Check that all the blocks have the right type.
+        # Only InMemoryTable and MemoryMappedTable are allowed.
+        for subtables in blocks:
+            for subtable in subtables:
+                if not isinstance(subtable, TableBlock):
+                    raise TypeError(
+                        "The blocks of a ConcatenationTable must be InMemoryTable or MemoryMappedTable objects"
+                        f", but got {subtable}."
+                    )
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -416,39 +444,48 @@ class ConcatenationTable(Table):
 
     def __setstate__(self, state):
         state = state.copy()
-        state["table"] = ConcatenationTable.from_blocks(state["blocks"]).table
+        state["table"] = self._concat_blocks_horizontally_and_vertically(state["blocks"])
         self.__dict__ = state
 
     @staticmethod
-    def from_blocks(blocks_part: BlockPart):
-        if isinstance(blocks_part, Table):
-            table = blocks_part
-            return ConcatenationTable(table.table, [[table]])
-        elif isinstance(blocks_part[0], Table):
-            table = pa.concat_tables([t.table for t in blocks_part])
-            blocks = [[t] for t in blocks_part]
-            return ConcatenationTable(table, blocks)
-        else:
-            tables_to_concat = []
-            blocks = blocks_part
-            for i, tables in enumerate(blocks):
-                for j, table in enumerate(tables):
-                    if j == 0:
-                        combined_table = table.table
-                    else:
-                        for name, col in zip(table.column_names, table.columns):
-                            combined_table = combined_table.append_column(name, col)
-                if i > 0 and combined_table.schema != tables_to_concat[0].schema:
-                    # re-order the columns to make the schema match and concat the tables
-                    names = tables_to_concat[0].schema.names
-                    arrays = [combined_table[name] for name in names]
-                    combined_table = pa.Table.from_arrays(arrays, names=names)
-                tables_to_concat.append(combined_table)
-            table = pa.concat_tables(tables_to_concat)
-            return ConcatenationTable(table, blocks)
+    def _concat_blocks_vertically(blocks: List[TableBlock]) -> pa.Table:
+        return pa.concat_tables([t.table for t in blocks])
 
     @staticmethod
-    def from_tables(tables: List[Union[pa.Table, Table]]) -> "ConcatenationTable":
+    def _concat_blocks_horizontally_and_vertically(blocks: List[List[TableBlock]]) -> pa.Table:
+        tables_to_concat_vertically = []
+        for i, tables in enumerate(blocks):
+            if not tables:
+                continue
+            for j, table in enumerate(tables):
+                if j == 0:
+                    combined_table = table.table
+                else:
+                    for name, col in zip(table.column_names, table.columns):
+                        combined_table = combined_table.append_column(name, col)
+            if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
+                # re-order the columns to make the schema match and concat the tables
+                names = tables_to_concat_vertically[0].schema.names
+                arrays = [combined_table[name] for name in names]
+                combined_table = pa.Table.from_arrays(arrays, names=names)
+            tables_to_concat_vertically.append(combined_table)
+        return pa.concat_tables(tables_to_concat_vertically)
+
+    @classmethod
+    def from_blocks(cls, blocks: TableBlockContainer) -> "ConcatenationTable":
+        if isinstance(blocks, TableBlock):
+            table = blocks
+            return cls(table.table, [[table]])
+        elif isinstance(blocks[0], TableBlock):
+            table = cls._concat_blocks_vertically(blocks)
+            blocks = [[t] for t in blocks]
+            return cls(table, blocks)
+        else:
+            table = cls._concat_blocks_horizontally_and_vertically(blocks)
+            return cls(table, blocks)
+
+    @classmethod
+    def from_tables(cls, tables: List[Union[pa.Table, Table]]) -> "ConcatenationTable":
         blocks = []
         for table in tables:
             if isinstance(table, pa.Table):
@@ -457,16 +494,17 @@ class ConcatenationTable(Table):
                 blocks.extend(copy.deepcopy(table.blocks))
             else:
                 blocks.append([table])
-        return ConcatenationTable.from_blocks(blocks)
+        return cls.from_blocks(blocks)
 
     @property
     def _slices(self):
-        start = 0
+        offset = 0
         for tables in self.blocks:
-            yield (start, start + len(tables[0]))
-            start += len(tables[0])
+            length = len(tables[0])
+            yield (offset, length)
+            offset += length
 
-    @wraps_arrow_table_method(pa.Table.slice)
+    @inject_arrow_table_documentation(pa.Table.slice)
     def slice(self, offset=0, length=None):
         table = self.table.slice(offset, length=length)
         length = length if length is not None else self.num_rows - offset
@@ -485,16 +523,16 @@ class ConcatenationTable(Table):
                 length, offset = 0, 0
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.filter)
+    @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, mask, *args, **kwargs):
         table = self.table.filter(mask, *args, **kwargs)
         blocks = []
-        for (start, end), tables in zip(self._slices, self.blocks):
-            submask = mask.slice(start, end)
+        for (offset, length), tables in zip(self._slices, self.blocks):
+            submask = mask.slice(offset, length)
             blocks.append([t.filter(submask, *args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.flatten)
+    @inject_arrow_table_documentation(pa.Table.flatten)
     def flatten(self, *args, **kwargs):
         table = self.table.flatten(*args, **kwargs)
         blocks = []
@@ -502,7 +540,7 @@ class ConcatenationTable(Table):
             blocks.append([t.flatten(*args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.combine_chunks)
+    @inject_arrow_table_documentation(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
         table = self.table.combine_chunks(*args, **kwargs)
         blocks = []
@@ -510,7 +548,7 @@ class ConcatenationTable(Table):
             blocks.append([t.combine_chunks(*args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.cast)
+    @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, target_schema, *args, **kwargs):
         table = self.table.cast(target_schema, *args, **kwargs)
         blocks = []
@@ -528,15 +566,15 @@ class ConcatenationTable(Table):
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.add_column)
+    @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.append_column)
+    @inject_arrow_table_documentation(pa.Table.append_column)
     def append_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.remove_column)
+    @inject_arrow_table_documentation(pa.Table.remove_column)
     def remove_column(self, i, *args, **kwargs):
         table = self.table.remove_column(i, *args, **kwargs)
         name = self.table.column_names[i]
@@ -550,11 +588,11 @@ class ConcatenationTable(Table):
             )
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.set_column)
+    @inject_arrow_table_documentation(pa.Table.set_column)
     def set_column(self, *args, **kwargs):
         raise NotImplementedError()
 
-    @wraps_arrow_table_method(pa.Table.rename_columns)
+    @inject_arrow_table_documentation(pa.Table.rename_columns)
     def rename_columns(self, names, *args, **kwargs):
         table = self.table.rename_columns(names, *args, **kwargs)
         names = dict(zip(self.table.column_names, names))
@@ -565,7 +603,7 @@ class ConcatenationTable(Table):
             )
         return ConcatenationTable(table, blocks)
 
-    @wraps_arrow_table_method(pa.Table.drop)
+    @inject_arrow_table_documentation(pa.Table.drop)
     def drop(self, columns, *args, **kwargs):
         table = self.table.drop(columns)
         blocks = []
@@ -575,10 +613,13 @@ class ConcatenationTable(Table):
 
 
 def concat_tables(tables: List[Union[pa.Table, Table]]) -> ConcatenationTable:
+    tables = list(tables)
+    if len(tables) == 1:
+        return tables[0]
     return ConcatenationTable.from_tables(tables)
 
 
-def list_table_cache_files(table: Union[pa.Table, Table]) -> List[str]:
+def list_table_cache_files(table: Table) -> List[str]:
     if isinstance(table, ConcatenationTable):
         cache_files = []
         for subtables in table.blocks:

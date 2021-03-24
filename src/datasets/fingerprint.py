@@ -11,6 +11,8 @@ import numpy as np
 import pyarrow as pa
 import xxhash
 
+from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+
 from .info import DatasetInfo
 from .utils.logging import get_logger
 from .utils.py_utils import dumps
@@ -95,9 +97,10 @@ def get_temporary_cache_files_directory() -> str:
 #################
 
 
-def hashregister(t):
+def hashregister(*types):
     def proxy(func):
-        Hasher.dispatch[t] = func
+        for t in types:
+            Hasher.dispatch[t] = func
         return func
 
     return proxy
@@ -145,7 +148,7 @@ class Hasher:
 # 2 - take advantage of a custom serialization method (e.g. DatasetInfo)
 
 
-@hashregister(pa.Table)
+@hashregister(pa.Table, Table, InMemoryTable, MemoryMappedTable, ConcatenationTable)
 def _hash_pa_table(hasher, value):
     def _hash_pa_array(value):
         if isinstance(value, pa.ChunkedArray):

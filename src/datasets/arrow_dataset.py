@@ -73,11 +73,6 @@ else:
     PYARROW_V0 = False
 
 
-DATASET_ARROW_FILENAME = "dataset.arrow"
-DATASET_INDICES_FILENAME = "indices.arrow"
-DATASET_STATE_JSON_FILENAME = "state.json"
-
-
 class DatasetInfoMixin(object):
     """This base class exposes some attributes of DatasetInfo
     at the base level of the Dataset for easy access.
@@ -200,18 +195,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def __init__(
         self,
-        arrow_table: Union[pa.Table, Table],
+        arrow_table: Table,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        indices_table: Union[None, pa.Table, Table] = None,
+        indices_table: Optional[Table] = None,
         fingerprint: Optional[str] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
 
-        self._data: Union[pa.Table, Table] = arrow_table
-        self._indices: Union[None, pa.Table, Table] = indices_table
+        self._data: Table = arrow_table
+        self._indices: Optional[Table] = indices_table
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -510,18 +505,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs = fsspec.filesystem("file")
             cache_files_paths = [Path(cache_filename) for cache_filename in self.cache_files]
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
-            if Path(dataset_path).joinpath(DATASET_ARROW_FILENAME) in cache_files_paths:
+            if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
                 raise PermissionError(
-                    f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
+                    f"Tried to overwrite {Path(dataset_path, config.DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
                 )
-            if Path(dataset_path).joinpath(DATASET_INDICES_FILENAME) in cache_files_paths:
+            if Path(dataset_path, config.DATASET_INDICES_FILENAME) in cache_files_paths:
                 raise PermissionError(
-                    f"Tried to overwrite {Path(dataset_path).joinpath(DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself."
+                    f"Tried to overwrite {Path(dataset_path, config.DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself."
                 )
 
         # Get json serializable state
         state = {
-            key: self.__dict__[key]
+            key: self.__dict__[key] if key != "_split" else str(self.__dict__[key])
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -532,8 +527,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "_split",
             ]
         }
-        state["_data_files"] = [{"filename": DATASET_ARROW_FILENAME}]
-        state["_indices_files"] = [{"filename": DATASET_INDICES_FILENAME}] if self._indices is not None else None
+        state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
+        state["_indices_files"] = (
+            [{"filename": config.DATASET_INDICES_FILENAME}] if self._indices is not None else None
+        )
         for k in state["_format_kwargs"].keys():
             try:
                 json.dumps(state["_format_kwargs"][k])
@@ -545,22 +542,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Save dataset + indices + state + info
         fs.makedirs(dataset_path, exist_ok=True)
-        with fs.open(Path(dataset_path).joinpath(DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
+        with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
             with ArrowWriter(stream=dataset_file) as writer:
                 writer.write_table(self._data)
                 writer.finalize()
         if self._indices is not None:
-            with fs.open(Path(dataset_path).joinpath(DATASET_INDICES_FILENAME).as_posix(), "wb") as indices_file:
+            with fs.open(Path(dataset_path, config.DATASET_INDICES_FILENAME).as_posix(), "wb") as indices_file:
                 with ArrowWriter(stream=indices_file) as writer:
                     writer.write_table(self._indices)
                     writer.finalize()
         with fs.open(
-            Path(dataset_path).joinpath(DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
+            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(
-            Path(dataset_path).joinpath(DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
-        ) as dataset_info_file:
+        with fs.open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -586,26 +581,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
+            dataset_path = Path(tmp_dir.name, src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
-            Path(dataset_path).joinpath(DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
+            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
         ) as state_file:
             state = json.load(state_file)
-        with open(
-            Path(dataset_path).joinpath(DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
-        ) as dataset_info_file:
+        with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
-            table_cls.from_file(Path(dataset_path).joinpath(data_file["filename"]).as_posix())
+            table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
             for data_file in state["_data_files"]
         )
         if state["_indices_files"]:
             indices_table = concat_tables(
-                table_cls.from_file(Path(dataset_path).joinpath(indices_file["filename"]).as_posix())
+                table_cls.from_file(Path(dataset_path, indices_file["filename"]).as_posix())
                 for indices_file in state["_indices_files"]
             )
         else:
@@ -620,7 +613,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @property
-    def data(self) -> pa.Table:
+    def data(self) -> Table:
         """The Apache Arrow table backing the dataset."""
         return self._data
 
@@ -1865,12 +1858,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
         if self._indices is not None:
-            if PYARROW_V0:
-                indices_array = concat_tables(self._indices.slice(i.as_py(), 1) for i in indices_array).column(0)
-            else:
-                indices_array = self._indices.column(0).take(indices_array)
+            indices_array = self._indices.column(0).take(indices_array)
 
-        indices_table = pa.Table.from_arrays([indices_array], names=["indices"])
+        indices_table = InMemoryTable.from_arrays([indices_array], names=["indices"])
 
         with writer:
             try:
