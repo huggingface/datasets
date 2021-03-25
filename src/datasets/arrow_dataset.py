@@ -535,6 +535,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if hasattr(self, "_indices"):
             del self._indices
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__del__()
+
     def __getstate__(self):
         state = self.__dict__.copy()
         state["_info"] = json.dumps(asdict(state["_info"]))
