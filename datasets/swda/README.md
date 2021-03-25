@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 100K<n<1M
 source_datasets:
 - extended|other-Switchboard-1 Telephone Speech Corpus, Release 2
 task_categories:

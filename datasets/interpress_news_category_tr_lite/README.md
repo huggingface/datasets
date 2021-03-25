@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100k<n<1M
+- 100K<n<1M
 source_datasets:
 - extended|interpress_news_category_tr
 task_categories:

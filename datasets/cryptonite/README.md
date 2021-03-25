@@ -1,16 +1,19 @@
 ---
 annotations_creators:
-- expert-generated 
+- expert-generated
 language_creators:
-- expert-generated 
+- expert-generated
 languages:
-- en 
+- en
 licenses:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+  cryptonite:
+  - 100K<n<1M
+  default:
+  - 1K<n<10K
 source_datasets:
 - original
 task_categories:

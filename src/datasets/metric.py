@@ -368,7 +368,7 @@ class Metric(MetricInfoMixin):
             self.file_paths = file_paths
             self.filelocks = filelocks
 
-    def compute(self, *args, **kwargs) -> Optional[dict]:
+    def compute(self, *, predictions=None, references=None, **kwargs) -> Optional[dict]:
         """Compute the metrics.
 
         Args:
@@ -381,11 +381,6 @@ class Metric(MetricInfoMixin):
             Dictionnary with the metrics if this metric is run on the main process (process_id == 0)
             None if the metric is not run on the main process (process_id != 0)
         """
-        if args:
-            raise ValueError("Please call `compute` using keyword arguments.")
-
-        predictions = kwargs.pop("predictions", None)
-        references = kwargs.pop("references", None)
 
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)

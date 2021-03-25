@@ -565,7 +565,9 @@ def save_function(pickler, obj):
 
 
 def copyfunc(func):
-    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result.__kwdefaults__ = func.__kwdefaults__
+    return result
 
 
 try:

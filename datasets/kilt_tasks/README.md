@@ -89,7 +89,7 @@ size_categories:
   structured_zeroshot:
   - 100K<n<1M
   trex:
-  - n>1M
+  - 1M<n<10M
   triviaqa_support_only:
   - 10K<n<100K
   wned:

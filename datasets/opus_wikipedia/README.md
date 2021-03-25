@@ -24,13 +24,21 @@ languages:
 - sl
 - tr
 - vi
-
 licenses:
 - unknown
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  ar-en:
+  - 100K<n<1M
+  ar-pl:
+  - 100K<n<1M
+  en-ru:
+  - 100K<n<1M
+  en-sl:
+  - 100K<n<1M
+  en-vi:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:

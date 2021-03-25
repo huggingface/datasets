@@ -23,7 +23,20 @@ multilinguality:
 - multilingual
 - translation
 size_categories:
-- n<1K
+  alt-en:
+  - 10K<n<100K
+  alt-jp:
+  - 10K<n<100K
+  alt-km:
+  - 10K<n<100K
+  alt-my:
+  - 10K<n<100K
+  alt-my-transliteration:
+  - 10K<n<100K
+  alt-my-west-transliteration:
+  - 100K<n<1M
+  alt-parallel:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
