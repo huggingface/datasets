@@ -14,7 +14,7 @@
 # limitations under the License.
 """ Word Error Ratio (WER) metric. """
 
-from jiwer import wer
+from jiwer import compute_measures
 
 import datasets
 
@@ -91,4 +91,10 @@ class WER(datasets.Metric):
         )
 
     def _compute(self, predictions, references):
-        return wer(references, predictions)
+        incorrect = 0
+        total = 0
+        for prediction, reference in zip(predictions, references):
+            measures = compute_measures(reference, prediction)
+            incorrect += measures['substitutions'] + measures['deletions'] + measures['insertions']
+            total += measures['substitutions'] + measures['deletions'] + measures['hits']
+        return incorrect / total
