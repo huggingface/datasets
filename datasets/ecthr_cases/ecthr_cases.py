@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -35,7 +34,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases. 
+The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases.
 """
 
 _HOMEPAGE = "http://archive.org/details/ECtHR-NAACL2021/"
