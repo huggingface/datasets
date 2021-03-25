@@ -237,7 +237,7 @@ class ArrowWriter:
             self._schema = self._schema.with_metadata(
                 self._build_metadata(DatasetInfo(features=self._features), self.fingerprint)
             )
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
+        self.pa_writer = pa.RecordBatchFileWriter(self.stream, self._schema)
 
     @property
     def schema(self):

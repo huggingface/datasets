@@ -317,10 +317,13 @@ class ArrowReader(BaseReader):
         Returns:
             pyarrow.Table
         """
-        # Stream backed by memory-mapped file / file descriptor
-        stream_from = pa.memory_map if not in_memory else pa.input_stream
-        stream = stream_from(filename)
-        f = pa.ipc.open_stream(stream)
+        with open(filename, "rb") as f:
+            is_arrow_file = f.read(8) == b"ARROW1\x00\x00"
+        # table backed by memory-mapped file / file descriptor
+        get_source = pa.memory_map if not in_memory else pa.input_stream
+        reader = pa.ipc.open_stream if not is_arrow_file else pa.ipc.open_file
+        source = get_source(filename)
+        f = reader(source)
         pa_table = f.read_all()
         return pa_table
 
