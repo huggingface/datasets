@@ -1568,7 +1568,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split, keep_in_memory=True)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
@@ -1748,6 +1748,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         remove_columns: Optional[List[str]] = None,
         new_fingerprint: Optional[str] = None,
         # caching args
+        compute_mask_in_memory: bool = False,
         cache_file_name: Optional[str] = None,
         # deprecated, use functool.partial to build function with the right signature.
         fn_kwargs: Optional[dict] = None,
@@ -1808,7 +1809,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             with_indices=with_indices,
             batch_size=batch_size,
             remove_columns=self.column_names,
-            keep_in_memory=True,
+            keep_in_memory=compute_mask_in_memory,
             fn_kwargs=fn_kwargs,
             cache_file_name=cache_file_name,
             num_proc=num_proc,
