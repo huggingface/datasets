@@ -72,8 +72,10 @@ task_ids:
 
 ### Dataset Summary
 
-The court (ECtHR) hears allegations regarding breaches in human rights provisions of the European Convention of Human Rights (ECHR) by European states. The Convention is available at https://www.echr.coe.int/Documents/Convention_ENG.pdf. 
-The court rules on a subset of all ECHR articles, which are predefined (alleged) by the applicants (*plaintiffs*). Our dataset comprises 11k ECtHR cases and can be viewed as an enriched version of the ECtHR dataset of Chalkidis et al. (2019), which did not provide ground truth for alleged article violations (articles discussed) and rationales. The new dataset includes the following:
+The European Court of Human Rights (ECtHR) hears allegations regarding breaches in human rights provisions of the European Convention of Human Rights (ECHR) by European states. The Convention is available at https://www.echr.coe.int/Documents/Convention_ENG.pdf. 
+The court rules on a subset of all ECHR articles, which are predefined (alleged) by the applicants (*plaintiffs*). 
+
+Our dataset comprises 11k ECtHR cases and can be viewed as an enriched version of the ECtHR dataset of Chalkidis et al. (2019), which did not provide ground truth for alleged article violations (articles discussed) and rationales. The new dataset includes the following:
 
 **Facts:** Each judgment includes a list of paragraphs that represent the facts of the case, i.e., they describe the main events that are relevant to the case, in numbered paragraphs. We hereafter call these paragraphs *facts* for simplicity. Note that the facts are presented in chronological order. Not all facts have the same impact or hold crucial information with respect to alleged article violations and the court's assessment; i.e., facts may refer to information that is trivial or otherwise irrelevant to the legally crucial allegations against *defendant* states.
 
@@ -89,11 +91,11 @@ The court rules on a subset of all ECHR articles, which are predefined (alleged)
 
 The dataset supports:
 
-**Alleged violation prediction:** A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the 40 violable ECHR articles were allegedly violated according to the applicant(s).
+**Alleged violation prediction:** A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the 40 violable ECHR articles were allegedly violated according to the applicant(s). Consult Chalkidis et al. (2021), for details.
 
-**Violation prediction:**  A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the allegedly violated ECHR articles were violated, as decided (ruled) by the ECtHR court.
+**Violation prediction:**  A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the allegedly violated ECHR articles were violated, as decided (ruled) by the ECtHR court. Consult Chalkidis et al. (2019), for details.
 
-**Rationale extraction:** A model also can predict the facts of the case that most prominently support its decision with respect to a classification task. Silver rationales can be used for both classification tasks, while gold rationales are only focused on the *alleged violation prediction* task.
+**Rationale extraction:** A model can also predict the facts of the case that most prominently support its decision with respect to a classification task. Silver rationales can be used for both classification tasks, while gold rationales are only focused on the *alleged violation prediction* task.
 
 ### Languages
 
@@ -192,7 +194,7 @@ The original data are available at HUDOC database (https://hudoc.echr.coe.int/en
 
 #### Annotation process
 
-* The original data are available in raw text format at HUDOC database (https://hudoc.echr.coe.int/eng), except the gold rationales.
+* The original documents are available in HTML format at HUDOC database (https://hudoc.echr.coe.int/eng), except the gold rationales. The metadata are provided by additional JSON files, produced by REST services.
 * The annotations for the gold rationales are available thanks to Dimitris Tsarapatsanis (Lecturer, York Law School).
 
 
@@ -214,16 +216,16 @@ Most pages of the Council of Europe site require no personal information except 
 
 ## Considerations for Using the Data
 
-### Social Impact of Dataset
+### Social Impact of the Dataset
 
-The publication od this dataset Our work complies with the ECtHR data policy (https://www.echr.coe.int/Pages/home.aspx?p=privacy).
+The publication of this dataset complies with the ECtHR data policy (https://www.echr.coe.int/Pages/home.aspx?p=privacy).
 
 By no means do we aim to build a `robot' lawyer or judge, and we acknowledge the possible harmful impact (Angwin et al., 2016, Dressel et al., 2018) of irresponsible deployment. 
 Instead, we aim to support fair and explainable AI-assisted judicial decision making and empirical legal studies. 
 
 For example, automated services can help applicants (plaintiffs) identify alleged violations that are supported by the facts of a case. They can help judges identify more quickly facts that support the alleged violations, contributing towards more informed judicial decision making (Zhong et al., 2020). They can also help legal experts identify previous cases related to particular allegations, helping analyze case law (Katz et al., 2012).  
 
-Consider ongoing critical research on responsible AI (Elish et al., 2021) that aims to provide explainable and fair  systems to support human experts.
+Also, consider ongoing critical research on responsible AI (Elish et al., 2021) that aims to provide explainable and fair  systems to support human experts.
 
 ### Discussion of Biases
 
@@ -243,13 +245,12 @@ Ilias Chalkidis and Dimitris Tsarapatsanis
 
 **CC BY-NC-SA (Creative Commons / Attribution-NonCommercial-ShareAlike)**
 
-This license lets others remix, adapt, and build upon your work non-commercially, as long as they credit you and license their new creations under the identical terms.
 Read  more: https://creativecommons.org/licenses/by-nc-sa/4.0/.
 
 ### Citation Information
 
-*Paragraph-level Rationale Extraction through Regularization: A case study on European Court of Human Rights Cases.* 
-*Ilias Chalkidis, Manos Fergadiotis, Dimitrios Tsarapatsanis, Nikolaos Aletras, Ion Androutsopoulos and Prodromos Malakasiotis. In the Proceedings of the Annual Conference of the North American Chapter of the Association for Computational Linguistics (NAACL 2021). Mexico City, Mexico. June 6–11, 2021*
+*Ilias Chalkidis, Manos Fergadiotis, Dimitrios Tsarapatsanis, Nikolaos Aletras, Ion Androutsopoulos and Prodromos Malakasiotis. Paragraph-level Rationale Extraction through Regularization: A case study on European Court of Human Rights Cases.* 
+*Proceedings of the Annual Conference of the North American Chapter of the Association for Computational Linguistics (NAACL 2021). Mexico City, Mexico. 2021.*
 
 ```
 @InProceedings{chalkidis-et-al-2021-ecthr,
@@ -262,7 +263,8 @@ Read  more: https://creativecommons.org/licenses/by-nc-sa/4.0/.
 }
 ```
 
-*Neural Legal Judgment Prediction in English.  Ilias Chalkidis, Ion Androutsopoulos and Nikolaos Aletras. In the Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics (ACL 2019). Florence, Italy. 2019.*
+*Ilias Chalkidis, Ion Androutsopoulos and Nikolaos Aletras. Neural Legal Judgment Prediction in English.*
+*Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics (ACL 2019). Florence, Italy. 2019.*
 
 ```
 @InProceedings{chalkidis-etal-2019-neural,

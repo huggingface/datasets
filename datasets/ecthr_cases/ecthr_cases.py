@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -23,8 +23,6 @@ import os
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @InProceedings{chalkidis-et-al-2021-ecthr,
     title = "Paragraph-level Rationale Extraction through Regularization: A case study on European Court of Human Rights Cases",
@@ -36,44 +34,70 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
 The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases. 
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "http://archive.org/details/ECtHR-NAACL2021/"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = "CC BY-NC-SA (Creative Commons / Attribution-NonCommercial-ShareAlike)"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
     'alleged-violation-prediction': "http://archive.org/download/ECtHR-NAACL2021/dataset.zip",
     'violation-prediction': "http://archive.org/download/ECtHR-NAACL2021/dataset.zip",
 }
 
+ARTICLES = {
+ "2": "Right to life",
+ "3": "Prohibition of torture",
+ "4": "Prohibition of slavery and forced labour",
+ "5": "Right to liberty and security",
+ "6": "Right to a fair trial",
+ "7": "No punishment without law",
+ "8": "Right to respect for private and family life",
+ "9": "Freedom of thought, conscience and religion",
+ "10": "Freedom of expression",
+ "11": "Freedom of assembly and association",
+ "12": "Right to marry",
+ "13": "Right to an effective remedy",
+ "14": "Prohibition of discrimination",
+ "15": "Derogation in time of emergency",
+ "16": "Restrictions on political activity of aliens",
+ "17": "Prohibition of abuse of rights",
+ "18": "Limitation on use of restrictions on rights",
+ "34": "Individual applications",
+ "38": "Examination of the case",
+ "39": "Friendly settlements",
+ "46": "Binding force and execution of judgments",
+ "P1-1": "Protection of property",
+ "P1-2": "Right to education",
+ "P1-3": "Right to free elections",
+ "P3-1": "Right to free elections",
+ "P4-1": "Prohibition of imprisonment for debt",
+ "P4-2": "Freedom of movement",
+ "P4-3": "Prohibition of expulsion of nationals",
+ "P4-4": "Prohibition of collective expulsion of aliens",
+ "P6-1": "Abolition of the death penalty",
+ "P6-2": "Death penalty in time of war",
+ "P6-3": "Prohibition of derogations",
+ "P7-1": "Procedural safeguards relating to expulsion of aliens",
+ "P7-2": "Right of appeal in criminal matters",
+ "P7-3": "Compensation for wrongful conviction",
+ "P7-4": "Right not to be tried or punished twice",
+ "P7-5": "Equality between spouses",
+ "P12-1": "General prohibition of discrimination",
+ "P13-1": "Abolition of the death penalty",
+ "P13-2": "Prohibition of derogations",
+ "P13-3": "Prohibition of reservations"
+}
+
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class ECtHRCases(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases."""
 
     VERSION = datasets.Version("1.1.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="alleged-violation-prediction", version=VERSION,
                                description="This part of the dataset covers alleged violation prediction"),
@@ -81,11 +105,10 @@ class ECtHRCases(datasets.GeneratorBasedBuilder):
                                description="This part of the dataset covers violation prediction"),
     ]
 
-    DEFAULT_CONFIG_NAME = "alleged-violation-prediction"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = "alleged-violation-prediction"
 
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "alleged-violation-prediction":  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if self.config.name == "alleged-violation-prediction":
             features = datasets.Features(
                 {
                     "facts": datasets.features.Sequence(datasets.Value("string")),
@@ -95,7 +118,7 @@ class ECtHRCases(datasets.GeneratorBasedBuilder):
                     # These are the features of your dataset like images, labels ...
                 }
             )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        else:
             features = datasets.Features(
                 {
                     "facts": datasets.features.Sequence(datasets.Value("string")),
@@ -123,12 +146,6 @@ class ECtHRCases(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
@@ -162,8 +179,6 @@ class ECtHRCases(datasets.GeneratorBasedBuilder):
         self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         """ Yields examples as (key, example) tuples. """
-        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is here for legacy reason (tfds) and is not important in itself.
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
