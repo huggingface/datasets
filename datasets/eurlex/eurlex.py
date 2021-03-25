@@ -46,7 +46,7 @@ _HOMEPAGE = "http://nlp.cs.aueb.gr/software_and_datasets/EURLEX57K/"
 _LICENSE = "CC BY-SA (Creative Commons / Attribution-ShareAlike)"
 
 _URLs = {
-    'eurlex57k': "http://archive.org/download/EURLEX57K/dataset.zip",
+    "eurlex57k": "http://archive.org/download/EURLEX57K/dataset.zip",
 }
 
 
@@ -56,20 +56,21 @@ class EURLEX(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="eurlex57k", version=VERSION,
-                               description="EURLEX57K: Legal Multi-label Text Classification"),
+        datasets.BuilderConfig(
+            name="eurlex57k", version=VERSION, description="EURLEX57K: Legal Multi-label Text Classification"
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "eurlex57k"
 
     def _info(self):
         features = datasets.Features(
-                {
-                    "celex_id": datasets.Value("string"),
-                    "title": datasets.Value("string"),
-                    "text": datasets.Value("string"),
-                    "eurovoc_concepts": datasets.features.Sequence(datasets.Value("string")),
-                }
+            {
+                "celex_id": datasets.Value("string"),
+                "title": datasets.Value("string"),
+                "text": datasets.Value("string"),
+                "eurovoc_concepts": datasets.features.Sequence(datasets.Value("string")),
+            }
         )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -104,10 +105,7 @@ class EURLEX(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -116,7 +114,7 @@ class EURLEX(datasets.GeneratorBasedBuilder):
                     "filepath": os.path.join(data_dir, "dev.jsonl"),
                     "split": "dev",
                 },
-            )
+            ),
         ]
 
     def _generate_examples(
@@ -130,6 +128,6 @@ class EURLEX(datasets.GeneratorBasedBuilder):
                 yield id_, {
                     "celex_id": data["celex_id"],
                     "title": data["title"],
-                    "text": '\n'.join([data['header'], data['recitals']] + data['main_body']),
+                    "text": "\n".join([data["header"], data["recitals"]] + data["main_body"]),
                     "eurovoc_concepts": data["eurovoc_concepts"],
                 }
