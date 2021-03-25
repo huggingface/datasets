@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -6,6 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
+from datasets import DatasetInfo
 from datasets.arrow_dataset import Dataset
 from datasets.features import (
     ClassLabel,
@@ -66,6 +68,13 @@ class FeaturesTest(TestCase):
         for sdt in unsupported_datasets_dtypes:
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
+
+    def test_feature_named_type(self):
+        """reference: issue #1110"""
+        features = Features({"_type": Value("string")})
+        ds_info = DatasetInfo(features=features)
+        reloaded_features = Features.from_dict(asdict(ds_info)["features"])
+        assert features == reloaded_features
 
 
 def test_classlabel_init(tmp_path_factory):
