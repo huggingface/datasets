@@ -143,6 +143,7 @@ TESTS_REQUIRE = [
     # metadata validation
     "langcodes[data]>=3.1.0",
     "pydantic>=1.8.1",
+    "importlib_resources;python_version<'3.7'",
 ]
 
 if os.name == "nt":  # windows

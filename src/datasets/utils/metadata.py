@@ -23,7 +23,7 @@ this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
 
-def load_json_resource(resource: str) -> Tuple[Dict, str]:
+def load_json_resource(resource: str) -> Tuple[Any, str]:
     content = pkg_resources.read_text(resources, resource)
     return json.loads(content), f"{BASE_REF_URL}/resources/{resource}"
 
@@ -31,26 +31,8 @@ def load_json_resource(resource: str) -> Tuple[Dict, str]:
 known_licenses, known_licenses_url = load_json_resource("licenses.json")
 known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
 known_creators, known_creators_url = load_json_resource("creators.json")
-known_size_categories = [
-    "unknown",
-    "n<1K",
-    "1K<n<10K",
-    "10K<n<100K",
-    "100K<n<1M",
-    "1M<n<10M",
-    "10M<n<100M",
-    "100M<n<1B",
-    "1B<n<10B",
-    "10B<n<100B",
-    "100B<n<1T",
-    "n>1T",
-]
-known_multilingualities = {
-    "monolingual": "contains a single language",
-    "multilingual": "contains multiple languages",
-    "translation": "contains translated or aligned text",
-    "other": "other type of language distribution",
-}
+known_size_categories, known_size_categories_url = load_json_resource("size_categories.json")
+known_multilingualities, known_multilingualities_url = load_json_resource("multilingualities.json")
 
 
 def dict_from_readme(f: Path) -> Optional[Dict[str, List[str]]]:
@@ -155,13 +137,15 @@ class DatasetMetadata(BaseModel):
     def multilinguality_must_be_in_known_set(cls, multilinguality: List[str]):
         others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other"))
         return [
-            *tagset_validator(to_validate, list(known_multilingualities.keys()), "multilinguality", this_url),
+            *tagset_validator(
+                to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
+            ),
             *others,
         ]
 
     @validator("size_categories")
     def size_categories_must_be_in_known_set(cls, size_cats: List[str]):
-        return tagset_validator(size_cats, known_size_categories, "size_categories", this_url)
+        return tagset_validator(size_cats, known_size_categories, "size_categories", known_size_categories_url)
 
     @validator("source_datasets")
     def source_datasets_must_be_in_known_set(cls, sources: List[str]):
