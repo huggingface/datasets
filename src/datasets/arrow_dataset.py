@@ -25,6 +25,7 @@ import shutil
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
@@ -1403,7 +1404,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
-            prev_env = os.environ.copy()
+            prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
             if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
