@@ -1,4 +1,27 @@
 ---
+annotations_creators:
+- crowdsourced
+extended:
+- original
+language_creators:
+- crowdsourced
+- found
+languages:
+- fr
+licenses:
+- cc-by-nc-sa-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+- text-retrieval
+task_ids:
+- extractive-qa
+- closed-domain-qa
 ---
 
 # Dataset Card for "fquad"
@@ -30,9 +53,8 @@
 ## Dataset Description
 
 - **Homepage:** [https://fquad.illuin.tech/](https://fquad.illuin.tech/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:**  [FQuAD: French Question Answering Dataset](https://arxiv.org/abs/2002.06071)
+- **Point of Contact:** [https://www.illuin.tech/contact/](https://www.illuin.tech/contact/)
 - **Size of downloaded dataset files:** 3.14 MB
 - **Size of the generated dataset:** 6.62 MB
 - **Total amount of disk used:** 9.76 MB
@@ -40,16 +62,19 @@
 ### Dataset Summary
 
 FQuAD: French Question Answering Dataset
-We introduce FQuAD, a native French Question Answering Dataset. FQuAD contains 25,000+ question and answer pairs.
-Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.
+We introduce FQuAD, a native French Question Answering Dataset. 
+
+FQuAD contains 25,000+ question and answer pairs.
+Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.  
+Developped to provide a SQuAD equivalent in the French language. Questions are original and based on high quality Wikipedia articles.
 
 ### Supported Tasks
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- `closed-domain-qa`, `text-retrieval`: This dataset is intended to be used for `closed-domain-qa`, but can also be used for information retrieval tasks.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+This dataset is exclusively in French, with context data from Wikipedia and questions from French university students (`fr`).
 
 ## Dataset Structure
 
@@ -90,51 +115,57 @@ The data fields are the same among all splits.
 
 ### Data Splits Sample Size
 
-| name  |train|validation|
-|-------|----:|---------:|
-|default| 4921|       768|
+The FQuAD dataset has 3 splits: _train_, _validation_, and _test_. The _test_ split is however not released publicly at the moment. The splits contain disjoint sets of articles. The following table contains stats about each split. 
+
+Dataset Split | Number of Articles in Split | Number of paragraphs in split | Number of questions in split
+--------------|------------------------------|--------------------------|-------------------------
+Train | 117 | 4921 | 20731
+Validation | 768 | 51.0% | 3188
+Test | 10 | 532 | 2189
 
 ## Dataset Creation
 
 ### Curation Rationale
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+  The FQuAD dataset was created by Illuin technology. It was developped to provide a SQuAD equivalent in the French language. Questions are original and based on high quality Wikipedia articles.
 
 ### Source Data
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+The text used for the contexts are from the curated list of French High-Quality Wikipedia [articles](https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_de_qualit%C3%A9).
 ### Annotations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Annotations (spans and questions) are written by students of the CentraleSupélec school of engineering. 
+Wikipedia articles were scraped and Illuin used an internally-developped tool to help annotators ask questions and indicate the answer spans.
+Annotators were given paragraph sized contexts and asked to generate 4/5 non-trivial questions about information in the context.
 
 ### Personal and Sensitive Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+No personal or sensitive information is included in this dataset. This has been manually verified by the dataset curators.
 
 ## Considerations for Using the Data
 
+Users should consider this dataset is sampled from Wikipedia data which might not be representative of all QA use cases.
+
 ### Social Impact of Dataset
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The social biases of this dataset have not yet been investigated.
 
 ### Discussion of Biases
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The social biases of this dataset have not yet been investigated, though articles have been selected by their quality and objectivity.
 
 ### Other Known Limitations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The limitations of the FQuAD dataset have not yet been investigated.
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Illuin Technology:  [https://fquad.illuin.tech/](https://fquad.illuin.tech/)
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The FQuAD dataset is licensed under the [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/fr/) license.
 
 ### Citation Information
 
@@ -160,3 +191,4 @@ archivePrefix = {arXiv},
 ### Contributions
 
 Thanks to [@thomwolf](https://github.com/thomwolf), [@mariamabarham](https://github.com/mariamabarham), [@patrickvonplaten](https://github.com/patrickvonplaten), [@lewtun](https://github.com/lewtun), [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.
+Thanks to [@ManuelFay](https://github.com/manuelfay) for providing information on the dataset creation process.
