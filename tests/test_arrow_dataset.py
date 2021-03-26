@@ -1,14 +1,17 @@
 import copy
+import json
 import os
 import pickle
 import shutil
 import tempfile
+from dataclasses import asdict
 from functools import partial
 from unittest import TestCase
 
 import boto3
 import numpy as np
 import pandas as pd
+from datasets import features
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
@@ -16,7 +19,7 @@ from moto import mock_s3
 
 import datasets.arrow_dataset
 from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
-from datasets.arrow_dataset import Dataset, transmit_format
+from datasets.arrow_dataset import Dataset, update_metadata_with_features, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
@@ -434,6 +437,37 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy", columns=["col_1", "col_2"])
             self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
             del dset
+
+    def test_update_metadata_with_features(self, in_memory):
+        features = Features({"foo": Value("float64")})
+        features_dict = asdict(DatasetInfo("", "", "", "", features=features))["features"]
+
+        @update_metadata_with_features
+        def update_features(dset):
+                dset = copy.deepcopy(dset)
+                dset.info.features = features
+                return dset
+
+        @update_metadata_with_features
+        def update_features_inplace(dset):
+                dset.info.features = features
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            
+            metadata = {"info": {"features": asdict(dset.info)["features"]}}
+            schema = dset._data.schema
+            dset._data = dset._data.cast(schema.with_metadata({"huggingface": json.dumps(metadata)}))
+            
+            new_dset = update_features(dset)
+            metadata = json.loads(new_dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            self.assertEqual(features_dict, metadata["info"]["features"])
+            update_features_func(inplace=True)(dset)
+            metadata = json.loads(dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            self.assertEqual(features_dict, metadata["info"]["features"])
+            del dset
+            del new_dset
+
 
     def test_cast_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
