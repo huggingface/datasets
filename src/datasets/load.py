@@ -755,7 +755,7 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
+def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
@@ -767,6 +767,7 @@ def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
             if `dataset_path` is a path of a dataset directory: the dataset requested,
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
@@ -777,10 +778,10 @@ def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if fs.isfile(Path(dest_dataset_path).joinpath("dataset_info.json").as_posix()):
-        return Dataset.load_from_disk(dataset_path, fs)
-    elif fs.isfile(Path(dest_dataset_path).joinpath("dataset_dict.json").as_posix()):
-        return DatasetDict.load_from_disk(dataset_path, fs)
+    if fs.isfile(Path(dest_dataset_path, "dataset_info.json").as_posix()):
+        return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
+    elif fs.isfile(Path(dest_dataset_path, "dataset_dict.json").as_posix()):
+        return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
             "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)

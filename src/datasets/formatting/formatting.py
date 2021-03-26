@@ -21,6 +21,7 @@ import pandas as pd
 import pyarrow as pa
 
 from ..features import pandas_types_mapper
+from ..table import Table
 
 
 T = TypeVar("T")
@@ -80,7 +81,7 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        return pa_table.drop(column for column in pa_table.column_names if column != key)
+        return pa_table.drop([column for column in pa_table.column_names if column != key])
     if isinstance(key, Iterable):
         if len(key) == 0:
             return pa_table.slice(0, 0)
@@ -303,13 +304,15 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
 
 
 def query_table(
-    pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: Optional[pa.lib.UInt64Array] = None
+    table: Table,
+    key: Union[int, slice, range, str, Iterable],
+    indices: Optional[pa.lib.UInt64Array] = None,
 ) -> pa.Table:
     """
-    Query a pyarrow Table to extract the subtable that correspond to the given key.
+    Query a Table to extract the subtable that correspond to the given key.
 
     Args:
-        pa_table (``pyarrow.Table``): The input pyarrow Table to query from
+        table (``datasets.table.Table``): The input Table to query from
         key (``Union[int, slice, range, str, Iterable]``): The key can be of different types:
             - an integer i: the subtable containing only the i-th row
             - a slice [i:j:k]: the subtable containing the rows that correspond to this slice
@@ -323,6 +326,10 @@ def query_table(
     Returns:
         ``pyarrow.Table``: the result of the query on the input table
     """
+    if isinstance(table, Table):
+        pa_table = table.table
+    else:
+        pa_table = table
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
@@ -340,17 +347,17 @@ def query_table(
 
 
 def format_table(
-    pa_table: pa.Table,
+    table: Table,
     key: Union[int, slice, range, str, Iterable],
     formatter: Formatter,
     format_columns: Optional[list] = None,
     output_all_columns=False,
 ):
     """
-    Format a pyarrow Table depending on the key that was used and a Formatter object.
+    Format a Table depending on the key that was used and a Formatter object.
 
     Args:
-        pa_table (``pyarrow.Table``): The input pyarrow Table to format
+        table (``datasets.table.Table``): The input Table to format
         key (``Union[int, slice, range, str, Iterable]``): Depending on the key that was used, the formatter formats
             the table as either a row, a column or a batch.
         formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
@@ -369,6 +376,10 @@ def format_table(
         - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
         - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
     """
+    if isinstance(table, Table):
+        pa_table = table.table
+    else:
+        pa_table = table
     query_type = key_to_query_type(key)
     python_formatter = PythonFormatter()
     if format_columns is None:
