@@ -1403,10 +1403,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
-            prev_env = os.environ.copy()
-            # check if parallelism if off
+            # check if parallelism is off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
-            if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
+            tokenizers_parallelism = os.environ.get("TOKENIZERS_PARALLELISM")
+            if tokenizers_parallelism is not None and tokenizers_parallelism.lower() not in (
                 "",
                 "off",
                 "false",
@@ -1418,7 +1418,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
-                os.environ = prev_env
+                if tokenizers_parallelism is None:
+                    del os.environ["TOKENIZERS_PARALLELISM"]
+                else:
+                    os.environ["TOKENIZERS_PARALLELISM"] = tokenizers_parallelism
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
                     for rank in range(num_proc)
