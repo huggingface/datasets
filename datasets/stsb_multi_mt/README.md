@@ -32,7 +32,35 @@ task_ids:
 
 # Dataset Card for STSb Multi MT
 
-Machine translated multilingual STS benchmark dataset.
+## Table of Contents
+- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -40,7 +68,7 @@ Machine translated multilingual STS benchmark dataset.
 - **Homepage (original dataset):** https://ixa2.si.ehu.es/stswiki/index.php/STSbenchmark
 - **Paper about original dataset:** https://arxiv.org/abs/1708.00055
 - **Leaderboard:** https://ixa2.si.ehu.eus/stswiki/index.php/STSbenchmark#Results
-- **Point of Contact:** just [open an issue](https://github.com/PhilipMay/stsb-multi-mt/issues/new) on our GitHub page if you have questions or want to report problems
+- **Point of Contact:** [Open an issue on GitHub](https://github.com/PhilipMay/stsb-multi-mt/issues/new)
 
 ### Dataset Summary
 
@@ -48,8 +76,26 @@ Machine translated multilingual STS benchmark dataset.
 > in the context of SemEval between 2012 and 2017. The selection of datasets include text from
 > image captions, news headlines and user forums. ([source](https://ixa2.si.ehu.es/stswiki/index.php/STSbenchmark))
 
-
 These are different multilingual translations and the English original of the [STSbenchmark dataset](https://ixa2.si.ehu.es/stswiki/index.php/STSbenchmark). Translation has been done with [deepl.com](https://www.deepl.com/). It can be used to train [sentence embeddings](https://github.com/UKPLab/sentence-transformers) like [T-Systems-onsite/cross-en-de-roberta-sentence-transformer](https://huggingface.co/T-Systems-onsite/cross-en-de-roberta-sentence-transformer).
+
+
+**Examples of Use**
+
+Load German dev Dataset:
+```python
+from datasets import load_dataset
+dataset = load_dataset("stsb_multi_mt", name="de", split="dev")
+```
+
+Load English train Dataset:
+```python
+from datasets import load_dataset
+dataset = load_dataset("stsb_multi_mt", name="en", split="train")
+```
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -71,7 +117,7 @@ score | 2 example sentences | explanation
 0 | *The black dog is running through the snow.<br/>A race car driver is driving his car through the mud.* | The two sentences are completely dissimilar.
 
 An example:
-```text
+```
 {
     "sentence1": "A man is playing a large flute.",
     "sentence2": "A man is playing a flute.",
@@ -91,21 +137,55 @@ An example:
 - dev with 1500 samples
 - test with 1379 sampples
 
-## Examples of Use
+## Dataset Creation
 
-### Load German dev Dataset
-```python
-from datasets import load_dataset
-dataset = load_dataset("stsb_multi_mt", name="de", split="dev")
-```
+### Curation Rationale
 
-### Load English train Dataset
-```python
-from datasets import load_dataset
-dataset = load_dataset("stsb_multi_mt", name="en", split="train")
-```
+[More Information Needed]
+
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
 
 ## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
 
 ### Licensing Information
 
@@ -113,7 +193,7 @@ See [LICENSE](https://github.com/PhilipMay/stsb-multi-mt/blob/main/LICENSE) and 
 
 ### Citation Information
 
-```text
+```
 @InProceedings{huggingface:dataset:stsb_multi_mt,
 title = {Machine translated multilingual STS benchmark dataset.},
 author={Philip May},
