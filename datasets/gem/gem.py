@@ -213,7 +213,7 @@ _URLs = {
         "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/train.tsv",
         "validation": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/dev.tsv",
         "test_turk": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_turk_detokenized.json",
-        "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/wiki_auto_asset_turk_rn.zip",
+        "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/wiki_auto_asset_turk_train_valid.zip",
     },
     "wiki_lingua_es_en_v0": {
         "data": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_wikilingua.zip",
@@ -750,6 +750,8 @@ class Gem(datasets.GeneratorBasedBuilder):
             ]
         elif self.config.name == "wiki_auto_asset_turk":
             challenge_sets = [
+                ("challenge_train_sample", "train_wiki_auto_asset_turk_RandomSample500.json"),
+                ("challenge_validation_sample", "validation_wiki_auto_asset_turk_RandomSample500.json"),
                 ("challenge_test_asset_backtranslation", "test_asset_wiki_auto_asset_turk_BackTranslation.json"),
                 (
                     "challenge_test_asset_bfp02",
