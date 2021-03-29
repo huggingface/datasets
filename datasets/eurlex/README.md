@@ -1,31 +1,23 @@
 ---
 annotations_creators:
 - found
-
 language_creators:
 - found
-
 languages:
 - en
-
 licenses:
 - cc-by-sa-4.0
-
 multilinguality:
 - monolingual
-
 size_categories:
 - 10K<n<100K
-
 source_datasets:
 - original
-
 task_categories:
 - text-classification
-
 task_ids:
 - multi-label-classification
-- legal-topic-classification
+- text-classification-legal-topic-classification
 ---
 
 # Dataset Card for the EUR-Lex dataset
