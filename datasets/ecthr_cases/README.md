@@ -105,14 +105,8 @@ All documents are written in English.
 
 ### Data Instances
 
-```
-This example was too long and was cropped:
-
+```json
 {
- "case_id":  "001-59588", 
- "case_no": "29032/95",
- "title": "CASE OF FELDEK v. SLOVAKIA",
- "judgment_date": "2001-07-12",
  "facts": [
   "8.  In 1991 Mr Du\u0161an Slobodn\u00edk, a research worker in the field of literature, published an autobiography entitled Paragraph: Polar Circle. He described in it, inter alia, his conviction by a Soviet military tribunal in 1945 on the ground that he had been ordered to spy on the Soviet army after having been enrolled, in 1944 when he was 17 years old, in a military training course organised by Germans. In the book, Mr Slobodn\u00edk also wrote about his detention in Soviet gulags and his rehabilitation by the Supreme Court of the Union of the Soviet Socialist Republics in 1960. In June 1992 Mr Slobodn\u00edk became Minister for Culture and Education of the Slovak Republic.",
   "9.  On 20 July 1992 the newspaper Telegraf published a poem by the applicant. It was dated 17 July 1992 (the day when the sovereignty of the Slovak Republic was solemnly proclaimed) and entitled \u201cGood night, my beloved\u201d (\u201cDobr\u00fa noc, m\u00e1 mil\u00e1\u201d). One of its verses read as follows:\n\u201cIn Prague prisoner Havel is giving up his presidential office. In Bratislava the prosecutor rules again. And rule by one party is above the law. A member of the SS and a member of the \u0160TB [The \u0160TB (\u0160t\u00e1tna bezpe\u010dnos\u0165) was the secret police during the communist regime in Czechoslovakia] embraced each other.\u201d",
@@ -149,8 +143,7 @@ This example was too long and was cropped:
   "40.  Having considered to what extent the parties had been successful in the proceedings, the City Court ordered the plaintiff to pay SKK 56,780 to the applicant in reimbursement of the relevant part of the latter\u2019s costs. The applicant and the plaintiff were further ordered to pay respectively SKK 875 and 2,625 in reimbursement of the costs paid in advance by the court.",
   "41.  On 25 November 1998 the Supreme Court upheld the decision of the Bratislava City Court to discontinue the proceedings in respect of the poem and to dismiss the plaintiff\u2019s claim for non-pecuniary damage. The Supreme Court held that neither party was entitled to have the costs reimbursed. It further ordered each party to pay half of the costs paid in advance by the State, namely SKK 1,750. Mr Slobodn\u00edk filed an appeal on points of law. The proceedings are pending."
  ],
- "allegedly_violated_articles": ["14", "10", "9", "36"], 
- "violated_articles": ["10"],
+ "labels": ["14", "10", "9", "36"], 
  "silver_rationales": [27],
  "gold_rationales": []
 }
