@@ -170,8 +170,8 @@ class ReadMe(Section):  # Level 0
     def _validate_section(self, section , structure):
         # Text validation
         if structure['text'] == True:
-            if section.text.strip() == '':
-                print(f"Expected some text for {section.name}")
+            if section.text.strip() == '' or section.text.strip() in filler_text:
+                print(f"Expected some text for section '{section.name}'")
 
         if structure['subsections'] is not None:
             # If no subsections present
@@ -210,10 +210,4 @@ class ReadMe(Section):  # Level 0
 
 if __name__ == "__main__":
     readme = ReadMe("./dummy_readme.md")
-    print(readme.content["Dataset Card for FashionMNIST"].content["Additional Information"].content)
     readme.validate(yaml_struc)
-    # print(readme.text)
-    # json_obj = json.dumps(readme.to_dict(), indent=4)
-    # print(json_obj)
-    # with open('dump.json', 'w') as f:
-    #     json.dump(readme.to_dict(), f)
