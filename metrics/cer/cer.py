@@ -14,11 +14,13 @@
 # limitations under the License.
 """ Character Error Ratio (CER) metric. """
 
-import jiwer
-import jiwer.transforms as tr
 from typing import List
 
+import jiwer
+import jiwer.transforms as tr
+
 import datasets
+
 
 class SentencesToListOfCharacters(tr.AbstractTransform):
     def process_string(self, s: str):
