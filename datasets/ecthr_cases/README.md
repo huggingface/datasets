@@ -158,14 +158,10 @@ This example was too long and was cropped:
 
 ### Data Fields
 
-`case_id`: The official ID of the case in the HUDOC database.\
-`case_no`: The number (ID) of the original application.\
-`title`: The title of the case in the form of applicant vs. defendant.\
-`facts`: The paragraphs (facts) of the case.\
-`allegedly_violated_articles`: The ECHR articles under discussion (*Allegedly violated articles*).\
-`violated_articles`: The list of allegedly violated ECHR articles that found to be violated by the court (judges).\
-`silver_rationales`: Indices of the paragraphs (facts) that are present in the court's assessment.\
-`gold_rationales`: Indices of the paragraphs (facts) that support alleged violations, according to a legal expert.
+`facts`: (**List[str]**) The paragraphs (facts) of the case.\
+`labels`: (**List[str]**) The ECHR articles under discussion (*Allegedly violated articles*); or the allegedly violated ECHR articles that found to be violated by the court (judges).\
+`silver_rationales`: (**List[int]**) Indices of the paragraphs (facts) that are present in the court's assessment.\
+`gold_rationales`: (**List[int]**) Indices of the paragraphs (facts) that support alleged violations, according to a legal expert.
 
 ### Data Splits
 

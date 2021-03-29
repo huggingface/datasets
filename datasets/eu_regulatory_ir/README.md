@@ -106,16 +106,16 @@ All documents are written in English.
 
 The following data fields are provided for query documents (`train`, `dev`, `test`):
 
-`document_id`: The ID of the document.\
-`publication_year`: The publication year of the document.\
-`text`: The text of the document.\
-`relevant_documents`: The list of relevant documents, as represented by their `document_id`.
+`document_id`: (**str**) The ID of the document.\
+`publication_year`: (**str**) The publication year of the document.\
+`text`: (**str**) The text of the document.\
+`relevant_documents`: (**List[str]**)  The list of relevant documents, as represented by their `document_id`.
 
 The following data fields are provided for corpus documents (`corpus`):
 
-`document_id`: The ID of the document.\
-`publication_year`: The publication year of the document.\
-`text`: The text of the document.\
+`document_id`: (**str**) The ID of the document.\
+`publication_year`: (**str**) The publication year of the document.\
+`text`: (**str**) The text of the document.\
 
 ### Data Splits
 
