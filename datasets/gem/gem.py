@@ -69,7 +69,7 @@ _CITATION = """\
                Vikas Raunak and
                Juan Diego Rodriguez and
                Sashank Santhanam and
-               Jo{\~{a}}o Sedoc and
+               Joao Sedoc and
                Thibault Sellam and
                Samira Shaikh and
                Anastasia Shimorina and
@@ -793,7 +793,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "filepath": "",
                         "split": "test_asset",
-                        "filepaths": [dl_dir[f"test_asset_orig"]] + [dl_dir[f"test_asset_{i}"] for i in range(10)],
+                        "filepaths": [dl_dir["test_asset_orig"]] + [dl_dir[f"test_asset_{i}"] for i in range(10)],
                     },
                 ),
                 datasets.SplitGenerator(
