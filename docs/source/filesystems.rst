@@ -15,7 +15,7 @@ Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently know
 - `dropbox <https://github.com/MarineChap/dropboxdrivefs>`_ for access to dropbox shares
 - `gdrive <https://github.com/intake/gdrivefs>`_ to access Google Drive and shares (experimental)
 
-These known implementations are going to be natively added in the near future within ``datasets``, but you can use them already simular to ``s3fs``.
+These known implementations are going to be natively added in the near future within ``datasets``, but you can use them already in a similar way to ``s3fs``.
 
 **Examples:**	
 
@@ -69,7 +69,7 @@ Example using a another ``fsspec`` implementations, like ``gcsfs`` within ``data
       >>> gcs = gcsfs.GCSFileSystem(project='my-google-project') # doctest: +SKIP
       >>>
       >>> # saves encoded_dataset to your s3 bucket
-      >>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train',fs=gcs)  # doctest: +SKIP
+      >>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)  # doctest: +SKIP
 
 
 
