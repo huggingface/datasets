@@ -66,7 +66,7 @@ task_ids:
 - **Repository:** http://nlp.cs.aueb.gr/software_and_datasets/EURLEX57K/
 - **Paper:** https://www.aclweb.org/anthology/P19-1636/
 - **Leaderboard:** N/A
-- **Point of Contact:** Ilias Chalkidis ( ihalk[at]aueb.gr )
+- **Point of Contact:** [Ilias Chalkidis](mailto:ihalk@aueb.gr)
 
 ### Dataset Summary
 
