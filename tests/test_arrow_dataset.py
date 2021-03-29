@@ -934,7 +934,7 @@ class BaseDatasetTest(TestCase):
         import torch
 
         def func(example):
-            return {"tensor": torch.Tensor([1.0, 2, 3])}
+            return {"tensor": torch.tensor([1.0, 2, 3])}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
