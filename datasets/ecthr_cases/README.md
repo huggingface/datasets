@@ -2,32 +2,24 @@
 annotations_creators:
 - expert-generated
 - found
-
 language_creators:
 - found
-
 languages:
 - en
-
 licenses:
 - cc-by-nc-sa-4.0
-
 multilinguality:
 - monolingual
-
 size_categories:
 - 10K<n<100K
-
 source_datasets:
 - original
-
 task_categories:
 - text-classification
-
 task_ids:
 - multi-label-classification
-- rationale-extraction
-- legal-judgment-prediction
+- text-classification-other-rationale-extraction
+- text-classification-other-legal-judgment-prediction
 ---
 
 # Dataset Card for the ECtHR cases dataset
