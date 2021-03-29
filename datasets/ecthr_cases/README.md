@@ -68,7 +68,7 @@ task_ids:
 - **Repository:** http://archive.org/details/ECtHR-NAACL2021/
 - **Paper:** https://arxiv.org/abs/2103.13084
 - **Leaderboard:** TBA
-- **Point of Contact:** Ilias Chalkidis ( ihalk[at]aueb.gr )
+- **Point of Contact:** [Ilias Chalkidis](mailto:ihalk@aueb.gr)
 
 ### Dataset Summary
 
