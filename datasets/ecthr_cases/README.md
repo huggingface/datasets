@@ -105,7 +105,9 @@ All documents are written in English.
 
 ### Data Instances
 
-```json
+```
+This example was too long and was cropped:
+
 {
  "case_id":  "001-59588", 
  "case_no": "29032/95",
