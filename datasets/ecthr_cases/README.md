@@ -222,7 +222,7 @@ Most pages of the Council of Europe site require no personal information except 
 
 The publication of this dataset complies with the ECtHR data policy (https://www.echr.coe.int/Pages/home.aspx?p=privacy).
 
-By no means do we aim to build a `robot' lawyer or judge, and we acknowledge the possible harmful impact (Angwin et al., 2016, Dressel et al., 2018) of irresponsible deployment. 
+By no means do we aim to build a 'robot' lawyer or judge, and we acknowledge the possible harmful impact (Angwin et al., 2016, Dressel et al., 2018) of irresponsible deployment. 
 Instead, we aim to support fair and explainable AI-assisted judicial decision making and empirical legal studies. 
 
 For example, automated services can help applicants (plaintiffs) identify alleged violations that are supported by the facts of a case. They can help judges identify more quickly facts that support the alleged violations, contributing towards more informed judicial decision making (Zhong et al., 2020). They can also help legal experts identify previous cases related to particular allegations, helping analyze case law (Katz et al., 2012).  
