@@ -40,6 +40,7 @@ from .features import Features, Value
 from .splits import SplitDict
 from .utils import Version
 from .utils.logging import get_logger
+from .utils.metadata import DatasetMetadata
 
 
 logger = get_logger(__name__)
@@ -123,6 +124,7 @@ class DatasetInfo:
     features: Optional[Features] = None
     post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
+    metadata: DatasetMetadata = None
 
     # Set later by the builder
     builder_name: Optional[str] = None
@@ -183,6 +185,7 @@ class DatasetInfo:
         citation = "\n\n".join([info.citation for info in dataset_infos])
         homepage = "\n\n".join([info.homepage for info in dataset_infos])
         license = "\n\n".join([info.license for info in dataset_infos])
+        # todo extend metadata fields of one another
         features = None
         supervised_keys = None
 
@@ -214,6 +217,7 @@ class DatasetInfo:
 
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
+        # todo load readme to populate metadata field
         return cls.from_dict(dataset_info_dict)
 
     @classmethod
