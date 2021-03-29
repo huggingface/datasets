@@ -83,9 +83,9 @@ Our dataset comprises 11k ECtHR cases and can be viewed as an enriched version o
 
 The dataset supports:
 
-**Alleged violation prediction:** A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the 40 violable ECHR articles were allegedly violated according to the applicant(s). Consult Chalkidis et al. (2021), for details.
+**Alleged violation prediction** (`alleged-violation-prediction`):  A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the 40 violable ECHR articles were allegedly violated according to the applicant(s). Consult Chalkidis et al. (2021), for details.
 
-**Violation prediction:**  A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the allegedly violated ECHR articles were violated, as decided (ruled) by the ECtHR court. Consult Chalkidis et al. (2019), for details.
+**Violation prediction**  (`violation-prediction`): A multi-label text classification task where, given the facts of a ECtHR case, a model predicts which of the allegedly violated ECHR articles were violated, as decided (ruled) by the ECtHR court. Consult Chalkidis et al. (2019), for details.
 
 **Rationale extraction:** A model can also predict the facts of the case that most prominently support its decision with respect to a classification task. Silver rationales can be used for both classification tasks, while gold rationales are only focused on the *alleged violation prediction* task.
 

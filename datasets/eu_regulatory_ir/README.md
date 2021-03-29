@@ -80,9 +80,9 @@ Here, we have two datasets, EU2UK and UK2EU, containing EU directives and UK reg
 
 The dataset supports:
 
-**EU2UK**: Given an EU directive *Q*, retrieve the set of relevant documents from the pool of all available UK regulations. Relevant documents are those that transpose the EU directive (*Q*).
+**EU2UK** (`eu2uk`): Given an EU directive *Q*, retrieve the set of relevant documents from the pool of all available UK regulations. Relevant documents are those that transpose the EU directive (*Q*).
 
-**UK2EU**: Given a UK regulation *Q*, retrieve the set of relevant documents from the pool of all available EU directives. Relevant documents are those that are being transposed by the UK regulations (*Q*).
+**UK2EU** (`uk2eu`): Given a UK regulation *Q*, retrieve the set of relevant documents from the pool of all available EU directives. Relevant documents are those that are being transposed by the UK regulations (*Q*).
 
 
 ### Languages
