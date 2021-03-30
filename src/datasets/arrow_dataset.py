@@ -2653,7 +2653,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
-    def add_item(self, item):
+    def add_item(self, item: dict):
+        """Add item to Dataset.
+
+        Args:
+            item (dict): Item data to be added.
+        """
         table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         # Cast item
         type = self.features.type
