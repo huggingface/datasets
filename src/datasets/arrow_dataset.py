@@ -2461,6 +2461,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
     def add_column(self, column: dict):
+        """Add column to Dataset.
+
+        Args:
+            column (dict): Column data to be added.
+        """
         column_table = InMemoryTable.from_pydict(column)
         # Concatenate tables horizontally
         self._data = ConcatenationTable.from_blocks([[self._data, column_table]])
