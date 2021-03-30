@@ -66,7 +66,7 @@ task_ids:
 - **Repository:** https://archive.org/details/eacl2021_regir_datasets
 - **Paper:** https://arxiv.org/abs/2101.10726
 - **Leaderboard:** N/A
-- **Point of Contact:** Ilias Chalkidis ( ihalk[at]aueb.gr )
+- **Point of Contact:** [Ilias Chalkidis](mailto:ihalk@aueb.gr)
 
 ### Dataset Summary
 
