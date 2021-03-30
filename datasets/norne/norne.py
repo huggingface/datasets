@@ -72,17 +72,39 @@ class Norne(datasets.GeneratorBasedBuilder):
         NorneConfig(name="bokmaal", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset (full set)"),
         NorneConfig(name="nynorsk", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset (full set)"),
         NorneConfig(
-            name="combined", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset (full set)"
+            name="combined",
+            version=datasets.Version("1.0.0"),
+            description="NorNE bokmaal and nynorsk dataset (full set)",
         ),
-        NorneConfig(name="bokmaal-7", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset (GPE_LOC/GPE_ORG as LOC/ORG)"),
-        NorneConfig(name="nynorsk-7", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset (GPE_LOC/GPE_ORG as LOC/ORG)"),
         NorneConfig(
-            name="combined-7", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset (GPE_LOC/GPE_ORG as LOC/ORG)"
+            name="bokmaal-7",
+            version=datasets.Version("1.0.0"),
+            description="NorNE bokmaal dataset (GPE_LOC/GPE_ORG as LOC/ORG)",
         ),
-        NorneConfig(name="bokmaal-8", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset (GPE_LOC/GPE_ORG as GPE)"),
-        NorneConfig(name="nynorsk-8", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset (GPE_LOC/GPE_ORG as GPE)"),
         NorneConfig(
-            name="combined-8", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset (GPE_LOC/GPE_ORG as GPE)"
+            name="nynorsk-7",
+            version=datasets.Version("1.0.0"),
+            description="NorNE nynorsk dataset (GPE_LOC/GPE_ORG as LOC/ORG)",
+        ),
+        NorneConfig(
+            name="combined-7",
+            version=datasets.Version("1.0.0"),
+            description="NorNE bokmaal and nynorsk dataset (GPE_LOC/GPE_ORG as LOC/ORG)",
+        ),
+        NorneConfig(
+            name="bokmaal-8",
+            version=datasets.Version("1.0.0"),
+            description="NorNE bokmaal dataset (GPE_LOC/GPE_ORG as GPE)",
+        ),
+        NorneConfig(
+            name="nynorsk-8",
+            version=datasets.Version("1.0.0"),
+            description="NorNE nynorsk dataset (GPE_LOC/GPE_ORG as GPE)",
+        ),
+        NorneConfig(
+            name="combined-8",
+            version=datasets.Version("1.0.0"),
+            description="NorNE bokmaal and nynorsk dataset (GPE_LOC/GPE_ORG as GPE)",
         ),
     ]
 
@@ -245,11 +267,20 @@ class Norne(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, langs):
         idx = 0
         if self.config.name.endswith("-7"):
-            filter_tags = lambda x: x.replace("GPE_", "")
+
+            def filter_tags(x):
+                return x.replace("GPE_", "")
+
         elif self.config.name.endswith("-8"):
-            filter_tags = lambda x: x.replace("_LOC", "").replace("_ORG", "")
+
+            def filter_tags(x):
+                return x.replace("_LOC", "").replace("_ORG", "")
+
         else:
-            filter_tags = lambda x: x
+
+            def filter_tags(x):
+                return x
+
         for filepath, lang in zip(filepaths, langs):
             with open(filepath, "r", encoding="utf-8") as data_file:
                 tokens = list(conllu.parse_incr(data_file))
@@ -261,9 +292,6 @@ class Norne(datasets.GeneratorBasedBuilder):
                         "tokens": [token["form"] for token in sent],
                         "lemmas": [token["lemma"] for token in sent],
                         "pos_tags": [token["upos"] for token in sent],
-                        "ner_tags": [
-                            filter_tags(token["misc"].get("name", "O"))
-                            for token in sent
-                        ],
+                        "ner_tags": [filter_tags(token["misc"].get("name", "O")) for token in sent],
                     }
                     idx += 1
