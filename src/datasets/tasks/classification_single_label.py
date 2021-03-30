@@ -1,5 +1,5 @@
 import abc
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from pydantic import BaseModel
 
@@ -22,7 +22,7 @@ Classical instances of this task are:
         text: str
 
     class Output(BaseModel):
-        label_id: int
+        logits: List[float]
 
     input_schema = Input.schema_json()
     output_schema = Output.schema_json()
