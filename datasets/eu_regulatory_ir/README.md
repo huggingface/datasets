@@ -1,31 +1,23 @@
 ---
 annotations_creators:
 - found
-
 language_creators:
 - found
-
 languages:
 - en
-
 licenses:
 - cc-by-nc-sa-4.0
-
 multilinguality:
 - monolingual
-
 size_categories:
 - 10K<n<100K
-
 source_datasets:
 - original
-
 task_categories:
 - text-retrieval
-
 task_ids:
 - document-retrieval
-- document-to-document-retrieval
+- text-retrieval-other-document-to-document-retrieval
 ---
 
 # Dataset Card for the RegIR datasets
