@@ -21,6 +21,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
+from datasets.table import InMemoryTable
 from datasets.utils.logging import WARNING
 
 from .utils import (
@@ -1925,6 +1926,15 @@ class MiscellaneousDatasetTest(TestCase):
 
         dset.set_transform(transform=encode)
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+def test_concatenate_datasets(dataset_dict, arrow_path):
+    dataset_a = Dataset(InMemoryTable.from_pydict({f"{k}_a": v for k, v in dataset_dict.items()}))
+    dataset_b = Dataset(InMemoryTable.from_pydict({f"{k}_b": v for k, v in dataset_dict.items()}))
+    dataset = concatenate_datasets([dataset_a, dataset_a], axis=0)
+    assert dataset.shape == (8, 3)
+    dataset = concatenate_datasets([dataset_a, dataset_b], axis=1)
+    assert dataset.shape == (4, 6)
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
