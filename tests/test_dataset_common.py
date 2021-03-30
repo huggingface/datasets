@@ -37,6 +37,7 @@ from datasets import (
     import_main_class,
     load_dataset,
     prepare_module,
+    tasks,
 )
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
@@ -236,7 +237,7 @@ class LocalDatasetTest(parameterized.TestCase):
             return
 
         # this is failing at the moment since the new code for "rotten_tomatoes" is not uploaded.
-        load_dataset(dataset_name, as_task="classification_single_label")
+        load_dataset(dataset_name, as_task=tasks.ClassificationSingleLabelDataset.id)
 
     @slow
     def test_load_dataset_all_configs(self, dataset_name):
