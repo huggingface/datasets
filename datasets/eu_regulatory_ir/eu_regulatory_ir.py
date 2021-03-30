@@ -48,7 +48,7 @@ _URLs = {
 }
 
 
-class EURegIR(datasets.GeneratorBasedBuilder):
+class EuRegulatoryIr(datasets.GeneratorBasedBuilder):
     """EURegIR: Regulatory Compliance IR (EU/UK)"""
 
     VERSION = datasets.Version("1.1.0")
