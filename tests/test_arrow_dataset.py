@@ -21,6 +21,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
+from datasets.table import InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 
 from .utils import (
@@ -1925,6 +1926,22 @@ class MiscellaneousDatasetTest(TestCase):
 
         dset.set_transform(transform=encode)
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_dataset_add_column(in_memory, dataset_dict, arrow_path):
+    column = {"col_4": ["a", "b", "c", "d"]}
+    dataset = (
+        Dataset(InMemoryTable.from_pydict(dataset_dict))
+        if in_memory
+        else Dataset(MemoryMappedTable.from_file(arrow_path))
+    )
+    dataset.add_column(column)
+    assert dataset.data.shape == (4, 4)
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64", "col_4": "string"}
+    assert dataset.data.column_names == list(expected_features.keys())
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
