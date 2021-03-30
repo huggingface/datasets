@@ -10,11 +10,11 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<n<10k
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
 - emotion-classification
 ---

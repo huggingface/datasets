@@ -46,7 +46,7 @@ To create the package for pypi.
 7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js
+   Update the version mapping in docs/source/_static/js/custom.js, and set version to X.X.Xdev0 in setup.py
 
 9. Update README.md to redirect to correct documentation.
 """
@@ -64,8 +64,9 @@ DOCLINES = __doc__.split("\n")
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
-    # Backend and serialization. Minimum 0.17.1 to support extension array
-    "pyarrow>=0.17.1",
+    # Backend and serialization.
+    # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
+    "pyarrow>=1.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -87,7 +88,7 @@ REQUIRED_PKGS = [
     # for saving datsets to local
     "fsspec",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub==0.0.2",
+    "huggingface_hub<0.1.0",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -103,7 +104,7 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.24.0",
+    "apache-beam>=2.26.0",
     "elasticsearch",
     "boto3==1.16.43",
     "botocore==1.19.43",
@@ -164,7 +165,7 @@ QUALITY_REQUIRE = [
 
 
 EXTRAS_REQUIRE = {
-    "apache-beam": ["apache-beam"],
+    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
@@ -189,7 +190,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.2.1",
+    version="1.5.0dev0",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
@@ -204,7 +205,7 @@ setup(
             "scripts/templates/*",
         ],
     },
-    scripts=["datasets-cli"],
+    entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[

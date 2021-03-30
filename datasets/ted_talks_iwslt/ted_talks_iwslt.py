@@ -16,13 +16,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 import xml.etree.ElementTree as ET
 import zipfile
 from collections import defaultdict
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 # TODO: Add BibTeX citation
@@ -215,7 +217,6 @@ class TedTalksIWSLTConfig(datasets.BuilderConfig):
         super(TedTalksIWSLTConfig, self).__init__(
             name=name,
             description=description,
-            version=datasets.Version("1.1.0", ""),
             **kwargs,
         )
 
@@ -232,16 +233,12 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = TedTalksIWSLTConfig
 
     BUILDER_CONFIGS = [
-        TedTalksIWSLTConfig(language_pair=language_pair, year=year)
+        TedTalksIWSLTConfig(language_pair=language_pair, year=year, version=datasets.Version("1.1.0"))
         for language_pair in _LANGUAGE_PAIRS
         for year in _YEAR.keys()
     ]
 
-    # DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
-    def _info(self, language_pair=(None, None), year=None, **kwargs):
-
-        print(self.config.language_pair)
+    def _info(self):
         features = datasets.Features(
             {
                 "translation": datasets.features.Translation(languages=self.config.language_pair),
@@ -301,7 +298,6 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         source = filepath[0]
         target = filepath[1]
 
-        # print(filepath)
         language_pair = self.config.name.split("_")
 
         def et_to_dict(tree):
@@ -342,14 +338,14 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
                         source_ids = [talk.get("head")[0].get("talkid") for talk in source_talks]
                         target_ids = [talk.get("head")[0].get("talkid") for talk in target_talks]
                     except Exception as pe:
-                        logging.warning(f"ERROR: {pe}")
-                        logging.warning(
+                        logger.warning(f"ERROR: {pe}")
+                        logger.warning(
                             f"This likely means that you have a malformed XML file!\nEither {source} or {target}\n"
                         )
                         source_ids = list()
                         target_ids = list()
         else:
-            print(f"File doesn't exist {source} or {target}")
+            logger.warning(f"File doesn't exist {source} or {target}")
             source_ids = list()
             target_ids = list()
 
@@ -397,7 +393,6 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
                     for s, t in transc
                 ]
                 translation.extend(transcriptions)
-        # print(translation)
         for talk_segment in translation:
             result = {
                 "translation": {

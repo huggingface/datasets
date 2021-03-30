@@ -14,13 +14,14 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import Any, Callable, Dict, Generic, Iterable, List, Mapping, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 
 from ..features import pandas_types_mapper
+from ..table import Table
 
 
 T = TypeVar("T")
@@ -80,7 +81,7 @@ def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        return pa_table.drop(column for column in pa_table.column_names if column != key)
+        return pa_table.drop([column for column in pa_table.column_names if column != key])
     if isinstance(key, Iterable):
         if len(key) == 0:
             return pa_table.slice(0, 0)
@@ -109,7 +110,7 @@ class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
 def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
     """Return the first element of a batch (dict) as a row (dict)"""
-    return dict((key, array[0]) for key, array in py_dict.items())
+    return {key: array[0] for key, array in py_dict.items()}
 
 
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
@@ -303,13 +304,15 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
 
 
 def query_table(
-    pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: Optional[pa.lib.UInt64Array] = None
+    table: Table,
+    key: Union[int, slice, range, str, Iterable],
+    indices: Optional[pa.lib.UInt64Array] = None,
 ) -> pa.Table:
     """
-    Query a pyarrow Table to extract the subtable that correspond to the given key.
+    Query a Table to extract the subtable that correspond to the given key.
 
     Args:
-        pa_table (``pyarrow.Table``): The input pyarrow Table to query from
+        table (``datasets.table.Table``): The input Table to query from
         key (``Union[int, slice, range, str, Iterable]``): The key can be of different types:
             - an integer i: the subtable containing only the i-th row
             - a slice [i:j:k]: the subtable containing the rows that correspond to this slice
@@ -323,6 +326,10 @@ def query_table(
     Returns:
         ``pyarrow.Table``: the result of the query on the input table
     """
+    if isinstance(table, Table):
+        pa_table = table.table
+    else:
+        pa_table = table
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
@@ -340,17 +347,17 @@ def query_table(
 
 
 def format_table(
-    pa_table: pa.Table,
+    table: Table,
     key: Union[int, slice, range, str, Iterable],
     formatter: Formatter,
     format_columns: Optional[list] = None,
     output_all_columns=False,
 ):
     """
-    Format a pyarrow Table depending on the key that was used and a Formatter object.
+    Format a Table depending on the key that was used and a Formatter object.
 
     Args:
-        pa_table (``pyarrow.Table``): The input pyarrow Table to format
+        table (``datasets.table.Table``): The input Table to format
         key (``Union[int, slice, range, str, Iterable]``): Depending on the key that was used, the formatter formats
             the table as either a row, a column or a batch.
         formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
@@ -369,6 +376,10 @@ def format_table(
         - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
         - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
     """
+    if isinstance(table, Table):
+        pa_table = table.table
+    else:
+        pa_table = table
     query_type = key_to_query_type(key)
     python_formatter = PythonFormatter()
     if format_columns is None:
@@ -382,7 +393,7 @@ def format_table(
         pa_table_to_format = pa_table.drop(col for col in pa_table.column_names if col not in format_columns)
         formatted_output = formatter(pa_table_to_format, query_type=query_type)
         if output_all_columns:
-            if isinstance(formatted_output, Mapping):
+            if isinstance(formatted_output, MutableMapping):
                 pa_table_with_remaining_columns = pa_table.drop(
                     col for col in pa_table.column_names if col in format_columns
                 )

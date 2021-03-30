@@ -35,15 +35,15 @@ size_categories:
   raw_ca:
   - 100K<n<1M
   raw_en:
-  - n>1M
+  - 1M<n<10M
   raw_es:
   - 100K<n<1M
   tagged_ca:
-  - n>1M
+  - 1M<n<10M
   tagged_en:
-  - n>1M
+  - 10M<n<100M
   tagged_es:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:

@@ -46,7 +46,7 @@ class BingCoronavirusQuerySet(datasets.GeneratorBasedBuilder):
             queries_by="country",
             start_date="2020-09-01",
             end_date="2020-09-30",
-            description=f"Query by: country, start_date: 2020-09-01, end_date: 2020-09-30",
+            description="Query by: country, start_date: 2020-09-01, end_date: 2020-09-30",
             version=datasets.Version(_VERSION),
         )
     ]

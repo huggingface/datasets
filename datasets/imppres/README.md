@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:

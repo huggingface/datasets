@@ -41,20 +41,20 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
     def __init__(self, mock_download_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mock_download_manager = mock_download_manager
-        self.downloaded_paths = []
+        self.downloaded_dummy_paths = []
         self.expected_dummy_paths = []
 
     def download(self, url_or_urls):
         output = super().download(url_or_urls)
         dummy_output = self.mock_download_manager.download(url_or_urls)
-        map_nested(self.downloaded_paths.append, output, map_tuple=True)
+        map_nested(self.downloaded_dummy_paths.append, output, map_tuple=True)
         map_nested(self.expected_dummy_paths.append, dummy_output, map_tuple=True)
         return output
 
     def download_and_extract(self, url_or_urls):
         output = super().extract(super().download(url_or_urls))
         dummy_output = self.mock_download_manager.download(url_or_urls)
-        map_nested(self.downloaded_paths.append, output, map_tuple=True)
+        map_nested(self.downloaded_dummy_paths.append, output, map_tuple=True)
         map_nested(self.expected_dummy_paths.append, dummy_output, map_tuple=True)
         return output
 
@@ -77,7 +77,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         )
         total = 0
         self.mock_download_manager.load_existing_dummy_data = False
-        for src_path, relative_dst_path in zip(self.downloaded_paths, self.expected_dummy_paths):
+        for src_path, relative_dst_path in zip(self.downloaded_dummy_paths, self.expected_dummy_paths):
             dst_path = os.path.join(
                 self.mock_download_manager.datasets_scripts_dir,
                 self.mock_download_manager.dataset_name,
@@ -113,8 +113,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         encoding = encoding or DEFAULT_ENCODING
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
+            dst_path_extensions = Path(dst_path).suffixes
             line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
-            is_line_by_line_text_file = any(dst_path.endswith(extension) for extension in line_by_line_extensions)
+            is_line_by_line_text_file = any(extension in dst_path_extensions for extension in line_by_line_extensions)
             if match_text_files is not None:
                 file_name = os.path.basename(dst_path)
                 for pattern in match_text_files.split(","):
@@ -132,7 +133,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                         dst_file.write("".join(first_lines).strip())
                 return 1
             # json file
-            elif dst_path.endswith(".json"):
+            elif ".json" in dst_path_extensions:
                 with open(src_path, "r", encoding=encoding) as src_file:
                     json_data = json.load(src_file)
                     if json_field is not None:
@@ -154,7 +155,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                         json.dump(first_json_data, dst_file)
                 return 1
             # xml file
-            elif dst_path.endswith(".xml"):
+            elif any(extension in dst_path_extensions for extension in [".xml", ".txm"]):
                 if xml_tag is None:
                     logger.warning("Found xml file but 'xml_tag' is set to None. Please provide --xml_tag")
                 else:
@@ -440,18 +441,18 @@ class DummyDataCommand(BaseTransformersCLICommand):
             dummy_data_guidance_print += f"- If the method `_generate_examples(...)` includes multiple `open()` statements, you might have to create other files in addition to '{files_string}'. In this case please refer to the `_generate_examples(...)` method \n\n"
 
         if len(files_to_create) == 1 and next(iter(files_to_create)) == dummy_file_name:
-            dummy_data_guidance_print += f"-After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
+            dummy_data_guidance_print += f"- After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
 
             dummy_data_guidance_print += (
-                f"-You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
+                f"- You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
             )
 
             dummy_data_guidance_print += f"- To get the file '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"
         else:
-            dummy_data_guidance_print += f"-After all dummy data files are created, they should be zipped recursively to '{dummy_file_name}.zip' with the command `zip -r {dummy_file_name}.zip {dummy_file_name}/` \n\n"
+            dummy_data_guidance_print += f"- After all dummy data files are created, they should be zipped recursively to '{dummy_file_name}.zip' with the command `zip -r {dummy_file_name}.zip {dummy_file_name}/` \n\n"
 
             dummy_data_guidance_print += (
-                f"-You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
+                f"- You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
             )
 
             dummy_data_guidance_print += f"- To get the folder '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"

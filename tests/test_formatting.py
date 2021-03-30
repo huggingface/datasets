@@ -3,6 +3,7 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pytest
 
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
@@ -130,12 +131,12 @@ class FormatterTest(TestCase):
         formatter = TorchFormatter()
         row = formatter.format_row(pa_table)
         torch.testing.assert_allclose(row["a"], torch.tensor(_COL_A, dtype=torch.int64)[0])
-        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float64)[0])
+        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float32)[0])
         col = formatter.format_column(pa_table)
         torch.testing.assert_allclose(col, torch.tensor(_COL_A, dtype=torch.int64))
         batch = formatter.format_batch(pa_table)
         torch.testing.assert_allclose(batch["a"], torch.tensor(_COL_A, dtype=torch.int64))
-        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float64))
+        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float32))
 
     @require_torch
     def test_torch_formatter_np_array_kwargs(self):
@@ -164,18 +165,18 @@ class FormatterTest(TestCase):
         row = formatter.format_row(pa_table)
         tf.debugging.assert_equal(row["a"], tf.ragged.constant(_COL_A, dtype=tf.int64)[0])
         tf.debugging.assert_equal(row["b"], tf.ragged.constant(_COL_B, dtype=tf.string)[0])
-        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float64)[0])
+        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float32)[0])
         col = formatter.format_column(pa_table)
         tf.debugging.assert_equal(col, tf.ragged.constant(_COL_A, dtype=tf.int64))
         batch = formatter.format_batch(pa_table)
         tf.debugging.assert_equal(batch["a"], tf.ragged.constant(_COL_A, dtype=tf.int64))
         tf.debugging.assert_equal(batch["b"], tf.ragged.constant(_COL_B, dtype=tf.string))
         self.assertIsInstance(batch["c"], tf.RaggedTensor)
-        self.assertEqual(batch["c"].dtype, tf.float64)
+        self.assertEqual(batch["c"].dtype, tf.float32)
         tf.debugging.assert_equal(
-            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float64).bounding_shape()
+            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float32).bounding_shape()
         )
-        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float64).flat_values)
+        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float32).flat_values)
 
     @require_tf
     def test_tf_formatter_np_array_kwargs(self):
@@ -448,3 +449,76 @@ class QueryTest(TestCase):
                     start += 1
 
             query_table(pa_table, iter_to_inf())
+
+
+@pytest.fixture(scope="session")
+def arrow_table():
+    return pa.Table.from_pydict({"col_int": [0, 1, 2], "col_float": [0.0, 1.0, 2.0]})
+
+
+@require_tf
+@pytest.mark.parametrize(
+    "cast_schema",
+    [
+        None,
+        [("col_int", pa.int64()), ("col_float", pa.float64())],
+        [("col_int", pa.int32()), ("col_float", pa.float64())],
+        [("col_int", pa.int64()), ("col_float", pa.float32())],
+    ],
+)
+def test_tf_formatter_sets_default_dtypes(cast_schema, arrow_table):
+    import tensorflow as tf
+
+    from datasets.formatting import TFFormatter
+
+    if cast_schema:
+        arrow_table = arrow_table.cast(pa.schema(cast_schema))
+    arrow_table_dict = arrow_table.to_pydict()
+    list_int = arrow_table_dict["col_int"]
+    list_float = arrow_table_dict["col_float"]
+    formatter = TFFormatter()
+
+    row = formatter.format_row(arrow_table)
+    tf.debugging.assert_equal(row["col_int"], tf.ragged.constant(list_int, dtype=tf.int64)[0])
+    tf.debugging.assert_equal(row["col_float"], tf.ragged.constant(list_float, dtype=tf.float32)[0])
+
+    col = formatter.format_column(arrow_table)
+    tf.debugging.assert_equal(col, tf.ragged.constant(list_int, dtype=tf.int64))
+
+    batch = formatter.format_batch(arrow_table)
+    tf.debugging.assert_equal(batch["col_int"], tf.ragged.constant(list_int, dtype=tf.int64))
+    tf.debugging.assert_equal(batch["col_float"], tf.ragged.constant(list_float, dtype=tf.float32))
+
+
+@require_torch
+@pytest.mark.parametrize(
+    "cast_schema",
+    [
+        None,
+        [("col_int", pa.int64()), ("col_float", pa.float64())],
+        [("col_int", pa.int32()), ("col_float", pa.float64())],
+        [("col_int", pa.int64()), ("col_float", pa.float32())],
+    ],
+)
+def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
+    import torch
+
+    from datasets.formatting import TorchFormatter
+
+    if cast_schema:
+        arrow_table = arrow_table.cast(pa.schema(cast_schema))
+    arrow_table_dict = arrow_table.to_pydict()
+    list_int = arrow_table_dict["col_int"]
+    list_float = arrow_table_dict["col_float"]
+    formatter = TorchFormatter()
+
+    row = formatter.format_row(arrow_table)
+    torch.testing.assert_allclose(row["col_int"], torch.tensor(list_int, dtype=torch.int64)[0])
+    torch.testing.assert_allclose(row["col_float"], torch.tensor(list_float, dtype=torch.float32)[0])
+
+    col = formatter.format_column(arrow_table)
+    torch.testing.assert_allclose(col, torch.tensor(list_int, dtype=torch.int64))
+
+    batch = formatter.format_batch(arrow_table)
+    torch.testing.assert_allclose(batch["col_int"], torch.tensor(list_int, dtype=torch.int64))
+    torch.testing.assert_allclose(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))

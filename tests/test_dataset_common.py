@@ -36,17 +36,17 @@ from datasets import (
     hf_api,
     import_main_class,
     load_dataset,
-    logging,
     prepare_module,
 )
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
+from datasets.utils.logging import get_logger
 
-from .utils import for_all_test_methods, local, offline, packaged, remote, slow
+from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, remote, slow
 
 
-logger = logging.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 REQUIRE_FAISS = {"wiki_dpr"}
@@ -281,9 +281,10 @@ class PackagedDatasetTest(parameterized.TestCase):
         self.dataset_tester = DatasetTester(self)
 
     def test_load_dataset_offline(self, dataset_name):
-        with offline():
-            configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
-            self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
+                self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
@@ -407,12 +408,12 @@ class TextTest(TestCase):
                 "\n".join("foo" for _ in range(n_samples))
             )
             ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            data_file = ds._data_files[0]
+            data_file = ds.cache_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_samples)
             del ds
             ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            self.assertEqual(ds._data_files[0], data_file)
+            self.assertEqual(ds.cache_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
 
@@ -420,7 +421,7 @@ class TextTest(TestCase):
                 "\n".join("bar" for _ in range(n_samples))
             )
             ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_samples)
             del ds
@@ -439,12 +440,12 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            data_file = ds._data_files[0]
+            data_file = ds.cache_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
             ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            self.assertEqual(ds._data_files[0], data_file)
+            self.assertEqual(ds.cache_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
             ds = load_dataset(
@@ -454,7 +455,7 @@ class CsvTest(TestCase):
                 split="train",
                 features=features,
             )
-            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             del ds
 
@@ -462,7 +463,7 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
             del ds

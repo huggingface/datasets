@@ -27,7 +27,7 @@
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://www.tau-nlp.org/commonsenseqa](https://www.tau-nlp.org/commonsenseqa)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -37,26 +37,26 @@
 - **Size of the generated dataset:** 2.08 MB
 - **Total amount of disk used:** 6.54 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CommonsenseQA is a new multiple-choice question answering dataset that requires different types of commonsense knowledge
  to predict the correct answers . It contains 12,102 questions with one correct answer and four distractor answers.
  The dataset is provided in two major training/validation/testing set splits: "Random split" which is the main evaluation
   split, and "Question token split", see paper for details.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### default
 
@@ -76,7 +76,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -87,55 +87,55 @@ The data fields are the same among all splits.
   - `label`: a `string` feature.
   - `text`: a `string` feature.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
 |default| 9741|      1221|1140|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Source Data](#source-data)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Annotations](#annotations)
+### Source Data
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
-
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Discussion of Biases](#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Citation Information](#citation-information)
+### Licensing Information
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Citation Information
 
 ```
 @InProceedings{commonsense_QA,

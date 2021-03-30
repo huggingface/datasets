@@ -35,7 +35,13 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
     def _tensorize(self, value):
         import tensorflow as tf
 
-        return tf.ragged.constant(value, **self.tf_tensor_kwargs)
+        default_dtype = {}
+        if np.issubdtype(value.dtype, np.integer):
+            default_dtype = {"dtype": tf.int64}
+        elif np.issubdtype(value.dtype, np.floating):
+            default_dtype = {"dtype": tf.float32}
+
+        return tf.ragged.constant(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct

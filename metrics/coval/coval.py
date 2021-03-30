@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ CoVal metric. """
-import logging
-
 import coval  # From: git+https://github.com/ns-moosavi/coval.git noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
@@ -22,7 +20,7 @@ from coval.eval import evaluator
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -252,7 +250,7 @@ def evaluate(key_lines, sys_lines, metrics, NP_only, remove_nested, keep_singlet
     if conll_subparts_num == 3:
         conll = (conll / 3) * 100
         logger.info("CoNLL score: %.2f" % conll)
-        output_scores.update({f"conll_score": conll})
+        output_scores.update({"conll_score": conll})
 
     return output_scores
 

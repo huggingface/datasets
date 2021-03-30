@@ -46,7 +46,7 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://www.aclweb.org/anthology/W03-0419/](https://www.aclweb.org/anthology/W03-0419/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -56,7 +56,7 @@ task_ids:
 - **Size of the generated dataset:** 9.78 MB
 - **Total amount of disk used:** 14.41 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 The shared task of CoNLL-2003 concerns language-independent named entity recognition. We will concentrate on
 four types of named entities: persons, locations, organizations and names of miscellaneous entities that do
@@ -72,19 +72,17 @@ tagging scheme, whereas the original dataset uses IOB1.
 
 For more details see https://www.clips.uantwerpen.be/conll2003/ner/ and https://www.aclweb.org/anthology/W03-0419
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### conll2003
 
@@ -93,19 +91,21 @@ We show detailed information for up to 5 configurations of the dataset.
 - **Total amount of disk used:** 14.41 MB
 
 An example of 'train' looks as follows.
-```
-This example was too long and was cropped:
 
+```
 {
     "chunk_tags": [11, 12, 12, 21, 13, 11, 11, 21, 13, 11, 12, 13, 11, 21, 22, 11, 12, 17, 11, 21, 17, 11, 12, 12, 21, 22, 22, 13, 11, 0],
     "id": "0",
     "ner_tags": [0, 3, 4, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "pos_tags": [12, 22, 22, 38, 15, 22, 28, 38, 15, 16, 21, 35, 24, 35, 37, 16, 21, 15, 24, 41, 15, 16, 21, 21, 20, 37, 40, 35, 21, 7],
-    "tokens": "[\"The\", \"European\", \"Commission\", \"said\", \"on\", \"Thursday\", \"it\", \"disagreed\", \"with\", \"German\", \"advice\", \"to\", \"consumers\", \"t..."
+    "tokens": ["The", "European", "Commission", "said", "on", "Thursday", "it", "disagreed", "with", "German", "advice", "to", "consumers", "to", "shun", "British", "lamb", "until", "scientists", "determine", "whether", "mad", "cow", "disease", "can", "be", "transmitted", "to", "sheep", "."]
 }
 ```
 
-### [Data Fields](#data-fields)
+The original data files have `-DOCSTART-` lines used to separate documents, but these lines are removed here.
+Indeed `-DOCSTART-` is a special line that acts as a boundary between two different documents, and it is filtered out in this implementation.
+
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -116,55 +116,55 @@ The data fields are the same among all splits.
 - `chunk_tags`: a `list` of classification labels, with possible values including `O` (0), `B-ADJP` (1), `I-ADJP` (2), `B-ADVP` (3), `I-ADVP` (4).
 - `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-PER` (1), `I-PER` (2), `B-ORG` (3), `I-ORG` (4).
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 |  name   |train|validation|test|
 |---------|----:|---------:|---:|
 |conll2003|14041|      3250|3453|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Source Data](#source-data)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Annotations](#annotations)
+### Source Data
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
-
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Discussion of Biases](#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Citation Information](#citation-information)
+### Licensing Information
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Citation Information
 
 ```
 @inproceedings{tjong-kim-sang-de-meulder-2003-introduction,

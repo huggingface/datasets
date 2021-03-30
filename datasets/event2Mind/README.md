@@ -27,7 +27,7 @@
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://uwnlp.github.io/event2mind/](https://uwnlp.github.io/event2mind/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -37,23 +37,23 @@
 - **Size of the generated dataset:** 6.90 MB
 - **Total amount of disk used:** 8.14 MB
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 In Event2Mind, we explore the task of understanding stereotypical intents and reactions to events. Through crowdsourcing, we create a large corpus with 25,000 events and free-form descriptions of their intents and reactions, both of the event's subject and (potentially implied) other participants.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Languages](#languages)
+### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### default
 
@@ -74,7 +74,7 @@ An example of 'validation' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all splits.
 
@@ -87,55 +87,55 @@ The data fields are the same among all splits.
 - `Xsent`: a `string` feature.
 - `Osent`: a `string` feature.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
 |default|46472|      5401|5221|
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
-### [Source Data](#source-data)
+### Curation Rationale
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Annotations](#annotations)
+### Source Data
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
-
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Discussion of Biases](#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Other Known Limitations](#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-## [Additional Information](#additional-information)
-
-### [Dataset Curators](#dataset-curators)
+### Other Known Limitations
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Licensing Information](#licensing-information)
+## Additional Information
+
+### Dataset Curators
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Citation Information](#citation-information)
+### Licensing Information
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Citation Information
 
 ```
 @inproceedings{event2Mind,

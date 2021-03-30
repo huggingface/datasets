@@ -32,17 +32,14 @@ from .utils.logging import WARNING, get_logger
 
 logger = get_logger(__name__)
 
-# Batch size constants. For more info, see:
-# https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 type_ = type  # keep python's type function
 
 
 class TypedSequence:
     """
-    This data container generalizes the typing when instantiating pyarrow arrays, tabels or batches.
+    This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
 
-    More specifically it add several features:
+    More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
         ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
@@ -78,11 +75,12 @@ class TypedSequence:
 
     """
 
-    def __init__(self, data, type=None, try_type=None):
+    def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
+        self.optimized_int_type = optimized_int_type
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
@@ -102,6 +100,14 @@ class TypedSequence:
                 raise TypeError(
                     "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
                 )
+            if self.optimized_int_type and self.type is None and self.try_type is None:
+                if pa.types.is_int64(out.type):
+                    out = out.cast(self.optimized_int_type)
+                elif pa.types.is_list(out.type):
+                    if pa.types.is_int64(out.type.value_type):
+                        out = out.cast(pa.list_(self.optimized_int_type))
+                    elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
+                        out = out.cast(pa.list_(pa.list_(self.optimized_int_type)))
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
@@ -126,7 +132,20 @@ class TypedSequence:
                 raise
 
 
-class ArrowWriter(object):
+class OptimizedTypedSequence(TypedSequence):
+    def __init__(self, data, type=None, try_type=None, col=None, optimized_int_type=None):
+        optimized_int_type_by_col = {
+            "attention_mask": pa.int8(),  # binary tensor
+            "special_tokens_mask": pa.int8(),
+            "input_ids": pa.int32(),  # typical vocab size: 0-50k (max ~500k, never > 1M)
+            "token_type_ids": pa.int8(),  # binary mask; some (XLNetModel) use an additional token represented by a 2
+        }
+        if type is None and try_type is None:
+            optimized_int_type = optimized_int_type_by_col.get(col, None)
+        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
+
+
+class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
     def __init__(
@@ -160,24 +179,42 @@ class ArrowWriter(object):
         self._path = path
         if stream is None:
             self.stream = pa.OSFile(self._path, "wb")
+            self._closable_stream = True
         else:
             self.stream = stream
+            self._closable_stream = False
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
-        self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
+        self.writer_batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_rows = []
+        self.current_rows: List[Dict[str, Any]] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
     def __len__(self):
         """ Return the number of writed and staged examples """
         return self._num_examples + len(self.current_rows)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
+        if self.pa_writer:  # it might be None
+            try:
+                self.pa_writer.close()
+            except Exception:  # pyarrow.lib.ArrowInvalid, OSError
+                pass
+        if self._closable_stream and not self.stream.closed:
+            self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
         inferred_features = Features.from_arrow_schema(inferred_schema)
@@ -227,12 +264,12 @@ class ArrowWriter(object):
         for col in cols:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = TypedSequence(
-                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type
+            typed_sequence = OptimizedTypedSequence(
+                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
-            first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
+            first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 raise OverflowError(
                     "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
@@ -274,10 +311,10 @@ class ArrowWriter(object):
         for col in sorted(batch_examples.keys()):
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
+            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
-        self.write_table(pa_table)
+        self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         """Write a batch of Example to file.
@@ -419,14 +456,14 @@ class BeamWriter(object):
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    writer = ArrowWriter(path=destination, stream=stream)
     not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-    for source in tqdm(sources, unit="sources", disable=not_verbose):
-        pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
-            df = pf.read_row_group(i).to_pandas()
-            for col in df.columns:
-                df[col] = df[col].apply(json.loads)
-            reconstructed_table = pa.Table.from_pandas(df)
-            writer.write_table(reconstructed_table)
+    with ArrowWriter(path=destination, stream=stream) as writer:
+        for source in tqdm(sources, unit="sources", disable=not_verbose):
+            pf = pa.parquet.ParquetFile(source)
+            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
+                df = pf.read_row_group(i).to_pandas()
+                for col in df.columns:
+                    df[col] = df[col].apply(json.loads)
+                reconstructed_table = pa.Table.from_pandas(df)
+                writer.write_table(reconstructed_table)
     return destination

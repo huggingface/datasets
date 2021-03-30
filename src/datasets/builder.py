@@ -76,9 +76,9 @@ class BuilderConfig:
 
     name: str = "default"
     version: Optional[Union[str, utils.Version]] = "0.0.0"
-    data_dir: str = None
-    data_files: Union[Dict, List] = None
-    description: str = None
+    data_dir: Optional[str] = None
+    data_files: Optional[Union[str, Dict, List, Tuple]] = None
+    description: Optional[str] = None
 
     def __post_init__(self):
         # The config name is used to name the cache directory.
@@ -113,14 +113,16 @@ class BuilderConfig:
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
         suffix: Optional[str] = None
-        config_kwargs_to_add_to_suffix = dict(config_kwargs)
+        config_kwargs_to_add_to_suffix = config_kwargs.copy()
         # name and version are already used to build the cache directory
         config_kwargs_to_add_to_suffix.pop("name", None)
         config_kwargs_to_add_to_suffix.pop("version", None)
         # data files are handled differently
         config_kwargs_to_add_to_suffix.pop("data_files", None)
-        # data dir is ignored (when specified it points to the manually downloaded data)
-        config_kwargs_to_add_to_suffix.pop("data_dir", None)
+        # data dir handling (when specified it points to the manually downloaded data):
+        # it was previously ignored before the introduction of config id because we didn't want
+        # to change the config name. Now it's fine to take it into account for the config id.
+        # config_kwargs_to_add_to_suffix.pop("data_dir", None)
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
@@ -178,16 +180,16 @@ class DatasetBuilder:
 
     `DatasetBuilder` has 3 key methods:
 
-        * `datasets.DatasetBuilder.info`: documents the dataset, including feature
-            names, types, and shapes, version, splits, citation, etc.
-        * `datasets.DatasetBuilder.download_and_prepare`: downloads the source data
-            and writes it to disk.
-        * `datasets.DatasetBuilder.as_dataset`: generates a `Dataset`.
+        - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
+          names, types, and shapes, version, splits, citation, etc.
+        - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
+          and writes it to disk.
+        - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
 
     **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
     dataset by defining a `datasets.BuilderConfig` subclass and accepting a
     config object (or name) on construction. Configurable datasets expose a
-    pre-defined set of configurations in `datasets.DatasetBuilder.builder_configs`.
+    pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
     """
 
     # Default version.
@@ -232,7 +234,7 @@ class DatasetBuilder:
         self.hash: Optional[str] = hash
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
+        config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
         self.config, self.config_id = self._create_builder_config(
@@ -271,6 +273,9 @@ class DatasetBuilder:
                         )
                     )
                     os.rmdir(self._cache_dir)
+
+        # Set download manager
+        self.dl_manager = None
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -497,6 +502,7 @@ class DatasetBuilder:
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
+        self.dl_manager = dl_manager
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
@@ -830,7 +836,7 @@ class DatasetBuilder:
         )
         return Dataset(**dataset_kwargs)
 
-    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Dataset:
+    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
 
@@ -962,18 +968,18 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
-        writer = ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        try:
-            for key, record in utils.tqdm(
-                generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
-            ):
-                example = self.info.features.encode_example(record)
-                writer.write(example)
-        finally:
-            num_examples, num_bytes = writer.finalize()
+        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
+            try:
+                for key, record in utils.tqdm(
+                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+                ):
+                    example = self.info.features.encode_example(record)
+                    writer.write(example)
+            finally:
+                num_examples, num_bytes = writer.finalize()
 
         assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
@@ -1020,13 +1026,12 @@ class ArrowBasedBuilder(DatasetBuilder):
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
 
-        writer = ArrowWriter(path=fpath)
-
         generator = self._generate_tables(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
-            writer.write_table(table)
-        num_examples, num_bytes = writer.finalize()
+        with ArrowWriter(path=fpath) as writer:
+            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
+                writer.write_table(table)
+            num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes

@@ -70,20 +70,20 @@ A [more complete guide](https://github.com/huggingface/datasets/blob/master/ADD_
 3. **Make sure you run all of the following commands from the root of your `datasets` git clone.** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 	```bash
-	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+	datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
 4. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
 
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder>
+	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 
 	There is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
 	If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+	datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 	```
 
 5. Now test that both the real data and the dummy data work correctly using the following commands:
@@ -110,7 +110,7 @@ Follow these steps in case the dummy data test keeps failing:
 
 - Verify that all filenames are spelled correctly. Rerun the command
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder>
+	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 	and make sure you follow the exact instructions provided by the command of step 5).
 
@@ -119,6 +119,11 @@ Follow these steps in case the dummy data test keeps failing:
 - If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
 
 If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/add_dataset.html).
+
+Note: You can use the CLI tool from the root of the repository with the following command:
+```bash
+python src/datasets/commands/datasets_cli.py <command>
+```
 
 ## How to contribute to the dataset cards
 

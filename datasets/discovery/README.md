@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 size_categories:
   discovery:
-  - n>1M
+  - 1M<n<10M
   discoverysmall:
   - 10K<n<100K
 source_datasets:

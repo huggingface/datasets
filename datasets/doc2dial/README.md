@@ -59,7 +59,9 @@ Doc2dial is dataset of goal-oriented dialogues that are grounded in the associat
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+> Supported Task: [Shared Task](https://doc2dial.github.io/workshop2021/shared.html) hosted by DialDoc21 at ACL.
+
+> Leaderboard: [LINK](https://eval.ai/web/challenges/challenge-page/793)
 
 ### Languages
 
@@ -78,11 +80,11 @@ Sample data instance for `dialogue_domain` :
     "domain": "dmv",
     "turns": [
         {
-            "da": "assert/provide/precondition_pos",
-            "reference": [
+            "da": "query_condition",
+            "references": [
                 {
-                    "keys": "4",
-                    "values": "['precondition']"
+                    "sp_id": "4",
+                    "label": "precondition"
                 }
             ],
             "role": "user",
@@ -90,19 +92,19 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Hello, I forgot o update my address, can you help me with that?"
         },
         {
-            "da": "respond/reply/open",
-            "reference": [
+            "da": "response_solution",
+            "references": [
                 {
-                    "keys": "6",
-                    "values": "['solution']"
+                    "sp_id": "6",
+                    "label": "solution"
                 },
                 {
-                    "keys": "7",
-                    "values": "['solution']"
+                    "sp_id": "7",
+                    "label": "solution"
                 },
                 {
-                    "keys": "4",
-                    "values": "['reference']"
+                    "sp_id": "4",
+                    "label": "references"
                 }
             ],
             "role": "agent",
@@ -110,15 +112,15 @@ Sample data instance for `dialogue_domain` :
             "utterance": "hi, you have to report any change of address to DMV within 10 days after moving. You should do this both for the address associated with your license and all the addresses associated with all your vehicles."
         },
         {
-            "da": "request/query/open",
-            "reference": [
+            "da": "query_solution",
+            "references": [
                 {
-                    "keys": "56",
-                    "values": "['solution']"
+                    "sp_id": "56",
+                    "label": "solution"
                 },
                 {
-                    "keys": "48",
-                    "values": "['reference']"
+                    "sp_id": "48",
+                    "label": "references"
                 }
             ],
             "role": "user",
@@ -126,15 +128,15 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Can I do my DMV transactions online?"
         },
         {
-            "da": "respond/reply/open",
-            "reference": [
+            "da": "respond_solution",
+            "references": [
                 {
-                    "keys": "56",
-                    "values": "['solution']"
+                    "sp_id": "56",
+                    "label": "solution"
                 },
                 {
-                    "keys": "48",
-                    "values": "['reference']"
+                    "sp_id": "48",
+                    "label": "references"
                 }
             ],
             "role": "agent",
@@ -142,11 +144,11 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Yes, you can sign up for MyDMV for all the online transactions needed."
         },
         {
-            "da": "request/query/open",
-            "reference": [
+            "da": "query_condition",
+            "references": [
                 {
-                    "keys": "48",
-                    "values": "['precondition']"
+                    "sp_id": "48",
+                    "label": "precondition"
                 }
             ],
             "role": "user",
@@ -154,23 +156,23 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Thanks, and in case I forget to bring all of the documentation needed to the DMV office, what can I do?"
         },
         {
-            "da": "respond/reply/open",
-            "reference": [
+            "da": "respond_solution",
+            "references": [
                 {
-                    "keys": "49",
-                    "values": "['solution']"
+                    "sp_id": "49",
+                    "label": "solution"
                 },
                 {
-                    "keys": "50",
-                    "values": "['solution']"
+                    "sp_id": "50",
+                    "label": "solution"
                 },
                 {
-                    "keys": "52",
-                    "values": "['solution']"
+                    "sp_id": "52",
+                    "label": "solution"
                 },
                 {
-                    "keys": "48",
-                    "values": "['reference']"
+                    "sp_id": "48",
+                    "label": "references"
                 }
             ],
             "role": "agent",
@@ -178,19 +180,19 @@ Sample data instance for `dialogue_domain` :
             "utterance": "This happens often with our customers so that's why our website and MyDMV are so useful for our customers. Just check if you can make your transaction online so you don't have to go to the DMV Office."
         },
         {
-            "da": "request/query/follow-up",
-            "reference": [
+            "da": "query_solution",
+            "references": [
                 {
-                    "keys": "6",
-                    "values": "['solution']"
+                    "sp_id": "6",
+                    "label": "solution"
                 },
                 {
-                    "keys": "7",
-                    "values": "['solution']"
+                    "sp_id": "7",
+                    "label": "solution"
                 },
                 {
-                    "keys": "4",
-                    "values": "['reference']"
+                    "sp_id": "4",
+                    "label": "references"
                 }
             ],
             "role": "user",
@@ -198,19 +200,19 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Ok, and can you tell me again where should I report my new address?"
         },
         {
-            "da": "respond/reply/open",
-            "reference": [
+            "da": "respond_solution",
+            "references": [
                 {
-                    "keys": "6",
-                    "values": "['solution']"
+                    "sp_id": "6",
+                    "label": "solution"
                 },
                 {
-                    "keys": "7",
-                    "values": "['solution']"
+                    "sp_id": "7",
+                    "label": "solution"
                 },
                 {
-                    "keys": "4",
-                    "values": "['reference']"
+                    "sp_id": "4",
+                    "label": "references"
                 }
             ],
             "role": "agent",
@@ -218,11 +220,11 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Sure. Any change of address must be reported to the DMV, that's for the address associated with your license and any of your vehicles."
         },
         {
-            "da": "request/query/open",
-            "reference": [
+            "da": "query_condition",
+            "references": [
                 {
-                    "keys": "40",
-                    "values": "['precondition']"
+                    "sp_id": "40",
+                    "label": "precondition"
                 }
             ],
             "role": "user",
@@ -230,19 +232,19 @@ Sample data instance for `dialogue_domain` :
             "utterance": "Can you tell me more about Traffic points and their cost?"
         },
         {
-            "da": "respond/reply/open",
-            "reference": [
+            "da": "respond_solution",
+            "references": [
                 {
-                    "keys": "41",
-                    "values": "['solution']"
+                    "sp_id": "41",
+                    "label": "solution"
                 },
                 {
-                    "keys": "43",
-                    "values": "['solution']"
+                    "sp_id": "43",
+                    "label": "solution"
                 },
                 {
-                    "keys": "40",
-                    "values": "['reference']"
+                    "sp_id": "40",
+                    "label": "references"
                 }
             ],
             "role": "agent",
@@ -317,15 +319,6 @@ Sample data instance for `doc2dial_rc` :
     "is_impossible": false,
     "question": "Hello, I want to know about the retirement plan.",
     "answers": {
-        "sp_id": [
-            [
-                "1",
-                "2"
-            ]
-        ],
-        "answer_end": [
-            67
-        ],
         "answer_start": [
             0
         ],
@@ -333,79 +326,7 @@ Sample data instance for `doc2dial_rc` :
             "\n\nBenefits Planner: Retirement \n\n\nOnline Calculator (WEP Version) \n"
         ]
     },
-    "doc_context": "\n\nBenefits Planner: Retirement \n\n\nOnline Calculator (WEP Version) \nThe calculator shown below allows you to estimate your Social Security benefit. However , for the most accurate estimates , use the Detailed Calculator. You need to enter all your past earnings, which are shown on your online. Please Note: The Online Calculator is updated periodically * with new benefit increases and other benefit amounts. Therefore , it is likely that your benefit estimates in the future will differ from those calculated today. The Online Calculator works on PCs and Macs with Javascript enabled. Some browsers may not allow you to print the table below. Note: If your birthday is on January 1st , we figure your benefit as if your birthday was in the previous year. If you qualify for benefits as a Survivor , your full retirement age for survivors benefits may be different. ",
-    "dial_context": {
-        "da": [
-            "request/query/open"
-        ],
-        "references": [
-            {
-                "sp_id": [
-                    [
-                        "1"
-                    ]
-                ],
-                "answer_end": [
-                    32
-                ],
-                "answer_start": [
-                    0
-                ],
-                "text": [
-                    "\n\nBenefits Planner: Retirement \n"
-                ]
-            }
-        ],
-        "role": [
-            "user"
-        ],
-        "turn_id": [
-            1
-        ],
-        "utterance": [
-            "Hello, I want to know about the retirement plan."
-        ]
-    },
-    "end_candidates": [
-        32,
-        67,
-        147,
-        157,
-        191,
-        220,
-        294,
-        307,
-        409,
-        421,
-        517,
-        586,
-        644,
-        650,
-        687,
-        756,
-        800,
-        866
-    ],
-    "start_candidates": [
-        0,
-        32,
-        67,
-        147,
-        157,
-        191,
-        220,
-        294,
-        307,
-        409,
-        421,
-        517,
-        586,
-        644,
-        650,
-        687,
-        756,
-        800
-    ],
+    "context": "\n\nBenefits Planner: Retirement \n\n\nOnline Calculator (WEP Version) \nThe calculator shown below allows you to estimate your Social Security benefit. However , for the most accurate estimates , use the Detailed Calculator. You need to enter all your past earnings, which are shown on your online. Please Note: The Online Calculator is updated periodically * with new benefit increases and other benefit amounts. Therefore , it is likely that your benefit estimates in the future will differ from those calculated today. The Online Calculator works on PCs and Macs with Javascript enabled. Some browsers may not allow you to print the table below. Note: If your birthday is on January 1st , we figure your benefit as if your birthday was in the previous year. If you qualify for benefits as a Survivor , your full retirement age for survivors benefits may be different. ",
     "title": "Benefits Planner: Retirement | Online Calculator (WEP Version)#1_0",
     "domain": "ssa"
 }
@@ -448,30 +369,21 @@ For `dialogue_domain`:
   - `turn_id`: the time order of the turn;
   - `role`: either "agent" or "user";
   - `da`: dialogue act;
-  - `reference`: the grounding span (`id_sp`) in the associated document. If a turn is an irrelevant turn, i.e., `da` ends with "ood", `reference` is empty.  **Note** that spans with labels "*precondition*"/"*solution*" are the actual grounding spans. Spans with label "*reference*" are the related titles or contextual reference,  which is used for the purpose of describing a dialogue scene better to crowd contributors.
+  - `references`: the grounding span (`id_sp`) in the associated document. If a turn is an irrelevant turn, i.e., `da` ends with "ood", `reference` is empty.  **Note** that spans with labels "*precondition*"/"*solution*" are the actual grounding spans. Spans with label "*reference*" are the related titles or contextual reference,  which is used for the purpose of describing a dialogue scene better to crowd contributors.
   - `utterance`: the human-generated utterance based on the dialogue scene.
 
 
 
-For `doc2dial_rc`,
+For `doc2dial_rc`, this conforms to [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) data format. For how to load Doc2Dial data for reading comprehension task, please refer [here](https://github.com/doc2dial/sharedtask-dialdoc2021).
 
 - `id`: the ID of a QA instance;
 - `question`: user query;
-- `is_impossible`: if the question is answerable;
 - `answers`: the answers that are grounded in the associated document;
-  - `sp_id`: the ID of a document span as the grounding of an answer;
-  - `answer_start` / `answer_end`: the start / end position of the grounding span in the associated document (`doc_context`);
+  - `answer_start`: the start position of the grounding span in the associated document (`context`);
   - `text`: the text content of the grounding span;
-- `dial_context`: the dialogue history;
-  - `turn_id`: the time order of the turn;
-  - `role`: either "agent" or "user";
-  - `da`: dialogue act;
-  - `utterance`: the human-generated utterance based on the dialogue scene.
-  - `references`: the grounding spans (same as `answers`).
 - `title`: the title of the associated document;
 - `domain`: the domain of the associated document;
-- `doc_context`: the text content of the associated document (without HTML markups);
-- `start_candidates` / `end_candidates`: the candidates of the start / end positions of the grounding spans.
+- `context`: the text content of the associated document (without HTML markups).
 
 
 

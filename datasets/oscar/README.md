@@ -116,7 +116,7 @@ languages:
 - new
 - nl
 - nn
-- no
+- "no"
 - oc
 - or
 - os
@@ -175,11 +175,670 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n<1K
-- 1K<n<10K
-- 10K<n<100K
-- 100K<n<1M
-- n>1M
+  unshuffled_deduplicated_af:
+  - 100K<n<1M
+  unshuffled_deduplicated_als:
+  - 1K<n<10K
+  unshuffled_deduplicated_am:
+  - 10K<n<100K
+  unshuffled_deduplicated_an:
+  - 1K<n<10K
+  unshuffled_deduplicated_ar:
+  - 1M<n<10M
+  unshuffled_deduplicated_arz:
+  - 10K<n<100K
+  unshuffled_deduplicated_as:
+  - 1K<n<10K
+  unshuffled_deduplicated_ast:
+  - 1K<n<10K
+  unshuffled_deduplicated_av:
+  - n<1K
+  unshuffled_deduplicated_az:
+  - 100K<n<1M
+  unshuffled_deduplicated_azb:
+  - 1K<n<10K
+  unshuffled_deduplicated_ba:
+  - 10K<n<100K
+  unshuffled_deduplicated_bar:
+  - n<1K
+  unshuffled_deduplicated_bcl:
+  - n<1K
+  unshuffled_deduplicated_be:
+  - 100K<n<1M
+  unshuffled_deduplicated_bg:
+  - 1M<n<10M
+  unshuffled_deduplicated_bh:
+  - n<1K
+  unshuffled_deduplicated_bn:
+  - 1M<n<10M
+  unshuffled_deduplicated_bo:
+  - 10K<n<100K
+  unshuffled_deduplicated_bpy:
+  - 1K<n<10K
+  unshuffled_deduplicated_br:
+  - 10K<n<100K
+  unshuffled_deduplicated_bs:
+  - n<1K
+  unshuffled_deduplicated_bxr:
+  - n<1K
+  unshuffled_deduplicated_ca:
+  - 1M<n<10M
+  unshuffled_deduplicated_cbk:
+  - n<1K
+  unshuffled_deduplicated_ce:
+  - 1K<n<10K
+  unshuffled_deduplicated_ceb:
+  - 10K<n<100K
+  unshuffled_deduplicated_ckb:
+  - 10K<n<100K
+  unshuffled_deduplicated_cs:
+  - 10M<n<100M
+  unshuffled_deduplicated_cv:
+  - 10K<n<100K
+  unshuffled_deduplicated_cy:
+  - 10K<n<100K
+  unshuffled_deduplicated_da:
+  - 1M<n<10M
+  unshuffled_deduplicated_de:
+  - 10M<n<100M
+  unshuffled_deduplicated_diq:
+  - n<1K
+  unshuffled_deduplicated_dsb:
+  - n<1K
+  unshuffled_deduplicated_dv:
+  - 10K<n<100K
+  unshuffled_deduplicated_el:
+  - 1M<n<10M
+  unshuffled_deduplicated_eml:
+  - n<1K
+  unshuffled_deduplicated_en:
+  - 100M<n<1B
+  unshuffled_deduplicated_eo:
+  - 10K<n<100K
+  unshuffled_deduplicated_es:
+  - 10M<n<100M
+  unshuffled_deduplicated_et:
+  - 1M<n<10M
+  unshuffled_deduplicated_eu:
+  - 100K<n<1M
+  unshuffled_deduplicated_fa:
+  - 1M<n<10M
+  unshuffled_deduplicated_fi:
+  - 1M<n<10M
+  unshuffled_deduplicated_fr:
+  - 10M<n<100M
+  unshuffled_deduplicated_frr:
+  - n<1K
+  unshuffled_deduplicated_fy:
+  - 10K<n<100K
+  unshuffled_deduplicated_ga:
+  - 10K<n<100K
+  unshuffled_deduplicated_gd:
+  - 1K<n<10K
+  unshuffled_deduplicated_gl:
+  - 100K<n<1M
+  unshuffled_deduplicated_gn:
+  - n<1K
+  unshuffled_deduplicated_gom:
+  - n<1K
+  unshuffled_deduplicated_gu:
+  - 100K<n<1M
+  unshuffled_deduplicated_he:
+  - 1M<n<10M
+  unshuffled_deduplicated_hi:
+  - 1M<n<10M
+  unshuffled_deduplicated_hr:
+  - 100K<n<1M
+  unshuffled_deduplicated_hsb:
+  - 1K<n<10K
+  unshuffled_deduplicated_ht:
+  - n<1K
+  unshuffled_deduplicated_hu:
+  - 1M<n<10M
+  unshuffled_deduplicated_hy:
+  - 100K<n<1M
+  unshuffled_deduplicated_ia:
+  - n<1K
+  unshuffled_deduplicated_id:
+  - 1M<n<10M
+  unshuffled_deduplicated_ie:
+  - n<1K
+  unshuffled_deduplicated_ilo:
+  - 1K<n<10K
+  unshuffled_deduplicated_io:
+  - n<1K
+  unshuffled_deduplicated_is:
+  - 100K<n<1M
+  unshuffled_deduplicated_it:
+  - 10M<n<100M
+  unshuffled_deduplicated_ja:
+  - 10M<n<100M
+  unshuffled_deduplicated_jbo:
+  - n<1K
+  unshuffled_deduplicated_jv:
+  - 1K<n<10K
+  unshuffled_deduplicated_ka:
+  - 100K<n<1M
+  unshuffled_deduplicated_kk:
+  - 100K<n<1M
+  unshuffled_deduplicated_km:
+  - 100K<n<1M
+  unshuffled_deduplicated_kn:
+  - 100K<n<1M
+  unshuffled_deduplicated_ko:
+  - 1M<n<10M
+  unshuffled_deduplicated_krc:
+  - 1K<n<10K
+  unshuffled_deduplicated_ku:
+  - 10K<n<100K
+  unshuffled_deduplicated_kv:
+  - n<1K
+  unshuffled_deduplicated_kw:
+  - n<1K
+  unshuffled_deduplicated_ky:
+  - 10K<n<100K
+  unshuffled_deduplicated_la:
+  - 10K<n<100K
+  unshuffled_deduplicated_lb:
+  - 10K<n<100K
+  unshuffled_deduplicated_lez:
+  - 1K<n<10K
+  unshuffled_deduplicated_li:
+  - n<1K
+  unshuffled_deduplicated_lmo:
+  - 1K<n<10K
+  unshuffled_deduplicated_lo:
+  - 10K<n<100K
+  unshuffled_deduplicated_lrc:
+  - n<1K
+  unshuffled_deduplicated_lt:
+  - 1M<n<10M
+  unshuffled_deduplicated_lv:
+  - 100K<n<1M
+  unshuffled_deduplicated_mai:
+  - n<1K
+  unshuffled_deduplicated_mg:
+  - 10K<n<100K
+  unshuffled_deduplicated_mhr:
+  - 1K<n<10K
+  unshuffled_deduplicated_min:
+  - n<1K
+  unshuffled_deduplicated_mk:
+  - 100K<n<1M
+  unshuffled_deduplicated_ml:
+  - 100K<n<1M
+  unshuffled_deduplicated_mn:
+  - 100K<n<1M
+  unshuffled_deduplicated_mr:
+  - 100K<n<1M
+  unshuffled_deduplicated_mrj:
+  - n<1K
+  unshuffled_deduplicated_ms:
+  - 100K<n<1M
+  unshuffled_deduplicated_mt:
+  - 10K<n<100K
+  unshuffled_deduplicated_mwl:
+  - n<1K
+  unshuffled_deduplicated_my:
+  - 100K<n<1M
+  unshuffled_deduplicated_myv:
+  - n<1K
+  unshuffled_deduplicated_mzn:
+  - n<1K
+  unshuffled_deduplicated_nah:
+  - n<1K
+  unshuffled_deduplicated_nap:
+  - n<1K
+  unshuffled_deduplicated_nds:
+  - 1K<n<10K
+  unshuffled_deduplicated_ne:
+  - 100K<n<1M
+  unshuffled_deduplicated_new:
+  - 1K<n<10K
+  unshuffled_deduplicated_nl:
+  - 10M<n<100M
+  unshuffled_deduplicated_nn:
+  - 100K<n<1M
+  unshuffled_deduplicated_no:
+  - 1M<n<10M
+  unshuffled_deduplicated_oc:
+  - 1K<n<10K
+  unshuffled_deduplicated_or:
+  - 10K<n<100K
+  unshuffled_deduplicated_os:
+  - 1K<n<10K
+  unshuffled_deduplicated_pa:
+  - 10K<n<100K
+  unshuffled_deduplicated_pam:
+  - n<1K
+  unshuffled_deduplicated_pl:
+  - 10M<n<100M
+  unshuffled_deduplicated_pms:
+  - 1K<n<10K
+  unshuffled_deduplicated_pnb:
+  - 1K<n<10K
+  unshuffled_deduplicated_ps:
+  - 10K<n<100K
+  unshuffled_deduplicated_pt:
+  - 10M<n<100M
+  unshuffled_deduplicated_qu:
+  - n<1K
+  unshuffled_deduplicated_rm:
+  - n<1K
+  unshuffled_deduplicated_ro:
+  - 1M<n<10M
+  unshuffled_deduplicated_ru:
+  - 100M<n<1B
+  unshuffled_deduplicated_sa:
+  - 1K<n<10K
+  unshuffled_deduplicated_sah:
+  - 1K<n<10K
+  unshuffled_deduplicated_scn:
+  - n<1K
+  unshuffled_deduplicated_sd:
+  - 10K<n<100K
+  unshuffled_deduplicated_sh:
+  - 10K<n<100K
+  unshuffled_deduplicated_si:
+  - 100K<n<1M
+  unshuffled_deduplicated_sk:
+  - 1M<n<10M
+  unshuffled_deduplicated_sl:
+  - 100K<n<1M
+  unshuffled_deduplicated_so:
+  - n<1K
+  unshuffled_deduplicated_sq:
+  - 100K<n<1M
+  unshuffled_deduplicated_sr:
+  - 100K<n<1M
+  unshuffled_deduplicated_su:
+  - n<1K
+  unshuffled_deduplicated_sv:
+  - 10M<n<100M
+  unshuffled_deduplicated_sw:
+  - 10K<n<100K
+  unshuffled_deduplicated_ta:
+  - 100K<n<1M
+  unshuffled_deduplicated_te:
+  - 100K<n<1M
+  unshuffled_deduplicated_tg:
+  - 10K<n<100K
+  unshuffled_deduplicated_th:
+  - 1M<n<10M
+  unshuffled_deduplicated_tk:
+  - 1K<n<10K
+  unshuffled_deduplicated_tl:
+  - 100K<n<1M
+  unshuffled_deduplicated_tr:
+  - 10M<n<100M
+  unshuffled_deduplicated_tt:
+  - 10K<n<100K
+  unshuffled_deduplicated_tyv:
+  - n<1K
+  unshuffled_deduplicated_ug:
+  - 10K<n<100K
+  unshuffled_deduplicated_uk:
+  - 1M<n<10M
+  unshuffled_deduplicated_ur:
+  - 100K<n<1M
+  unshuffled_deduplicated_uz:
+  - 10K<n<100K
+  unshuffled_deduplicated_vec:
+  - n<1K
+  unshuffled_deduplicated_vi:
+  - 1M<n<10M
+  unshuffled_deduplicated_vo:
+  - 1K<n<10K
+  unshuffled_deduplicated_wa:
+  - n<1K
+  unshuffled_deduplicated_war:
+  - 1K<n<10K
+  unshuffled_deduplicated_wuu:
+  - n<1K
+  unshuffled_deduplicated_xal:
+  - n<1K
+  unshuffled_deduplicated_xmf:
+  - 1K<n<10K
+  unshuffled_deduplicated_yi:
+  - 10K<n<100K
+  unshuffled_deduplicated_yo:
+  - n<1K
+  unshuffled_deduplicated_yue:
+  - n<1K
+  unshuffled_deduplicated_zh:
+  - 10M<n<100M
+  unshuffled_original_af:
+  - 100K<n<1M
+  unshuffled_original_als:
+  - 1K<n<10K
+  unshuffled_original_am:
+  - 10K<n<100K
+  unshuffled_original_an:
+  - 1K<n<10K
+  unshuffled_original_ar:
+  - 10M<n<100M
+  unshuffled_original_arz:
+  - 100K<n<1M
+  unshuffled_original_as:
+  - 10K<n<100K
+  unshuffled_original_ast:
+  - 1K<n<10K
+  unshuffled_original_av:
+  - n<1K
+  unshuffled_original_az:
+  - 100K<n<1M
+  unshuffled_original_azb:
+  - 10K<n<100K
+  unshuffled_original_ba:
+  - 10K<n<100K
+  unshuffled_original_bar:
+  - n<1K
+  unshuffled_original_bcl:
+  - n<1K
+  unshuffled_original_be:
+  - 100K<n<1M
+  unshuffled_original_bg:
+  - 1M<n<10M
+  unshuffled_original_bh:
+  - n<1K
+  unshuffled_original_bn:
+  - 1M<n<10M
+  unshuffled_original_bo:
+  - 10K<n<100K
+  unshuffled_original_bpy:
+  - 1K<n<10K
+  unshuffled_original_br:
+  - 10K<n<100K
+  unshuffled_original_bs:
+  - 1K<n<10K
+  unshuffled_original_bxr:
+  - n<1K
+  unshuffled_original_ca:
+  - 1M<n<10M
+  unshuffled_original_cbk:
+  - n<1K
+  unshuffled_original_ce:
+  - 1K<n<10K
+  unshuffled_original_ceb:
+  - 10K<n<100K
+  unshuffled_original_ckb:
+  - 100K<n<1M
+  unshuffled_original_cs:
+  - 10M<n<100M
+  unshuffled_original_cv:
+  - 10K<n<100K
+  unshuffled_original_cy:
+  - 100K<n<1M
+  unshuffled_original_da:
+  - 1M<n<10M
+  unshuffled_original_de:
+  - 100M<n<1B
+  unshuffled_original_diq:
+  - n<1K
+  unshuffled_original_dsb:
+  - n<1K
+  unshuffled_original_dv:
+  - 10K<n<100K
+  unshuffled_original_el:
+  - 10M<n<100M
+  unshuffled_original_eml:
+  - n<1K
+  unshuffled_original_en:
+  - 100M<n<1B
+  unshuffled_original_eo:
+  - 100K<n<1M
+  unshuffled_original_es:
+  - 10M<n<100M
+  unshuffled_original_et:
+  - 1M<n<10M
+  unshuffled_original_eu:
+  - 100K<n<1M
+  unshuffled_original_fa:
+  - 10M<n<100M
+  unshuffled_original_fi:
+  - 1M<n<10M
+  unshuffled_original_fr:
+  - 10M<n<100M
+  unshuffled_original_frr:
+  - n<1K
+  unshuffled_original_fy:
+  - 10K<n<100K
+  unshuffled_original_ga:
+  - 10K<n<100K
+  unshuffled_original_gd:
+  - 1K<n<10K
+  unshuffled_original_gl:
+  - 100K<n<1M
+  unshuffled_original_gn:
+  - n<1K
+  unshuffled_original_gom:
+  - n<1K
+  unshuffled_original_gu:
+  - 100K<n<1M
+  unshuffled_original_he:
+  - 1M<n<10M
+  unshuffled_original_hi:
+  - 1M<n<10M
+  unshuffled_original_hr:
+  - 100K<n<1M
+  unshuffled_original_hsb:
+  - 1K<n<10K
+  unshuffled_original_ht:
+  - n<1K
+  unshuffled_original_hu:
+  - 10M<n<100M
+  unshuffled_original_hy:
+  - 100K<n<1M
+  unshuffled_original_ia:
+  - 1K<n<10K
+  unshuffled_original_id:
+  - 10M<n<100M
+  unshuffled_original_ie:
+  - n<1K
+  unshuffled_original_ilo:
+  - 1K<n<10K
+  unshuffled_original_io:
+  - n<1K
+  unshuffled_original_is:
+  - 100K<n<1M
+  unshuffled_original_it:
+  - 10M<n<100M
+  unshuffled_original_ja:
+  - 10M<n<100M
+  unshuffled_original_jbo:
+  - n<1K
+  unshuffled_original_jv:
+  - 1K<n<10K
+  unshuffled_original_ka:
+  - 100K<n<1M
+  unshuffled_original_kk:
+  - 100K<n<1M
+  unshuffled_original_km:
+  - 100K<n<1M
+  unshuffled_original_kn:
+  - 100K<n<1M
+  unshuffled_original_ko:
+  - 1M<n<10M
+  unshuffled_original_krc:
+  - 1K<n<10K
+  unshuffled_original_ku:
+  - 10K<n<100K
+  unshuffled_original_kv:
+  - 1K<n<10K
+  unshuffled_original_kw:
+  - n<1K
+  unshuffled_original_ky:
+  - 100K<n<1M
+  unshuffled_original_la:
+  - 10K<n<100K
+  unshuffled_original_lb:
+  - 10K<n<100K
+  unshuffled_original_lez:
+  - 1K<n<10K
+  unshuffled_original_li:
+  - n<1K
+  unshuffled_original_lmo:
+  - 1K<n<10K
+  unshuffled_original_lo:
+  - 10K<n<100K
+  unshuffled_original_lrc:
+  - n<1K
+  unshuffled_original_lt:
+  - 1M<n<10M
+  unshuffled_original_lv:
+  - 1M<n<10M
+  unshuffled_original_mai:
+  - n<1K
+  unshuffled_original_mg:
+  - 10K<n<100K
+  unshuffled_original_mhr:
+  - 1K<n<10K
+  unshuffled_original_min:
+  - n<1K
+  unshuffled_original_mk:
+  - 100K<n<1M
+  unshuffled_original_ml:
+  - 100K<n<1M
+  unshuffled_original_mn:
+  - 100K<n<1M
+  unshuffled_original_mr:
+  - 100K<n<1M
+  unshuffled_original_mrj:
+  - n<1K
+  unshuffled_original_ms:
+  - 100K<n<1M
+  unshuffled_original_mt:
+  - 10K<n<100K
+  unshuffled_original_mwl:
+  - n<1K
+  unshuffled_original_my:
+  - 100K<n<1M
+  unshuffled_original_myv:
+  - n<1K
+  unshuffled_original_mzn:
+  - 1K<n<10K
+  unshuffled_original_nah:
+  - n<1K
+  unshuffled_original_nap:
+  - n<1K
+  unshuffled_original_nds:
+  - 10K<n<100K
+  unshuffled_original_ne:
+  - 100K<n<1M
+  unshuffled_original_new:
+  - 1K<n<10K
+  unshuffled_original_nl:
+  - 10M<n<100M
+  unshuffled_original_nn:
+  - 100K<n<1M
+  unshuffled_original_no:
+  - 1M<n<10M
+  unshuffled_original_oc:
+  - 10K<n<100K
+  unshuffled_original_or:
+  - 10K<n<100K
+  unshuffled_original_os:
+  - 1K<n<10K
+  unshuffled_original_pa:
+  - 100K<n<1M
+  unshuffled_original_pam:
+  - n<1K
+  unshuffled_original_pl:
+  - 10M<n<100M
+  unshuffled_original_pms:
+  - 1K<n<10K
+  unshuffled_original_pnb:
+  - 1K<n<10K
+  unshuffled_original_ps:
+  - 10K<n<100K
+  unshuffled_original_pt:
+  - 10M<n<100M
+  unshuffled_original_qu:
+  - n<1K
+  unshuffled_original_rm:
+  - n<1K
+  unshuffled_original_ro:
+  - 1M<n<10M
+  unshuffled_original_ru:
+  - 100M<n<1B
+  unshuffled_original_sa:
+  - 10K<n<100K
+  unshuffled_original_sah:
+  - 10K<n<100K
+  unshuffled_original_scn:
+  - n<1K
+  unshuffled_original_sd:
+  - 10K<n<100K
+  unshuffled_original_sh:
+  - 10K<n<100K
+  unshuffled_original_si:
+  - 100K<n<1M
+  unshuffled_original_sk:
+  - 1M<n<10M
+  unshuffled_original_sl:
+  - 1M<n<10M
+  unshuffled_original_so:
+  - n<1K
+  unshuffled_original_sq:
+  - 100K<n<1M
+  unshuffled_original_sr:
+  - 1M<n<10M
+  unshuffled_original_su:
+  - n<1K
+  unshuffled_original_sv:
+  - 10M<n<100M
+  unshuffled_original_sw:
+  - 10K<n<100K
+  unshuffled_original_ta:
+  - 1M<n<10M
+  unshuffled_original_te:
+  - 100K<n<1M
+  unshuffled_original_tg:
+  - 10K<n<100K
+  unshuffled_original_th:
+  - 1M<n<10M
+  unshuffled_original_tk:
+  - 1K<n<10K
+  unshuffled_original_tl:
+  - 100K<n<1M
+  unshuffled_original_tr:
+  - 10M<n<100M
+  unshuffled_original_tt:
+  - 100K<n<1M
+  unshuffled_original_tyv:
+  - n<1K
+  unshuffled_original_ug:
+  - 10K<n<100K
+  unshuffled_original_uk:
+  - 10M<n<100M
+  unshuffled_original_ur:
+  - 100K<n<1M
+  unshuffled_original_uz:
+  - 10K<n<100K
+  unshuffled_original_vec:
+  - n<1K
+  unshuffled_original_vi:
+  - 10M<n<100M
+  unshuffled_original_vo:
+  - 1K<n<10K
+  unshuffled_original_wa:
+  - 1K<n<10K
+  unshuffled_original_war:
+  - 1K<n<10K
+  unshuffled_original_wuu:
+  - n<1K
+  unshuffled_original_xal:
+  - n<1K
+  unshuffled_original_xmf:
+  - 1K<n<10K
+  unshuffled_original_yi:
+  - 10K<n<100K
+  unshuffled_original_yo:
+  - n<1K
+  unshuffled_original_yue:
+  - n<1K
+  unshuffled_original_zh:
+  - 10M<n<100M
 source_datasets:
 - original
 task_categories:
@@ -214,30 +873,30 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** [https://oscar-corpus.com](https://oscar-corpus.com)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 OSCAR or **O**pen **S**uper-large **C**rawled [**A**LMAnaCH](https://team.inria.fr/almanach/) co**R**pus is a huge multilingual corpus obtained by language classification and filtering of the [Common Crawl](https://commoncrawl.org/) corpus using the [goclassy](https://github.com/pjox/goclassy) architecture. Data is distributed by language in both original and deduplicated form.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 OSCAR is mainly inteded to pretrain language models and word represantations.
 
-### [Languages](#languages)
+### Languages
 
 All the data is distributed by language, both the original and the deduplicated versions of the data are available. 166 different languages are available. The table in subsection [Data Splits Sample Size](#data-splits-sample-size) provides the language code for each subcorpus as well as the number of words (space separated tokens), lines and sizes for both the original and the deduplicated versions of OSCAR.
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
 We show detailed information for all the configurations of the dataset.
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 
 <details>
@@ -5471,14 +6130,14 @@ This example was too long and was cropped:
 
 </details>
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 The data fields are the same among all configs.
 
 - `id`: a `int64` feature.
 - `text`: a `string` feature.
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 
 <details>
@@ -5657,9 +6316,9 @@ The data fields are the same among all configs.
 
 </details>
 
-## [Dataset Creation](#dataset-creation)
+## Dataset Creation
 
-### [Curation Rationale](#curation-rationale)
+### Curation Rationale
 
 OSCAR was constructed new pipeline derived from the [fastText's one](https://github.com/facebookresearch/fastText), called [_goclassy_](https://github.com/pjox/goclassy). Goclassy reuses the [fastText linear classifier](https://fasttext.cc) and the pre-trained fastText model for language recognition, but it completely rewrites and parallelises their pipeline in an asynchronous manner.
 
@@ -5667,7 +6326,7 @@ The order of operations is more or less the same as in the fastText pre-processi
 
 Filtering and cleaning processes at line level are done before feeding each line to the classifier. Lines shorter than 100 UTF-8 characters and lines containing invalid UTF-8 characters are discarted and are not classified. After all files are proccesed the deduplicated versions are constructed and everything is then splitted in shards and compressed.
 
-### [Source Data](#source-data)
+### Source Data
 
 [Common Crawl](https://commoncrawl.org/) is a non-profit foundation which produces and maintains an open repository of web crawled data that is both accessible and analysable. Common Crawl's complete web archive consists of petabytes of data collected over 8 years of web crawling. The repository contains raw web page HTML data (WARC files), metdata extracts (WAT files) and plain text extracts (WET files). The organisation's crawlers has always respected [nofollow](http://microformats.org/wiki/rel-nofollow) and [robots.txt](https://www.robotstxt.org/) policies.
 
@@ -5675,35 +6334,35 @@ Each monthly Common Crawl snapshot is in itself a massive multilingual corpus, w
 
 To construct OSCAR the WET files of Common Crawl were used. These contain the extracted plain texts from the websites mostly converted to UTF-8, as well as headers containing the metatada of each crawled document. Each WET file comes compressed in gzip format and is stored on Amazon Web Services. In the case of OSCAR, the **November 2018** snapshot was used. It surpasses 20TB of uncompressed data and contains more than 50 thousand plain text files where each file consists of the plain text from multiple websites along its metadata header.
 
-### [Annotations](#annotations)
+### Annotations
 
 The dataset does not contain any additional annotations.
 
-### [Personal and Sensitive Information](#personal-and-sensitive-information)
+### Personal and Sensitive Information
 
 Being constructed from Common Crawl, Personal and sensitive information might be present. This **must** be considered before training deep learning models with OSCAR, specially in the case of text-generation models.
 
-## [Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### [Social Impact of Dataset](#social-impact-of-dataset)
+### Social Impact of Dataset
 
 OSCAR is intended to bring more data to a wide variety of lanuages, the aim of the corpus is to make large amounts of data available to lower resource languages in order to facilitate the pre-training of state-of-the-art language modeling architectures.
 
-### [Discussion of Biases](#discussion-of-biases)
+### Discussion of Biases
 
 OSCAR is not properly filtered yet and this can be reflected on the models trained with it. Care is advised specially concerning biases of the resulting models.
 
-### [Other Known Limitations](#other-known-limitations)
+### Other Known Limitations
 
 The [fastText linear classifier](https://fasttext.cc) is limed both in performance and the variety of languages it can recognize, so the quality of some OSCAR sub-corpora might be lower than expected, specially for the lowest-resource langiuages. Some audits have already been done by [third parties](https://arxiv.org/abs/2010.14571).
 
-## [Additional Information](#additional-information)
+## Additional Information
 
-### [Dataset Curators](#dataset-curators)
+### Dataset Curators
 
 The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît Sagot](http://pauillac.inria.fr/~sagot/), and [Laurent Romary](https://cv.archives-ouvertes.fr/laurentromary), during work done at [Inria](https://www.inria.fr/en), particularly at the [ALMAnaCH team](https://team.inria.fr/almanach/).
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
     These data are released under this licensing scheme
     We do not own any of the text from which these data has been extracted.
@@ -5718,7 +6377,7 @@ The corpus was put together by [Pedro J. Ortiz](https://pjortiz.eu/), [Benoît S
 
     We will comply to legitimate requests by removing the affected sources from the next release of the corpus.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @inproceedings{ortiz-suarez-etal-2020-monolingual,

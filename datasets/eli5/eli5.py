@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 import bz2
 import io
 import json
-import logging
 import lzma
 import os
 import re
@@ -29,6 +28,9 @@ from os.path import join as pjoin
 from time import time
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _SUB_REDDITS = ["explainlikeimfive", "askscience", "AskHistorians"]
@@ -114,9 +116,9 @@ def _open_compressed_file(f_name, f_type):
 # download a file, extract posts from desired subreddit, then remove from disk
 def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     # download and pre-process original posts
-    print("downloading {} {:.2f}".format(f_url, time() - st_time))
+    logger.info("downloading {} {:.2f}".format(f_url, time() - st_time))
     f_downloaded_path = dl_manager.download(f_url)
-    print("decompressing and filtering {} {:.2f}".format(f_url, time() - st_time))
+    logger.info("decompressing and filtering {} {:.2f}".format(f_url, time() - st_time))
     f, fh = _open_compressed_file(f_downloaded_path, f_url.split(".")[-1])
     lines = dict([(name, []) for name in _SUB_REDDITS])
     for line in f:
@@ -129,7 +131,7 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     os.remove(f_downloaded_path)
     os.remove(f_downloaded_path + ".json")
     os.remove(f_downloaded_path + ".lock")
-    print("tokenizing and selecting {} {:.2f}".format(f_url, time() - st_time))
+    logger.info("tokenizing and selecting {} {:.2f}".format(f_url, time() - st_time))
     processed_items = dict([(name, []) for name in _SUB_REDDITS])
     if mode == "submissions":
         key_list = ["id", "score", "url", "title", "selftext", "subreddit"]
@@ -145,7 +147,9 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
                     else:
                         reddit_res[k] = line[k]
                 processed_items[name] += [reddit_res]
-    print("Total found {} {} {:.2f}".format(sum([len(ls) for ls in processed_items.values()]), mode, time() - st_time))
+    logger.info(
+        "Total found {} {} {:.2f}".format(sum([len(ls) for ls in processed_items.values()]), mode, time() - st_time)
+    )
     return processed_items
 
 
@@ -188,7 +192,7 @@ def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_
                     for dct in processed_submissions[name]:
                         qa_dict[name][dct["id"]] = dct
             else:
-                print("Could not find submissions dump file for year {:4d} month {:2d}".format(year, month))
+                logger.info("Could not find submissions dump file for year {:4d} month {:2d}".format(year, month))
     # then all answers
     for year in range(start_year, end_year + 1):
         start_mth = start_month if year == start_year else 1
@@ -207,7 +211,7 @@ def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_
                             merged_comments += 1
                             qa_dict[name][did]["comments"] = qa_dict[name][did].get("comments", []) + [dct]
             else:
-                print("Could not find comments dump file for year {:4d} month {:2d}".format(year, month))
+                logger.info("Could not find comments dump file for year {:4d} month {:2d}".format(year, month))
     # then post-process
     res = {}
     for name in _SUB_REDDITS:
@@ -300,13 +304,13 @@ class Eli5(datasets.GeneratorBasedBuilder):
             self._cache_dir_root, self._relative_data_dir(with_version=False), "reddit_downloaded_qa_lists.json"
         )
         if isfile(qa_data_file):
-            logging.info("loading pre-computed QA list")
+            logger.info("loading pre-computed QA list")
             self.filtered_reddit = json.load(open(qa_data_file))
         else:
             self.filtered_reddit = _download_and_filter_reddit(
                 dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7
             )
-            logging.info("saving pre-computed QA list")
+            logger.info("saving pre-computed QA list")
             json.dump(self.filtered_reddit, open(qa_data_file, "w"))
         # download data splits from AWS
         fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
@@ -351,7 +355,7 @@ class Eli5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, split, subreddit_name):
-        logging.info("generating examples from = {}, {} set".format(subreddit_name, split))
+        logger.info("generating examples from = {}, {} set".format(subreddit_name, split))
         if split in self.data_split.get(subreddit_name, []):
             id_list = self.data_split[subreddit_name][split]
             data = [

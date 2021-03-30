@@ -45,14 +45,15 @@ except ImportError:
     _typing_extensions = Literal = Final = None
 
 
+logger = get_logger(__name__)
+
+
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
 # See
 # https://stackoverflow.com/questions/14946264/python-lru-cache-decorator-per-instance
 # For @property methods, use @memoized_property below.
 memoize = functools.lru_cache
-
-logger = get_logger(__name__)
 
 
 def size_str(size_in_bytes):
@@ -77,20 +78,6 @@ def size_str(size_in_bytes):
         if value >= 1.0:
             return "{:.2f} {}".format(value, name)
     return "{} {}".format(int(size_in_bytes), "bytes")
-
-
-def is_notebook():
-    """Returns True if running in a notebook (Colab, Jupyter) environement."""
-    # Inspired from the tfdm autonotebook code
-    try:
-        from IPython import get_ipython  # pylint: disable=import-outside-toplevel,g-import-not-at-top
-
-        if "IPKernelApp" not in get_ipython().config:
-            return False  # Run in a IPython terminal
-    except:  # noqa: E722
-        return False
-    else:
-        return True
 
 
 @contextlib.contextmanager
@@ -144,23 +131,6 @@ class classproperty(property):  # pylint: disable=invalid-name
 
     def __get__(self, obj, objtype=None):
         return self.fget.__get__(None, objtype)()
-
-
-class memoized_property(property):  # pylint: disable=invalid-name
-    """Descriptor that mimics @property but caches output in member variable."""
-
-    def __get__(self, obj, objtype=None):
-        # See https://docs.python.org/3/howto/descriptor.html#properties
-        if obj is None:
-            return self
-        if self.fget is None:
-            raise AttributeError("unreadable attribute")
-        attr = "__cached_" + self.fget.__name__
-        cached = getattr(obj, attr, None)
-        if cached is None:
-            cached = self.fget(obj)
-            setattr(obj, attr, cached)
-        return cached
 
 
 def _single_map_nested(args):
@@ -296,37 +266,18 @@ def flatten_nest_dict(d):
     return flat_dict
 
 
-def flatten_nested(data_struct):
-    """Flatten data struct of obj or `list`/`dict` of obj"""
-    if isinstance(data_struct, dict):
-        data_struct = list(flatten_nest_dict(data_struct).values())
-        if data_struct and isinstance(data_struct[0], (list, tuple)):
-            data_struct = [x for sublist in data_struct for x in sublist]
-    if isinstance(data_struct, (list, tuple)):
-        return data_struct
-    # Singleton
-    return [data_struct]
+class NestedDataStructure:
+    def __init__(self, data=None):
+        self.data = data if data is not None else []
 
-
-def datasets_dir():
-    """Path to datasets directory."""
-    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-
-class abstractclassmethod(classmethod):  # pylint: disable=invalid-name
-    """Decorate a method to mark it as an abstract @classmethod."""
-
-    __isabstractmethod__ = True
-
-    def __init__(self, fn):
-        fn.__isabstractmethod__ = True
-        super(abstractclassmethod, self).__init__(fn)
-
-
-def get_datasets_path(relative_path):
-    """Returns absolute path to file given path relative to datasets root."""
-    path = os.path.join(datasets_dir(), relative_path)
-    return path
+    def flatten(self, data=None):
+        data = data if data is not None else self.data
+        if isinstance(data, dict):
+            return self.flatten(list(data.values()))
+        elif isinstance(data, (list, tuple)):
+            return [flattened for item in data for flattened in self.flatten(item)]
+        else:
+            return [data]
 
 
 def has_sufficient_disk_space(needed_bytes, directory="."):
@@ -595,7 +546,9 @@ def save_function(pickler, obj):
 
 
 def copyfunc(func):
-    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result.__kwdefaults__ = func.__kwdefaults__
+    return result
 
 
 try:

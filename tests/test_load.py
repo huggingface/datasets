@@ -7,14 +7,13 @@ from hashlib import sha256
 from unittest import TestCase
 from unittest.mock import patch
 
-import pyarrow as pa
 import pytest
 import requests
 
 import datasets
 from datasets import load_dataset
 
-from .utils import offline
+from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
 
 DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
@@ -113,11 +112,12 @@ class LoadTest(TestCase):
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
             # missing module
-            with offline():
-                with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
-                    datasets.load.prepare_module(
-                        "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
-                    )
+            for offline_simulation_mode in list(OfflineSimulationMode):
+                with offline(offline_simulation_mode):
+                    with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
+                        datasets.load.prepare_module(
+                            "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
+                        )
 
     def test_offline_prepare_module(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -132,16 +132,17 @@ class LoadTest(TestCase):
             importable_module_path2, _ = datasets.load.prepare_module(
                 module_dir, dynamic_modules_path=self.dynamic_modules_path
             )
-        with offline():
-            self._caplog.clear()
-            # allow provide the module name without an explicit path to remote or local actual file
-            importable_module_path3, _ = datasets.load.prepare_module(
-                "__dummy_module_name2__", dynamic_modules_path=self.dynamic_modules_path
-            )
-            # it loads the most recent version of the module
-            self.assertEqual(importable_module_path2, importable_module_path3)
-            self.assertNotEqual(importable_module_path1, importable_module_path3)
-            self.assertIn("Using the latest cached version of the module", self._caplog.text)
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                self._caplog.clear()
+                # allow provide the module name without an explicit path to remote or local actual file
+                importable_module_path3, _ = datasets.load.prepare_module(
+                    "__dummy_module_name2__", dynamic_modules_path=self.dynamic_modules_path
+                )
+                # it loads the most recent version of the module
+                self.assertEqual(importable_module_path2, importable_module_path3)
+                self.assertNotEqual(importable_module_path1, importable_module_path3)
+                self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
     def test_load_dataset_canonical(self):
         with self.assertRaises(FileNotFoundError) as context:
@@ -156,13 +157,14 @@ class LoadTest(TestCase):
             "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
             str(context.exception),
         )
-        with offline():
-            with self.assertRaises(ConnectionError) as context:
-                datasets.load_dataset("_dummy")
-            self.assertIn(
-                "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
-                str(context.exception),
-            )
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                with self.assertRaises(ConnectionError) as context:
+                    datasets.load_dataset("_dummy")
+                self.assertIn(
+                    "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+                    str(context.exception),
+                )
 
     def test_load_dataset_users(self):
         with self.assertRaises(FileNotFoundError) as context:
@@ -171,28 +173,28 @@ class LoadTest(TestCase):
             "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
             str(context.exception),
         )
-        with offline():
-            with self.assertRaises(ConnectionError) as context:
-                datasets.load_dataset("lhoestq/_dummy")
-            self.assertIn(
-                "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
-                str(context.exception),
-            )
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                with self.assertRaises(ConnectionError) as context:
+                    datasets.load_dataset("lhoestq/_dummy")
+                self.assertIn(
+                    "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
+                    str(context.exception),
+                )
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
-    previous_allocated_memory = pa.total_allocated_bytes()
-    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
-    increased_allocated_memory = (pa.total_allocated_bytes() - previous_allocated_memory) > 0
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
     assert len(dataset) == 2
-    assert increased_allocated_memory == keep_in_memory
-    with offline():
-        caplog.clear()
-        # Load dataset from cache
-        dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
-        assert len(dataset) == 2
-        assert "Using the latest cached version of the module" in caplog.text
+    for offline_simulation_mode in list(OfflineSimulationMode):
+        with offline(offline_simulation_mode):
+            caplog.clear()
+            # Load dataset from cache
+            dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
+            assert len(dataset) == 2
+            assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset("_dummy")
     assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)

@@ -3,7 +3,7 @@ Using a Dataset with PyTorch/Tensorflow
 
 Once your dataset is processed, you often want to use it with a framework such as PyTorch, Tensorflow, Numpy or Pandas. For instance we may want to use our dataset in a ``torch.Dataloader`` or a ``tf.data.Dataset`` and train a model with it.
 
-🤗datasets provides a simple way to do this through what is called the format of a dataset.
+🤗Datasets provides a simple way to do this through what is called the format of a dataset.
 
 The format of a :class:`datasets.Dataset` instance defines which columns of the dataset are returned by the :func:`datasets.Dataset.__getitem__` method and cast them in PyTorch, Tensorflow, Numpy or Pandas types.
 
