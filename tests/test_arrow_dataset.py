@@ -21,6 +21,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
+from datasets.table import InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 
 from .utils import (
@@ -1927,14 +1928,28 @@ class MiscellaneousDatasetTest(TestCase):
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
 
-def test_dataset_add_item():
-    item = {"input_ids": np.array([4, 4, 2])}
-    features = Features({"input_ids": Value("int64")})  #, "col_2": Value("string")})
-    info = DatasetInfo(features=features)
-    ds = Dataset(pa.Table.from_pydict({}), info=info)
-    ds.add_item(item)
-    assert ds.data.shape == (1, 1)
-    assert ds.data.column_names == ["input_ids"]
+@pytest.mark.parametrize("in_memory", [False, True])
+@pytest.mark.parametrize(
+    "item",
+    [
+        {"col_1": "4", "col_2": 4, "col_3": 4.0},
+        {"col_1": "4", "col_2": "4", "col_3": "4"},
+        {"col_1": 4, "col_2": 4, "col_3": 4},
+        {"col_1": 4.0, "col_2": 4.0, "col_3": 4.0},
+    ],
+)
+def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path):
+    dataset = (
+        Dataset(InMemoryTable.from_pydict(dataset_dict))
+        if in_memory
+        else Dataset(MemoryMappedTable.from_file(arrow_path))
+    )
+    dataset.add_item(item)
+    assert dataset.data.shape == (5, 3)
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    assert dataset.data.column_names == list(expected_features.keys())
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
