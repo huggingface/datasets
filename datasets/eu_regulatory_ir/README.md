@@ -176,15 +176,15 @@ The dataset does not include personal or sensitive information.
 
 ### Social Impact of Dataset
 
-N/A
+[More Information Needed]
 
 ### Discussion of Biases
 
-N/A
+[More Information Needed]
 
 ### Other Known Limitations
 
-N/A
+[More Information Needed]
 
 ## Additional Information
 
