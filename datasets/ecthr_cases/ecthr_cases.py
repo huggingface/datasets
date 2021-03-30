@@ -92,7 +92,7 @@ ARTICLES = {
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class ECtHRCases(datasets.GeneratorBasedBuilder):
+class EcthrCases(datasets.GeneratorBasedBuilder):
     """The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases."""
 
     VERSION = datasets.Version("1.1.0")
