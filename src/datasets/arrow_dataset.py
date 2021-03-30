@@ -56,7 +56,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DATASET_INFO_FILENAME, DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
@@ -2459,6 +2459,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 ).to_pandas()
                 for offset in range(0, len(self), batch_size)
             )
+
+    def add_column(self, column: dict):
+        column_table = InMemoryTable.from_pydict(column)
+        # Concatenate tables horizontally
+        self._data = ConcatenationTable.from_blocks([[self._data, column_table]])
+        # Update features
+        self.info.features = Features.from_arrow_schema(self._data.schema)
 
     def add_faiss_index(
         self,
