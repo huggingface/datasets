@@ -346,6 +346,26 @@ class Wikiann(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
+        """Reads line by line format of the NER dataset and generates examples.
+        Input Format:
+        en:rick  B-PER
+        en:and  O
+        en:morty  B-PER
+        en:are  O
+        en:cool  O
+        en:.  O
+        Output Format:
+        {
+        'tokens': ["rick", "and", "morty", "are", "cool", "."],
+        'tags': ["B-PER", "O" , "B-PER", "O", "O", "O"],
+        'langs': ["en", "en", "en", "en", "en", "en"]
+        'spans': ["PER: rick", "PER: morty"]
+        }
+        Args:
+            filepath: Path to file with line by line NER format.
+        Returns:
+            Examples with the format listed above.
+        """
         guid_index = 1
         with open(filepath, encoding="utf-8") as f:
             tokens = []
