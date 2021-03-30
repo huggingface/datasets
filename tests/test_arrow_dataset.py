@@ -197,8 +197,8 @@ class BaseDatasetTest(TestCase):
                 range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
             )
             if not in_memory:
-                dset._data = Unpicklable()
-            dset._indices = Unpicklable()
+                dset._data.table = Unpicklable()
+            dset._indices.table = Unpicklable()
 
             with open(tmp_file, "wb") as f:
                 pickle.dump(dset, f)
@@ -240,11 +240,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(
                 range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
             )
-            if not in_memory:
-                dset._data = Unpicklable()
-            dset._indices = Unpicklable()
-
-            dset.save_to_disk(dataset_path)
+            with assert_arrow_memory_doesnt_increase():
+                dset.save_to_disk(dataset_path)
             dset = dset.load_from_disk(dataset_path)
 
             self.assertEqual(len(dset), 10)
@@ -539,8 +536,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
             self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
             self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
-            self.assertEqual(len(dset_concat._data_files), 0 if in_memory else 3)
-            self.assertEqual(len(dset_concat._indices_data_files), 0)
+            self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 3)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset_concat, dset1, dset2, dset3
 
@@ -582,21 +578,14 @@ class BaseDatasetTest(TestCase):
             self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
             self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
             self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
-            self.assertEqual(len(dset_concat._data_files), 0 if in_memory else 3)
-            self.assertEqual(len(dset_concat._indices_data_files), 0)
+            # in_memory = False:
+            # 3 cache files for the dset_concat._data table, and 1 for the dset_concat._indices_table
+            # no cache file for the indices
+            # in_memory = True:
+            # no cache files since both dset_concat._data and dset_concat._indices are in memory
+            self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 3)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
-
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                dset1, dset2, dset3 = (
-                    Dataset.from_dict(data1, info=info1).select(
-                        [0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i.arrow")
-                    ),
-                    Dataset.from_dict(data2, info=info2).select([0, 1, 2]),
-                    Dataset.from_dict(data3),
-                )
-                with self.assertRaises(ValueError):
-                    _ = concatenate_datasets([dset1, dset2, dset3])
-                del dset_concat, dset1, dset2, dset3
+            del dset_concat, dset1, dset2, dset3
 
     def test_concatenate_with_indices_from_disk(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7]}
@@ -619,12 +608,17 @@ class BaseDatasetTest(TestCase):
             self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
             self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
             self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
-            self.assertEqual(len(dset_concat._data_files), 0 if in_memory else 3)
-            self.assertEqual(len(dset_concat._indices_data_files), 0)  # now in memory since an offset is applied
+            # in_memory = False:
+            # 3 cache files for the dset_concat._data table, and 1 for the dset_concat._indices_table
+            # There is only 1 for the indices tables (i1.arrow)
+            # Indeed, the others are brought to memory since an offset is applied to them.
+            # in_memory = True:
+            # 1 cache file for i1.arrow since both dset_concat._data and dset_concat._indices are in memory
+            self.assertEqual(len(dset_concat.cache_files), 1 if in_memory else 3 + 1)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset_concat, dset1, dset2, dset3
 
-    def test_concatenate_pickle_with_history(self, in_memory):
+    def test_concatenate_pickle(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7], "foo": ["bar", "bar"]}
         info1 = DatasetInfo(description="Dataset1")
         info2 = DatasetInfo(description="Dataset2")
@@ -634,28 +628,44 @@ class BaseDatasetTest(TestCase):
                 Dataset.from_dict(data2, info=info2),
                 Dataset.from_dict(data3),
             )
-            dset1, dset2, dset3 = self._to(in_memory, tmp_dir, dset1, dset2, dset3)
+            # mix from in-memory and on-disk datasets
+            dset1, dset2 = self._to(in_memory, tmp_dir, dset1, dset2)
+            dset3 = self._to(not in_memory, tmp_dir, dset3)
             dset1, dset2, dset3 = (
-                dset1.select([0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow")),
-                dset2.select([0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow")),
-                dset3.select([0, 1], indices_cache_file_name=os.path.join(tmp_dir, "i3.arrow")),
+                dset1.select(
+                    [0, 1, 2],
+                    keep_in_memory=in_memory,
+                    indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow") if not in_memory else None,
+                ),
+                dset2.select(
+                    [0, 1, 2],
+                    keep_in_memory=in_memory,
+                    indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow") if not in_memory else None,
+                ),
+                dset3.select(
+                    [0, 1],
+                    keep_in_memory=in_memory,
+                    indices_cache_file_name=os.path.join(tmp_dir, "i3.arrow") if not in_memory else None,
+                ),
             )
 
             dset3 = dset3.rename_column("foo", "new_foo")
             dset3.remove_columns_("new_foo")
-            if not in_memory:
-                dset1._data, dset2._data, dset3._data = Unpicklable(), Unpicklable(), Unpicklable()
+            if in_memory:
+                dset3._data.table = Unpicklable()
+            else:
+                dset1._data.table, dset2._data.table = Unpicklable(), Unpicklable()
             dset1, dset2, dset3 = [pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3)]
             dset_concat = concatenate_datasets([dset1, dset2, dset3])
             if not in_memory:
-                dset_concat._data = Unpicklable()
+                dset_concat._data.table = Unpicklable()
             dset_concat = pickle.loads(pickle.dumps(dset_concat))
             self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
             self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
             self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
-            self.assertEqual(len(dset_concat._data_files), 0 if in_memory else 3)
-            self.assertEqual(len(dset_concat._inplace_history), 0 if in_memory else 3)
-            self.assertEqual(len(dset_concat._indices_data_files), 0)
+            # in_memory = True: 1 cache file for dset3
+            # in_memory = False: 2 caches files for dset1 and dset2, and 1 cache file for i1.arrow
+            self.assertEqual(len(dset_concat.cache_files), 1 if in_memory else 2 + 1)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset_concat, dset1, dset2, dset3
 
@@ -776,7 +786,7 @@ class BaseDatasetTest(TestCase):
                 dset_test.features,
                 Features({"filename": Value("string"), "id": Value("int64")}),
             )
-            self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
+            self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
@@ -791,7 +801,7 @@ class BaseDatasetTest(TestCase):
                 dset_test.features,
                 Features({"filename": Value("string"), "id": Value("int64")}),
             )
-            self.assertEqual(len(dset_test._data_files), 0 if in_memory else 3)
+            self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
             self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
@@ -806,7 +816,7 @@ class BaseDatasetTest(TestCase):
                 dset_test.features,
                 Features({"filename": Value("string"), "id": Value("int64")}),
             )
-            self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
+            self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
@@ -878,11 +888,11 @@ class BaseDatasetTest(TestCase):
             with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
-                dset_test1_data_files = list(dset_test1._data_files)
+                dset_test1_data_files = list(dset_test1.cache_files)
                 del dset_test1
                 dset_test2 = dset.map(lambda x: {"foo": "bar"})
-                self.assertEqual(dset_test1_data_files, dset_test2._data_files)
-                self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
+                self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
                 self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
                 del dset, dset_test2
 
@@ -891,11 +901,11 @@ class BaseDatasetTest(TestCase):
             with self._caplog.at_level(WARNING):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir)
                 dset_test1 = dset.map(lambda x: {"foo": "bar"})
-                dset_test1_data_files = list(dset_test1._data_files)
+                dset_test1_data_files = list(dset_test1.cache_files)
                 del dset_test1
                 dset_test2 = dset.map(lambda x: {"foo": "bar"}, load_from_cache_file=False)
-                self.assertEqual(dset_test1_data_files, dset_test2._data_files)
-                self.assertEqual(len(dset_test2._data_files), 1 - int(in_memory))
+                self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
                 self.assertNotIn("Loading cached processed dataset", self._caplog.text)
                 del dset, dset_test2
 
@@ -908,13 +918,13 @@ class BaseDatasetTest(TestCase):
                         datasets.set_caching_enabled(False)
                         dset_test1 = dset.map(lambda x: {"foo": "bar"})
                         dset_test2 = dset.map(lambda x: {"foo": "bar"})
-                        self.assertNotEqual(dset_test1._data_files, dset_test2._data_files)
-                        self.assertEqual(len(dset_test1._data_files), 1)
-                        self.assertEqual(len(dset_test2._data_files), 1)
+                        self.assertNotEqual(dset_test1.cache_files, dset_test2.cache_files)
+                        self.assertEqual(len(dset_test1.cache_files), 1)
+                        self.assertEqual(len(dset_test2.cache_files), 1)
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
                         # make sure the arrow files are going to be removed
-                        self.assertIn("tmp", dset_test1._data_files[0]["filename"])
-                        self.assertIn("tmp", dset_test2._data_files[0]["filename"])
+                        self.assertIn("tmp", dset_test1.cache_files[0])
+                        self.assertIn("tmp", dset_test2.cache_files[0])
                         del dset, dset_test2
             finally:
                 datasets.set_caching_enabled(True)
@@ -924,7 +934,7 @@ class BaseDatasetTest(TestCase):
         import torch
 
         def func(example):
-            return {"tensor": torch.Tensor([1.0, 2, 3])}
+            return {"tensor": torch.tensor([1.0, 2, 3])}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
@@ -1043,7 +1053,8 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_filter_first_ten), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
-            self.assertEqual(len(dset_filter_first_ten._data_files), 0)
+            # only one cache file since the there is only 10 examples from the 1 processed shard
+            self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 1)
             self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
             del dset, dset_filter_first_ten
 
@@ -1225,7 +1236,7 @@ class BaseDatasetTest(TestCase):
     def test_pickle_after_many_transforms_on_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            self.assertEqual(len(dset._data_files), 0 if in_memory else 1)
+            self.assertEqual(len(dset.cache_files), 0 if in_memory else 1)
             dset.rename_column_("filename", "file")
             self.assertListEqual(dset.column_names, ["file"])
             dset = dset.select(range(5))
@@ -1239,12 +1250,13 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[0]["number"], 1)
 
             self.assertEqual(dset._indices["indices"].to_pylist(), [1])
-            self.assertEqual(
-                dset._inplace_history,
-                [] if in_memory else [{"transforms": [("rename_column_", ("id", "number"), {})]}],
-            )
             if not in_memory:
-                dset._data = Unpicklable()  # check that we don't pickle the entire table
+                self.assertEqual(
+                    dset._data.replays,
+                    [("rename_columns", (["file", "number"],), {})],
+                )
+            if not in_memory:
+                dset._data.table = Unpicklable()  # check that we don't pickle the entire table
 
             pickled = pickle.dumps(dset)
             loaded = pickle.loads(pickled)
@@ -1896,9 +1908,10 @@ class MiscellaneousDatasetTest(TestCase):
                 Dataset.from_dict(data2, info=info2).map(cache_file_name=os.path.join(tmp_dir, "d2.arrow")),
                 Dataset.from_dict(data3),
             )
-            with self.assertRaises(ValueError):
-                _ = concatenate_datasets([dset1, dset2, dset3])
-            del dset1, dset2, dset3
+            concatenated_dset = concatenate_datasets([dset1, dset2, dset3])
+            self.assertEqual(len(concatenated_dset), len(dset1) + len(dset2) + len(dset3))
+            self.assertListEqual(concatenated_dset["id"], dset1["id"] + dset2["id"] + dset3["id"])
+            del dset1, dset2, dset3, concatenated_dset
 
     @require_transformers
     def test_set_format_encode(self):
@@ -1958,7 +1971,7 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
         dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
     assert dataset_from_file.features.type == dataset.features.type
     assert dataset_from_file.features == dataset.features
-    assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
+    assert dataset_from_file.cache_files == ([filename] if not in_memory else [])
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
@@ -2063,6 +2076,7 @@ def test_dataset_from_text(path_type, split, features, keep_in_memory, text_path
                                 "answer_start": Value("int32"),
                             }
                         ),
+                        "id": Value("int32"),
                     }
                 )
             },
@@ -2084,6 +2098,7 @@ def test_dataset_from_text(path_type, split, features, keep_in_memory, text_path
                                 "answer_start": Value("int32"),
                             }
                         ),
+                        "id": Value("int32"),
                     }
                 )
             },
@@ -2102,4 +2117,4 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
     reloaded_dataset = pickle.loads(pickled_dataset)
 
     assert dataset._data != reference_dataset._data
-    assert dataset._data == reloaded_dataset._data
+    assert dataset._data.table == reloaded_dataset._data.table

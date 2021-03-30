@@ -393,22 +393,21 @@ class DatasetDictTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
             dsets.save_to_disk(tmp_dir)
-            del dsets
-            dsets = DatasetDict.load_from_disk(tmp_dir)
-            self.assertListEqual(sorted(dsets), ["test", "train"])
-            self.assertEqual(len(dsets["train"]), 30)
-            self.assertListEqual(dsets["train"].column_names, ["filename"])
-            self.assertEqual(len(dsets["test"]), 30)
-            self.assertListEqual(dsets["test"].column_names, ["filename"])
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            del reloaded_dsets
 
             del dsets["test"]
             dsets.save_to_disk(tmp_dir)
-            del dsets
-            dsets = DatasetDict.load_from_disk(tmp_dir)
-            self.assertListEqual(sorted(dsets), ["train"])
-            self.assertEqual(len(dsets["train"]), 30)
-            self.assertListEqual(dsets["train"].column_names, ["filename"])
-            del dsets
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            del dsets, reloaded_dsets
 
     def test_load_from_disk(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

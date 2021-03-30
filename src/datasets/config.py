@@ -31,9 +31,12 @@ if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
 else:
     import importlib.metadata as importlib_metadata
 
+# General environment variables accepted values for booleans
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
+
+# Imports
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
@@ -114,6 +117,8 @@ if USE_RAR in ("1", "ON", "YES", "AUTO"):
 else:
     logger.info("Disabling rarfile because USE_RAR is set to False")
 
+
+# Cache location
 DEFAULT_XDG_CACHE_HOME = "~/.cache"
 XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)
 DEFAULT_HF_CACHE_HOME = os.path.join(XDG_CACHE_HOME, "huggingface")
@@ -132,8 +137,15 @@ HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
 
+# Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper()
 if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
     HF_DATASETS_OFFLINE = True
 else:
     HF_DATASETS_OFFLINE = False
+
+# File names
+
+DATASET_ARROW_FILENAME = "dataset.arrow"
+DATASET_INDICES_FILENAME = "indices.arrow"
+DATASET_STATE_JSON_FILENAME = "state.json"
