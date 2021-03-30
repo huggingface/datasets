@@ -3,7 +3,8 @@ from typing import Dict, List, Union
 
 from pydantic import BaseModel
 
-from .. import Dataset, DatasetDict
+from ..arrow_dataset import Dataset
+from ..dataset_dict import DatasetDict
 from .base import AbstractTaskDataset
 
 

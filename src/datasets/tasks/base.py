@@ -1,7 +1,8 @@
 import abc
 from typing import List, Union
 
-from .. import Dataset, DatasetDict
+from ..arrow_dataset import Dataset
+from ..dataset_dict import DatasetDict
 
 
 class AbstractTaskDataset(Dataset, metaclass=abc.ABCMeta):

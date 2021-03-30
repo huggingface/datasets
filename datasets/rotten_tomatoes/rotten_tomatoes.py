@@ -47,7 +47,9 @@ _CITATION = """\
 _DOWNLOAD_URL = "https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz"
 
 
-class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder, datasets.tasks.ClassificationSingleLabelTask):
+class RottenTomatoesMovieReview(
+    datasets.GeneratorBasedBuilder, datasets.tasks.ClassificationSingleLabelDatasetBuilder
+):
     """Cornell Rotten Tomatoes movie reviews dataset."""
 
     VERSION = datasets.Version("1.0.0")
