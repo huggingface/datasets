@@ -58,8 +58,6 @@ class EuRegulatoryIr(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="uk2eu", version=VERSION, description="EURegIR: Regulatory Compliance IR (UK2EU)"),
     ]
 
-    DEFAULT_CONFIG_NAME = "eu2uk"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
     def _info(self):
         if self.config.name == "eu2uk":
             features = datasets.Features(
