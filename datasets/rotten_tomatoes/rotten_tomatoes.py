@@ -134,8 +134,8 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder, datasets.tasks.C
         def mapper(example):
             return dict(text=example["text"], logits=[(1, 0), (0, 1)][example["label"]])
 
-        return RottenTomatoesMovieReviewDataset.from_dataset(dataset.map(mapper))
+        return RottenTomatoesMovieReviewClassificationSingleLabelDataset.from_dataset(dataset.map(mapper))
 
 
-class RottenTomatoesMovieReviewDataset(datasets.tasks.ClassificationSingleLabelDataset):
+class RottenTomatoesMovieReviewClassificationSingleLabelDataset(datasets.tasks.ClassificationSingleLabelDataset):
     label2id = {"neg": 0, "pos": 1}
