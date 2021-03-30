@@ -56,8 +56,8 @@ import itertools
 import os
 import sys
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
+
 
 DOCLINES = __doc__.split("\n")
 
@@ -89,6 +89,9 @@ REQUIRED_PKGS = [
     "fsspec",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
+    # pydantic allows us to express simply validation patterns for dataset metadata and serialize object schemas
+    # for tasks descriptions.
+    "pydantic",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -148,13 +151,15 @@ if os.name == "nt":  # windows
 else:
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend([
-        "wget>=3.2",
-        "pytorch-nlp==0.5.0",
-        "pytorch_lightning",
-        "fastBPE==0.1.0",
-        "fairseq",
-    ])
+    TESTS_REQUIRE.extend(
+        [
+            "wget>=3.2",
+            "pytorch-nlp==0.5.0",
+            "pytorch_lightning",
+            "fastBPE==0.1.0",
+            "fairseq",
+        ]
+    )
 
 
 QUALITY_REQUIRE = [

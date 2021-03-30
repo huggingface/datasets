@@ -39,6 +39,7 @@ from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
+from .tasks import ClassificationSingleLabelDataset
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -639,6 +640,7 @@ def load_dataset(
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    as_task: Optional[str] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     r"""Load a dataset
@@ -751,6 +753,9 @@ def load_dataset(
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
     if save_infos:
         builder_instance._save_infos()
+
+    if as_task == ClassificationSingleLabelDataset.id:
+        return builder_instance.cast_as_classification_single_label(ds)
 
     return ds
 

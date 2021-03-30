@@ -19,8 +19,10 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+from typing import Union
 
 import datasets
+from datasets import Dataset, DatasetDict
 
 
 _DESCRIPTION = """\
@@ -45,7 +47,7 @@ _CITATION = """\
 _DOWNLOAD_URL = "https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz"
 
 
-class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
+class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder, datasets.tasks.ClassificationSingleLabelTask):
     """Cornell Rotten Tomatoes movie reviews dataset."""
 
     VERSION = datasets.Version("1.0.0")
@@ -123,3 +125,17 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
             data_key = split_key + "_" + text
             feature_dict = {"text": text, "label": label}
             yield data_key, feature_dict
+
+    # ---- TASK SPECIFIC IMPLEM
+
+    def cast_as_classification_single_label(
+        self, dataset: Union[Dataset, DatasetDict]
+    ) -> datasets.tasks.ClassificationSingleLabelDataset:
+        def mapper(example):
+            return dict(text=example["text"], label_id=example["label"])
+
+        return RottenTomatoesMovieReviewDataset.from_dataset(dataset.map(mapper))
+
+
+class RottenTomatoesMovieReviewDataset(datasets.tasks.ClassificationSingleLabelDataset):
+    label2id = {"neg": 0, "pos": 1}

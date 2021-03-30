@@ -231,6 +231,13 @@ class LocalDatasetTest(parameterized.TestCase):
         if builder_configs[0] is not None:
             all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
+    def test_task_implementations(self, dataset_name):
+        if dataset_name != "rotten_tomatoes":
+            return
+
+        # this is failing at the moment since the new code for "rotten_tomatoes" is not uploaded.
+        load_dataset(dataset_name, as_task="classification_single_label")
+
     @slow
     def test_load_dataset_all_configs(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
