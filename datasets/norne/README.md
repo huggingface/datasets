@@ -63,7 +63,7 @@ NorNE ads named entity annotations on top of the Norwegian Dependency Treebank.
 
 ### Languages
 
-Both Norwegian Bokmål (`bookmal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset. An extra config for the combined languages is also included (`combined`). See the Annotation section for details on accessing reduced tag sets for the NER feature.
+Both Norwegian Bokmål (`bokmaal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset. An extra config for the combined languages is also included (`combined`). See the Annotation section for details on accessing reduced tag sets for the NER feature.
 
 ## Dataset Structure
 
@@ -88,7 +88,7 @@ An example of the `train` split of the `bokmaal` config.
 Each entry is annotated with the next fields:
 
 - `idx` (`int`), text (sentence) identifier from the NorNE dataset
-- `lang` (`str`), language variety, either `bookmal`, `nynorsk` or `combined`
+- `lang` (`str`), language variety, either `bokmaal`, `nynorsk` or `combined`
 - `text` (`str`), plain text
 - `tokens` (`List[str]`), list of tokens extracted from `text`
 - `lemmas` (`List[str]`), list of lemmas extracted from `tokens`
