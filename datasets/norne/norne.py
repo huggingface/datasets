@@ -69,14 +69,96 @@ class Norne(datasets.GeneratorBasedBuilder):
     """NorNE dataset."""
 
     BUILDER_CONFIGS = [
-        NorneConfig(name="bokmaal", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset"),
-        NorneConfig(name="nynorsk", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset"),
+        NorneConfig(name="bokmaal", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset (full set)"),
+        NorneConfig(name="nynorsk", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset (full set)"),
         NorneConfig(
-            name="combined", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset"
+            name="combined", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset (full set)"
+        ),
+        NorneConfig(name="bokmaal-7", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset (GPE_LOC/GPE_ORG as LOC/ORG)"),
+        NorneConfig(name="nynorsk-7", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset (GPE_LOC/GPE_ORG as LOC/ORG)"),
+        NorneConfig(
+            name="combined-7", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset (GPE_LOC/GPE_ORG as LOC/ORG)"
+        ),
+        NorneConfig(name="bokmaal-8", version=datasets.Version("1.0.0"), description="NorNE bokmaal dataset (GPE_LOC/GPE_ORG as GPE)"),
+        NorneConfig(name="nynorsk-8", version=datasets.Version("1.0.0"), description="NorNE nynorsk dataset (GPE_LOC/GPE_ORG as GPE)"),
+        NorneConfig(
+            name="combined-8", version=datasets.Version("1.0.0"), description="NorNE bokmaal and nynorsk dataset (GPE_LOC/GPE_ORG as GPE)"
         ),
     ]
 
     def _info(self):
+        if self.config.name.endswith("-7"):
+            ner_tags = datasets.Sequence(
+                datasets.features.ClassLabel(
+                    names=[
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-PROD",
+                        "I-PROD",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-DRV",
+                        "I-DRV",
+                        "B-EVT",
+                        "I-EVT",
+                        "B-MISC",
+                        "I-MISC",
+                    ]
+                )
+            )
+        elif self.config.name.endswith("-8"):
+            ner_tags = datasets.Sequence(
+                datasets.features.ClassLabel(
+                    names=[
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-PROD",
+                        "I-PROD",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-GPE",
+                        "I-GPE",
+                        "B-DRV",
+                        "I-DRV",
+                        "B-EVT",
+                        "I-EVT",
+                        "B-MISC",
+                        "I-MISC",
+                    ]
+                )
+            )
+        else:
+            ner_tags = datasets.Sequence(
+                datasets.features.ClassLabel(
+                    names=[
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-GPE_LOC",
+                        "I-GPE_LOC",
+                        "B-PROD",
+                        "I-PROD",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-GPE_ORG",
+                        "I-GPE_ORG",
+                        "B-DRV",
+                        "I-DRV",
+                        "B-EVT",
+                        "I-EVT",
+                        "B-MISC",
+                        "I-MISC",
+                    ]
+                )
+            )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
@@ -109,31 +191,7 @@ class Norne(datasets.GeneratorBasedBuilder):
                             ]
                         )
                     ),
-                    "ner_tags": datasets.Sequence(
-                        datasets.features.ClassLabel(
-                            names=[
-                                "O",
-                                "B-PER",
-                                "I-PER",
-                                "B-ORG",
-                                "I-ORG",
-                                "B-GPE_LOC",
-                                "I-GPE_LOC",
-                                "B-PROD",
-                                "I-PROD",
-                                "B-LOC",
-                                "I-LOC",
-                                "B-GPE_ORG",
-                                "I-GPE_ORG",
-                                "B-DRV",
-                                "I-DRV",
-                                "B-EVT",
-                                "I-EVT",
-                                "B-MISC",
-                                "I-MISC",
-                            ]
-                        )
-                    ),
+                    "ner_tags": ner_tags,
                 }
             ),
             supervised_keys=None,
@@ -147,7 +205,8 @@ class Norne(datasets.GeneratorBasedBuilder):
         dev_filepaths = []
         test_filepaths = []
         langs = []
-        if self.config.name in ("bokmaal", "combined"):
+        config_name = self.config.name.replace("-7", "").replace("-8", "")
+        if config_name in ("bokmaal", "combined"):
             downloaded_files = dl_manager.download_and_extract(
                 {
                     "train": f"{_URL}{_BOKMAAL_TRAIN}",
@@ -159,7 +218,7 @@ class Norne(datasets.GeneratorBasedBuilder):
             dev_filepaths.append(downloaded_files["dev"])
             test_filepaths.append(downloaded_files["test"])
             langs.append("bokmaal")
-        if self.config.name in ("nynorsk", "combined"):
+        if config_name in ("nynorsk", "combined"):
             downloaded_files = dl_manager.download_and_extract(
                 {
                     "train": f"{_URL}{_NYNORSK_TRAIN}",
@@ -185,6 +244,12 @@ class Norne(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepaths, langs):
         idx = 0
+        if self.config.name.endswith("-7"):
+            filter_tags = lambda x: x.replace("GPE_", "")
+        elif self.config.name.endswith("-8"):
+            filter_tags = lambda x: x.replace("_LOC", "").replace("_ORG", "")
+        else:
+            filter_tags = lambda x: x
         for filepath, lang in zip(filepaths, langs):
             with open(filepath, "r", encoding="utf-8") as data_file:
                 tokens = list(conllu.parse_incr(data_file))
@@ -196,6 +261,9 @@ class Norne(datasets.GeneratorBasedBuilder):
                         "tokens": [token["form"] for token in sent],
                         "lemmas": [token["lemma"] for token in sent],
                         "pos_tags": [token["upos"] for token in sent],
-                        "ner_tags": [token["misc"].get("name", "O") for token in sent],
+                        "ner_tags": [
+                            filter_tags(token["misc"].get("name", "O"))
+                            for token in sent
+                        ],
                     }
                     idx += 1
