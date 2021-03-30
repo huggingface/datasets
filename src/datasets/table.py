@@ -485,16 +485,16 @@ class ConcatenationTable(Table):
             return cls(table, blocks)
 
     @classmethod
-    def from_tables(cls, tables: List[Union[pa.Table, Table]]) -> "ConcatenationTable":
+    def from_tables(cls, tables: List[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
         blocks = []
         for table in tables:
             if isinstance(table, pa.Table):
-                blocks.append([InMemoryTable(table)])
+                blocks.append([InMemoryTable(table)] if axis == 0 else InMemoryTable(table))
             elif isinstance(table, ConcatenationTable):
                 blocks.extend(copy.deepcopy(table.blocks))
             else:
-                blocks.append([table])
-        return cls.from_blocks(blocks)
+                blocks.append([table] if axis == 0 else table)
+        return cls.from_blocks(blocks if axis == 0 else [blocks])
 
     @property
     def _slices(self):
@@ -612,11 +612,11 @@ class ConcatenationTable(Table):
         return ConcatenationTable(table, blocks)
 
 
-def concat_tables(tables: List[Union[pa.Table, Table]]) -> ConcatenationTable:
+def concat_tables(tables: List[Union[pa.Table, Table]], axis: int = 0) -> ConcatenationTable:
     tables = list(tables)
     if len(tables) == 1:
         return tables[0]
-    return ConcatenationTable.from_tables(tables)
+    return ConcatenationTable.from_tables(tables, axis=axis)
 
 
 def list_table_cache_files(table: Table) -> List[str]:

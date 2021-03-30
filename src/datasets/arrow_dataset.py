@@ -2658,6 +2658,7 @@ def concatenate_datasets(
     dsets: List[Dataset],
     info: Optional[Any] = None,
     split: Optional[Any] = None,
+    axis: int = 0,
 ):
     """
     Converts a list of :obj:``datasets.Dataset`` with the same schema into a single :obj:``datasets.Dataset``.
@@ -2667,9 +2668,11 @@ def concatenate_datasets(
         info (:obj:``datasets.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
             description, citation, etc.
         split (:obj:``datasets.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        axis (int): Axis to concatenate over.
     """
-    if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
+    if axis == 0 and not all([dset.features.type == dsets[0].features.type for dset in dsets]):
         raise ValueError("Features must match for all datasets")
+    # TODO: elif axis == 1 and not all same number of rows
 
     # Find common format or reset format
     format = dsets[0].format
@@ -2678,7 +2681,7 @@ def concatenate_datasets(
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
     # Concatenate tables
-    table = concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
+    table = concat_tables([dset._data for dset in dsets if len(dset._data) > 0], axis=axis)
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
