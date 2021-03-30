@@ -2654,15 +2654,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self
 
     def add_item(self, item):
-        table = pa.Table.from_pydict({k: [v] for k, v in item.items()})
-        # get the pyarrow type corresponding to the features
+        table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        # Cast item
         type = self.features.type
-        # build the schema of the table
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
-        # cast the table
         table = table.cast(schema)
-        # Concatenae tables
-        self._data = pa.concat_tables([self._data, table]) if self._data.shape != (0, 0) else table
+        # Concatenate tables
+        self._data = concat_tables([self._data, table])
 
 
 def concatenate_datasets(
