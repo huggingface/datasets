@@ -63,7 +63,7 @@ NorNE ads named entity annotations on top of the Norwegian Dependency Treebank.
 
 ### Languages
 
-Both Norwegian Bokmål (`bookmal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset. An extra config for the combined languages is also included (`combined`).
+Both Norwegian Bokmål (`bookmal`) and Nynorsk (`nynorsk`) are supported as different configs in this dataset. An extra config for the combined languages is also included (`combined`). See the Annotation section for details on accessing reduced tag sets for the NER feature.
 
 ## Dataset Structure
 
@@ -226,6 +226,8 @@ The class distribution is as follows, broken down across the data splits of the 
 | `DRV`    |    519 |     77 |     48 |    644 |
 | `EVT`    |    131 |      9 |      5 |    145 |
 | `MISC`   |      8 |      0 |      0 |      0 |
+
+To access these reduce versions of the dataset, you can use the configs `bokmaal-7`, `nynorsk-7`, `combined-7` for the NER tag set with 7 tags ( **`ORG`**, **`LOC`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`), and `bokmaal-8`, `nynorsk-8`, `combined-8` for the NER tag set with 8 tags (`LOC_` and `ORG_`: **`ORG`**, **`LOC`**, **`GPE`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`). By default, the full set (9 tags) will be used.
 
 ## Additional Information
 
