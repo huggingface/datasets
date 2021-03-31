@@ -19,6 +19,7 @@ from cer import CER
 
 cer = CER()
 
+
 class TestCER(unittest.TestCase):
     def test_cer_case_senstive(self):
         refs = ["White House"]
@@ -91,28 +92,37 @@ class TestCER(unittest.TestCase):
         char_error_rate = cer.compute(predictions=preds, references=refs)
         self.assertTrue(abs(char_error_rate - 0.03571428) < 1e-6)
 
+    def test_correlated_sentences(self):
+        refs = ["My hovercraft", "is full of eels"]
+        preds = ["My hovercraft is full", " of eels"]
+        # S = 0, D = 0, I = 2, N = 28, CER = 2 / 28
+        # whitespace at the front of " of eels" will be strip during preporcessing
+        # so need to insert 2 whitespaces
+        char_error_rate = cer.compute(predictions=preds, references=refs)
+        self.assertTrue(abs(char_error_rate - 0.071428) < 1e-6)
+
     def test_cer_unicode(self):
-        ref = ["我能吞下玻璃而不伤身体"]
-        pred = [" 能吞虾玻璃而 不霜身体啦"]
+        refs = ["我能吞下玻璃而不伤身体"]
+        preds = [" 能吞虾玻璃而 不霜身体啦"]
         # S = 3, D = 2, I = 0, N = 11, CER = 5 / 11
-        char_error_rate = cer.compute(predictions=pred, references=ref)
+        char_error_rate = cer.compute(predictions=preds, references=refs)
         self.assertTrue(abs(char_error_rate - 0.4545454545) < 1e-6)
 
-        ref = ["我能吞", "下玻璃而不伤身体"]
-        pred = ["我    能 吞 下 玻 璃", "而不伤身体"]
+        refs = ["我能吞下玻璃", "而不伤身体"]
+        preds = ["我    能 吞 下 玻 璃", "而不伤身体"]
         # S = 0, D = 5, I = 0, N = 11, CER = 5 / 11
-        char_error_rate = cer.compute(predictions=pred, references=ref)
+        char_error_rate = cer.compute(predictions=preds, references=refs)
         self.assertTrue(abs(char_error_rate - 0.454545454545) < 1e-6)
 
-        ref = ["我能吞下玻璃而不伤身体"]
-        char_error_rate = cer.compute(predictions=ref, references=ref)
+        refs = ["我能吞下玻璃而不伤身体"]
+        char_error_rate = cer.compute(predictions=refs, references=refs)
         self.assertFalse(char_error_rate, 0.0)
 
     def test_cer_empty(self):
-        ref = [""]
-        pred = ["Hypothesis"]
+        refs = [""]
+        preds = ["Hypothesis"]
         with self.assertRaises(ValueError):
-            char_error_rate = cer.compute(predictions=pred, references=ref)
+            char_error_rate = cer.compute(predictions=preds, references=refs)
 
 
 if __name__ == "__main__":
