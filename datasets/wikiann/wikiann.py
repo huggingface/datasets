@@ -371,7 +371,6 @@ class Wikiann(datasets.GeneratorBasedBuilder):
             tokens = []
             ner_tags = []
             langs = []
-            spans = []
             for line in f:
                 if line == "" or line == "\n":
                     if tokens:
@@ -392,4 +391,3 @@ class Wikiann(datasets.GeneratorBasedBuilder):
                     else:
                         # examples have no label in test set
                         ner_tags.append("O")
-                    spans.append(self._get_spans(tokens, ner_tags))
