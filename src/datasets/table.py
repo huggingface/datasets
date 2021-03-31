@@ -62,7 +62,7 @@ class Table:
     the Table transforms: slice, filter, flatten, combine_chunks, cast, add_column,
     append_column, remove_column, set_column, rename_columns and drop.
 
-    The implementation of these methods differ for the subclasses.
+    The implementation of these methods differs for the subclasses.
     """
 
     def __init__(self, table: pa.Table):
@@ -229,7 +229,9 @@ class TableBlock(Table):
 
 class InMemoryTable(TableBlock):
     """
-    The table is said in-memory so pickling it does copy all the data using memory.
+    The table is said in-memory when it is loaded into the user's RAM.
+
+    Pickling it does copy all the data using memory.
     Its implementation is simple and uses the underlying pyarrow Table methods directly.
 
     This is different from the MemoryMapped table, for which pickling doesn't copy all the
@@ -321,7 +323,10 @@ Replay = Tuple[str, tuple, dict]
 
 class MemoryMappedTable(TableBlock):
     """
-    The table is said memory mapped so pickling it doesn't copy the data into memory.
+    The table is said memory mapped when it doesn't use the user's RAM but loads the data
+    from the disk instead.
+
+    Pickling it doesn't copy the data into memory.
     Instead, only the path to the memory mapped arrow file is pickled, as well as the list
     of transforms to "replay" when reloading the table from the disk.
 
@@ -657,7 +662,15 @@ class ConcatenationTable(Table):
         return ConcatenationTable(table, blocks)
 
 
-def concat_tables(tables: List[Union[pa.Table, Table]]) -> ConcatenationTable:
+def concat_tables(tables: List[Table]) -> Table:
+    """
+    Concatenate tables vertically.
+
+    Returns:
+        :obj:`datasets.table.Table` that is the concatenated table:
+            If the number of input tables is > 1, then the returned table is a :obj:`datasets.table.ConcatenationTable`.
+            Otherwise if there's only one table, it is returned as is.
+    """
     tables = list(tables)
     if len(tables) == 1:
         return tables[0]
@@ -665,6 +678,13 @@ def concat_tables(tables: List[Union[pa.Table, Table]]) -> ConcatenationTable:
 
 
 def list_table_cache_files(table: Table) -> List[str]:
+    """
+    Get the cache files that are loaded by the table.
+    Cache file are used when parts of the table come from the disk via memory mapping.
+
+    Returns:
+        :obj:`List[str]`: a list of paths to the cache files loaded by the table
+    """
     if isinstance(table, ConcatenationTable):
         cache_files = []
         for subtables in table.blocks:
