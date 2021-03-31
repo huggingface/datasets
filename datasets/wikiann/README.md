@@ -382,10 +382,6 @@ task_ids:
   - [Dataset Structure](#dataset-structure)
     - [Data Instances](#data-instances)
     - [Data Fields](#data-fields)
-      - `tokens`: a `list` of `string` features.
-      - `langs`: a `list` of `string` features that correspond to the language of each token.
-      - `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-PER` (1), `I-PER` (2), `B-ORG` (3), `I-ORG` (4), `B-LOC` (5), `I-LOC` (6).
-      - `spans`: a `list` of `string` features, that is the list of named entities in the input text formatted as ``<TAG>: <mention>``
     - [Data Splits](#data-splits)
   - [Dataset Creation](#dataset-creation)
     - [Curation Rationale](#curation-rationale)
@@ -433,7 +429,10 @@ WikiANN (sometimes called PAN-X) is a multilingual named entity recognition data
 
 ### Data Fields
 
-[More Information Needed]
+- `tokens`: a `list` of `string` features.
+- `langs`: a `list` of `string` features that correspond to the language of each token.
+- `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-PER` (1), `I-PER` (2), `B-ORG` (3), `I-ORG` (4), `B-LOC` (5), `I-LOC` (6).
+- `spans`: a `list` of `string` features, that is the list of named entities in the input text formatted as ``<TAG>: <mention>``
 
 ### Data Splits
 
@@ -539,4 +538,4 @@ while the 176 languages supported in this version are associated with the follow
 
 ### Contributions
 
-Thanks to [@lewtun](https://github.com/lewtun) for adding this dataset.
+Thanks to [@lewtun](https://github.com/lewtun) and [@rabeehk](https://github.com/rabeehk) for adding this dataset.
