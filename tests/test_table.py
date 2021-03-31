@@ -784,3 +784,14 @@ def test_interpolation_search(arr, x):
     else:
         with pytest.raises(ground_truth):
             _interpolation_search(arr, x)
+
+
+def test_indexed_table_mixin():
+    n_rows_per_chunk = 10
+    n_chunks = 4
+    pa_table = pa.Table.from_pydict({"col": [0] * n_rows_per_chunk})
+    pa_table = pa.concat_tables([pa_table] * n_chunks)
+    table = Table(pa_table)
+    assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
+    assert table.fast_slice(5) == pa_table.slice(5)
+    assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
