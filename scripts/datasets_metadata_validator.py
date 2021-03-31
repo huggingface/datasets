@@ -8,8 +8,6 @@ from pathlib import Path
 from subprocess import check_output
 from typing import List
 
-from pydantic import ValidationError
-
 from datasets.utils.metadata import DatasetMetadata
 
 
@@ -46,7 +44,7 @@ if __name__ == "__main__":
         try:
             DatasetMetadata.from_readme(readme)
             logging.debug(f"✅️ Validated '{readme.relative_to(repo_path)}'")
-        except ValidationError as e:
+        except TypeError as e:
             failed.append(readme)
             logging.warning(f"❌ Failed to validate '{readme.relative_to(repo_path)}':\n{e}")
         except Exception as e:

@@ -1,5 +1,6 @@
 import json
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -13,7 +14,6 @@ except ImportError:
 
 import langcodes as lc
 import yaml
-from pydantic import BaseModel, conlist, validator
 
 from . import resources
 
@@ -45,11 +45,14 @@ def dict_from_readme(f: Path) -> Optional[Dict[str, List[str]]]:
         return metada_dict
 
 
-def tagset_validator(values: List[str], reference_values: List[str], name: str, url: str) -> List[str]:
+ValidatorOutput = Tuple[List[str], Optional[str]]
+
+
+def tagset_validator(values: List[str], reference_values: List[str], name: str, url: str) -> ValidatorOutput:
     invalid_values = [v for v in values if v not in reference_values]
     if len(invalid_values) > 0:
-        raise ValueError(f"{invalid_values} are not registered tags for '{name}', reference at {url}")
-    return values
+        return [], f"{invalid_values} are not registered tags for '{name}', reference at {url}"
+    return values, None
 
 
 def escape_validation_for_predicate(
@@ -66,16 +69,61 @@ def escape_validation_for_predicate(
     return trues, falses
 
 
-class DatasetMetadata(BaseModel):
-    annotations_creators: conlist(str, min_items=1)
-    language_creators: conlist(str, min_items=1)
-    languages: conlist(str, min_items=1)
-    licenses: conlist(str, min_items=1)
-    multilinguality: conlist(str, min_items=1)
-    size_categories: conlist(str, min_items=1)
-    source_datasets: conlist(str, min_items=1)
-    task_categories: conlist(str, min_items=1)
-    task_ids: conlist(str, min_items=1)
+@dataclass
+class DatasetMetadata:
+    annotations_creators: List[str]
+    language_creators: List[str]
+    languages: List[str]
+    licenses: List[str]
+    multilinguality: List[str]
+    size_categories: List[str]
+    source_datasets: List[str]
+    task_categories: List[str]
+    task_ids: List[str]
+
+    def __post_init__(self):
+        basic_typing_errors = {
+            name: value
+            for name, value in vars(self).items()
+            if not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str)
+        }
+        if len(basic_typing_errors) > 0:
+            raise TypeError(f"Found fields that are not non-empty list of strings: {basic_typing_errors}")
+
+        self.annotations_creators, annotations_creators_errors = self.annotations_creators_must_be_in_known_set(
+            self.annotations_creators
+        )
+        self.language_creators, language_creators_errors = self.language_creators_must_be_in_known_set(
+            self.language_creators
+        )
+        self.languages, languages_errors = self.language_code_must_be_recognized(self.language_creators)
+        self.licenses, licenses_errors = self.licenses_must_be_in_known_set(self.licenses)
+        self.multilinguality, multilinguality_errors = self.multilinguality_must_be_in_known_set(self.multilinguality)
+        self.size_categories, size_categories_errors = self.size_categories_must_be_in_known_set(self.size_categories)
+        self.source_datasets, source_datasets_errors = self.source_datasets_must_be_in_known_set(self.source_datasets)
+        self.task_categories, task_categories_errors = self.task_category_must_be_in_known_set(self.task_categories)
+        self.task_ids, task_ids_errors = self.task_id_must_be_in_known_set(self.task_ids)
+
+        errors = {
+            "annotations_creators": annotations_creators_errors,
+            "language_creators": language_creators_errors,
+            "licenses": licenses_errors,
+            "multilinguality": multilinguality_errors,
+            "size_categories": size_categories_errors,
+            "source_datasets": source_datasets_errors,
+            "task_categories": task_categories_errors,
+            "task_ids": task_ids_errors,
+        }
+
+        exception_msg_dict = dict()
+        for field, errs in errors.items():
+            if errs is not None:
+                exception_msg_dict[field] = errs
+        if len(exception_msg_dict) > 0:
+            raise TypeError(
+                "Could not validate the metada, found the following errors:\n"
+                + "\n".join(f"* field '{fieldname}':\n\t{err}" for fieldname, err in exception_msg_dict.items())
+            )
 
     @classmethod
     def from_readme(cls, f: Path) -> "DatasetMetadata":
@@ -83,23 +131,23 @@ class DatasetMetadata(BaseModel):
         if metadata_dict is not None:
             return cls(**metadata_dict)
         else:
-            raise ValueError(f"did not find a yaml block in '{f}'")
+            raise TypeError(f"did not find a yaml block in '{f}'")
 
     @classmethod
     def from_yaml_string(cls, string: str) -> "DatasetMetadata":
         metada_dict = yaml.safe_load(string) or dict()
         return cls(**metada_dict)
 
-    @validator("annotations_creators")
-    def annotations_creators_must_be_in_known_set(cls, annotations_creators: List[str]) -> List[str]:
+    @staticmethod
+    def annotations_creators_must_be_in_known_set(annotations_creators: List[str]) -> ValidatorOutput:
         return tagset_validator(annotations_creators, known_creators["annotations"], "annotations", known_creators_url)
 
-    @validator("language_creators")
-    def language_creators_must_be_in_known_set(cls, language_creators: List[str]) -> List[str]:
+    @staticmethod
+    def language_creators_must_be_in_known_set(language_creators: List[str]) -> ValidatorOutput:
         return tagset_validator(language_creators, known_creators["language"], "annotations", known_creators_url)
 
-    @validator("languages")
-    def language_code_must_be_recognized(cls, languages: List[str]):
+    @staticmethod
+    def language_code_must_be_recognized(languages: List[str]) -> ValidatorOutput:
         invalid_values = []
         for code in languages:
             try:
@@ -107,58 +155,62 @@ class DatasetMetadata(BaseModel):
             except lc.tag_parser.LanguageTagError:
                 invalid_values.append(code)
         if len(invalid_values) > 0:
-            raise ValueError(
-                f"{invalid_values} are not recognised as valid language codes (BCP47 norm), you can refer to https://github.com/LuminosoInsight/langcodes"
+            return (
+                [],
+                f"{invalid_values} are not recognised as valid language codes (BCP47 norm), you can refer to https://github.com/LuminosoInsight/langcodes",
             )
-        return languages
+        return languages, None
 
-    @validator("licenses")
-    def licenses_must_be_in_known_set(cls, licenses: List[str]):
+    @staticmethod
+    def licenses_must_be_in_known_set(licenses: List[str]) -> ValidatorOutput:
         others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e)
-        return [*tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url), *others]
+        validated, error = tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url)
+        return [*validated, *others], error
 
-    @validator("task_categories")
-    def task_category_must_be_in_known_set(cls, task_categories: List[str]):
+    @staticmethod
+    def task_category_must_be_in_known_set(task_categories: List[str]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
         others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other"))
-        return [*tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url), *others]
+        validated, error = tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url)
+        return [*validated, *others], error
 
-    @validator("task_ids")
-    def task_id_must_be_in_known_set(cls, task_ids: List[str]):
+    @staticmethod
+    def task_id_must_be_in_known_set(task_ids: List[str]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
         others, to_validate = escape_validation_for_predicate(task_ids, lambda e: "-other-" in e)
-        return [*tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url), *others]
+        validated, error = tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url)
+        return [*validated, *others], error
 
-    @validator("multilinguality")
-    def multilinguality_must_be_in_known_set(cls, multilinguality: List[str]):
+    @staticmethod
+    def multilinguality_must_be_in_known_set(multilinguality: List[str]) -> ValidatorOutput:
         others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other"))
-        return [
-            *tagset_validator(
-                to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
-            ),
-            *others,
-        ]
+        validated, error = tagset_validator(
+            to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
+        )
+        return [*validated, *others], error
 
-    @validator("size_categories")
-    def size_categories_must_be_in_known_set(cls, size_cats: List[str]):
+    @staticmethod
+    def size_categories_must_be_in_known_set(size_cats: List[str]) -> ValidatorOutput:
         return tagset_validator(size_cats, known_size_categories, "size_categories", known_size_categories_url)
 
-    @validator("source_datasets")
-    def source_datasets_must_be_in_known_set(cls, sources: List[str]):
+    @staticmethod
+    def source_datasets_must_be_in_known_set(sources: List[str]) -> ValidatorOutput:
         invalid_values = []
         for src in sources:
             is_ok = src in ["original", "extended"] or src.startswith("extended|")
             if not is_ok:
                 invalid_values.append(src)
         if len(invalid_values) > 0:
-            raise ValueError(
-                f"'source_datasets' has invalid values: {invalid_values}, refer to source code to understand {this_url}"
+            return (
+                [],
+                f"'source_datasets' has invalid values: {invalid_values}, refer to source code to understand {this_url}",
             )
-        return sources
+
+        return sources, None
 
 
 if __name__ == "__main__":
