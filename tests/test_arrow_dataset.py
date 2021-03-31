@@ -1047,9 +1047,9 @@ class BaseDatasetTest(TestCase):
 
     def test_filter_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(True, tmp_dir)
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
             fingerprint = dset._fingerprint
-            dset_filter_first_ten = dset.filter(picklable_filter_function, num_proc=2)
+            dset_filter_first_ten = dset.filter(picklable_filter_function, num_proc=2, keep_in_memory=in_memory)
             self.assertEqual(len(dset_filter_first_ten), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))

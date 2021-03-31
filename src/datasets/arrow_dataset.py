@@ -1666,6 +1666,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # caching args
         compute_mask_in_memory: bool = False,
         cache_file_name: Optional[str] = None,
+        # batch native filter call
+        filter_batch_size: Optional[int] = None,
         # deprecated, use functool.partial to build function with the right signature.
         fn_kwargs: Optional[dict] = None,
         **deprecated_kwargs,
@@ -1731,9 +1733,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             num_proc=num_proc,
             input_columns=input_columns,
         )
-        filtered: pa.Table = self._data.filter(mask["mask"])
+        filtered: pa.Table = (
+            self._filter_batched(mask["mask"], filter_batch_size)
+            if filter_batch_size is not None
+            else self._data.filter(mask["mask"])
+        )
         filtered_ds = Dataset(filtered, fingerprint=new_fingerprint)
         return filtered_ds.remove_columns(remove_columns) if remove_columns is not None else filtered_ds
+
+    def _filter_batched(self, mask: pa.Table, batch_size: int) -> pa.Table:
+        """Batch the pyarrow.Table.filter call as it moves the table to RAM, which we can't always do."""
+        filtered_chunks = list()
+        for inc in range(0, len(self), batch_size):
+            chunk = self._data[inc : inc + batch_size]
+            submask = mask[inc : inc + batch_size]
+            filtered_chunks.append(chunk.filter(submask))
+        return pa.concat_tables(filtered_chunks)
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
