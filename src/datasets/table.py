@@ -1,8 +1,16 @@
 import copy
+import os
+import tempfile
 from functools import wraps
 from typing import List, Optional, Tuple, TypeVar, Union
 
 import pyarrow as pa
+
+from . import config
+from .utils.logging import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def inject_arrow_table_documentation(arrow_table_method):
@@ -35,6 +43,16 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     return pa_table
 
 
+def _write_table_to_file(table: pa.Table, filename: str, writer_batch_size: Optional[int] = None) -> int:
+    with open(filename, "wb") as sink:
+        writer = pa.RecordBatchStreamWriter(sink=sink, schema=table.schema)
+        batches: List[pa.RecordBatch] = table.to_batches()
+        for batch in batches:
+            writer.write_batch(batch)
+        writer.close()
+        return sum(batch.nbytes for batch in batches)
+
+
 class Table:
     """
     Wraps a pyarrow Table by using composition.
@@ -49,6 +67,33 @@ class Table:
 
     def __init__(self, table: pa.Table):
         self.table = table
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # We can't pickle objects that are bigger than 4GiB, or it causes OverflowError
+        # So we write the table on disk instead
+        if self.table.nbytes >= config.MAX_TABLE_NBYTES_FOR_PICKLING:
+            table = state.pop("table")
+            with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".arrow") as tmp_file:
+                filename = tmp_file.name
+                logger.debug(
+                    f"Attempting to pickle a table bigger than 4GiB. Writing it on the disk instead at {filename}"
+                )
+                _write_table_to_file(table=table, filename=filename)
+                state["path"] = filename
+                return state
+        else:
+            return state
+
+    def __setstate__(self, state):
+        state = state.copy()
+        if "path" in state:
+            filename = state.pop("path")
+            logger.debug(f"Unpickling a big table from the disk at {filename}")
+            state["table"] = _in_memory_arrow_table_from_file(filename)
+            logger.debug(f"Removing temporary table file at {filename}")
+            os.remove(filename)
+        self.__dict__ = state
 
     @inject_arrow_table_documentation(pa.Table.validate)
     def validate(self, *args, **kwargs):
