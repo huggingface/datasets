@@ -53,9 +53,8 @@ _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENS
 _URL = "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format"
 
 class WinoBiasConfig(datasets.BuilderConfig):
-    def __init__(self, data_url, **kwargs):
+    def __init__(self, **kwargs):
         super(WinoBiasConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
-        self.data_url = data_url
 
 class WinoBias(datasets.GeneratorBasedBuilder):
     """WinoBias: Winograd-schema dataset for detecting gender bias"""
@@ -81,44 +80,20 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         WinoBiasConfig(
-            name='dev_type1_pro',
-            description = "winoBias dev_type1_pro_stereotype data in cornll format",
-            data_url = _URL + "/dev_type1_pro_stereotype.v4_auto_conll"
+            name='type1_pro',
+            description = "winoBias type1_pro_stereotype data in cornll format",
         ),
         WinoBiasConfig(
-            name='dev_type1_anti',
-            description = "winoBias dev_type1_anti_stereotype data in cornll format",
-            data_url = _URL + "/dev_type1_anti_stereotype.v4_auto_conll"
+            name='type1_anti',
+            description = "winoBias type1_anti_stereotype data in cornll format",
         ), 
         WinoBiasConfig(
-            name='dev_type2_pro',
-            description = "winoBias dev_type2_pro_stereotype data in cornll format",
-            data_url = _URL + "/dev_type2_pro_stereotype.v4_auto_conll"
+            name='type2_pro',
+            description = "winoBias type2_pro_stereotype data in cornll format",
         ),
         WinoBiasConfig(
-            name='dev_type2_anti',
-            description = "winoBias dev_type2_anti_stereotype data in cornll format",
-            data_url = _URL + "/dev_type2_anti_stereotype.v4_auto_conll"
-        ),
-        WinoBiasConfig(
-            name='test_type1_pro',
-            description = "winoBias test_type1_pro_stereotype data in cornll format",
-            data_url = _URL + "/test_type1_pro_stereotype.v4_auto_conll"
-        ),
-        WinoBiasConfig(
-            name='test_type1_anti',
-            description = "winoBias test_type1_anti_stereotype data in cornll format",
-            data_url = _URL + "/test_type1_anti_stereotype.v4_auto_conll"
-        ),
-        WinoBiasConfig(
-            name='test_type2_pro',
-            description = "winoBias test_type2_pro_stereotype data in cornll format",
-            data_url = _URL + "/test_type2_pro_stereotype.v4_auto_conll"
-        ),
-        WinoBiasConfig(
-            name='test_type2_anti',
-            description = "winoBias test_type2_anti_stereotype data in cornll format",
-            data_url = _URL + "/test_type2_anti_stereotype.v4_auto_conll"
+            name='type2_anti',
+            description = "winoBias type2_anti_stereotype data in cornll format",
         ),
         
     ]
@@ -261,18 +236,25 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download(self.config.data_url)
+
+        dev_data_dir = dl_manager.download(_URL+"/dev_"+self.config.name+"_stereotype.v4_auto_conll")
+        test_data_dir = dl_manager.download(_URL+"/test_"+self.config.name+"_stereotype.v4_auto_conll")
         return [
             datasets.SplitGenerator(
-                name=self.config.data_url.split("/")[-1].split(".")[0],
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir},
-            )
+                gen_kwargs={"filepath": dev_data_dir},
+            ),
+
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath":test_data_dir},
+            ),
         ]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-
         with open(filepath, encoding="utf-8") as f:
             id_ = 0
             document_id = None
