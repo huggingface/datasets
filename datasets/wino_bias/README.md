@@ -10,15 +10,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - structure-prediction
 task_ids:
 - coreference-resolution
-- named-entity-recognition
-- part-of-speech-tagging
+
 ---
 
 # Dataset Card for Wino_Bias dataset
@@ -170,4 +169,4 @@ MIT Licence
 
 ### Contributions
 
-Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset.
+Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset. Edited by [@JieyuZhao](https://github.com/JieyuZhao).
