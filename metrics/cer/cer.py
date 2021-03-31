@@ -80,6 +80,7 @@ Computes CER score of transcribed segments against references.
 Args:
     references: list of references for each speech input.
     predictions: list of transcribtions to score.
+    concatenate_texts: Whether or not to concatenate sentences before evaluation, set to True for more accurate result.
 Returns:
     (float): the character error rate
 
