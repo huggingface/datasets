@@ -357,7 +357,7 @@ class Wikiann(datasets.GeneratorBasedBuilder):
         Output Format:
         {
         'tokens': ["rick", "and", "morty", "are", "cool", "."],
-        'tags': ["B-PER", "O" , "B-PER", "O", "O", "O"],
+        'ner_tags': ["B-PER", "O" , "B-PER", "O", "O", "O"],
         'langs': ["en", "en", "en", "en", "en", "en"]
         'spans': ["PER: rick", "PER: morty"]
         }
