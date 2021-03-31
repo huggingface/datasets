@@ -118,14 +118,20 @@ class CER(datasets.Metric):
     def _compute(self, predictions, references, concatenate_texts=False):
         if concatenate_texts:
             return jiwer.wer(
-                references, predictions, truth_transform=cer_transform, hypothesis_transform=cer_transform
+                references,
+                predictions,
+                truth_transform=cer_transform,
+                hypothesis_transform=cer_transform,
             )
 
         incorrect = 0
         total = 0
         for prediction, reference in zip(predictions, references):
             measures = jiwer.compute_measures(
-                reference, prediction, truth_transform=cer_transform, hypothesis_transform=cer_transform
+                reference,
+                prediction,
+                truth_transform=cer_transform,
+                hypothesis_transform=cer_transform,
             )
             incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
             total += measures["substitutions"] + measures["deletions"] + measures["hits"]
