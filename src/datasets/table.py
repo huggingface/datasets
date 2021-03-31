@@ -1,9 +1,17 @@
 import copy
+import os
+import tempfile
 from functools import wraps
 from typing import List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
+
+from . import config
+from .utils.logging import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def inject_arrow_table_documentation(arrow_table_method):
@@ -34,6 +42,16 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     opened_stream = pa.ipc.open_stream(memory_mapped_stream)
     pa_table = opened_stream.read_all()
     return pa_table
+
+
+def _write_table_to_file(table: pa.Table, filename: str) -> int:
+    with open(filename, "wb") as sink:
+        writer = pa.RecordBatchStreamWriter(sink=sink, schema=table.schema)
+        batches: List[pa.RecordBatch] = table.to_batches()
+        for batch in batches:
+            writer.write_batch(batch)
+        writer.close()
+        return sum(batch.nbytes for batch in batches)
 
 
 def _interpolation_search(arr: List[int], x: int) -> int:
@@ -101,12 +119,39 @@ class Table(IndexedTableMixin):
     the Table transforms: slice, filter, flatten, combine_chunks, cast, add_column,
     append_column, remove_column, set_column, rename_columns and drop.
 
-    The implementation of these methods differ for the subclasses.
+    The implementation of these methods differs for the subclasses.
     """
 
     def __init__(self, table: pa.Table):
         super().__init__(table)
         self.table = table
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # We can't pickle objects that are bigger than 4GiB, or it causes OverflowError
+        # So we write the table on disk instead
+        if self.table.nbytes >= config.MAX_TABLE_NBYTES_FOR_PICKLING:
+            table = state.pop("table")
+            with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".arrow") as tmp_file:
+                filename = tmp_file.name
+                logger.debug(
+                    f"Attempting to pickle a table bigger than 4GiB. Writing it on the disk instead at {filename}"
+                )
+                _write_table_to_file(table=table, filename=filename)
+                state["path"] = filename
+                return state
+        else:
+            return state
+
+    def __setstate__(self, state):
+        state = state.copy()
+        if "path" in state:
+            filename = state.pop("path")
+            logger.debug(f"Unpickling a big table from the disk at {filename}")
+            state["table"] = _in_memory_arrow_table_from_file(filename)
+            logger.debug(f"Removing temporary table file at {filename}")
+            os.remove(filename)
+        self.__dict__ = state
 
     @inject_arrow_table_documentation(pa.Table.validate)
     def validate(self, *args, **kwargs):
@@ -242,7 +287,9 @@ class TableBlock(Table):
 
 class InMemoryTable(TableBlock):
     """
-    The table is said in-memory so pickling it does copy all the data using memory.
+    The table is said in-memory when it is loaded into the user's RAM.
+
+    Pickling it does copy all the data using memory.
     Its implementation is simple and uses the underlying pyarrow Table methods directly.
 
     This is different from the MemoryMapped table, for which pickling doesn't copy all the
@@ -335,7 +382,10 @@ Replay = Tuple[str, tuple, dict]
 
 class MemoryMappedTable(TableBlock):
     """
-    The table is said memory mapped so pickling it doesn't copy the data into memory.
+    The table is said memory mapped when it doesn't use the user's RAM but loads the data
+    from the disk instead.
+
+    Pickling it doesn't copy the data into memory.
     Instead, only the path to the memory mapped arrow file is pickled, as well as the list
     of transforms to "replay" when reloading the table from the disk.
 
@@ -672,7 +722,15 @@ class ConcatenationTable(Table):
         return ConcatenationTable(table, blocks)
 
 
-def concat_tables(tables: List[Union[pa.Table, Table]]) -> ConcatenationTable:
+def concat_tables(tables: List[Table]) -> Table:
+    """
+    Concatenate tables vertically.
+
+    Returns:
+        :obj:`datasets.table.Table` that is the concatenated table:
+            If the number of input tables is > 1, then the returned table is a :obj:`datasets.table.ConcatenationTable`.
+            Otherwise if there's only one table, it is returned as is.
+    """
     tables = list(tables)
     if len(tables) == 1:
         return tables[0]
@@ -680,6 +738,13 @@ def concat_tables(tables: List[Union[pa.Table, Table]]) -> ConcatenationTable:
 
 
 def list_table_cache_files(table: Table) -> List[str]:
+    """
+    Get the cache files that are loaded by the table.
+    Cache file are used when parts of the table come from the disk via memory mapping.
+
+    Returns:
+        :obj:`List[str]`: a list of paths to the cache files loaded by the table
+    """
     if isinstance(table, ConcatenationTable):
         cache_files = []
         for subtables in table.blocks:

@@ -430,7 +430,7 @@ class TestMetric(TestCase):
 
         preds, refs = DummyMetric.predictions_and_references()
         expected_results = DummyMetric.expected_results()
-        preds, refs = torch.Tensor(preds), torch.Tensor(refs)
+        preds, refs = torch.tensor(preds), torch.tensor(refs)
 
         metric = DummyMetric(experiment_id="test_input_torch")
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))

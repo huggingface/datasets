@@ -497,6 +497,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if hasattr(self, "_indices"):
             del self._indices
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Here `del` is used to del the pyarrow tables. This properly closes the files used for memory mapped tables
+        self.__del__()
+
     def save_to_disk(self, dataset_path: str, fs=None):
         """
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
