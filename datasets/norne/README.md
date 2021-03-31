@@ -58,6 +58,8 @@ task_ids:
 
 NorNE is a manually annotated corpus of named entities which extends the annotation of the existing Norwegian Dependency Treebank. Comprising both of the official standards of written Norwegian (Bokmål and Nynorsk), the corpus contains around 600,000 tokens and annotates a rich set of entity types including persons,organizations, locations, geo-political entities, products, and events, in addition to a class corresponding to nominals derived from names.
 
+There are 3 main configs in this dataset each with 3 versions of the NER tag set. When accessing the `bokmaal`, `nynorsk`, or `combined` configs the NER tag set will be comprised of 9 tags: `GPE_ORG`, `GPE_LOC`, `ORG`, `LOC`, `PER`, `PROD`, `EVT`, `DRV`, and `MISC`. The two special types `GPE_LOC` and `GPE_ORG` can easily be altered depending on the task, choosing either the more general `GPE` tag or the more specific `LOC`/`ORG` tags, conflating them with the other annotations of the same type. To access these reduced versions of the dataset, you can use the configs `bokmaal-7`, `nynorsk-7`, `combined-7` for the NER tag set with 7 tags ( **`ORG`**, **`LOC`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`), and `bokmaal-8`, `nynorsk-8`, `combined-8` for the NER tag set with 8 tags (`LOC_` and `ORG_`: **`ORG`**, **`LOC`**, **`GPE`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`). By default, the full set (9 tags) will be used. See Annotations for further details.
+
 ### Supported Tasks and Leaderboards
 
 NorNE ads named entity annotations on top of the Norwegian Dependency Treebank.
@@ -228,7 +230,7 @@ The class distribution is as follows, broken down across the data splits of the 
 | `EVT`    |    131 |      9 |      5 |    145 |
 | `MISC`   |      8 |      0 |      0 |      0 |
 
-To access these reduce versions of the dataset, you can use the configs `bokmaal-7`, `nynorsk-7`, `combined-7` for the NER tag set with 7 tags ( **`ORG`**, **`LOC`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`), and `bokmaal-8`, `nynorsk-8`, `combined-8` for the NER tag set with 8 tags (`LOC_` and `ORG_`: **`ORG`**, **`LOC`**, **`GPE`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`). By default, the full set (9 tags) will be used.
+To access these reduced versions of the dataset, you can use the configs `bokmaal-7`, `nynorsk-7`, `combined-7` for the NER tag set with 7 tags ( **`ORG`**, **`LOC`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`), and `bokmaal-8`, `nynorsk-8`, `combined-8` for the NER tag set with 8 tags (`LOC_` and `ORG_`: **`ORG`**, **`LOC`**, **`GPE`**, `PER`, `PROD`, `EVT`, `DRV`, `MISC`). By default, the full set (9 tags) will be used.
 
 ## Additional Information
 
@@ -247,8 +249,7 @@ The NorNE corpus is published under the same [license](https://github.com/ltgosl
 This dataset is described in the paper _NorNE: Annotating Named Entities for Norwegian_ by
 Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg, Lilja Øvrelid, and Erik Velldal, accepted for LREC 2020 and available as pre-print here: https://arxiv.org/abs/1911.12146.
 
-```
-
+```bibtex
 @inproceedings{johansen2019ner,
   title={NorNE: Annotating Named Entities for Norwegian},
   author={Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg,
@@ -258,3 +259,7 @@ Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg, Lilja Øvrelid, and
   url={https://arxiv.org/abs/1911.12146}
 }
 ```
+
+### Contributions
+
+Thanks to [@versae](https://github.com/versae) for adding this dataset.
