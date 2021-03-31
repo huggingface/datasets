@@ -246,3 +246,15 @@ The NorNE corpus is published under the same [license](https://github.com/ltgosl
 
 This dataset is described in the paper _NorNE: Annotating Named Entities for Norwegian_ by
 Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg, Lilja Øvrelid, and Erik Velldal, accepted for LREC 2020 and available as pre-print here: https://arxiv.org/abs/1911.12146.
+
+```
+
+@inproceedings{johansen2019ner,
+  title={NorNE: Annotating Named Entities for Norwegian},
+  author={Fredrik Jørgensen, Tobias Aasmoe, Anne-Stine Ruud Husevåg,
+          Lilja Øvrelid, and Erik Velldal},
+  booktitle={LREC 2020},
+  year={2020},
+  url={https://arxiv.org/abs/1911.12146}
+}
+```
