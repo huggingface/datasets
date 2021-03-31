@@ -37,7 +37,19 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
 
 
 def _interpolation_search(arr: List[int], x: int) -> int:
-    """Return the position i of a sorted array so that arr[i] <= x < arr[i+1]"""
+    """
+    Return the position i of a sorted array so that arr[i] <= x < arr[i+1]
+
+    Args:
+        arr (:obj:`List[int]`): non-empty sorted list of integers
+        x (:obj:`int`): query
+
+    Returns:
+        `int`: the position i so that arr[i] <= x < arr[i+1]
+
+    Raises:
+        `IndexError`: if the array is empty or if the query is outside the array values
+    """
     i, j = 0, len(arr) - 1
     while i < j and arr[i] <= x < arr[j]:
         k = i + ((j - i) * (x - arr[i]) // (arr[j] - arr[i]))
@@ -47,7 +59,7 @@ def _interpolation_search(arr: List[int], x: int) -> int:
             i, j = k + 1, j
         else:
             i, j = i, k
-    raise IndexError(f"Invalid index '{x}' for size {arr[-1] if len(arr) else 'none'}.")
+    raise IndexError(f"Invalid query '{x}' for size {arr[-1] if len(arr) else 'none'}.")
 
 
 class IndexedTableMixin:
@@ -57,6 +69,13 @@ class IndexedTableMixin:
         self._offsets = np.cumsum([0] + [len(b) for b in self._batches])
 
     def fast_slice(self, offset=0, length=None) -> pa.Table:
+        """
+        Slice the Table using interpolation search.
+        The behavior is the same as :obj:`pyarrow.Table.slice` but it's significantly faster.
+
+        Interpolation search is used to find the start and end indexes of the batches we want to keep.
+        The batches to keep are then concatenated to form the sliced Table.
+        """
         if offset < 0:
             raise IndexError("Offset must be non-negative")
         elif offset >= self._offsets[-1] or (length is not None and length <= 0):
