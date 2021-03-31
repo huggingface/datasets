@@ -186,6 +186,7 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinx-copybutton",
         "fsspec[s3]",
+        "langcodes[data]",
     ],
 }
 
