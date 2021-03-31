@@ -87,7 +87,7 @@ class CsvDatasetWriter:
 
         for offset in range(0, len(self.dataset), batch_size):
             batch = query_table(
-                pa_table=self.dataset._data,
+                table=self.dataset._data,
                 key=slice(offset, offset + batch_size),
                 indices=self.dataset._indices.column(0) if self.dataset._indices is not None else None,
             )

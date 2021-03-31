@@ -193,3 +193,4 @@ def setup(app):
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings
 napoleon_use_ivar = True
+napoleon_use_rtype = False

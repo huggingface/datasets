@@ -8,11 +8,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .table import Table
 from .utils.deprecation_utils import deprecated
 from .utils.typing import PathLike
 
@@ -28,7 +28,7 @@ class DatasetDict(dict):
                 )
 
     @property
-    def data(self) -> Dict[str, pa.Table]:
+    def data(self) -> Dict[str, Table]:
         """The Apache Arrow tables backing each split."""
         self._check_values_type()
         return {k: dataset.data for k, dataset in self.items()}
@@ -653,13 +653,13 @@ class DatasetDict(dict):
 
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
+            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
+            dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory=False) -> "DatasetDict":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
         :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
@@ -669,6 +669,7 @@ class DatasetDict(dict):
                 of the dataset dict directory where the dataset dict will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
                 Instance of the remote filesystem used to download the files from.
+            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
 
         Returns:
             :class:`DatasetDict`.
@@ -680,14 +681,14 @@ class DatasetDict(dict):
             fs = fsspec.filesystem("file")
             dest_dataset_dict_path = dataset_dict_path
         for k in json.load(
-            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
             dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)
-                else Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                else Path(dest_dataset_dict_path, k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
+            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
         return dataset_dict
 
     @staticmethod
