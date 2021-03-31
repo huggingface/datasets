@@ -98,7 +98,7 @@ class TestCER(unittest.TestCase):
         # S = 0, D = 0, I = 2, N = 28, CER = 2 / 28
         # whitespace at the front of " of eels" will be strip during preporcessing
         # so need to insert 2 whitespaces
-        char_error_rate = cer.compute(predictions=preds, references=refs)
+        char_error_rate = cer.compute(predictions=preds, references=refs, concatenate_texts=True)
         self.assertTrue(abs(char_error_rate - 0.071428) < 1e-6)
 
     def test_cer_unicode(self):
