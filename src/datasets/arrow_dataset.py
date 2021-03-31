@@ -1648,7 +1648,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             umask = os.umask(0)
             os.chmod(cache_file_name, 0o666 & ~umask)
 
-
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
