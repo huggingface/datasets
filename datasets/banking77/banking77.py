@@ -168,11 +168,3 @@ class Banking77(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(csv_reader):
                 text, label = row
                 yield id_, {"text": text, "label": label}
-
-
-if __name__ == "__main__":
-    from datasets import load_dataset
-
-    data = load_dataset("./banking77.py")
-    print(data["train"][0])
-    # print(data["train"].features["label"])
