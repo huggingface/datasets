@@ -510,9 +510,11 @@ class DatasetBuilder:
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                # We need to update the info in case some splits were added in the meantime
+                # for example when calling load_dataset from multiple workers.
+                self.info = self._load_info()
                 self.download_post_processing_resources(dl_manager)
                 return
-
             logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
@@ -684,6 +686,9 @@ class DatasetBuilder:
                             "Downloaded post-processing resource {} as {}".format(resource_name, resource_file_name)
                         )
                         shutil.move(downloaded_resource_path, resource_path)
+
+    def _load_info(self) -> DatasetInfo:
+        return DatasetInfo.from_directory(self._cache_dir)
 
     def _save_info(self):
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")

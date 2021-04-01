@@ -17,7 +17,7 @@ from datasets.table import (
     inject_arrow_table_documentation,
 )
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, slow
 
 
 @pytest.fixture(scope="session")
@@ -223,6 +223,15 @@ def test_in_memory_table_from_batches(in_memory_pa_table):
     table = InMemoryTable.from_batches(batches)
     assert table.table == in_memory_pa_table
     assert isinstance(table, InMemoryTable)
+
+
+@slow
+def test_in_memory_table_pickle_big_table():
+    big_table_4GB = InMemoryTable.from_pydict({"col": [0] * ((4 * 8 << 30) // 64)})
+    length = len(big_table_4GB)
+    big_table_4GB = pickle.dumps(big_table_4GB)
+    big_table_4GB = pickle.loads(big_table_4GB)
+    assert len(big_table_4GB) == length
 
 
 def test_in_memory_table_slice(in_memory_pa_table):
