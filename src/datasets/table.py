@@ -448,21 +448,26 @@ class ConcatenationTable(Table):
         self.__dict__ = state
 
     @staticmethod
-    def _concat_blocks_vertically(blocks: List[TableBlock]) -> pa.Table:
-        return pa.concat_tables([t.table for t in blocks])
-
-    @staticmethod
-    def _concat_blocks_horizontally_and_vertically(blocks: List[List[TableBlock]]) -> pa.Table:
-        tables_to_concat_vertically = []
-        for i, tables in enumerate(blocks):
-            if not tables:
-                continue
-            for j, table in enumerate(tables):
-                if j == 0:
+    def _concat_blocks(blocks: List[TableBlock], axis: int = 0) -> pa.Table:
+        if axis == 0:
+            return pa.concat_tables([t.table for t in blocks])
+        elif axis == 1:
+            for i, table in enumerate(blocks):
+                if i == 0:
                     combined_table = table.table
                 else:
                     for name, col in zip(table.column_names, table.columns):
                         combined_table = combined_table.append_column(name, col)
+            return combined_table
+        else:
+            raise ValueError("'axis' must be either 0 or 1")
+
+    def _concat_blocks_horizontally_and_vertically(self, blocks: List[List[TableBlock]]) -> pa.Table:
+        tables_to_concat_vertically = []
+        for i, tables in enumerate(blocks):
+            if not tables:
+                continue
+            combined_table = self._concat_blocks(tables, axis=1)
             if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
                 # re-order the columns to make the schema match and concat the tables
                 names = tables_to_concat_vertically[0].schema.names
@@ -477,7 +482,7 @@ class ConcatenationTable(Table):
             table = blocks
             return cls(table.table, [[table]])
         elif isinstance(blocks[0], TableBlock):
-            table = cls._concat_blocks_vertically(blocks)
+            table = cls._concat_blocks(blocks, axis=0)
             blocks = [[t] for t in blocks]
             return cls(table, blocks)
         else:
