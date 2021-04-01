@@ -122,7 +122,7 @@ class TestCER(unittest.TestCase):
         refs = [""]
         preds = ["Hypothesis"]
         with self.assertRaises(ValueError):
-            char_error_rate = cer.compute(predictions=preds, references=refs)
+            cer.compute(predictions=preds, references=refs)
 
 
 if __name__ == "__main__":
