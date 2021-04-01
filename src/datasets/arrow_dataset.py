@@ -1645,7 +1645,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data and tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
-            umask = os.umask(0)
+            umask = os.umask(0o666)
+            os.umask(umask)
             os.chmod(cache_file_name, 0o666 & ~umask)
 
         if update_data:
@@ -1885,7 +1886,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
-            umask = os.umask(0)
+            umask = os.umask(0o666)
+            os.umask(umask)
             os.chmod(indices_cache_file_name, 0o666 & ~umask)
 
         # Return new Dataset object
