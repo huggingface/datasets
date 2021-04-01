@@ -53,10 +53,13 @@ performance of the ASR system with a WER of 0 being a perfect score.
 """
 
 _KWARGS_DESCRIPTION = """
-Computes WER score of transcribed segments against references.
+Compute WER score of transcribed segments against references.
+
 Args:
-    references: list of references for each speech input.
-    predictions: list of transcribtions to score.
+    references: List of references for each speech input.
+    predictions: List of transcriptions to score.
+    concatenate_texts (bool, default=False): Whether to concatenate all input texts or compute WER iteratively.
+
 Returns:
     (float): the word error rate
 
@@ -90,11 +93,14 @@ class WER(datasets.Metric):
             ],
         )
 
-    def _compute(self, predictions, references):
-        incorrect = 0
-        total = 0
-        for prediction, reference in zip(predictions, references):
-            measures = compute_measures(reference, prediction)
-            incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
-            total += measures["substitutions"] + measures["deletions"] + measures["hits"]
-        return incorrect / total
+    def _compute(self, predictions=None, references=None, concatenate_texts=False):
+        if concatenate_texts:
+            return compute_measures(references, predictions)["wer"]
+        else:
+            incorrect = 0
+            total = 0
+            for prediction, reference in zip(predictions, references):
+                measures = compute_measures(reference, prediction)
+                incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
+                total += measures["substitutions"] + measures["deletions"] + measures["hits"]
+            return incorrect / total
