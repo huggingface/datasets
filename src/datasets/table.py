@@ -513,12 +513,13 @@ class ConcatenationTable(Table):
         else:
             raise ValueError("'axis' must be either 0 or 1")
 
-    def _concat_blocks_horizontally_and_vertically(self, blocks: List[List[TableBlock]]) -> pa.Table:
+    @classmethod
+    def _concat_blocks_horizontally_and_vertically(cls, blocks: List[List[TableBlock]]) -> pa.Table:
         tables_to_concat_vertically = []
         for i, tables in enumerate(blocks):
             if not tables:
                 continue
-            combined_table = self._concat_blocks(tables, axis=1)
+            combined_table = cls._concat_blocks(tables, axis=1)
             if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
                 # re-order the columns to make the schema match and concat the tables
                 names = tables_to_concat_vertically[0].schema.names
@@ -527,17 +528,18 @@ class ConcatenationTable(Table):
             tables_to_concat_vertically.append(combined_table)
         return pa.concat_tables(tables_to_concat_vertically)
 
-    def _consolidate_blocks(self, blocks, axis: Optional[int] = None):
+    @classmethod
+    def _consolidate_blocks(cls, blocks, axis: Optional[int] = None):
         if axis is not None:
             consolidated_blocks = []
             for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
                 if is_in_memory:
-                    block_group = [InMemoryTable(self._concat_blocks(block_group, axis=axis))]
+                    block_group = [InMemoryTable(cls._concat_blocks(block_group, axis=axis))]
                 consolidated_blocks += list(block_group)
         else:  # both
-            consolidated_blocks = [self._consolidate_blocks(row_block, axis=1) for row_block in blocks]
+            consolidated_blocks = [cls._consolidate_blocks(row_block, axis=1) for row_block in blocks]
             if all(len(row_block) == 1 for row_block in consolidated_blocks):
-                consolidated_blocks = self._consolidate_blocks(
+                consolidated_blocks = cls._consolidate_blocks(
                     [block for row_block in consolidated_blocks for block in row_block], axis=0
                 )
         return consolidated_blocks
