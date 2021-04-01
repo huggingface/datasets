@@ -1372,59 +1372,54 @@ class BaseDatasetTest(TestCase):
     def test_to_csv(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            file_path = os.path.join(tmp_dir, "test_path.csv")
-            bytes_written = dset.to_csv(path_or_buf=file_path)
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.csv")
+                bytes_written = dset.to_csv(path_or_buf=file_path)
 
-            self.assertTrue(os.path.isfile(file_path))
-            self.assertEqual(bytes_written, os.path.getsize(file_path))
-            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                self.assertTrue(os.path.isfile(file_path))
+                self.assertEqual(bytes_written, os.path.getsize(file_path))
+                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
 
-            self.assertEqual(csv_dset.shape, dset.shape)
-            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
-            del dset
+                self.assertEqual(csv_dset.shape, dset.shape)
+                self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
 
             # File buffer argument
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            file_path = os.path.join(tmp_dir, "test_buffer.csv")
-            with open(file_path, "wb+") as buffer:
-                bytes_written = dset.to_csv(path_or_buf=buffer)
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_buffer.csv")
+                with open(file_path, "wb+") as buffer:
+                    bytes_written = dset.to_csv(path_or_buf=buffer)
 
-            self.assertTrue(os.path.isfile(file_path))
-            self.assertEqual(bytes_written, os.path.getsize(file_path))
-            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                self.assertTrue(os.path.isfile(file_path))
+                self.assertEqual(bytes_written, os.path.getsize(file_path))
+                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
 
-            self.assertEqual(csv_dset.shape, dset.shape)
-            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
-            del dset
+                self.assertEqual(csv_dset.shape, dset.shape)
+                self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
 
             # After a select/shuffle transform
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset = dset.select(range(0, len(dset), 2)).shuffle()
-            file_path = os.path.join(tmp_dir, "test_path.csv")
-            bytes_written = dset.to_csv(path_or_buf=file_path)
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset = dset.select(range(0, len(dset), 2)).shuffle()
+                file_path = os.path.join(tmp_dir, "test_path.csv")
+                bytes_written = dset.to_csv(path_or_buf=file_path)
 
-            self.assertTrue(os.path.isfile(file_path))
-            self.assertEqual(bytes_written, os.path.getsize(file_path))
-            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                self.assertTrue(os.path.isfile(file_path))
+                self.assertEqual(bytes_written, os.path.getsize(file_path))
+                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
 
-            self.assertEqual(csv_dset.shape, dset.shape)
-            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
-            del dset
+                self.assertEqual(csv_dset.shape, dset.shape)
+                self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
 
             # With array features
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
-            file_path = os.path.join(tmp_dir, "test_path.csv")
-            bytes_written = dset.to_csv(path_or_buf=file_path)
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.csv")
+                bytes_written = dset.to_csv(path_or_buf=file_path)
 
-            self.assertTrue(os.path.isfile(file_path))
-            self.assertEqual(bytes_written, os.path.getsize(file_path))
-            csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                self.assertTrue(os.path.isfile(file_path))
+                self.assertEqual(bytes_written, os.path.getsize(file_path))
+                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
 
-            self.assertEqual(csv_dset.shape, dset.shape)
-            self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
-
-            del dset
+                self.assertEqual(csv_dset.shape, dset.shape)
+                self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
 
     def test_to_dict(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:

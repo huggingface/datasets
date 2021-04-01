@@ -252,8 +252,8 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
                                     {
                                         "act_type": act_type,
                                         "act_slots": {
-                                            "slot_name": [sl_val for sl_name, sl_val in dialog_act],
-                                            "slot_value": [sl_name for sl_name, sl_val in dialog_act],
+                                            "slot_name": [sl_name for sl_name, sl_val in dialog_act],
+                                            "slot_value": [sl_val for sl_name, sl_val in dialog_act],
                                         },
                                     }
                                     for act_type, dialog_act in mapped_acts.get(turn["turn_id"], {})

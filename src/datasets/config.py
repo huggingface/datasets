@@ -137,6 +137,10 @@ HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
 
+# Pickling tables works only for small tables (<4GiB)
+# For big tables, we write them on disk instead
+MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper()
 if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
