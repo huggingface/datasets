@@ -550,7 +550,7 @@ class ConcatenationTable(Table):
             table = blocks
             return cls(table.table, [[table]])
         elif isinstance(blocks[0], TableBlock):
-            # blocks = cls._consolidate_blocks(blocks, axis=0)
+            blocks = cls._consolidate_blocks(blocks, axis=0)
             table = cls._concat_blocks(blocks, axis=0)
             blocks = [[t] for t in blocks]
             return cls(table, blocks)
