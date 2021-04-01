@@ -1,5 +1,6 @@
 import copy
 from functools import wraps
+from itertools import groupby
 from typing import List, Optional, Tuple, TypeVar, Union
 
 import pyarrow as pa
@@ -476,16 +477,33 @@ class ConcatenationTable(Table):
             tables_to_concat_vertically.append(combined_table)
         return pa.concat_tables(tables_to_concat_vertically)
 
+    def _consolidate_blocks(self, blocks, axis: Optional[int] = None):
+        if axis is not None:
+            consolidated_blocks = []
+            for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
+                if is_in_memory:
+                    block_group = [InMemoryTable(self._concat_blocks(block_group, axis=axis))]
+                consolidated_blocks += list(block_group)
+        else:  # both
+            consolidated_blocks = [self._consolidate_blocks(row_block, axis=1) for row_block in blocks]
+            if all(len(row_block) == 1 for row_block in consolidated_blocks):
+                consolidated_blocks = self._consolidate_blocks(
+                    [block for row_block in consolidated_blocks for block in row_block], axis=0
+                )
+        return consolidated_blocks
+
     @classmethod
     def from_blocks(cls, blocks: TableBlockContainer) -> "ConcatenationTable":
         if isinstance(blocks, TableBlock):
             table = blocks
             return cls(table.table, [[table]])
         elif isinstance(blocks[0], TableBlock):
+            blocks = cls._consolidate_blocks(blocks, axis=0)
             table = cls._concat_blocks(blocks, axis=0)
             blocks = [[t] for t in blocks]
             return cls(table, blocks)
         else:
+            blocks = cls._consolidate_blocks(blocks)
             table = cls._concat_blocks_horizontally_and_vertically(blocks)
             return cls(table, blocks)
 
