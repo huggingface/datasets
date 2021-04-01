@@ -6,101 +6,107 @@
 #     "Dataset Desription": 'dataset_desc'
 # }
 
+import pprint
+
 # import json
 import yaml
-import pprint
+
+
 yaml_struc = """
 name: "" # Filename
-text: false
+allow_empty: false
 subsections:
   - name: "Dataset Card for X"
-    text: false
-    required: true
+    allow_empty: true
     subsections:
       - name: "Table of Contents"
-        text: true
+        allow_empty: false
         subsections: null # meaning it should not be checked.
       - name: "Dataset Description"
-        text: false
+        allow_empty: false
         subsections:
           - name: "Dataset Summary"
-            text: true
+            allow_empty: false
             subsections: null
           - name: "Supported Tasks and Leaderboards"
-            text: false
+            allow_empty: true
             subsections: null
           - name: Languages
-            text: false
+            allow_empty: true
             subsections: null
       - name: "Dataset Structure"
-        text: false
+        allow_empty: true
         subsections:
           - name: "Data Instances"
-            text: true
+            allow_empty: false
             subsections: null
           - name: "Data Fields"
-            text: true
+            allow_empty: false
             subsections: null
           - name: "Data Splits"
-            text: true
+            allow_empty: false
             subsections: null
       - name: "Dataset Creation"
-        text: false
+        allow_empty: true
         subsections:
         - name: "Curation Rationale"
-          text: false
+          allow_empty: true
           subsections: null
         - name: "Source Data"
-          text: false
+          allow_empty: true
           subsections:
             - name: "Initial Data Collection and Normalization"
-              text: false
+              allow_empty: true
               subsections: null
             - name: "Who are the source X producers?"
-              text: false
+              allow_empty: true
               subsections: null
         - name: "Annotations"
-          text: false
+          allow_empty: true
           subsections:
             - name: "Annotation process"
-              text: false
+              allow_empty: true
               subsections: null
             - name: "Who are the annotators?"
-              text: false
+              allow_empty: true
               subsections: null
         - name: "Personal and Sensitive Information"
-          text: false
+          allow_empty: true
           subsections: null
       - name: "Considerations for Using the Data"
-        text: false
+        allow_empty: true
         subsections:
           - name: "Social Impact of Dataset"
-            text: false
+            allow_empty: true
             subsections: null
           - name: "Discussion of Biases"
-            text: false
+            allow_empty: true
             subsections: null
           - name: "Other Known Limitations"
-            text: false
+            allow_empty: true
             subsections: null
       - name: "Additional Information"
-        text: false
+        allow_empty: true
         subsections:
           - name: "Dataset Curators"
-            text: false
+            allow_empty: true
             subsections: null
           - name: "Licensing Information"
-            text: false
+            allow_empty: true
             subsections: null
           - name: "Citation Information"
-            text: true
+            allow_empty: false
             subsections: null
           - name: "Contributions"
-            text: true
+            allow_empty: false
             subsections: null
 """
 
-filler_text = ["[Needs More Information]", "[More Information Needed]", "(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)"]
+filler_text = [
+    "[Needs More Information]",
+    "[More Information Needed]",
+    "(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
+]
 
 
 class Section:
@@ -108,6 +114,7 @@ class Section:
         self.name = name
         self.level = level
         self.text = ""
+        self.is_empty = True
         self.content = {}
         if lines is not None:
             self.parse(lines)
@@ -128,6 +135,8 @@ class Section:
                 else:
                     if current_lines != []:
                         self.text += "".join(current_lines).strip()
+                        if self.text != "" and self.text not in filler_text:
+                            self.is_empty = False
                         current_lines = []
 
                 current_sub_level = " ".join(line.split()[1:]).strip(" \n")
@@ -139,11 +148,14 @@ class Section:
             else:
                 if current_lines != []:
                     self.text += "".join(current_lines).strip()
+                    if self.text != "" and self.text not in filler_text:
+                        self.is_empty = False
 
     def to_dict(self):
         return {
             "name": self.name,
-            "test": self.text,
+            "text": self.text,
+            "is_empty": self.is_empty,
             "subsections": [value.to_dict() for value in self.content.values()],
         }
 
@@ -163,51 +175,66 @@ class ReadMe(Section):  # Level 0
                     if tag_count == 2:
                         break
             else:
-                print("The README doesn't contain proper tags. Please ensure you add the correct YAML tags.")
-                return
+                raise ValueError("The README doesn't contain proper tags. Please ensure you add the correct YAML tags.")
             super().parse(f)
 
-    def _validate_section(self, section , structure):
+    def _validate_section(self, section, structure):
         # Text validation
-        if structure['text'] == True:
-            if section.text.strip() == '' or section.text.strip() in filler_text:
-                print(f"Expected some text for section '{section.name}'")
+        error_list = []
+        if structure["allow_empty"] == False:
+            if section.is_empty:
+                print(section.text)
+                error_list.append(f"Expected some text for section '{section.name}'")
 
-        if structure['subsections'] is not None:
+        if structure["subsections"] is not None:
             # If no subsections present
             if section.content == {}:
-                values = [subsection['name'] for subsection in structure['subsections']]
-                print(f"'{section.name}'' expected the following subsections: {values}, found `None`.")
+                values = [subsection["name"] for subsection in structure["subsections"]]
+                error_list.append(f"'{section.name}'' expected the following subsections: {values}, found `None`.")
             else:
                 # Each key validation
-                structure_names = [subsection['name'] for subsection in structure['subsections']]
+                structure_names = [subsection["name"] for subsection in structure["subsections"]]
                 for idx, name in enumerate(structure_names):
                     if name not in section.content:
-                        print(f"'{section.name}' is missing subsection: '{name}'.")
+                        error_list.append(f"'{section.name}' is missing subsection: '{name}'.")
                     else:
-                        self._validate_section(section.content[name], structure['subsections'][idx])
+                        error_list += self._validate_section(section.content[name], structure["subsections"][idx])
 
                 for name in section.content:
                     if name not in structure_names:
-                        print(f"'{section.name}' has an extra subsection: '{name}'. Skipping validation checks for this subsection.")
+                        error_list.append(
+                            f"'{section.name}' has an extra subsection: '{name}'. Skipping validation checks for this subsection."
+                        )
+
+        return error_list
+
+    def __str__(self):
+        return str(self.to_dict())
 
     def validate(self, yaml_struc):
+        error_list = []
         structure = yaml.safe_load(yaml_struc)
         num_first_level_keys = len(self.content.keys())
         if num_first_level_keys > 1:
-            print(f"The README has found several first-level headings: {list(self.content.keys())}. Only one heading is expected.")
+            error_list.append(
+                f"The README has found several first-level headings: {list(self.content.keys())}. Only one heading is expected."
+            )
         elif num_first_level_keys < 1:
-            print(f"The README has no first-level headings.")
+            error_list.append(f"The README has no first-level headings.")
 
         else:
-            print(self.content.keys())
             start_key = list(self.content.keys())[0]
             if start_key.startswith("Dataset Card for"):
-                self._validate_section(self.content[start_key], structure['subsections'][0])
+                error_list += self._validate_section(self.content[start_key], structure["subsections"][0])
             else:
-                print("No first-level hearding starting with `Dataset Card for` found.")
+                error_list.append("No first-level heading starting with `Dataset Card for` found.")
+        return error_list
 
 
 if __name__ == "__main__":
     readme = ReadMe("./dummy_readme.md")
-    readme.validate(yaml_struc)
+    error_list = readme.validate(yaml_struc)
+    if error_list != []:
+        errors = "\n".join(list(map(lambda x: "-\t" + x, error_list)))
+        error_string = "The following issues were found with the README\n" + errors
+        raise ValueError(error_string)
