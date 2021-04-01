@@ -515,7 +515,6 @@ def prepare_module(
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
                 logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
-        # todo load readme
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"

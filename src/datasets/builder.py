@@ -292,7 +292,6 @@ class DatasetBuilder:
         """Empty dict if doesn't exist"""
         dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
         if os.path.exists(dset_infos_file_path):
-            # todo load readme
             return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
         return {}
 
