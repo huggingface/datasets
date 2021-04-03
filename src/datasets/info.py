@@ -178,12 +178,12 @@ class DatasetInfo:
 
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
-        def unique(fields):
+        def unique(values):
             seen = set()
-            for field in fields:
-                if field not in seen:
-                    seen.add(field)
-                    yield field
+            for value in values:
+                if value not in seen:
+                    seen.add(value)
+                    yield value
 
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
         description = "\n\n".join(unique(info.description for info in dataset_infos))
