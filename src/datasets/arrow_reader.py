@@ -551,7 +551,7 @@ class ReadInstruction(object):
             raise AssertionError("It is forbidden to sum ReadInstruction instances with different rounding values.")
         return self._read_instruction_from_relative_instructions(self._relative_instructions + other_ris)
 
-    def __str__(self):
+    def __repr__(self):
         return "ReadInstruction(%s)" % self._relative_instructions
 
     def to_absolute(self, name2len):

@@ -40,7 +40,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
-from .arrow_reader import ArrowReader
+from .arrow_reader import ArrowReader, ReadInstruction, _RelativeInstruction
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -524,7 +524,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Get json serializable state
         state = {
-            key: self.__dict__[key] if key != "_split" else str(self.__dict__[key])
+            key: self.__dict__[key] if key != "_split" else repr(self.__dict__[key])
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -611,6 +611,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         else:
             indices_table = None
+
+        state["_split"] = eval(
+            state["_split"].replace("ReadInstruction", "ReadInstruction._read_instruction_from_relative_instructions")
+        )
 
         return Dataset(
             arrow_table=arrow_table,
