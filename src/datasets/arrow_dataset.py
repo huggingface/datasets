@@ -40,7 +40,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
-from .arrow_reader import ArrowReader, ReadInstruction, _RelativeInstruction
+from .arrow_reader import ArrowReader, ReadInstruction, _RelativeInstruction  # noqa: F401
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
