@@ -613,7 +613,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = None
 
         state["_split"] = eval(
-            state["_split"].replace("ReadInstruction", "ReadInstruction._read_instruction_from_relative_instructions", 1)
+            state["_split"].replace(
+                "ReadInstruction", "ReadInstruction._read_instruction_from_relative_instructions", 1
+            )
         )
 
         return Dataset(
