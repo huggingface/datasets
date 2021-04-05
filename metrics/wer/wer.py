@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Word Error Ratio (WER) metric. """
-
-from jiwer import wer
+import editdistance
 
 import datasets
 
@@ -71,6 +70,28 @@ Examples:
 """
 
 
+def word_error_rate(predictions, references):
+    scores = 0
+    words = 0
+    if len(predictions) != len(references):
+        raise ValueError(
+            "In word error rate calculation, hypotheses and reference"
+            " lists must have the same number of elements. But I got:"
+            "{0} and {1} correspondingly".format(len(predictions), len(references))
+        )
+    for h, r in zip(predictions, references):
+        h_list = h.split()
+        r_list = r.split()
+        words += len(r_list)
+        scores += editdistance.eval(h_list, r_list)
+    if words != 0:
+        wer = 1.0 * scores / words
+    else:
+        wer = float("inf")
+
+    return wer
+
+
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class WER(datasets.Metric):
     def _info(self):
@@ -91,4 +112,4 @@ class WER(datasets.Metric):
         )
 
     def _compute(self, predictions, references):
-        return wer(references, predictions)
+        return word_error_rate(references, predictions)
