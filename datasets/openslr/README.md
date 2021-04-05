@@ -1,8 +1,8 @@
 ---
 annotations_creators:
-- crowdsourced
+- 
 language_creators:
-- crowdsourced
+- 
 languages:
 - "jv"
 - "km"
