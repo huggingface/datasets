@@ -82,7 +82,7 @@ English
 
 ### Data Instances
 
-An example of 'train' looks as follows.
+An example of 'train' looks as follows:
 ```
 {
   'label': 0, # integer label corresponding to "card_arrival" intent
@@ -95,35 +95,118 @@ An example of 'train' looks as follows.
 - `text`: a string feature.
 - `label`: One of classification labels (0-76) corresponding to unique intents.
 
+Intent names are mapped to `label` in the following way:
+
+| label | intent (category)                                           |
+|---:|:-------------------------------------------------|
+|  0 | activate_my_card                                 |
+|  1 | age_limit                                        |
+|  2 | apple_pay_or_google_pay                          |
+|  3 | atm_support                                      |
+|  4 | automatic_top_up                                 |
+|  5 | balance_not_updated_after_bank_transfer          |
+|  6 | balance_not_updated_after_cheque_or_cash_deposit |
+|  7 | beneficiary_not_allowed                          |
+|  8 | cancel_transfer                                  |
+|  9 | card_about_to_expire                             |
+| 10 | card_acceptance                                  |
+| 11 | card_arrival                                     |
+| 12 | card_delivery_estimate                           |
+| 13 | card_linking                                     |
+| 14 | card_not_working                                 |
+| 15 | card_payment_fee_charged                         |
+| 16 | card_payment_not_recognised                      |
+| 17 | card_payment_wrong_exchange_rate                 |
+| 18 | card_swallowed                                   |
+| 19 | cash_withdrawal_charge                           |
+| 20 | cash_withdrawal_not_recognised                   |
+| 21 | change_pin                                       |
+| 22 | compromised_card                                 |
+| 23 | contactless_not_working                          |
+| 24 | country_support                                  |
+| 25 | declined_card_payment                            |
+| 26 | declined_cash_withdrawal                         |
+| 27 | declined_transfer                                |
+| 28 | direct_debit_payment_not_recognised              |
+| 29 | disposable_card_limits                           |
+| 30 | edit_personal_details                            |
+| 31 | exchange_charge                                  |
+| 32 | exchange_rate                                    |
+| 33 | exchange_via_app                                 |
+| 34 | extra_charge_on_statement                        |
+| 35 | failed_transfer                                  |
+| 36 | fiat_currency_support                            |
+| 37 | get_disposable_virtual_card                      |
+| 38 | get_physical_card                                |
+| 39 | getting_spare_card                               |
+| 40 | getting_virtual_card                             |
+| 41 | lost_or_stolen_card                              |
+| 42 | lost_or_stolen_phone                             |
+| 43 | order_physical_card                              |
+| 44 | passcode_forgotten                               |
+| 45 | pending_card_payment                             |
+| 46 | pending_cash_withdrawal                          |
+| 47 | pending_top_up                                   |
+| 48 | pending_transfer                                 |
+| 49 | pin_blocked                                      |
+| 50 | receiving_money                                  |
+| 51 | Refund_not_showing_up                            |
+| 52 | request_refund                                   |
+| 53 | reverted_card_payment?                           |
+| 54 | supported_cards_and_currencies                   |
+| 55 | terminate_account                                |
+| 56 | top_up_by_bank_transfer_charge                   |
+| 57 | top_up_by_card_charge                            |
+| 58 | top_up_by_cash_or_cheque                         |
+| 59 | top_up_failed                                    |
+| 60 | top_up_limits                                    |
+| 61 | top_up_reverted                                  |
+| 62 | topping_up_by_card                               |
+| 63 | transaction_charged_twice                        |
+| 64 | transfer_fee_charged                             |
+| 65 | transfer_into_account                            |
+| 66 | transfer_not_received_by_recipient               |
+| 67 | transfer_timing                                  |
+| 68 | unable_to_verify_identity                        |
+| 69 | verify_my_identity                               |
+| 70 | verify_source_of_funds                           |
+| 71 | verify_top_up                                    |
+| 72 | virtual_card_not_working                         |
+| 73 | visa_or_mastercard                               |
+| 74 | why_verify_identity                              |
+| 75 | wrong_amount_of_cash_received                    |
+| 76 | wrong_exchange_rate_for_cash_withdrawal          |
+
 ### Data Splits
 
-| Dataset statistics               |      |
-| ---            |   --- |
-| Train examples | 10 003 |
-| Test examples | 3 080 |
-| Number of intents | 77 |
+| Dataset statistics | Train | Test |
+| --- | --- | --- |
+| Number of examples | 10 003 | 3 080 |
+| Average character length | 59.5 | 54.2 |
+| Number of intents | 77 | 77 |
+| Number of domains | 1 | 1 |
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[N/A]
+Previous intent detection datasets such as Web Apps, Ask Ubuntu, the Chatbot Corpus or SNIPS are limited to small number of classes (<10), which oversimplifies the intent detection task and does not emulate the true environment of commercial systems. Although there exist large scale *multi-domain* datasets ([HWU64](https://github.com/xliuhw/NLU-Evaluation-Data) and [CLINC150](https://github.com/clinc/oos-eval)), the examples per each domain may not sufficiently capture the full complexity of each domain as encountered "in the wild". This dataset tries to fill the gap and provides a very fine-grained set of intents in a *single-domain* i.e. **banking**. Its focus on fine-grained single-domain intent detection makes it complementary to the other two multi-domain datasets.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[N/A]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[N/A]
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[N/A]
+The dataset does not contain any additional annotations.
 
 #### Who are the annotators?
 
@@ -137,21 +220,23 @@ An example of 'train' looks as follows.
 
 ### Social Impact of Dataset
 
-[N/A]
+The purpose of this dataset it to help develop better intent detection systems.
+
+Any comprehensive intent detection evaluation should involve both coarser-grained multi-domain datasets and a fine-grained single-domain dataset such as BANKING77.
 
 ### Discussion of Biases
 
-[N/A]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[N/A]
+[PolyAI](https://github.com/PolyAI-LDN)
 
 ### Licensing Information
 
