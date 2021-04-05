@@ -105,7 +105,7 @@ class WER(datasets.Metric):
                     "references": datasets.Value("string", id="sequence"),
                 }
             ),
-            codebase_urls=["https://github.com/jitsi/jiwer/"],
+            codebase_urls=["https://github.com/roy-ht/editdistance"],
             reference_urls=[
                 "https://en.wikipedia.org/wiki/Word_error_rate",
             ],
