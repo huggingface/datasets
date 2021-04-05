@@ -15,6 +15,7 @@
 """WinoBias: Winograd-schema dataset for detecting gender bias"""
 
 from __future__ import absolute_import, division, print_function
+
 import collections
 
 import datasets
@@ -52,9 +53,11 @@ _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENS
 
 _URL = "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format"
 
+
 class WinoBiasConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
         super(WinoBiasConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+
 
 class WinoBias(datasets.GeneratorBasedBuilder):
     """WinoBias: Winograd-schema dataset for detecting gender bias"""
@@ -80,22 +83,21 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         WinoBiasConfig(
-            name='type1_pro',
-            description = "winoBias type1_pro_stereotype data in cornll format",
+            name="type1_pro",
+            description="winoBias type1_pro_stereotype data in cornll format",
         ),
         WinoBiasConfig(
-            name='type1_anti',
-            description = "winoBias type1_anti_stereotype data in cornll format",
-        ), 
-        WinoBiasConfig(
-            name='type2_pro',
-            description = "winoBias type2_pro_stereotype data in cornll format",
+            name="type1_anti",
+            description="winoBias type1_anti_stereotype data in cornll format",
         ),
         WinoBiasConfig(
-            name='type2_anti',
-            description = "winoBias type2_anti_stereotype data in cornll format",
+            name="type2_pro",
+            description="winoBias type2_pro_stereotype data in cornll format",
         ),
-        
+        WinoBiasConfig(
+            name="type2_anti",
+            description="winoBias type2_anti_stereotype data in cornll format",
+        ),
     ]
 
     def _info(self):
@@ -237,19 +239,18 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        dev_data_dir = dl_manager.download(_URL+"/dev_"+self.config.name+"_stereotype.v4_auto_conll")
-        test_data_dir = dl_manager.download(_URL+"/test_"+self.config.name+"_stereotype.v4_auto_conll")
+        dev_data_dir = dl_manager.download(_URL + "/dev_" + self.config.name + "_stereotype.v4_auto_conll")
+        test_data_dir = dl_manager.download(_URL + "/test_" + self.config.name + "_stereotype.v4_auto_conll")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dev_data_dir},
             ),
-
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath":test_data_dir},
+                gen_kwargs={"filepath": test_data_dir},
             ),
         ]
 
@@ -291,9 +292,11 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         "speaker": speaker,
                         "ner_tags": ner_tags,
                         "verbal_predicates": verbal_predicates,
-                        "coreference_clusters": sum(clusters[1], []),  #flatten the list as writing the exmaples needs an array.
+                        "coreference_clusters": sum(
+                            clusters[1], []
+                        ),  # flatten the list as writing the exmaples needs an array.
                     }
-                    
+
                     word_num = []
                     tokens = []
                     pos_tags = []
@@ -336,9 +339,9 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
                         if word_is_verbal_predicate:
                             verbal_predicates.append(splits[3])
-                        if coreference != '-':
+                        if coreference != "-":
                             for segment in coreference.split("|"):
-                                if segment[0] == '(':
+                                if segment[0] == "(":
                                     if segment[-1] == ")":
                                         cluster_id = int(segment[1:-1])
                                         clusters[cluster_id].append([splits[2], splits[2]])
@@ -349,8 +352,6 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                     cluster_id = int(segment[:-1])
                                     start = coref_stacks[cluster_id].pop()
                                     clusters[cluster_id].append([start, splits[2]])
-
-
 
             if tokens:
                 # add the last one
