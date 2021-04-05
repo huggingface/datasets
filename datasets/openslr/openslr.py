@@ -150,9 +150,8 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             with open(path, encoding="utf-8") as f:
                 lines = f.readlines()
                 for id_, line in enumerate(lines):
-                    # field_values = line.strip().split("\t4?\t")
                     field_values = re.split(r'\t4?\t', line.strip())
-                    # set absolute path for mp3 audio file
+                    # set absolute path for audio file
                     field_values[0] = os.path.join(path_to_wavs[i], f'{field_values[0]}.wav')
                     counter += 1
                     yield counter, {key: value for key, value in zip(data_fields, field_values)}
