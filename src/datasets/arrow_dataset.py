@@ -708,6 +708,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column(column).unique().to_pylist()
 
     @deprecated()
+    @update_metadata_with_features
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
