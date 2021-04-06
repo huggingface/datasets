@@ -257,9 +257,11 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
 def set_current_working_directory_to_temp_dir(*args, **kwargs):
     original_working_dir = str(Path().resolve())
     with tempfile.TemporaryDirectory(*args, **kwargs) as tmp_dir:
-        os.chdir(tmp_dir)
-        yield
-        os.chdir(original_working_dir)
+        try:
+            os.chdir(tmp_dir)
+            yield
+        finally:
+            os.chdir(original_working_dir)
 
 
 @contextmanager

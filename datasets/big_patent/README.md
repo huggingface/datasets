@@ -10,7 +10,26 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  a:
+  - 100K<n<1M
+  all:
+  - 1M<n<10M
+  b:
+  - 100K<n<1M
+  c:
+  - 100K<n<1M
+  d:
+  - 10K<n<100K
+  e:
+  - 10K<n<100K
+  f:
+  - 10K<n<100K
+  g:
+  - 100K<n<1M
+  h:
+  - 100K<n<1M
+  'y':
+  - 100K<n<1M
 source_datasets:
 - original
 task_categories:

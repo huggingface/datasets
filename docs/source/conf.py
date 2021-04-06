@@ -71,7 +71,8 @@ exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
 pygments_style = None
 
 # Remove the prompt when copying examples
-copybutton_prompt_text = ">>> "
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -192,3 +193,4 @@ def setup(app):
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings
 napoleon_use_ivar = True
+napoleon_use_rtype = False

@@ -1,3 +1,4 @@
+import warnings
 from functools import wraps
 from typing import Callable, Optional
 
@@ -21,9 +22,9 @@ def deprecated(help_message: Optional[str] = None):
         warning_msg = (
             (
                 f"{deprecated_function.__name__} is deprecated and will be removed "
-                "in the next major version of datasets. "
+                "in the next major version of datasets."
             )
-            + help_message
+            + f" {help_message}"
             if help_message
             else ""
         )
@@ -32,7 +33,7 @@ def deprecated(help_message: Optional[str] = None):
         def wrapper(*args, **kwargs):
             func_hash = hash(deprecated_function)
             if func_hash not in _emitted_deprecation_warnings:
-                logger.warning(warning_msg)
+                warnings.warn(warning_msg, category=FutureWarning, stacklevel=2)
                 _emitted_deprecation_warnings.add(func_hash)
             return deprecated_function(*args, **kwargs)
 

@@ -1,62 +1,80 @@
 ---
 annotations_creators:
-  - found
+- found
 language_creators:
-  - found
+- found
 languages:
-  - bg
-  - ca
-  - cs
-  - da
-  - de
-  - el
-  - en
-  - es
-  - et
-  - eu
-  - fi
-  - fr
-  - ga
-  - gl
-  - ha
-  - hr
-  - hu
-  - ig
-  - is
-  - it
-  - km
-  - lt
-  - lv
-  - mt
-  - my
-  - nb
-  - ne
-  - nl
-  - nn
-  - pl
-  - pt
-  - ro
-  - ru
-  - si
-  - sk
-  - sl
-  - so
-  - sv
-  - sw
-  - tl
-
+- bg
+- ca
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- eu
+- fi
+- fr
+- ga
+- gl
+- ha
+- hr
+- hu
+- ig
+- is
+- it
+- km
+- lt
+- lv
+- mt
+- my
+- nb
+- ne
+- nl
+- nn
+- pl
+- pt
+- ro
+- ru
+- si
+- sk
+- sl
+- so
+- sv
+- sw
+- tl
 licenses:
-  - cc0-1.0
+- cc0-1.0
 multilinguality:
-  - multilingual
+- multilingual
 size_categories:
+  de-pl:
+  - 100K<n<1M
+  el-en:
+  - 1M<n<10M
+  en-ha:
   - 10K<n<100K
+  en-ig:
+  - 10K<n<100K
+  en-km:
+  - 10K<n<100K
+  en-so:
+  - 10K<n<100K
+  en-sw:
+  - 100K<n<1M
+  en-tl:
+  - 100K<n<1M
+  es-gl:
+  - 1M<n<10M
+  fr-nl:
+  - 1M<n<10M
 source_datasets:
-  - original
+- original
 task_categories:
-  - conditional-text-generation
+- conditional-text-generation
 task_ids:
-  - machine-translation
+- machine-translation
 ---
 
 # Dataset Card Creation Guide

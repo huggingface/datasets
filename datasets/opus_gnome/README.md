@@ -196,7 +196,26 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  ar-bal:
+  - n<1K
+  bg-csb:
+  - 1K<n<10K
+  ca-en_GB:
+  - 1K<n<10K
+  cs-eo:
+  - n<1K
+  cs-tk:
+  - 10K<n<100K
+  da-vi:
+  - n<1K
+  de-ha:
+  - n<1K
+  de-tt:
+  - 1K<n<10K
+  el-sk:
+  - n<1K
+  en_GB-my:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:

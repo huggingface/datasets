@@ -20,11 +20,11 @@ import contextlib
 import copy
 import json
 import os
-import pickle
 import shutil
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
@@ -35,13 +35,14 @@ import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import Features, Value, cast_to_python_objects
+from .features import Features, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -52,9 +53,10 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .info import DatasetInfo
+from .info import DATASET_INFO_FILENAME, DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
@@ -148,39 +150,6 @@ class DatasetTransformationNotAllowedError(Exception):
     pass
 
 
-def replayable_table_alteration(func):
-    """
-    Wrapper for dataset transforms that modify an existing table
-    to save the alteration in order to be able to replay it later.
-
-    This happens when the Dataset is pickled and if the table is reloaded from the disk.
-    In this case we have to re-alter the table using the history of transforms.
-
-    The replay happens in the __setstate__ method.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if args:
-            self: "Dataset" = args[0]
-            args = args[1:]
-        else:
-            self: "Dataset" = kwargs.pop("self")
-        # an history item is a tuple of the method name to call and then the args and the kwargs
-        new_inplace_history_item = (func.__name__, copy.deepcopy(args), copy.deepcopy(kwargs))
-        # apply actual function
-        out: Optional["Dataset"] = func(self, *args, **kwargs)
-        # get the dataset to update (to handle both in-place and not in-place transforms)
-        dataset: "Dataset" = out if out is not None else self
-        # update the history to be able to replay it later
-        for inplace_hist_per_file in dataset._inplace_history:
-            inplace_hist_per_file["transforms"].append(new_inplace_history_item)
-        return out
-
-    wrapper._decorator_name_ = "table_alteration"
-    return wrapper
-
-
 def transmit_format(func):
     """Wrapper for dataset transforms that recreate a new Dataset to transmit the format of the original dataset to the new dataset"""
 
@@ -223,31 +192,23 @@ def transmit_format(func):
 
 
 class Dataset(DatasetInfoMixin, IndexableMixin):
-    """A Dataset backed by an Arrow table or Record Batch."""
+    """A Dataset backed by an Arrow table."""
 
     def __init__(
         self,
-        arrow_table: pa.Table,
-        data_files: Optional[List[dict]] = None,
+        arrow_table: Table,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        indices_table: Optional[pa.Table] = None,
-        indices_data_files: Optional[List[dict]] = None,
+        indices_table: Optional[Table] = None,
         fingerprint: Optional[str] = None,
-        inplace_history: Optional[List[dict]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
-        self._data: pa.Table = arrow_table
-        self._indices: Optional[pa.Table] = indices_table
-        self._data_files: List[dict] = data_files if data_files is not None else []
-        self._indices_data_files: List[dict] = indices_data_files if indices_data_files is not None else []
-        self._inplace_history: List[dict] = (
-            inplace_history
-            if inplace_history is not None
-            else [{"transforms": []} for _ in range(len(self._data_files))]
-        )
+
+        self._data: Table = arrow_table
+        self._indices: Optional[Table] = indices_table
+
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
@@ -313,23 +274,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             datasets.Dataset
         """
-        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
-        data_files = [{"filename": filename}] if not in_memory else None
+        table = ArrowReader.read_table(filename, in_memory=in_memory)
 
         if indices_filename is not None:
             indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
-            indices_data_files = [{"filename": indices_filename}] if not in_memory else None
         else:
             indices_pa_table = None
-            indices_data_files = None
 
         return cls(
-            arrow_table=pa_table,
-            data_files=data_files,
+            arrow_table=table,
             info=info,
             split=split,
             indices_table=indices_pa_table,
-            indices_data_files=indices_data_files,
         )
 
     @classmethod
@@ -341,18 +297,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
-        stream = pa.BufferReader(buffer)
-        f = pa.ipc.open_stream(stream)
-        pa_table = f.read_all()
+        table = InMemoryTable.from_buffer(buffer)
 
         if indices_buffer is not None:
-            indices_mmap = pa.BufferReader(indices_buffer)
-            indices_f = pa.ipc.open_stream(indices_mmap)
-            indices_pa_table = indices_f.read_all()
+            indices_table = InMemoryTable.from_buffer(buffer)
         else:
-            indices_pa_table = None
+            indices_table = None
 
-        return cls(pa_table, info=info, split=split, indices_table=indices_pa_table)
+        return cls(table, info=info, split=split, indices_table=indices_table)
 
     @classmethod
     def from_pandas(
@@ -390,10 +342,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        pa_table: pa.Table = pa.Table.from_pandas(
-            df=df, schema=pa.schema(features.type) if features is not None else None
-        )
-        return cls(pa_table, info=info, split=split)
+        table = InMemoryTable.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        return cls(table, info=info, split=split)
 
     @classmethod
     def from_dict(
@@ -431,7 +381,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
             for col, data in mapping.items()
         }
-        pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
+        pa_table = InMemoryTable.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
@@ -535,45 +485,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if hasattr(self, "_indices"):
             del self._indices
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state["_info"] = json.dumps(asdict(state["_info"]))
-        state["_split"] = str(state["_split"]) if isinstance(state["_split"], NamedSplit) else state["_split"]
-        if self._data_files:
-            state["_data"] = None
-        if self._indices_data_files:
-            state["_indices"] = None
-        logger.debug("Copying history")
-        state["_inplace_history"] = [{"transforms": list(h["transforms"])} for h in state["_inplace_history"]]
-        return state
+    def __enter__(self):
+        return self
 
-    def __setstate__(self, state):
-        assert (
-            state.get("_data") is not None or state.get("_data_files") is not None
-        ), "tried to unpickle a dataset without arrow_table or data_files"
-        state = state.copy()
-        state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
-        state["_split"] = NamedSplit(state["_split"]) if isinstance(state["_split"], str) else state["_split"]
-        self.__dict__ = state
-        reader = ArrowReader("", self.info)
-        # Read arrow tables
-        if self._data is None and self._data_files:
-            tables = []
-            for data_file, inplace_hist_per_file in zip(self._data_files, self._inplace_history):
-                # Replay in-place history of transforms (cast_, rename_column_, etc.)
-                pa_table = reader._read_files([data_file])
-                sub_dataset = Dataset(pa_table, fingerprint="")
-                for inplace_transform_name, args, kwargs in inplace_hist_per_file["transforms"]:
-                    out = getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
-                    sub_dataset = sub_dataset if out is None else out
-                tables.append(sub_dataset._data)
-            tables = [t for t in tables if len(t) > 0]
-            # fix all-empty tables
-            tables = tables or [pa.Table.from_batches([], schema=pa.schema(self.info.features.type))]
-            self._data = pa.concat_tables(tables)
-        reader = ArrowReader("", DatasetInfo(features=Features({"indices": Value("int64")})))
-        if self._indices is None and self._indices_data_files:
-            self._indices = reader._read_files(self._indices_data_files)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Here `del` is used to del the pyarrow tables. This properly closes the files used for memory mapped tables
+        self.__del__()
 
     def save_to_disk(self, dataset_path: str, fs=None):
         """
@@ -589,68 +506,69 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
-        self = pickle.loads(pickle.dumps(self))
 
         if is_remote_filesystem(fs):
             dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
+            cache_files_paths = [Path(cache_filename) for cache_filename in self.cache_files]
+            # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
+            if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
+                raise PermissionError(
+                    f"Tried to overwrite {Path(dataset_path, config.DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
+                )
+            if Path(dataset_path, config.DATASET_INDICES_FILENAME) in cache_files_paths:
+                raise PermissionError(
+                    f"Tried to overwrite {Path(dataset_path, config.DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself."
+                )
 
-        # create temporary directory for saving
-        with tempfile.TemporaryDirectory() as temp_dataset_path:
-            fs.makedirs(dataset_path, exist_ok=True)
+        # Get json serializable state
+        state = {
+            key: self.__dict__[key] if key != "_split" else str(self.__dict__[key])
+            for key in [
+                "_fingerprint",
+                "_format_columns",
+                "_format_kwargs",
+                "_format_type",
+                "_indexes",
+                "_output_all_columns",
+                "_split",
+            ]
+        }
+        state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
+        state["_indices_files"] = (
+            [{"filename": config.DATASET_INDICES_FILENAME}] if self._indices is not None else None
+        )
+        for k in state["_format_kwargs"].keys():
+            try:
+                json.dumps(state["_format_kwargs"][k])
+            except TypeError as e:
+                raise TypeError(str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't.")
 
-            # Write indices if needed
-            if self._indices is not None:
-                if not self._indices_data_files:
-                    cache_file_name = os.path.join(temp_dataset_path, "indices.arrow")
-                    with ArrowWriter(path=cache_file_name) as writer:
-                        writer.write_table(self._indices)
-                        writer.finalize()
-                    self._indices_data_files = [{"filename": cache_file_name}]
-            # Write dataset if needed
-            if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
-                cache_file_name = os.path.join(temp_dataset_path, "dataset.arrow")
-                with ArrowWriter(path=cache_file_name) as writer:
-                    writer.write_table(self._data)
+        # Get json serializable dataset info
+        dataset_info = asdict(self._info)
+
+        # Save dataset + indices + state + info
+        fs.makedirs(dataset_path, exist_ok=True)
+        with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
+            with ArrowWriter(stream=dataset_file) as writer:
+                writer.write_table(self._data)
+                writer.finalize()
+        if self._indices is not None:
+            with fs.open(Path(dataset_path, config.DATASET_INDICES_FILENAME).as_posix(), "wb") as indices_file:
+                with ArrowWriter(stream=indices_file) as writer:
+                    writer.write_table(self._indices)
                     writer.finalize()
-                self._data_files = [{"filename": cache_file_name}]
-                self._inplace_history = [{"transforms": []}]
-            # Copy all files into the dataset directory
-            for data_file in self._data_files + self._indices_data_files:
-                src = Path(data_file["filename"])
-                dest = Path(dataset_path).joinpath(src.name)
-                if fs.protocol != "file":
-                    fs.put(src.as_posix(), dest.as_posix())
-                elif src.as_posix() != dest.as_posix():
-                    fs.put(src.as_posix(), dest.as_posix())
-                # Change path to relative path from inside the destination directory
-                data_file["filename"] = src.name
-
-            # Get state
-            state = self.__getstate__()
-            dataset_info = json.loads(state.pop("_info"))
-            assert state.get("_data") is None, "arrow table needs to be memory mapped"
-            assert state.get("_indices") is None, "arrow table needs to be memory mapped"
-            assert all(
-                len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
-            ), "in-place history needs to be empty"
-            for k in state["_format_kwargs"].keys():
-                try:
-                    json.dumps(state["_format_kwargs"][k])
-                except TypeError as e:
-                    raise TypeError(str(e) + f"\nThe format kwargs must be jSON serializable, but key '{k}' isn't.")
-            # Serialize state
-            with fs.open(Path(dataset_path).joinpath("state.json").as_posix(), "w", encoding="utf-8") as state_file:
-                json.dump(state, state_file, indent=2, sort_keys=True)
-            with fs.open(
-                Path(dataset_path).joinpath("dataset_info.json").as_posix(), "w", encoding="utf-8"
-            ) as dataset_info_file:
-                json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
-            logger.info("Dataset saved in {}".format(dataset_path))
+        with fs.open(
+            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
+        ) as state_file:
+            json.dump(state, state_file, indent=2, sort_keys=True)
+        with fs.open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
+            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+        logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str, fs=None) -> "Dataset":
+    def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
         filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
@@ -660,6 +578,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 the dataset directory where the dataset will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
                 Instance of the remote filesystem used to download the files from.
+            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -670,36 +589,49 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name).joinpath(src_dataset_path)
+            dataset_path = Path(tmp_dir.name, src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(Path(dataset_path).joinpath("state.json").as_posix(), "r", encoding="utf-8") as state_file:
-            state = json.load(state_file)
         with open(
-            Path(dataset_path).joinpath("dataset_info.json").as_posix(), "r", encoding="utf-8"
-        ) as dataset_info_file:
-            dataset_info = json.load(dataset_info_file)
-        state["_info"] = json.dumps(dataset_info)
-        dataset = Dataset.from_dict({})
-        state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
-        # Change path to absolute path
-        for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-            data_file["filename"] = Path(dataset_path).joinpath(data_file["filename"]).as_posix()
-        dataset.__setstate__(state)
+            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
+        ) as state_file:
+            state = json.load(state_file)
+        with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
+            dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
-        if "tmp_dir" in vars() and os.path.exists(tmp_dir.name):
-            shutil.rmtree(tmp_dir.name, ignore_errors=True)
-        return dataset
+        table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
+        arrow_table = concat_tables(
+            table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
+            for data_file in state["_data_files"]
+        )
+        if state["_indices_files"]:
+            indices_table = concat_tables(
+                table_cls.from_file(Path(dataset_path, indices_file["filename"]).as_posix())
+                for indices_file in state["_indices_files"]
+            )
+        else:
+            indices_table = None
+
+        return Dataset(
+            arrow_table=arrow_table,
+            indices_table=indices_table,
+            info=dataset_info,
+            split=state["_split"],
+            fingerprint=state["_fingerprint"],
+        )
 
     @property
-    def data(self) -> pa.Table:
+    def data(self) -> Table:
         """The Apache Arrow table backing the dataset."""
         return self._data
 
     @property
     def cache_files(self):
         """The cache file containing the Apache Arrow table backing the dataset."""
-        return self._data_files
+        cache_files = list_table_cache_files(self._data)
+        if self._indices is not None:
+            cache_files += list_table_cache_files(self._indices)
+        return cache_files
 
     @property
     def num_columns(self) -> int:
@@ -749,14 +681,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @deprecated(help_message="Use the dataset.dictionary_encode_column method instead.")
-    @replayable_table_alteration
+    @deprecated()
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
-            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionary of the strings. This only affect the internal storage.
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        .. deprecated:: 1.4.0
 
         Args:
             column (:obj:`str`):
@@ -772,13 +705,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    @deprecated(help_message="Use the dataset.flatten method instead.")
-    @replayable_table_alteration
+    @deprecated(help_message="Use Dataset.flatten instead.")
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
-        """
-        In-place version of :func:`Dataset.flatten`
-        This method is deprecated, please use :func:`Dataset.flatten` instead.
+        """In-place version of :meth:`Dataset.flatten`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.flatten` instead.
         """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
@@ -791,7 +724,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
-    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flattens the table.
@@ -815,13 +747,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.cast method instead.")
-    @replayable_table_alteration
+    @deprecated(help_message="Use Dataset.cast instead.")
     @fingerprint_transform(inplace=True)
     def cast_(self, features: Features):
-        """
-        In-place version of :func:`Dataset.cast`
-        This method is deprecated, please use :func:`Dataset.cast` instead.
+        """In-place version of :meth:`Dataset.cast`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -840,7 +772,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
-    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def cast(self, features: Features, new_fingerprint) -> "Dataset":
         """
@@ -869,13 +800,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.remove_columns method instead.")
-    @replayable_table_alteration
+    @deprecated(help_message="Use Dataset.remove_columns instead.")
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
-        """
-        In-place version of :func:`Dataset.remove_columns`
-        This method is deprecated, please use :func:`Dataset.remove_columns` instead.
+        """In-place version of :meth:`Dataset.remove_columns`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -895,7 +826,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.drop(column_names)
 
-    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -929,13 +859,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use the dataset.rename_column method instead.")
-    @replayable_table_alteration
+    @deprecated(help_message="Use Dataset.rename_column instead.")
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
-        """
-        In-place version of :func:`Dataset.rename_column`
-        This method is deprecated, please use :func:`Dataset.rename_column` instead.
+        """In-place version of :meth:`Dataset.rename_column`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`Dataset.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -971,7 +901,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data = self._data.rename_columns(new_column_names)
 
-    @replayable_table_alteration
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
@@ -1248,16 +1177,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             format_kwargs=self._format_kwargs,
         )
 
-    def cleanup_cache_files(self):
+    def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
         Be carefull when running this command that no other process is currently using other cache files.
 
         Return:
             Number of removed files
         """
-        if not self._data_files or "filename" not in self._data_files[0]:
-            return None
-        current_cache_files = [os.path.abspath(cache_file["filename"]) for cache_file in self._data_files]
+        current_cache_files = [os.path.abspath(cache_file) for cache_file in self.cache_files]
+        if not current_cache_files:
+            return 0
         cache_directory = os.path.dirname(current_cache_files[0])
         logger.info(f"Listing files in {cache_directory}")
         files: List[str] = os.listdir(cache_directory)
@@ -1275,9 +1204,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        if is_caching_enabled():
+        if is_caching_enabled() and self.cache_files:
             cache_file_name = "cache-" + fingerprint + ".arrow"
-            cache_directory = os.path.dirname(self._data_files[0]["filename"])
+            cache_directory = os.path.dirname(self.cache_files[0])
         else:
             cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
             cache_directory = get_temporary_cache_files_directory()
@@ -1305,7 +1234,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        and update the table (if function does update examples).
 
         Args:
             function (`callable`): with one of the following signature:
@@ -1370,43 +1299,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
-        # Check if the function returns updated examples
-        def does_function_return_dict(inputs, indices):
-            """ Does the function returns a dict. """
-            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
-            processed_inputs = (
-                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
-            )
-            does_return_dict = isinstance(processed_inputs, Mapping)
-
-            if does_return_dict is False and processed_inputs is not None:
-                raise TypeError(
-                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
-                        type(processed_inputs)
-                    )
-                )
-            elif isinstance(test_indices, list) and does_return_dict is True:
-                allowed_batch_return_types = (list, np.ndarray)
-                all_dict_values_are_lists = all(
-                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
-                )
-                if all_dict_values_are_lists is False:
-                    raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
-                        )
-                    )
-
-            return does_return_dict
-
-        # We only update the data table (and use the cache) if the function returns a dict.
-        # Test it on the first element or a small batch (0, 1) for batched inputs
-        logger.info("Testing the mapped function outputs")
-        test_inputs = self[:2] if batched else self[0]
-        test_indices = [0, 1] if batched else 0
-        update_data = does_function_return_dict(test_inputs, test_indices)
-        logger.info("Testing finished, running the mapping function on the dataset")
-
         if num_proc is None or num_proc == 1:
             return self._map_single(
                 function=function,
@@ -1424,7 +1316,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
-                update_data=update_data,
             )
         else:
 
@@ -1435,7 +1326,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
-            prev_env = os.environ.copy()
+            prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
             if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
@@ -1476,7 +1367,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
-                        update_data=update_data,
                     )
                     for rank in range(num_proc)
                 ]
@@ -1510,10 +1400,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
-        update_data=True,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        and update the table (if function does update examples).
 
         Args:
             function (`callable`): with one of the following signature:
@@ -1548,7 +1437,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
-            update_data (`bool`, defaults to `True`): If False, no new arrow table will be created
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1594,11 +1482,49 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
+        # Check if we've already cached this computation (indexed by a hash)
+        if self.cache_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function,
+                # current dataset file and the mapping args
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.warning("Loading cached processed dataset at %s", cache_file_name)
+                info = self.info.copy()
+                info.features = features
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
+        # We set this variable to True after processing the first example/batch in
+        # `apply_function_on_filtered_inputs` if the map function returns a dict.
+        # If set to False, no new arrow table will be created
+        update_data = None
+
         class NumExamplesMismatch(Exception):
             pass
 
+        def validate_function_output(does_return_dict, processed_inputs, indices):
+            """ Validate output of the map function. """
+            if does_return_dict is False and processed_inputs is not None:
+                raise TypeError(
+                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
+                        type(processed_inputs)
+                    )
+                )
+            elif isinstance(indices, list) and does_return_dict is True:
+                allowed_batch_return_types = (list, np.ndarray)
+                all_dict_values_are_lists = all(
+                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
+                )
+                if all_dict_values_are_lists is False:
+                    raise TypeError(
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
+                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
+                        )
+                    )
+
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
             """ Utility to apply the function on a selection of columns. """
+            nonlocal update_data
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
                 effective_indices = indices
@@ -1607,6 +1533,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             processed_inputs = (
                 function(*fn_args, effective_indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
             )
+            if update_data is None:
+                # Check if the function returns updated examples
+                update_data = isinstance(processed_inputs, Mapping)
+                validate_function_output(update_data, processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
@@ -1627,21 +1557,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             inputs.update(processed_inputs)
             return inputs
 
-        # Check if we've already cached this computation (indexed by a hash)
-        if update_data and self._data_files:
-            if cache_file_name is None:
-                # we create a unique hash from the function, current dataset file and the mapping args
-                cache_file_name = self._get_cache_file_path(new_fingerprint)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached processed dataset at %s", cache_file_name)
-                info = self.info.copy()
-                info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
-
-        # Prepare output buffer and batched writer in memory or on file if we update the table
-        if update_data:
-            if features is None:
-                features = self.features
+        def init_buffer_and_writer():
+            # Prepare output buffer and batched writer in memory or on file if we update the table
+            writer_features = features
+            if writer_features is None:
+                writer_features = self.features
                 update_features = True
             else:
                 update_features = False
@@ -1649,7 +1569,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 buf_writer = pa.BufferOutputStream()
                 tmp_file = None
                 writer = ArrowWriter(
-                    features=features,
+                    features=writer_features,
                     stream=buf_writer,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
@@ -1661,18 +1581,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Caching processed dataset at %s", cache_file_name)
                 tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
                 writer = ArrowWriter(
-                    features=features,
+                    features=writer_features,
                     path=tmp_file.name,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
                 )
-        else:
-            # we don't need a writer so we use an empty context
-            writer = contextlib.ExitStack()
+            return buf_writer, writer, tmp_file
 
-        with writer:
+        # If `update_data` is True after processing the first example/batch, initalize these resources with `init_buffer_and_writer`
+        buf_writer, writer, tmp_file = None, None, None
+
+        # Optionally initialize the writer as a context manager
+        with contextlib.ExitStack() as stack:
             try:
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 pbar_iterable = self if not batched else range(0, len(self), batch_size)
@@ -1683,6 +1605,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
                         if update_data:
+                            if i == 0:
+                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                stack.enter_context(writer)
                             example = cast_to_python_objects(example)
                             writer.write(example)
                 else:
@@ -1700,22 +1625,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                             )
                         if update_data:
+                            if i == 0:
+                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                stack.enter_context(writer)
                             batch = cast_to_python_objects(batch)
                             writer.write_batch(batch)
-                if update_data:
+                if update_data and writer is not None:
                     writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
             except (Exception, KeyboardInterrupt):
                 if update_data:
-                    writer.finalize()
-                if update_data and tmp_file is not None:
-                    tmp_file.close()
-                    if os.path.exists(tmp_file.name):
-                        os.remove(tmp_file.name)
+                    if writer is not None:
+                        writer.finalize()
+                    if tmp_file is not None:
+                        tmp_file.close()
+                        if os.path.exists(tmp_file.name):
+                            os.remove(tmp_file.name)
                 raise
 
         if update_data and tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
+            umask = os.umask(0o666)
+            os.umask(umask)
+            os.chmod(cache_file_name, 0o666 & ~umask)
 
         if update_data:
             # Create new Dataset from buffer or file
@@ -1869,31 +1801,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "At least one of indices_cache_file_name or indices_buffer must be provided."
 
         assert fingerprint is not None, "please specify a fingerprint for the dataset with indices"
-        data_files = self._data_files
         if indices_cache_file_name is not None:
-            indices_mmap = pa.memory_map(indices_cache_file_name)
-            if data_files is None:
-                data_files = []
-            indices_data_files = [{"filename": indices_cache_file_name}]
+            indices_table = MemoryMappedTable.from_file(indices_cache_file_name)
         else:
-            indices_mmap = pa.BufferReader(indices_buffer)
-            indices_data_files = None
-        indices_f = pa.ipc.open_stream(indices_mmap)
-        indices_pa_table = indices_f.read_all()
+            indices_table = InMemoryTable.from_buffer(indices_buffer)
 
         # Return new Dataset object
         # don't forget to copy the objects
         return Dataset(
             self._data,
-            data_files=copy.deepcopy(data_files),
             info=self.info.copy(),
             split=self.split,
-            indices_table=indices_pa_table,
-            indices_data_files=copy.deepcopy(indices_data_files),
+            indices_table=indices_table,
             fingerprint=fingerprint,
-            inplace_history=copy.deepcopy(
-                self._inplace_history
-            ),  # in-place transforms have to be kept as we kept the same data_files
         )
 
     @transmit_format
@@ -1948,12 +1868,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
         if self._indices is not None:
-            if PYARROW_V0:
-                indices_array = pa.concat_tables(self._indices.slice(i.as_py(), 1) for i in indices_array).column(0)
-            else:
-                indices_array = self._indices.column(0).take(indices_array)
+            indices_array = self._indices.column(0).take(indices_array)
 
-        indices_table = pa.Table.from_arrays([indices_array], names=["indices"])
+        indices_table = InMemoryTable.from_arrays([indices_array], names=["indices"])
 
         with writer:
             try:
@@ -1969,6 +1886,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
+            umask = os.umask(0o666)
+            os.umask(umask)
+            os.chmod(indices_cache_file_name, 0o666 & ~umask)
 
         # Return new Dataset object
         if buf_writer is None:
@@ -2031,7 +1951,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files:
+        if self.cache_files:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
@@ -2113,7 +2033,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files:
+        if self.cache_files:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
@@ -2278,7 +2198,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files:
+        if self.cache_files:
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
 
@@ -2469,34 +2389,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Finished writing TFRecord to {filename}")
         self = None  # delete the dataset reference used by tf_dataset
 
-    def _write_csv(self, file_obj: BinaryIO, batch_size: int, **to_csv_kwargs) -> int:
-        """
-        Writes the pyarrow table as CSV to a binary file handle.
-        Caller is responsible for opening and closing the handle.
-        """
-        written = 0
-        header = to_csv_kwargs.pop("header", True)
-        encoding = to_csv_kwargs.pop("encoding", "utf-8")
-        to_csv_kwargs.pop("path_or_buf", None)
-
-        for offset in range(0, len(self), batch_size):
-            batch = query_table(
-                pa_table=self._data,
-                key=slice(offset, offset + batch_size),
-                indices=self._indices.column(0) if self._indices is not None else None,
-            )
-            csv_str = batch.to_pandas().to_csv(
-                path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs
-            )
-            written += file_obj.write(csv_str.encode(encoding))
-        return written
-
     def to_csv(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         **to_csv_kwargs,
-    ):
+    ) -> int:
         """Exports the dataset to csv
 
         Args:
@@ -2508,14 +2406,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             int: The number of characters or bytes written
         """
-        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetWriter
 
-        if isinstance(path_or_buf, (str, bytes, os.PathLike)):
-            with open(path_or_buf, "wb+") as buffer:
-                written = self._write_csv(file_obj=buffer, batch_size=batch_size, **to_csv_kwargs)
-        else:
-            written = self._write_csv(file_obj=path_or_buf, batch_size=batch_size, **to_csv_kwargs)
-        return written
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -2531,7 +2425,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if not batched:
             return query_table(
-                pa_table=self._data,
+                table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices.column(0) if self._indices is not None else None,
             ).to_pydict()
@@ -2539,7 +2433,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
                 query_table(
-                    pa_table=self._data,
+                    table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices.column(0) if self._indices is not None else None,
                 ).to_pydict()
@@ -2562,7 +2456,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if not batched:
             return query_table(
-                pa_table=self._data,
+                table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices.column(0) if self._indices is not None else None,
             ).to_pandas()
@@ -2570,7 +2464,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
                 query_table(
-                    pa_table=self._data,
+                    table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices.column(0) if self._indices is not None else None,
                 ).to_pandas()
@@ -2788,73 +2682,34 @@ def concatenate_datasets(
     if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
         raise ValueError("Features must match for all datasets")
 
-    # Datasets tables should all come from disk or memory, but not a mix
-
-    dsets_in_memory = [not dset._data_files for dset in dsets]
-    if any(dset_in_memory != dsets_in_memory[0] for dset_in_memory in dsets_in_memory):
-        raise ValueError(
-            "Datasets should ALL come from memory, or should ALL come from disk.\n"
-            "However datasets {} come from memory and datasets {} come from disk.".format(
-                [i for i in range(len(dsets)) if dsets_in_memory[i]],
-                [i for i in range(len(dsets)) if not dsets_in_memory[i]],
-            )
-        )
-
     # Find common format or reset format
-
     format = dsets[0].format
     if any(dset.format != format for dset in dsets):
         format = {}
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
     # Concatenate tables
-
-    table = pa.concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
-    data_files = [copy.deepcopy(f) for dset in dsets for f in dset._data_files]
-    inplace_history = [copy.deepcopy(h) for dset in dsets for h in dset._inplace_history]
+    table = concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
             return table
         else:
             array = table["indices"]
-            if isinstance(array, pa.ChunkedArray):
-                new_array = pa.array(np.concatenate([c.to_numpy() for c in array.chunks]) + offset, pa.uint64())
-            else:
-                new_array = pa.array(array.to_numpy() + offset, pa.uint64())
-            return pa.Table.from_arrays([new_array], names=["indices"])
+            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
+            return InMemoryTable.from_arrays([new_array], names=["indices"])
 
     # Concatenate indices if they exist
-
     if any(dset._indices is not None for dset in dsets):
 
-        # Datasets indices tables should all come from disk or memory, but not a mix
-        # Datasets with no indices tables are replaced with a dataset with an indicies table in memory
-
-        indices_mappings_in_memory = [not dset._indices_data_files for dset in dsets]
-        if any(
-            indices_mapping_in_memory != indices_mappings_in_memory[0]
-            for indices_mapping_in_memory in indices_mappings_in_memory
-        ):
-            raise ValueError(
-                "Datasets' indices should ALL come from memory, or should ALL come from disk.\n"
-                "However datasets' indices {} come from memory and datasets' indices {} come from disk.".format(
-                    [i for i in range(len(dsets)) if indices_mappings_in_memory[i]],
-                    [i for i in range(len(dsets)) if not indices_mappings_in_memory[i]],
-                )
-            )
-        indices_in_memory = indices_mappings_in_memory[0]
-
-        # Create missing indices tables in memory
-
-        if indices_in_memory:
-            for i in range(len(dsets)):
-                if dsets[i]._indices is None:
-                    dsets[i] = dsets[i].select(range(len(dsets[i])))
+        # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
+        # Applying an offset to an indices table also brings the table in memory.
+        for i in range(len(dsets)):
+            if dsets[i]._indices is None:
+                dsets[i] = dsets[i].select(range(len(dsets[i])))
         assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
 
         # An offset needs to be applied to the indices before concatenating
-
         indices_tables = []
         offset = 0
         for dset in dsets:
@@ -2862,28 +2717,28 @@ def concatenate_datasets(
             offset += len(dset._data)
 
         # Concatenate indices
-
         indices_tables = [t for t in indices_tables if len(t) > 0]
         if indices_tables:
-            indices_table = pa.concat_tables(indices_tables)
+            indices_table = concat_tables(indices_tables)
         else:
-            indices_table = pa.Table.from_batches([], schema=pa.schema({"indices": pa.int64()}))
+            indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
     else:
         indices_table = None
+
+    # Concatenate infos
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
         "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
     )
+
+    # Make final concatenated dataset
     concatenated_dataset = Dataset(
         table,
         info=info,
         split=split,
-        data_files=data_files,
         indices_table=indices_table,
-        indices_data_files=None,  # can't reuse same files as an offset was applied
         fingerprint=fingerprint,
-        inplace_history=inplace_history,
     )
     concatenated_dataset.set_format(**format)
     return concatenated_dataset

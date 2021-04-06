@@ -10,7 +10,26 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+  dyda_da:
+  - 100K<n<1M
+  dyda_e:
+  - 100K<n<1M
+  iemocap:
+  - 10K<n<100K
+  maptask:
+  - 10K<n<100K
+  meld_e:
+  - 10K<n<100K
+  meld_s:
+  - 10K<n<100K
+  mrda:
+  - 100K<n<1M
+  oasis:
+  - 10K<n<100K
+  sem:
+  - 1K<n<10K
+  swda:
+  - 100K<n<1M
 source_datasets:
 - original
 task_categories:

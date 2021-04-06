@@ -169,7 +169,7 @@ def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
         return posixpath.join(base_name, *pathnames)
     else:
-        return Path(base_name).joinpath(*pathnames).as_posix()
+        return Path(base_name, *pathnames).as_posix()
 
 
 def url_or_path_parent(url_or_path: str) -> str:
@@ -434,7 +434,7 @@ def _request_with_retry(
                 raise err
             else:
                 logger.info(f"{method} request to {url} timed out, retrying... [{tries/max_retries}]")
-                sleep_time = max(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
+                sleep_time = min(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
                 time.sleep(sleep_time)
     return response
 

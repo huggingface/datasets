@@ -8,7 +8,7 @@ licenses:
 - unknown
 multilinguality: []
 size_categories:
-- n<1K
+- 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:

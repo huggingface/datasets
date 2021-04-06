@@ -42,37 +42,37 @@ multilinguality:
 - monolingual
 size_categories:
   DGT:
-  - n>1M
+  - 1M<n<10M
   DOGC:
-  - n>1M
+  - 10M<n<100M
   ECB:
-  - n>1M
+  - 1M<n<10M
   EMEA:
-  - n>1M
+  - 1M<n<10M
   EUBookShop:
-  - n>1M
+  - 1M<n<10M
   Europarl:
-  - n>1M
+  - 1M<n<10M
   GlobalVoices:
   - 100K<n<1M
   JRC:
-  - n>1M
+  - 1M<n<10M
   NewsCommentary11:
   - 100K<n<1M
   OpenSubtitles2018:
-  - n>1M
+  - 100M<n<1B
   ParaCrawl:
-  - n>1M
+  - 10M<n<100M
   TED:
   - 100K<n<1M
   UN:
   - 10K<n<100K
   all_wikis:
-  - n>1M
+  - 10M<n<100M
   combined:
-  - n>1M
+  - 100M<n<1B
   multiUN:
-  - n>1M
+  - 10M<n<100M
 source_datasets:
 - original
 task_categories:

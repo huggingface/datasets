@@ -11,6 +11,8 @@ import numpy as np
 import pyarrow as pa
 import xxhash
 
+from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+
 from .info import DatasetInfo
 from .utils.logging import get_logger
 from .utils.py_utils import dumps
@@ -95,9 +97,10 @@ def get_temporary_cache_files_directory() -> str:
 #################
 
 
-def hashregister(t):
+def hashregister(*types):
     def proxy(func):
-        Hasher.dispatch[t] = func
+        for t in types:
+            Hasher.dispatch[t] = func
         return func
 
     return proxy
@@ -145,7 +148,7 @@ class Hasher:
 # 2 - take advantage of a custom serialization method (e.g. DatasetInfo)
 
 
-@hashregister(pa.Table)
+@hashregister(pa.Table, Table, InMemoryTable, MemoryMappedTable, ConcatenationTable)
 def _hash_pa_table(hasher, value):
     def _hash_pa_array(value):
         if isinstance(value, pa.ChunkedArray):
@@ -171,7 +174,7 @@ fingerprint_warnings: Dict[str, bool] = {}
 
 
 def generate_fingerprint(dataset) -> str:
-    state = dataset.__getstate__()
+    state = dataset.__dict__
     hasher = Hasher()
     for key in sorted(state):
         if key == "_fingerprint":
@@ -179,8 +182,8 @@ def generate_fingerprint(dataset) -> str:
         hasher.update(key)
         hasher.update(state[key])
     # hash data files last modification timestamps as well
-    for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
-        hasher.update(os.path.getmtime(data_file["filename"]))
+    for cache_file in dataset.cache_files:
+        hasher.update(os.path.getmtime(cache_file))
     return hasher.hexdigest()
 
 

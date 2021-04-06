@@ -8,11 +8,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .table import Table
 from .utils.deprecation_utils import deprecated
 from .utils.typing import PathLike
 
@@ -28,7 +28,7 @@ class DatasetDict(dict):
                 )
 
     @property
-    def data(self) -> Dict[str, pa.Table]:
+    def data(self) -> Dict[str, Table]:
         """The Apache Arrow tables backing each split."""
         self._check_values_type()
         return {k: dataset.data for k, dataset in self.items()}
@@ -63,11 +63,14 @@ class DatasetDict(dict):
         self._check_values_type()
         return {k: dataset.shape for k, dataset in self.items()}
 
+    @deprecated()
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column in each split.
 
-            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionary of the strings. This only affect the internal storage.
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        .. deprecated:: 1.4.0
 
         Args:
             column (:obj:`str`):
@@ -77,11 +80,12 @@ class DatasetDict(dict):
         for dataset in self.values():
             dataset.dictionary_encode_column_(column=column)
 
-    @deprecated(help_message="Please use :func:`DatasetDict.flatten` instead.")
+    @deprecated(help_message="Use DatasetDict.flatten instead.")
     def flatten_(self, max_depth=16):
-        """
-        In-place version of :func:`DatasetDict.flatten`
-        This method is deprecated, please use :func:`DatasetDict.flatten` instead.
+        """In-place version of :meth:`DatasetDict.flatten`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.flatten` instead.
         """
         self._check_values_type()
         for dataset in self.values():
@@ -125,11 +129,12 @@ class DatasetDict(dict):
         repr = re.sub(r"^", " " * 4, repr, 0, re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
-    @deprecated(help_message="Please use :func:`DatasetDict.cast` instead.")
+    @deprecated(help_message="Use DatasetDict.cast instead.")
     def cast_(self, features: Features):
-        """
-        In-place version of :func:`DatasetDict.cast`
-        This method is deprecated, please use :func:`DatasetDict.cast` instead.
+        """In-place version of :meth:`DatasetDict.cast`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.cast` instead.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
@@ -158,11 +163,12 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
 
-    @deprecated(help_message="Please use :func:`DatasetDict.remove_columns` instead.")
+    @deprecated(help_message="Use DatasetDict.remove_columns instead.")
     def remove_columns_(self, column_names: Union[str, List[str]]):
-        """
-        In-place version of :func:`DatasetDict.remove_columns`
-        This method is deprecated, please use :func:`DatasetDict.remove_columns` instead.
+        """In-place version of :meth:`DatasetDict.remove_columns`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.remove_columns` instead.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
@@ -187,11 +193,12 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()})
 
-    @deprecated(help_message="Please use :func:`DatasetDict.rename_column` instead.")
+    @deprecated(help_message="Use DatasetDict.rename_column instead.")
     def rename_column_(self, original_column_name: str, new_column_name: str):
-        """
-        In-place version of :func:`DatasetDict.rename_column_`
-        This method is deprecated, please use :func:`DatasetDict.rename_column` instead.
+        """In-place version of :meth:`DatasetDict.rename_column`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.rename_column` instead.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -646,13 +653,13 @@ class DatasetDict(dict):
 
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
+            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
+            dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory=False) -> "DatasetDict":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
         :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
@@ -662,6 +669,7 @@ class DatasetDict(dict):
                 of the dataset dict directory where the dataset dict will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
                 Instance of the remote filesystem used to download the files from.
+            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
 
         Returns:
             :class:`DatasetDict`.
@@ -673,14 +681,14 @@ class DatasetDict(dict):
             fs = fsspec.filesystem("file")
             dest_dataset_dict_path = dataset_dict_path
         for k in json.load(
-            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
             dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)
-                else Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                else Path(dest_dataset_dict_path, k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
+            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
         return dataset_dict
 
     @staticmethod
