@@ -135,8 +135,8 @@ def require_s3(test_case):
 
     """
     try:
-        import s3fs  # noqa F401
         import moto  # noqa F401
+        import s3fs  # noqa F401
     except ImportError:
         return unittest.skip("test requires s3fs and moto")(test_case)
     else:

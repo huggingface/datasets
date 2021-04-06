@@ -112,6 +112,7 @@ TESTS_REQUIRE = [
     "faiss-cpu",
     "fsspec[s3]",
     "moto[s3]==2.0.4",
+    "s3fs>=0.6.0",
     "rarfile>=4.0",
     "tensorflow>=2.3",
     "torch",
@@ -140,7 +141,6 @@ TESTS_REQUIRE = [
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
-    "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
 ]
 

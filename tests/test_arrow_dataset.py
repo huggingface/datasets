@@ -23,11 +23,11 @@ from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_s3,
     require_tf,
     require_torch,
     require_transformers,
     set_current_working_directory_to_temp_dir,
-    require_s3
 )
 
 
