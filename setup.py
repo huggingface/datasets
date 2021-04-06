@@ -109,9 +109,10 @@ TESTS_REQUIRE = [
     "boto3==1.16.43",
     "botocore==1.19.43",
     "faiss-cpu",
-    "fsspec[s3]",
+    "fsspec[s3]<0.9.0",
     "moto[s3]==1.3.16",
     "rarfile>=4.0",
+    "s3fs>=0.4.2,<0.6.0"
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -139,7 +140,6 @@ TESTS_REQUIRE = [
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
-    "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
 ]
 
