@@ -287,23 +287,16 @@ class DatasetDictTest(TestCase):
             del dsets, mapped_dsets_1, mapped_dsets_2
 
     def test_filter(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dsets = self._create_dummy_dataset_dict()
+        dsets = self._create_dummy_dataset_dict()
 
-            filtered_dsets_1: DatasetDict = dsets.filter(lambda ex: int(ex["filename"].split("_")[-1]) < 10)
-            self.assertListEqual(list(dsets.keys()), list(filtered_dsets_1.keys()))
-            self.assertEqual(len(filtered_dsets_1["train"]), 10)
+        filtered_dsets_1: DatasetDict = dsets.filter(lambda ex: int(ex["filename"].split("_")[-1]) < 10)
+        self.assertListEqual(list(dsets.keys()), list(filtered_dsets_1.keys()))
+        self.assertEqual(len(filtered_dsets_1["train"]), 10)
 
-            cache_file_names = {
-                "train": os.path.join(tmp_dir, "train.arrow"),
-                "test": os.path.join(tmp_dir, "test.arrow"),
-            }
-            filtered_dsets_2: DatasetDict = filtered_dsets_1.filter(
-                lambda ex: int(ex["filename"].split("_")[-1]) < 5, cache_file_names=cache_file_names
-            )
-            self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
-            self.assertEqual(len(filtered_dsets_2["train"]), 5)
-            del dsets, filtered_dsets_1, filtered_dsets_2
+        filtered_dsets_2: DatasetDict = filtered_dsets_1.filter(lambda ex: int(ex["filename"].split("_")[-1]) < 5)
+        self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
+        self.assertEqual(len(filtered_dsets_2["train"]), 5)
+        del dsets, filtered_dsets_1, filtered_dsets_2
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
