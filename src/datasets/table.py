@@ -532,20 +532,20 @@ class ConcatenationTable(Table):
         return pa.concat_tables(tables_to_concat_vertically)
 
     @classmethod
-    def _consolidate_blocks(cls, blocks, axis: Optional[int] = None):
+    def _merge_blocks(cls, blocks: TableBlockContainer, axis: Optional[int] = None):
         if axis is not None:
-            consolidated_blocks = []
+            merged_blocks = []
             for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
                 if is_in_memory:
                     block_group = [InMemoryTable(cls._concat_blocks(block_group, axis=axis))]
-                consolidated_blocks += list(block_group)
+                merged_blocks += list(block_group)
         else:  # both
-            consolidated_blocks = [cls._consolidate_blocks(row_block, axis=1) for row_block in blocks]
-            if all(len(row_block) == 1 for row_block in consolidated_blocks):
-                consolidated_blocks = cls._consolidate_blocks(
-                    [block for row_block in consolidated_blocks for block in row_block], axis=0
+            merged_blocks = [cls._merge_blocks(row_block, axis=1) for row_block in blocks]
+            if all(len(row_block) == 1 for row_block in merged_blocks):
+                merged_blocks = cls._merge_blocks(
+                    [block for row_block in merged_blocks for block in row_block], axis=0
                 )
-        return consolidated_blocks
+        return merged_blocks
 
     @classmethod
     def from_blocks(cls, blocks: TableBlockContainer) -> "ConcatenationTable":
