@@ -161,6 +161,9 @@ class Table:
     def column_names(self):
         return self.table.column_names
 
+    def __eq__(self, other):
+        return self.equals(other)
+
     def __getitem__(self, i):
         return self.table[i]
 
