@@ -497,13 +497,14 @@ def test_concatenation_table_from_blocks(in_memory_pa_table, in_memory_blocks):
     assert table.blocks == [[in_memory_table]]
     table = ConcatenationTable.from_blocks([t1, t2])
     assert isinstance(table, ConcatenationTable)
+    assert table.table == in_memory_pa_table
     # assert table.blocks == [[t1], [t2]]
     assert table.blocks == [[in_memory_table]]
-    assert table.table == in_memory_pa_table
     table = ConcatenationTable.from_blocks([[t1], [t2]])
     assert isinstance(table, ConcatenationTable)
     assert table.table == in_memory_pa_table
-    assert table.blocks == [[t1], [t2]]
+    # assert table.blocks == [[t1], [t2]]
+    assert table.blocks == [[in_memory_table]]
     table = ConcatenationTable.from_blocks(in_memory_blocks)
     assert isinstance(table, ConcatenationTable)
     assert table.table == in_memory_pa_table
