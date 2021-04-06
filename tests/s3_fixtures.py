@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import time
@@ -46,6 +45,13 @@ s3_d = s3_test_bucket_name + "/tmp/test/d"
 s3_port = 5555
 s3_endpoint_uri = "http://127.0.0.1:%s/" % s3_port
 
+S3_FAKE_ENV_VARS = {
+    "AWS_ACCESS_KEY_ID": "fake_access_key",
+    "AWS_SECRET_ACCESS_KEY": "fake_secret_key",
+    "AWS_SECURITY_TOKEN": "fake_secrurity_token",
+    "AWS_SESSION_TOKEN": "fake_session_token"
+}
+
 
 @pytest.fixture()
 def s3_base():
@@ -54,13 +60,10 @@ def s3_base():
     import subprocess
 
     # Mocked AWS Credentials for moto.
-    env = copy.deepcopy(os.environ)
-    env["AWS_ACCESS_KEY_ID"] = "fake_access_key"
-    env["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
-    env["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
-    env["AWS_SESSION_TOKEN"] = "fake_session_token"
+    old_environ = os.environ.copy()
+    os.environ.update(S3_FAKE_ENV_VARS)
 
-    proc = subprocess.Popen(shlex.split("moto_server s3 -p %s" % s3_port), env=env)
+    proc = subprocess.Popen(shlex.split("moto_server s3 -p %s" % s3_port))
 
     timeout = 5
     while timeout > 0:
@@ -75,6 +78,8 @@ def s3_base():
     yield
     proc.terminate()
     proc.wait()
+    os.environ.clear()
+    os.environ.update(old_environ)
 
 
 def get_boto3_client():
