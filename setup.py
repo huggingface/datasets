@@ -87,7 +87,7 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # for saving datsets to local
     "fsspec",
-    "fsspec<0.9.0;python_version<'3.7'",  # fsspec 0.9.0 is only compatible with s3fs>=0.6.0 which requires py>=3.7
+    "fsspec<0.8.4;python_version<'3.7'",  # fsspec>=0.8.5 requires py>=3.7 for async stuff
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
 ]
