@@ -87,6 +87,7 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # for saving datsets to local
     "fsspec",
+    "fsspec<0.9.0;python_version<'3.7'",  # fsspec 0.9.0 is only compatible with s3fs>=0.6.0 which requires py>=3.7
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
 ]
@@ -110,8 +111,7 @@ TESTS_REQUIRE = [
     "boto3==1.16.43",
     "botocore==1.19.52",
     "faiss-cpu",
-    "fsspec[s3]<0.9.0",  # fsspec 0.9.0 is only compatible with s3fs>=0.6.0
-    "s3fs>=0.4.2,<0.6.0",  # s3fs 0.6.0 requires py>=3.7
+    "fsspec[s3]",
     "moto[s3]==2.0.4",
     "rarfile>=4.0",
     "tensorflow>=2.3",
@@ -141,6 +141,7 @@ TESTS_REQUIRE = [
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
+    "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
 ]
 
