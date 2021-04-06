@@ -504,15 +504,23 @@ class ConcatenationTable(Table):
     @staticmethod
     def _concat_blocks(blocks: List[TableBlock], axis: int = 0) -> pa.Table:
         if axis == 0:
-            return pa.concat_tables([t.table for t in blocks])
+            # Align schemas: re-order the columns to make the schemas match before concatenating over rows
+            schema = blocks[0].schema
+            pa_tables = [
+                t.table
+                if t.schema == schema
+                else pa.Table.from_arrays([t[name] for name in schema.names], names=schema.names)
+                for t in blocks
+            ]
+            return pa.concat_tables(pa_tables)
         elif axis == 1:
             for i, table in enumerate(blocks):
                 if i == 0:
-                    combined_table = table.table
+                    pa_table = table.table
                 else:
                     for name, col in zip(table.column_names, table.columns):
-                        combined_table = combined_table.append_column(name, col)
-            return combined_table
+                        pa_table = pa_table.append_column(name, col)
+            return pa_table
         else:
             raise ValueError("'axis' must be either 0 or 1")
 
@@ -522,14 +530,14 @@ class ConcatenationTable(Table):
         for i, tables in enumerate(blocks):
             if not tables:
                 continue
-            combined_table = cls._concat_blocks(tables, axis=1)
-            if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
-                # re-order the columns to make the schema match and concat the tables
-                names = tables_to_concat_vertically[0].schema.names
-                arrays = [combined_table[name] for name in names]
-                combined_table = pa.Table.from_arrays(arrays, names=names)
-            tables_to_concat_vertically.append(combined_table)
-        return pa.concat_tables(tables_to_concat_vertically)
+            horizontally_concatenated_table = cls._concat_blocks(tables, axis=1)
+            # if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
+            #     # re-order the columns to make the schema match and concat the tables
+            #     names = tables_to_concat_vertically[0].schema.names
+            #     arrays = [combined_table[name] for name in names]
+            #     combined_table = pa.Table.from_arrays(arrays, names=names)
+            tables_to_concat_vertically.append(horizontally_concatenated_table)
+        return cls._concat_blocks(tables_to_concat_vertically, axis=0)
 
     @classmethod
     def _merge_blocks(cls, blocks: TableBlockContainer, axis: Optional[int] = None):
@@ -537,7 +545,7 @@ class ConcatenationTable(Table):
             merged_blocks = []
             for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
                 if is_in_memory:
-                    block_group = [InMemoryTable(cls._concat_blocks(block_group, axis=axis))]
+                    block_group = [InMemoryTable(cls._concat_blocks(list(block_group), axis=axis))]
                 merged_blocks += list(block_group)
         else:  # both
             merged_blocks = [cls._merge_blocks(row_block, axis=1) for row_block in blocks]
