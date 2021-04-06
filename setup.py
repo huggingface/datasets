@@ -114,6 +114,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3]==2.0.4",
     "rarfile>=4.0",
+    "s3fs>=0.4.2",
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -141,7 +142,6 @@ TESTS_REQUIRE = [
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
-    "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
 ]
 
@@ -187,6 +187,7 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinx-copybutton",
         "fsspec[s3]",
+        "s3fs>=0.4.2",
     ],
 }
 
