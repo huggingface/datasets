@@ -178,11 +178,18 @@ class DatasetInfo:
 
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
+        def unique(values):
+            seen = set()
+            for value in values:
+                if value not in seen:
+                    seen.add(value)
+                    yield value
+
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
-        description = "\n\n".join([info.description for info in dataset_infos])
-        citation = "\n\n".join([info.citation for info in dataset_infos])
-        homepage = "\n\n".join([info.homepage for info in dataset_infos])
-        license = "\n\n".join([info.license for info in dataset_infos])
+        description = "\n\n".join(unique(info.description for info in dataset_infos))
+        citation = "\n\n".join(unique(info.citation for info in dataset_infos))
+        homepage = "\n\n".join(unique(info.homepage for info in dataset_infos))
+        license = "\n\n".join(unique(info.license for info in dataset_infos))
         features = None
         supervised_keys = None
 
