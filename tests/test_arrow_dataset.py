@@ -21,7 +21,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
-from datasets.table import InMemoryTable
+from datasets.table import InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 
 from .utils import (
@@ -1923,13 +1923,21 @@ class MiscellaneousDatasetTest(TestCase):
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
 
-def test_concatenate_datasets(dataset_dict, arrow_path):
-    dataset_a = Dataset(InMemoryTable.from_pydict({f"{k}_a": v for k, v in dataset_dict.items()}))
-    dataset_b = Dataset(InMemoryTable.from_pydict({f"{k}_b": v for k, v in dataset_dict.items()}))
-    dataset = concatenate_datasets([dataset_a, dataset_a], axis=0)
-    assert dataset.shape == (8, 3)
-    dataset = concatenate_datasets([dataset_a, dataset_b], axis=1)
-    assert dataset.shape == (4, 6)
+@pytest.mark.parametrize("dataset_type", ["in_memory", "memory_mapped", "mixed"])
+def test_concatenate_datasets(dataset_type, dataset_dict, arrow_path):
+    table = {
+        "in_memory": InMemoryTable.from_pydict(dataset_dict),
+        "memory_mapped": MemoryMappedTable.from_file(arrow_path),
+    }
+    tables = [
+        table[dataset_type if dataset_type != "mixed" else "in_memory"].slice(0, 2),
+        table[dataset_type if dataset_type != "mixed" else "memory_mapped"].slice(2, 4),
+    ]
+    datasets = [Dataset(table) for table in tables]
+    dataset = concatenate_datasets(datasets, axis=0)
+    assert dataset.shape == (4, 3)
+    dataset = concatenate_datasets(datasets, axis=1)
+    assert dataset.shape == (2, 6)
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])

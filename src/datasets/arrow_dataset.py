@@ -2693,7 +2693,8 @@ def concatenate_datasets(
     """
     if axis == 0 and not all([dset.features.type == dsets[0].features.type for dset in dsets]):
         raise ValueError("Features must match for all datasets")
-    # TODO: elif axis == 1 and not all same number of rows
+    elif axis == 1 and not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
+        raise ValueError("Number of rows must match for all datasets")
 
     # Find common format or reset format
     format = dsets[0].format
