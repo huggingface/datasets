@@ -641,7 +641,7 @@ class ConcatenationTable(Table):
             if isinstance(table, pa.Table):
                 blocks.append([InMemoryTable(table)] if axis == 0 else InMemoryTable(table))
             elif isinstance(table, ConcatenationTable):
-                blocks.extend(copy.deepcopy(table.blocks))
+                blocks.extend(copy.deepcopy(table.blocks) if axis == 0 else copy.deepcopy(table.blocks)[0])  # TODO
             else:
                 blocks.append([table] if axis == 0 else table)
         return cls.from_blocks(blocks if axis == 0 else [blocks])
