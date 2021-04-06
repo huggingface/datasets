@@ -191,6 +191,18 @@ def transmit_format(func):
     return wrapper
 
 
+def _check_table(table) -> Table:
+    """We check the table type to make sure it's an instance of :class:`datasets.table.Table`"""
+    if isinstance(table, pa.Table):
+        # for a pyarrow table, we can just consider it as a in-memory table
+        # this is here for backward compatibility
+        return InMemoryTable(table)
+    elif isinstance(table, Table):
+        return table
+    else:
+        raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -206,8 +218,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
 
-        self._data: Table = arrow_table
-        self._indices: Optional[Table] = indices_table
+        self._data: Table = _check_table(arrow_table)
+        self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -1157,9 +1169,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         format_kwargs = format_kwargs if format_kwargs is not None else {}
         formatter = get_formatter(format_type, **format_kwargs)
-        pa_subtable = query_table(
-            self._data, key, indices=self._indices.column(0) if self._indices is not None else None
-        )
+        pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
         )
@@ -1870,7 +1880,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is not None:
             indices_array = self._indices.column(0).take(indices_array)
 
-        indices_table = InMemoryTable.from_arrays([indices_array], names=["indices"])
+        indices_table = pa.Table.from_arrays([indices_array], names=["indices"])
 
         with writer:
             try:
@@ -2427,7 +2437,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return query_table(
                 table=self._data,
                 key=slice(0, len(self)),
-                indices=self._indices.column(0) if self._indices is not None else None,
+                indices=self._indices if self._indices is not None else None,
             ).to_pydict()
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -2435,7 +2445,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 query_table(
                     table=self._data,
                     key=slice(offset, offset + batch_size),
-                    indices=self._indices.column(0) if self._indices is not None else None,
+                    indices=self._indices if self._indices is not None else None,
                 ).to_pydict()
                 for offset in range(0, len(self), batch_size)
             )
@@ -2458,7 +2468,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return query_table(
                 table=self._data,
                 key=slice(0, len(self)),
-                indices=self._indices.column(0) if self._indices is not None else None,
+                indices=self._indices if self._indices is not None else None,
             ).to_pandas()
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -2466,7 +2476,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 query_table(
                     table=self._data,
                     key=slice(offset, offset + batch_size),
-                    indices=self._indices.column(0) if self._indices is not None else None,
+                    indices=self._indices if self._indices is not None else None,
                 ).to_pandas()
                 for offset in range(0, len(self), batch_size)
             )
