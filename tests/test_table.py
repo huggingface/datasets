@@ -736,13 +736,21 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     t1 = InMemoryTable(t0)
     t2 = MemoryMappedTable.from_file(arrow_file)
     t3 = ConcatenationTable.from_blocks(t1)
-    concatenated_table = concat_tables([t0, t1, t2, t3])
+    tables = [t0, t1, t2, t3]
+    concatenated_table = concat_tables(tables, axis=0)
     assert concatenated_table.table == pa.concat_tables([t0] * 4)
+    assert concatenated_table.table.shape == (40, 4)
     assert isinstance(concatenated_table, ConcatenationTable)
     assert len(concatenated_table.blocks) == 3  # t0 and t1 are consolidated as a single InMemoryTable
     assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
     assert isinstance(concatenated_table.blocks[1][0], MemoryMappedTable)
     assert isinstance(concatenated_table.blocks[2][0], InMemoryTable)
+    concatenated_table = concat_tables(tables, axis=1)
+    assert concatenated_table.table.shape == (10, 16)
+    assert len(concatenated_table.blocks[0]) == 3  # t0 and t1 are consolidated as a single InMemoryTable
+    assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
+    assert isinstance(concatenated_table.blocks[0][1], MemoryMappedTable)
+    assert isinstance(concatenated_table.blocks[0][2], InMemoryTable)
 
 
 def _interpolation_search_ground_truth(arr: List[int], x: int) -> Union[int, IndexError]:
