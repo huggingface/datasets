@@ -1,4 +1,6 @@
+import copy
 import json
+import os
 import time
 
 import pytest
@@ -51,7 +53,14 @@ def s3_base():
     import shlex
     import subprocess
 
-    proc = subprocess.Popen(shlex.split("moto_server s3 -p %s" % s3_port))
+    # Mocked AWS Credentials for moto.
+    env = copy.deepcopy(os.environ)
+    env["AWS_ACCESS_KEY_ID"] = "fake_access_key"
+    env["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
+    env["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
+    env["AWS_SESSION_TOKEN"] = "fake_session_token"
+
+    proc = subprocess.Popen(shlex.split("moto_server s3 -p %s" % s3_port), env=env)
 
     timeout = 5
     while timeout > 0:
