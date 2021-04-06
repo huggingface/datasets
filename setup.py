@@ -86,7 +86,7 @@ REQUIRED_PKGS = [
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # for saving datsets to local
-    "fsspec",
+    "fsspec<0.9.0",  # 0.9.0 requires s3fs 0.6.0 which is not compatible with the pinned versions of moto/boto3/botocore
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
 ]
@@ -109,10 +109,10 @@ TESTS_REQUIRE = [
     "boto3==1.16.43",
     "botocore==1.19.43",
     "faiss-cpu",
-    "fsspec[s3]<0.9.0",
+    "fsspec[s3]",
     "moto[s3]==1.3.16",
     "rarfile>=4.0",
-    "s3fs>=0.4.2,<0.6.0"
+    "s3fs>=0.4.2,<0.6.0"  # don't use 0.6.0 which is not compatible with the pinned versions of moto/boto3/botocore
     "tensorflow>=2.3",
     "torch",
     "transformers",
