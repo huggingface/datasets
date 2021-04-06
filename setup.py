@@ -179,6 +179,7 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
+        "docutils==0.16.0",
         "recommonmark",
         "sphinx==3.1.2",
         "sphinx-markdown-tables",
