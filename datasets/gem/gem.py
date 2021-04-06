@@ -210,8 +210,8 @@ _URLs = {
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/web_nlg_ru.zip",
     },
     "wiki_auto_asset_turk": {
-        "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/train.tsv",
-        "validation": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/dev.tsv",
+        "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/train.tsv",
+        "validation": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/valid.tsv",
         "test_turk": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_turk_detokenized.json",
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/wiki_auto_asset_turk_train_valid.zip",
     },
@@ -1212,19 +1212,19 @@ class Gem(datasets.GeneratorBasedBuilder):
         elif self.config.name == "wiki_auto_asset_turk":
             if split in ["train", "validation"]:
                 keys = [
-                    "target_id",
-                    "source_id",
-                    "target",
                     "source",
+                    "target",
                 ]
                 with open(filepath, encoding="utf-8") as f:
                     for id_, line in enumerate(f):
                         values = line.strip().split("\t")
-                        assert len(values) == 5, f"Not enough fields in ---- {line} --- {values}"
-                        example = dict([(k, val) for k, val in zip(keys, values[1:])])
+                        assert len(values) == 2, f"Not enough fields in ---- {line} --- {values}"
+                        example = dict([(k, val) for k, val in zip(keys, values)])
                         example["gem_id"] = f"{self.config.name}-{split}-{id_}"
                         example["gem_parent_id"] = example["gem_id"]
                         example["references"] = [] if split == "train" else [example["target"]]
+                        example["source_id"] = ""
+                        example["target_id"] = ""
                         yield id_, example
             elif split == "test_turk":
                 examples = json.load(open(filepath, encoding="utf-8"))
