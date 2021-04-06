@@ -508,7 +508,8 @@ def test_concatenation_table_from_blocks(in_memory_pa_table, in_memory_blocks):
     table = ConcatenationTable.from_blocks(in_memory_blocks)
     assert isinstance(table, ConcatenationTable)
     assert table.table == in_memory_pa_table
-    assert table.blocks == in_memory_blocks
+    # assert table.blocks == in_memory_blocks
+    assert table.blocks == [[in_memory_table]]
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
