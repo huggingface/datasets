@@ -532,11 +532,6 @@ class ConcatenationTable(Table):
             if not tables:
                 continue
             pa_table_horizontally_concatenated = cls._concat_blocks(tables, axis=1)
-            # if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
-            #     # re-order the columns to make the schema match and concat the tables
-            #     names = tables_to_concat_vertically[0].schema.names
-            #     arrays = [combined_table[name] for name in names]
-            #     combined_table = pa.Table.from_arrays(arrays, names=names)
             pa_tables_to_concat_vertically.append(pa_table_horizontally_concatenated)
         return cls._concat_blocks(pa_tables_to_concat_vertically, axis=0)
 
