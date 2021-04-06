@@ -49,7 +49,7 @@ S3_FAKE_ENV_VARS = {
     "AWS_ACCESS_KEY_ID": "fake_access_key",
     "AWS_SECRET_ACCESS_KEY": "fake_secret_key",
     "AWS_SECURITY_TOKEN": "fake_secrurity_token",
-    "AWS_SESSION_TOKEN": "fake_session_token"
+    "AWS_SESSION_TOKEN": "fake_session_token",
 }
 
 
