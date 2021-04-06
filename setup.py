@@ -112,7 +112,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3]==1.3.16",
     "rarfile>=4.0",
-    "s3fs>=0.4.2,<0.6.0"  # don't use 0.6.0 which is not compatible with the pinned versions of moto/boto3/botocore
+    "s3fs>=0.4.2,<0.6.0",  # don't use 0.6.0 which is not compatible with the pinned versions of moto/boto3/botocore
     "tensorflow>=2.3",
     "torch",
     "transformers",
