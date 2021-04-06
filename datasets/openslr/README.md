@@ -22,7 +22,7 @@ task_ids:
 - other-other-automatic-speech-recognition
 ---
 
-# Dataset Card for common_voice
+# Dataset Card for openslr
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

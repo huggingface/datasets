@@ -12,12 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Common Voice Dataset"""
+""" OpenSLR Dataset"""
 
 from __future__ import absolute_import, division, print_function
 
 import os
 import re
+
 import datasets
 
 
@@ -41,34 +42,34 @@ _RESOURCES = {
         "LongName": "High quality TTS data for Javanese",
         "Category": "Speech",
         "Summary": "Multi-speaker TTS data for Javanese (jv-ID)",
-        "Files": [ "jv_id_female.zip", "jv_id_male.zip"]
+        "Files": ["jv_id_female.zip", "jv_id_male.zip"],
     },
     "SLR42": {
         "Language": "Khmer",
         "LongName": "High quality TTS data for Khmer",
         "Category": "Speech",
         "Summary": "Multi-speaker TTS data for Khmer (km-KH)",
-        "Files": ["km_kh_male.zip"]
+        "Files": ["km_kh_male.zip"],
     },
     "SLR43": {
         "Language": "Nepali",
         "LongName": "High quality TTS data for Nepali",
         "Category": "Speech",
         "Summary": "Multi-speaker TTS data for Nepali (ne-NP)",
-        "Files": [ "ne_np_female.zip"]
+        "Files": ["ne_np_female.zip"],
     },
     "SLR44": {
         "Language": "Sundanese",
         "LongName": "High quality TTS data for Sundanese",
         "Category": "Speech",
         "Summary": "Multi-speaker TTS data for Javanese Sundanese (su-ID)",
-        "Files": ["su_id_female.zip", "su_id_male.zip"]
+        "Files": ["su_id_female.zip", "su_id_male.zip"],
     },
 }
 
 
 class OpenSlrConfig(datasets.BuilderConfig):
-    """BuilderConfig for CommonVoice."""
+    """BuilderConfig for OpenSlr."""
 
     def __init__(self, name, **kwargs):
         """
@@ -85,12 +86,10 @@ class OpenSlrConfig(datasets.BuilderConfig):
         self.summary = kwargs.pop("summary", None)
         self.files = kwargs.pop("files", None)
         description = f"Open Speech and Language Resources dataset in {self.language}. Name: {self.name}, Summary: {self.summary}."
-        super(OpenSlrConfig, self).__init__(
-            name=name, description=description, **kwargs
-        )
+        super(OpenSlrConfig, self).__init__(name=name, description=description, **kwargs)
 
 
-class CommonVoice(datasets.GeneratorBasedBuilder):
+class OpenSlr(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         OpenSlrConfig(
@@ -124,12 +123,15 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         resource_number = self.config.name.replace("SLR", "")
-        urls = [f'{_DATA_URL.format(resource_number)}/{file}' for file in self.config.files]
+        urls = [f"{_DATA_URL.format(resource_number)}/{file}" for file in self.config.files]
         dl_paths = dl_manager.download_and_extract(urls)
-        abs_path_to_datas = [os.path.join(path, f'{self.config.files[i].split(".")[0]}', "line_index.tsv")
-                            for i, path in enumerate(dl_paths)]
-        abs_path_to_wavs = [os.path.join(path, f'{self.config.files[i].split(".")[0]}', "wavs")
-                            for i, path in enumerate(dl_paths)]
+        abs_path_to_datas = [
+            os.path.join(path, f'{self.config.files[i].split(".")[0]}', "line_index.tsv")
+            for i, path in enumerate(dl_paths)
+        ]
+        abs_path_to_wavs = [
+            os.path.join(path, f'{self.config.files[i].split(".")[0]}', "wavs") for i, path in enumerate(dl_paths)
+        ]
 
         return [
             datasets.SplitGenerator(
@@ -150,8 +152,8 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             with open(path, encoding="utf-8") as f:
                 lines = f.readlines()
                 for id_, line in enumerate(lines):
-                    field_values = re.split(r'\t4?\t', line.strip())
+                    field_values = re.split(r"\t4?\t?", line.strip())
                     # set absolute path for audio file
-                    field_values[0] = os.path.join(path_to_wavs[i], f'{field_values[0]}.wav')
+                    field_values[0] = os.path.join(path_to_wavs[i], f"{field_values[0]}.wav")
                     counter += 1
                     yield counter, {key: value for key, value in zip(data_fields, field_values)}
