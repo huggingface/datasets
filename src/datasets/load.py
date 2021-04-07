@@ -568,7 +568,7 @@ def load_metric(
     num_process: int = 1,
     cache_dir: Optional[str] = None,
     experiment_id: Optional[str] = None,
-    keep_in_memory: bool = False,
+    keep_in_memory: Optional[bool] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     script_version: Optional[Union[str, Version]] = None,
@@ -600,6 +600,7 @@ def load_metric(
     Returns:
         `datasets.Metric`
     """
+    keep_in_memory = keep_in_memory if keep_in_memory is not None else config.HF_DATASETS_IN_MEMORY
     module_path, hash = prepare_module(
         path,
         script_version=script_version,
@@ -635,7 +636,7 @@ def load_dataset(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     ignore_verifications: bool = False,
-    keep_in_memory: bool = False,
+    keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
@@ -703,6 +704,7 @@ def load_dataset(
 
     """
     ignore_verifications = ignore_verifications or save_infos
+    keep_in_memory = keep_in_memory if keep_in_memory is not None else config.HF_DATASETS_IN_MEMORY
     # Download/copy dataset processing script
     module_path, hash, resolved_file_path = prepare_module(
         path,
@@ -755,13 +757,14 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> Union[Dataset, DatasetDict]:
+def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
     Args:
         dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the Dataset or DatasetDict directory where the dataset will be loaded from
         fs (Optional[:class:`datasets.filesystems.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+        keep_in_memory (:obj:`bool`, optional, default ``False``): Whether to copy the data in-memory.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
@@ -769,6 +772,7 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> Union[Da
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
             keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
     """
+    keep_in_memory = keep_in_memory if keep_in_memory is not None else config.HF_DATASETS_IN_MEMORY
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
