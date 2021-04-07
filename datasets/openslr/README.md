@@ -74,7 +74,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google in collaboration with Gadjah Mada University in Indonesia.
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/41/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2016, 2017, 2018 Google LLC
 
@@ -87,7 +89,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google.
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/42/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2016, 2017, 2018 Google LLC
 
@@ -100,7 +104,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google in Nepal.
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/43/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2016, 2017, 2018 Google LLC
 
@@ -113,7 +119,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google in collaboration with Universitas Pendidikan Indonesia.
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/44/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2016, 2017, 2018 Google LLC
 
@@ -126,7 +134,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/63/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
@@ -139,7 +149,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/64/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 #### SLR65: Crowdsourced high-quality Tamil multi-speaker speech data set
@@ -151,7 +163,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/65/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
@@ -164,7 +178,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/66/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
@@ -177,7 +193,9 @@ The data set has been manually quality checked, but there might still be errors.
 
 Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
 
-See LICENSE file for license information.
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/69/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
@@ -198,7 +216,7 @@ A typical data point comprises the path to the audio file, called path and its s
 #### SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69  
 ```
 {
-  'path': 'suf_00297_00037352660'
+  'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
   'sentence': 'Panonton ting haruleng ningali Kelly Clarkson keur nyanyi di tipi',
 }
 ```

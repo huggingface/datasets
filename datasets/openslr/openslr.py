@@ -29,7 +29,9 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-OpenSLR
+OpenSLR is a site devoted to hosting speech and language resources, such as training corpora for speech recognition,
+and software related to speech recognition. We intend to be a convenient place for anyone to put resources that
+they have created, so that they can be downloaded publicly.
 """
 
 _HOMEPAGE = "https://openslr.org/"
@@ -197,7 +199,6 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, path_to_indexs, path_to_datas):
         """ Yields examples. """
-        data_fields = list(self._info().features.keys())
 
         counter = -1
         for i, path in enumerate(path_to_indexs):
