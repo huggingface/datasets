@@ -1,26 +1,26 @@
 ---
 annotations_creators:
-- 
+- found
 language_creators:
-- 
+- found
 languages:
-- "jv"
-- "km"
-- "ne"
-- "su"
-- "ml"
-- "mr"
-- "ta"
-- "te"
-- "ca"
+- jv
+- km
+- ne
+- su
+- ml
+- mr
+- ta
+- te
+- ca
 licenses:
-- Creative Commons Attribution-ShareAlike 4.0
+- cc-by-sa-4.0
 multilinguality:
 - multilingual
 size_categories:
-- 100K<n<1M
+- 1K<n<10K
 source_datasets:
-- openslr
+- original
 task_categories:
 - other
 task_ids:
