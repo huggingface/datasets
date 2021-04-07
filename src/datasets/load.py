@@ -52,6 +52,7 @@ from .utils.file_utils import (
     url_or_path_parent,
 )
 from .utils.filelock import FileLock
+from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -568,7 +569,7 @@ def load_metric(
     num_process: int = 1,
     cache_dir: Optional[str] = None,
     experiment_id: Optional[str] = None,
-    keep_in_memory: Optional[bool] = None,
+    keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     script_version: Optional[Union[str, Version]] = None,
@@ -600,7 +601,6 @@ def load_metric(
     Returns:
         `datasets.Metric`
     """
-    keep_in_memory = keep_in_memory if keep_in_memory is not None else config.HF_DATASETS_IN_MEMORY
     module_path, hash = prepare_module(
         path,
         script_version=script_version,
@@ -704,7 +704,6 @@ def load_dataset(
 
     """
     ignore_verifications = ignore_verifications or save_infos
-    keep_in_memory = keep_in_memory if keep_in_memory is not None else config.HF_DATASETS_IN_MEMORY
     # Download/copy dataset processing script
     module_path, hash, resolved_file_path = prepare_module(
         path,
@@ -750,6 +749,9 @@ def load_dataset(
     )
 
     # Build dataset for splits
+    keep_in_memory = (
+        keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
+    )
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
     if save_infos:
         builder_instance._save_infos()
@@ -772,7 +774,6 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
             keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
     """
-    keep_in_memory = keep_in_memory if keep_in_memory is not None else config.HF_DATASETS_IN_MEMORY
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
