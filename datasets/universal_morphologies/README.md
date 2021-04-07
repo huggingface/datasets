@@ -274,7 +274,7 @@ size_categories:
   deu:
   - 10K<n<100K
   dsb:
-  - 1K<n<10K
+  - n<1K
   ell:
   - 10K<n<100K
   eng:
@@ -290,7 +290,7 @@ size_categories:
   fin:
   - 10K<n<100K
   fra:
-  - 10K<n<100K
+  - 1K<n<10K
   frm:
   - n<1K
   fro:
@@ -348,7 +348,7 @@ size_categories:
   kjh:
   - n<1K
   klr:
-  - 10K<n<100K
+  - n<1K
   kmr:
   - 10K<n<100K
   krl:
@@ -356,7 +356,7 @@ size_categories:
   lat:
   - 10K<n<100K
   lav:
-  - 10K<n<100K
+  - 1K<n<10K
   lit:
   - 1K<n<10K
   liv:
@@ -374,7 +374,7 @@ size_categories:
   nap:
   - n<1K
   nav:
-  - 1K<n<10K
+  - n<1K
   nds:
   - n<1K
   nld:

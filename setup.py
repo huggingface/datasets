@@ -64,8 +64,9 @@ DOCLINES = __doc__.split("\n")
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
-    # Backend and serialization. Minimum 0.17.1 to support extension array
-    "pyarrow>=0.17.1",
+    # Backend and serialization.
+    # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
+    "pyarrow>=1.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -85,7 +86,7 @@ REQUIRED_PKGS = [
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # for saving datsets to local
-    "fsspec",
+    "fsspec<0.9.0",  # 0.9.0 requires s3fs 0.6.0 which is not compatible with the pinned versions of moto/boto3/botocore
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
 ]
@@ -103,7 +104,7 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.24.0",
+    "apache-beam>=2.26.0",
     "elasticsearch",
     "boto3==1.16.43",
     "botocore==1.19.43",
@@ -111,6 +112,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3]==1.3.16",
     "rarfile>=4.0",
+    "s3fs>=0.4.2,<0.6.0",  # don't use 0.6.0 which is not compatible with the pinned versions of moto/boto3/botocore
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -138,7 +140,6 @@ TESTS_REQUIRE = [
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
-    "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
 ]
 
@@ -147,13 +148,15 @@ if os.name == "nt":  # windows
 else:
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend([
-        "wget>=3.2",
-        "pytorch-nlp==0.5.0",
-        "pytorch_lightning",
-        "fastBPE==0.1.0",
-        "fairseq",
-    ])
+    TESTS_REQUIRE.extend(
+        [
+            "wget>=3.2",
+            "pytorch-nlp==0.5.0",
+            "pytorch_lightning",
+            "fastBPE==0.1.0",
+            "fairseq",
+        ]
+    )
 
 
 QUALITY_REQUIRE = [
@@ -164,7 +167,7 @@ QUALITY_REQUIRE = [
 
 
 EXTRAS_REQUIRE = {
-    "apache-beam": ["apache-beam"],
+    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
@@ -178,10 +181,12 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
+        "docutils==0.16.0",
         "recommonmark",
         "sphinx==3.1.2",
         "sphinx-markdown-tables",
         "sphinx-rtd-theme==0.4.3",
+        "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
         "fsspec[s3]",
     ],

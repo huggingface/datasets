@@ -14,7 +14,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  conceptnet:
+  - 10K<n<100K
+  google_re:
+  - 1K<n<10K
+  squad:
+  - n<1K
+  trex:
+  - 1M<n<10M
 source_datasets:
 - extended|conceptnet5
 - extended|squad

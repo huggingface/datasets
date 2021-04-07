@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -6,6 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
+from datasets import DatasetInfo
 from datasets.arrow_dataset import Dataset
 from datasets.features import (
     ClassLabel,
@@ -66,6 +68,13 @@ class FeaturesTest(TestCase):
         for sdt in unsupported_datasets_dtypes:
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
+
+    def test_feature_named_type(self):
+        """reference: issue #1110"""
+        features = Features({"_type": Value("string")})
+        ds_info = DatasetInfo(features=features)
+        reloaded_features = Features.from_dict(asdict(ds_info)["features"])
+        assert features == reloaded_features
 
 
 def test_classlabel_init(tmp_path_factory):
@@ -146,8 +155,8 @@ class CastToPythonObjectsTest(TestCase):
         import torch
 
         obj = {
-            "col_1": [{"vec": torch.Tensor(np.arange(1, 4)), "txt": "foo"}] * 3,
-            "col_2": torch.Tensor(np.arange(1, 7).reshape(3, 2)),
+            "col_1": [{"vec": torch.tensor(np.arange(1, 4)), "txt": "foo"}] * 3,
+            "col_2": torch.tensor(np.arange(1, 7).reshape(3, 2)),
         }
         expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
         casted_obj = cast_to_python_objects(obj)

@@ -13,7 +13,7 @@ size_categories:
   evaluation_dataset:
   - n<1K
   search_corpus:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:

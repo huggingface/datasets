@@ -887,7 +887,7 @@ def generate_from_dict(obj: Any):
     if isinstance(obj, list):
         return [generate_from_dict(value) for value in obj]
     # Otherwise we have a dict or a dataclass
-    if "_type" not in obj:
+    if "_type" not in obj or isinstance(obj["_type"], dict):
         return {key: generate_from_dict(value) for key, value in obj.items()}
     class_type = globals()[obj.pop("_type")]
 

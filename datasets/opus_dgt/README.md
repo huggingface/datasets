@@ -34,7 +34,26 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  bg-ga:
+  - 100K<n<1M
+  bg-hr:
+  - 100K<n<1M
+  bg-sh:
+  - 1M<n<10M
+  es-ga:
+  - 100K<n<1M
+  fi-ga:
+  - 100K<n<1M
+  ga-nl:
+  - 100K<n<1M
+  ga-sh:
+  - 10K<n<100K
+  hr-sk:
+  - 100K<n<1M
+  hr-sv:
+  - 100K<n<1M
+  mt-sh:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
