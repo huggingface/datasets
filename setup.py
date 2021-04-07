@@ -119,7 +119,7 @@ TESTS_REQUIRE = [
     "botocore==1.19.52",
     "faiss-cpu",
     "fsspec[s3]",
-    "moto[s3]==2.0.4",
+    "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
     _deps["s3fs"],
     "tensorflow>=2.3",
