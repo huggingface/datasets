@@ -11,7 +11,14 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n<1K
+  en_annotated:
+  - 10K<n<100K
+  en_neutral:
+  - 1K<n<10K
+  fi_annotated:
+  - 10K<n<100K
+  fi_neutral:
+  - 10K<n<100K
 source_datasets:
 - extended|other-OpenSubtitles2016
 task_categories:

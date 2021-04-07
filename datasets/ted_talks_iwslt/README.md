@@ -119,7 +119,36 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-- 100K< n<500k
+  de_ja_2014:
+  - 1K<n<10K
+  de_ja_2015:
+  - 1K<n<10K
+  de_ja_2016:
+  - 1K<n<10K
+  eu_ca_2014:
+  - n<1K
+  eu_ca_2015:
+  - n<1K
+  eu_ca_2016:
+  - n<1K
+  fr-ca_hi_2014:
+  - n<1K
+  fr-ca_hi_2015:
+  - n<1K
+  fr-ca_hi_2016:
+  - n<1K
+  nl_en_2014:
+  - 1K<n<10K
+  nl_en_2015:
+  - 1K<n<10K
+  nl_en_2016:
+  - 1K<n<10K
+  nl_hi_2014:
+  - n<1K
+  nl_hi_2015:
+  - n<1K
+  nl_hi_2016:
+  - n<1K
 source_datasets:
 - original
 task_categories:

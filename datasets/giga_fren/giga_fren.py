@@ -65,7 +65,7 @@ class GigaFrenConfig(datasets.BuilderConfig):
 
 
 class GigaFren(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIGS = [GigaFrenConfig(description=f"Translating en to fr ", version=datasets.Version(_VERSION))]
+    BUILDER_CONFIGS = [GigaFrenConfig(description="Translating en to fr ", version=datasets.Version(_VERSION))]
     BUILDER_CONFIG_CLASS = GigaFrenConfig
 
     def _info(self):

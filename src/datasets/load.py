@@ -24,7 +24,7 @@ import re
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlparse
 
 import fsspec
@@ -61,7 +61,7 @@ logger = get_logger(__name__)
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
 
-def init_dynamic_modules(name: str, hf_modules_cache: Optional[str] = None):
+def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]] = None):
     """
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
@@ -77,7 +77,7 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[str] = None):
     return dynamic_modules_path
 
 
-def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
+def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetBuilder], Type[Metric]]]:
     """Import a module at module_path and return its main class:
     - a DatasetBuilder if dataset is True
     - a Metric if dataset is False
@@ -106,7 +106,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
     """
     # List all python files in directories if directories are supplied as part of external imports
-    to_use_files = []
+    to_use_files: List[Union[Path, str]] = []
     for file_path in file_paths:
         if os.path.isdir(file_path):
             to_use_files.extend(list(Path(file_path).rglob("*.[pP][yY]")))
@@ -121,7 +121,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     return hash_python_lines(lines)
 
 
-def convert_github_url(url_path: str) -> Tuple[str, str]:
+def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     """Convert a link to a file on a github repo in a link to the raw github object."""
     parsed = urlparse(url_path)
     sub_directory = None
@@ -166,7 +166,7 @@ def get_imports(file_path: str):
         lines.extend(f.readlines())
 
     logger.info("Checking %s for additional imports.", file_path)
-    imports = []
+    imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
         docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
@@ -224,7 +224,7 @@ def prepare_module(
     dynamic_modules_path: Optional[str] = None,
     return_resolved_file_path: bool = False,
     **download_kwargs,
-) -> Tuple[str, str]:
+) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
     r"""
         Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
 
@@ -666,12 +666,12 @@ def load_dataset(
 
     Args:
 
-        path (``str``):
-            path to the dataset processing script with the dataset builder. Can be either:
-                - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                    e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
-                    e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+        path (``str``): Path to the dataset processing script with the dataset builder. Can be either:
+
+            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+              e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+            - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+              e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
         name (Optional ``str``): defining the name of the dataset configuration
         data_files (Optional ``str``): defining the data_files of the dataset configuration
         data_dir (Optional ``str``): defining the data_dir of the dataset configuration
@@ -681,18 +681,19 @@ def load_dataset(
             Splits can be combined and specified like in tensorflow-datasets.
         cache_dir (Optional ``str``): directory to read/write data. Defaults to "~/datasets".
         features (Optional ``datasets.Features``): Set the features type to use for this dataset.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
+        download_config (Optional ``datasets.DownloadConfig``): specific download configuration parameters.
         download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
         keep_in_memory (bool, default=False): Whether to copy the data in-memory.
         save_infos (bool): Save the dataset information (checksums/size/splits/...)
         script_version (Optional ``Union[str, datasets.Version]``): Version of the dataset script to load:
+
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
-            You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-            You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from ~/.huggingface.
+            If True, will get token from `~/.huggingface`.
         **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``datasets.BuilderConfig`` and used in the ``datasets.DatasetBuilder``.
 
     Returns:
@@ -754,18 +755,19 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
+def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> Union[Dataset, DatasetDict]:
     """
-    Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+    Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
     Args:
         dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the Dataset or DatasetDict directory where the dataset will be loaded from
-        fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+        fs (Optional[:class:`datasets.filesystems.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
             if `dataset_path` is a path of a dataset directory: the dataset requested,
             if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
@@ -776,10 +778,10 @@ def load_from_disk(dataset_path: str, fs=None) -> Union[Dataset, DatasetDict]:
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if fs.isfile(Path(dest_dataset_path).joinpath("dataset_info.json").as_posix()):
-        return Dataset.load_from_disk(dataset_path, fs)
-    elif fs.isfile(Path(dest_dataset_path).joinpath("dataset_dict.json").as_posix()):
-        return DatasetDict.load_from_disk(dataset_path, fs)
+    if fs.isfile(Path(dest_dataset_path, "dataset_info.json").as_posix()):
+        return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
+    elif fs.isfile(Path(dest_dataset_path, "dataset_dict.json").as_posix()):
+        return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
             "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)

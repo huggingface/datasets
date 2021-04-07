@@ -34,7 +34,7 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: str = None
+    dataset_name: Optional[str] = None
 
     @property
     def file_instructions(self):
@@ -305,46 +305,39 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Each descriptor can be composed with other using addition or slice. Ex:
+    Examples:
+        Each descriptor can be composed with other using addition or slice. Ex::
 
-    ```
-    split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
-    ```
+            split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
 
-    The resulting split will correspond to 25% of the train split merged with
-    100% of the test split.
-
-    Warning:
-        A split cannot be added twice, so the following will fail:
-
-    ```
-    split = (
-            datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
-            datasets.Split.TRAIN.subsplit(datasets.percent[75:])
-    )  # Error
-    split = datasets.Split.TEST + datasets.Split.ALL  # Error
-    ```
+        The resulting split will correspond to 25% of the train split merged with
+        100% of the test split.
 
     Warning:
-        The slices can be applied only one time. So the following are valid:
+        A split cannot be added twice, so the following will fail::
 
-    ```
-    split = (
-            datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
-            datasets.Split.TEST.subsplit(datasets.percent[:50])
-    )
-    split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
-    ```
+            split = (
+                    datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
+                    datasets.Split.TRAIN.subsplit(datasets.percent[75:])
+            )  # Error
+            split = datasets.Split.TEST + datasets.Split.ALL  # Error
 
-        But not:
+    Warning:
+        The slices can be applied only one time. So the following are valid::
 
-    ```
-    train = datasets.Split.TRAIN
-    test = datasets.Split.TEST
-    split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
-    split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
-    ```
+            split = (
+                    datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
+                    datasets.Split.TEST.subsplit(datasets.percent[:50])
+            )
+            split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
 
+
+        But not::
+
+            train = datasets.Split.TRAIN
+            test = datasets.Split.TEST
+            split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
+            split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
     """
 
     def __init__(self, name):
@@ -352,7 +345,7 @@ class NamedSplit(SplitBase):
         split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
         for split_name in split_names_from_instruction:
             if not re.match(_split_re, split_name):
-                raise ValueError(f"Split name should match '{_split_re}'' but got '{split_name}'.")
+                raise ValueError(f"Split name should match '{_split_re}' but got '{split_name}'.")
 
     def __str__(self):
         return self._name
@@ -400,18 +393,16 @@ class Split(object):
     Datasets are typically split into different subsets to be used at various
     stages of training and evaluation.
 
-    * `TRAIN`: the training data.
-    * `VALIDATION`: the validation data. If present, this is typically used as
-        evaluation data while iterating on a model (e.g. changing hyperparameters,
-        model architecture, etc.).
-    * `TEST`: the testing data. This is the data to report metrics on. Typically
-        you do not want to use this during model iteration as you may overfit to it.
+    - `TRAIN`: the training data.
+    - `VALIDATION`: the validation data. If present, this is typically used as
+      evaluation data while iterating on a model (e.g. changing hyperparameters,
+      model architecture, etc.).
+    - `TEST`: the testing data. This is the data to report metrics on. Typically
+      you do not want to use this during model iteration as you may overfit to it.
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
-    See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
-    for more information.
+    See the :doc:`guide on splits </splits>` for more information.
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -559,14 +550,14 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    `GeneratorBasedBuilder._split_generators`.
-    See `GeneratorBasedBuilder._split_generators` for more info and example
+    :meth:`GeneratorBasedBuilder._split_generators`.
+    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name: `str`, name of the Split for which the generator will
+        name (str): Name of the Split for which the generator will
             create the examples.
-        gen_kwargs: `dict`, kwargs to forward to the _generate_examples() method
+        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
     """
 

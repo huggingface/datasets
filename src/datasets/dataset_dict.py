@@ -8,11 +8,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .table import Table
+from .utils.deprecation_utils import deprecated
+from .utils.typing import PathLike
 
 
 class DatasetDict(dict):
@@ -26,7 +28,7 @@ class DatasetDict(dict):
                 )
 
     @property
-    def data(self) -> Dict[str, pa.Table]:
+    def data(self) -> Dict[str, Table]:
         """The Apache Arrow tables backing each split."""
         self._check_values_type()
         return {k: dataset.data for k, dataset in self.items()}
@@ -61,11 +63,14 @@ class DatasetDict(dict):
         self._check_values_type()
         return {k: dataset.shape for k, dataset in self.items()}
 
+    @deprecated()
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column in each split.
 
-            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionary of the strings. This only affect the internal storage.
+        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+        by storing a dictionary of the strings. This only affect the internal storage.
+
+        .. deprecated:: 1.4.0
 
         Args:
             column (:obj:`str`):
@@ -75,14 +80,24 @@ class DatasetDict(dict):
         for dataset in self.values():
             dataset.dictionary_encode_column_(column=column)
 
+    @deprecated(help_message="Use DatasetDict.flatten instead.")
     def flatten_(self, max_depth=16):
+        """In-place version of :meth:`DatasetDict.flatten`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.flatten` instead.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.flatten_(max_depth=max_depth)
+
+    def flatten(self, max_depth=16):
         """Flatten the Apache Arrow Table of each split (nested features are flatten).
         Each column with a struct type is flattened into one column per struct field.
         Other columns are left unchanged.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.flatten_(max_depth=max_depth)
+        return DatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
 
     def unique(self, column: str) -> Dict[str, List[Any]]:
         """Return a list of the unique elements in a column for each split.
@@ -93,7 +108,8 @@ class DatasetDict(dict):
             column (:obj:`str`):
                 column name (list all the column names with :func:`datasets.Dataset.column_names`)
 
-        Returns: Dict[:obj: `str`, :obj:`list`] of unique elements in the given column.
+        Returns:
+            Dict[:obj:`str`, :obj:`list`]: Dictionary of unique elements in the given column.
 
         """
         self._check_values_type()
@@ -107,15 +123,31 @@ class DatasetDict(dict):
             Dict with the number of removed files for each split
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.cleanup_cache_files()
+        return {k: dataset.cleanup_cache_files() for k, dataset in self.items()}
 
     def __repr__(self):
         repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
         repr = re.sub(r"^", " " * 4, repr, 0, re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
+    @deprecated(help_message="Use DatasetDict.cast instead.")
     def cast_(self, features: Features):
+        """In-place version of :meth:`DatasetDict.cast`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.cast` instead.
+
+        Args:
+            features (:class:`datasets.Features`): New features to cast the dataset to.
+                The name and order of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+        """
+        self._check_values_type()
+        new_dataset_dict = {k: dataset.cast(features=features) for k, dataset in self.items()}
+        self.update(new_dataset_dict)
+
+    def cast(self, features: Features):
         """
         Cast the dataset to a new set of features.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -130,10 +162,23 @@ class DatasetDict(dict):
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.cast_(features=features)
+        return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
 
+    @deprecated(help_message="Use DatasetDict.remove_columns instead.")
     def remove_columns_(self, column_names: Union[str, List[str]]):
+        """In-place version of :meth:`DatasetDict.remove_columns`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.remove_columns` instead.
+
+        Args:
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+        """
+        self._check_values_type()
+        new_dataset_dict = {k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()}
+        self.update(new_dataset_dict)
+
+    def remove_columns(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) from each split in the dataset
         and the features associated to the column(s).
@@ -147,10 +192,27 @@ class DatasetDict(dict):
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.remove_columns_(column_names=column_names)
+        return DatasetDict({k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()})
 
+    @deprecated(help_message="Use DatasetDict.rename_column instead.")
     def rename_column_(self, original_column_name: str, new_column_name: str):
+        """In-place version of :meth:`DatasetDict.rename_column`.
+
+        .. deprecated:: 1.4.0
+            Use :meth:`DatasetDict.rename_column` instead.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+        """
+        self._check_values_type()
+        new_dataset_dict = {
+            k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+            for k, dataset in self.items()
+        }
+        self.update(new_dataset_dict)
+
+    def rename_column(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -164,8 +226,12 @@ class DatasetDict(dict):
             new_column_name (:obj:`str`): New name for the column.
         """
         self._check_values_type()
-        for dataset in self.values():
-            dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
+        return DatasetDict(
+            {
+                k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+                for k, dataset in self.items()
+            }
+        )
 
     @contextlib.contextmanager
     def formatted_as(
@@ -326,7 +392,7 @@ class DatasetDict(dict):
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
@@ -401,7 +467,7 @@ class DatasetDict(dict):
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
@@ -463,7 +529,7 @@ class DatasetDict(dict):
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        indices_cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a column.
@@ -508,22 +574,23 @@ class DatasetDict(dict):
 
     def shuffle(
         self,
-        seeds: Optional[Union[int, Dict[str, int]]] = None,
+        seeds: Optional[Union[int, Dict[str, Optional[int]]]] = None,
         seed: Optional[int] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        indices_cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
         """Create a new Dataset where the rows are shuffled.
+
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Currently shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seeds (Optional `Dict[str, int]` or `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+            seeds (`Dict[str, int]` or `int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
                 You can provide one :obj:`seed` per dataset in the dataset dictionary.
@@ -534,7 +601,7 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_names (`Dict[str, str]`, optional): Provide the name of a path for the cache file. It is used to store the
                 indices mappings instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
@@ -568,11 +635,15 @@ class DatasetDict(dict):
 
     def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
-        Saves a dataset dict to a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
+        ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be saved to
-            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI
+                (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
+                saved to.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
         """
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
@@ -583,20 +654,26 @@ class DatasetDict(dict):
 
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "w", encoding="utf-8"),
+            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(os.path.join(dataset_dict_path, k), fs)
+            dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory=False) -> "DatasetDict":
         """
-        Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a filesystem using either :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
+        :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the dataset dict directory where the dataset dict will be loaded from
-            fs (Optional[:class:`datasets.filesystem.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystem.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`)
+                of the dataset dict directory where the dataset dict will be loaded from.
+            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
 
+        Returns:
+            :class:`DatasetDict`.
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
@@ -605,12 +682,93 @@ class DatasetDict(dict):
             fs = fsspec.filesystem("file")
             dest_dataset_dict_path = dataset_dict_path
         for k in json.load(
-            fs.open(Path(dest_dataset_dict_path).joinpath("dataset_dict.json").as_posix(), "r", encoding="utf-8")
+            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "r", encoding="utf-8")
         )["splits"]:
             dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)
-                else Path(dest_dataset_dict_path).joinpath(k).as_posix()
+                else Path(dest_dataset_dict_path, k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs)
+            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
         return dataset_dict
+
+    @staticmethod
+    def from_csv(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create DatasetDict from CSV file(s).
+
+        Args:
+            path_or_paths (dict of path-like): Path(s) of the CSV file(s).
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+
+        Returns:
+            :class:`DatasetDict`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetReader
+
+        return CsvDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_json(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create DatasetDict from JSON Lines file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the JSON Lines file(s).
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+
+        Returns:
+            :class:`DatasetDict`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetReader
+
+        return JsonDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_text(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create DatasetDict from text file(s).
+
+        Args:
+            path_or_paths (dict of path-like): Path(s) of the text file(s).
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
+
+        Returns:
+            :class:`DatasetDict`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.text import TextDatasetReader
+
+        return TextDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()

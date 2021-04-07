@@ -6,7 +6,7 @@ Supported Filesystems
 
 Currenlty ``datasets`` offers an s3 filesystem implementation with :class:`datasets.filesystems.S3FileSystem`. ``S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known implementation of ``fsspec``.
 
-Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently Known Implementations these are: 
+Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently known implementations are: 
 
 - `s3fs <https://s3fs.readthedocs.io/en/latest/>`_  for Amazon S3 and other compatible stores
 - `gcsfs <https://gcsfs.readthedocs.io/en/latest/>`_ for Google Cloud Storage
@@ -15,7 +15,7 @@ Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently Know
 - `dropbox <https://github.com/MarineChap/dropboxdrivefs>`_ for access to dropbox shares
 - `gdrive <https://github.com/intake/gdrivefs>`_ to access Google Drive and shares (experimental)
 
-These know implementations are going to be natively added in the near future within ``datasets``.
+These known implementations are going to be natively added in the near future within ``datasets``, but you can use them already in a similar way to ``s3fs``.
 
 **Examples:**	
 
@@ -26,7 +26,7 @@ Example using :class:`datasets.filesystems.S3FileSystem` within ``datasets``.
 
     >>> pip install datasets[s3]
 
-Listing files from public s3 bucket.
+Listing files from a public s3 bucket.
 
 .. code-block::
 
@@ -35,7 +35,7 @@ Listing files from public s3 bucket.
       >>> s3.ls('public-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
-Listing files from private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
+Listing files from a private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
 
 .. code-block::
 
@@ -51,8 +51,25 @@ Using ``S3Filesystem`` with ``botocore.session.Session`` and custom ``aws_profil
       >>> import botocore 
       >>> from datasets.filesystems import S3FileSystem
       >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
-      >>>
       >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
+
+
+
+Example using a another ``fsspec`` implementations, like ``gcsfs`` within ``datasets``.
+
+.. code-block::
+
+      >>> conda install -c conda-forge gcsfs
+      >>> # or
+      >>> pip install gcsfs
+
+.. code-block::
+
+      >>> import gcsfs
+      >>> gcs = gcsfs.GCSFileSystem(project='my-google-project') # doctest: +SKIP
+      >>>
+      >>> # saves encoded_dataset to your s3 bucket
+      >>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)  # doctest: +SKIP
 
 
 
@@ -62,7 +79,7 @@ Saving a processed dataset to s3
 Once you have your final dataset you can save it to s3 and reuse it later using :obj:`datasets.load_from_disk`.
 Saving a dataset to s3 will upload various files to your bucket:
 
-- ``arrow files.arrow``: they contain your dataset's data
+- ``arrow files``: they contain your dataset's data
 - ``dataset_info.json``: contains the description, citations, etc. of the dataset
 - ``state.json``: contains the list of the arrow files and other informations like the dataset format type, if any (torch or tensorflow for example)
 

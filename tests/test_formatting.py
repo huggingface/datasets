@@ -3,9 +3,11 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pytest
 
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
+from datasets.table import InMemoryTable
 
 from .utils import require_tf, require_torch
 
@@ -130,12 +132,12 @@ class FormatterTest(TestCase):
         formatter = TorchFormatter()
         row = formatter.format_row(pa_table)
         torch.testing.assert_allclose(row["a"], torch.tensor(_COL_A, dtype=torch.int64)[0])
-        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float64)[0])
+        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float32)[0])
         col = formatter.format_column(pa_table)
         torch.testing.assert_allclose(col, torch.tensor(_COL_A, dtype=torch.int64))
         batch = formatter.format_batch(pa_table)
         torch.testing.assert_allclose(batch["a"], torch.tensor(_COL_A, dtype=torch.int64))
-        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float64))
+        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float32))
 
     @require_torch
     def test_torch_formatter_np_array_kwargs(self):
@@ -164,18 +166,18 @@ class FormatterTest(TestCase):
         row = formatter.format_row(pa_table)
         tf.debugging.assert_equal(row["a"], tf.ragged.constant(_COL_A, dtype=tf.int64)[0])
         tf.debugging.assert_equal(row["b"], tf.ragged.constant(_COL_B, dtype=tf.string)[0])
-        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float64)[0])
+        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float32)[0])
         col = formatter.format_column(pa_table)
         tf.debugging.assert_equal(col, tf.ragged.constant(_COL_A, dtype=tf.int64))
         batch = formatter.format_batch(pa_table)
         tf.debugging.assert_equal(batch["a"], tf.ragged.constant(_COL_A, dtype=tf.int64))
         tf.debugging.assert_equal(batch["b"], tf.ragged.constant(_COL_B, dtype=tf.string))
         self.assertIsInstance(batch["c"], tf.RaggedTensor)
-        self.assertEqual(batch["c"].dtype, tf.float64)
+        self.assertEqual(batch["c"].dtype, tf.float32)
         tf.debugging.assert_equal(
-            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float64).bounding_shape()
+            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float32).bounding_shape()
         )
-        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float64).flat_values)
+        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float32).flat_values)
 
     @require_tf
     def test_tf_formatter_np_array_kwargs(self):
@@ -199,7 +201,7 @@ class QueryTest(TestCase):
         return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C})
 
     def _create_dummy_arrow_indices(self):
-        return pa.array(_INDICES, type=pa.uint64())
+        return pa.Table.from_arrays([pa.array(_INDICES, type=pa.uint64())], names=["indices"])
 
     def assertTableEqual(self, first: pa.Table, second: pa.Table):
         self.assertEqual(first.schema, second.schema)
@@ -209,100 +211,103 @@ class QueryTest(TestCase):
 
     def test_query_table_int(self):
         pa_table = self._create_dummy_table()
+        table = InMemoryTable(pa_table)
         n = pa_table.num_rows
         # classical usage
-        subtable = query_table(pa_table, 0)
+        subtable = query_table(table, 0)
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[:1], "b": _COL_B[:1], "c": _COL_C[:1]}))
-        subtable = query_table(pa_table, 1)
+        subtable = query_table(table, 1)
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[1:2], "b": _COL_B[1:2], "c": _COL_C[1:2]}))
-        subtable = query_table(pa_table, -1)
+        subtable = query_table(table, -1)
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[-1:], "b": _COL_B[-1:], "c": _COL_C[-1:]}))
         # raise an IndexError
         with self.assertRaises(IndexError):
-            query_table(pa_table, n)
+            query_table(table, n)
         with self.assertRaises(IndexError):
-            query_table(pa_table, -(n + 1))
+            query_table(table, -(n + 1))
         # with indices
-        indices = self._create_dummy_arrow_indices()
-        subtable = query_table(pa_table, 0, indices=indices)
+        indices = InMemoryTable(self._create_dummy_arrow_indices())
+        subtable = query_table(table, 0, indices=indices)
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
         )
         with self.assertRaises(IndexError):
             assert len(indices) < n
-            query_table(pa_table, len(indices), indices=indices)
+            query_table(table, len(indices), indices=indices)
 
     def test_query_table_slice(self):
         pa_table = self._create_dummy_table()
+        table = InMemoryTable(pa_table)
         n = pa_table.num_rows
         # classical usage
-        subtable = query_table(pa_table, slice(0, 1))
+        subtable = query_table(table, slice(0, 1))
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[:1], "b": _COL_B[:1], "c": _COL_C[:1]}))
-        subtable = query_table(pa_table, slice(1, 2))
+        subtable = query_table(table, slice(1, 2))
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[1:2], "b": _COL_B[1:2], "c": _COL_C[1:2]}))
-        subtable = query_table(pa_table, slice(-2, -1))
+        subtable = query_table(table, slice(-2, -1))
         self.assertTableEqual(
             subtable, pa.Table.from_pydict({"a": _COL_A[-2:-1], "b": _COL_B[-2:-1], "c": _COL_C[-2:-1]})
         )
         # usage with None
-        subtable = query_table(pa_table, slice(-1, None))
+        subtable = query_table(table, slice(-1, None))
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[-1:], "b": _COL_B[-1:], "c": _COL_C[-1:]}))
-        subtable = query_table(pa_table, slice(None, n + 1))
+        subtable = query_table(table, slice(None, n + 1))
         self.assertTableEqual(
             subtable, pa.Table.from_pydict({"a": _COL_A[: n + 1], "b": _COL_B[: n + 1], "c": _COL_C[: n + 1]})
         )
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C}))
-        subtable = query_table(pa_table, slice(-(n + 1), None))
+        subtable = query_table(table, slice(-(n + 1), None))
         self.assertTableEqual(
             subtable, pa.Table.from_pydict({"a": _COL_A[-(n + 1) :], "b": _COL_B[-(n + 1) :], "c": _COL_C[-(n + 1) :]})
         )
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C}))
         # usage with step
-        subtable = query_table(pa_table, slice(None, None, 2))
+        subtable = query_table(table, slice(None, None, 2))
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[::2], "b": _COL_B[::2], "c": _COL_C[::2]}))
         # empty ouput but no errors
-        subtable = query_table(pa_table, slice(-1, 0))  # usage with both negative and positive idx
+        subtable = query_table(table, slice(-1, 0))  # usage with both negative and positive idx
         assert len(_COL_A[-1:0]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
-        subtable = query_table(pa_table, slice(2, 1))
+        subtable = query_table(table, slice(2, 1))
         assert len(_COL_A[2:1]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
-        subtable = query_table(pa_table, slice(n, n))
+        subtable = query_table(table, slice(n, n))
         assert len(_COL_A[n:n]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
-        subtable = query_table(pa_table, slice(n, n + 1))
+        subtable = query_table(table, slice(n, n + 1))
         assert len(_COL_A[n : n + 1]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
         # it's not possible to get an error with a slice
 
         # with indices
-        indices = self._create_dummy_arrow_indices()
-        subtable = query_table(pa_table, slice(0, 1), indices=indices)
+        indices = InMemoryTable(self._create_dummy_arrow_indices())
+        subtable = query_table(table, slice(0, 1), indices=indices)
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
         )
-        subtable = query_table(pa_table, slice(n - 1, n), indices=indices)
-        assert len(indices.to_pylist()[n - 1 : n]) == 0
+        subtable = query_table(table, slice(n - 1, n), indices=indices)
+        assert len(indices.column(0).to_pylist()[n - 1 : n]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
 
     def test_query_table_range(self):
         pa_table = self._create_dummy_table()
+        table = InMemoryTable(pa_table)
         n = pa_table.num_rows
         np_A, np_B, np_C = np.array(_COL_A, dtype=np.int64), np.array(_COL_B), np.array(_COL_C)
         # classical usage
-        subtable = query_table(pa_table, range(0, 1))
+        subtable = query_table(table, range(0, 1))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": np_A[range(0, 1)], "b": np_B[range(0, 1)], "c": np_C[range(0, 1)].tolist()}),
         )
-        subtable = query_table(pa_table, range(1, 2))
+        subtable = query_table(table, range(1, 2))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": np_A[range(1, 2)], "b": np_B[range(1, 2)], "c": np_C[range(1, 2)].tolist()}),
         )
-        subtable = query_table(pa_table, range(-2, -1))
+        subtable = query_table(table, range(-2, -1))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict(
@@ -310,25 +315,25 @@ class QueryTest(TestCase):
             ),
         )
         # usage with both negative and positive idx
-        subtable = query_table(pa_table, range(-1, 0))
+        subtable = query_table(table, range(-1, 0))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": np_A[range(-1, 0)], "b": np_B[range(-1, 0)], "c": np_C[range(-1, 0)].tolist()}),
         )
-        subtable = query_table(pa_table, range(-1, n))
+        subtable = query_table(table, range(-1, n))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": np_A[range(-1, n)], "b": np_B[range(-1, n)], "c": np_C[range(-1, n)].tolist()}),
         )
         # usage with step
-        subtable = query_table(pa_table, range(0, n, 2))
+        subtable = query_table(table, range(0, n, 2))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict(
                 {"a": np_A[range(0, n, 2)], "b": np_B[range(0, n, 2)], "c": np_C[range(0, n, 2)].tolist()}
             ),
         )
-        subtable = query_table(pa_table, range(0, n + 1, 2 * n))
+        subtable = query_table(table, range(0, n + 1, 2 * n))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict(
@@ -340,106 +345,109 @@ class QueryTest(TestCase):
             ),
         )
         # empty ouput but no errors
-        subtable = query_table(pa_table, range(2, 1))
+        subtable = query_table(table, range(2, 1))
         assert len(np_A[range(2, 1)]) == 0
         self.assertTableEqual(subtable, pa.Table.from_batches([], schema=pa_table.schema))
-        subtable = query_table(pa_table, range(n, n))
+        subtable = query_table(table, range(n, n))
         assert len(np_A[range(n, n)]) == 0
         self.assertTableEqual(subtable, pa.Table.from_batches([], schema=pa_table.schema))
         # raise an IndexError
         with self.assertRaises(IndexError):
             with self.assertRaises(IndexError):
                 np_A[range(0, n + 1)]
-            query_table(pa_table, range(0, n + 1))
+            query_table(table, range(0, n + 1))
         with self.assertRaises(IndexError):
             with self.assertRaises(IndexError):
                 np_A[range(-(n + 1), -1)]
-            query_table(pa_table, range(-(n + 1), -1))
+            query_table(table, range(-(n + 1), -1))
         with self.assertRaises(IndexError):
             with self.assertRaises(IndexError):
                 np_A[range(n, n + 1)]
-            query_table(pa_table, range(n, n + 1))
+            query_table(table, range(n, n + 1))
         # with indices
-        indices = self._create_dummy_arrow_indices()
-        subtable = query_table(pa_table, range(0, 1), indices=indices)
+        indices = InMemoryTable(self._create_dummy_arrow_indices())
+        subtable = query_table(table, range(0, 1), indices=indices)
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
         )
         with self.assertRaises(IndexError):
             assert len(indices) < n
-            query_table(pa_table, range(len(indices), len(indices) + 1), indices=indices)
+            query_table(table, range(len(indices), len(indices) + 1), indices=indices)
 
     def test_query_table_str(self):
         pa_table = self._create_dummy_table()
-        subtable = query_table(pa_table, "a")
+        table = InMemoryTable(pa_table)
+        subtable = query_table(table, "a")
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A}))
         with self.assertRaises(KeyError):
-            query_table(pa_table, "z")
-        indices = self._create_dummy_arrow_indices()
-        subtable = query_table(pa_table, "a", indices=indices)
+            query_table(table, "z")
+        indices = InMemoryTable(self._create_dummy_arrow_indices())
+        subtable = query_table(table, "a", indices=indices)
         self.assertTableEqual(subtable, pa.Table.from_pydict({"a": [_COL_A[i] for i in _INDICES]}))
 
     def test_query_table_iterable(self):
         pa_table = self._create_dummy_table()
+        table = InMemoryTable(pa_table)
         n = pa_table.num_rows
         np_A, np_B, np_C = np.array(_COL_A, dtype=np.int64), np.array(_COL_B), np.array(_COL_C)
         # classical usage
-        subtable = query_table(pa_table, [0])
+        subtable = query_table(table, [0])
         self.assertTableEqual(
             subtable, pa.Table.from_pydict({"a": np_A[[0]], "b": np_B[[0]], "c": np_C[[0]].tolist()})
         )
-        subtable = query_table(pa_table, [1])
+        subtable = query_table(table, [1])
         self.assertTableEqual(
             subtable, pa.Table.from_pydict({"a": np_A[[1]], "b": np_B[[1]], "c": np_C[[1]].tolist()})
         )
-        subtable = query_table(pa_table, [-1])
+        subtable = query_table(table, [-1])
         self.assertTableEqual(
             subtable, pa.Table.from_pydict({"a": np_A[[-1]], "b": np_B[[-1]], "c": np_C[[-1]].tolist()})
         )
-        subtable = query_table(pa_table, [0, -1, 1])
+        subtable = query_table(table, [0, -1, 1])
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": np_A[[0, -1, 1]], "b": np_B[[0, -1, 1]], "c": np_C[[0, -1, 1]].tolist()}),
         )
         # numpy iterable
-        subtable = query_table(pa_table, np.array([0, -1, 1]))
+        subtable = query_table(table, np.array([0, -1, 1]))
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": np_A[[0, -1, 1]], "b": np_B[[0, -1, 1]], "c": np_C[[0, -1, 1]].tolist()}),
         )
         # empty ouput but no errors
-        subtable = query_table(pa_table, [])
+        subtable = query_table(table, [])
         assert len(np_A[[]]) == 0
         self.assertTableEqual(subtable, pa.Table.from_batches([], schema=pa_table.schema))
         # raise an IndexError
         with self.assertRaises(IndexError):
             with self.assertRaises(IndexError):
                 np_A[[n]]
-            query_table(pa_table, [n])
+            query_table(table, [n])
         with self.assertRaises(IndexError):
             with self.assertRaises(IndexError):
                 np_A[[-(n + 1)]]
-            query_table(pa_table, [-(n + 1)])
+            query_table(table, [-(n + 1)])
         # with indices
-        indices = self._create_dummy_arrow_indices()
-        subtable = query_table(pa_table, [0], indices=indices)
+        indices = InMemoryTable(self._create_dummy_arrow_indices())
+        subtable = query_table(table, [0], indices=indices)
         self.assertTableEqual(
             subtable,
             pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
         )
         with self.assertRaises(IndexError):
             assert len(indices) < n
-            query_table(pa_table, [len(indices)], indices=indices)
+            query_table(table, [len(indices)], indices=indices)
 
     def test_query_table_invalid_key_type(self):
         pa_table = self._create_dummy_table()
+        table = InMemoryTable(pa_table)
         with self.assertRaises(TypeError):
-            query_table(pa_table, 0.0)
+            query_table(table, 0.0)
         with self.assertRaises(TypeError):
-            query_table(pa_table, [0, "a"])
+            query_table(table, [0, "a"])
         with self.assertRaises(TypeError):
-            query_table(pa_table, int)
+            query_table(table, int)
         with self.assertRaises(TypeError):
 
             def iter_to_inf(start=0):
@@ -447,4 +455,77 @@ class QueryTest(TestCase):
                     yield start
                     start += 1
 
-            query_table(pa_table, iter_to_inf())
+            query_table(table, iter_to_inf())
+
+
+@pytest.fixture(scope="session")
+def arrow_table():
+    return pa.Table.from_pydict({"col_int": [0, 1, 2], "col_float": [0.0, 1.0, 2.0]})
+
+
+@require_tf
+@pytest.mark.parametrize(
+    "cast_schema",
+    [
+        None,
+        [("col_int", pa.int64()), ("col_float", pa.float64())],
+        [("col_int", pa.int32()), ("col_float", pa.float64())],
+        [("col_int", pa.int64()), ("col_float", pa.float32())],
+    ],
+)
+def test_tf_formatter_sets_default_dtypes(cast_schema, arrow_table):
+    import tensorflow as tf
+
+    from datasets.formatting import TFFormatter
+
+    if cast_schema:
+        arrow_table = arrow_table.cast(pa.schema(cast_schema))
+    arrow_table_dict = arrow_table.to_pydict()
+    list_int = arrow_table_dict["col_int"]
+    list_float = arrow_table_dict["col_float"]
+    formatter = TFFormatter()
+
+    row = formatter.format_row(arrow_table)
+    tf.debugging.assert_equal(row["col_int"], tf.ragged.constant(list_int, dtype=tf.int64)[0])
+    tf.debugging.assert_equal(row["col_float"], tf.ragged.constant(list_float, dtype=tf.float32)[0])
+
+    col = formatter.format_column(arrow_table)
+    tf.debugging.assert_equal(col, tf.ragged.constant(list_int, dtype=tf.int64))
+
+    batch = formatter.format_batch(arrow_table)
+    tf.debugging.assert_equal(batch["col_int"], tf.ragged.constant(list_int, dtype=tf.int64))
+    tf.debugging.assert_equal(batch["col_float"], tf.ragged.constant(list_float, dtype=tf.float32))
+
+
+@require_torch
+@pytest.mark.parametrize(
+    "cast_schema",
+    [
+        None,
+        [("col_int", pa.int64()), ("col_float", pa.float64())],
+        [("col_int", pa.int32()), ("col_float", pa.float64())],
+        [("col_int", pa.int64()), ("col_float", pa.float32())],
+    ],
+)
+def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
+    import torch
+
+    from datasets.formatting import TorchFormatter
+
+    if cast_schema:
+        arrow_table = arrow_table.cast(pa.schema(cast_schema))
+    arrow_table_dict = arrow_table.to_pydict()
+    list_int = arrow_table_dict["col_int"]
+    list_float = arrow_table_dict["col_float"]
+    formatter = TorchFormatter()
+
+    row = formatter.format_row(arrow_table)
+    torch.testing.assert_allclose(row["col_int"], torch.tensor(list_int, dtype=torch.int64)[0])
+    torch.testing.assert_allclose(row["col_float"], torch.tensor(list_float, dtype=torch.float32)[0])
+
+    col = formatter.format_column(arrow_table)
+    torch.testing.assert_allclose(col, torch.tensor(list_int, dtype=torch.int64))
+
+    batch = formatter.format_batch(arrow_table)
+    torch.testing.assert_allclose(batch["col_int"], torch.tensor(list_int, dtype=torch.int64))
+    torch.testing.assert_allclose(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))

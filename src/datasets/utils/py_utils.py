@@ -268,7 +268,7 @@ def flatten_nest_dict(d):
 
 class NestedDataStructure:
     def __init__(self, data=None):
-        self.data = data if data else []
+        self.data = data if data is not None else []
 
     def flatten(self, data=None):
         data = data if data is not None else self.data
@@ -546,7 +546,9 @@ def save_function(pickler, obj):
 
 
 def copyfunc(func):
-    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result.__kwdefaults__ = func.__kwdefaults__
+    return result
 
 
 try:

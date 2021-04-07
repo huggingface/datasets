@@ -33,12 +33,12 @@ from .formatting import (
 
 logger = get_logger(__name__)
 
-_FORMAT_TYPES: Dict[str, type] = {}
-_FORMAT_TYPES_ALIASES: Dict[str, str] = {}
-_FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[str, Exception] = {}
+_FORMAT_TYPES: Dict[Optional[str], type] = {}
+_FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
+_FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[Optional[str], Exception] = {}
 
 
-def _register_formatter(formatter_cls: type, format_type: Union[None, str], aliases: Optional[List[str]] = None):
+def _register_formatter(formatter_cls: type, format_type: Optional[str], aliases: Optional[List[str]] = None):
     """
     Register a Formatter object using a name and optional aliases.
     This function must be used on a Formatter class.
@@ -58,7 +58,7 @@ def _register_formatter(formatter_cls: type, format_type: Union[None, str], alia
 
 
 def _register_unavailable_formatter(
-    unavailable_error: Exception, format_type: Union[None, str], aliases: Optional[List[str]] = None
+    unavailable_error: Exception, format_type: Optional[str], aliases: Optional[List[str]] = None
 ):
     """
     Register an unavailable Formatter object using a name and optional aliases.
@@ -92,7 +92,7 @@ else:
     _register_unavailable_formatter(_tf_error, "tensorflow", aliases=["tf"])
 
 
-def get_format_type_from_alias(format_type: Union[None, str]) -> str:
+def get_format_type_from_alias(format_type: Optional[str]) -> Optional[str]:
     """If the given format type is a known alias, then return its main type name. Otherwise return the type with no change."""
     if format_type in _FORMAT_TYPES_ALIASES:
         return _FORMAT_TYPES_ALIASES[format_type]
@@ -100,7 +100,7 @@ def get_format_type_from_alias(format_type: Union[None, str]) -> str:
         return format_type
 
 
-def get_formatter(format_type: Union[None, str], **format_kwargs) -> Formatter:
+def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     """
     Factory function to get a Formatter given its type name and keyword arguments.
     A formatter is an object that extracts and formats data from pyarrow table.

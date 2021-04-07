@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import requests
 
@@ -68,7 +68,7 @@ class HfApi:
         """Create Api using a specific endpoint and also the file types ('datasets' or 'metrics')"""
         self.endpoint = endpoint if endpoint is not None else ENDPOINT
 
-    def dataset_list(self, with_community_datasets=True, id_only=False) -> List[ObjectInfo]:
+    def dataset_list(self, with_community_datasets=True, id_only=False) -> Union[List[ObjectInfo], List[str]]:
         """
         Get the public list of all the datasets on huggingface, including the community datasets
         """
@@ -83,7 +83,7 @@ class HfApi:
             datasets = [d.id for d in datasets]
         return datasets
 
-    def metric_list(self, with_community_metrics=True, id_only=False) -> List[ObjectInfo]:
+    def metric_list(self, with_community_metrics=True, id_only=False) -> Union[List[ObjectInfo], List[str]]:
         """
         Get the public list of all the metrics on huggingface, including the community metrics
         """

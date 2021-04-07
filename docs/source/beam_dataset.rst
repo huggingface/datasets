@@ -13,7 +13,7 @@ More infos about the different runners `here <https://beam.apache.org/documentat
 Already processed datasets are provided
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-At Hugging Face we have already run the Beam pipelines for datasets like wikipedia and wiki40b to provide already processed datasets. Therefore users can simply do run `load_dataset('wikipedia', '20200501.en')` and the already processed dataset will be downloaded.
+At Hugging Face we have already run the Beam pipelines for datasets like wikipedia and wiki40b to provide already processed datasets. Therefore users can simply run ``load_dataset('wikipedia', '20200501.en')`` and the already processed dataset will be downloaded.
 
 How to run a Beam dataset processing pipeline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -46,7 +46,7 @@ If you want to run the Beam pipeline of a dataset anyway, here are the different
 
 .. code::
 
-    python -mdatasets-cli run_beam datasets/$DATASET_NAME \
+    datasets-cli run_beam datasets/$DATASET_NAME \
     --name $CONFIG_NAME \
     --save_infos \
     --cache_dir gs://$BUCKET/cache/datasets \
@@ -58,12 +58,12 @@ If you want to run the Beam pipeline of a dataset anyway, here are the different
 
 .. note::
 
-    you can also use the flags `num_workers` or `machine_type` to fit your needs.
+    You can also use the flags `num_workers` or `machine_type` to fit your needs.
 
 Note that it also works if you change the runner to Spark, Flink, etc. instead of Dataflow or if you change the output location to S3 or HDFS instead of GCS.
 
 How to create your own Beam dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It is highly recommended to be familiar with Beam pipelines first.
+It is highly recommended to be familiar with the Beam pipelines first.
 Then, you can start looking at the `wikipedia.py <https://github.com/huggingface/datasets/blob/master/datasets/wikipedia/wikipedia.py>`_ script for an example.

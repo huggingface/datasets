@@ -10,7 +10,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  nell_belief:
+  - 1M<n<10M
+  nell_belief_sentences:
+  - 10M<n<100M
+  nell_candidate:
+  - 10M<n<100M
+  nell_candidate_sentences:
+  - 100M<n<1B
 source_datasets:
 - original
 task_categories:

@@ -113,7 +113,6 @@ class Aquamuse(datasets.GeneratorBasedBuilder):
 
         else:
             data_dir = dl_manager.download_and_extract(zipped_data_url)
-            print(data_dir)
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,

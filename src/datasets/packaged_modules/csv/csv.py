@@ -37,14 +37,14 @@ class CsvConfig(datasets.BuilderConfig):
     verbose: bool = False
     skip_blank_lines: bool = True
     thousands: Optional[str] = None
-    decimal: str = b"."
+    decimal: str = "."
     lineterminator: Optional[str] = None
     quotechar: str = '"'
     quoting: int = 0
     escapechar: Optional[str] = None
     comment: Optional[str] = None
     encoding: Optional[str] = None
-    dialect: str = None
+    dialect: Optional[str] = None
     error_bad_lines: bool = True
     warn_bad_lines: bool = True
     skipfooter: int = 0
@@ -52,7 +52,7 @@ class CsvConfig(datasets.BuilderConfig):
     memory_map: bool = False
     float_precision: Optional[str] = None
     chunksize: int = 10_000
-    features: datasets.Features = None
+    features: Optional[datasets.Features] = None
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -86,10 +86,13 @@ class Csv(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type) if self.config.features is not None else None
+        # dtype allows reading an int column as str
+        dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
         for file_idx, file in enumerate(files):
             csv_file_reader = pd.read_csv(
                 file,
                 iterator=True,
+                dtype=dtype,
                 sep=self.config.sep,
                 header=self.config.header,
                 names=self.config.names,

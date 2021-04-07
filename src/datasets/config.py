@@ -1,6 +1,9 @@
+import importlib
 import os
 import sys
 from pathlib import Path
+
+from packaging import version
 
 from .utils.logging import get_logger
 
@@ -28,33 +31,64 @@ if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
 else:
     import importlib.metadata as importlib_metadata
 
+# General environment variables accepted values for booleans
+ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
+ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
+
+# Imports
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
 TORCH_VERSION = "N/A"
 TORCH_AVAILABLE = False
-if USE_TORCH in ("1", "ON", "YES", "AUTO") and USE_TF not in ("1", "ON", "YES"):
-    try:
-        TORCH_VERSION = importlib_metadata.version("torch")
-        TORCH_AVAILABLE = True
-        logger.info("PyTorch version {} available.".format(TORCH_VERSION))
-    except importlib_metadata.PackageNotFoundError:
-        pass
+
+if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
+    TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
+    if TORCH_AVAILABLE:
+        try:
+            TORCH_VERSION = importlib_metadata.version("torch")
+            logger.info(f"PyTorch version {TORCH_VERSION} available.")
+        except importlib_metadata.PackageNotFoundError:
+            pass
 else:
     logger.info("Disabling PyTorch because USE_TF is set")
 
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
-if USE_TF in ("1", "ON", "YES", "AUTO") and USE_TORCH not in ("1", "ON", "YES"):
-    try:
-        TF_VERSION = importlib_metadata.version("tensorflow")
-        TF_AVAILABLE = True
-        logger.info("TensorFlow version {} available.".format(TF_VERSION))
-    except importlib_metadata.PackageNotFoundError:
-        pass
+
+if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
+    TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
+    if TF_AVAILABLE:
+        # For the metadata, we have to look for both tensorflow and tensorflow-cpu
+        try:
+            TF_VERSION = importlib_metadata.version("tensorflow")
+        except importlib_metadata.PackageNotFoundError:
+            try:
+                TF_VERSION = importlib_metadata.version("tensorflow-cpu")
+            except importlib_metadata.PackageNotFoundError:
+                try:
+                    TF_VERSION = importlib_metadata.version("tensorflow-gpu")
+                except importlib_metadata.PackageNotFoundError:
+                    try:
+                        TF_VERSION = importlib_metadata.version("tf-nightly")
+                    except importlib_metadata.PackageNotFoundError:
+                        try:
+                            TF_VERSION = importlib_metadata.version("tf-nightly-cpu")
+                        except importlib_metadata.PackageNotFoundError:
+                            try:
+                                TF_VERSION = importlib_metadata.version("tf-nightly-gpu")
+                            except importlib_metadata.PackageNotFoundError:
+                                pass
+    if TF_AVAILABLE:
+        if version.parse(TF_VERSION) < version.parse("2"):
+            logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
+            TF_AVAILABLE = False
+        else:
+            logger.info(f"TensorFlow version {TF_VERSION} available.")
 else:
     logger.info("Disabling Tensorflow because USE_TORCH is set")
+
 
 USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
 BEAM_VERSION = "N/A"
@@ -83,6 +117,8 @@ if USE_RAR in ("1", "ON", "YES", "AUTO"):
 else:
     logger.info("Disabling rarfile because USE_RAR is set to False")
 
+
+# Cache location
 DEFAULT_XDG_CACHE_HOME = "~/.cache"
 XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)
 DEFAULT_HF_CACHE_HOME = os.path.join(XDG_CACHE_HOME, "huggingface")
@@ -100,3 +136,20 @@ HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
+
+# Pickling tables works only for small tables (<4GiB)
+# For big tables, we write them on disk instead
+MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
+# Offline mode
+HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper()
+if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
+    HF_DATASETS_OFFLINE = True
+else:
+    HF_DATASETS_OFFLINE = False
+
+# File names
+
+DATASET_ARROW_FILENAME = "dataset.arrow"
+DATASET_INDICES_FILENAME = "indices.arrow"
+DATASET_STATE_JSON_FILENAME = "state.json"
