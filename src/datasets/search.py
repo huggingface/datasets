@@ -380,7 +380,7 @@ class IndexableMixin:
         """List the index_name/identifiers of all the attached indexes.
 
         Args:
-            index_name (str): Index name.
+            index_name (:obj:`str`): Index name.
 
         Returns:
             :class:`BaseIndex`

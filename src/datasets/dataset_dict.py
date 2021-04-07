@@ -109,7 +109,7 @@ class DatasetDict(dict):
                 column name (list all the column names with :func:`datasets.Dataset.column_names`)
 
         Returns:
-            Dict[:obj: `str`, :obj:`list`] of unique elements in the given column.
+            Dict[:obj:`str`, :obj:`list`]: Dictionary of unique elements in the given column.
 
         """
         self._check_values_type()
