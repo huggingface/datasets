@@ -8,6 +8,11 @@ languages:
 - "km"
 - "ne"
 - "su"
+- "ml"
+- "mr"
+- "ta"
+- "te"
+- "ca"
 licenses:
 - Creative Commons Attribution-ShareAlike 4.0
 multilinguality:
@@ -69,6 +74,10 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google in collaboration with Gadjah Mada University in Indonesia.
 
+See LICENSE file for license information.
+
+Copyright 2016, 2017, 2018 Google LLC
+
 #### SLR42: High quality TTS data for Khmer.
 This data set contains high-quality transcribed audio data for Khmer. The data set consists of wave files, 
 and a TSV file. The file line_index.tsv contains a filename and the transcription of audio in the file. 
@@ -77,6 +86,10 @@ Each filename is prepended with a speaker identification number.
 The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google.
+
+See LICENSE file for license information.
+
+Copyright 2016, 2017, 2018 Google LLC
 
 #### SLR43: High quality TTS data for Nepali.
 This data set contains high-quality transcribed audio data for Nepali. The data set consists of wave files, 
@@ -87,6 +100,10 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google in Nepal.
 
+See LICENSE file for license information.
+
+Copyright 2016, 2017, 2018 Google LLC
+
 #### SLR44: High quality TTS data for Sundanese.
 This data set contains high-quality transcribed audio data for Sundanese. The data set consists of wave files, 
 and a TSV file. The file line_index.tsv contains a filename and the transcription of audio in the file. 
@@ -96,13 +113,81 @@ The data set has been manually quality checked, but there might still be errors.
 
 This dataset was collected by Google in collaboration with Universitas Pendidikan Indonesia.
 
+See LICENSE file for license information.
+
+Copyright 2016, 2017, 2018 Google LLC
+
+#### SLR63: Crowdsourced high-quality Malayalam multi-speaker speech data set
+This data set contains transcribed high-quality audio of Malayalam sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+See LICENSE file for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR64: Crowdsourced high-quality Marathi multi-speaker speech data set
+This data set contains transcribed high-quality audio of Marathi sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+See LICENSE file for license information.
+
+Copyright 2018, 2019 Google, Inc.
+#### SLR65: Crowdsourced high-quality Tamil multi-speaker speech data set
+This data set contains transcribed high-quality audio of Tamil sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+See LICENSE file for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR66: Crowdsourced high-quality Telugu multi-speaker speech data set
+This data set contains transcribed high-quality audio of Telugu sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+See LICENSE file for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR69: Crowdsourced high-quality Catalan multi-speaker speech data set
+This data set contains transcribed high-quality audio of Catalan sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+See LICENSE file for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
 ### Supported Tasks and Leaderboards
 
 [Needs More Information]
 
 ### Languages
 
-Javanese, Khmer, Nepali, Sundanese
+Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan
 
 ## Dataset Structure
 
@@ -110,7 +195,7 @@ Javanese, Khmer, Nepali, Sundanese
 
 A typical data point comprises the path to the audio file, called path and its sentence. 
 
-#### SLR41, SLR42, SLR43, SLR44 
+#### SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69  
 ```
 {
   'path': 'suf_00297_00037352660'
@@ -195,5 +280,37 @@ The speech material has only train dataset.
     month = aug,
     pages = {66--70},
     URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
-  }
+}
+```
+
+#### SLR63, SLR64, SLR65, SLR66
+```
+@inproceedings{he-etal-2020-open,
+  title = {{Open-source Multi-speaker Speech Corpora for Building Gujarati, Kannada, Malayalam, Marathi, Tamil and Telugu Speech Synthesis Systems}},
+  author = {He, Fei and Chu, Shan-Hui Cathy and Kjartansson, Oddur and Rivera, Clara and Katanova, Anna and Gutkin, Alexander and Demirsahin, Isin and Johny, Cibu and Jansche, Martin and Sarin, Supheakmungkol and Pipatsrisawat, Knot},
+  booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+  month = may,
+  year = {2020},
+  address = {Marseille, France},
+  publisher = {European Language Resources Association (ELRA)},
+  pages = {6494--6503},
+  url = {https://www.aclweb.org/anthology/2020.lrec-1.800},
+  ISBN = "{979-10-95546-34-4},
+}
+```
+
+#### SLR69
+```
+@inproceedings{kjartansson-etal-2020-open,
+    title = {{Open-Source High Quality Speech Datasets for Basque, Catalan and Galician}},
+    author = {Kjartansson, Oddur and Gutkin, Alexander and Butryna, Alena and Demirsahin, Isin and Rivera, Clara},
+    booktitle = {Proceedings of the 1st Joint Workshop on Spoken Language Technologies for Under-resourced languages (SLTU) and Collaboration and Computing for Under-Resourced Languages (CCURL)},
+    year = {2020},
+    pages = {21--27},
+    month = may,
+    address = {Marseille, France},
+    publisher = {European Language Resources association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.sltu-1.3},
+    ISBN = {979-10-95546-35-1},
+}
 ```
