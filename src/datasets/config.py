@@ -148,11 +148,8 @@ if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
 else:
     HF_DATASETS_OFFLINE = False
 
-# In-memory
-HF_DATASETS_IN_MEMORY = os.getenv("HF_DATASETS_IN_MEMORY", "").upper()
-HF_DATASETS_IN_MEMORY = True if HF_DATASETS_IN_MEMORY in ENV_VARS_TRUE_VALUES else False
-
 # File names
+
 DATASET_ARROW_FILENAME = "dataset.arrow"
 DATASET_INDICES_FILENAME = "indices.arrow"
 DATASET_STATE_JSON_FILENAME = "state.json"
