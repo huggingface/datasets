@@ -113,6 +113,17 @@ def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
     return {key: array[0] for key, array in py_dict.items()}
 
 
+class SimpleArrowExtractor(BaseArrowExtractor[pa.Table, pa.Array, pa.Table]):
+    def extract_row(self, pa_table: pa.Table) -> pa.Table:
+        return pa_table
+
+    def extract_column(self, pa_table: pa.Table) -> pa.Array:
+        return pa_table.column(0)
+
+    def extract_batch(self, pa_table: pa.Table) -> pa.Table:
+        return pa_table
+
+
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_row(self, pa_table: pa.Table) -> dict:
         return _unnest(pa_table.to_pydict())
@@ -165,6 +176,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     It defines the formatting for rows, colums and batches.
     """
 
+    simple_arrow_extractor = SimpleArrowExtractor
     python_arrow_extractor = PythonArrowExtractor
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
@@ -185,6 +197,17 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
     def format_batch(self, pa_table: pa.Table) -> BatchFormat:
         raise NotImplementedError
+
+
+class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
+    def format_row(self, pa_table: pa.Table) -> pa.Table:
+        return self.simple_arrow_extractor().extract_row(pa_table)
+
+    def format_column(self, pa_table: pa.Table) -> pa.Array:
+        return self.simple_arrow_extractor().extract_column(pa_table)
+
+    def format_batch(self, pa_table: pa.Table) -> pa.Table:
+        return self.simple_arrow_extractor().extract_batch(pa_table)
 
 
 class PythonFormatter(Formatter[dict, list, dict]):

@@ -748,8 +748,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use Dataset.cast instead.")
-    @fingerprint_transform(inplace=True)
-    def cast_(self, features: Features):
+    def cast_(
+        self,
+        features: Features,
+        batch_size: Optional[int] = 10_000,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 10_000,
+        num_proc: Optional[int] = None,
+    ):
         """In-place version of :meth:`Dataset.cast`.
 
         .. deprecated:: 1.4.0
@@ -760,6 +768,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
+                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+                can be identified, use it instead of recomputing.
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
         """
         if sorted(features) != sorted(self._data.column_names):
             raise ValueError(
@@ -767,13 +786,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
-        self._info.features = features
         type = features.type
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
-        self._data = self._data.cast(schema)
+        dataset = self.with_format("arrow")
+        dataset = dataset.map(
+            lambda t: t.cast(schema),
+            batched=True,
+            batch_size=batch_size,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+            num_proc=num_proc,
+        )
+        self._data = dataset._data
+        self._info = dataset._info
+        self._fingerprint = dataset._fingerprint
 
-    @fingerprint_transform(inplace=False)
-    def cast(self, features: Features, new_fingerprint) -> "Dataset":
+    def cast(
+        self,
+        features: Features,
+        batch_size: Optional[int] = 10_000,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 10_000,
+        num_proc: Optional[int] = None,
+    ) -> "Dataset":
         """
         Cast the dataset to a new set of features.
 
@@ -782,22 +821,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
+                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+                can be identified, use it instead of recomputing.
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
 
         Returns:
             A copy of the dataset with casted features
         """
-        dataset = copy.deepcopy(self)
-        if sorted(features) != sorted(dataset._data.column_names):
+        if sorted(features) != sorted(self._data.column_names):
             raise ValueError(
                 f"The columns in features ({list(features)}) must be identical "
-                f"as the columns in the dataset: {dataset._data.column_names}"
+                f"as the columns in the dataset: {self._data.column_names}"
             )
 
-        dataset._info.features = features
         type = features.type
-        schema = pa.schema({col_name: type[col_name].type for col_name in dataset._data.column_names})
-        dataset._data = dataset._data.cast(schema)
-        dataset._fingerprint = new_fingerprint
+        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
+        format = self.format
+        dataset = self.with_format("arrow")
+        dataset = dataset.map(
+            lambda t: t.cast(schema),
+            batched=True,
+            batch_size=batch_size,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+            num_proc=num_proc,
+        )
+        dataset = dataset.with_format(**format)
         return dataset
 
     @deprecated(help_message="Use Dataset.remove_columns instead.")
@@ -1502,15 +1561,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         class NumExamplesMismatch(Exception):
             pass
 
-        def validate_function_output(does_return_dict, processed_inputs, indices):
+        def validate_function_output(expects_none: bool, processed_inputs, indices):
             """ Validate output of the map function. """
-            if does_return_dict is False and processed_inputs is not None:
+            if expects_none == (processed_inputs is not None):
                 raise TypeError(
-                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
+                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
                         type(processed_inputs)
                     )
                 )
-            elif isinstance(indices, list) and does_return_dict is True:
+            elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
                 allowed_batch_return_types = (list, np.ndarray)
                 all_dict_values_are_lists = all(
                     isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
@@ -1535,8 +1594,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
             if update_data is None:
                 # Check if the function returns updated examples
-                update_data = isinstance(processed_inputs, Mapping)
-                validate_function_output(update_data, processed_inputs, indices)
+                update_data = isinstance(processed_inputs, (Mapping, pa.Table))
+                expects_none = not update_data
+                validate_function_output(expects_none, processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
@@ -1554,8 +1614,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatch()
-            inputs.update(processed_inputs)
-            return inputs
+            if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
+                inputs.update(processed_inputs)
+                return inputs
+            else:
+                return processed_inputs
 
         def init_buffer_and_writer():
             # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -1608,8 +1671,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             if i == 0:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
-                            example = cast_to_python_objects(example)
-                            writer.write(example)
+                            if isinstance(example, pa.Table):
+                                writer.write_row(example)
+                            else:
+                                example = cast_to_python_objects(example)
+                                writer.write(example)
                 else:
                     for i in pbar:
                         if drop_last_batch and i + batch_size > self.num_rows:
@@ -1628,8 +1694,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             if i == 0:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
-                            batch = cast_to_python_objects(batch)
-                            writer.write_batch(batch)
+                            if isinstance(batch, pa.Table):
+                                writer.write_table(batch)
+                            else:
+                                batch = cast_to_python_objects(batch)
+                                writer.write_batch(batch)
                 if update_data and writer is not None:
                     writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
             except (Exception, KeyboardInterrupt):
