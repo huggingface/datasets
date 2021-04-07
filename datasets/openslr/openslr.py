@@ -208,9 +208,10 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     # are not always consistent and have bugs:
                     line = re.sub(r"\t[^\t]*\t", "\t", line.strip())
                     field_values = re.split(r"\t\t?", line)
-                    # set absolute path for audio file
                     if len(field_values) != 2:
                         continue
-                    field_values[0] = os.path.join(path_to_datas[i], f"{field_values[0]}.wav")
+                    filename, sentence = field_values
+                    # set absolute path for audio file
+                    path = os.path.join(path_to_datas[i], f"{filename}.wav")
                     counter += 1
-                    yield counter, {key: value for key, value in zip(data_fields, field_values)}
+                    yield counter, {"path": path, "sentence": sentence}
