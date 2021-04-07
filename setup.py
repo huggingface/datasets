@@ -148,13 +148,15 @@ if os.name == "nt":  # windows
 else:
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend([
-        "wget>=3.2",
-        "pytorch-nlp==0.5.0",
-        "pytorch_lightning",
-        "fastBPE==0.1.0",
-        "fairseq",
-    ])
+    TESTS_REQUIRE.extend(
+        [
+            "wget>=3.2",
+            "pytorch-nlp==0.5.0",
+            "pytorch_lightning",
+            "fastBPE==0.1.0",
+            "fairseq",
+        ]
+    )
 
 
 QUALITY_REQUIRE = [
@@ -184,6 +186,7 @@ EXTRAS_REQUIRE = {
         "sphinx==3.1.2",
         "sphinx-markdown-tables",
         "sphinx-rtd-theme==0.4.3",
+        "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
         "fsspec[s3]",
     ],
