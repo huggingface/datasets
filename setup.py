@@ -97,6 +97,8 @@ REQUIRED_PKGS = [
     _deps["fsspec"],
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
+    # Utilities from PyPA to e.g., compare versions
+    "packaging",
 ]
 
 BENCHMARKS_REQUIRE = [
