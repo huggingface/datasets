@@ -30,3 +30,11 @@ stages:
     metrics:
     - ./benchmarks/results/benchmark_iterating.json:
         cache: false
+
+  benchmark_getitem_100B:
+    cmd: python ./benchmarks/benchmark_getitem_100B.py
+    deps:
+    - ./benchmarks/benchmark_getitem_100B.py
+    metrics:
+    - ./benchmarks/results/benchmark_getitem_100B.json:
+        cache: false
