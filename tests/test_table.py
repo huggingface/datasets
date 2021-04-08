@@ -1,6 +1,7 @@
 import pickle
-from typing import List
+from typing import List, Union
 
+import numpy as np
 import pyarrow as pa
 import pytest
 
@@ -12,6 +13,7 @@ from datasets.table import (
     TableBlock,
     _in_memory_arrow_table_from_buffer,
     _in_memory_arrow_table_from_file,
+    _interpolation_search,
     _memory_mapped_arrow_table_from_file,
     concat_tables,
     inject_arrow_table_documentation,
@@ -739,3 +741,57 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     assert isinstance(concatenated_table.blocks[1][0], InMemoryTable)
     assert isinstance(concatenated_table.blocks[2][0], MemoryMappedTable)
     assert isinstance(concatenated_table.blocks[3][0], InMemoryTable)
+
+
+def _interpolation_search_ground_truth(arr: List[int], x: int) -> Union[int, IndexError]:
+    for i in range(len(arr) - 1):
+        if arr[i] <= x < arr[i + 1]:
+            return i
+    return IndexError
+
+
+class _ListWithGetitemCounter(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.unique_getitem_calls = set()
+
+    def __getitem__(self, i):
+        out = super().__getitem__(i)
+        self.unique_getitem_calls.add(i)
+        return out
+
+    @property
+    def getitem_unique_count(self):
+        return len(self.unique_getitem_calls)
+
+
+@pytest.mark.parametrize(
+    "arr, x",
+    [(np.arange(0, 14, 3), x) for x in range(-1, 22)]
+    + [(list(np.arange(-5, 5)), x) for x in range(-6, 6)]
+    + [([0, 1_000, 1_001, 1_003], x) for x in [-1, 0, 2, 100, 999, 1_000, 1_001, 1_002, 1_003, 1_004]]
+    + [(list(range(1_000)), x) for x in [-1, 0, 1, 10, 666, 999, 1_000, 1_0001]],
+)
+def test_interpolation_search(arr, x):
+    ground_truth = _interpolation_search_ground_truth(arr, x)
+    if isinstance(ground_truth, int):
+        arr = _ListWithGetitemCounter(arr)
+        output = _interpolation_search(arr, x)
+        assert ground_truth == output
+        # 4 maximum unique getitem calls is expected for the cases of this test
+        # but it can be bigger for large and messy arrays.
+        assert arr.getitem_unique_count <= 4
+    else:
+        with pytest.raises(ground_truth):
+            _interpolation_search(arr, x)
+
+
+def test_indexed_table_mixin():
+    n_rows_per_chunk = 10
+    n_chunks = 4
+    pa_table = pa.Table.from_pydict({"col": [0] * n_rows_per_chunk})
+    pa_table = pa.concat_tables([pa_table] * n_chunks)
+    table = Table(pa_table)
+    assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
+    assert table.fast_slice(5) == pa_table.slice(5)
+    assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
