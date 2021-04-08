@@ -179,7 +179,7 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
     "s3": [
-        "fsspec[s3]",
+        _deps["fsspec"],
         "boto3==1.16.43",
         "botocore==1.19.52",
         _deps["s3fs"],
@@ -194,7 +194,7 @@ EXTRAS_REQUIRE = {
         "sphinx-markdown-tables",
         "sphinx-rtd-theme==0.4.3",
         "sphinx-copybutton",
-        "fsspec[s3]",
+        _deps["fsspec"],
         _deps["s3fs"],
     ],
 }
