@@ -218,8 +218,8 @@ class BaseDatasetTest(TestCase):
                 dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
                 dataset_path = "my_dataset"  # rel path
                 dset.save_to_disk(dataset_path)
-                dset = dset.load_from_disk(dataset_path)
 
+                dset = Dataset.load_from_disk(dataset_path)
                 self.assertEqual(len(dset), 10)
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
@@ -229,8 +229,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
             dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
             dset.save_to_disk(dataset_path)
-            dset = dset.load_from_disk(dataset_path)
 
+            dset = Dataset.load_from_disk(dataset_path)
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
@@ -242,8 +242,8 @@ class BaseDatasetTest(TestCase):
             )
             with assert_arrow_memory_doesnt_increase():
                 dset.save_to_disk(dataset_path)
-            dset = dset.load_from_disk(dataset_path)
 
+            dset = Dataset.load_from_disk(dataset_path)
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
@@ -275,7 +275,7 @@ class BaseDatasetTest(TestCase):
         fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
 
         dset.save_to_disk(dataset_path, fs)
-        dset = dset.load_from_disk(dataset_path, fs)
+        dset = Dataset.load_from_disk(dataset_path, fs)
 
         self.assertEqual(len(dset), 10)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -291,8 +291,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
             dataset_path = os.path.join(tmp_dir, "my_dataset")
             dset.save_to_disk(dataset_path)
-            dset = load_from_disk(dataset_path)
 
+            dset = load_from_disk(dataset_path)
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
