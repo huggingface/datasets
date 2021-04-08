@@ -149,7 +149,7 @@ else:
     HF_DATASETS_OFFLINE = False
 
 # In-memory
-MAX_IN_MEMORY_DATASET_SIZE = 500 * 2 ** 20  # 500 MB
+MAX_IN_MEMORY_DATASET_SIZE = 500 * 2 ** 20  # 500 MiB
 
 # File names
 DATASET_ARROW_FILENAME = "dataset.arrow"

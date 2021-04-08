@@ -642,7 +642,7 @@ def load_dataset(
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
-    r"""Load a dataset
+    """Load a dataset.
 
     This method does the following under the hood:
 
@@ -673,29 +673,32 @@ def load_dataset(
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
             - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
               e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
-        name (Optional ``str``): defining the name of the dataset configuration
-        data_files (Optional ``str``): defining the data_files of the dataset configuration
-        data_dir (Optional ``str``): defining the data_dir of the dataset configuration
-        split (`datasets.Split` or `str`): which split of the data to load.
+        name (``str``, optional): Defining the name of the dataset configuration
+        data_files (``str``, optional): Defining the data_files of the dataset configuration
+        data_dir (``str``, optional): Defining the data_dir of the dataset configuration
+        split (:class:`Split` or ``str``, optional): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.
             Splits can be combined and specified like in tensorflow-datasets.
-        cache_dir (Optional ``str``): directory to read/write data. Defaults to "~/datasets".
-        features (Optional ``datasets.Features``): Set the features type to use for this dataset.
-        download_config (Optional ``datasets.DownloadConfig``): specific download configuration parameters.
-        download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-        ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-        keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-        save_infos (bool): Save the dataset information (checksums/size/splits/...)
-        script_version (Optional ``Union[str, datasets.Version]``): Version of the dataset script to load:
+        cache_dir (``str``, optional): Directory to read/write data. Defaults to "~/datasets".
+        features (:class:`Features`, optional): Set the features type to use for this dataset.
+        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS.
+        ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
+        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+            dataset will be copied in-memory if its size is smaller than
+            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE` (default `500 MiB`). This behavior can be disabled by
+            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE = None``.
+        save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...)
+        script_version (``str`` or :class:`Version`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `~/.huggingface`.
-        **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``datasets.BuilderConfig`` and used in the ``datasets.DatasetBuilder``.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+        **config_kwargs (``dict``, optional): Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
@@ -764,9 +767,15 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
     Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
     Args:
-        dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the Dataset or DatasetDict directory where the dataset will be loaded from
-        fs (Optional[:class:`datasets.filesystems.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
-        keep_in_memory (:obj:`bool`, optional, default ``False``): Whether to copy the data in-memory.
+        dataset_path (:obj:`str`): Path (e.g. ``"dataset/train"``) or remote uri (e.g.
+            ``"s3://my-bucket/dataset/train"``) of the Dataset or DatasetDict directory where the dataset will be
+            loaded from.
+        fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
+            Instance of of the remote filesystem used to download the files from.
+        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+            dataset will be copied in-memory if its size is smaller than
+            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE` (default `500 MiB`). This behavior can be disabled by
+            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE = None``.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
