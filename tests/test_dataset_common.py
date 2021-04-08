@@ -222,14 +222,14 @@ class LocalDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertTrue(isinstance(builder, DatasetBuilder))
+            self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
 
     @slow
     def test_load_dataset_all_configs(self, dataset_name):
@@ -291,14 +291,14 @@ class PackagedDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertTrue(isinstance(builder, DatasetBuilder))
+            self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
 
 
 def distributed_load_dataset(args):
@@ -353,14 +353,14 @@ class RemoteDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertTrue(isinstance(builder, DatasetBuilder))
+            self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
 
     def test_load_dataset(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name)[:1]

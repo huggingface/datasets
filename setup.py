@@ -93,7 +93,7 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
-    # for saving datsets to local
+    # to save datasets locally or on any filesystem
     _deps["fsspec"],
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
@@ -157,13 +157,15 @@ if os.name == "nt":  # windows
 else:
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend([
-        "wget>=3.2",
-        "pytorch-nlp==0.5.0",
-        "pytorch_lightning",
-        "fastBPE==0.1.0",
-        "fairseq",
-    ])
+    TESTS_REQUIRE.extend(
+        [
+            "wget>=3.2",
+            "pytorch-nlp==0.5.0",
+            "pytorch_lightning",
+            "fastBPE==0.1.0",
+            "fairseq",
+        ]
+    )
 
 
 QUALITY_REQUIRE = [
@@ -189,10 +191,12 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
+        "docutils==0.16.0",
         "recommonmark",
         "sphinx==3.1.2",
         "sphinx-markdown-tables",
         "sphinx-rtd-theme==0.4.3",
+        "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
         _deps["fsspec"],
         _deps["s3fs"],

@@ -92,7 +92,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
                     writer.write(example)
                 num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self.assertTrue(isinstance(dataset[0]["image_id"], str), "image id must be of type string")
+            self.assertIsInstance(dataset[0]["image_id"], str, "image id must be of type string")
             del dataset
 
     def test_extension_indexing(self):
