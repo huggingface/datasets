@@ -4,7 +4,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, TypeVar, Union
 
 import fsspec
 import numpy as np
@@ -17,7 +17,10 @@ from .utils.deprecation_utils import deprecated
 from .utils.typing import PathLike
 
 
-class DatasetDict(dict):
+T = TypeVar("T")
+
+
+class DatasetDict(dict, MutableMapping[str, T]):
     """A dictionary (dict of str: datasets.Dataset) with dataset transforms methods (map, filter, etc.)"""
 
     def _check_values_type(self):

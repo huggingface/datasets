@@ -30,6 +30,7 @@ if tuple(int(i) for i in pyarrow.__version__.split(".")) < (0, 17, 1):
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
+from . import tasks
 from .arrow_dataset import Dataset, concatenate_datasets
 from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter

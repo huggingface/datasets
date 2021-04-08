@@ -56,8 +56,8 @@ import itertools
 import os
 import sys
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
+
 
 DOCLINES = __doc__.split("\n")
 
@@ -97,6 +97,9 @@ REQUIRED_PKGS = [
     _deps["fsspec"],
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
+    # pydantic allows us to express simply validation patterns for dataset metadata and serialize object schemas
+    # for tasks descriptions.
+    "pydantic",
 ]
 
 BENCHMARKS_REQUIRE = [
