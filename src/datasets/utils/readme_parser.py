@@ -58,7 +58,7 @@ subsections:
             - name: "Initial Data Collection and Normalization"
               allow_empty: true
               subsections: null
-            - name: "Who are the source X producers?"
+            - name: "Who are the source language producers?"
               allow_empty: true
               subsections: null
         - name: "Annotations"
@@ -163,6 +163,7 @@ class Section:
 class ReadMe(Section):  # Level 0
     def __init__(self, file_path):
         super().__init__(name=file_path, level="")
+        self.yaml_tags_line_count = -2
         self.parse(file_path)
 
     def parse(self, file_path):
@@ -170,12 +171,16 @@ class ReadMe(Section):  # Level 0
             # Skip Tags
             tag_count = 0
             for line in f:
+                self.yaml_tags_line_count += 1
                 if line.strip(" \n") == "---":
                     tag_count += 1
+
                     if tag_count == 2:
                         break
             else:
-                raise ValueError("The README doesn't contain proper tags. Please ensure you add the correct YAML tags.")
+                raise ValueError(
+                    "The README doesn't contain proper tags. Please ensure you add the correct YAML tags."
+                )
             super().parse(f)
 
     def _validate_section(self, section, structure):
@@ -183,14 +188,13 @@ class ReadMe(Section):  # Level 0
         error_list = []
         if structure["allow_empty"] == False:
             if section.is_empty:
-                print(section.text)
                 error_list.append(f"Expected some text for section '{section.name}'")
 
         if structure["subsections"] is not None:
             # If no subsections present
             if section.content == {}:
                 values = [subsection["name"] for subsection in structure["subsections"]]
-                error_list.append(f"'{section.name}'' expected the following subsections: {values}, found `None`.")
+                error_list.append(f"'{section.name}' expected the following subsections: {values}, found `None`.")
             else:
                 # Each key validation
                 structure_names = [subsection["name"] for subsection in structure["subsections"]]
@@ -231,8 +235,12 @@ class ReadMe(Section):  # Level 0
         return error_list
 
 
-if __name__ == "__main__":
-    readme = ReadMe("./dummy_readme.md")
+def validate_readme(file_path):
+    readme = ReadMe(file_path)
+    if readme.yaml_tags_line_count == 0:
+        raise Warning("YAML Tags are not present in this README.")
+    elif readme.yaml_tags_line_count == -1:
+        raise Warning("Only the start of YAML tags present in this README.")
     error_list = readme.validate(yaml_struc)
     if error_list != []:
         errors = "\n".join(list(map(lambda x: "-\t" + x, error_list)))
