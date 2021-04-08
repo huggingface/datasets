@@ -1,31 +1,29 @@
 import copy
 import os
 import pickle
-import shutil
 import tempfile
 from functools import partial
 from unittest import TestCase
 
-import boto3
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
-from moto import mock_s3
 
 import datasets.arrow_dataset
 from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
-from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 from datasets.utils.logging import WARNING
 
+from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_s3,
     require_tf,
     require_torch,
     require_transformers,
@@ -236,35 +234,6 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
 
-    @mock_s3
-    def test_dummy_dataset_serialize_s3(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # Mocked AWS Credentials for moto.
-            os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
-            os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
-            os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
-            os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
-
-            s3 = boto3.client("s3", region_name="us-east-1")
-            mock_bucket = "moto-mock-s3-bucket"
-            # We need to create the bucket since this is all in Moto's 'virtual' AWS account
-            s3.create_bucket(Bucket=mock_bucket)
-
-            if in_memory:
-                prefix = "datasets/memory"
-            else:
-                prefix = "datasets/disk"
-
-            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
-                dataset_path = f"s3://{mock_bucket}/{prefix}"
-                fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
-                dset.save_to_disk(dataset_path, fs)
-
-            with Dataset.load_from_disk(dataset_path, fs) as dset:
-                self.assertEqual(len(dset), 10)
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                self.assertEqual(dset[0]["filename"], "my_name-train_0")
-                self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2044,3 +2013,17 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
 
         assert dataset._data != reference_dataset._data
         assert dataset._data.table == reloaded_dataset._data.table
+
+
+@require_s3
+def test_dummy_dataset_serialize_s3(s3, dataset):
+    mock_bucket = s3_test_bucket_name
+    dataset_path = f"s3://{mock_bucket}/my_dataset"
+    features = dataset.features
+    dataset.save_to_disk(dataset_path, s3)
+    dataset = dataset.load_from_disk(dataset_path, s3)
+
+    assert len(dataset) == 10
+    assert dataset.features == features
+    assert dataset[0]["id"] == 0
+    assert dataset["id"][0] == 0
