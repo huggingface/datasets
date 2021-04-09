@@ -825,14 +825,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
         """
         if sorted(features) != sorted(self._data.column_names):
@@ -878,14 +878,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
 
         Returns:
