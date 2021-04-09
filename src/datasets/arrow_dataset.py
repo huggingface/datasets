@@ -1715,9 +1715,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             for file in self.cache_files:
                 if bool(re.search(r".*-train.arrow", file)):
                     train_arrow_permission = oct(os.stat(file).st_mode)[-3:]
+                    os.chmod(cache_file_name, int(train_arrow_permission, base=8))
                     break
-
-            os.chmod(cache_file_name, int(train_arrow_permission, base=8))
 
         if update_data:
             # Create new Dataset from buffer or file
@@ -1968,9 +1967,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             for file in self.cache_files:
                 if bool(re.search(r".*-train.arrow", file)):
                     train_arrow_permission = oct(os.stat(file).st_mode)[-3:]
+                    os.chmod(indices_cache_file_name, int(train_arrow_permission, base=8))
                     break
-
-            os.chmod(indices_cache_file_name, int(train_arrow_permission, base=8))
 
         # Return new Dataset object
         if buf_writer is None:
