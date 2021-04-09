@@ -639,6 +639,7 @@ def load_dataset(
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    file_permission: Optional[int] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     r"""Load a dataset
@@ -694,6 +695,9 @@ def load_dataset(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `~/.huggingface`.
+        file_permission (Optional ``int``): This represents access granted to users for this dataset on the system. Please make sure it is
+            an octal value, comprising of 3 digits, each one ranging in value from 0 - 7. On python 3 you have prefix with 0o (zero oh).
+            For example:  0o600 (its equivalent symbolic value would be -rw-------). By default it'll work on running user's umask.
         **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``datasets.BuilderConfig`` and used in the ``datasets.DatasetBuilder``.
 
     Returns:
@@ -745,6 +749,7 @@ def load_dataset(
         try_from_hf_gcs=try_from_hf_gcs,
         base_path=base_path,
         use_auth_token=use_auth_token,
+        file_permission=file_permission,
     )
 
     # Build dataset for splits

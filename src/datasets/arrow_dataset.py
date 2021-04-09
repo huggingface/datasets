@@ -20,7 +20,9 @@ import contextlib
 import copy
 import json
 import os
+import re
 import shutil
+import stat
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
@@ -1676,9 +1678,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data and tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
-            umask = os.umask(0o666)
-            os.umask(umask)
-            os.chmod(cache_file_name, 0o666 & ~umask)
+
+            # iterate through cache files to find *-train.arrow file to fetch its permission
+            for file in self.cache_files:
+                if bool(re.search(r".*-train.arrow", file)):
+                    train_arrow_permission = oct(os.stat(file).st_mode)[-3:]
+                    break
+
+            os.chmod(cache_file_name, int(train_arrow_permission, base=8))
 
         if update_data:
             # Create new Dataset from buffer or file
@@ -1924,9 +1931,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
-            umask = os.umask(0o666)
-            os.umask(umask)
-            os.chmod(indices_cache_file_name, 0o666 & ~umask)
+
+            # iterate through cache files to find *-train.arrow file and fetch its permission
+            for file in self.cache_files:
+                if bool(re.search(r".*-train.arrow", file)):
+                    train_arrow_permission = oct(os.stat(file).st_mode)[-3:]
+                    break
+
+            os.chmod(indices_cache_file_name, int(train_arrow_permission, base=8))
 
         # Return new Dataset object
         if buf_writer is None:
