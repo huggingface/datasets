@@ -85,7 +85,7 @@ English
 An example of 'train' looks as follows:
 ```
 {
-  'label': 0, # integer label corresponding to "card_arrival" intent
+  'label': 11, # integer label corresponding to "card_arrival" intent
   'text': 'I am still waiting on my card?'
 }
 ```
