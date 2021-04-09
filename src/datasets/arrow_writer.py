@@ -243,7 +243,8 @@ class ArrowWriter:
     def schema(self):
         return self._schema if self._schema is not None else []
 
-    def _build_metadata(self, info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+    @staticmethod
+    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
         info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
         metadata = {}
