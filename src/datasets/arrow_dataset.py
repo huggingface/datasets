@@ -707,8 +707,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @fingerprint_transform(inplace=False)
-    def class_encode_column(self, column: str, new_fingerprint: str) -> "Dataset":
+    def class_encode_column(self, column: str) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
 
         Args:
@@ -727,20 +726,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Stringify the column
         if src_feat.dtype != "string":
-            dset = self.map(lambda value: {column: str(value)}, input_columns=column)
+            dset = self.map(
+                lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
+            )
         else:
             dset = copy.deepcopy(self)
 
         # Create the new feature
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
-        dset = dset.map(lambda value: {column: dst_feat.str2int(value)}, input_columns=column)
+        dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
 
         new_features = copy.deepcopy(dset.features)
         new_features[column] = dst_feat
         dset = dset.cast(new_features)
-
-        dset._fingerprint = new_fingerprint
 
         return dset
 

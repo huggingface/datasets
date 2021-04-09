@@ -467,42 +467,36 @@ class BaseDatasetTest(TestCase):
 
     def test_class_encode_column(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with self.assertRaises(ValueError):
+                    dset.class_encode_column(column="does not exist")
 
-            with self.assertRaises(ValueError):
-                dset.class_encode_column(column="does not exist")
+                with dset.class_encode_column("col_1") as casted_dset:
+                    self.assertIsInstance(casted_dset.features["col_1"], ClassLabel)
+                    self.assertListEqual(casted_dset.features["col_1"].names, ["0", "1", "2", "3"])
+                    self.assertListEqual(casted_dset["col_1"], [3, 2, 1, 0])
+                    self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
+                    self.assertNotEqual(casted_dset, dset)
 
-            casted_dset = dset.class_encode_column("col_1")
-            self.assertIsInstance(casted_dset.features["col_1"], ClassLabel)
-            self.assertListEqual(casted_dset.features["col_1"].names, ["0", "1", "2", "3"])
-            self.assertListEqual(casted_dset["col_1"], [3, 2, 1, 0])
-            self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
-            self.assertNotEqual(casted_dset, dset)
-            del casted_dset
+                with dset.class_encode_column("col_2") as casted_dset:
+                    self.assertIsInstance(casted_dset.features["col_2"], ClassLabel)
+                    self.assertListEqual(casted_dset.features["col_2"].names, ["a", "b", "c", "d"])
+                    self.assertListEqual(casted_dset["col_2"], [0, 1, 2, 3])
+                    self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
+                    self.assertNotEqual(casted_dset, dset)
 
-            casted_dset = dset.class_encode_column("col_2")
-            self.assertIsInstance(casted_dset.features["col_2"], ClassLabel)
-            self.assertListEqual(casted_dset.features["col_2"].names, ["a", "b", "c", "d"])
-            self.assertListEqual(casted_dset["col_2"], [0, 1, 2, 3])
-            self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
-            self.assertNotEqual(casted_dset, dset)
-            del casted_dset
-
-            casted_dset = dset.class_encode_column("col_3")
-            self.assertIsInstance(casted_dset.features["col_3"], ClassLabel)
-            self.assertListEqual(casted_dset.features["col_3"].names, ["False", "True"])
-            self.assertListEqual(casted_dset["col_3"], [0, 1, 0, 1])
-            self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
-            self.assertNotEqual(casted_dset, dset)
-            del casted_dset
-            del dset
+                with dset.class_encode_column("col_3") as casted_dset:
+                    self.assertIsInstance(casted_dset.features["col_3"], ClassLabel)
+                    self.assertListEqual(casted_dset.features["col_3"].names, ["False", "True"])
+                    self.assertListEqual(casted_dset["col_3"], [0, 1, 0, 1])
+                    self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
+                    self.assertNotEqual(casted_dset, dset)
 
             # Test raises if feature is an array / sequence
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
-            for column in dset.column_names:
-                with self.assertRaises(ValueError):
-                    dset.class_encode_column(column)
-            del dset
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True) as dset:
+                for column in dset.column_names:
+                    with self.assertRaises(ValueError):
+                        dset.class_encode_column(column)
 
     def test_remove_columns_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
