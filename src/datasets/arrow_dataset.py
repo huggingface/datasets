@@ -660,7 +660,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if state.get("_indices_data_files"):
             indices_table = concat_tables(
                 table_cls.from_file(Path(dataset_path, indices_file["filename"]).as_posix())
-                for indices_file in state.["_indices_data_files"]
+                for indices_file in state["_indices_data_files"]
             )
         else:
             indices_table = None
