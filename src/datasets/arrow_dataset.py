@@ -22,7 +22,6 @@ import json
 import os
 import re
 import shutil
-import stat
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
