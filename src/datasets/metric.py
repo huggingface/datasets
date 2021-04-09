@@ -371,15 +371,19 @@ class Metric(MetricInfoMixin):
     def compute(self, *, predictions=None, references=None, **kwargs) -> Optional[dict]:
         """Compute the metrics.
 
+        Usage of positional arguments is not allowed to prevent mistakes.
+
         Args:
-            We disallow the usage of positional arguments to prevent mistakes
-            `predictions` (Optional list/array/tensor): predictions
-            `references` (Optional list/array/tensor): references
-            `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
+            predictions (list/array/tensor, optional): Predictions.
+            references (list/array/tensor, optional): References.
+            **kwargs (optional): Keyword arguments that will be forwarded to the metrics :meth:`_compute`
+                method (see details in the docstring).
 
         Return:
-            Dictionnary with the metrics if this metric is run on the main process (process_id == 0)
-            None if the metric is not run on the main process (process_id != 0)
+            dict or None
+
+            - Dictionary with the metrics if this metric is run on the main process (``process_id == 0``).
+            - None if the metric is not run on the main process (``process_id != 0``).
         """
 
         if predictions is not None:
@@ -417,8 +421,11 @@ class Metric(MetricInfoMixin):
             return None
 
     def add_batch(self, *, predictions=None, references=None):
-        """
-        Add a batch of predictions and references for the metric's stack.
+        """Add a batch of predictions and references for the metric's stack.
+
+        Args:
+            predictions (list/array/tensor, optional): Predictions.
+            references (list/array/tensor, optional): References.
         """
         batch = {"predictions": predictions, "references": references}
         batch = self.info.features.encode_batch(batch)
@@ -435,7 +442,12 @@ class Metric(MetricInfoMixin):
             )
 
     def add(self, *, prediction=None, reference=None):
-        """Add one prediction and reference for the metric's stack."""
+        """Add one prediction and reference for the metric's stack.
+
+        Args:
+            prediction (list/array/tensor, optional): Predictions.
+            reference (list/array/tensor, optional): References.
+        """
         example = {"predictions": prediction, "references": reference}
         example = self.info.features.encode_example(example)
         if self.writer is None:
@@ -508,8 +520,8 @@ class Metric(MetricInfoMixin):
         """Downloads and prepares dataset for reading.
 
         Args:
-            download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
+            download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+            dl_manager (:class:`DownloadManager`, optional): Specific download manager to use.
         """
         if dl_manager is None:
             if download_config is None:
@@ -530,8 +542,7 @@ class Metric(MetricInfoMixin):
         `download_and_prepare`. It should download all required resources for the metric.
 
         Args:
-            dl_manager: (DownloadManager) `DownloadManager` used to download and cache
-                data..
+            dl_manager (:class:`DownloadManager`): `DownloadManager` used to download and cache data.
         """
         return None
 

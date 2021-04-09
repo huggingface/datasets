@@ -21,6 +21,7 @@ import pandas as pd
 import pyarrow as pa
 
 from ..features import pandas_types_mapper
+from ..table import Table
 
 
 T = TypeVar("T")
@@ -41,51 +42,55 @@ def _raise_bad_key_type(key: Any):
 
 
 def _query_table_with_indices_mapping(
-    pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: pa.lib.UInt64Array
+    table: Table, key: Union[int, slice, range, str, Iterable], indices: Table
 ) -> pa.Table:
     """
     Query a pyarrow Table to extract the subtable that correspond to the given key.
     The :obj:`indices` parameter corresponds to the indices mapping in case we cant to take into
     account a shuffling or an indices selection for example.
+    The indices table must contain one column named "indices" of type uint64.
     """
     if isinstance(key, int):
-        return _query_table(pa_table, indices[key].as_py())
+        key = indices.fast_slice(key % indices.num_rows, 1).column(0)[0].as_py()
+        return _query_table(table, key)
     if isinstance(key, slice):
-        key = range(*key.indices(pa_table.num_rows))
+        key = range(*key.indices(table.num_rows))
     if isinstance(key, range):
-        if _is_range_contiguous(key):
-            return _query_table(pa_table, [i.as_py() for i in indices.slice(key.start, key.stop - key.start)])
+        if _is_range_contiguous(key) and key.start >= 0:
+            return _query_table(
+                table, [i.as_py() for i in indices.fast_slice(key.start, key.stop - key.start).column(0)]
+            )
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        pa_table = _query_table(pa_table, key)
-        return _query_table(pa_table, indices.to_pylist())
+        table = table.drop([column for column in table.column_names if column != key])
+        return _query_table(table, indices.column(0).to_pylist())
     if isinstance(key, Iterable):
-        return _query_table(pa_table, [indices[i].as_py() for i in key])
+        return _query_table(table, [indices.fast_slice(i, 1).column(0)[0].as_py() for i in key])
 
     _raise_bad_key_type(key)
 
 
-def _query_table(pa_table: pa.Table, key: Union[int, slice, range, str, Iterable]) -> pa.Table:
+def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> pa.Table:
     """
     Query a pyarrow Table to extract the subtable that correspond to the given key.
     """
     if isinstance(key, int):
-        return pa_table.slice(key % pa_table.num_rows, 1)
+        return table.fast_slice(key % table.num_rows, 1)
     if isinstance(key, slice):
-        key = range(*key.indices(pa_table.num_rows))
+        key = range(*key.indices(table.num_rows))
     if isinstance(key, range):
         if _is_range_contiguous(key) and key.start >= 0:
-            return pa_table.slice(key.start, key.stop - key.start)
+            return table.fast_slice(key.start, key.stop - key.start)
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        return pa_table.drop(column for column in pa_table.column_names if column != key)
+        return table.table.drop([column for column in table.column_names if column != key])
     if isinstance(key, Iterable):
         if len(key) == 0:
-            return pa_table.slice(0, 0)
+            return table.table.slice(0, 0)
         # don't use pyarrow.Table.take even for pyarrow >=1.0 (see https://issues.apache.org/jira/browse/ARROW-9773)
-        return pa.concat_tables(pa_table.slice(int(i) % pa_table.num_rows, 1) for i in key)
+        return pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in key)
 
     _raise_bad_key_type(key)
 
@@ -303,20 +308,23 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
 
 
 def query_table(
-    pa_table: pa.Table, key: Union[int, slice, range, str, Iterable], indices: Optional[pa.lib.UInt64Array] = None
+    table: Table,
+    key: Union[int, slice, range, str, Iterable],
+    indices: Optional[Table] = None,
 ) -> pa.Table:
     """
-    Query a pyarrow Table to extract the subtable that correspond to the given key.
+    Query a Table to extract the subtable that correspond to the given key.
 
     Args:
-        pa_table (``pyarrow.Table``): The input pyarrow Table to query from
+        table (``datasets.table.Table``): The input Table to query from
         key (``Union[int, slice, range, str, Iterable]``): The key can be of different types:
             - an integer i: the subtable containing only the i-th row
             - a slice [i:j:k]: the subtable containing the rows that correspond to this slice
             - a range(i, j, k): the subtable containing the rows that correspond to this range
             - a string c: the subtable containing all the rows but only the column c
             - an iterable l: the subtable that is the concatenation of all the i-th rows for all i in the iterable
-        indices (Optional ``pyarrow.lib.UInt64Array``): If not None, it is used to re-map the given key to the table rows.
+        indices (Optional ``datasets.table.Table``): If not None, it is used to re-map the given key to the table rows.
+            The indices table must contain one column named "indices" of type uint64.
             This is used in case of shuffling or rows selection.
 
 
@@ -327,30 +335,30 @@ def query_table(
     if not isinstance(key, (int, slice, range, str, Iterable)):
         _raise_bad_key_type(key)
     if isinstance(key, str):
-        _check_valid_column_key(key, pa_table.column_names)
+        _check_valid_column_key(key, table.column_names)
     else:
-        size = len(indices) if indices is not None else pa_table.num_rows
+        size = indices.num_rows if indices is not None else table.num_rows
         _check_valid_index_key(key, size)
     # Query the main table
     if indices is None:
-        pa_subtable = _query_table(pa_table, key)
+        pa_subtable = _query_table(table, key)
     else:
-        pa_subtable = _query_table_with_indices_mapping(pa_table, key, indices=indices)
+        pa_subtable = _query_table_with_indices_mapping(table, key, indices=indices)
     return pa_subtable
 
 
 def format_table(
-    pa_table: pa.Table,
+    table: Table,
     key: Union[int, slice, range, str, Iterable],
     formatter: Formatter,
     format_columns: Optional[list] = None,
     output_all_columns=False,
 ):
     """
-    Format a pyarrow Table depending on the key that was used and a Formatter object.
+    Format a Table depending on the key that was used and a Formatter object.
 
     Args:
-        pa_table (``pyarrow.Table``): The input pyarrow Table to format
+        table (``datasets.table.Table``): The input Table to format
         key (``Union[int, slice, range, str, Iterable]``): Depending on the key that was used, the formatter formats
             the table as either a row, a column or a batch.
         formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
@@ -369,6 +377,10 @@ def format_table(
         - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
         - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
     """
+    if isinstance(table, Table):
+        pa_table = table.table
+    else:
+        pa_table = table
     query_type = key_to_query_type(key)
     python_formatter = PythonFormatter()
     if format_columns is None:

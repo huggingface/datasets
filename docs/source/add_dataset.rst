@@ -231,7 +231,7 @@ The method reads and parses the inputs files and yields a tuple constituted of a
 
 .. note::
 
-    Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `_writer_batch_size` class attribute of the dataset builder class. We recommend to not exceed 200MB.
+    Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `DEFAULT_WRITER_BATCH_SIZE` class attribute of the dataset builder class. We recommend to not exceed 200MB.
 
 Specifying several dataset configurations
 -------------------------------------------------

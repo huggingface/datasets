@@ -127,6 +127,22 @@ def require_transformers(test_case):
         return test_case
 
 
+def require_s3(test_case):
+    """
+    Decorator marking a test that requires s3fs and moto to mock s3.
+
+    These tests are skipped when they aren't installed.
+
+    """
+    try:
+        import moto  # noqa F401
+        import s3fs  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires s3fs and moto")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.
@@ -257,9 +273,11 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
 def set_current_working_directory_to_temp_dir(*args, **kwargs):
     original_working_dir = str(Path().resolve())
     with tempfile.TemporaryDirectory(*args, **kwargs) as tmp_dir:
-        os.chdir(tmp_dir)
-        yield
-        os.chdir(original_working_dir)
+        try:
+            os.chdir(tmp_dir)
+            yield
+        finally:
+            os.chdir(original_working_dir)
 
 
 @contextmanager

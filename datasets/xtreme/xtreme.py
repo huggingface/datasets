@@ -71,6 +71,7 @@ _TATOEBA_LANG = [
     "spa",
     "swh",
     "tam",
+    "tel",
     "tgl",
     "tha",
     "tur",

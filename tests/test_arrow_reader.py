@@ -20,7 +20,7 @@ class ReaderTest(BaseReader):
     This reader is made for testing. It mocks file reads.
     """
 
-    def _get_dataset_from_filename(self, filename_skip_take, in_memory=False):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
@@ -83,7 +83,6 @@ class BaseReaderTest(TestCase):
             dset = Dataset(**reader.read_files(files, original_instructions=""))
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
-            self.assertEqual(dset._data_files, files)
             del dset
 
 
@@ -103,7 +102,7 @@ def test_read_files(in_memory, dataset, arrow_file):
     reader = ArrowReader("", None)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
-    assert dataset_kwargs.keys() == set(["arrow_table", "data_files", "info", "split"])
+    assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
