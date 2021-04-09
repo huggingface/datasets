@@ -1,31 +1,31 @@
 import copy
+import json
 import os
 import pickle
-import shutil
 import tempfile
+from dataclasses import asdict
 from functools import partial
 from unittest import TestCase
 
-import boto3
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
-from moto import mock_s3
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, load_from_disk, temp_seed
-from datasets.arrow_dataset import Dataset, transmit_format
+from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
+from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
-from datasets.filesystems import S3FileSystem
 from datasets.info import DatasetInfo
 from datasets.utils.logging import WARNING
 
+from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_s3,
     require_tf,
     require_torch,
     require_transformers,
@@ -254,41 +254,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["filename"][0], "my_name-train_0")
             del dset
 
-    @mock_s3
-    def test_dummy_dataset_serialize_s3(self, in_memory):
-        tmp_dir = tempfile.TemporaryDirectory()
-        # Mocked AWS Credentials for moto.
-        os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
-        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
-        os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
-        os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
-
-        s3 = boto3.client("s3", region_name="us-east-1")
-        mock_bucket = "moto-mock-s3-bucket"
-        # We need to create the bucket since this is all in Moto's 'virtual' AWS account
-        s3.create_bucket(Bucket=mock_bucket)
-
-        if in_memory:
-            prefix = "datasets/memory"
-        else:
-            prefix = "datasets/disk"
-
-        dset = self._create_dummy_dataset(in_memory, tmp_dir.name).select(range(10))
-        dataset_path = f"s3://{mock_bucket}/{prefix}"
-
-        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
-
-        dset.save_to_disk(dataset_path, fs)
-        dset = dset.load_from_disk(dataset_path, fs)
-
-        self.assertEqual(len(dset), 10)
-        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-        self.assertEqual(dset[0]["filename"], "my_name-train_0")
-        self.assertEqual(dset["filename"][0], "my_name-train_0")
-        del dset
-
-        shutil.rmtree(tmp_dir.name, ignore_errors=True)
-
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -438,6 +403,37 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy", columns=["col_1", "col_2"])
             self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
             del dset
+
+    def test_update_metadata_with_features(self, in_memory):
+        features = Features({"foo": Value("float64")})
+
+        @update_metadata_with_features
+        def update_features_inplace(dset):
+            dset.info.features = features
+
+        @update_metadata_with_features
+        def update_features(dset):
+            dset = copy.deepcopy(dset)
+            dset.info.features = features
+            return dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+
+            # make sure the dataset has some features stored in the metadata
+            # otherwise the metadata will not be updated
+            metadata = {"info": {"features": asdict(dset.info)["features"]}}
+            schema = dset._data.schema
+            dset._data = dset._data.cast(schema.with_metadata({"huggingface": json.dumps(metadata)}))
+
+            new_dset = update_features(dset)
+            metadata = json.loads(new_dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            self.assertEqual(features, Features.from_dict(metadata["info"]["features"]))
+            update_features_inplace(dset)
+            metadata = json.loads(dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            self.assertEqual(features, Features.from_dict(metadata["info"]["features"]))
+            del dset
+            del new_dset
 
     def test_cast_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1943,133 +1939,133 @@ class MiscellaneousDatasetTest(TestCase):
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
 
-# @pytest.mark.parametrize("keep_in_memory", [False, True])
-# @pytest.mark.parametrize(
-#     "features",
-#     [
-#         None,
-#         {"col_1": "string", "col_2": "int64", "col_3": "float64"},
-#         {"col_1": "string", "col_2": "string", "col_3": "string"},
-#         {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
-#         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
-#     ],
-# )
-# @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-# @pytest.mark.parametrize("path_type", [str, list])
-# def test_dataset_from_csv(path_type, split, features, keep_in_memory, csv_path, tmp_path):
-#     if issubclass(path_type, str):
-#         path = csv_path
-#     elif issubclass(path_type, list):
-#         path = [csv_path]
-#     cache_dir = tmp_path / "cache"
-#     expected_split = str(split) if split else "train"
-#     # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
-#     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
-#     expected_features = features.copy() if features else default_expected_features
-#     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-#     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-#         dataset = Dataset.from_csv(
-#             path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-#         )
-#     assert isinstance(dataset, Dataset)
-#     assert dataset.num_rows == 4
-#     assert dataset.num_columns == 3
-#     assert dataset.column_names == ["col_1", "col_2", "col_3"]
-#     assert dataset.split == expected_split
-#     for feature, expected_dtype in expected_features.items():
-#         assert dataset.features[feature].dtype == expected_dtype
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_csv(path_type, split, features, keep_in_memory, csv_path, tmp_path):
+    if issubclass(path_type, str):
+        path = csv_path
+    elif issubclass(path_type, list):
+        path = [csv_path]
+    cache_dir = tmp_path / "cache"
+    expected_split = str(split) if split else "train"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_csv(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    assert dataset.split == expected_split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
-# @pytest.mark.parametrize("in_memory", [False, True])
-# def test_dataset_from_file(in_memory, dataset, arrow_file):
-#     filename = arrow_file
-#     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
-#         dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
-#     assert dataset_from_file.features.type == dataset.features.type
-#     assert dataset_from_file.features == dataset.features
-#     assert dataset_from_file.cache_files == ([filename] if not in_memory else [])
+@pytest.mark.parametrize("in_memory", [False, True])
+def test_dataset_from_file(in_memory, dataset, arrow_file):
+    filename = arrow_file
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
+    assert dataset_from_file.features.type == dataset.features.type
+    assert dataset_from_file.features == dataset.features
+    assert dataset_from_file.cache_files == ([filename] if not in_memory else [])
 
 
-# @pytest.mark.parametrize("keep_in_memory", [False, True])
-# @pytest.mark.parametrize(
-#     "features",
-#     [
-#         None,
-#         {"col_1": "string", "col_2": "int64", "col_3": "float64"},
-#         {"col_1": "string", "col_2": "string", "col_3": "string"},
-#         {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
-#         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
-#     ],
-# )
-# @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-# @pytest.mark.parametrize("path_type", [str, list])
-# def test_dataset_from_json(
-#     path_type,
-#     split,
-#     features,
-#     keep_in_memory,
-#     jsonl_path,
-#     tmp_path,
-# ):
-#     file_path = jsonl_path
-#     field = None
-#     if issubclass(path_type, str):
-#         path = file_path
-#     elif issubclass(path_type, list):
-#         path = [file_path]
-#     cache_dir = tmp_path / "cache"
-#     expected_split = str(split) if split else "train"
-#     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
-#     expected_features = features.copy() if features else default_expected_features
-#     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-#     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-#         dataset = Dataset.from_json(
-#             path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
-#         )
-#     assert isinstance(dataset, Dataset)
-#     assert dataset.num_rows == 4
-#     assert dataset.num_columns == 3
-#     assert dataset.column_names == ["col_1", "col_2", "col_3"]
-#     assert dataset.split == expected_split
-#     for feature, expected_dtype in expected_features.items():
-#         assert dataset.features[feature].dtype == expected_dtype
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_json(
+    path_type,
+    split,
+    features,
+    keep_in_memory,
+    jsonl_path,
+    tmp_path,
+):
+    file_path = jsonl_path
+    field = None
+    if issubclass(path_type, str):
+        path = file_path
+    elif issubclass(path_type, list):
+        path = [file_path]
+    cache_dir = tmp_path / "cache"
+    expected_split = str(split) if split else "train"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_json(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
+        )
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    assert dataset.split == expected_split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
-# @pytest.mark.parametrize("keep_in_memory", [False, True])
-# @pytest.mark.parametrize(
-#     "features",
-#     [
-#         None,
-#         {"text": "string"},
-#         {"text": "int32"},
-#         {"text": "float32"},
-#     ],
-# )
-# @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-# @pytest.mark.parametrize("path_type", [str, list])
-# def test_dataset_from_text(path_type, split, features, keep_in_memory, text_path, tmp_path):
-#     if issubclass(path_type, str):
-#         path = text_path
-#     elif issubclass(path_type, list):
-#         path = [text_path]
-#     cache_dir = tmp_path / "cache"
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"text": "string"},
+        {"text": "int32"},
+        {"text": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_text(path_type, split, features, keep_in_memory, text_path, tmp_path):
+    if issubclass(path_type, str):
+        path = text_path
+    elif issubclass(path_type, list):
+        path = [text_path]
+    cache_dir = tmp_path / "cache"
 
-#     expected_split = str(split) if split else "train"
+    expected_split = str(split) if split else "train"
 
-#     default_expected_features = {"text": "string"}
-#     expected_features = features.copy() if features else default_expected_features
-#     features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-#     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-#         dataset = Dataset.from_text(
-#             path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-#         )
-#     assert isinstance(dataset, Dataset)
-#     assert dataset.num_rows == 4
-#     assert dataset.num_columns == 1
-#     assert dataset.column_names == ["text"]
-#     assert dataset.split == expected_split
-#     for feature, expected_dtype in expected_features.items():
-#         assert dataset.features[feature].dtype == expected_dtype
+    default_expected_features = {"text": "string"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_text(
+            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 1
+    assert dataset.column_names == ["text"]
+    assert dataset.split == expected_split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
@@ -2134,3 +2130,17 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
 
     assert dataset._data != reference_dataset._data
     assert dataset._data.table == reloaded_dataset._data.table
+
+
+@require_s3
+def test_dummy_dataset_serialize_s3(s3, dataset):
+    mock_bucket = s3_test_bucket_name
+    dataset_path = f"s3://{mock_bucket}/my_dataset"
+    features = dataset.features
+    dataset.save_to_disk(dataset_path, s3)
+    dataset = dataset.load_from_disk(dataset_path, s3)
+
+    assert len(dataset) == 10
+    assert dataset.features == features
+    assert dataset[0]["id"] == 0
+    assert dataset["id"][0] == 0
