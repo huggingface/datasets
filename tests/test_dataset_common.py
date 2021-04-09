@@ -38,6 +38,7 @@ from datasets import (
     load_dataset,
     prepare_module,
 )
+from datasets.features import ClassLabel
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
@@ -515,13 +516,13 @@ class CsvTest(TestCase):
         n_cols = 3
 
         def get_features(type):
-            return Features({str(i): Value(type) for i in range(n_cols)})
+            return Features({str(i): type for i in range(n_cols)})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
             )
-            for type in ["float64", "int8"]:
+            for type in [Value("float64"), Value("int8"), ClassLabel(num_classes=n_cols)]:
                 features = get_features(type)
                 ds = load_dataset(
                     "csv",
