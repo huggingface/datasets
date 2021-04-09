@@ -25,7 +25,50 @@ import datasets
 _DATA_URL = "https://openslr.org/resources/{}"
 
 _CITATION = """\
+SLR41, SLR42, SLR43, SLR44:
+```
+@inproceedings{kjartansson-etal-tts-sltu2018,
+    title = {{A Step-by-Step Process for Building TTS Voices Using Open Source Data and Framework for Bangla, Javanese, Khmer, Nepali, Sinhala, and Sundanese}},
+    author = {Keshan Sodimana and Knot Pipatsrisawat and Linne Ha and Martin Jansche and Oddur Kjartansson and Pasindu De Silva and Supheakmungkol Sarin},
+    booktitle = {Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)},
+    year  = {2018},
+    address = {Gurugram, India},
+    month = aug,
+    pages = {66--70},
+    URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
+}
+```
 
+SLR63, SLR64, SLR65, SLR66:
+```
+@inproceedings{he-etal-2020-open,
+  title = {{Open-source Multi-speaker Speech Corpora for Building Gujarati, Kannada, Malayalam, Marathi, Tamil and Telugu Speech Synthesis Systems}},
+  author = {He, Fei and Chu, Shan-Hui Cathy and Kjartansson, Oddur and Rivera, Clara and Katanova, Anna and Gutkin, Alexander and Demirsahin, Isin and Johny, Cibu and Jansche, Martin and Sarin, Supheakmungkol and Pipatsrisawat, Knot},
+  booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+  month = may,
+  year = {2020},
+  address = {Marseille, France},
+  publisher = {European Language Resources Association (ELRA)},
+  pages = {6494--6503},
+  url = {https://www.aclweb.org/anthology/2020.lrec-1.800},
+  ISBN = "{979-10-95546-34-4},
+}
+```
+
+SLR69:
+```
+@inproceedings{kjartansson-etal-2020-open,
+    title = {{Open-Source High Quality Speech Datasets for Basque, Catalan and Galician}},
+    author = {Kjartansson, Oddur and Gutkin, Alexander and Butryna, Alena and Demirsahin, Isin and Rivera, Clara},
+    booktitle = {Proceedings of the 1st Joint Workshop on Spoken Language Technologies for Under-resourced languages (SLTU) and Collaboration and Computing for Under-Resourced Languages (CCURL)},
+    year = {2020},
+    pages = {21--27},
+    month = may,
+    address = {Marseille, France},
+    publisher = {European Language Resources association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.sltu-1.3},
+    ISBN = {979-10-95546-35-1},
+}
 """
 
 _DESCRIPTION = """\
