@@ -1040,7 +1040,8 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        self.info.features = writer._features
+        if self.info.features is None:
+            self.info.features = writer._features
 
 
 class MissingBeamOptions(ValueError):
