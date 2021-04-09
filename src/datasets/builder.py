@@ -19,6 +19,7 @@
 import abc
 import contextlib
 import copy
+import glob
 import inspect
 import os
 import shutil
@@ -466,6 +467,7 @@ class DatasetBuilder:
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        file_permission: Optional[int] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -480,6 +482,9 @@ class DatasetBuilder:
             base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
             use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
+            file_permission (Optional ``int``): This represents access granted to users for this dataset on the system. Please make sure it is
+                an octal value, comprising of 3 digits, each one ranging in value from 0 - 7. On python 3 you have prefix with 0o (zero oh).
+                For example:  0o600 (its equivalent symbolic value would be -rw-------). By default it'll work on running user's umask.
 
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
@@ -589,6 +594,18 @@ class DatasetBuilder:
 
             # Download post processing resources
             self.download_post_processing_resources(dl_manager)
+
+            # change file permissions if user provided the same else stick to running user's umask
+            arrow_files = glob.glob(os.path.join(self._cache_dir, "*.arrow"))
+
+            if file_permission is not None:
+                for file in arrow_files:
+                    os.chmod(file, file_permission)
+            else:
+                umask = os.umask(0o666)
+                os.umask(umask)
+                for file in arrow_files:
+                    os.chmod(file, 0o666 & ~umask)
 
             print(
                 f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
