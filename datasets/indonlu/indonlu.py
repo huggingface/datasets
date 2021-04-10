@@ -20,8 +20,6 @@ import ast
 import csv
 import textwrap
 
-import six
-
 import datasets
 
 
@@ -535,12 +533,10 @@ class Indonlu(datasets.GeneratorBasedBuilder):
         if self.config.name in (sentence_features + ner_ + pos_):
             features = {
                 text_feature: datasets.Sequence(datasets.Value("string"))
-                for text_feature in six.iterkeys(self.config.text_features)
+                for text_feature in self.config.text_features.keys()
             }
         else:
-            features = {
-                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
-            }
+            features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features}
 
         if self.config.label_classes:
             if self.config.name in sentence_features:

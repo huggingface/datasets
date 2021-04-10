@@ -8,8 +8,6 @@ import re
 import textwrap
 from itertools import groupby
 
-import six
-
 import datasets
 
 
@@ -506,7 +504,7 @@ class Lince(datasets.GeneratorBasedBuilder):
                     "filepath": os.path.join(data_dir, "test.conll"),
                     "colnames": {
                         key: self.config.colnames[key]
-                        for key in six.iterkeys(self.config.colnames)
+                        for key in self.config.colnames.keys()
                         if key != self.config.label_column
                     },
                 },

@@ -21,8 +21,6 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import six
-
 import datasets
 
 
@@ -592,11 +590,11 @@ def _fix_wst(ex):
 
 def _cast_label(label):
     """Converts the label into the appropriate string version."""
-    if isinstance(label, six.string_types):
+    if isinstance(label, str):
         return label
     elif isinstance(label, bool):
         return "True" if label else "False"
-    elif isinstance(label, six.integer_types):
+    elif isinstance(label, int):
         assert label in (0, 1)
         return str(label)
     else:

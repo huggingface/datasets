@@ -20,8 +20,6 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import six
-
 import datasets
 
 
@@ -162,7 +160,7 @@ class TedMultiTranslate(datasets.GeneratorBasedBuilder):
                 yield idx, {
                     "translations": {
                         lang: text
-                        for lang, text in six.iteritems(row)
+                        for lang, text in row.items()
                         if lang != "talk_name" and _is_translation_complete(text)
                     },
                     "talk_name": row["talk_name"],

@@ -25,7 +25,6 @@ import textwrap
 import unicodedata
 from shutil import copyfile
 
-import six
 from lxml import etree
 
 import datasets
@@ -203,15 +202,13 @@ class Flue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         if self.config.name == "CLS" or self.config.name == "XNLI":
-            features = {
-                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
-            }
+            features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
             features[self.config.label_column] = datasets.features.ClassLabel(names=self.config.label_classes)
             features["idx"] = datasets.Value("int32")
         elif self.config.name == "WSD-V":
             features = {
                 text_feature: datasets.Sequence(datasets.Value("string"))
-                for text_feature in six.iterkeys(self.config.text_features)
+                for text_feature in self.config.text_features.keys()
             }
             features["fine_pos_tags"] = datasets.Sequence(
                 datasets.features.ClassLabel(
@@ -275,9 +272,7 @@ class Flue(datasets.GeneratorBasedBuilder):
             features["disambiguate_labels"] = datasets.Sequence(datasets.Value("string"))
             features["idx"] = datasets.Value("string")
         else:
-            features = {
-                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
-            }
+            features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
             features[self.config.label_column] = datasets.Value("int32")
             features["idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
@@ -467,16 +462,16 @@ class Flue(datasets.GeneratorBasedBuilder):
         Converts `text` to Unicode (if it's not already), assuming UTF-8 input.
         from: https://github.com/getalp/Flaubert/blob/master/tools/clean_text.py
         """
-        # six_ensure_text is copied from https://github.com/benjaminp/six
-        def six_ensure_text(s, encoding="utf-8", errors="strict"):
-            if isinstance(s, six.binary_type):
+
+        def ensure_text(s, encoding="utf-8", errors="strict"):
+            if isinstance(s, bytes):
                 return s.decode(encoding, errors)
-            elif isinstance(s, six.text_type):
+            elif isinstance(s, str):
                 return s
             else:
                 raise TypeError("not expecting type '%s'" % type(s))
 
-        return six_ensure_text(text, encoding="utf-8", errors="ignore")
+        return ensure_text(text, encoding="utf-8", errors="ignore")
 
     def _cleaner(self, text):
         """

@@ -8,8 +8,6 @@ import json
 import os
 import textwrap
 
-import six
-
 import datasets
 
 
@@ -442,7 +440,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO(xtreme): Specifies the datasets.DatasetInfo object
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if "answers" in features.keys():
             features["answers"] = datasets.features.Sequence(
                 {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
