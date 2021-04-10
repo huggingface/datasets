@@ -65,6 +65,14 @@ Args:
     predictions: List of List of predicted labels (Estimated targets as returned by a tagger)
     references: List of List of reference labels (Ground truth (correct) target values)
     suffix: True if the IOB prefix is after type, False otherwise. default: False
+    scheme: Specify target tagging scheme. Should be one of ["IOB1", "IOB2", "IOE1", "IOE2", "IOBES", "BILOU"].
+        default: None
+    mode: Whether to count correct entity labels with incorrect I/B tags as true positives or not.
+        If you want to only count exact matches, pass mode="strict". default: None.
+    sample_weight: Array-like of shape (n_samples,), weights for individual samples. default: None
+    zero_division: Which value to substitute as a metric value when encountering zero division. Should be on of 0, 1,
+        "warn". "warn" acts as 0, but the warning is raised.
+
 Returns:
     'scores': dict. Summary of the scores for overall and per type
         Overall:
