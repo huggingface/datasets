@@ -14,6 +14,9 @@
 # limitations under the License.
 """ seqeval metric. """
 
+import importlib
+from typing import List, Optional, Union
+
 from seqeval.metrics import accuracy_score, classification_report
 
 import datasets
@@ -106,8 +109,32 @@ class Seqeval(datasets.Metric):
             reference_urls=["https://github.com/chakki-works/seqeval"],
         )
 
-    def _compute(self, predictions, references, suffix=False):
-        report = classification_report(y_true=references, y_pred=predictions, suffix=suffix, output_dict=True)
+    def _compute(
+        self,
+        predictions,
+        references,
+        suffix: bool = False,
+        scheme: Optional[str] = None,
+        mode: Optional[str] = None,
+        sample_weight: Optional[List[int]] = None,
+        zero_division: Union[str, int] = "warn",
+    ):
+        if scheme is not None:
+            try:
+                scheme_module = importlib.import_module("seqeval.scheme")
+                scheme = getattr(scheme_module, scheme)
+            except AttributeError:
+                raise ValueError(f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {scheme}")
+        report = classification_report(
+            y_true=references,
+            y_pred=predictions,
+            suffix=suffix,
+            output_dict=True,
+            scheme=scheme,
+            mode=mode,
+            sample_weight=sample_weight,
+            zero_division=zero_division,
+        )
         report.pop("macro avg")
         report.pop("weighted avg")
         overall_score = report.pop("micro avg")
