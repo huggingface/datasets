@@ -981,7 +981,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             finally:
                 num_examples, num_bytes = writer.finalize()
 
-        assert split_info.num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
 
