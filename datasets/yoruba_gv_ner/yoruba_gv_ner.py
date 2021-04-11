@@ -16,7 +16,6 @@
 """Introduction to the Yoruba GV NER dataset: A Yoruba Global Voices (News) Named Entity Recognition Dataset"""
 
 
-
 import datasets
 
 
