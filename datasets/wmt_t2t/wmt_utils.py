@@ -16,7 +16,6 @@
 # Lint as: python3
 """WMT: Translate dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import codecs
 import functools

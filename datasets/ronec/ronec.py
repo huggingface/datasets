@@ -14,7 +14,6 @@
 # limitations under the License.
 """Introduction in RONEC: Named Entity Corpus for ROmanian language"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

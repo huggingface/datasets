@@ -16,7 +16,6 @@
 # Lint as: python3
 """XNLI: The Cross-Lingual NLI Corpus."""
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 import csv

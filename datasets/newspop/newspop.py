@@ -15,7 +15,6 @@
 
 """News Popularity in Multiple Social Media Platforms Data Set: social sharing data across Facebook, Google+ and LinkedIn for 100k news items on the topics of: economy, microsoft, obama and palestine."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

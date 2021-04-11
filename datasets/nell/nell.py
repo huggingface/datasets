@@ -14,7 +14,6 @@
 # limitations under the License.
 """NELL: Never Ending Language Learner"""
 
-from __future__ import absolute_import, division, print_function
 
 from html import unescape
 from urllib.parse import unquote

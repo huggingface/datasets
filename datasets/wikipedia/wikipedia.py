@@ -16,7 +16,6 @@
 # Lint as: python3
 """Wikipedia dataset containing cleaned articles of all languages."""
 
-from __future__ import absolute_import, division, print_function
 
 import bz2
 import codecs

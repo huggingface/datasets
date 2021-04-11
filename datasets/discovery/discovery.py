@@ -16,7 +16,6 @@
 # Lint as: python3
 """Discourse marker prediction with 174 different markers"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

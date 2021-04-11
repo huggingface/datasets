@@ -14,7 +14,6 @@
 # limitations under the License.
 """OffComBR: an annotated dataset containing for hate speech detection in Portuguese composed of news comments on the Brazilian Web."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

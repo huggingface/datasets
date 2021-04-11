@@ -16,7 +16,6 @@
 # Lint as: python3
 """The Multilingual dIalogAct benchMark."""
 
-from __future__ import absolute_import, division, print_function
 
 import textwrap
 

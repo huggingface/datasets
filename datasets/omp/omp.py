@@ -15,7 +15,6 @@
 """The “One Million Posts” corpus is an annotated data set consisting of
 user comments posted to an Austrian newspaper website (in German language)."""
 
-from __future__ import absolute_import, division, print_function
 
 from pathlib import Path
 

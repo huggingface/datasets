@@ -14,7 +14,6 @@
 # limitations under the License.
 """COVID-QA: A Question Answering Dataset for COVID-19."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

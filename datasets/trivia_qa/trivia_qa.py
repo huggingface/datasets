@@ -16,7 +16,6 @@
 # Lint as: python3
 """TriviaQA: A Reading Comprehension Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import json

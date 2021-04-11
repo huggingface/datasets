@@ -14,7 +14,6 @@
 # limitations under the License.
 """The ECtHR Cases dataset is designed for experimentation of neural judgment prediction and rationale extraction considering ECtHR cases."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

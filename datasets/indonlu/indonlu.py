@@ -14,7 +14,6 @@
 # limitations under the License.
 """The IndoNLU benchmark is a collection of resources for training, evaluating, and analyzing natural language understanding systems for Bahasa Indonesia"""
 
-from __future__ import absolute_import, division, print_function
 
 import ast
 import csv

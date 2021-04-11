@@ -14,7 +14,6 @@
 # limitations under the License.
 """Portuguese dataset for hate speech detection composed of 5,668 tweets with binary annotations (i.e. 'hate' vs. 'no-hate')."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

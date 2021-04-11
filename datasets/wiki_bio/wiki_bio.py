@@ -17,7 +17,6 @@ This dataset gathers 728,321 biographies from Wikipedia. It aims at evaluating t
 algorithms. For each article, we provide the first paragraph and the infobox.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

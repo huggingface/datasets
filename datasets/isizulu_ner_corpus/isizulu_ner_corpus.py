@@ -14,7 +14,6 @@
 # limitations under the License.
 """ Named entity annotated data from the NCHLT Text Resource Development: Phase II Project for IsiZulu"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

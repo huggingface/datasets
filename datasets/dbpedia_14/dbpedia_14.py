@@ -14,7 +14,6 @@
 # limitations under the License.
 """The DBpedia dataset for text classification."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

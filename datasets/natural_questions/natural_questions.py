@@ -16,7 +16,6 @@
 # Lint as: python3
 """Natural Questions: A Benchmark for Question Answering Research."""
 
-from __future__ import absolute_import, division, print_function
 
 import html
 import json

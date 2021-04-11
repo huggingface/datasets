@@ -16,7 +16,6 @@
 # Lint as: python3
 """The Sequence labellIng evaLuatIon benChmark fOr spoken laNguagE (SILICONE) benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import textwrap
 
