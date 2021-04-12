@@ -1600,6 +1600,29 @@ def create_dummy_dataset(tmp_dir):
 
 
 @pytest.fixture
+def map_to(tmp_dir):
+    created_datasets = []
+
+    def _map_to(in_memory, *datasets):
+        if in_memory:
+            datasets = [dataset.map(keep_in_memory=True) for dataset in datasets]
+        else:
+            start = 0
+            while os.path.isfile(os.path.join(tmp_dir, f"dataset{start}.arrow")):
+                start += 1
+            datasets = [
+                dataset.map(cache_file_name=os.path.join(tmp_dir, f"dataset{start + i}.arrow"))
+                for i, dataset in enumerate(datasets)
+            ]
+        created_datasets.extend(datasets)
+        return datasets if len(datasets) > 1 else datasets[0]
+
+    yield _map_to
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
 def mock_dataset_select(tmp_dir):
     created_datasets = []
     unmocked_dataset_select = Dataset.select
@@ -1674,6 +1697,21 @@ def mock_dataset_rename_column(tmp_dir):
         dataset.__del__()
 
 
+@pytest.fixture
+def mock_concatenate_datasets(tmp_dir):
+    created_datasets = []
+    unmocked_concatenate_datasets = datasets.concatenate_datasets
+
+    def _mock_concatenate_datasets(*args, **kwargs):
+        dset = unmocked_concatenate_datasets(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_concatenate_datasets
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
 @pytest.fixture(autouse=True)
 def mock_dataset(
     monkeypatch,
@@ -1682,12 +1720,14 @@ def mock_dataset(
     mock_dataset_cast,
     mock_dataset_remove_columns,
     mock_dataset_rename_column,
+    mock_concatenate_datasets,
 ):
     monkeypatch.setattr(Dataset, "select", mock_dataset_select)
     monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
     monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
     monkeypatch.setattr(Dataset, "remove_columns", mock_dataset_remove_columns)
     monkeypatch.setattr(Dataset, "rename_column", mock_dataset_rename_column)
+    monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
 
 
 def pytest_generate_tests(metafunc):
