@@ -1407,7 +1407,7 @@ def mock_dataset_select(tmp_dir):
         dataset.__del__()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_dataset(
     monkeypatch,
     mock_concatenate_datasets,
@@ -1438,6 +1438,7 @@ def pytest_generate_tests(metafunc):
                 metafunc.parametrize(arg_name, func_args[arg_name])
 
 
+@pytest.mark.usefixtures("mock_dataset")
 class TestBaseDataset:
     params = {"in_memory": [False, True]}
 
