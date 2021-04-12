@@ -110,104 +110,94 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset_deepcopy(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            with assert_arrow_memory_doesnt_increase():
-                dset2 = copy.deepcopy(dset)
-            # don't copy the underlying arrow data using memory
-            self.assertEqual(len(dset2), 10)
-            self.assertDictEqual(dset2.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset2[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset2["filename"][0], "my_name-train_0")
-            del dset, dset2
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset2 = copy.deepcopy(dset)
+                # don't copy the underlying arrow data using memory
+                self.assertEqual(len(dset2), 10)
+                self.assertDictEqual(dset2.features, Features({"filename": Value("string")}))
+                self.assertEqual(dset2[0]["filename"], "my_name-train_0")
+                self.assertEqual(dset2["filename"][0], "my_name-train_0")
+                del dset2
 
     def test_dummy_dataset_pickle(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "dset.pt")
 
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-
-            with open(tmp_file, "wb") as f:
-                pickle.dump(dset, f)
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with open(tmp_file, "wb") as f:
+                    pickle.dump(dset, f)
 
             with open(tmp_file, "rb") as f:
-                dset = pickle.load(f)
+                with pickle.load(f) as dset:
+                    self.assertEqual(len(dset), 10)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                    self.assertEqual(dset["filename"][0], "my_name-train_0")
 
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(
                 range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
-            )
-            if not in_memory:
-                dset._data.table = Unpicklable()
-            dset._indices.table = Unpicklable()
-
-            with open(tmp_file, "wb") as f:
-                pickle.dump(dset, f)
+            ) as dset:
+                if not in_memory:
+                    dset._data.table = Unpicklable()
+                dset._indices.table = Unpicklable()
+                with open(tmp_file, "wb") as f:
+                    pickle.dump(dset, f)
 
             with open(tmp_file, "rb") as f:
-                dset = pickle.load(f)
-
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
+                with pickle.load(f) as dset:
+                    self.assertEqual(len(dset), 10)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                    self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_dummy_dataset_serialize(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with set_current_working_directory_to_temp_dir():
-                dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-                dataset_path = "my_dataset"  # rel path
+                with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                    dataset_path = "my_dataset"  # rel path
+                    dset.save_to_disk(dataset_path)
+
+                with Dataset.load_from_disk(dataset_path) as dset:
+                    self.assertEqual(len(dset), 10)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                    self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
                 dset.save_to_disk(dataset_path)
 
-                dset = Dataset.load_from_disk(dataset_path)
+            with Dataset.load_from_disk(dataset_path) as dset:
                 self.assertEqual(len(dset), 10)
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
-                del dset
 
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
-            dset.save_to_disk(dataset_path)
-
-            dset = Dataset.load_from_disk(dataset_path)
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(
                 range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
-            )
-            with assert_arrow_memory_doesnt_increase():
-                dset.save_to_disk(dataset_path)
+            ) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path)
 
-            dset = Dataset.load_from_disk(dataset_path)
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
-            dataset_path = os.path.join(tmp_dir, "my_dataset")
-            dset.save_to_disk(dataset_path)
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                dataset_path = os.path.join(tmp_dir, "my_dataset")
+                dset.save_to_disk(dataset_path)
 
-            dset = load_from_disk(dataset_path)
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
+            with load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertEqual(dset[0]["filename"], "my_name-train_0")
+                self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_set_format_numpy_multiple_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
