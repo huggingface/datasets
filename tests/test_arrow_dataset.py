@@ -1287,31 +1287,16 @@ def map_to(tmp_dir):
 
 
 @pytest.fixture
-def mock_dataset_select(tmp_dir):
+def mock_concatenate_datasets(tmp_dir):
     created_datasets = []
-    unmocked_dataset_select = Dataset.select
+    unmocked_concatenate_datasets = datasets.concatenate_datasets
 
-    def _mock_select(*args, **kwargs):
-        dset = unmocked_dataset_select(*args, **kwargs)
+    def _mock_concatenate_datasets(*args, **kwargs):
+        dset = unmocked_concatenate_datasets(*args, **kwargs)
         created_datasets.append(dset)
         return dset
 
-    yield _mock_select
-    for dataset in created_datasets:
-        dataset.__del__()
-
-
-@pytest.fixture
-def mock_dataset_load_from_disk(tmp_dir):
-    created_datasets = []
-    unmocked_dataset_load_from_disk = Dataset.load_from_disk
-
-    def _mock_dataset_load_from_disk(*args, **kwargs):
-        dset = unmocked_dataset_load_from_disk(*args, **kwargs)
-        created_datasets.append(dset)
-        return dset
-
-    yield _mock_dataset_load_from_disk
+    yield _mock_concatenate_datasets
     for dataset in created_datasets:
         dataset.__del__()
 
@@ -1327,6 +1312,53 @@ def mock_dataset_cast(tmp_dir):
         return dset
 
     yield _mock_dataset_cast
+    print("Delete casted_dataset", len(created_datasets))
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
+def mock_dataset_flatten(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_flatten = Dataset.flatten
+
+    def _mock_dataset_flatten(*args, **kwargs):
+        dset = unmocked_dataset_flatten(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_flatten
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
+def mock_dataset_load_from_disk(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_load_from_disk = Dataset.load_from_disk
+
+    def _mock_dataset_load_from_disk(*args, **kwargs):
+        dset = unmocked_dataset_load_from_disk(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_load_from_disk
+    print("Delete loaded_from_disk_dataset", len(created_datasets))
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
+def mock_dataset_map(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_map = Dataset.map
+
+    def _mock_dataset_map(*args, **kwargs):
+        dset = unmocked_dataset_map(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_map
     for dataset in created_datasets:
         dataset.__del__()
 
@@ -1362,46 +1394,16 @@ def mock_dataset_rename_column(tmp_dir):
 
 
 @pytest.fixture
-def mock_concatenate_datasets(tmp_dir):
+def mock_dataset_select(tmp_dir):
     created_datasets = []
-    unmocked_concatenate_datasets = datasets.concatenate_datasets
+    unmocked_dataset_select = Dataset.select
 
-    def _mock_concatenate_datasets(*args, **kwargs):
-        dset = unmocked_concatenate_datasets(*args, **kwargs)
+    def _mock_select(*args, **kwargs):
+        dset = unmocked_dataset_select(*args, **kwargs)
         created_datasets.append(dset)
         return dset
 
-    yield _mock_concatenate_datasets
-    for dataset in created_datasets:
-        dataset.__del__()
-
-
-@pytest.fixture
-def mock_dataset_flatten(tmp_dir):
-    created_datasets = []
-    unmocked_dataset_flatten = Dataset.flatten
-
-    def _mock_dataset_flatten(*args, **kwargs):
-        dset = unmocked_dataset_flatten(*args, **kwargs)
-        created_datasets.append(dset)
-        return dset
-
-    yield _mock_dataset_flatten
-    for dataset in created_datasets:
-        dataset.__del__()
-
-
-@pytest.fixture
-def mock_dataset_map(tmp_dir):
-    created_datasets = []
-    unmocked_dataset_map = Dataset.map
-
-    def _mock_dataset_map(*args, **kwargs):
-        dset = unmocked_dataset_map(*args, **kwargs)
-        created_datasets.append(dset)
-        return dset
-
-    yield _mock_dataset_map
+    yield _mock_select
     for dataset in created_datasets:
         dataset.__del__()
 
@@ -1409,23 +1411,23 @@ def mock_dataset_map(tmp_dir):
 @pytest.fixture(autouse=True)
 def mock_dataset(
     monkeypatch,
-    mock_dataset_select,
-    mock_dataset_load_from_disk,
+    mock_concatenate_datasets,
     mock_dataset_cast,
+    mock_dataset_flatten,
+    mock_dataset_load_from_disk,
+    mock_dataset_map,
     mock_dataset_remove_columns,
     mock_dataset_rename_column,
-    mock_concatenate_datasets,
-    mock_dataset_flatten,
-    mock_dataset_map,
+    mock_dataset_select,
 ):
-    monkeypatch.setattr(Dataset, "select", mock_dataset_select)
-    monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
+    monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
     monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
+    monkeypatch.setattr(Dataset, "flatten", mock_dataset_flatten)
+    monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
+    monkeypatch.setattr(Dataset, "map", mock_dataset_map)
     monkeypatch.setattr(Dataset, "remove_columns", mock_dataset_remove_columns)
     monkeypatch.setattr(Dataset, "rename_column", mock_dataset_rename_column)
-    monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
-    monkeypatch.setattr(Dataset, "flatten", mock_dataset_flatten)
-    monkeypatch.setattr(Dataset, "map", mock_dataset_map)
+    monkeypatch.setattr(Dataset, "select", mock_dataset_select)
 
 
 def pytest_generate_tests(metafunc):
