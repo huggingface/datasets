@@ -831,7 +831,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
         """
@@ -884,7 +885,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
 
@@ -1112,7 +1114,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """To be used in a `with` statement. Set __getitem__ return format (type and columns).
 
         Args:
-            type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+            type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']
                 None means __getitem__ returns python objects (default)
             columns (Optional ``List[str]``): columns to format in the output
                 None means __getitem__ returns all columns (default)
@@ -1143,7 +1145,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             type (Optional ``str``):
-                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
                 None means __getitem__ returns python objects (default)
             columns (Optional ``List[str]``): columns to format in the output.
                 None means __getitem__ returns all columns (default).
@@ -1228,7 +1230,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             type (Optional ``str``):
-                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas'].
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
                 None means __getitem__ returns python objects (default)
             columns (Optional ``List[str]``): columns to format in the output
                 None means __getitem__ returns all columns (default)
@@ -1382,7 +1384,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
@@ -1550,8 +1553,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 can be identified, use it instead of recomputing.
             cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, defaults to `True`): Disallow null values in the table.
@@ -1836,7 +1840,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (:obj:`dict`, optional): Keyword arguments to be passed to `function`
             num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
@@ -1908,7 +1913,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Allow null values in the table.
@@ -1974,7 +1980,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
@@ -2147,7 +2154,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 shuffled indices instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
@@ -2244,7 +2252,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             test_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             train_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the train set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             test_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the test set after transform.
@@ -2427,7 +2436,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
         """
         assert 0 <= index < num_shards, "index should be in [0, num_shards-1]"
         if contiguous:
