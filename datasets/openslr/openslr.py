@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import re
+from pathlib import Path
 
 import datasets
 
@@ -25,6 +26,18 @@ import datasets
 _DATA_URL = "https://openslr.org/resources/{}"
 
 _CITATION = """\
+SLR35, SLR36:
+@inproceedings{kjartansson-etal-sltu2018,
+    title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
+    author = {Oddur Kjartansson and Supheakmungkol Sarin and Knot Pipatsrisawat and Martin Jansche and Linne Ha},
+    booktitle = {Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)},
+    year  = {2018},
+    address = {Gurugram, India},
+    month = aug,
+    pages = {52--55},
+    URL   = {http://dx.doi.org/10.21437/SLTU.2018-11},
+}
+
 SLR41, SLR42, SLR43, SLR44:
 @inproceedings{kjartansson-etal-tts-sltu2018,
     title = {{A Step-by-Step Process for Building TTS Voices Using Open Source Data and Framework for Bangla, Javanese, Khmer, Nepali, Sinhala, and Sundanese}},
@@ -77,6 +90,58 @@ _HOMEPAGE = "https://openslr.org/"
 _LICENSE = ""
 
 _RESOURCES = {
+    "SLR35": {
+        "Language": "Javanese",
+        "LongName": "Large Javanese ASR training data set",
+        "Category": "Speech",
+        "Summary": "Javanese ASR training data set containing ~185K utterances",
+        "Files": [
+            "asr_javanese_0.zip",
+            "asr_javanese_1.zip",
+            "asr_javanese_2.zip",
+            "asr_javanese_3.zip",
+            "asr_javanese_4.zip",
+            "asr_javanese_5.zip",
+            "asr_javanese_6.zip",
+            "asr_javanese_7.zip",
+            "asr_javanese_8.zip",
+            "asr_javanese_9.zip",
+            "asr_javanese_a.zip",
+            "asr_javanese_b.zip",
+            "asr_javanese_c.zip",
+            "asr_javanese_d.zip",
+            "asr_javanese_e.zip",
+            "asr_javanese_f.zip",
+        ],
+        "IndexFiles": ["asr_javanese/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_javanese/data"] * 16,
+    },
+    "SLR36": {
+        "Language": "Sundanese",
+        "LongName": "Large Sundanese ASR training data set",
+        "Category": "Speech",
+        "Summary": "Sundanese ASR training data set containing ~220K utterances",
+        "Files": [
+            "asr_sundanese_0.zip",
+            "asr_sundanese_1.zip",
+            "asr_sundanese_2.zip",
+            "asr_sundanese_3.zip",
+            "asr_sundanese_4.zip",
+            "asr_sundanese_5.zip",
+            "asr_sundanese_6.zip",
+            "asr_sundanese_7.zip",
+            "asr_sundanese_8.zip",
+            "asr_sundanese_9.zip",
+            "asr_sundanese_a.zip",
+            "asr_sundanese_b.zip",
+            "asr_sundanese_c.zip",
+            "asr_sundanese_d.zip",
+            "asr_sundanese_e.zip",
+            "asr_sundanese_f.zip",
+        ],
+        "IndexFiles": ["asr_sundanese/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_sundanese/data"] * 16,
+    },
     "SLR41": {
         "Language": "Javanese",
         "LongName": "High quality TTS data for Javanese",
@@ -239,18 +304,36 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         counter = -1
-        for i, path in enumerate(path_to_indexs):
-            with open(path, encoding="utf-8") as f:
-                lines = f.readlines()
-                for id_, line in enumerate(lines):
-                    # Following regexs are needed to normalise the lines, since the datasets
-                    # are not always consistent and have bugs:
-                    line = re.sub(r"\t[^\t]*\t", "\t", line.strip())
-                    field_values = re.split(r"\t\t?", line)
-                    if len(field_values) != 2:
+        if self.config.name in ["SLR35", "SLR36"]:
+            sentence_index = {}
+            for i, path_to_index in enumerate(path_to_indexs):
+                with open(path_to_index, encoding="utf-8") as f:
+                    lines = f.readlines()
+                    for id_, line in enumerate(lines):
+                        field_values = re.split(r"\t\t?", line.strip())
+                        filename, user_id, sentence = field_values
+                        sentence_index[filename] = sentence
+                for path_to_data in sorted(Path(path_to_datas[i]).rglob("*.flac")):
+                    filename = path_to_data.stem
+                    if path_to_data.stem not in sentence_index:
                         continue
-                    filename, sentence = field_values
-                    # set absolute path for audio file
-                    path = os.path.join(path_to_datas[i], f"{filename}.wav")
+                    path = str(path_to_data.resolve())
+                    sentence = sentence_index[filename]
                     counter += 1
                     yield counter, {"path": path, "sentence": sentence}
+        else:
+            for i, path_to_index in enumerate(path_to_indexs):
+                with open(path_to_index, encoding="utf-8") as f:
+                    lines = f.readlines()
+                    for id_, line in enumerate(lines):
+                        # Following regexs are needed to normalise the lines, since the datasets
+                        # are not always consistent and have bugs:
+                        line = re.sub(r"\t[^\t]*\t", "\t", line.strip())
+                        field_values = re.split(r"\t\t?", line)
+                        if len(field_values) != 2:
+                            continue
+                        filename, sentence = field_values
+                        # set absolute path for audio file
+                        path = os.path.join(path_to_datas[i], f"{filename}.wav")
+                        counter += 1
+                        yield counter, {"path": path, "sentence": sentence}
