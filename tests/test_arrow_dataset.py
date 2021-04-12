@@ -1614,6 +1614,21 @@ def mock_dataset_flatten(tmp_dir):
         dataset.__del__()
 
 
+@pytest.fixture
+def mock_dataset_map(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_map = Dataset.map
+
+    def _mock_dataset_map(*args, **kwargs):
+        dset = unmocked_dataset_map(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_map
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
 @pytest.fixture(autouse=True)
 def mock_dataset(
     monkeypatch,
@@ -1624,6 +1639,7 @@ def mock_dataset(
     mock_dataset_rename_column,
     mock_concatenate_datasets,
     mock_dataset_flatten,
+    mock_dataset_map,
 ):
     monkeypatch.setattr(Dataset, "select", mock_dataset_select)
     monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
@@ -1632,6 +1648,7 @@ def mock_dataset(
     monkeypatch.setattr(Dataset, "rename_column", mock_dataset_rename_column)
     monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
     monkeypatch.setattr(Dataset, "flatten", mock_dataset_flatten)
+    monkeypatch.setattr(Dataset, "map", mock_dataset_map)
 
 
 def pytest_generate_tests(metafunc):
