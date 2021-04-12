@@ -1918,9 +1918,8 @@ class TestBaseDataset:
         dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"].split("_")[-1])})
         assert len(dset_test) == 30
         assert dset.features == Features({"filename": Value("string")})
-        assert (
-                dset_test.features ==
-                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+        assert dset_test.features == Features(
+            {"filename": Value("string"), "name": Value("string"), "id": Value("int64")}
         )
         assert dset_test["id"] == list(range(30))
         assert dset_test._fingerprint != fingerprint
@@ -1937,9 +1936,8 @@ class TestBaseDataset:
         dset_test_with_indices = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
         assert len(dset_test_with_indices) == 30
         assert dset.features == Features({"filename": Value("string")})
-        assert (
-                dset_test_with_indices.features ==
-                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+        assert dset_test_with_indices.features == Features(
+            {"filename": Value("string"), "name": Value("string"), "id": Value("int64")}
         )
         assert dset_test_with_indices["id"] == list(range(30))
 
@@ -1969,9 +1967,8 @@ class TestBaseDataset:
         assert os.path.exists(tmp_file)
         assert len(dset_test_with_indices) == 30
         assert dset.features == Features({"filename": Value("string")})
-        assert (
-                dset_test_with_indices.features ==
-                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+        assert dset_test_with_indices.features == Features(
+            {"filename": Value("string"), "name": Value("string"), "id": Value("int64")}
         )
         assert dset_test_with_indices["id"] == list(range(30))
 
@@ -1995,10 +1992,7 @@ class TestBaseDataset:
         dset_test = dset.map(picklable_map_function, num_proc=2)
         assert len(dset_test) == 30
         assert dset.features == Features({"filename": Value("string")})
-        assert (
-            dset_test.features ==
-            Features({"filename": Value("string"), "id": Value("int64")})
-        )
+        assert dset_test.features == Features({"filename": Value("string"), "id": Value("int64")})
         assert len(dset_test.cache_files) == 0 if in_memory else 2
         assert dset_test["id"] == list(range(30))
         assert dset_test._fingerprint != fingerprint
@@ -2009,10 +2003,7 @@ class TestBaseDataset:
         dset_test = dset.map(picklable_map_function_with_indices, num_proc=3, with_indices=True)
         assert len(dset_test) == 30
         assert dset.features == Features({"filename": Value("string")})
-        assert (
-            dset_test.features ==
-            Features({"filename": Value("string"), "id": Value("int64")})
-        )
+        assert dset_test.features == Features({"filename": Value("string"), "id": Value("int64")})
         assert len(dset_test.cache_files) == 0 if in_memory else 3
         assert dset_test["id"] == list(range(30))
         assert dset_test._fingerprint != fingerprint
@@ -2023,10 +2014,7 @@ class TestBaseDataset:
         dset_test = dset.map(lambda x: {"id": int(x["filename"].split("_")[-1])}, num_proc=2)
         assert len(dset_test) == 30
         assert dset.features == Features({"filename": Value("string")})
-        assert (
-            dset_test.features ==
-            Features({"filename": Value("string"), "id": Value("int64")})
-        )
+        assert dset_test.features == Features({"filename": Value("string"), "id": Value("int64")})
         assert len(dset_test.cache_files) == 0 if in_memory else 2
         assert dset_test["id"] == list(range(30))
         assert dset_test._fingerprint != fingerprint
