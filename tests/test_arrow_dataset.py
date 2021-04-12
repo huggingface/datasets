@@ -1,6 +1,7 @@
 import copy
 import os
 import pickle
+import shutil
 import tempfile
 from functools import partial
 from unittest import TestCase
@@ -1883,6 +1884,12 @@ class MiscellaneousDatasetTest(TestCase):
 
         dset.set_transform(transform=encode)
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+@pytest.fixture
+def tmp_dir(tmp_path):
+    yield str(tmp_path)
+    shutil.rmtree(tmp_path)
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
