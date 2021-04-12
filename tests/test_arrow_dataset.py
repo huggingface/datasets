@@ -151,70 +151,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset[0]["filename"], "my_name-train_0")
                     self.assertEqual(dset["filename"][0], "my_name-train_0")
 
-    def test_dummy_dataset_serialize(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with set_current_working_directory_to_temp_dir():
-                with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
-                    dataset_path = "my_dataset"  # rel path
-                    dset.save_to_disk(dataset_path)
-
-                with Dataset.load_from_disk(dataset_path) as dset:
-                    self.assertEqual(len(dset), 10)
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertEqual(dset[0]["filename"], "my_name-train_0")
-                    self.assertEqual(dset["filename"][0], "my_name-train_0")
-
-            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
-                dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
-                dset.save_to_disk(dataset_path)
-
-            with Dataset.load_from_disk(dataset_path) as dset:
-                self.assertEqual(len(dset), 10)
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                self.assertEqual(dset[0]["filename"], "my_name-train_0")
-                self.assertEqual(dset["filename"][0], "my_name-train_0")
-
-            with self._create_dummy_dataset(in_memory, tmp_dir).select(
-                range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
-            ) as dset:
-                with assert_arrow_memory_doesnt_increase():
-                    dset.save_to_disk(dataset_path)
-
-            with Dataset.load_from_disk(dataset_path) as dset:
-                self.assertEqual(len(dset), 10)
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                self.assertEqual(dset[0]["filename"], "my_name-train_0")
-                self.assertEqual(dset["filename"][0], "my_name-train_0")
-
-    def test_dummy_dataset_load_from_disk(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-
-            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
-                dataset_path = os.path.join(tmp_dir, "my_dataset")
-                dset.save_to_disk(dataset_path)
-
-            with load_from_disk(dataset_path) as dset:
-                self.assertEqual(len(dset), 10)
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                self.assertEqual(dset[0]["filename"], "my_name-train_0")
-                self.assertEqual(dset["filename"][0], "my_name-train_0")
-
-    def test_cast(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            features = dset.features
-            features["col_1"] = Value("float64")
-            features = Features({k: features[k] for k in list(features)[::-1]})
-            fingerprint = dset._fingerprint
-            casted_dset = dset.cast(features)
-            self.assertEqual(casted_dset.num_columns, 3)
-            self.assertEqual(casted_dset.features["col_1"], Value("float64"))
-            self.assertIsInstance(casted_dset[0]["col_1"], float)
-            self.assertNotEqual(casted_dset._fingerprint, fingerprint)
-            self.assertNotEqual(casted_dset, dset)
-            del dset
-            del casted_dset
-
     def test_remove_columns_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
@@ -1821,6 +1757,53 @@ class TestBaseDataset:
         assert dset[[0, -1]]["filename"] == ["my_name-train_0", "my_name-train_29"]
         assert dset[np.array([0, -1])]["filename"] == ["my_name-train_0", "my_name-train_29"]
 
+    def test_dummy_dataset_serialize(self, in_memory, create_dummy_dataset, tmp_dir, monkeypatch):
+        with monkeypatch.context() as m:
+            m.chdir(tmp_dir)
+            dset = create_dummy_dataset(in_memory).select(range(10))
+            dataset_path = "my_dataset_0"  # rel path
+            dset.save_to_disk(dataset_path)
+
+            dset = Dataset.load_from_disk(dataset_path)
+            assert len(dset) == 10
+            assert dset.features == Features({"filename": Value("string")})
+            assert dset[0]["filename"] == "my_name-train_0"
+            assert dset["filename"][0] == "my_name-train_0"
+
+        dset = create_dummy_dataset(in_memory).select(range(10))
+        dataset_path = os.path.join(tmp_dir, "my_dataset_1")  # abs path
+        dset.save_to_disk(dataset_path)
+
+        dset = Dataset.load_from_disk(dataset_path)
+        assert len(dset) == 10
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset[0]["filename"] == "my_name-train_0"
+        assert dset["filename"][0] == "my_name-train_0"
+
+        dset = create_dummy_dataset(in_memory).select(
+            range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
+        )
+        dataset_path = os.path.join(tmp_dir, "my_dataset_2")  # abs path
+        with assert_arrow_memory_doesnt_increase():
+            dset.save_to_disk(dataset_path)
+
+        dset = Dataset.load_from_disk(dataset_path)
+        assert len(dset) == 10
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset[0]["filename"] == "my_name-train_0"
+        assert dset["filename"][0] == "my_name-train_0"
+
+    def test_dummy_dataset_load_from_disk(self, in_memory, create_dummy_dataset, tmp_dir):
+        dset = create_dummy_dataset(in_memory).select(range(10))
+        dataset_path = os.path.join(tmp_dir, "my_dataset")
+        dset.save_to_disk(dataset_path)
+
+        dset = load_from_disk(dataset_path)
+        assert len(dset) == 10
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset[0]["filename"] == "my_name-train_0"
+        assert dset["filename"][0] == "my_name-train_0"
+
     def test_set_format_numpy_multiple_columns(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
         fingerprint = dset._fingerprint
@@ -1957,6 +1940,18 @@ class TestBaseDataset:
         assert isinstance(dset[0]["col_1"], float)
         assert dset._fingerprint != fingerprint
 
+    def test_cast(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        features = dset.features
+        features["col_1"] = Value("float64")
+        features = Features({k: features[k] for k in list(features)[::-1]})
+        fingerprint = dset._fingerprint
+        casted_dset = dset.cast(features)
+        assert casted_dset.num_columns == 3
+        assert casted_dset.features["col_1"] == Value("float64")
+        assert isinstance(casted_dset[0]["col_1"], float)
+        assert casted_dset._fingerprint != fingerprint
+        assert casted_dset != dset
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
