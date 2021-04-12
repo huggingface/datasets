@@ -108,27 +108,6 @@ class BaseDatasetTest(TestCase):
             ]
         return datasets if len(datasets) > 1 else datasets[0]
 
-    def test_dataset_getitem(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-
-            self.assertEqual(dset[-1]["filename"], "my_name-train_29")
-            self.assertEqual(dset["filename"][-1], "my_name-train_29")
-
-            self.assertListEqual(dset[:2]["filename"], ["my_name-train_0", "my_name-train_1"])
-            self.assertListEqual(dset["filename"][:2], ["my_name-train_0", "my_name-train_1"])
-
-            self.assertEqual(dset[:-1]["filename"][-1], "my_name-train_28")
-            self.assertEqual(dset["filename"][:-1][-1], "my_name-train_28")
-
-            self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
-            self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
-
-            del dset
-
     def test_dummy_dataset_deepcopy(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir).select(range(10))
@@ -1932,6 +1911,23 @@ class TestBaseDataset:
         )
         assert dset[0]["col_2"] == [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]
         assert dset["col_2"][0] == [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]
+
+    def test_dataset_getitem(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory)
+        assert dset[0]["filename"] == "my_name-train_0"
+        assert dset["filename"][0] == "my_name-train_0"
+
+        assert dset[-1]["filename"] == "my_name-train_29"
+        assert dset["filename"][-1] == "my_name-train_29"
+
+        assert dset[:2]["filename"] == ["my_name-train_0", "my_name-train_1"]
+        assert dset["filename"][:2] == ["my_name-train_0", "my_name-train_1"]
+
+        assert dset[:-1]["filename"][-1] == "my_name-train_28"
+        assert dset["filename"][:-1][-1] == "my_name-train_28"
+
+        assert dset[[0, -1]]["filename"] == ["my_name-train_0", "my_name-train_29"]
+        assert dset[np.array([0, -1])]["filename"] == ["my_name-train_0", "my_name-train_29"]
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
