@@ -255,7 +255,7 @@ class ArrowWriter:
         return {"huggingface": json.dumps(metadata)}
 
     def write_examples_on_file(self):
-        """Write stored examples"""
+        """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
         cols = sorted(self.current_examples[0].keys())
@@ -286,7 +286,7 @@ class ArrowWriter:
         self.current_examples = []
 
     def write_rows_on_file(self):
-        """Write stored examples"""
+        """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
         if not self.current_rows:
             return
         table = pa.concat_tables(self.current_rows).combine_chunks()
@@ -294,7 +294,7 @@ class ArrowWriter:
         self.current_rows = []
 
     def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
-        """Add a given Example to the write-pool which is written to file.
+        """Add a given Example to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
@@ -306,7 +306,7 @@ class ArrowWriter:
             self.write_examples_on_file()
 
     def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
-        """Add a given single-row Table to the write-pool which is written to file.
+        """Add a given single-row Table to the write-pool of rows which is written to file.
 
         Args:
             row: the row to add.
