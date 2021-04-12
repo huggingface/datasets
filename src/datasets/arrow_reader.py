@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
 import pyarrow as pa
-import pyarrow.parquet
+import pyarrow.parquet as pq
 
 from datasets.utils.file_utils import DownloadConfig
 
@@ -52,7 +52,7 @@ _SUB_SPEC_RE = re.compile(
     :
     ((?P<to>-?\d+)
      (?P<to_pct>%)?)?
- \])?
+ \])?(\((?P<rounding>[^\)]*)\))?
 $
 """.format(
         split_re=_split_re[1:-1]
@@ -343,7 +343,7 @@ class ParquetReader(BaseReader):
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
         # Parquet read_table always loads data in memory, independently of memory_map
-        pa_table = pa.parquet.read_table(filename, memory_map=True)
+        pa_table = pq.read_table(filename, memory_map=True)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
@@ -378,7 +378,7 @@ class _RelativeInstruction:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
 
 
-def _str_to_relative_instruction(spec):
+def _str_to_read_instruction(spec):
     """Returns ReadInstruction for given string."""
     res = _SUB_SPEC_RE.match(spec)
     if not res:
@@ -386,7 +386,7 @@ def _str_to_relative_instruction(spec):
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
-        rounding="closest",
+        rounding=res.group("rounding"),
         from_=int(res.group("from")) if res.group("from") else None,
         to=int(res.group("to")) if res.group("to") else None,
         unit=unit,
@@ -538,8 +538,26 @@ class ReadInstruction(object):
         subs = _ADDITION_SEP_RE.split(spec)
         if not subs:
             raise AssertionError("No instructions could be built out of %s" % spec)
-        instruction = _str_to_relative_instruction(subs[0])
-        return sum([_str_to_relative_instruction(sub) for sub in subs[1:]], instruction)
+        instruction = _str_to_read_instruction(subs[0])
+        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+
+    def to_spec(self):
+        rel_instr_specs = []
+        for rel_instr in self._relative_instructions:
+            rel_instr_spec = rel_instr.splitname
+            if rel_instr.from_ is not None or rel_instr.to is not None:
+                from_ = rel_instr.from_
+                to = rel_instr.to
+                unit = rel_instr.unit
+                rounding = rel_instr.rounding
+                unit = unit if unit == "%" else ""
+                from_ = str(from_) + unit if from_ is not None else ""
+                to = str(to) + unit if to is not None else ""
+                range_ = f"[{from_}:{to}]"
+                rounding = f"({rounding})" if rounding is not None and rounding != "closest" else ""
+                rel_instr_spec += range_ + rounding
+            rel_instr_specs.append(rel_instr_spec)
+        return "+".join(rel_instr_specs)
 
     def __add__(self, other):
         """Returns a new ReadInstruction obj, result of appending other to self."""
@@ -550,6 +568,9 @@ class ReadInstruction(object):
         if self._relative_instructions[0].rounding != other_ris[0].rounding:
             raise AssertionError("It is forbidden to sum ReadInstruction instances with different rounding values.")
         return self._read_instruction_from_relative_instructions(self._relative_instructions + other_ris)
+
+    def __str__(self):
+        return self.to_spec()
 
     def __repr__(self):
         return "ReadInstruction(%s)" % self._relative_instructions

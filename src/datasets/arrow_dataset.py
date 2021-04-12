@@ -40,7 +40,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
-from .arrow_reader import ArrowReader, ReadInstruction, _RelativeInstruction  # noqa: F401
+from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -241,6 +241,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         assert self.features is not None, "Features can't be None in a Dataset object"
         assert self._fingerprint is not None, "Fingerprint can't be None in a Dataset object"
+        assert self._split is None or isinstance(
+            self._split, (NamedSplit, ReadInstruction)
+        ), "Split can either be None or an instance of NamedSplit or ReadInstruction"
         if self.info.features.type != inferred_features.type:
             raise ValueError(
                 "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
@@ -524,7 +527,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Get json serializable state
         state = {
-            key: self.__dict__[key] if key != "_split" else repr(self.__dict__[key])
+            key: self.__dict__[key]
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -532,9 +535,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "_format_type",
                 "_indexes",
                 "_output_all_columns",
-                "_split",
             ]
         }
+
+        split = self.__dict__["_split"]
+        if split is None:
+            state["_split"] = split
+        else:
+            state["_split"] = {"type": split.__class__.__name__, "spec": str(split)}
+
         state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
         state["_indices_files"] = (
             [{"filename": config.DATASET_INDICES_FILENAME}] if self._indices is not None else None
@@ -612,17 +621,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             indices_table = None
 
-        state["_split"] = eval(
-            state["_split"].replace(
-                "ReadInstruction", "ReadInstruction._read_instruction_from_relative_instructions", 1
-            )
-        )
+        split = state["_split"]
+        if split is not None:
+            split_type = split["type"]
+            if split_type == "NamedSplit":
+                split = NamedSplit(split["spec"])
+            elif split_type == "ReadInstruction":
+                split = ReadInstruction.from_spec(split["spec"])
+            else:
+                raise TypeError(f"{split_type} is not supported as a split type.")
 
         return Dataset(
             arrow_table=arrow_table,
             indices_table=indices_table,
             info=dataset_info,
-            split=state["_split"],
+            split=split,
             fingerprint=state["_fingerprint"],
         )
 
