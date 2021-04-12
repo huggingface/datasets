@@ -1718,6 +1718,58 @@ def create_dummy_dataset(tmp_dir):
         dataset.__del__()
 
 
+@pytest.fixture
+def mock_dataset_select(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_select = Dataset.select
+
+    def _mock_select(*args, **kwargs):
+        dset = unmocked_dataset_select(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_select
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
+def mock_dataset_load_from_disk(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_load_from_disk = Dataset.load_from_disk
+
+    def _mock_dataset_load_from_disk(*args, **kwargs):
+        dset = unmocked_dataset_load_from_disk(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_load_from_disk
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
+def mock_dataset_cast(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_cast = Dataset.cast
+
+    def _mock_dataset_cast(*args, **kwargs):
+        dset = unmocked_dataset_cast(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_cast
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture(autouse=True)
+def mock_dataset(monkeypatch, mock_dataset_select, mock_dataset_load_from_disk, mock_dataset_cast):
+    monkeypatch.setattr(Dataset, "select", mock_dataset_select)
+    monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
+    monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
+
+
 def pytest_generate_tests(metafunc):
     if hasattr(metafunc, "cls") and hasattr(metafunc.cls, "params"):
         func_args = metafunc.cls.params
