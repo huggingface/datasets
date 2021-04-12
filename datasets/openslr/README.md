@@ -4,15 +4,24 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- jv
-- km
-- ne
-- su
-- ml
-- mr
-- ta
-- te
-- ca
+  SLR41:
+  - jv
+  SLR42:
+  - km
+  SLR43:
+  - ne
+  SLR44:
+  - su
+  SLR63:
+  - ml
+  SLR64:
+  - mr
+  SLR65:
+  - ta
+  SLR66:
+  - te
+  SLR69:
+  - ca
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -51,6 +60,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -332,3 +342,7 @@ The speech material has only train dataset.
     ISBN = {979-10-95546-35-1},
 }
 ```
+
+### Contributions
+
+Thanks to [@cahya-wirawan](https://github.com/cahya-wirawan) for adding this dataset.
