@@ -677,7 +677,7 @@ class DatasetDict(dict):
                 disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``.
 
         Returns:
-            :class:`DatasetDict`.
+            :class:`DatasetDict`
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):

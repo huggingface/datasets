@@ -85,6 +85,14 @@ def get_size_checksum_dict(path: str) -> dict:
 
 
 def is_small_dataset(dataset_size):
+    """Check if `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
+
+    Args:
+        dataset_size (int): Dataset size in bytes.
+
+    Returns:
+        bool: Whether `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
+    """
     if dataset_size and config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES is not None:
         return dataset_size < config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
     else:
