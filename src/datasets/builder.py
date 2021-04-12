@@ -1033,14 +1033,15 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(path=fpath) as writer:
+        with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        self.info.features = writer._features
+        if self.info.features is None:
+            self.info.features = writer._features
 
 
 class MissingBeamOptions(ValueError):
