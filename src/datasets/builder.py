@@ -68,10 +68,17 @@ class InvalidConfigName(ValueError):
 
 @dataclass
 class BuilderConfig:
-    """Base class for `DatasetBuilder` data configuration.
+    """Base class for :class:`DatasetBuilder` data configuration.
 
     DatasetBuilder subclasses with data configuration options should subclass
-    `BuilderConfig` and add their own properties.
+    :class:`BuilderConfig` and add their own properties.
+
+    Attributes:
+        name (:obj:`str`, default ``"default"``):
+        version (:class:`Version` or :obj:`str`, optional):
+        data_dir (:obj:`str`, optional):
+        data_files (:obj:`str` or :obj:`dict` or :obj:`list` or :obj:`tuple`, optional):
+        description (:obj:`str`, optional):
     """
 
     name: str = "default"
