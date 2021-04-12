@@ -1629,9 +1629,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         class NumExamplesMismatch(Exception):
             pass
 
-        def validate_function_output(expects_none: bool, processed_inputs, indices):
+        def validate_function_output(processed_inputs, indices):
             """ Validate output of the map function. """
-            if expects_none == (processed_inputs is not None):
+            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
                 raise TypeError(
                     "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
                         type(processed_inputs)
@@ -1663,8 +1663,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if update_data is None:
                 # Check if the function returns updated examples
                 update_data = isinstance(processed_inputs, (Mapping, pa.Table))
-                expects_none = not update_data
-                validate_function_output(expects_none, processed_inputs, indices)
+                validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
