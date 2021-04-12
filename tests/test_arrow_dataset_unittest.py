@@ -19,8 +19,7 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.utils.logging import WARNING
 
-from .conftest import s3_test_bucket_name
-from .utils import assert_arrow_memory_doesnt_increase, require_s3, require_tf, require_torch, require_transformers
+from .utils import assert_arrow_memory_doesnt_increase, require_tf, require_torch, require_transformers
 
 
 class Unpicklable:
@@ -1198,17 +1197,3 @@ class MiscellaneousDatasetTest(TestCase):
         with Dataset.from_dict({"text": ["hello there", "foo"]}) as dset:
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
-
-
-@require_s3
-def test_dummy_dataset_serialize_s3(s3, dataset):
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/my_dataset"
-    features = dataset.features
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-
-    assert len(dataset) == 10
-    assert dataset.features == features
-    assert dataset[0]["id"] == 0
-    assert dataset["id"][0] == 0
