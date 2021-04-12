@@ -12,14 +12,7 @@ from datasets.arrow_dataset import Dataset
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
 
-from .conftest import s3_test_bucket_name
-from .utils import (
-    assert_arrow_memory_doesnt_increase,
-    assert_arrow_memory_increases,
-    require_s3,
-    require_tf,
-    require_torch,
-)
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
 
 
 def picklable_map_function(x):
@@ -984,17 +977,3 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
 
     assert dataset._data != reference_dataset._data
     assert dataset._data.table == reloaded_dataset._data.table
-
-
-@require_s3
-def test_dummy_dataset_serialize_s3(s3, dataset):
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/my_dataset"
-    features = dataset.features
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-
-    assert len(dataset) == 10
-    assert dataset.features == features
-    assert dataset[0]["id"] == 0
-    assert dataset["id"][0] == 0
