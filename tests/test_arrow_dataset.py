@@ -1892,6 +1892,46 @@ def tmp_dir(tmp_path):
     shutil.rmtree(tmp_path)
 
 
+@pytest.fixture
+def create_dummy_dataset(tmp_dir):
+    created_datasets = []
+
+    def _create_dummy_dataset(in_memory: bool, multiple_columns=False, array_features=False):
+        if multiple_columns:
+            if array_features:
+                data = {
+                    "col_1": [[[True, False], [False, True]]] * 4,  # 2D
+                    "col_2": [[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]] * 4,  # 3D array
+                    "col_3": [[3, 2, 1, 0]] * 4,  # Sequence
+                }
+                features = Features(
+                    {
+                        "col_1": Array2D(shape=(2, 2), dtype="bool"),
+                        "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
+                        "col_3": Sequence(feature=Value("int64")),
+                    }
+                )
+            else:
+                data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
+                features = None
+            dset = Dataset.from_dict(data, features=features)
+        else:
+            dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
+        if in_memory:
+            dset = dset.map(keep_in_memory=True)
+        else:
+            start = 0
+            while os.path.isfile(os.path.join(tmp_dir, f"dataset{start}.arrow")):
+                start += 1
+            dset = dset.map(cache_file_name=os.path.join(tmp_dir, f"dataset{start}.arrow"))
+        created_datasets.append(dset)
+        return dset
+
+    yield _create_dummy_dataset
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
