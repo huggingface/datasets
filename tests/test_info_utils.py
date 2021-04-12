@@ -9,9 +9,9 @@ from datasets.utils.info_utils import is_small_dataset
 def test_is_small_dataset(dataset_size, max_in_memory_dataset_size):
     if max_in_memory_dataset_size == "default":
         # default = 500 * 2 ** 20
-        max_in_memory_dataset_size = datasets.config.MAX_IN_MEMORY_DATASET_SIZE
+        max_in_memory_dataset_size = datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
     else:
-        datasets.config.MAX_IN_MEMORY_DATASET_SIZE = max_in_memory_dataset_size
+        datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = max_in_memory_dataset_size
     if dataset_size is None or max_in_memory_dataset_size is None:
         expected = False
     else:
