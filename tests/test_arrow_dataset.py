@@ -1548,10 +1548,10 @@ class TestBaseDataset:
             assert list(dset["col_1"].shape) == [4]
             np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
-        assert dset.format["type"] == None
+        assert dset.format["type"] is None
         assert dset.format["format_kwargs"] == {}
         assert dset.format["columns"] == dset.column_names
-        assert dset.format["output_all_columns"] == False
+        assert dset.format["output_all_columns"] is False
 
         dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
         assert len(dset[0]) == 3
@@ -1750,7 +1750,7 @@ class TestBaseDataset:
 
         dset1.set_format("numpy")
         dset_concat = datasets.concatenate_datasets([dset1, dset2, dset3])
-        assert dset_concat.format["type"] == None
+        assert dset_concat.format["type"] is None
         dset2.set_format("numpy")
         dset3.set_format("numpy")
         dset_concat = datasets.concatenate_datasets([dset1, dset2, dset3])
