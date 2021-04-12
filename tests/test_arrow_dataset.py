@@ -108,39 +108,6 @@ class BaseDatasetTest(TestCase):
             ]
         return datasets if len(datasets) > 1 else datasets[0]
 
-    def test_dummy_dataset(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertEqual(dset[0]["filename"], "my_name-train_0")
-            self.assertEqual(dset["filename"][0], "my_name-train_0")
-            del dset
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            self.assertDictEqual(
-                dset.features, Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
-            )
-            self.assertEqual(dset[0]["col_1"], 3)
-            self.assertEqual(dset["col_1"][0], 3)
-            del dset
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True)
-            self.assertDictEqual(
-                dset.features,
-                Features(
-                    {
-                        "col_1": Array2D(shape=(2, 2), dtype="bool"),
-                        "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                        "col_3": Sequence(feature=Value("int64")),
-                    }
-                ),
-            )
-            self.assertEqual(dset[0]["col_2"], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
-            self.assertEqual(dset["col_2"][0], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
-            del dset
-
     def test_dataset_getitem(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -1943,6 +1910,28 @@ def pytest_generate_tests(metafunc):
 
 class TestBaseDataset:
     params = {"in_memory": [False, True]}
+
+    def test_dummy_dataset(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory)
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset[0]["filename"] == "my_name-train_0"
+        assert dset["filename"][0] == "my_name-train_0"
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        assert dset.features == Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
+        assert dset[0]["col_1"] == 3
+        assert dset["col_1"][0] == 3
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True, array_features=True)
+        assert dset.features == Features(
+            {
+                "col_1": Array2D(shape=(2, 2), dtype="bool"),
+                "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
+                "col_3": Sequence(feature=Value("int64")),
+            }
+        )
+        assert dset[0]["col_2"] == [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]
+        assert dset["col_2"][0] == [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
