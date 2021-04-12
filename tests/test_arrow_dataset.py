@@ -151,28 +151,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset[0]["filename"], "my_name-train_0")
                     self.assertEqual(dset["filename"][0], "my_name-train_0")
 
-    def test_rename_column_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            fingerprint = dset._fingerprint
-            dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-            self.assertEqual(dset.num_columns, 3)
-            self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
-            self.assertNotEqual(dset._fingerprint, fingerprint)
-            del dset
-
-    def test_rename_column(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            fingerprint = dset._fingerprint
-            new_dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
-            self.assertEqual(new_dset.num_columns, 3)
-            self.assertListEqual(list(new_dset.column_names), ["new_name", "col_2", "col_3"])
-            self.assertListEqual(list(dset.column_names), ["col_1", "col_2", "col_3"])
-            self.assertNotEqual(new_dset._fingerprint, fingerprint)
-            del dset
-            del new_dset
-
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
@@ -1983,6 +1961,23 @@ class TestBaseDataset:
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
         new_dset = dset.remove_columns(column_names=["col_1", "col_2", "col_3"])
         assert new_dset.num_columns == 0
+        assert new_dset._fingerprint != fingerprint
+
+    def test_rename_column_in_place(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        fingerprint = dset._fingerprint
+        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+        assert dset.num_columns == 3
+        assert list(dset.column_names) == ["new_name", "col_2", "col_3"]
+        assert dset._fingerprint != fingerprint
+
+    def test_rename_column(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        fingerprint = dset._fingerprint
+        new_dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
+        assert new_dset.num_columns == 3
+        assert list(new_dset.column_names) == ["new_name", "col_2", "col_3"]
+        assert list(dset.column_names) == ["col_1", "col_2", "col_3"]
         assert new_dset._fingerprint != fingerprint
 
 
