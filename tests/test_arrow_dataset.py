@@ -202,21 +202,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset1, dset2, dset3
 
-    def test_flatten(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = Dataset.from_dict(
-                {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-                features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
-            )
-            dset = self._to(in_memory, tmp_dir, dset)
-            fingerprint = dset._fingerprint
-            dset.flatten_()
-            self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
-            self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
-            self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
-            self.assertNotEqual(dset._fingerprint, fingerprint)
-            del dset
-
     def test_map(self, in_memory):
         # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1614,6 +1599,21 @@ def mock_concatenate_datasets(tmp_dir):
         dataset.__del__()
 
 
+@pytest.fixture
+def mock_dataset_flatten(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_flatten = Dataset.flatten
+
+    def _mock_dataset_flatten(*args, **kwargs):
+        dset = unmocked_dataset_flatten(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_flatten
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
 @pytest.fixture(autouse=True)
 def mock_dataset(
     monkeypatch,
@@ -1623,6 +1623,7 @@ def mock_dataset(
     mock_dataset_remove_columns,
     mock_dataset_rename_column,
     mock_concatenate_datasets,
+    mock_dataset_flatten,
 ):
     monkeypatch.setattr(Dataset, "select", mock_dataset_select)
     monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
@@ -1630,6 +1631,7 @@ def mock_dataset(
     monkeypatch.setattr(Dataset, "remove_columns", mock_dataset_remove_columns)
     monkeypatch.setattr(Dataset, "rename_column", mock_dataset_rename_column)
     monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
+    monkeypatch.setattr(Dataset, "flatten", mock_dataset_flatten)
 
 
 def pytest_generate_tests(metafunc):
@@ -2011,6 +2013,21 @@ class TestBaseDataset:
         # 1 cache file for i1.arrow since both dset_concat._data and dset_concat._indices are in memory
         assert len(dset_concat.cache_files) == 1 if in_memory else 3 + 1
         assert dset_concat.info.description == "Dataset1\n\nDataset2\n\n"
+
+    def test_flatten_in_place(self, in_memory, map_to):
+        dset = Dataset.from_dict(
+            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
+            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+        )
+        dset = map_to(in_memory, dset)
+        fingerprint = dset._fingerprint
+        dset.flatten_()
+        assert dset.column_names == ["a.b.c", "foo"]
+        assert list(dset.features.keys()) == ["a.b.c", "foo"]
+        assert dset.features == Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+        assert dset._fingerprint != fingerprint
+
+    # TODO: there are no tests for Dataset.flatten
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
