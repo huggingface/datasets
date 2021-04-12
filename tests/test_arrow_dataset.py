@@ -28,7 +28,6 @@ from .utils import (
     require_tf,
     require_torch,
     require_transformers,
-    set_current_working_directory_to_temp_dir,
 )
 
 
