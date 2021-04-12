@@ -199,156 +199,6 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
 
-    def test_set_format_numpy_multiple_columns(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            fingerprint = dset._fingerprint
-            dset.set_format(type="numpy", columns=["col_1"])
-            self.assertEqual(len(dset[0]), 1)
-            self.assertIsInstance(dset[0]["col_1"], np.int64)
-            self.assertEqual(dset[0]["col_1"].item(), 3)
-            self.assertIsInstance(dset["col_1"], np.ndarray)
-            self.assertListEqual(list(dset["col_1"].shape), [4])
-            np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
-            self.assertNotEqual(dset._fingerprint, fingerprint)
-
-            dset.reset_format()
-            with dset.formatted_as(type="numpy", columns=["col_1"]):
-                self.assertEqual(len(dset[0]), 1)
-                self.assertIsInstance(dset[0]["col_1"], np.int64)
-                self.assertEqual(dset[0]["col_1"].item(), 3)
-                self.assertIsInstance(dset["col_1"], np.ndarray)
-                self.assertListEqual(list(dset["col_1"].shape), [4])
-                np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
-
-            self.assertEqual(dset.format["type"], None)
-            self.assertEqual(dset.format["format_kwargs"], {})
-            self.assertEqual(dset.format["columns"], dset.column_names)
-            self.assertEqual(dset.format["output_all_columns"], False)
-
-            dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 3)
-            self.assertIsInstance(dset[0]["col_2"], str)
-            self.assertEqual(dset[0]["col_2"], "a")
-
-            dset.set_format(type="numpy", columns=["col_1", "col_2"])
-            self.assertEqual(len(dset[0]), 2)
-            self.assertIsInstance(dset[0]["col_2"], np.str_)
-            self.assertEqual(dset[0]["col_2"].item(), "a")
-            del dset
-
-    @require_torch
-    def test_set_format_torch(self, in_memory):
-        import torch
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.set_format(type="torch", columns=["col_1"])
-            self.assertEqual(len(dset[0]), 1)
-            self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
-            self.assertIsInstance(dset["col_1"], torch.Tensor)
-            self.assertListEqual(list(dset[0]["col_1"].shape), [])
-            self.assertEqual(dset[0]["col_1"].item(), 3)
-
-            dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 3)
-            self.assertIsInstance(dset[0]["col_2"], str)
-            self.assertEqual(dset[0]["col_2"], "a")
-
-            dset.set_format(type="torch", columns=["col_1", "col_2"])
-            with self.assertRaises(TypeError):
-                dset[0]
-            del dset
-
-    @require_tf
-    def test_set_format_tf(self, in_memory):
-        import tensorflow as tf
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.set_format(type="tensorflow", columns=["col_1"])
-            self.assertEqual(len(dset[0]), 1)
-            self.assertIsInstance(dset[0]["col_1"], tf.Tensor)
-            self.assertListEqual(list(dset[0]["col_1"].shape), [])
-            self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
-
-            dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
-            self.assertEqual(len(dset[0]), 3)
-            self.assertIsInstance(dset[0]["col_2"], str)
-            self.assertEqual(dset[0]["col_2"], "a")
-
-            dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
-            self.assertEqual(len(dset[0]), 2)
-            self.assertEqual(dset[0]["col_2"].numpy().decode("utf-8"), "a")
-            del dset
-
-    def test_set_format_pandas(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.set_format(type="pandas", columns=["col_1"])
-            self.assertEqual(len(dset[0].columns), 1)
-            self.assertIsInstance(dset[0], pd.DataFrame)
-            self.assertListEqual(list(dset[0].shape), [1, 1])
-            self.assertEqual(dset[0]["col_1"].item(), 3)
-
-            dset.set_format(type="pandas", columns=["col_1", "col_2"])
-            self.assertEqual(len(dset[0].columns), 2)
-            self.assertEqual(dset[0]["col_2"].item(), "a")
-            del dset
-
-    def test_set_transform(self, in_memory):
-        def transform(batch):
-            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.set_transform(transform=transform, columns=["col_1"])
-            self.assertEqual(dset.format["type"], "custom")
-            self.assertEqual(len(dset[0].keys()), 1)
-            self.assertEqual(dset[0]["col_1"], "3")
-            self.assertEqual(dset[:2]["col_1"], ["3", "2"])
-            self.assertEqual(dset["col_1"][:2], ["3", "2"])
-
-            prev_format = dset.format
-            dset.set_format(**dset.format)
-            self.assertEqual(prev_format, dset.format)
-
-            dset.set_transform(transform=transform, columns=["col_1", "col_2"])
-            self.assertEqual(len(dset[0].keys()), 2)
-            self.assertEqual(dset[0]["col_2"], "A")
-            del dset
-
-    def test_transmit_format(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            transform = datasets.arrow_dataset.transmit_format(lambda x: x)
-            # make sure identity transform doesn't apply unnecessary format
-            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
-            dset.set_format(**dset.format)
-            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
-            # check lists comparisons
-            dset.set_format(columns=["col_1"])
-            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
-            dset.set_format(columns=["col_1", "col_2"])
-            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
-            dset.set_format("numpy", columns=["col_1", "col_2"])
-            self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
-            del dset
-
-    def test_cast_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            features = dset.features
-            features["col_1"] = Value("float64")
-            features = Features({k: features[k] for k in list(features)[::-1]})
-            fingerprint = dset._fingerprint
-            dset.cast_(features)
-            self.assertEqual(dset.num_columns, 3)
-            self.assertEqual(dset.features["col_1"], Value("float64"))
-            self.assertIsInstance(dset[0]["col_1"], float)
-            self.assertNotEqual(dset._fingerprint, fingerprint)
-            del dset
-
     def test_cast(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
@@ -1918,6 +1768,142 @@ class TestBaseDataset:
 
         assert dset[[0, -1]]["filename"] == ["my_name-train_0", "my_name-train_29"]
         assert dset[np.array([0, -1])]["filename"] == ["my_name-train_0", "my_name-train_29"]
+
+    def test_set_format_numpy_multiple_columns(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        fingerprint = dset._fingerprint
+        dset.set_format(type="numpy", columns=["col_1"])
+        assert len(dset[0]) == 1
+        assert isinstance(dset[0]["col_1"], np.int64)
+        assert dset[0]["col_1"].item() == 3
+        assert isinstance(dset["col_1"], np.ndarray)
+        assert list(dset["col_1"].shape) == [4]
+        np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
+        assert dset._fingerprint != fingerprint
+
+        dset.reset_format()
+        with dset.formatted_as(type="numpy", columns=["col_1"]):
+            assert len(dset[0]) == 1
+            assert isinstance(dset[0]["col_1"], np.int64)
+            assert dset[0]["col_1"].item() == 3
+            assert isinstance(dset["col_1"], np.ndarray)
+            assert list(dset["col_1"].shape) == [4]
+            np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
+
+        assert dset.format["type"] == None
+        assert dset.format["format_kwargs"] == {}
+        assert dset.format["columns"] == dset.column_names
+        assert dset.format["output_all_columns"] == False
+
+        dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
+        assert len(dset[0]) == 3
+        assert isinstance(dset[0]["col_2"], str)
+        assert dset[0]["col_2"] == "a"
+
+        dset.set_format(type="numpy", columns=["col_1", "col_2"])
+        assert len(dset[0]) == 2
+        assert isinstance(dset[0]["col_2"], np.str_)
+        assert dset[0]["col_2"].item() == "a"
+
+    @require_torch
+    def test_set_format_torch(self, in_memory, create_dummy_dataset):
+        import torch
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        dset.set_format(type="torch", columns=["col_1"])
+        assert len(dset[0]) == 1
+        assert isinstance(dset[0]["col_1"], torch.Tensor)
+        assert isinstance(dset["col_1"], torch.Tensor)
+        assert list(dset[0]["col_1"].shape) == []
+        assert dset[0]["col_1"].item() == 3
+
+        dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
+        assert len(dset[0]) == 3
+        assert isinstance(dset[0]["col_2"], str)
+        assert dset[0]["col_2"] == "a"
+
+        dset.set_format(type="torch", columns=["col_1", "col_2"])
+        with pytest.raises(TypeError):
+            dset[0]
+
+    @require_tf
+    def test_set_format_tf(self, in_memory, create_dummy_dataset):
+        import tensorflow as tf
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        dset.set_format(type="tensorflow", columns=["col_1"])
+        assert len(dset[0]) == 1
+        assert isinstance(dset[0]["col_1"], tf.Tensor)
+        assert list(dset[0]["col_1"].shape) == []
+        assert dset[0]["col_1"].numpy().item() == 3
+
+        dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
+        assert len(dset[0]) == 3
+        assert isinstance(dset[0]["col_2"], str)
+        assert dset[0]["col_2"] == "a"
+
+        dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
+        assert len(dset[0]) == 2
+        assert dset[0]["col_2"].numpy().decode("utf-8") == "a"
+
+    def test_set_format_pandas(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        dset.set_format(type="pandas", columns=["col_1"])
+        assert len(dset[0].columns) == 1
+        assert isinstance(dset[0], pd.DataFrame)
+        assert list(dset[0].shape) == [1, 1]
+        assert dset[0]["col_1"].item() == 3
+
+        dset.set_format(type="pandas", columns=["col_1", "col_2"])
+        assert len(dset[0].columns) == 2
+        assert dset[0]["col_2"].item() == "a"
+
+    def test_set_transform(self, in_memory, create_dummy_dataset):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        dset.set_transform(transform=transform, columns=["col_1"])
+        assert dset.format["type"] == "custom"
+        assert len(dset[0].keys()) == 1
+        assert dset[0]["col_1"] == "3"
+        assert dset[:2]["col_1"] == ["3", "2"]
+        assert dset["col_1"][:2] == ["3", "2"]
+
+        prev_format = dset.format
+        dset.set_format(**dset.format)
+        assert prev_format == dset.format
+
+        dset.set_transform(transform=transform, columns=["col_1", "col_2"])
+        assert len(dset[0].keys()) == 2
+        assert dset[0]["col_2"] == "A"
+
+    def test_transmit_format(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        transform = datasets.arrow_dataset.transmit_format(lambda x: x)
+        # make sure identity transform doesn't apply unnecessary format
+        assert dset._fingerprint == transform(dset)._fingerprint
+        dset.set_format(**dset.format)
+        assert dset._fingerprint == transform(dset)._fingerprint
+        # check lists comparisons
+        dset.set_format(columns=["col_1"])
+        assert dset._fingerprint == transform(dset)._fingerprint
+        dset.set_format(columns=["col_1", "col_2"])
+        assert dset._fingerprint == transform(dset)._fingerprint
+        dset.set_format("numpy", columns=["col_1", "col_2"])
+        assert dset._fingerprint == transform(dset)._fingerprint
+
+    def test_cast_in_place(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        features = dset.features
+        features["col_1"] = Value("float64")
+        features = Features({k: features[k] for k in list(features)[::-1]})
+        fingerprint = dset._fingerprint
+        dset.cast_(features)
+        assert dset.num_columns == 3
+        assert dset.features["col_1"] == Value("float64")
+        assert isinstance(dset[0]["col_1"], float)
+        assert dset._fingerprint != fingerprint
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
