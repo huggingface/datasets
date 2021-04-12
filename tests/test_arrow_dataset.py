@@ -1681,14 +1681,35 @@ def mock_dataset_remove_columns(tmp_dir):
         dataset.__del__()
 
 
+@pytest.fixture
+def mock_dataset_rename_column(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_rename_column = Dataset.rename_column
+
+    def _mock_dataset_rename_column(*args, **kwargs):
+        dset = unmocked_dataset_rename_column(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_rename_column
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
 @pytest.fixture(autouse=True)
 def mock_dataset(
-    monkeypatch, mock_dataset_select, mock_dataset_load_from_disk, mock_dataset_cast, mock_dataset_remove_columns
+    monkeypatch,
+    mock_dataset_select,
+    mock_dataset_load_from_disk,
+    mock_dataset_cast,
+    mock_dataset_remove_columns,
+    mock_dataset_rename_column,
 ):
     monkeypatch.setattr(Dataset, "select", mock_dataset_select)
     monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
     monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
     monkeypatch.setattr(Dataset, "remove_columns", mock_dataset_remove_columns)
+    monkeypatch.setattr(Dataset, "rename_column", mock_dataset_rename_column)
 
 
 def pytest_generate_tests(metafunc):
