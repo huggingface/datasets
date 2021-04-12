@@ -19,12 +19,7 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.utils.logging import WARNING
 
-from .utils import (
-    assert_arrow_memory_doesnt_increase,
-    require_tf,
-    require_torch,
-    require_transformers,
-)
+from .utils import assert_arrow_memory_doesnt_increase, require_tf, require_torch, require_transformers
 
 
 class Unpicklable:
