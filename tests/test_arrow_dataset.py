@@ -1932,6 +1932,19 @@ def create_dummy_dataset(tmp_dir):
         dataset.__del__()
 
 
+def pytest_generate_tests(metafunc):
+    if hasattr(metafunc, "cls") and hasattr(metafunc.cls, "params"):
+        func_args = metafunc.cls.params
+        arg_names = list(func_args.keys())
+        for arg_name in arg_names:
+            if arg_name in metafunc.fixturenames:
+                metafunc.parametrize(arg_name, func_args[arg_name])
+
+
+class TestBaseDataset:
+    params = {"in_memory": [False, True]}
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
