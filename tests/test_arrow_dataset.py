@@ -202,67 +202,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset1, dset2, dset3
 
-    def test_new_features(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            features = Features({"filename": Value("string"), "label": ClassLabel(names=["positive", "negative"])})
-            dset_test_with_indices = dset.map(lambda x, i: {"label": i % 2}, with_indices=True, features=features)
-            self.assertEqual(len(dset_test_with_indices), 30)
-            self.assertDictEqual(
-                dset_test_with_indices.features,
-                features,
-            )
-            del dset, dset_test_with_indices
-
-    def test_map_batched(self, in_memory):
-        def map_batched(example):
-            return {"filename_new": [x + "_extension" for x in example["filename"]]}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            dset_test_batched = dset.map(map_batched, batched=True)
-            self.assertEqual(len(dset_test_batched), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test_batched.features, Features({"filename": Value("string"), "filename_new": Value("string")})
-            )
-            del dset, dset_test_batched
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            with dset.formatted_as("numpy", columns=["filename"]):
-                dset_test_batched = dset.map(map_batched, batched=True)
-                self.assertEqual(len(dset_test_batched), 30)
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                self.assertDictEqual(
-                    dset_test_batched.features,
-                    Features({"filename": Value("string"), "filename_new": Value("string")}),
-                )
-            del dset, dset_test_batched
-
-        def map_batched_with_indices(example, idx):
-            return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            dset_test_with_indices_batched = dset.map(map_batched_with_indices, batched=True, with_indices=True)
-            self.assertEqual(len(dset_test_with_indices_batched), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test_with_indices_batched.features,
-                Features({"filename": Value("string"), "filename_new": Value("string")}),
-            )
-            del dset, dset_test_with_indices_batched
-
-    def test_map_nested(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = Dataset.from_dict({"field": ["a", "b"]})
-            dset = self._to(in_memory, tmp_dir, dset)
-            dset = dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}})
-            dset = dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}})
-            self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
-            del dset
-
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
@@ -2018,6 +1957,50 @@ class TestBaseDataset:
         assert len(dset_test.cache_files) == 0 if in_memory else 2
         assert dset_test["id"] == list(range(30))
         assert dset_test._fingerprint != fingerprint
+
+    def test_new_features(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory)
+        features = Features({"filename": Value("string"), "label": ClassLabel(names=["positive", "negative"])})
+        dset_test_with_indices = dset.map(lambda x, i: {"label": i % 2}, with_indices=True, features=features)
+        assert len(dset_test_with_indices) == 30
+        assert dset_test_with_indices.features == features
+
+    def test_map_batched(self, in_memory, create_dummy_dataset):
+        def map_batched(example):
+            return {"filename_new": [x + "_extension" for x in example["filename"]]}
+
+        dset = create_dummy_dataset(in_memory)
+        dset_test_batched = dset.map(map_batched, batched=True)
+        assert len(dset_test_batched) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_test_batched.features == Features({"filename": Value("string"), "filename_new": Value("string")})
+
+        dset = create_dummy_dataset(in_memory)
+        with dset.formatted_as("numpy", columns=["filename"]):
+            dset_test_batched = dset.map(map_batched, batched=True)
+            assert len(dset_test_batched) == 30
+            assert dset.features == Features({"filename": Value("string")})
+            assert dset_test_batched.features == Features(
+                {"filename": Value("string"), "filename_new": Value("string")}
+            )
+
+        def map_batched_with_indices(example, idx):
+            return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
+
+        dset = create_dummy_dataset(in_memory)
+        dset_test_with_indices_batched = dset.map(map_batched_with_indices, batched=True, with_indices=True)
+        assert len(dset_test_with_indices_batched) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_test_with_indices_batched.features == Features(
+            {"filename": Value("string"), "filename_new": Value("string")}
+        )
+
+    def test_map_nested(self, in_memory, map_to):
+        dset = Dataset.from_dict({"field": ["a", "b"]})
+        dset = map_to(in_memory, dset)
+        dset = dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}})
+        dset = dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}})
+        assert dset[0] == {"field": "a", "otherfield": {"append_x": "ax"}}
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
