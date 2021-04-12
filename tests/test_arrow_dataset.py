@@ -202,143 +202,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset1, dset2, dset3
 
-    def test_map(self, in_memory):
-        # standard
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            fingerprint = dset._fingerprint
-            dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"].split("_")[-1])})
-            self.assertEqual(len(dset_test), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
-            )
-            self.assertListEqual(dset_test["id"], list(range(30)))
-            self.assertNotEqual(dset_test._fingerprint, fingerprint)
-            del dset, dset_test
-
-        # no transform
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            fingerprint = dset._fingerprint
-            dset_test = dset.map(lambda x: None)
-            self.assertEqual(len(dset_test), 30)
-            self.assertEqual(dset_test._fingerprint, fingerprint)
-            del dset, dset_test
-
-        # with indices
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            dset_test_with_indices = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
-            self.assertEqual(len(dset_test_with_indices), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test_with_indices.features,
-                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
-            )
-            self.assertListEqual(dset_test_with_indices["id"], list(range(30)))
-            del dset, dset_test_with_indices
-
-        # interrupted
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-
-            def func(x, i):
-                if i == 4:
-                    raise KeyboardInterrupt()
-                return {"name": x["filename"][:-2], "id": i}
-
-            tmp_file = os.path.join(tmp_dir, "test.arrow")
-            self.assertRaises(
-                KeyboardInterrupt,
-                dset.map,
-                function=func,
-                with_indices=True,
-                cache_file_name=tmp_file,
-                writer_batch_size=2,
-            )
-            self.assertFalse(os.path.exists(tmp_file))
-            dset_test_with_indices = dset.map(
-                lambda x, i: {"name": x["filename"][:-2], "id": i},
-                with_indices=True,
-                cache_file_name=tmp_file,
-                writer_batch_size=2,
-            )
-            self.assertTrue(os.path.exists(tmp_file))
-            self.assertEqual(len(dset_test_with_indices), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test_with_indices.features,
-                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
-            )
-            self.assertListEqual(dset_test_with_indices["id"], list(range(30)))
-            del dset, dset_test_with_indices
-
-        # formatted
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.set_format("numpy", columns=["col_1"])
-
-            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"] + 1})
-            self.assertEqual(len(dset_test), 4)
-            self.assertEqual(dset_test.format["type"], "numpy")
-            self.assertIsInstance(dset_test["col_1"], np.ndarray)
-            self.assertIsInstance(dset_test["col_1_plus_one"], np.ndarray)
-            self.assertListEqual(sorted(dset_test[0].keys()), ["col_1", "col_1_plus_one"])
-            self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2", "col_3"])
-            del dset, dset_test
-
-    def test_map_multiprocessing(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:  # standard
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            fingerprint = dset._fingerprint
-            dset_test = dset.map(picklable_map_function, num_proc=2)
-            self.assertEqual(len(dset_test), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
-            )
-            self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
-            self.assertListEqual(dset_test["id"], list(range(30)))
-            self.assertNotEqual(dset_test._fingerprint, fingerprint)
-            del dset, dset_test
-
-        with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            fingerprint = dset._fingerprint
-            dset_test = dset.map(picklable_map_function_with_indices, num_proc=3, with_indices=True)
-            self.assertEqual(len(dset_test), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
-            )
-            self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
-            self.assertListEqual(dset_test["id"], list(range(30)))
-            self.assertNotEqual(dset_test._fingerprint, fingerprint)
-            del dset, dset_test
-
-        with tempfile.TemporaryDirectory() as tmp_dir:  # lambda (requires multiprocess from pathos)
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            fingerprint = dset._fingerprint
-            dset_test = dset.map(lambda x: {"id": int(x["filename"].split("_")[-1])}, num_proc=2)
-            self.assertEqual(len(dset_test), 30)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
-            )
-            self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
-            self.assertListEqual(dset_test["id"], list(range(30)))
-            self.assertNotEqual(dset_test._fingerprint, fingerprint)
-            del dset, dset_test
-
     def test_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
@@ -2045,6 +1908,128 @@ class TestBaseDataset:
         assert dset._fingerprint != fingerprint
 
     # TODO: there are no tests for Dataset.flatten
+
+    def test_map(self, in_memory, create_dummy_dataset, tmp_dir):
+        # standard
+        dset = create_dummy_dataset(in_memory)
+
+        assert dset.features == Features({"filename": Value("string")})
+        fingerprint = dset._fingerprint
+        dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"].split("_")[-1])})
+        assert len(dset_test) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert (
+                dset_test.features ==
+                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+        )
+        assert dset_test["id"] == list(range(30))
+        assert dset_test._fingerprint != fingerprint
+
+        # no transform
+        dset = create_dummy_dataset(in_memory)
+        fingerprint = dset._fingerprint
+        dset_test = dset.map(lambda x: None)
+        assert len(dset_test) == 30
+        assert dset_test._fingerprint == fingerprint
+
+        # with indices
+        dset = create_dummy_dataset(in_memory)
+        dset_test_with_indices = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
+        assert len(dset_test_with_indices) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert (
+                dset_test_with_indices.features ==
+                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+        )
+        assert dset_test_with_indices["id"] == list(range(30))
+
+        # interrupted
+        dset = create_dummy_dataset(in_memory)
+
+        def func(x, i):
+            if i == 4:
+                raise KeyboardInterrupt()
+            return {"name": x["filename"][:-2], "id": i}
+
+        tmp_file = os.path.join(tmp_dir, "test.arrow")
+        with pytest.raises(KeyboardInterrupt):
+            dset.map(
+                function=func,
+                with_indices=True,
+                cache_file_name=tmp_file,
+                writer_batch_size=2,
+            )
+        assert not os.path.exists(tmp_file)
+        dset_test_with_indices = dset.map(
+            lambda x, i: {"name": x["filename"][:-2], "id": i},
+            with_indices=True,
+            cache_file_name=tmp_file,
+            writer_batch_size=2,
+        )
+        assert os.path.exists(tmp_file)
+        assert len(dset_test_with_indices) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert (
+                dset_test_with_indices.features ==
+                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+        )
+        assert dset_test_with_indices["id"] == list(range(30))
+
+        # formatted
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        dset.set_format("numpy", columns=["col_1"])
+
+        dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"] + 1})
+        assert len(dset_test) == 4
+        assert dset_test.format["type"] == "numpy"
+        assert isinstance(dset_test["col_1"], np.ndarray)
+        assert isinstance(dset_test["col_1_plus_one"], np.ndarray)
+        assert sorted(dset_test[0].keys()) == ["col_1", "col_1_plus_one"]
+        assert sorted(dset_test.column_names) == ["col_1", "col_1_plus_one", "col_2", "col_3"]
+
+    def test_map_multiprocessing(self, in_memory, create_dummy_dataset):
+        # standard
+        dset = create_dummy_dataset(in_memory)
+        assert dset.features == Features({"filename": Value("string")})
+        fingerprint = dset._fingerprint
+        dset_test = dset.map(picklable_map_function, num_proc=2)
+        assert len(dset_test) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert (
+            dset_test.features ==
+            Features({"filename": Value("string"), "id": Value("int64")})
+        )
+        assert len(dset_test.cache_files) == 0 if in_memory else 2
+        assert dset_test["id"] == list(range(30))
+        assert dset_test._fingerprint != fingerprint
+
+        # with_indices
+        dset = create_dummy_dataset(in_memory)
+        fingerprint = dset._fingerprint
+        dset_test = dset.map(picklable_map_function_with_indices, num_proc=3, with_indices=True)
+        assert len(dset_test) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert (
+            dset_test.features ==
+            Features({"filename": Value("string"), "id": Value("int64")})
+        )
+        assert len(dset_test.cache_files) == 0 if in_memory else 3
+        assert dset_test["id"] == list(range(30))
+        assert dset_test._fingerprint != fingerprint
+
+        # lambda (requires multiprocess from pathos)
+        dset = create_dummy_dataset(in_memory)
+        fingerprint = dset._fingerprint
+        dset_test = dset.map(lambda x: {"id": int(x["filename"].split("_")[-1])}, num_proc=2)
+        assert len(dset_test) == 30
+        assert dset.features == Features({"filename": Value("string")})
+        assert (
+            dset_test.features ==
+            Features({"filename": Value("string"), "id": Value("int64")})
+        )
+        assert len(dset_test.cache_files) == 0 if in_memory else 2
+        assert dset_test["id"] == list(range(30))
+        assert dset_test._fingerprint != fingerprint
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
