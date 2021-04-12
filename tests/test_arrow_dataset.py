@@ -151,39 +151,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset[0]["filename"], "my_name-train_0")
                     self.assertEqual(dset["filename"][0], "my_name-train_0")
 
-    def test_remove_columns_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            fingerprint = dset._fingerprint
-            dset.remove_columns_(column_names="col_1")
-            self.assertEqual(dset.num_columns, 2)
-            self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
-            del dset
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
-            self.assertEqual(dset.num_columns, 0)
-            self.assertNotEqual(dset._fingerprint, fingerprint)
-            del dset
-
-    def test_remove_columns(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            fingerprint = dset._fingerprint
-            new_dset = dset.remove_columns(column_names="col_1")
-            self.assertEqual(new_dset.num_columns, 2)
-            self.assertListEqual(list(new_dset.column_names), ["col_2", "col_3"])
-            self.assertNotEqual(new_dset._fingerprint, fingerprint)
-            del dset
-            del new_dset
-
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-            new_dset = dset.remove_columns(column_names=["col_1", "col_2", "col_3"])
-            self.assertEqual(new_dset.num_columns, 0)
-            self.assertNotEqual(new_dset._fingerprint, fingerprint)
-            del dset
-            del new_dset
-
     def test_rename_column_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
@@ -1970,6 +1937,33 @@ class TestBaseDataset:
         assert isinstance(casted_dset[0]["col_1"], float)
         assert casted_dset._fingerprint != fingerprint
         assert casted_dset != dset
+
+    def test_remove_columns_in_place(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        fingerprint = dset._fingerprint
+        dset.remove_columns_(column_names="col_1")
+        assert dset.num_columns == 2
+        assert list(dset.column_names) == ["col_2", "col_3"]
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
+        assert dset.num_columns == 0
+        assert dset._fingerprint != fingerprint
+
+    def test_remove_columns(self, in_memory, create_dummy_dataset):
+        # TODO: no need to mock remove_columns?!
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        fingerprint = dset._fingerprint
+        new_dset = dset.remove_columns(column_names="col_1")
+        assert new_dset.num_columns == 2
+        assert list(new_dset.column_names) == ["col_2", "col_3"]
+        assert new_dset._fingerprint != fingerprint
+
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        new_dset = dset.remove_columns(column_names=["col_1", "col_2", "col_3"])
+        assert new_dset.num_columns == 0
+        assert new_dset._fingerprint != fingerprint
+
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
