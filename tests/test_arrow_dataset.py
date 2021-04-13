@@ -273,32 +273,6 @@ class BaseDatasetTest(TestCase):
                                 self.assertEqual(loaded[0]["file"], "my_name-train_1")
                                 self.assertEqual(loaded[0]["number"], 1)
 
-    def test_shuffle(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                tmp_file = os.path.join(tmp_dir, "test.arrow")
-                fingerprint = dset._fingerprint
-                with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset_shuffled:
-                    self.assertEqual(len(dset_shuffled), 30)
-                    self.assertEqual(dset_shuffled[0]["filename"], "my_name-train_28")
-                    self.assertEqual(dset_shuffled[2]["filename"], "my_name-train_10")
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertDictEqual(dset_shuffled.features, Features({"filename": Value("string")}))
-                    self.assertNotEqual(dset_shuffled._fingerprint, fingerprint)
-
-                    # Reproducibility
-                    tmp_file = os.path.join(tmp_dir, "test_2.arrow")
-                    with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset_shuffled_2:
-                        self.assertListEqual(dset_shuffled["filename"], dset_shuffled_2["filename"])
-
-                    # Compatible with temp_seed
-                    with temp_seed(42), dset.shuffle() as d1:
-                        with temp_seed(42), dset.shuffle() as d2, dset.shuffle() as d3:
-                            self.assertListEqual(d1["filename"], d2["filename"])
-                            self.assertEqual(d1._fingerprint, d2._fingerprint)
-                            self.assertNotEqual(d3["filename"], d2["filename"])
-                            self.assertNotEqual(d3._fingerprint, d2._fingerprint)
-
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1983,6 +1957,34 @@ class TestBaseDataset:
         d2 = d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
         assert d1[0]["id"] == 0
         assert d2[0]["id"] == 1
+
+    def test_shuffle(self, in_memory, create_dummy_dataset, tmp_dir):
+        dset = create_dummy_dataset(in_memory)
+        tmp_file = os.path.join(tmp_dir, "test.arrow")
+        fingerprint = dset._fingerprint
+        dset_shuffled = dset.shuffle(seed=1234, indices_cache_file_name=tmp_file)
+        assert len(dset_shuffled) == 30
+        assert dset_shuffled[0]["filename"] == "my_name-train_28"
+        assert dset_shuffled[2]["filename"] == "my_name-train_10"
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_shuffled.features == Features({"filename": Value("string")})
+        assert dset_shuffled._fingerprint != fingerprint
+
+        # Reproducibility
+        tmp_file = os.path.join(tmp_dir, "test_2.arrow")
+        dset_shuffled_2 = dset.shuffle(seed=1234, indices_cache_file_name=tmp_file)
+        assert dset_shuffled["filename"] == dset_shuffled_2["filename"]
+
+        # Compatible with temp_seed
+        with temp_seed(42):
+            d1 = dset.shuffle()
+        with temp_seed(42):
+            d2 = dset.shuffle()
+            d3 = dset.shuffle()
+        assert d1["filename"] == d2["filename"]
+        assert d1._fingerprint == d2._fingerprint
+        assert d3["filename"] != d2["filename"]
+        assert d3._fingerprint != d2._fingerprint
 
     def test_with_transform(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
