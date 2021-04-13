@@ -1360,6 +1360,21 @@ def mock_dataset_select(tmp_dir):
 
 
 @pytest.fixture
+def mock_dataset_with_transform(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_with_transform = Dataset.with_transform
+
+    def _mock_with_transform(*args, **kwargs):
+        dset = unmocked_dataset_with_transform(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_with_transform
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
 def mock_dataset(
     monkeypatch,
     mock_concatenate_datasets,
@@ -1370,6 +1385,7 @@ def mock_dataset(
     mock_dataset_remove_columns,
     mock_dataset_rename_column,
     mock_dataset_select,
+    mock_dataset_with_transform,
 ):
     monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
     monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
@@ -1379,6 +1395,7 @@ def mock_dataset(
     monkeypatch.setattr(Dataset, "remove_columns", mock_dataset_remove_columns)
     monkeypatch.setattr(Dataset, "rename_column", mock_dataset_rename_column)
     monkeypatch.setattr(Dataset, "select", mock_dataset_select)
+    monkeypatch.setattr(Dataset, "with_transform", mock_dataset_with_transform)
 
 
 def pytest_generate_tests(metafunc):
