@@ -243,7 +243,8 @@ class ArrowWriter:
     def schema(self):
         return self._schema if self._schema is not None else []
 
-    def _build_metadata(self, info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+    @staticmethod
+    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
         info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
         metadata = {}
@@ -326,7 +327,9 @@ class ArrowWriter:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
-        pa_table = pa_table.cast(self._schema)
+        # reorder the arrays if necessary + cast to self._schema
+        # we can't simply use .cast here because we may need to change the order of the columns
+        pa_table = pa.Table.from_arrays([pa_table[name] for name in self._schema.names], schema=self._schema)
         batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
