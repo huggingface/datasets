@@ -354,7 +354,7 @@ class ArrowWriter:
         return self._num_examples, self._num_bytes
 
 
-class BeamWriter(object):
+class BeamWriter:
     """
     Shuffles and writes Examples to Arrow files.
     The Arrow files are converted from Parquet files that are the output of Apache Beam pipelines.

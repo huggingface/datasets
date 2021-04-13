@@ -58,7 +58,7 @@ builder = datasets.builder("wmt_translate", config=config)
 CWMT_SUBSET_NAMES = ["casia2015", "casict2011", "casict2015", "datum2015", "datum2017", "neu2017"]
 
 
-class SubDataset(object):
+class SubDataset:
     """Class to keep track of information on a sub-dataset of WMT."""
 
     def __init__(self, name, target, sources, url, path, manual_dl_files=None):
