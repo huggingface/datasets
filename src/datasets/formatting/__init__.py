@@ -16,11 +16,12 @@
 # flake8: noqa
 # Lint as: python3
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from .. import config
 from ..utils.logging import get_logger
 from .formatting import (
+    ArrowFormatter,
     CustomFormatter,
     Formatter,
     NumpyFormatter,
@@ -71,6 +72,7 @@ def _register_unavailable_formatter(
 
 # Here we define all the available formatting functions that can be used by `Dataset.set_format`
 _register_formatter(PythonFormatter, None, aliases=["python"])
+_register_formatter(ArrowFormatter, "arrow", aliases=["pa", "pyarrow"])
 _register_formatter(NumpyFormatter, "numpy", aliases=["np"])
 _register_formatter(PandasFormatter, "pandas", aliases=["pd"])
 _register_formatter(CustomFormatter, "custom")

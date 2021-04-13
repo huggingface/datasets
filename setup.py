@@ -146,6 +146,7 @@ TESTS_REQUIRE = [
     "seqeval",
     "sklearn",
     "jiwer",
+    "sentencepiece",  # for bleurt
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
