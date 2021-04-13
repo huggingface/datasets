@@ -1983,7 +1983,7 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
         dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
     assert dataset_from_file.features.type == dataset.features.type
     assert dataset_from_file.features == dataset.features
-    assert dataset_from_file.cache_files == ([filename] if not in_memory else [])
+    assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
