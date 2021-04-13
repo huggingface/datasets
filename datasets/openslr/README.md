@@ -4,6 +4,10 @@ annotations_creators:
 language_creators:
 - found
 languages:
+  SLR35:
+  - jv
+  SLR36:
+  - su
   SLR41:
   - jv
   SLR42:
@@ -336,7 +340,7 @@ The speech material has only train dataset.
     address = {Gurugram, India},
     month = aug,
     pages = {52--55},
-    URL   = {http://dx.doi.org/10.21437/SLTU.2018-11},
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-11},
 }
 ```
 
@@ -350,7 +354,7 @@ The speech material has only train dataset.
     address = {Gurugram, India},
     month = aug,
     pages = {66--70},
-    URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-14}
 }
 ```
 
