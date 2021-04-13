@@ -68,10 +68,17 @@ class InvalidConfigName(ValueError):
 
 @dataclass
 class BuilderConfig:
-    """Base class for `DatasetBuilder` data configuration.
+    """Base class for :class:`DatasetBuilder` data configuration.
 
     DatasetBuilder subclasses with data configuration options should subclass
-    `BuilderConfig` and add their own properties.
+    :class:`BuilderConfig` and add their own properties.
+
+    Attributes:
+        name (:obj:`str`, default ``"default"``):
+        version (:class:`Version` or :obj:`str`, optional):
+        data_dir (:obj:`str`, optional):
+        data_files (:obj:`str` or :obj:`dict` or :obj:`list` or :obj:`tuple`, optional):
+        description (:obj:`str`, optional):
     """
 
     name: str = "default"
@@ -986,7 +993,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             finally:
                 num_examples, num_bytes = writer.finalize()
 
-        assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
 
@@ -1033,14 +1039,15 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(path=fpath) as writer:
+        with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        self.info.features = writer._features
+        if self.info.features is None:
+            self.info.features = writer._features
 
 
 class MissingBeamOptions(ValueError):

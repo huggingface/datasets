@@ -118,16 +118,18 @@ class LocalMetricTest(parameterized.TestCase):
 @LocalMetricTest.register_intensive_calls_patcher("bleurt")
 def patch_bleurt(module_name):
     import tensorflow.compat.v1 as tf
+    from bleurt.score import Predictor
 
     tf.flags.DEFINE_string("sv", "", "")  # handle pytest cli flags
 
-    def prefict_fn(tf_input):
-        assert len(tf_input["input_ids"]) == 2
-        return np.array([1.03, 1.04])
+    class MockedPredictor(Predictor):
+        def predict(self, input_dict):
+            assert len(input_dict["input_ids"]) == 2
+            return np.array([1.03, 1.04])
 
     # mock predict_fn which is supposed to do a forward pass with a bleurt model
-    with patch("bleurt.score._make_predict_fn_from_checkpoint") as mock_make_predict_fn_from_checkpoint:
-        mock_make_predict_fn_from_checkpoint.return_value = prefict_fn
+    with patch("bleurt.score._create_predictor") as mock_create_predictor:
+        mock_create_predictor.return_value = MockedPredictor()
         yield
 
 

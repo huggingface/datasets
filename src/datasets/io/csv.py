@@ -89,7 +89,7 @@ class CsvDatasetWriter:
             batch = query_table(
                 table=self.dataset._data,
                 key=slice(offset, offset + batch_size),
-                indices=self.dataset._indices.column(0) if self.dataset._indices is not None else None,
+                indices=self.dataset._indices if self.dataset._indices is not None else None,
             )
             csv_str = batch.to_pandas().to_csv(
                 path_or_buf=None, header=header if (offset == 0) else False, encoding=encoding, **to_csv_kwargs

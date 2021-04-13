@@ -127,6 +127,22 @@ def require_transformers(test_case):
         return test_case
 
 
+def require_s3(test_case):
+    """
+    Decorator marking a test that requires s3fs and moto to mock s3.
+
+    These tests are skipped when they aren't installed.
+
+    """
+    try:
+        import moto  # noqa F401
+        import s3fs  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires s3fs and moto")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.
@@ -271,7 +287,7 @@ def assert_arrow_memory_increases():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory > 0
+    assert pa.total_allocated_bytes() - previous_allocated_memory > 0, "Arrow memory didn't increase."
 
 
 @contextmanager
@@ -281,4 +297,4 @@ def assert_arrow_memory_doesnt_increase():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0
+    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."

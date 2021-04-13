@@ -4,6 +4,7 @@ import tempfile
 from functools import wraps
 from typing import List, Optional, Tuple, TypeVar, Union
 
+import numpy as np
 import pyarrow as pa
 
 from . import config
@@ -53,7 +54,73 @@ def _write_table_to_file(table: pa.Table, filename: str) -> int:
         return sum(batch.nbytes for batch in batches)
 
 
-class Table:
+def _deepcopy(x, memo: dict):
+    """deepcopy a regular class instance"""
+    cls = x.__class__
+    result = cls.__new__(cls)
+    memo[id(x)] = result
+    for k, v in x.__dict__.items():
+        setattr(result, k, copy.deepcopy(v, memo))
+    return result
+
+
+def _interpolation_search(arr: List[int], x: int) -> int:
+    """
+    Return the position i of a sorted array so that arr[i] <= x < arr[i+1]
+
+    Args:
+        arr (:obj:`List[int]`): non-empty sorted list of integers
+        x (:obj:`int`): query
+
+    Returns:
+        `int`: the position i so that arr[i] <= x < arr[i+1]
+
+    Raises:
+        `IndexError`: if the array is empty or if the query is outside the array values
+    """
+    i, j = 0, len(arr) - 1
+    while i < j and arr[i] <= x < arr[j]:
+        k = i + ((j - i) * (x - arr[i]) // (arr[j] - arr[i]))
+        if arr[k] <= x < arr[k + 1]:
+            return k
+        elif arr[k] < x:
+            i, j = k + 1, j
+        else:
+            i, j = i, k
+    raise IndexError(f"Invalid query '{x}' for size {arr[-1] if len(arr) else 'none'}.")
+
+
+class IndexedTableMixin:
+    def __init__(self, table: pa.Table):
+        self._schema = table.schema
+        self._batches = table.to_batches()
+        self._offsets = np.cumsum([0] + [len(b) for b in self._batches])
+
+    def fast_slice(self, offset=0, length=None) -> pa.Table:
+        """
+        Slice the Table using interpolation search.
+        The behavior is the same as :obj:`pyarrow.Table.slice` but it's significantly faster.
+
+        Interpolation search is used to find the start and end indexes of the batches we want to keep.
+        The batches to keep are then concatenated to form the sliced Table.
+        """
+        if offset < 0:
+            raise IndexError("Offset must be non-negative")
+        elif offset >= self._offsets[-1] or (length is not None and length <= 0):
+            return pa.Table.from_batches([], schema=self._schema)
+        i = _interpolation_search(self._offsets, offset)
+        if length is None or length + offset >= self._offsets[-1]:
+            batches = self._batches[i:]
+            batches[0] = batches[0].slice(offset - self._offsets[i])
+        else:
+            j = _interpolation_search(self._offsets, offset + length - 1)
+            batches = self._batches[i : j + 1]
+            batches[-1] = batches[-1].slice(0, offset + length - self._offsets[j])
+            batches[0] = batches[0].slice(offset - self._offsets[i])
+        return pa.Table.from_batches(batches, schema=self._schema)
+
+
+class Table(IndexedTableMixin):
     """
     Wraps a pyarrow Table by using composition.
     This is the base class for InMemoryTable, MemoryMappedTable and ConcatenationTable.
@@ -66,7 +133,15 @@ class Table:
     """
 
     def __init__(self, table: pa.Table):
+        super().__init__(table)
         self.table = table
+
+    def __deepcopy__(self, memo: dict):
+        # arrow tables are immutable, so there's no need to copy self.table
+        # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
+        # by adding it to the memo, self.table won't be copied
+        memo[id(self.table)] = self.table
+        return _deepcopy(self, memo)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -273,8 +348,9 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_batches(*args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.slice)
-    def slice(self, *args, **kwargs):
-        return InMemoryTable(self.table.slice(*args, **kwargs))
+    def slice(self, offset=0, length=None):
+        # Use fast slicing here
+        return InMemoryTable(self.fast_slice(offset=offset, length=length))
 
     @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):
@@ -378,10 +454,11 @@ class MemoryMappedTable(TableBlock):
         return replays
 
     @inject_arrow_table_documentation(pa.Table.slice)
-    def slice(self, *args, **kwargs):
-        replay = ("slice", copy.deepcopy(args), copy.deepcopy(kwargs))
+    def slice(self, offset=0, length=None):
+        replay = ("slice", (offset, length), {})
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.slice(*args, **kwargs), self.path, replays)
+        # Use fast slicing here
+        return MemoryMappedTable(self.fast_slice(offset=offset, length=length), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):

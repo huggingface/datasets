@@ -193,12 +193,13 @@ class ArrowWriter:
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_rows: List[Dict[str, Any]] = []
+        self.current_examples: List[Dict[str, Any]] = []
+        self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
     def __len__(self):
         """ Return the number of writed and staged examples """
-        return self._num_examples + len(self.current_rows)
+        return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
     def __enter__(self):
         return self
@@ -243,7 +244,8 @@ class ArrowWriter:
     def schema(self):
         return self._schema if self._schema is not None else []
 
-    def _build_metadata(self, info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+    @staticmethod
+    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
         info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
         metadata = {}
@@ -252,11 +254,11 @@ class ArrowWriter:
             metadata["fingerprint"] = fingerprint
         return {"huggingface": json.dumps(metadata)}
 
-    def write_on_file(self):
-        """Write stored examples"""
-        if not self.current_rows:
+    def write_examples_on_file(self):
+        """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
+        if not self.current_examples:
             return
-        cols = sorted(self.current_rows[0].keys())
+        cols = sorted(self.current_examples[0].keys())
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
         arrays = []
@@ -265,7 +267,7 @@ class ArrowWriter:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(
-                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type, col=col
+                [row[col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
@@ -281,19 +283,39 @@ class ArrowWriter:
         schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
         table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(table)
+        self.current_examples = []
+
+    def write_rows_on_file(self):
+        """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
+        if not self.current_rows:
+            return
+        table = pa.concat_tables(self.current_rows).combine_chunks()
+        self.write_table(table)
         self.current_rows = []
 
     def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
-        """Add a given Example to the write-pool which is written to file.
+        """Add a given Example to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
         """
-        self.current_rows.append(example)
+        self.current_examples.append(example)
+        if writer_batch_size is None:
+            writer_batch_size = self.writer_batch_size
+        if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
+            self.write_examples_on_file()
+
+    def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
+        """Add a given single-row Table to the write-pool of rows which is written to file.
+
+        Args:
+            row: the row to add.
+        """
+        self.current_rows.append(row)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
-            self.write_on_file()
+            self.write_rows_on_file()
 
     def write_batch(
         self,
@@ -317,16 +339,18 @@ class ArrowWriter:
         self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
-        """Write a batch of Example to file.
+        """Write a Table to file.
 
         Args:
-            example: the Example to add.
+            example: the Table to add.
         """
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
-        pa_table = pa_table.cast(self._schema)
+        # reorder the arrays if necessary + cast to self._schema
+        # we can't simply use .cast here because we may need to change the order of the columns
+        pa_table = pa.Table.from_arrays([pa_table[name] for name in self._schema.names], schema=self._schema)
         batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
@@ -334,7 +358,8 @@ class ArrowWriter:
             self.pa_writer.write_batch(batch)
 
     def finalize(self, close_stream=True):
-        self.write_on_file()
+        self.write_rows_on_file()
+        self.write_examples_on_file()
         if self.pa_writer is None:
             if self._schema is not None:
                 self._build_writer(self._schema)
