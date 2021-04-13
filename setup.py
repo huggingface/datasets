@@ -97,6 +97,8 @@ REQUIRED_PKGS = [
     _deps["fsspec"],
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
+    # Utilities from PyPA to e.g., compare versions
+    "packaging",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -144,6 +146,7 @@ TESTS_REQUIRE = [
     "seqeval",
     "sklearn",
     "jiwer",
+    "sentencepiece",  # for bleurt
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",

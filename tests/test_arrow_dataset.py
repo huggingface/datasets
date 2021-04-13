@@ -1,8 +1,10 @@
 import copy
+import json
 import os
 import pickle
 import shutil
 import tempfile
+from dataclasses import asdict
 from functools import partial
 from unittest import TestCase
 
@@ -14,7 +16,7 @@ from absl.testing import parameterized
 
 import datasets.arrow_dataset
 from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
-from datasets.arrow_dataset import Dataset, transmit_format
+from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
@@ -149,6 +151,37 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertEqual(dset[0]["filename"], "my_name-train_0")
                     self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+    def test_update_metadata_with_features(self, in_memory):
+        features = Features({"foo": Value("float64")})
+
+        @update_metadata_with_features
+        def update_features_inplace(dset):
+            dset.info.features = features
+
+        @update_metadata_with_features
+        def update_features(dset):
+            dset = copy.deepcopy(dset)
+            dset.info.features = features
+            return dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+
+            # make sure the dataset has some features stored in the metadata
+            # otherwise the metadata will not be updated
+            metadata = {"info": {"features": asdict(dset.info)["features"]}}
+            schema = dset._data.schema
+            dset._data = dset._data.cast(schema.with_metadata({"huggingface": json.dumps(metadata)}))
+
+            new_dset = update_features(dset)
+            metadata = json.loads(new_dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            self.assertEqual(features, Features.from_dict(metadata["info"]["features"]))
+            update_features_inplace(dset)
+            metadata = json.loads(dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            self.assertEqual(features, Features.from_dict(metadata["info"]["features"]))
+            del dset
+            del new_dset
 
     def test_concatenate_pickle(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7], "foo": ["bar", "bar"]}
@@ -287,6 +320,7 @@ class BaseDatasetTest(TestCase):
                         # Sort
                         tmp_file = os.path.join(tmp_dir, "test_3.arrow")
                         fingerprint = dset._fingerprint
+                        # TODO: with assert_arrow_memory_doesnt_increase():  # for dset_sorted
                         with dset.sort("filename", indices_cache_file_name=tmp_file) as dset_sorted:
                             for i, row in enumerate(dset_sorted):
                                 self.assertEqual(int(row["filename"][-1]), i)
@@ -464,7 +498,8 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 fingerprint = dset._fingerprint
-                dset_dict = dset.train_test_split(test_size=10, shuffle=False)
+                with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+                    dset_dict = dset.train_test_split(test_size=10, shuffle=False)
                 self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
                 dset_train = dset_dict["train"]
                 dset_test = dset_dict["test"]
@@ -529,7 +564,7 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
-                del dset_test, dset_train, dset_dict  # DatasetDict
+                del dset_test, dset_train, dset_dict
 
     def test_shard(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -539,6 +574,7 @@ class BaseDatasetTest(TestCase):
                 # Shard
                 tmp_file_1 = os.path.join(tmp_dir, "test_1.arrow")
                 fingerprint = dset._fingerprint
+                # TODO: with assert_arrow_memory_doesnt_increase():  # for dset_sharded
                 with dset.shard(num_shards=8, index=1, indices_cache_file_name=tmp_file_1) as dset_sharded:
                     self.assertEqual(2, len(dset_sharded))
                     self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
@@ -584,6 +620,7 @@ class BaseDatasetTest(TestCase):
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
                     dset.set_format("numpy")
+                    # TODO: with assert_arrow_memory_doesnt_increase():  # for dset
                     with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
                         self.assertEqual(len(dset), 10)
                         self.assertEqual(dset._indices, None)
@@ -1167,7 +1204,8 @@ class TestBaseDataset:
     params = {"in_memory": [False, True]}
 
     def test_dummy_dataset(self, in_memory, create_dummy_dataset):
-        dset = create_dummy_dataset(in_memory)
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            dset = create_dummy_dataset(in_memory)
         assert dset.features == Features({"filename": Value("string")})
         assert dset[0]["filename"] == "my_name-train_0"
         assert dset["filename"][0] == "my_name-train_0"
@@ -1210,9 +1248,10 @@ class TestBaseDataset:
             m.chdir(tmp_dir)
             dset = create_dummy_dataset(in_memory).select(range(10))
             dataset_path = "my_dataset_0"  # rel path
-            dset.save_to_disk(dataset_path)
-
-            dset = Dataset.load_from_disk(dataset_path)
+            with assert_arrow_memory_doesnt_increase():
+                dset.save_to_disk(dataset_path)
+            with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+                dset = Dataset.load_from_disk(dataset_path)
             assert len(dset) == 10
             assert dset.features == Features({"filename": Value("string")})
             assert dset[0]["filename"] == "my_name-train_0"
@@ -1382,7 +1421,8 @@ class TestBaseDataset:
         features["col_1"] = Value("float64")
         features = Features({k: features[k] for k in list(features)[::-1]})
         fingerprint = dset._fingerprint
-        dset.cast_(features)
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            dset.cast_(features)
         assert dset.num_columns == 3
         assert dset.features["col_1"] == Value("float64")
         assert isinstance(dset[0]["col_1"], float)
@@ -1394,7 +1434,8 @@ class TestBaseDataset:
         features["col_1"] = Value("float64")
         features = Features({k: features[k] for k in list(features)[::-1]})
         fingerprint = dset._fingerprint
-        casted_dset = dset.cast(features)
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            casted_dset = dset.cast(features)
         assert casted_dset.num_columns == 3
         assert casted_dset.features["col_1"] == Value("float64")
         assert isinstance(casted_dset[0]["col_1"], float)
@@ -1404,7 +1445,8 @@ class TestBaseDataset:
     def test_remove_columns_in_place(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
         fingerprint = dset._fingerprint
-        dset.remove_columns_(column_names="col_1")
+        with assert_arrow_memory_doesnt_increase():
+            dset.remove_columns_(column_names="col_1")
         assert dset.num_columns == 2
         assert list(dset.column_names) == ["col_2", "col_3"]
 
@@ -1417,7 +1459,8 @@ class TestBaseDataset:
         # TODO: no need to mock remove_columns?!
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
         fingerprint = dset._fingerprint
-        new_dset = dset.remove_columns(column_names="col_1")
+        with assert_arrow_memory_doesnt_increase():
+            new_dset = dset.remove_columns(column_names="col_1")
         assert new_dset.num_columns == 2
         assert list(new_dset.column_names) == ["col_2", "col_3"]
         assert new_dset._fingerprint != fingerprint
@@ -1430,7 +1473,8 @@ class TestBaseDataset:
     def test_rename_column_in_place(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
         fingerprint = dset._fingerprint
-        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+        with assert_arrow_memory_doesnt_increase():
+            dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
         assert dset.num_columns == 3
         assert list(dset.column_names) == ["new_name", "col_2", "col_3"]
         assert dset._fingerprint != fingerprint
@@ -1438,7 +1482,8 @@ class TestBaseDataset:
     def test_rename_column(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
         fingerprint = dset._fingerprint
-        new_dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
+        with assert_arrow_memory_doesnt_increase():
+            new_dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
         assert new_dset.num_columns == 3
         assert list(new_dset.column_names) == ["new_name", "col_2", "col_3"]
         assert list(dset.column_names) == ["col_1", "col_2", "col_3"]
@@ -1455,7 +1500,8 @@ class TestBaseDataset:
         )
         dset1, dset2, dset3 = map_to(in_memory, dset1, dset2, dset3)
 
-        dset_concat = datasets.concatenate_datasets([dset1, dset2, dset3])
+        with assert_arrow_memory_doesnt_increase():
+            dset_concat = datasets.concatenate_datasets([dset1, dset2, dset3])
         assert (len(dset1), len(dset2), len(dset3)) == (3, 3, 2)
         assert len(dset_concat) == len(dset1) + len(dset2) + len(dset3)
         assert dset_concat["id"] == [0, 1, 2, 3, 4, 5, 6, 7]
@@ -1492,7 +1538,7 @@ class TestBaseDataset:
         )
         dset1, dset2, dset3 = map_to(in_memory, dset1, dset2, dset3)
         dset1, dset2, dset3 = dset1.select([0, 1, 2]), dset2.select([0, 1, 2]), dset3
-
+        # TODO(QL): make sure concatenation with indices doesn't use RAM
         dset_concat = datasets.concatenate_datasets([dset1, dset2, dset3])
         assert (len(dset1), len(dset2), len(dset3)) == (3, 3, 2)
         assert len(dset_concat) == len(dset1) + len(dset2) + len(dset3)
@@ -1520,7 +1566,7 @@ class TestBaseDataset:
             dset2.select([0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow")),
             dset3.select([0, 1], indices_cache_file_name=os.path.join(tmp_dir, "i3.arrow")),
         )
-
+        # TODO(QL): make sure concatenation with indices doesn't use RAM
         dset_concat = datasets.concatenate_datasets([dset1, dset2, dset3])
         assert (len(dset1), len(dset2), len(dset3)) == (3, 3, 2)
         assert len(dset_concat) == len(dset1) + len(dset2) + len(dset3)
@@ -1541,7 +1587,8 @@ class TestBaseDataset:
         )
         dset = map_to(in_memory, dset)
         fingerprint = dset._fingerprint
-        dset.flatten_()
+        with assert_arrow_memory_doesnt_increase():
+            dset.flatten_()
         assert dset.column_names == ["a.b.c", "foo"]
         assert list(dset.features.keys()) == ["a.b.c", "foo"]
         assert dset.features == Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
@@ -1555,7 +1602,8 @@ class TestBaseDataset:
 
         assert dset.features == Features({"filename": Value("string")})
         fingerprint = dset._fingerprint
-        dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"].split("_")[-1])})
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"].split("_")[-1])})
         assert len(dset_test) == 30
         assert dset.features == Features({"filename": Value("string")})
         assert dset_test.features == Features(
@@ -1671,7 +1719,8 @@ class TestBaseDataset:
             return {"filename_new": [x + "_extension" for x in example["filename"]]}
 
         dset = create_dummy_dataset(in_memory)
-        dset_test_batched = dset.map(map_batched, batched=True)
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            dset_test_batched = dset.map(map_batched, batched=True)
         assert len(dset_test_batched) == 30
         assert dset.features == Features({"filename": Value("string")})
         assert dset_test_batched.features == Features({"filename": Value("string"), "filename_new": Value("string")})
@@ -1780,7 +1829,8 @@ class TestBaseDataset:
 
         dset = create_dummy_dataset(in_memory)
         fingerprint = dset._fingerprint
-        dset_filter_first_five = dset.filter(lambda x, i: i < 5, with_indices=True)
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            dset_filter_first_five = dset.filter(lambda x, i: i < 5, with_indices=True)
         assert len(dset_filter_first_five) == 5
         assert dset.features == Features({"filename": Value("string")})
         assert dset_filter_first_five.features == Features({"filename": Value("string")})
@@ -1912,7 +1962,8 @@ class TestBaseDataset:
         indices = list(range(0, len(dset), 2))
         tmp_file = os.path.join(tmp_dir, "test-1.arrow")
         fingerprint = dset._fingerprint
-        dset_select_even = dset.select(indices, indices_cache_file_name=tmp_file)
+        with assert_arrow_memory_doesnt_increase():
+            dset_select_even = dset.select(indices, indices_cache_file_name=tmp_file)
         assert len(dset_select_even) == 15
         for row in dset_select_even:
             assert int(row["filename"][-1]) % 2 == 0
@@ -1962,7 +2013,8 @@ class TestBaseDataset:
         dset = create_dummy_dataset(in_memory)
         tmp_file = os.path.join(tmp_dir, "test.arrow")
         fingerprint = dset._fingerprint
-        dset_shuffled = dset.shuffle(seed=1234, indices_cache_file_name=tmp_file)
+        with assert_arrow_memory_doesnt_increase():
+            dset_shuffled = dset.shuffle(seed=1234, indices_cache_file_name=tmp_file)
         assert len(dset_shuffled) == 30
         assert dset_shuffled[0]["filename"] == "my_name-train_28"
         assert dset_shuffled[2]["filename"] == "my_name-train_10"
