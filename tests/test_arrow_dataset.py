@@ -243,76 +243,6 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.set_caching_enabled(True)
 
-    def test_keep_features_after_transform_specified(self, in_memory):
-        features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
-        )
-
-        def invert_labels(x):
-            return {"labels": [(1 - label) for label in x["labels"]]}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(
-                {"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features
-            ) as dset:
-                with self._to(in_memory, tmp_dir, dset) as dset:
-                    with dset.map(invert_labels, features=features) as inverted_dset:
-                        self.assertEqual(inverted_dset.features.type, features.type)
-                        self.assertDictEqual(inverted_dset.features, features)
-
-    def test_keep_features_after_transform_unspecified(self, in_memory):
-        features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
-        )
-
-        def invert_labels(x):
-            return {"labels": [(1 - label) for label in x["labels"]]}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(
-                {"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features
-            ) as dset:
-                with self._to(in_memory, tmp_dir, dset) as dset:
-                    with dset.map(invert_labels) as inverted_dset:
-                        self.assertEqual(inverted_dset.features.type, features.type)
-                        self.assertDictEqual(inverted_dset.features, features)
-
-    def test_keep_features_after_transform_to_file(self, in_memory):
-        features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
-        )
-
-        def invert_labels(x):
-            return {"labels": [(1 - label) for label in x["labels"]]}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(
-                {"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features
-            ) as dset:
-                with self._to(in_memory, tmp_dir, dset) as dset:
-                    tmp_file = os.path.join(tmp_dir, "test.arrow")
-                    dset.map(invert_labels, cache_file_name=tmp_file)
-                    with Dataset.from_file(tmp_file) as inverted_dset:
-                        self.assertEqual(inverted_dset.features.type, features.type)
-                        self.assertDictEqual(inverted_dset.features, features)
-
-    def test_keep_features_after_transform_to_memory(self, in_memory):
-        features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
-        )
-
-        def invert_labels(x):
-            return {"labels": [(1 - label) for label in x["labels"]]}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(
-                {"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features
-            ) as dset:
-                with self._to(in_memory, tmp_dir, dset) as dset:
-                    with dset.map(invert_labels, keep_in_memory=True) as inverted_dset:
-                        self.assertEqual(inverted_dset.features.type, features.type)
-                        self.assertDictEqual(inverted_dset.features, features)
-
     def test_keep_features_after_loading_from_cache(self, in_memory):
         features = Features(
             {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
@@ -1995,6 +1925,64 @@ class TestBaseDataset:
         # only one cache file since the there is only 10 examples from the 1 processed shard
         assert len(dset_filter_first_ten.cache_files) == 0 if in_memory else 1
         assert dset_filter_first_ten._fingerprint != fingerprint
+
+    def test_keep_features_after_transform_specified(self, in_memory, map_to):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+        dset = map_to(in_memory, dset)
+        inverted_dset = dset.map(invert_labels, features=features)
+        assert inverted_dset.features.type == features.type
+        assert inverted_dset.features == features
+
+    def test_keep_features_after_transform_unspecified(self, in_memory, map_to):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+        dset = map_to(in_memory, dset)
+        inverted_dset = dset.map(invert_labels)
+        assert inverted_dset.features.type == features.type
+        assert inverted_dset.features == features
+
+    def test_keep_features_after_transform_to_file(self, in_memory, map_to, tmp_dir):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+        dset = map_to(in_memory, dset)
+        tmp_file = os.path.join(tmp_dir, "test.arrow")
+        dset.map(invert_labels, cache_file_name=tmp_file)
+        inverted_dset = Dataset.from_file(tmp_file)
+        assert inverted_dset.features.type == features.type
+        assert inverted_dset.features == features
+
+    def test_keep_features_after_transform_to_memory(self, in_memory, map_to):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+        dset = map_to(in_memory, dset)
+        inverted_dset = dset.map(invert_labels, keep_in_memory=True)
+        assert inverted_dset.features.type == features.type
+        assert inverted_dset.features == features
 
     def test_with_transform(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
