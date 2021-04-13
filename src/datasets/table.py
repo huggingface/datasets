@@ -54,6 +54,16 @@ def _write_table_to_file(table: pa.Table, filename: str) -> int:
         return sum(batch.nbytes for batch in batches)
 
 
+def _deepcopy(x, memo: dict):
+    """deepcopy a regular class instance"""
+    cls = x.__class__
+    result = cls.__new__(cls)
+    memo[id(x)] = result
+    for k, v in x.__dict__.items():
+        setattr(result, k, copy.deepcopy(v, memo))
+    return result
+
+
 def _interpolation_search(arr: List[int], x: int) -> int:
     """
     Return the position i of a sorted array so that arr[i] <= x < arr[i+1]
@@ -125,6 +135,13 @@ class Table(IndexedTableMixin):
     def __init__(self, table: pa.Table):
         super().__init__(table)
         self.table = table
+
+    def __deepcopy__(self, memo: dict):
+        # arrow tables are immutable, so there's no need to copy self.table
+        # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
+        # by adding it to the memo, self.table won't be copied
+        memo[id(self.table)] = self.table
+        return _deepcopy(self, memo)
 
     def __getstate__(self):
         state = self.__dict__.copy()
