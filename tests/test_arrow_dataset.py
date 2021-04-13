@@ -1214,6 +1214,21 @@ def mock_dataset_cast(tmp_dir):
 
 
 @pytest.fixture
+def mock_dataset_filter(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_filter = Dataset.filter
+
+    def _mock_dataset_filter(*args, **kwargs):
+        dset = unmocked_dataset_filter(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_filter
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
 def mock_dataset_flatten(tmp_dir):
     created_datasets = []
     unmocked_dataset_flatten = Dataset.flatten
@@ -1324,6 +1339,7 @@ def mock_dataset(
     monkeypatch,
     mock_concatenate_datasets,
     mock_dataset_cast,
+    mock_dataset_filter,
     mock_dataset_flatten,
     mock_dataset_load_from_disk,
     mock_dataset_map,
@@ -1334,6 +1350,7 @@ def mock_dataset(
 ):
     monkeypatch.setattr(datasets, "concatenate_datasets", mock_concatenate_datasets)
     monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
+    monkeypatch.setattr(Dataset, "filter", mock_dataset_filter)
     monkeypatch.setattr(Dataset, "flatten", mock_dataset_flatten)
     monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
     monkeypatch.setattr(Dataset, "map", mock_dataset_map)
