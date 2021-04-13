@@ -1998,8 +1998,6 @@ class TestBaseDataset:
         assert dset._fingerprint != dset2._fingerprint
 
 
-
-
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
