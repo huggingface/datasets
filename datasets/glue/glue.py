@@ -588,6 +588,9 @@ class Glue(datasets.GeneratorBasedBuilder):
     def _generate_example_mrpc_files(self, mrpc_files, split):
         if split == "test":
             with open(mrpc_files["test"], encoding="utf8") as f:
+                # The first 3 bytes are the utf-8 BOM \xef\xbb\xbf, which messes with
+                # the Quality key.
+                f.seek(3)
                 reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for n, row in enumerate(reader):
                     yield {
