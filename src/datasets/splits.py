@@ -351,7 +351,7 @@ class NamedSplit(SplitBase):
         return self._name
 
     def __repr__(self):
-        return "NamedSplit('{name}')".format(name=self._name)
+        return f"NamedSplit({self._name!r})"
 
     def __eq__(self, other):
         """Equality: datasets.Split.TRAIN == 'train'."""
@@ -378,7 +378,7 @@ class NamedSplitAll(NamedSplit):
         super(NamedSplitAll, self).__init__("all")
 
     def __repr__(self):
-        return f"NamedSplitAll({self._name}"
+        return f"NamedSplitAll({self._name!r})"
 
     def get_read_instruction(self, split_dict):
         # Merge all dataset split together

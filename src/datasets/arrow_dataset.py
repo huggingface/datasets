@@ -40,7 +40,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
-from .arrow_reader import ArrowReader, ReadInstruction
+from .arrow_reader import _SUB_SPEC_RE, ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -241,9 +241,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         assert self.features is not None, "Features can't be None in a Dataset object"
         assert self._fingerprint is not None, "Fingerprint can't be None in a Dataset object"
-        assert self._split is None or isinstance(
-            self._split, (NamedSplit, ReadInstruction)
-        ), "Split can either be None or an instance of NamedSplit or ReadInstruction"
         if self.info.features.type != inferred_features.type:
             raise ValueError(
                 "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
@@ -539,10 +536,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         }
 
         split = self.__dict__["_split"]
-        if split is None:
-            state["_split"] = split
-        else:
-            state["_split"] = {"type": split.__class__.__name__, "spec": str(split)}
+        state["_split"] = str(split) if split is not None else split
 
         state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
         state["_indices_files"] = (
@@ -623,13 +617,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         split = state["_split"]
         if split is not None:
-            split_type = split["type"]
-            if split_type == "NamedSplit":
-                split = NamedSplit(split["spec"])
-            elif split_type == "ReadInstruction":
-                split = ReadInstruction.from_spec(split["spec"])
-            else:
-                raise TypeError(f"{split_type} is not supported as a split type.")
+            split = ReadInstruction.from_spec(split) if _SUB_SPEC_RE.match(split) else NamedSplit(split)
 
         return Dataset(
             arrow_table=arrow_table,
