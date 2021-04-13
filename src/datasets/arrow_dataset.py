@@ -824,6 +824,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to cast.
+                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to cast.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -877,6 +878,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to cast.
+                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to cast.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
