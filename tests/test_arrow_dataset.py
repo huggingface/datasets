@@ -243,49 +243,6 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.set_caching_enabled(True)
 
-    def test_map_remove_colums(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                with dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True) as dset:
-                    self.assertTrue("id" in dset[0])
-                    self.assertDictEqual(
-                        dset.features,
-                        Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
-                    )
-
-                    with dset.map(lambda x: x, remove_columns=["id"]) as dset:
-                        self.assertTrue("id" not in dset[0])
-                        self.assertDictEqual(
-                            dset.features, Features({"filename": Value("string"), "name": Value("string")})
-                        )
-
-    def test_map_stateful_callable(self, in_memory):
-        # be sure that the state of the map callable is unaffected
-        # before processing the dataset examples
-
-        class ExampleCounter:
-            def __init__(self, batched=False):
-                self.batched = batched
-                # state
-                self.cnt = 0
-
-            def __call__(self, example):
-                if self.batched:
-                    self.cnt += len(example)
-                else:
-                    self.cnt += 1
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-
-                ex_cnt = ExampleCounter()
-                dset.map(ex_cnt)
-                self.assertEqual(ex_cnt.cnt, len(dset))
-
-                ex_cnt = ExampleCounter(batched=True)
-                dset.map(ex_cnt)
-                self.assertEqual(ex_cnt.cnt, len(dset))
-
     def test_filter(self, in_memory):
         # keep only first five examples
 
@@ -1971,6 +1928,42 @@ class TestBaseDataset:
         assert len(dset_test) == 30
         assert dset_test.features == Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
         assert dset_test[0]["tensor"] == [1, 2, 3]
+
+    def test_map_remove_columns(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory)
+        dset = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
+        assert "id" in dset[0]
+        assert dset.features == Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+
+        dset = dset.map(lambda x: x, remove_columns=["id"])
+        assert "id" not in dset[0]
+        assert dset.features == Features({"filename": Value("string"), "name": Value("string")})
+
+    def test_map_stateful_callable(self, in_memory, create_dummy_dataset):
+        # be sure that the state of the map callable is unaffected
+        # before processing the dataset examples
+
+        class ExampleCounter:
+            def __init__(self, batched=False):
+                self.batched = batched
+                # state
+                self.cnt = 0
+
+            def __call__(self, example):
+                if self.batched:
+                    self.cnt += len(example)
+                else:
+                    self.cnt += 1
+
+        dset = create_dummy_dataset(in_memory)
+
+        ex_cnt = ExampleCounter()
+        dset.map(ex_cnt)
+        assert ex_cnt.cnt == len(dset)
+
+        ex_cnt = ExampleCounter(batched=True)
+        dset.map(ex_cnt)
+        assert ex_cnt.cnt == len(dset)
 
     def test_with_transform(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
