@@ -4,6 +4,10 @@ annotations_creators:
 language_creators:
 - found
 languages:
+  SLR35:
+  - jv
+  SLR36:
+  - su
   SLR41:
   - jv
   SLR42:
@@ -74,6 +78,35 @@ task_ids:
 
 OpenSLR is a site devoted to hosting speech and language resources, such as training corpora for speech recognition, 
 and software related to speech recognition. Currently, following resources are available: 
+
+#### SLR35: Large Javanese ASR training data set.
+This data set contains transcribed audio data for Javanese (~185K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+This dataset was collected by Google in collaboration with Reykjavik University and Universitas Gadjah Mada 
+in Indonesia.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/35/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017 Google, Inc.
+
+#### SLR36: Large Sundanese ASR training data set.
+This data set contains transcribed audio data for Sundanese (~220K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+This dataset was collected by Google in Indonesia.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/36/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017 Google, Inc.
 
 #### SLR41: High quality TTS data for Javanese.
 This data set contains high-quality transcribed audio data for Javanese. The data set consists of wave files, 
@@ -297,6 +330,20 @@ The speech material has only train dataset.
 
 ### Citation Information
 
+#### SLR35, SLR36
+```
+@inproceedings{kjartansson-etal-sltu2018,
+    title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
+    author = {Oddur Kjartansson and Supheakmungkol Sarin and Knot Pipatsrisawat and Martin Jansche and Linne Ha},
+    booktitle = {Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)},
+    year  = {2018},
+    address = {Gurugram, India},
+    month = aug,
+    pages = {52--55},
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-11},
+}
+```
+
 #### SLR41, SLR42, SLR43, SLR44 
 ```
 @inproceedings{kjartansson-etal-tts-sltu2018,
@@ -307,7 +354,7 @@ The speech material has only train dataset.
     address = {Gurugram, India},
     month = aug,
     pages = {66--70},
-    URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-14}
 }
 ```
 
