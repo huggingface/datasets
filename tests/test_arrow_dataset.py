@@ -1073,18 +1073,6 @@ class BaseDatasetTest(TestCase):
                     # self.assertNotEqual(dset.format, dset2.format)
                     # self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
 
-    def test_with_transform(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                transform = lambda x: {"foo": x["col_1"]}  # noqa: E731
-                with dset.with_transform(transform, columns=["col_1"]) as dset2:
-                    dset.set_transform(transform, columns=["col_1"])
-                    self.assertDictEqual(dset.format, dset2.format)
-                    self.assertEqual(dset._fingerprint, dset2._fingerprint)
-                    dset.reset_format()
-                    self.assertNotEqual(dset.format, dset2.format)
-                    self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
-
 
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
@@ -1983,6 +1971,19 @@ class TestBaseDataset:
         assert len(dset_test) == 30
         assert dset_test.features == Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
         assert dset_test[0]["tensor"] == [1, 2, 3]
+
+    def test_with_transform(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory, multiple_columns=True)
+        transform = lambda x: {"foo": x["col_1"]}  # noqa: E731
+        dset2 = dset.with_transform(transform, columns=["col_1"])
+        dset.set_transform(transform, columns=["col_1"])
+        assert dset.format == dset2.format
+        assert dset._fingerprint == dset2._fingerprint
+        dset.reset_format()
+        assert dset.format != dset2.format
+        assert dset._fingerprint != dset2._fingerprint
+
+
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
