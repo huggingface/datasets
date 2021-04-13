@@ -243,54 +243,6 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.set_caching_enabled(True)
 
-    @require_torch
-    def test_map_torch(self, in_memory):
-        import torch
-
-        def func(example):
-            return {"tensor": torch.tensor([1.0, 2, 3])}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                with dset.map(func) as dset_test:
-                    self.assertEqual(len(dset_test), 30)
-                    self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
-                    )
-                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
-
-    @require_tf
-    def test_map_tf(self, in_memory):
-        import tensorflow as tf
-
-        def func(example):
-            return {"tensor": tf.constant([1.0, 2, 3])}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                with dset.map(func) as dset_test:
-                    self.assertEqual(len(dset_test), 30)
-                    self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
-                    )
-                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
-
-    def test_map_numpy(self, in_memory):
-        def func(example):
-            return {"tensor": np.array([1.0, 2, 3])}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                with dset.map(func) as dset_test:
-                    self.assertEqual(len(dset_test), 30)
-                    self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
-                    )
-                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
-
     def test_map_remove_colums(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1978,6 +1930,42 @@ class TestBaseDataset:
         dset = dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}})
         dset = dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}})
         assert dset[0] == {"field": "a", "otherfield": {"append_x": "ax"}}
+
+    @require_torch
+    def test_map_torch(self, in_memory, create_dummy_dataset):
+        import torch
+
+        def func(example):
+            return {"tensor": torch.tensor([1.0, 2, 3])}
+
+        dset = create_dummy_dataset(in_memory)
+        dset_test = dset.map(func)
+        assert len(dset_test) == 30
+        assert dset_test.features == Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+        assert dset_test[0]["tensor"] == [1, 2, 3]
+
+    @require_tf
+    def test_map_tf(self, in_memory, create_dummy_dataset):
+        import tensorflow as tf
+
+        def func(example):
+            return {"tensor": tf.constant([1.0, 2, 3])}
+
+        dset = create_dummy_dataset(in_memory)
+        dset_test = dset.map(func)
+        assert len(dset_test) == 30
+        assert dset_test.features == Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+        assert dset_test[0]["tensor"] == [1, 2, 3]
+
+    def test_map_numpy(self, in_memory, create_dummy_dataset):
+        def func(example):
+            return {"tensor": np.array([1.0, 2, 3])}
+
+        dset = create_dummy_dataset(in_memory)
+        dset_test = dset.map(func)
+        assert len(dset_test) == 30
+        assert dset_test.features == Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+        assert dset_test[0]["tensor"] == [1, 2, 3]
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
