@@ -243,67 +243,6 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.set_caching_enabled(True)
 
-    def test_select(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                # select every two example
-                indices = list(range(0, len(dset), 2))
-                tmp_file = os.path.join(tmp_dir, "test.arrow")
-                fingerprint = dset._fingerprint
-                with dset.select(indices, indices_cache_file_name=tmp_file) as dset_select_even:
-                    self.assertEqual(len(dset_select_even), 15)
-                    for row in dset_select_even:
-                        self.assertEqual(int(row["filename"][-1]) % 2, 0)
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertDictEqual(dset_select_even.features, Features({"filename": Value("string")}))
-                    self.assertNotEqual(dset_select_even._fingerprint, fingerprint)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                bad_indices = list(range(5))
-                bad_indices[3] = "foo"
-                tmp_file = os.path.join(tmp_dir, "test.arrow")
-                self.assertRaises(
-                    Exception,
-                    dset.select,
-                    indices=bad_indices,
-                    indices_cache_file_name=tmp_file,
-                    writer_batch_size=2,
-                )
-                self.assertFalse(os.path.exists(tmp_file))
-                dset.set_format("numpy")
-                with dset.select(
-                    range(5),
-                    indices_cache_file_name=tmp_file,
-                    writer_batch_size=2,
-                ) as dset_select_five:
-                    self.assertTrue(os.path.exists(tmp_file))
-                    self.assertEqual(len(dset_select_five), 5)
-                    self.assertEqual(dset_select_five.format["type"], "numpy")
-                    for i, row in enumerate(dset_select_five):
-                        self.assertEqual(int(row["filename"][-1]), i)
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
-
-    def test_select_then_map(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                with dset.select([0]) as d1:
-                    with d1.map(lambda x: {"id": int(x["filename"].split("_")[-1])}) as d1:
-                        self.assertEqual(d1[0]["id"], 0)
-                with dset.select([1]) as d2:
-                    with d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])}) as d2:
-                        self.assertEqual(d2[0]["id"], 1)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                with dset.select([0], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow")) as d1:
-                    with d1.map(lambda x: {"id": int(x["filename"].split("_")[-1])}) as d1:
-                        self.assertEqual(d1[0]["id"], 0)
-                with dset.select([1], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow")) as d2:
-                    with d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])}) as d2:
-                        self.assertEqual(d2[0]["id"], 1)
-
     def test_pickle_after_many_transforms_on_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1975,6 +1914,58 @@ class TestBaseDataset:
         inverted_dset = dset.map(invert_labels)
         assert inverted_dset.features.type == expected_features.type
         assert inverted_dset.features == expected_features
+
+    def test_select(self, in_memory, create_dummy_dataset, tmp_dir):
+        dset = create_dummy_dataset(in_memory)
+        # select every two example
+        indices = list(range(0, len(dset), 2))
+        tmp_file = os.path.join(tmp_dir, "test-1.arrow")
+        fingerprint = dset._fingerprint
+        dset_select_even = dset.select(indices, indices_cache_file_name=tmp_file)
+        assert len(dset_select_even) == 15
+        for row in dset_select_even:
+            assert int(row["filename"][-1]) % 2 == 0
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_select_even.features == Features({"filename": Value("string")})
+        assert dset_select_even._fingerprint != fingerprint
+
+        dset = create_dummy_dataset(in_memory)
+        bad_indices = list(range(5))
+        bad_indices[3] = "foo"
+        tmp_file = os.path.join(tmp_dir, "test-2.arrow")
+        with pytest.raises(Exception):
+            dset.select(ndices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2)
+        assert not os.path.exists(tmp_file)
+        dset.set_format("numpy")
+        dset_select_five = dset.select(
+            range(5),
+            indices_cache_file_name=tmp_file,
+            writer_batch_size=2,
+        )
+        assert os.path.exists(tmp_file)
+        assert len(dset_select_five) == 5
+        assert dset_select_five.format["type"] == "numpy"
+        for i, row in enumerate(dset_select_five):
+            assert int(row["filename"][-1]) == i
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_select_five.features == Features({"filename": Value("string")})
+
+    def test_select_then_map(self, in_memory, create_dummy_dataset, tmp_dir):
+        dset = create_dummy_dataset(in_memory)
+        d1 = dset.select([0])
+        d2 = dset.select([1])
+        d1 = d1.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
+        d2 = d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
+        assert d1[0]["id"] == 0
+        assert d2[0]["id"] == 1
+
+        dset = create_dummy_dataset(in_memory)
+        d1 = dset.select([0], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow"))
+        d2 = dset.select([1], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow"))
+        d1 = d1.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
+        d2 = d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
+        assert d1[0]["id"] == 0
+        assert d2[0]["id"] == 1
 
     def test_with_transform(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
