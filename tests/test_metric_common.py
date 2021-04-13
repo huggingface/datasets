@@ -123,7 +123,6 @@ def patch_bleurt(module_name):
     tf.flags.DEFINE_string("sv", "", "")  # handle pytest cli flags
 
     class MockedPredictor(Predictor):
-
         def predict(self, input_dict):
             assert len(input_dict["input_ids"]) == 2
             return np.array([1.03, 1.04])
