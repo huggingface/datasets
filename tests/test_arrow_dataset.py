@@ -1208,6 +1208,21 @@ def mock_dataset_flatten(tmp_dir):
 
 
 @pytest.fixture
+def mock_dataset_from_file(tmp_dir):
+    created_datasets = []
+    unmocked_dataset_from_file = Dataset.from_file
+
+    def _mock_dataset_from_file(*args, **kwargs):
+        dset = unmocked_dataset_from_file(*args, **kwargs)
+        created_datasets.append(dset)
+        return dset
+
+    yield _mock_dataset_from_file
+    for dataset in created_datasets:
+        dataset.__del__()
+
+
+@pytest.fixture
 def mock_dataset_load_from_disk(tmp_dir):
     created_datasets = []
     unmocked_dataset_load_from_disk = Dataset.load_from_disk
@@ -1305,6 +1320,7 @@ def mock_dataset(
     mock_dataset_cast,
     mock_dataset_filter,
     mock_dataset_flatten,
+    mock_dataset_from_file,
     mock_dataset_load_from_disk,
     mock_dataset_map,
     mock_dataset_remove_columns,
@@ -1316,6 +1332,7 @@ def mock_dataset(
     monkeypatch.setattr(Dataset, "cast", mock_dataset_cast)
     monkeypatch.setattr(Dataset, "filter", mock_dataset_filter)
     monkeypatch.setattr(Dataset, "flatten", mock_dataset_flatten)
+    monkeypatch.setattr(Dataset, "from_file", mock_dataset_from_file)
     monkeypatch.setattr(Dataset, "load_from_disk", mock_dataset_load_from_disk)
     monkeypatch.setattr(Dataset, "map", mock_dataset_map)
     monkeypatch.setattr(Dataset, "remove_columns", mock_dataset_remove_columns)
