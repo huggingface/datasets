@@ -593,7 +593,7 @@ class Glue(datasets.GeneratorBasedBuilder):
                     yield {
                         "sentence1": row["#1 String"],
                         "sentence2": row["#2 String"],
-                        "label": -1,
+                        "label": int(row["Quality"]),
                         "idx": n,
                     }
         else:
