@@ -243,42 +243,6 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.set_caching_enabled(True)
 
-    def test_filter(self, in_memory):
-        # keep only first five examples
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                fingerprint = dset._fingerprint
-                with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five:
-                    self.assertEqual(len(dset_filter_first_five), 5)
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertDictEqual(dset_filter_first_five.features, Features({"filename": Value("string")}))
-                    self.assertNotEqual(dset_filter_first_five._fingerprint, fingerprint)
-
-        # filter filenames with even id at the end + formatted
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                dset.set_format("numpy")
-                fingerprint = dset._fingerprint
-                with dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0)) as dset_filter_even_num:
-                    self.assertEqual(len(dset_filter_even_num), 15)
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
-                    self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
-                    self.assertEqual(dset_filter_even_num.format["type"], "numpy")
-
-    def test_filter_multiprocessing(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                fingerprint = dset._fingerprint
-                with dset.filter(picklable_filter_function, num_proc=2) as dset_filter_first_ten:
-                    self.assertEqual(len(dset_filter_first_ten), 10)
-                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                    self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
-                    # only one cache file since the there is only 10 examples from the 1 processed shard
-                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 1)
-                    self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
-
     def test_keep_features_after_transform_specified(self, in_memory):
         features = Features(
             {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
@@ -1981,6 +1945,39 @@ class TestBaseDataset:
         ex_cnt = ExampleCounter(batched=True)
         dset.map(ex_cnt)
         assert ex_cnt.cnt == len(dset)
+
+    def test_filter(self, in_memory, create_dummy_dataset):
+        # keep only first five examples
+
+        dset = create_dummy_dataset(in_memory)
+        fingerprint = dset._fingerprint
+        dset_filter_first_five = dset.filter(lambda x, i: i < 5, with_indices=True)
+        assert len(dset_filter_first_five) == 5
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_filter_first_five.features == Features({"filename": Value("string")})
+        assert dset_filter_first_five._fingerprint != fingerprint
+
+        # filter filenames with even id at the end + formatted
+        dset = create_dummy_dataset(in_memory)
+        dset.set_format("numpy")
+        fingerprint = dset._fingerprint
+        dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0))
+        assert len(dset_filter_even_num) == 15
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_filter_even_num.features == Features({"filename": Value("string")})
+        assert dset_filter_even_num._fingerprint != fingerprint
+        assert dset_filter_even_num.format["type"] == "numpy"
+
+    def test_filter_multiprocessing(self, in_memory, create_dummy_dataset):
+        dset = create_dummy_dataset(in_memory)
+        fingerprint = dset._fingerprint
+        dset_filter_first_ten = dset.filter(picklable_filter_function, num_proc=2)
+        assert len(dset_filter_first_ten) == 10
+        assert dset.features == Features({"filename": Value("string")})
+        assert dset_filter_first_ten.features == Features({"filename": Value("string")})
+        # only one cache file since the there is only 10 examples from the 1 processed shard
+        assert len(dset_filter_first_ten.cache_files) == 0 if in_memory else 1
+        assert dset_filter_first_ten._fingerprint != fingerprint
 
     def test_with_transform(self, in_memory, create_dummy_dataset):
         dset = create_dummy_dataset(in_memory, multiple_columns=True)
