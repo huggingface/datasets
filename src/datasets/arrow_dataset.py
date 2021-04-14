@@ -565,7 +565,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
-            cache_files_paths = [Path(cache_filename) for cache_filename in self.cache_files]
+            cache_files_paths = [Path(cache_filename["filename"]) for cache_filename in self.cache_files]
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
                 raise PermissionError(
@@ -689,7 +689,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_files = list_table_cache_files(self._data)
         if self._indices is not None:
             cache_files += list_table_cache_files(self._indices)
-        return cache_files
+        return [{"filename": cache_filename} for cache_filename in cache_files]
 
     @property
     def num_columns(self) -> int:
@@ -1310,7 +1310,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             :obj:`int`: Number of removed files.
         """
-        current_cache_files = [os.path.abspath(cache_file) for cache_file in self.cache_files]
+        current_cache_files = [os.path.abspath(cache_file["filename"]) for cache_file in self.cache_files]
         if not current_cache_files:
             return 0
         cache_directory = os.path.dirname(current_cache_files[0])
@@ -1332,7 +1332,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def _get_cache_file_path(self, fingerprint):
         if is_caching_enabled() and self.cache_files:
             cache_file_name = "cache-" + fingerprint + ".arrow"
-            cache_directory = os.path.dirname(self.cache_files[0])
+            cache_directory = os.path.dirname(self.cache_files[0]["filename"])
         else:
             cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
             cache_directory = get_temporary_cache_files_directory()

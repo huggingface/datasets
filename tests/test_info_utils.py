@@ -8,7 +8,7 @@ from datasets.utils.info_utils import is_small_dataset
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 100 * 2 ** 20, 900 * 2 ** 20])
 def test_is_small_dataset(dataset_size, max_in_memory_dataset_size, monkeypatch):
     if max_in_memory_dataset_size == "default":
-        # default = 500 * 2 ** 20
+        # default = 250 * 2 ** 20
         max_in_memory_dataset_size = datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
     else:
         monkeypatch.setattr(datasets.config, "MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", max_in_memory_dataset_size)
