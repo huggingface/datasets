@@ -16,7 +16,6 @@
 # Lint as: python3
 """"The Finnish News Corpus for Named Entity Recognition dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

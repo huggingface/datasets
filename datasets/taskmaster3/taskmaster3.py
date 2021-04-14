@@ -14,7 +14,6 @@
 # limitations under the License.
 """Taskmaster-3: A goal oriented conversations dataset for movie ticketing domain """
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

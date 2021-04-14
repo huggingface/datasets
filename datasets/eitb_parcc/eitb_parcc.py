@@ -14,7 +14,6 @@
 # limitations under the License.
 """EiTB-ParCC: Parallel Corpus of Comparable News"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

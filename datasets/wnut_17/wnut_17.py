@@ -16,7 +16,6 @@
 # Lint as: python3
 """The WNUT 17 Emerging Entities Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

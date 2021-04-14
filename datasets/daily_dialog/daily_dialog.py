@@ -14,7 +14,6 @@
 # limitations under the License.
 """DailyDialog: A Manually Labelled Multi-turn Dialogue Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 from zipfile import ZipFile

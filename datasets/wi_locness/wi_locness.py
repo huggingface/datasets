@@ -24,7 +24,6 @@ University of Louvain. Since native English students also sometimes make mistake
 the W&I annotators to annotate a subsection of LOCNESS so researchers can test the effectiveness
 of their systems on the full range of English levels and abilities."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 from pathlib import Path

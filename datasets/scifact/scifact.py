@@ -1,7 +1,6 @@
 """Scientific fact-checking dataset. Verifies claims based on citation sentences
 using evidence from the cited abstracts."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

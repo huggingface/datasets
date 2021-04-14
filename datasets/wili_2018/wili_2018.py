@@ -15,7 +15,6 @@
 
 """WiLI-2018, the Wikipedia language identification benchmark dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

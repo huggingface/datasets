@@ -14,7 +14,6 @@
 # limitations under the License.
 """Information Seeking in the Spirit of Learning: a Dataset for Conversational Curiosity"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

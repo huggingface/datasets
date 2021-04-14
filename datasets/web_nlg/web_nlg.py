@@ -14,7 +14,6 @@
 # limitations under the License.
 """The WebNLG corpus"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import xml.etree.cElementTree as ET

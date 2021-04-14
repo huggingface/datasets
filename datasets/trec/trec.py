@@ -14,7 +14,6 @@
 # limitations under the License.
 """ The Text REtrieval Conference (TREC) Question Classification dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

@@ -14,7 +14,6 @@
 # limitations under the License.
 """These are different multilingual translations and the English original of the STSbenchmark dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

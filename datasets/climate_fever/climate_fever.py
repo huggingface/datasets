@@ -14,7 +14,6 @@
 # limitations under the License.
 """A dataset adopting the FEVER methodology that consists of 1,535 real-world claims regarding climate-change collected on the internet."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

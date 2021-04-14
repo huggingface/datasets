@@ -14,7 +14,6 @@
 # limitations under the License.
 """MultiReQA: A Cross-Domain Evaluation for Retrieval Question Answering Models."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

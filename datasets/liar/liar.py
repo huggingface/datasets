@@ -14,7 +14,6 @@
 # limitations under the License.
 """LIAR is a dataset for fake news detection with annotated claims."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

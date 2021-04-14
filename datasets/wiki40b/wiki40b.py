@@ -15,7 +15,6 @@
 
 """Wiki40B: A clean Wikipedia dataset for 40+ languages."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 
