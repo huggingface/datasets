@@ -14,7 +14,6 @@
 # limitations under the License.
 """Brand-Product Relation Extraction Corpora"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

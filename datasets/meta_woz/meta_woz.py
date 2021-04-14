@@ -14,7 +14,6 @@
 # limitations under the License.
 """MetaLWOz: A Dataset of Multi-Domain Dialogues for the Fast Adaptation of Conversation Models"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

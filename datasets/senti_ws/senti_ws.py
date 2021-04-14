@@ -14,7 +14,6 @@
 # limitations under the License.
 """SentiWS: German-language resource for sentiment analysis, pos-tagging"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

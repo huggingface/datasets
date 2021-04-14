@@ -15,7 +15,6 @@
 """ROPES dataset.
 Code is heavily inspired from https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

@@ -15,7 +15,6 @@
 
 # Lint as: python3
 """The CC-News dataset is based on Common Crawl News Dataset by Sebastian Nagel"""
-from __future__ import absolute_import, division, print_function
 
 import glob
 import json

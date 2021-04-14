@@ -14,7 +14,6 @@
 # limitations under the License.
 """RO-STS: The Romanian Semantic Textual Similarity Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

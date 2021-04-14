@@ -442,7 +442,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
     return _AbsoluteInstruction(split, from_, to)
 
 
-class ReadInstruction(object):
+class ReadInstruction:
     """Reading instruction for a dataset.
 
     Examples of usage:

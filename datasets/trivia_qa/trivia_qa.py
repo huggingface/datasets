@@ -16,13 +16,10 @@
 # Lint as: python3
 """TriviaQA: A Reading Comprehension Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import json
 import os
-
-import six
 
 import datasets
 
@@ -260,7 +257,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                 return new_items
 
             def _strip_if_str(v):
-                return v.strip() if isinstance(v, six.string_types) else v
+                return v.strip() if isinstance(v, str) else v
 
             def _transpose_and_strip_dicts(dicts, field_names):
                 return {

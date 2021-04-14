@@ -15,7 +15,6 @@
 
 # Lint as: python3
 """ELI5: Long Form Question Answering dataset"""
-from __future__ import absolute_import, division, print_function
 
 import bz2
 import io

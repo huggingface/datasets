@@ -61,71 +61,100 @@ class TypedSequenceTest(TestCase):
                 _ = pa.array(TypedSequence([["x" * 1024]] * ((2 << 20) + 1)))  # ListArray with a bit more than 2GB
 
 
-class ArrowWriterTest(TestCase):
-    def _check_output(self, output):
-        mmap = pa.BufferReader(output) if isinstance(output, pa.Buffer) else pa.memory_map(output)
-        f = pa.ipc.open_stream(mmap)
-        pa_table: pa.Table = f.read_all()
-        self.assertDictEqual(pa_table.to_pydict(), {"col_1": ["foo", "bar"], "col_2": [1, 2]})
-        del pa_table
+def _check_output(output, expected_num_chunks: int):
+    stream = pa.BufferReader(output) if isinstance(output, pa.Buffer) else pa.memory_map(output)
+    f = pa.ipc.open_stream(stream)
+    pa_table: pa.Table = f.read_all()
+    assert len(pa_table.to_batches()) == expected_num_chunks
+    assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
+    del pa_table
 
-    def test_write_no_schema(self):
-        output = pa.BufferOutputStream()
-        with ArrowWriter(stream=output) as writer:
-            writer.write({"col_1": "foo", "col_2": 1})
-            writer.write({"col_1": "bar", "col_2": 2})
-            num_examples, num_bytes = writer.finalize()
-        self.assertEqual(num_examples, 2)
-        self.assertGreater(num_bytes, 0)
+
+@pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
+@pytest.mark.parametrize(
+    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+)
+def test_write(fields, writer_batch_size):
+    output = pa.BufferOutputStream()
+    schema = pa.schema(fields) if fields else None
+    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    if not fields:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
-        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
-        self._check_output(output.getvalue())
+    assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
+    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
 
-    def test_write_schema(self):
+
+@pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
+@pytest.mark.parametrize(
+    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+)
+def test_write_batch(fields, writer_batch_size):
+    output = pa.BufferOutputStream()
+    schema = pa.schema(fields) if fields else None
+    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+        writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    if not fields:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
-        output = pa.BufferOutputStream()
-        with ArrowWriter(stream=output, schema=pa.schema(fields)) as writer:
-            writer.write({"col_1": "foo", "col_2": 1})
-            writer.write({"col_1": "bar", "col_2": 2})
-            num_examples, num_bytes = writer.finalize()
-        self.assertEqual(num_examples, 2)
-        self.assertGreater(num_bytes, 0)
-        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
-        self._check_output(output.getvalue())
+    assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
+    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
 
-    def test_write_batch_no_schema(self):
-        output = pa.BufferOutputStream()
-        with ArrowWriter(stream=output) as writer:
+
+@pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
+@pytest.mark.parametrize(
+    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+)
+def test_write_table(fields, writer_batch_size):
+    output = pa.BufferOutputStream()
+    schema = pa.schema(fields) if fields else None
+    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+        writer.write_table(pa.Table.from_pydict({"col_1": ["foo", "bar"], "col_2": [1, 2]}))
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    if not fields:
+        fields = {"col_1": pa.string(), "col_2": pa.int64()}
+    assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
+    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+
+
+@pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
+@pytest.mark.parametrize(
+    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+)
+def test_write_row(fields, writer_batch_size):
+    output = pa.BufferOutputStream()
+    schema = pa.schema(fields) if fields else None
+    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+        writer.write_row(pa.Table.from_pydict({"col_1": ["foo"], "col_2": [1]}))
+        writer.write_row(pa.Table.from_pydict({"col_1": ["bar"], "col_2": [2]}))
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    if not fields:
+        fields = {"col_1": pa.string(), "col_2": pa.int64()}
+    assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
+    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+
+
+def test_write_file():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        fields = {"col_1": pa.string(), "col_2": pa.int64()}
+        output = os.path.join(tmp_dir, "test.arrow")
+        with ArrowWriter(path=output, schema=pa.schema(fields)) as writer:
             writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
             num_examples, num_bytes = writer.finalize()
-        self.assertEqual(num_examples, 2)
-        self.assertGreater(num_bytes, 0)
-        fields = {"col_1": pa.string(), "col_2": pa.int64()}
-        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
-        self._check_output(output.getvalue())
-
-    def test_write_batch_schema(self):
-        fields = {"col_1": pa.string(), "col_2": pa.int64()}
-        output = pa.BufferOutputStream()
-        with ArrowWriter(stream=output, schema=pa.schema(fields)) as writer:
-            writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
-            num_examples, num_bytes = writer.finalize()
-        self.assertEqual(num_examples, 2)
-        self.assertGreater(num_bytes, 0)
-        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
-        self._check_output(output.getvalue())
-
-    def test_write_file(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            fields = {"col_1": pa.string(), "col_2": pa.int64()}
-            output = os.path.join(tmp_dir, "test.arrow")
-            with ArrowWriter(path=output, schema=pa.schema(fields)) as writer:
-                writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
-                num_examples, num_bytes = writer.finalize()
-            self.assertEqual(num_examples, 2)
-            self.assertGreater(num_bytes, 0)
-            self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
-            self._check_output(output)
+        assert num_examples == 2
+        assert num_bytes > 0
+        assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
+        _check_output(output, 1)
 
 
 def get_base_dtype(arr_type):

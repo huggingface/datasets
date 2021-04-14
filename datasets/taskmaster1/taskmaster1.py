@@ -14,7 +14,6 @@
 # limitations under the License.
 """Taskmaster-1:Toward a Realistic and Diverse Dialog Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

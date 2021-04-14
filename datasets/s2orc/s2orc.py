@@ -14,7 +14,6 @@
 # limitations under the License.
 """Semantic Scholar's records for research papers published in all fields"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import re

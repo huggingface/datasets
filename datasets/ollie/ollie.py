@@ -14,7 +14,6 @@
 # limitations under the License.
 """Ollie"""
 
-from __future__ import absolute_import, division, print_function
 
 import bz2
 

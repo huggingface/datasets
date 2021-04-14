@@ -14,7 +14,6 @@
 # limitations under the License.
 """ChrEn: Cherokee-English Machine Translation data"""
 
-from __future__ import absolute_import, division, print_function
 
 import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd

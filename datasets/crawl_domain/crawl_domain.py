@@ -14,7 +14,6 @@
 # limitations under the License.
 """Corpus of domain names scraped from Common Crawl and manually annotated to add word boundaries (e.g. "commoncrawl" to "common crawl")."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

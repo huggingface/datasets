@@ -15,7 +15,6 @@
 
 # Lint as: python3
 """CNN/DailyMail Summarization dataset, non-anonymized version."""
-from __future__ import absolute_import, division, print_function
 
 import hashlib
 import os

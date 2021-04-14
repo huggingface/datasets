@@ -14,7 +14,6 @@
 # limitations under the License.
 """A redistributable subset of the ETH Py150 corpus"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
