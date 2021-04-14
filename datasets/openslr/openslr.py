@@ -330,7 +330,7 @@ _RESOURCES = {
         "Files": ["yo_ng_female.zip", "yo_ng_male.zip"],
         "IndexFiles": ["line_index.tsv", "line_index.tsv"],
         "DataDirs": ["", ""],
-    }
+    },
 }
 
 
