@@ -1,9 +1,12 @@
+import copy
 import importlib
 import os
+from dataclasses import dataclass
 from functools import partial
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 import fsspec
+import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
@@ -44,6 +47,50 @@ class ExamplesIterable:
             yield example
 
 
+@dataclass
+class ShuffingConfig:
+    buffer_size: int
+    seed: Optional[int] = None
+
+
+@dataclass
+class DatasetFormat:
+    type: Optional[str] = None
+    transform: Optional[Callable] = None
+
+
+class ShufflingBuffer:
+    def __init__(self, iterable: Iterable, buffer_size: int, seed: Optional[int] = None):
+        self._iterable = iterable
+        self._buffer_size = buffer_size
+        self._seed = seed
+        self._mem_buffer = []
+
+    def _iter_random_indices(self, rng: np.random.Generator, buffer_size: int, random_batch_size=1000):
+        while True:
+            yield from rng.integers(0, buffer_size, size=random_batch_size)
+
+    def __iter__(self):
+        buffer_size = self._buffer_size
+        rng = np.random.default_rng(self._seed)
+        indices_iterator = self._iter_random_indices(rng, buffer_size)
+        for x in self._iterable:
+            if len(self._mem_buffer) == buffer_size:
+                i = next(indices_iterator)
+                yield self._mem_buffer[i]
+                self._mem_buffer[i] = x
+            else:
+                self._mem_buffer.append(x)
+        if len(self._mem_buffer) != buffer_size:
+            raise ValueError(
+                "Buffer size is too small. "
+                "It should be at least bigger than the number of examples. "
+                f"Got {buffer_size} but expected at least {len(self._mem_buffer)}."
+            )
+        for i in rng.shuffle(range(buffer_size)):
+            yield self._mem_buffer[i]
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -52,15 +99,17 @@ class IterableDataset(DatasetInfoMixin):
         iterable: Iterable,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        format: Optional[dict] = None,
+        format: Optional[DatasetFormat] = None,
+        shuffling: Optional[ShuffingConfig] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
-        format = format if format is not None else {}
+        format = format if format is not None else DatasetFormat()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._iterable = iterable
-        self._format_type = format.get("type")
-        self._transform = format.get("transform")
+        self._format = format
+        self._shuffling = shuffling
+        self._epoch = 0
 
         # Infer features if None
 
@@ -79,20 +128,28 @@ class IterableDataset(DatasetInfoMixin):
             )
 
     def _head(self, n=5):
-        return _examples_to_batch([x for x, _ in zip(self, range(n))])
+        return _examples_to_batch([x for x, _ in zip(self._iter(), range(n))])
 
-    def __iter__(self):
-        for example in self._iterable:
-            if self._transform is not None:
-                yield self._transform(example)
+    def _iter(self, epoch=0, transform: Optional[Callable] = None, shuffling: Optional[ShuffingConfig] = None):
+        if shuffling:
+            effective_seed = shuffling.seed + epoch if shuffling.seed is not None else None
+            iterable = ShufflingBuffer(self._iterable, buffer_size=shuffling.buffer_size, seed=effective_seed)
+        else:
+            iterable = self._iterable
+        for example in iterable:
+            if transform is not None:
+                yield transform(example)
             else:
                 yield example
+
+    def __iter__(self):
+        yield from self._iter(epoch=self._epoch, transform=self._format.transform, shuffling=self._shuffling)
 
     def with_format(
         self,
         type: Optional[str] = None,
         transform: Optional[Callable] = None,
-    ):
+    ) -> "IterableDataset":
         if type == "torch":
             import torch
 
@@ -104,11 +161,27 @@ class IterableDataset(DatasetInfoMixin):
             cls = IterableDataset
         dataset = cls(
             iterable=self._iterable,
-            info=self._info,
+            info=copy.deepcopy(self._info),
             split=self._split,
-            format={"type": type, "transform": transform},
+            format=DatasetFormat(type=type, transform=transform),
+            shuffling=copy.deepcopy(self._shuffling),
         )
         return dataset
+
+    def shuffle(self, buffer_size, seed=None) -> "IterableDataset":
+        shuffling = ShuffingConfig(buffer_size=buffer_size, seed=seed)
+        cls = self.__class__
+        dataset = cls(
+            iterable=self._iterable,
+            info=copy.deepcopy(self._info),
+            split=self._split,
+            format=copy.deepcopy(self._format),
+            shuffling=shuffling,
+        )
+        return dataset
+
+    def set_epoch(self, epoch: int):
+        self._epoch = epoch
 
 
 class IterableDatasetDict(dict):
