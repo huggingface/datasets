@@ -1,6 +1,5 @@
 """XOR QA: Cross-lingual Open-Retrieval Question Answering"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import textwrap

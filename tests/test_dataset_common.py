@@ -92,7 +92,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
     }
 
 
-class DatasetTester(object):
+class DatasetTester:
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
 

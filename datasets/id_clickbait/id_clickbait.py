@@ -14,7 +14,6 @@
 # limitations under the License.
 """CLICK-ID: A Novel Dataset for Indonesian Clickbait Headlines"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import glob

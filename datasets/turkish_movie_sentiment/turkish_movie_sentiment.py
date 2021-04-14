@@ -15,7 +15,6 @@
 # Lint as: python3
 """TurkishMovieSentiment: This dataset contains turkish movie reviews."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

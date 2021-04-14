@@ -14,7 +14,6 @@
 # limitations under the License.
 """Dataset of 10065 tweets in Arabic for Emotion detection in Arabic text """
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

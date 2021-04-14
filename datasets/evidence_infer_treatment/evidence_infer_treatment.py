@@ -14,7 +14,6 @@
 # limitations under the License.
 """Inferring Which Medical Treatments Work from Reports of Clinical Trials"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

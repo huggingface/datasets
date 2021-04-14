@@ -14,7 +14,6 @@
 # limitations under the License.
 """Capes: Parallel corpus of theses and dissertation abstracts in Portuguese and English from CAPES"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

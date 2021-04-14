@@ -15,7 +15,6 @@
 # Lint as: python3
 """Turkish News Category Dataset (270K) - Interpress Media Monitoring Company"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

@@ -14,7 +14,6 @@
 # limitations under the License.
 """MultiUN: Multilingual UN Parallel Text 2000—2009"""
 
-from __future__ import absolute_import, division, print_function
 
 import itertools
 import os

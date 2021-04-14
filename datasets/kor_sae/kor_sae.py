@@ -14,7 +14,6 @@
 # limitations under the License.
 """Structured Argument Extraction for Korean"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

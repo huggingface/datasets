@@ -16,7 +16,6 @@
 # Lint as: python3
 """Splits related API."""
 
-from __future__ import absolute_import, division, print_function
 
 import abc
 import collections
@@ -386,7 +385,7 @@ class NamedSplitAll(NamedSplit):
         return sum(read_instructions, SplitReadInstruction())
 
 
-class Split(object):
+class Split:
     # pylint: disable=line-too-long
     """`Enum` for dataset splits.
 
@@ -424,7 +423,7 @@ SlicedSplitInfo = collections.namedtuple(
 )  # noqa: E231
 
 
-class SplitReadInstruction(object):
+class SplitReadInstruction:
     """Object containing the reading instruction for the dataset.
 
     Similarly to `SplitDescriptor` nodes, this object can be composed with itself,

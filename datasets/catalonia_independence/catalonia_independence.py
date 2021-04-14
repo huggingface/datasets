@@ -14,7 +14,6 @@
 # limitations under the License.
 """This dataset contains two corpora in Spanish and Catalan that consist of annotated Twitter messages for automatic stance detection."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

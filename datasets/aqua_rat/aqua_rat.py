@@ -14,7 +14,6 @@
 # limitations under the License.
 """AQUA-RAT (Algebra Question Answering with Rationales) Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

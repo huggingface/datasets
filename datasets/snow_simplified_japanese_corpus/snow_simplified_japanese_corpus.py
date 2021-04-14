@@ -14,7 +14,6 @@
 # limitations under the License.
 """SNOW T15 and T23: "Japanese Simplified Corpus with Core Vocabulary" and ''Crowdsourced Corpus of Sentence Simplification with Core Vocabulary"."""
 
-from __future__ import absolute_import, division, print_function
 
 import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd

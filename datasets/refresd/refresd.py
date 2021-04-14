@@ -14,7 +14,6 @@
 # limitations under the License.
 """The Rationalized English-French Semantic Divergences (REFreSD) dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

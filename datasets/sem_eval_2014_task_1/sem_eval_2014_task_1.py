@@ -14,7 +14,6 @@
 # limitations under the License.
 """The SemEval-2014 Task 1 on Evaluation of Compositional Distributional Semantic Models on Full Sentences through Semantic Relatedness and Entailment"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

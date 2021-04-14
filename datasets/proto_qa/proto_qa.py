@@ -14,7 +14,6 @@
 # limitations under the License.
 """Dataset for ProtoQA ("family feud") data. The dataset is gathered from an existing set of questions played in a long-running international game show – FAMILY-FEUD."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
