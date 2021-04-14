@@ -460,7 +460,7 @@ Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan
 
 A typical data point comprises the path to the audio file, called path and its sentence. 
 
-#### SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69  
+#### SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
 ```
 {
   'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
