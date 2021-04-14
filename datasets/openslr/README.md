@@ -452,7 +452,7 @@ Copyright 2018, 2019, 2020 Google, Inc.
 
 ### Languages
 
-Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan, Nigerian English, Chilean Spanish, 
+Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan, Nigerian English, Chilean Spanish,
 Columbian Spanish, Peruvian Spanish, Puerto Rico Spanish, Venezuelan Spanish, Basque, Galician, Gujarati and Kannada.
 
 ## Dataset Structure
