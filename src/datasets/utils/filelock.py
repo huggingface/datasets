@@ -333,6 +333,24 @@ class WindowsFileLock(BaseFileLock):
     windows systems.
     """
 
+    def __init__(self, lock_file, timeout=-1):
+        lock_file = self._validate_filename(lock_file)
+        super().__init__(lock_file, timeout=timeout)
+
+    @staticmethod
+    def _validate_filename(filename, max_path=259):
+        if len(filename) > max_path:
+            dirname, basename = os.path.split(filename)
+            if len(dirname) > max_path:
+                raise OSError("The filename or extension is too long")
+            else:
+                from datasets.fingerprint import generate_random_fingerprint
+
+                len_basename = max_path - len(dirname) - 1 - 11  # .incomplete
+                basename = generate_random_fingerprint(nbits=4 * len_basename)
+                filename = os.path.join(dirname, basename)
+        return filename
+
     def _acquire(self):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC
 
