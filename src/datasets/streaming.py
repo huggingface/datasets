@@ -106,7 +106,7 @@ class IterableDataset(DatasetInfoMixin):
             iterable=self._iterable,
             info=self._info,
             split=self._split,
-            format={"format_type": self._format_type, "transform": self._transform},
+            format={"format_type": type, "transform": transform},
         )
         return dataset
 
