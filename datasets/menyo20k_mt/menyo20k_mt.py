@@ -14,7 +14,6 @@
 # limitations under the License.
 """MENYO-20k: A Multi-domain English - Yorùbá Corpus for Machine Translations"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

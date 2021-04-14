@@ -15,7 +15,6 @@
 
 """KorQuAD v2.1:The Korean Question Answering Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

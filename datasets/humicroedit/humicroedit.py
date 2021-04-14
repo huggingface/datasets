@@ -14,7 +14,6 @@
 # limitations under the License.
 """This is humorous headline dataset called Humicroedit introduced in the Task-7 of SemEval 2020."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

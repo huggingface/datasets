@@ -14,7 +14,6 @@
 # limitations under the License.
 """MRQA 2019 Shared task dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

@@ -74,7 +74,7 @@ else:
     PYARROW_V0 = False
 
 
-class DatasetInfoMixin(object):
+class DatasetInfoMixin:
     """This base class exposes some attributes of DatasetInfo
     at the base level of the Dataset for easy access.
     """

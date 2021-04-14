@@ -14,7 +14,6 @@
 # limitations under the License.
 """NLI-TR: The Turkish translation of SNLI and MultiNLI datasets using Amazon Translate."""
 
-from __future__ import absolute_import, division, print_function
 
 import codecs
 import json

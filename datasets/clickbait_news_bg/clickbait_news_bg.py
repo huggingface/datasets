@@ -15,7 +15,6 @@
 
 """ Dataset with clickbait and fake news in Bulgarian. """
 
-from __future__ import absolute_import, division, print_function
 
 import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd

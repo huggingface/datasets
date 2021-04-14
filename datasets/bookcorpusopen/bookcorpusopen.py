@@ -16,7 +16,6 @@
 # Lint as: python3
 """The BookCorpus dataset based on Shawn Presser's work https://github.com/soskek/bookcorpus/issues/27 """
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import os

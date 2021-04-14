@@ -14,7 +14,6 @@
 # limitations under the License.
 """The Large Spanish Corpus is a compilation of Spanish corpora spanning Wikipedia to European parliament notes."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

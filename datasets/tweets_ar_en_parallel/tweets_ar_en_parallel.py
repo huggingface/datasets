@@ -1,6 +1,5 @@
 """Bilingual Corpus of Arabic-English Parallel Tweets"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

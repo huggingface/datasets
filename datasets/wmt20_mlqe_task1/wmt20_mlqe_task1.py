@@ -14,7 +14,6 @@
 # limitations under the License.
 """WMT20 MLQE Shared task 1."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

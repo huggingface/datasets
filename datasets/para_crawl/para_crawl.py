@@ -16,7 +16,6 @@
 # Lint as: python3
 """ParaCrawl (Bitextor) parallel open-source machine translation benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 

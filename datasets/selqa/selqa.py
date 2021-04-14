@@ -14,7 +14,6 @@
 # limitations under the License.
 """SelQA: A New Benchmark for Selection-Based Question Answering"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json

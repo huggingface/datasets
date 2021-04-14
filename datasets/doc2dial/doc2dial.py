@@ -16,7 +16,6 @@
 # Lint as: python3
 """Doc2dial: A Goal-Oriented Document-Grounded Dialogue Dataset v1.0.1"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

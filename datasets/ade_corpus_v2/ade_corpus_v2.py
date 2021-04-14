@@ -17,7 +17,6 @@
 
 """ Adverse Drug Reaction Data: ADE-Corpus-V2  """
 
-from __future__ import absolute_import, division, print_function
 
 import re
 

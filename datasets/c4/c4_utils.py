@@ -16,7 +16,6 @@
 # Lint as: python3
 """Utilities for generating the C4 dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import functools
 import gzip
