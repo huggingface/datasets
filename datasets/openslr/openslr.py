@@ -109,7 +109,7 @@ SLR80
 SLR86
 @inproceedings{gutkin-et-al-yoruba2020,
     title = {{Developing an Open-Source Corpus of Yoruba Speech}},
-    author = {Alexander Gutkin and I{\c{s}}{\i}n Demir{\c{s}}ahin and Oddur Kjartansson and Clara Rivera and K\d{\'o}lá Túb\d{\`o}sún},
+    author = {Alexander Gutkin and Işın Demirşahin and Oddur Kjartansson and Clara Rivera and Kọ́lá Túbọ̀sún},
     booktitle = {Proceedings of Interspeech 2020},
     pages = {404--408},
     month = {October},
