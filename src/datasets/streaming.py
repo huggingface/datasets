@@ -45,7 +45,7 @@ class ExamplesIterable:
 
 
 class IterableDataset(DatasetInfoMixin):
-    """A Dataset backed by an Arrow table."""
+    """A Dataset backed by an iterable."""
 
     def __init__(
         self,
