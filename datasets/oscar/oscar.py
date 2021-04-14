@@ -356,7 +356,7 @@ class Oscar(datasets.GeneratorBasedBuilder):
         current_lines = []
         for filepath in filepaths:
             logger.info("generating examples from = %s", filepath)
-            with gzip.open(filepath, "rt") as f:
+            with gzip.open(open(filepath, "rb"), "rt") as f:
                 for line in f:
                     if len(line.strip()) > 0:
                         current_lines.append(line)
