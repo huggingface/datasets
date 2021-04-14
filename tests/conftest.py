@@ -13,7 +13,9 @@ from .s3_fixtures import *  # noqa: load s3 fixtures
 
 @pytest.fixture(autouse=True)
 def set_test_cache_config(tmp_path_factory, monkeypatch):
-    test_hf_cache_home = tmp_path_factory.mktemp("cache", numbered=False)
+    # test_hf_cache_home = tmp_path_factory.mktemp("cache")  # TODO: why a cache dir per test function does not work?
+    test_hf_cache_home = tmp_path_factory.getbasetemp() / "cache"
+    test_hf_cache_home.mkdir(exist_ok=True)
     test_hf_datasets_cache = str(test_hf_cache_home / "datasets")
     test_hf_metrics_cache = str(test_hf_cache_home / "metrics")
     test_hf_modules_cache = str(test_hf_cache_home / "modules")
