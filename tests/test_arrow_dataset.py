@@ -933,8 +933,8 @@ class BaseDatasetTest(TestCase):
                         self.assertEqual(len(dset_test2.cache_files), 1)
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
                         # make sure the arrow files are going to be removed
-                        self.assertIn("tmp", dset_test1.cache_files[0])
-                        self.assertIn("tmp", dset_test2.cache_files[0])
+                        self.assertIn("tmp", dset_test1.cache_files[0]["filename"])
+                        self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
                         del dset, dset_test2
             finally:
                 datasets.set_caching_enabled(True)
