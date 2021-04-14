@@ -59,7 +59,7 @@ class IterableDataset(DatasetInfoMixin):
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._iterable = iterable
-        self._format_type = format.get("format_type")
+        self._format_type = format.get("type")
         self._transform = format.get("transform")
 
         # Infer features if None
@@ -106,7 +106,7 @@ class IterableDataset(DatasetInfoMixin):
             iterable=self._iterable,
             info=self._info,
             split=self._split,
-            format={"format_type": type, "transform": transform},
+            format={"type": type, "transform": transform},
         )
         return dataset
 
