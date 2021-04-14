@@ -1,15 +1,11 @@
 import os
 import pickle
-import re
 import tempfile
 import time
 from multiprocessing import Pool
 from unittest import TestCase
 
-import pytest
-
 from datasets.features import Features, Value
-from datasets.load import load_metric
 from datasets.metric import Metric, MetricInfo
 
 from .utils import require_tf, require_torch
@@ -473,11 +469,3 @@ class TestMetric(TestCase):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
         del metric
-
-
-def test_seqeval_raises_when_incorrect_scheme():
-    metric = load_metric("./metrics/seqeval")
-    wrong_scheme = "ERROR"
-    error_message = f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {wrong_scheme}"
-    with pytest.raises(ValueError, match=re.escape(error_message)):
-        metric.compute(predictions=[], references=[], scheme=wrong_scheme)
