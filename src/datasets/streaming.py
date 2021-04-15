@@ -42,6 +42,12 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
     return dict(zip(cols, arrays))
 
 
+def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
+    n_examples = len(batch[next(iter(batch))])
+    for i in range(n_examples):
+        yield {col: array[i] for col, array in batch.items()}
+
+
 class ExamplesIterable:
     def __init__(self, generate_examples_fn, kwargs):
         self.generate_examples_fn = generate_examples_fn
@@ -78,6 +84,7 @@ class ShuffingConfig:
 class DatasetFormat:
     type: Optional[str] = None
     transform: Optional[Callable] = None
+    transform_batch_size: Optional[int] = None
 
 
 class ShufflingBuffer:
@@ -157,27 +164,69 @@ class IterableDataset(DatasetInfoMixin):
     def _head(self, n=5):
         return _examples_to_batch([x for x, _ in zip(self._iter(), range(n))])
 
-    def _iter(self, epoch=0, transform: Optional[Callable] = None, shuffling: Optional[ShuffingConfig] = None):
+    def _iter(
+        self,
+        epoch=0,
+        transform: Optional[Callable] = None,
+        transform_batch_size: Optional[int] = None,
+        shuffling: Optional[ShuffingConfig] = None,
+    ):
         if shuffling:
             effective_seed = shuffling.seed + epoch if shuffling.seed is not None else None
             iterable = _shuffle_iterable(self._iterable, self._shuffling.buffer_size, seed=effective_seed)
         else:
             iterable = self._iterable
-        for example in iterable:
+        iterator = iter(iterable)
+        for example in iterator:
             example = self.features.encode_example(example)
             if transform is not None:
-                yield transform(example)
+                if transform_batch_size is None:
+                    yield transform(example)
+                else:
+                    examples = [example]
+                    examples += [example for example, _ in zip(iterator, range(transform_batch_size - 1))]
+                    batch = _examples_to_batch(examples)
+                    transformed_batch = transform(batch)
+                    yield from _batch_to_examples(transformed_batch)
             else:
                 yield example
 
     def __iter__(self):
-        yield from self._iter(epoch=self._epoch, transform=self._format.transform, shuffling=self._shuffling)
+        yield from self._iter(
+            epoch=self._epoch,
+            transform=self._format.transform,
+            transform_batch_size=self._format.transform_batch_size,
+            shuffling=self._shuffling,
+        )
 
     def with_format(
         self,
         type: Optional[str] = None,
         transform: Optional[Callable] = None,
+        transform_batch_size: Optional[int] = None,
     ) -> "IterableDataset":
+        """
+        Return a dataset with the specified format.
+
+        Args:
+
+            type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
+                will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
+            transform (:obj:`Callable`, optional, default None): if not None, this transform is applied
+                on-the-fly on the examples when you iterate on the dataset.
+            transform_batch_size (:obj:`int`, optional, default None): define the size of the batch passed
+                to each call of the transform:
+
+                - if transform_batch_size is None, then the transform takes 1 example in and should return 1 example.
+                    An example is a dictionary, e.g. {"text": "Hello there !"}
+                - if transform_batch_size is 1, then the transform takes a batch of 1 example as input and can return
+                    a batch with 1 or more examples.
+                    A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
+                - if transform_batch_size is ``n`` > 1, then the transform takes a batch of ``n`` examples as input
+                    and can return a batch with ``n`` examples, or with an arbitrary number of examples.
+                    Note that the last batch may have less than ``n`` examples.
+                    A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
+        """
         if type == "torch":
             import torch
 
@@ -191,7 +240,7 @@ class IterableDataset(DatasetInfoMixin):
             iterable=self._iterable,
             info=copy.deepcopy(self._info),
             split=self._split,
-            format=DatasetFormat(type=type, transform=transform),
+            format=DatasetFormat(type=type, transform=transform, transform_batch_size=transform_batch_size),
             shuffling=copy.deepcopy(self._shuffling),
         )
         return dataset
