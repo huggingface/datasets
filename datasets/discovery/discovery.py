@@ -16,13 +16,10 @@
 # Lint as: python3
 """Discourse marker prediction with 174 different markers"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 import textwrap
-
-import six
 
 import datasets
 
@@ -289,7 +286,7 @@ class Discovery(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if self.config.label_classes:
             features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         else:
@@ -337,7 +334,7 @@ class Discovery(datasets.GeneratorBasedBuilder):
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
 
             for n, row in enumerate(reader):
-                example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
+                example = {feat: row[col] for feat, col in self.config.text_features.items()}
                 example["idx"] = n
 
                 if self.config.label_column in row:

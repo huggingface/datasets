@@ -22,7 +22,6 @@ This script is a modified version of the original swda.py from https://github.co
 the original corpus repo. Modifications are made to accommodate the HuggingFace Dataset project format.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import datetime

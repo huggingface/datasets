@@ -14,7 +14,6 @@
 # limitations under the License.
 """EURLEX57K contains 57k legislative documents in English from EUR-Lex portal, annotated with EUROVOC concepts."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

@@ -16,7 +16,6 @@
 # Lint as: python3
 """QA4MRE (CLEF 2011/2012/2013): a reading comprehension dataset."""
 
-from __future__ import division, print_function
 
 import xml.etree.ElementTree as ET
 

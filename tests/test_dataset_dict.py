@@ -2,18 +2,22 @@ import os
 import tempfile
 from unittest import TestCase
 
-import boto3
 import numpy as np
 import pandas as pd
 import pytest
-from moto import mock_s3
 
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
-from datasets.filesystems import S3FileSystem
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
+from .conftest import s3_test_bucket_name
+from .utils import (
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    require_s3,
+    require_tf,
+    require_torch,
+)
 
 
 class DatasetDictTest(TestCase):
@@ -429,36 +433,6 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
 
-    @mock_s3
-    def test_save_and_load_to_s3(self):
-        # Mocked AWS Credentials for moto.
-        os.environ["AWS_ACCESS_KEY_ID"] = "fake_access_key"
-        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake_secret_key"
-        os.environ["AWS_SECURITY_TOKEN"] = "fake_secrurity_token"
-        os.environ["AWS_SESSION_TOKEN"] = "fake_session_token"
-
-        s3 = boto3.client("s3", region_name="us-east-1")
-        mock_bucket = "moto-mock-s3-bucket"
-        # We need to create the bucket since this is all in Moto's 'virtual' AWS account
-        s3.create_bucket(Bucket=mock_bucket)
-        dataset_path = f"s3://{mock_bucket}/datasets/dict"
-
-        fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
-
-        dsets = self._create_dummy_dataset_dict()
-        dsets.save_to_disk(dataset_path, fs)
-
-        del dsets
-
-        dsets = load_from_disk(dataset_path, fs)
-
-        self.assertListEqual(sorted(dsets), ["test", "train"])
-        self.assertEqual(len(dsets["train"]), 30)
-        self.assertListEqual(dsets["train"].column_names, ["filename"])
-        self.assertEqual(len(dsets["test"]), 30)
-        self.assertListEqual(dsets["test"].column_names, ["filename"])
-        del dsets
-
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
@@ -570,3 +544,19 @@ def test_datasetdict_from_text(split, features, keep_in_memory, text_path, tmp_p
     assert dataset.split == split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+
+
+@require_s3
+def test_dummy_dataset_serialize_s3(s3, dataset):
+    dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
+    mock_bucket = s3_test_bucket_name
+    dataset_path = f"s3://{mock_bucket}/datasets/dict"
+    column_names = dsets["train"].column_names
+    lengths = [len(dset) for dset in dsets.values()]
+    dataset.save_to_disk(dataset_path, s3)
+    dataset = dataset.load_from_disk(dataset_path, s3)
+
+    assert sorted(dsets) == ["test", "train"]
+    assert [len(dset) for dset in dsets.values()] == lengths
+    assert dsets["train"].column_names == column_names
+    assert dsets["test"].column_names == column_names

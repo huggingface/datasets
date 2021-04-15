@@ -38,6 +38,7 @@ from datasets import (
     load_dataset,
     prepare_module,
 )
+from datasets.features import ClassLabel
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
@@ -91,7 +92,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
     }
 
 
-class DatasetTester(object):
+class DatasetTester:
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
 
@@ -408,12 +409,12 @@ class TextTest(TestCase):
                 "\n".join("foo" for _ in range(n_samples))
             )
             ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            data_file = ds.cache_files[0]
+            data_file = ds.cache_files[0]["filename"]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_samples)
             del ds
             ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            self.assertEqual(ds.cache_files[0], data_file)
+            self.assertEqual(ds.cache_files[0]["filename"], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
 
@@ -421,7 +422,7 @@ class TextTest(TestCase):
                 "\n".join("bar" for _ in range(n_samples))
             )
             ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_samples)
             del ds
@@ -440,12 +441,12 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            data_file = ds.cache_files[0]
+            data_file = ds.cache_files[0]["filename"]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
             ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            self.assertEqual(ds.cache_files[0], data_file)
+            self.assertEqual(ds.cache_files[0]["filename"], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
             ds = load_dataset(
@@ -455,7 +456,7 @@ class CsvTest(TestCase):
                 split="train",
                 features=features,
             )
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             del ds
 
@@ -463,7 +464,7 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
             del ds
@@ -515,13 +516,13 @@ class CsvTest(TestCase):
         n_cols = 3
 
         def get_features(type):
-            return Features({str(i): Value(type) for i in range(n_cols)})
+            return Features({str(i): type for i in range(n_cols)})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
             )
-            for type in ["float64", "int8"]:
+            for type in [Value("float64"), Value("int8"), ClassLabel(num_classes=n_cols)]:
                 features = get_features(type)
                 ds = load_dataset(
                     "csv",

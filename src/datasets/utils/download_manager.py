@@ -47,11 +47,15 @@ class GenerateMode(enum.Enum):
 
     The generations modes:
 
+    +------------------------------------+-----------+---------+
     |                                    | Downloads | Dataset |
-    | -----------------------------------|-----------|---------|
+    +====================================+===========+=========+
     | `REUSE_DATASET_IF_EXISTS` (default)| Reuse     | Reuse   |
+    +------------------------------------+-----------+---------+
     | `REUSE_CACHE_IF_EXISTS`            | Reuse     | Fresh   |
+    +------------------------------------+-----------+---------+
     | `FORCE_REDOWNLOAD`                 | Fresh     | Fresh   |
+    +------------------------------------+-----------+---------+
     """
 
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
@@ -59,7 +63,7 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
-class DownloadManager(object):
+class DownloadManager:
     def __init__(
         self,
         dataset_name: Optional[str] = None,

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Generics KB: A Knowledge Base of Generic Statements"""
 
-from __future__ import absolute_import, division, print_function
 
 import ast
 import csv

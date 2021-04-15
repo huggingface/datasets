@@ -14,7 +14,6 @@
 # limitations under the License.
 """European commission Joint Reasearch Center's Education And Culture Translation Memory dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 from itertools import repeat

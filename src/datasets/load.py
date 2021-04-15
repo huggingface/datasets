@@ -666,27 +666,27 @@ def load_dataset(
 
     Args:
 
-        path (``str``): Path to the dataset processing script with the dataset builder. Can be either:
+        path (:obj:`str`): Path to the dataset processing script with the dataset builder. Can be either:
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
             - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
               e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
-        name (Optional ``str``): defining the name of the dataset configuration
-        data_files (Optional ``str``): defining the data_files of the dataset configuration
-        data_dir (Optional ``str``): defining the data_dir of the dataset configuration
-        split (`datasets.Split` or `str`): which split of the data to load.
+        name (:obj:`str`, optional): Defining the name of the dataset configuration.
+        data_files (:obj:`str`, optional): Defining the data_files of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.
             Splits can be combined and specified like in tensorflow-datasets.
-        cache_dir (Optional ``str``): directory to read/write data. Defaults to "~/datasets".
-        features (Optional ``datasets.Features``): Set the features type to use for this dataset.
-        download_config (Optional ``datasets.DownloadConfig``): specific download configuration parameters.
-        download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-        ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-        keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-        save_infos (bool): Save the dataset information (checksums/size/splits/...)
-        script_version (Optional ``Union[str, datasets.Version]``): Version of the dataset script to load:
+        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
+        features (:class:`Features`, optional): Set the features type to use for this dataset.
+        download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
+        keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+        save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
+        script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
@@ -694,10 +694,10 @@ def load_dataset(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `~/.huggingface`.
-        **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``datasets.BuilderConfig`` and used in the ``datasets.DatasetBuilder``.
+        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
-        ``datasets.Dataset`` or ``datasets.DatasetDict``
+        :class:`Dataset` or :class:`DatasetDict`:
             if `split` is not None: the dataset requested,
             if `split` is None, a ``datasets.DatasetDict`` with each split.
 

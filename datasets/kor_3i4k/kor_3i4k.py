@@ -14,7 +14,6 @@
 # limitations under the License.
 """3i4K: Intonation-aided intention identification for Korean dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

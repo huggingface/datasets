@@ -14,7 +14,6 @@
 # limitations under the License.
 """OHSUMED: An Interactive Retrieval Evaluation and New Large Test Collection for Research."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

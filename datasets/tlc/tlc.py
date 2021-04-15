@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Thai Literature Corpora (TLC): Corpora of machine-ingestible Thai classical literature texts."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

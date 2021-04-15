@@ -14,7 +14,6 @@
 # limitations under the License.
 """TabFact: A Large-scale Dataset for Table-based Fact Verification"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

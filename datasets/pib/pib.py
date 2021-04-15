@@ -14,7 +14,6 @@
 # limitations under the License.
 """CVIT IIIT-H PIB Multilingual Corpus"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Conceptnet 5.7.0 and OMCSNet raw data"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

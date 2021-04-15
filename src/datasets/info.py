@@ -160,6 +160,7 @@ class DatasetInfo:
 
     def write_to_directory(self, dataset_info_dir):
         """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+
         Also save the license separately in LICENCE.
         """
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "wb") as f:
@@ -212,7 +213,7 @@ class DatasetInfo:
         This will overwrite all previous metadata.
 
         Args:
-            dataset_info_dir: `str` The directory containing the metadata file. This
+            dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
         logger.info("Loading Dataset info from %s", dataset_info_dir)

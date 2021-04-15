@@ -14,7 +14,6 @@
 # limitations under the License.
 """Spider: A Large-Scale Human-Labeled Dataset for Text-to-SQL Tasks"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

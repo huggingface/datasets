@@ -14,7 +14,6 @@
 # limitations under the License.
 """Offensive language identification in dravidian lanaguages dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
