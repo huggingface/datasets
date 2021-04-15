@@ -19,7 +19,7 @@ from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_wit
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
-from datasets.table import InMemoryTable, MemoryMappedTable
+from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -1954,6 +1954,34 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     datasets = [Dataset(table) for table in tables]
     dataset = concatenate_datasets(datasets, axis=axis)
     assert dataset.shape == expected_shape
+
+
+@pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped"])
+@pytest.mark.parametrize("axis, expected_shape", [(0, (8, 3)), (1, (4, 6))])
+def test_concatenate_datasets_with_concatenation_tables(axis, expected_shape, other_dataset_type, dataset_dict, arrow_path):
+    if axis == 0:  # shape: (4, 3) = (4, 1) + (4, 2)
+        concatenation_table = ConcatenationTable.from_blocks(
+            [[InMemoryTable.from_pydict({"col_1": dataset_dict["col_1"]}),
+              MemoryMappedTable.from_file(arrow_path).remove_column(0)]]
+        )
+    elif axis == 1:  # shape: (4, 3) = (1, 3) + (3, 3)
+        concatenation_table = ConcatenationTable.from_blocks(
+            [[InMemoryTable.from_pydict(dataset_dict).slice(0, 1)],
+             [MemoryMappedTable.from_file(arrow_path).slice(1, 4)]]
+        )
+    assert concatenation_table.shape == (4, 3)
+
+    if other_dataset_type == "in_memory":
+        other_table = InMemoryTable.from_pydict(dataset_dict)
+    elif other_dataset_type == "memory_mapped":
+        other_table = MemoryMappedTable.from_file(arrow_path)
+    assert other_table.shape == (4, 3)
+
+    tables = [concatenation_table, other_table]
+    for tables in [tables, reversed(tables)]:
+        datasets = [Dataset(table) for table in tables]
+        dataset = concatenate_datasets(datasets, axis=axis)
+        assert dataset.shape == expected_shape
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
