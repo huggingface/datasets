@@ -24,8 +24,13 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 
-def _infer_features_from_batch(batch: Dict[str, list]) -> Features:
+def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
+    if try_features is not None:
+        try:
+            pa_table = pa_table.cast(pa.schema(try_features.type))
+        except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+            pass
     return Features.from_arrow_schema(pa_table.schema)
 
 
@@ -45,6 +50,22 @@ class ExamplesIterable:
     def __iter__(self):
         for key, example in self.generate_examples_fn(**self.kwargs):
             yield example
+
+    def shuffle(self, seed: Optional[int]) -> "ExamplesIterable":
+        rng = np.random.default_rng(seed)
+        shuffled_kwargs = {}
+        for key, value in sorted(self.kwargs.items()):
+            if isinstance(value, list):
+                value = list(value)
+                rng.shuffle(value)
+                shuffled_kwargs[key] = value
+            elif isinstance(value, dict):
+                keys = list(value)
+                rng.shuffle(keys)
+                shuffled_kwargs[key] = {k: value[k] for k in keys}
+            else:
+                shuffled_kwargs[key] = value
+        return ExamplesIterable(self.generate_examples_fn, shuffled_kwargs)
 
 
 @dataclass
@@ -91,6 +112,12 @@ class ShufflingBuffer:
             yield self._mem_buffer[i]
 
 
+def _shuffle_iterable(iterable: Iterable, buffer_size: int, seed: Optional[int] = None) -> ShufflingBuffer:
+    if hasattr(iterable, "shuffle"):
+        iterable = iterable.shuffle(seed)
+    return ShufflingBuffer(iterable, buffer_size=buffer_size, seed=seed)
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -113,7 +140,7 @@ class IterableDataset(DatasetInfoMixin):
 
         # Infer features if None
 
-        inferred_features = _infer_features_from_batch(self._head())
+        inferred_features = _infer_features_from_batch(self._head(), try_features=self.info.features)
         if self.info.features is None:
             self.info.features = inferred_features
 
@@ -133,10 +160,11 @@ class IterableDataset(DatasetInfoMixin):
     def _iter(self, epoch=0, transform: Optional[Callable] = None, shuffling: Optional[ShuffingConfig] = None):
         if shuffling:
             effective_seed = shuffling.seed + epoch if shuffling.seed is not None else None
-            iterable = ShufflingBuffer(self._iterable, buffer_size=shuffling.buffer_size, seed=effective_seed)
+            iterable = _shuffle_iterable(self._iterable, self._shuffling.buffer_size, seed=effective_seed)
         else:
             iterable = self._iterable
         for example in iterable:
+            example = self.features.encode_example(example)
             if transform is not None:
                 yield transform(example)
             else:
