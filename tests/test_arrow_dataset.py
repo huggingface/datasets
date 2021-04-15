@@ -1924,20 +1924,19 @@ class MiscellaneousDatasetTest(TestCase):
 
 
 @pytest.mark.parametrize("dataset_type", ["in_memory", "memory_mapped", "mixed"])
-def test_concatenate_datasets(dataset_type, dataset_dict, arrow_path):
+@pytest.mark.parametrize("axis, expected_shape", [(0, (4, 3)), (1, (2, 6))])
+def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, arrow_path):
     table = {
         "in_memory": InMemoryTable.from_pydict(dataset_dict),
         "memory_mapped": MemoryMappedTable.from_file(arrow_path),
     }
     tables = [
-        table[dataset_type if dataset_type != "mixed" else "in_memory"].slice(0, 2),
-        table[dataset_type if dataset_type != "mixed" else "memory_mapped"].slice(2, 4),
+        table[dataset_type if dataset_type != "mixed" else "in_memory"].slice(0, 2),  # shape = (2, 3)
+        table[dataset_type if dataset_type != "mixed" else "memory_mapped"].slice(2, 4),  # shape = (2, 3)
     ]
     datasets = [Dataset(table) for table in tables]
-    dataset = concatenate_datasets(datasets, axis=0)
-    assert dataset.shape == (4, 3)
-    dataset = concatenate_datasets(datasets, axis=1)
-    assert dataset.shape == (2, 6)
+    dataset = concatenate_datasets(datasets, axis=axis)
+    assert dataset.shape == expected_shape
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
