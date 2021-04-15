@@ -1956,33 +1956,39 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     assert dataset.shape == expected_shape
 
 
-@pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped"])
+@pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped", "concatenation"])
 @pytest.mark.parametrize("axis, expected_shape", [(0, (8, 3)), (1, (4, 6))])
 def test_concatenate_datasets_with_concatenation_tables(
     axis, expected_shape, other_dataset_type, dataset_dict, arrow_path
 ):
-    if axis == 0:  # shape: (4, 3) = (4, 1) + (4, 2)
-        concatenation_table = ConcatenationTable.from_blocks(
-            [
+    def _create_concatenation_table(axis):
+        if axis == 0:  # shape: (4, 3) = (4, 1) + (4, 2)
+            concatenation_table = ConcatenationTable.from_blocks(
                 [
-                    InMemoryTable.from_pydict({"col_1": dataset_dict["col_1"]}),
-                    MemoryMappedTable.from_file(arrow_path).remove_column(0),
+                    [
+                        InMemoryTable.from_pydict({"col_1": dataset_dict["col_1"]}),
+                        MemoryMappedTable.from_file(arrow_path).remove_column(0),
+                    ]
                 ]
-            ]
-        )
-    elif axis == 1:  # shape: (4, 3) = (1, 3) + (3, 3)
-        concatenation_table = ConcatenationTable.from_blocks(
-            [
-                [InMemoryTable.from_pydict(dataset_dict).slice(0, 1)],
-                [MemoryMappedTable.from_file(arrow_path).slice(1, 4)],
-            ]
-        )
+            )
+        elif axis == 1:  # shape: (4, 3) = (1, 3) + (3, 3)
+            concatenation_table = ConcatenationTable.from_blocks(
+                [
+                    [InMemoryTable.from_pydict(dataset_dict).slice(0, 1)],
+                    [MemoryMappedTable.from_file(arrow_path).slice(1, 4)],
+                ]
+            )
+        return concatenation_table
+
+    concatenation_table = _create_concatenation_table(axis)
     assert concatenation_table.shape == (4, 3)
 
     if other_dataset_type == "in_memory":
         other_table = InMemoryTable.from_pydict(dataset_dict)
     elif other_dataset_type == "memory_mapped":
         other_table = MemoryMappedTable.from_file(arrow_path)
+    elif other_dataset_type == "concatenation":
+        other_table = _create_concatenation_table(axis)
     assert other_table.shape == (4, 3)
 
     tables = [concatenation_table, other_table]
