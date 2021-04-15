@@ -653,15 +653,23 @@ class ConcatenationTable(Table):
 
     @classmethod
     def from_tables(cls, tables: List[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
-        blocks = []
-        for table in tables:
+        def to_blocks(table):
             if isinstance(table, pa.Table):
-                blocks.append([InMemoryTable(table)] if axis == 0 else InMemoryTable(table))
+                return [[InMemoryTable(table)]]
             elif isinstance(table, ConcatenationTable):
-                blocks.extend(copy.deepcopy(table.blocks) if axis == 0 else copy.deepcopy(table.blocks)[0])  # TODO
+                return copy.deepcopy(table.blocks)
             else:
-                blocks.append([table] if axis == 0 else table)
-        return cls.from_blocks(blocks if axis == 0 else [blocks])
+                return [[table]]
+
+        blocks = to_blocks(tables[0])
+        for table in tables[1:]:
+            table_blocks = to_blocks(table)
+            if axis == 0:
+                blocks.extend(table_blocks)
+            elif axis == 1:
+                for i, block_row in enumerate(table_blocks):
+                    blocks[i].extend(block_row)
+        return cls.from_blocks(blocks)
 
     @property
     def _slices(self):
