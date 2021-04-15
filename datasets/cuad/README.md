@@ -1,9 +1,25 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- expert-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- closed-domain-qa
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CUAD
 
 ## Table of Contents
 - [Dataset Card Creation Guide](#dataset-card-creation-guide)
@@ -102,13 +118,13 @@ A highly valuable specialized task without a public large-scale dataset is contr
 
 Contract review costs also affect consumers. Since contract review costs are so prohibitive, contract review is not often performed outside corporate transactions. Small companies and individuals consequently often sign contracts without even reading them, which can result in predatory behavior that harms consumers. Automating contract review by openly releasing high-quality data and fine-tuned models can increase access to legal support for small businesses and individuals, so that legal support is not exclusively available to wealthy companies.
 
-To reduce the disparate societal costs of contract review, and to study how well NLP models generalize to specialized domains, we introduce a new large-scale dataset for contract review. As part of The Atticus Project, a non-profit organization of legal experts, we introduce CUAD, the Contract Understanding Atticus Dataset. This dataset was created with a year-long effort pushed forward by dozens of law student annotators, lawyers, and machine learning researchers. The dataset includes more than 500 contracts and more than 13,000 expert annotations that span 41 label categories. For each of 41 different labels, models must learn to highlight the portions of a contract most salient to that label. This makes the task a matter of finding needles in a haystack.
+To reduce the disparate societal costs of contract review, and to study how well NLP models generalize to specialized domains, the authors introduced a new large-scale dataset for contract review. As part of The Atticus Project, a non-profit organization of legal experts, CUAD is introduced, the Contract Understanding Atticus Dataset. This dataset was created with a year-long effort pushed forward by dozens of law student annotators, lawyers, and machine learning researchers. The dataset includes more than 500 contracts and more than 13,000 expert annotations that span 41 label categories. For each of 41 different labels, models must learn to highlight the portions of a contract most salient to that label. This makes the task a matter of finding needles in a haystack.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-The CUAD includes commercial contracts selected from 25 different types of contracts based on the contract names as shown below. Within each type, we randomly selected contracts based on the names of the filing companies across the alphabet.
+The CUAD includes commercial contracts selected from 25 different types of contracts based on the contract names as shown below. Within each type, the creators randomly selected contracts based on the names of the filing companies across the alphabet.
 
 Type of Contracts:			# of Docs
 
@@ -147,7 +163,7 @@ The contracts were sourced from EDGAR, the Electronic Data Gathering, Analysis, 
 
 #### Annotation process
 
-Our labeling process included multiple steps to ensure accuracy:
+The labeling process included multiple steps to ensure accuracy:
 1. Law Student Training: law students attended training sessions on each of the categories that included a summary, video instructions by experienced attorneys, multiple quizzes and workshops. Students were then required to label sample contracts in eBrevia, an online contract review tool. The initial training took approximately 70-100 hours.
 2. Law Student Label: law students conducted manual contract review and labeling in eBrevia.
 3. Key Word Search: law students conducted keyword search in eBrevia to capture additional categories that have been missed during the “Student Label” step.
@@ -162,7 +178,7 @@ Answered in above section.
 
 ### Personal and Sensitive Information
 
-Some clauses in the files are redacted because the party submitting these contracts redacted them to protect confidentiality. Such redaction may show up as asterisks (***) or underscores (___) or blank spaces. The dataset and the answers reflect such redactions. For example, the answer for “January __ 2020” would be “1/[]/2020”).
+Some clauses in the files are redacted because the party submitting these contracts redacted them to protect confidentiality. Such redaction may show up as asterisks (\*\*\*) or underscores (\_\_\_) or blank spaces. The dataset and the answers reflect such redactions. For example, the answer for “January \_\_ 2020” would be “1/[]/2020”).
 
 For any categories that require an answer of “Yes/No”, annotators include full sentences as text context in a contract. To maintain consistency and minimize inter-annotator disagreement, annotators select text for the full sentence, under the instruction of “from period to period”.
 
@@ -174,7 +190,7 @@ THIS EXHIBIT HAS BEEN REDACTED AND IS THE SUBJECT OF A CONFIDENTIAL TREATMENT RE
 
 Some sentences in the files contain irrelevant information such as footers or page numbers. Some sentences may not be relevant to the corresponding category. Some sentences may correspond to a different category. Because many legal clauses are very long and contain various sub-parts, sometimes only a sub-part of a sentence is responsive to a category.
 
-To address the foregoing limitations, annotators manually deleted the portion that is not responsive, replacing it with the symbol "<omitted>" to indicate that the two text segments do not appear immediately next to each other in the contracts. For example, if a “Termination for Convenience” clause starts with “Each Party may terminate this Agreement if” followed by three subparts “(a), (b) and (c)”, but only subpart (c) is responsive to this category, we manually delete subparts (a) and (b) and replace them with the symbol "<omitted>”. Another example is for “Effective Date”, the contract includes a sentence “This Agreement is effective as of the date written above” that appears after the date “January 1, 2010”. The annotation is as follows: “January 1, 2010 <omitted> This Agreement is effective as of the date written above.”
+To address the foregoing limitations, annotators manually deleted the portion that is not responsive, replacing it with the symbol "<omitted>" to indicate that the two text segments do not appear immediately next to each other in the contracts. For example, if a “Termination for Convenience” clause starts with “Each Party may terminate this Agreement if” followed by three subparts “(a), (b) and (c)”, but only subpart (c) is responsive to this category, the authors manually deleted subparts (a) and (b) and replaced them with the symbol "<omitted>”. Another example is for “Effective Date”, the contract includes a sentence “This Agreement is effective as of the date written above” that appears after the date “January 1, 2010”. The annotation is as follows: “January 1, 2010 <omitted> This Agreement is effective as of the date written above.”
 
 Because the contracts were converted from PDF into TXT files, the converted TXT files may not stay true to the format of the original PDF files. For example, some contracts contain inconsistent spacing between words, sentences and paragraphs. Table format is not maintained in the TXT files.
 
@@ -211,6 +227,13 @@ Dan Hendrycks, Collin Burns, Spencer Ball, Anya Chen
 ### Licensing Information
 
 CUAD is licensed under the Creative Commons Attribution 4.0 (CC BY 4.0) license and free to the public for commercial and non-commercial use.
+
+The creators make no representations or warranties regarding the license status of the underlying contracts, which are publicly available and downloadable from EDGAR.
+Privacy Policy & Disclaimers
+
+The categories or the contracts included in the dataset are not comprehensive or representative. The authors encourage the public to help improve them by sending them your comments and suggestions to info@atticusprojectai.org. Comments and suggestions will be reviewed by The Atticus Project at its discretion and will be included in future versions of Atticus categories once approved.
+
+The use of CUAD is subject to their privacy policy https://www.atticusprojectai.org/privacy-policy and disclaimer https://www.atticusprojectai.org/disclaimer.
 
 ### Citation Information
 
