@@ -661,14 +661,34 @@ class ConcatenationTable(Table):
             else:
                 return [[table]]
 
+        def _split_like(blocks_to_split, blocks_like):
+            splits = []
+            offset = 0
+            for block_row in blocks_like:
+                length = block_row[0].num_rows
+                splits.append((offset, length))
+                offset += length
+            return [
+                [block.slice(offset=split[0], length=split[1]) for block in blocks_to_split[0]] for split in splits
+            ]
+
+        def _extend_blocks(result, blocks: List[List[TableBlock]], axis: int = 0):
+            if axis == 0:
+                result.extend(blocks)
+            elif axis == 1:
+                if len(result) == 1 and len(blocks) > 1:
+                    result = _split_like(result, blocks)  # Split result
+                elif len(blocks) == 1 and len(result) > 1:
+                    blocks = _split_like(blocks, result)  # Split blocks
+                # TODO: This assumes each block_row has the same num_rows
+                for i, row_blocks in enumerate(blocks):
+                    result[i].extend(row_blocks)
+            return result
+
         blocks = to_blocks(tables[0])
         for table in tables[1:]:
             table_blocks = to_blocks(table)
-            if axis == 0:
-                blocks.extend(table_blocks)
-            elif axis == 1:
-                for i, block_row in enumerate(table_blocks):
-                    blocks[i].extend(block_row)
+            blocks = _extend_blocks(blocks, table_blocks, axis=axis)
         return cls.from_blocks(blocks)
 
     @property
