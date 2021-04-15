@@ -92,9 +92,9 @@ class ShufflingBuffer:
         self._iterable = iterable
         self._buffer_size = buffer_size
         self._seed = seed
-        self._mem_buffer = []
 
-    def _iter_random_indices(self, rng: np.random.Generator, buffer_size: int, random_batch_size=1000):
+    @staticmethod
+    def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000):
         while True:
             yield from rng.integers(0, buffer_size, size=random_batch_size)
 
@@ -102,25 +102,20 @@ class ShufflingBuffer:
         buffer_size = self._buffer_size
         rng = np.random.default_rng(self._seed)
         indices_iterator = self._iter_random_indices(rng, buffer_size)
+        mem_buffer = []
         for x in self._iterable:
-            if len(self._mem_buffer) == buffer_size:
+            if len(mem_buffer) == buffer_size:
                 i = next(indices_iterator)
-                yield self._mem_buffer[i]
-                self._mem_buffer[i] = x
+                yield mem_buffer[i]
+                mem_buffer[i] = x
             else:
-                self._mem_buffer.append(x)
-        if len(self._mem_buffer) != buffer_size:
-            raise ValueError(
-                "Buffer size is too small. "
-                "It should be at least bigger than the number of examples. "
-                f"Got {buffer_size} but expected at least {len(self._mem_buffer)}."
-            )
-        for i in rng.shuffle(range(buffer_size)):
-            yield self._mem_buffer[i]
+                mem_buffer.append(x)
+        rng.shuffle(mem_buffer)
+        yield from mem_buffer
 
 
 def _shuffle_iterable(iterable: Iterable, buffer_size: int, seed: Optional[int] = None) -> ShufflingBuffer:
-    if hasattr(iterable, "shuffle"):
+    if isinstance(iterable, ExamplesIterable):
         iterable = iterable.shuffle(seed)
     return ShufflingBuffer(iterable, buffer_size=buffer_size, seed=seed)
 
