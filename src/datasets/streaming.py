@@ -222,38 +222,68 @@ class IterableDataset(DatasetInfoMixin):
                     Note that the last batch may have less than ``n`` examples.
                     A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
         """
-        if type == "torch":
-            import torch
-
-            class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
-                pass
-
-            cls = TorchIterableDataset
-        else:
-            cls = IterableDataset
-        dataset = cls(
+        return iterable_dataset(
             iterable=self._iterable,
             info=copy.deepcopy(self._info),
             split=self._split,
             format=DatasetFormat(type=type, transform=transform, transform_batch_size=transform_batch_size),
             shuffling=copy.deepcopy(self._shuffling),
         )
-        return dataset
 
     def shuffle(self, buffer_size, seed=None) -> "IterableDataset":
+        """
+        Randomly shuffles the elements of this dataset.
+
+        This dataset fills a buffer with buffer_size elements, then randomly samples elements from this buffer,
+        replacing the selected elements with new elements. For perfect shuffling, a buffer size greater than or
+        equal to the full size of the dataset is required.
+
+        For instance, if your dataset contains 10,000 elements but buffer_size is set to 1,000, then shuffle will
+        initially select a random element from only the first 1,000 elements in the buffer. Once an element is
+        selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
+        maintaining the 1,000 element buffer.
+
+        Args:
+
+            buffer_size (:obj:`int`): size of the buffer.
+            seed (:obj:`int`, optional, default None): random seed that will be used to create the distribution.
+        """
         shuffling = ShuffingConfig(buffer_size=buffer_size, seed=seed)
-        cls = self.__class__
-        dataset = cls(
+        return iterable_dataset(
             iterable=self._iterable,
             info=copy.deepcopy(self._info),
             split=self._split,
             format=copy.deepcopy(self._format),
             shuffling=shuffling,
         )
-        return dataset
 
     def set_epoch(self, epoch: int):
         self._epoch = epoch
+
+
+def iterable_dataset(
+    iterable: Iterable,
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    format: Optional[DatasetFormat] = None,
+    shuffling: Optional[ShuffingConfig] = None,
+):
+    if format is not None and format.type == "torch":
+        import torch
+
+        class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
+            pass
+
+        cls = TorchIterableDataset
+    else:
+        cls = IterableDataset
+    return cls(
+        iterable=iterable,
+        info=info,
+        split=split,
+        format=format,
+        shuffling=shuffling,
+    )
 
 
 class IterableDatasetDict(dict):
