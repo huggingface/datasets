@@ -1958,16 +1958,24 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
 
 @pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped"])
 @pytest.mark.parametrize("axis, expected_shape", [(0, (8, 3)), (1, (4, 6))])
-def test_concatenate_datasets_with_concatenation_tables(axis, expected_shape, other_dataset_type, dataset_dict, arrow_path):
+def test_concatenate_datasets_with_concatenation_tables(
+    axis, expected_shape, other_dataset_type, dataset_dict, arrow_path
+):
     if axis == 0:  # shape: (4, 3) = (4, 1) + (4, 2)
         concatenation_table = ConcatenationTable.from_blocks(
-            [[InMemoryTable.from_pydict({"col_1": dataset_dict["col_1"]}),
-              MemoryMappedTable.from_file(arrow_path).remove_column(0)]]
+            [
+                [
+                    InMemoryTable.from_pydict({"col_1": dataset_dict["col_1"]}),
+                    MemoryMappedTable.from_file(arrow_path).remove_column(0),
+                ]
+            ]
         )
     elif axis == 1:  # shape: (4, 3) = (1, 3) + (3, 3)
         concatenation_table = ConcatenationTable.from_blocks(
-            [[InMemoryTable.from_pydict(dataset_dict).slice(0, 1)],
-             [MemoryMappedTable.from_file(arrow_path).slice(1, 4)]]
+            [
+                [InMemoryTable.from_pydict(dataset_dict).slice(0, 1)],
+                [MemoryMappedTable.from_file(arrow_path).slice(1, 4)],
+            ]
         )
     assert concatenation_table.shape == (4, 3)
 
