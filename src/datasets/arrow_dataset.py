@@ -1703,9 +1703,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if remove_columns is not None:
-                for column in remove_columns:
-                    inputs.pop(column)
             if self._format_type is not None:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
@@ -1713,6 +1710,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     format_columns=None,
                     format_kwargs=None,
                 )
+            if remove_columns is not None:
+                for column in remove_columns:
+                    inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(inputs[next(iter(inputs.keys()))])
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
