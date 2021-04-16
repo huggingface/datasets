@@ -889,8 +889,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
+            features=features,
         )
-        dataset._info.features = features
         self._data = dataset._data
         self._info = dataset._info
         self._fingerprint = dataset._fingerprint
@@ -948,8 +948,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
+            features=features,
         )
-        dataset._info.features = features
         dataset = dataset.with_format(**format)
         return dataset
 
