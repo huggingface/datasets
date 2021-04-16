@@ -733,6 +733,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
+    @update_metadata_with_features
     def class_encode_column(self, column: str) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
 
@@ -888,6 +889,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
+            features=features,
         )
         self._data = dataset._data
         self._info = dataset._info
@@ -946,6 +948,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
+            features=features,
         )
         dataset = dataset.with_format(**format)
         return dataset
