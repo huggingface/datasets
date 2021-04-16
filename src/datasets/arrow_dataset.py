@@ -40,7 +40,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from . import config
-from .arrow_reader import ArrowReader, ReadInstruction
+from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Features, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -589,9 +589,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         }
 
         split = self.__dict__["_split"]
-        state["_split"] = {"spec": str(split) if split is not None else split}
-        if isinstance(split, (NamedSplit, ReadInstruction)):
-            state["_split"].update({"type": split.__class__.__name__})
+        state["_split"] = str(split) if split is not None else split
 
         state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
         state["_indices_data_files"] = (
@@ -670,17 +668,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             indices_table = None
 
-        split_spec = state["_split"]["spec"]
-        split_type = state["_split"].get("type")
-        if split_type is not None:
-            if split_type == "NamedSplit":
-                split = NamedSplit(split_spec)
-            elif split_type == "ReadInstruction":
-                split = ReadInstruction.from_spec(split_spec)
-            else:
-                raise TypeError(f"{split_type} is not a valid split type.")
-        else:
-            split = split_spec
+        split = state["_split"]
+        split = NamedSplit(split) if split is not None else split
 
         return Dataset(
             arrow_table=arrow_table,

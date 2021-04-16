@@ -32,7 +32,7 @@ from datasets.utils.mock_download_manager import MockDownloadManager
 
 from . import config, utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
+from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
@@ -762,7 +762,11 @@ class DatasetBuilder:
         return datasets
 
     def _build_single_dataset(
-        self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool, in_memory: bool = False
+        self,
+        split: Union[str, ReadInstruction, Split],
+        run_post_process: bool,
+        ignore_verifications: bool,
+        in_memory: bool = False,
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
@@ -825,7 +829,7 @@ class DatasetBuilder:
 
         return ds
 
-    def _as_dataset(self, split: Split = Split.TRAIN, in_memory: bool = False) -> Dataset:
+    def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -846,6 +850,11 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
+        # If split is not None, convert it to a human-readable NamedSplit
+        assert "split" in dataset_kwargs  # Sanity check
+        split = dataset_kwargs["split"]
+        if split is not None:
+            dataset_kwargs["split"] = Split(str(split))
         return Dataset(**dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:

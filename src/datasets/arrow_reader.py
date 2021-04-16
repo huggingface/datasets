@@ -528,7 +528,7 @@ class ReadInstruction(object):
                             `test + validation`: test split + validation split.
                             `test[10:]`: test split, minus its first 10 records.
                             `test[:10%]`: first 10% records of test split.
-                            `test[:-5%] + train[40%:60%]`: first 95% of test + middle 20% of
+                            `test[:-5%]+train[40%:60%]`: first 95% of test + middle 20% of
                                                                                      train.
 
         Returns:
@@ -554,10 +554,10 @@ class ReadInstruction(object):
                 from_ = str(from_) + unit if from_ is not None else ""
                 to = str(to) + unit if to is not None else ""
                 slice_str = f"[{from_}:{to}]"
-                rounding = f"({rounding})" if rounding is not None else ""
-                rel_instr_spec += slice_str + rounding
+                rounding_str = f"({rounding})" if unit == "%" and rounding is not None else ""
+                rel_instr_spec += slice_str + rounding_str
             rel_instr_specs.append(rel_instr_spec)
-        return " + ".join(rel_instr_specs)
+        return "+".join(rel_instr_specs)
 
     def __add__(self, other):
         """Returns a new ReadInstruction obj, result of appending other to self."""

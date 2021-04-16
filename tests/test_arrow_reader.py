@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import ArrowReader, BaseReader
+from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
 from datasets.info import DatasetInfo
 from datasets.splits import SplitDict, SplitInfo
 
@@ -107,3 +107,23 @@ def test_read_files(in_memory, dataset, arrow_file):
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
     assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+
+
+def test_read_instruction_spec():
+    assert ReadInstruction("train", to=10, unit="abs").to_spec() == "train[:10]"
+    assert ReadInstruction("train", from_=-80, to=10, unit="%").to_spec() == "train[-80%:10%](closest)"
+
+    spec_train_test = "train+test"
+    assert ReadInstruction.from_spec(spec_train_test).to_spec() == spec_train_test
+
+    spec_train_abs = "train[2:10]"
+    assert ReadInstruction.from_spec(spec_train_abs).to_spec() == spec_train_abs
+
+    spec_train_pct = "train[15%:-20%]"
+    assert ReadInstruction.from_spec(spec_train_pct).to_spec() == spec_train_pct + "(closest)"
+
+    spec_train_pct_rounding = "train[:10%](pct1_dropremainder)"
+    assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == spec_train_pct_rounding
+
+    spec_train_test_pct_rounding = "train[:10%](pct1_dropremainder)+test[-10%:](pct1_dropremainder)"
+    assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
