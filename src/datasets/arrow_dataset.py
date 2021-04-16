@@ -890,6 +890,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
         )
+        dataset._info.features = features
         self._data = dataset._data
         self._info = dataset._info
         self._fingerprint = dataset._fingerprint
@@ -948,6 +949,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
         )
+        dataset._info.features = features
         dataset = dataset.with_format(**format)
         return dataset
 
