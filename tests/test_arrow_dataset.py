@@ -1020,7 +1020,7 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
             del dset, dset_test
 
-    def test_map_remove_colums(self, in_memory):
+    def test_map_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             dset = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
@@ -1032,6 +1032,12 @@ class BaseDatasetTest(TestCase):
             dset = dset.map(lambda x: x, remove_columns=["id"])
             self.assertTrue("id" not in dset[0])
             self.assertDictEqual(dset.features, Features({"filename": Value("string"), "name": Value("string")}))
+
+            dset = dset.with_format("numpy", columns=dset.column_names)
+            dset = dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names)
+            self.assertTrue("filename" not in dset[0])
+            self.assertTrue("name" in dset[0])
+            self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
             del dset
 
     def test_map_stateful_callable(self, in_memory):
