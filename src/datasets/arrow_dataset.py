@@ -1704,8 +1704,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
-                    format_columns=self._format_columns,
-                    output_all_columns=self._output_all_columns,
+                    format_columns=None,
                     format_kwargs=None,
                 )
             if remove_columns is not None:
