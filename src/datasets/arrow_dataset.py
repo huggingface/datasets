@@ -712,8 +712,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
-            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -730,7 +728,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
             )
         else:
-            dset = copy.deepcopy(self)
+            dset = self
 
         # Create the new feature
         class_names = sorted(dset.unique(column))
