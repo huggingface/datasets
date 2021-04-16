@@ -42,7 +42,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import Features, cast_to_python_objects
+from .features import ClassLabel, Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -732,6 +732,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         return self._data.column(column).unique().to_pylist()
+
+    def class_encode_column(self, column: str) -> "Dataset":
+        """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
+
+        Args:
+            column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
+        """
+        # Sanity checks
+        if column not in self._data.column_names:
+            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
+        src_feat = self.features[column]
+        if not isinstance(src_feat, Value):
+            raise ValueError(
+                f"Class encoding is only supported for {type(Value)} column, and column {column} is {type(src_feat)}."
+            )
+
+        # Stringify the column
+        if src_feat.dtype != "string":
+            dset = self.map(
+                lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
+            )
+        else:
+            dset = self
+
+        # Create the new feature
+        class_names = sorted(dset.unique(column))
+        dst_feat = ClassLabel(names=class_names)
+        dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+
+        new_features = copy.deepcopy(dset.features)
+        new_features[column] = dst_feat
+        dset = dset.cast(new_features)
+
+        return dset
 
     @deprecated()
     @update_metadata_with_features
