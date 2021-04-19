@@ -4,8 +4,8 @@
 
 quality:
 	black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
-	isort --check-only tests src benchmarks datasets metrics
-	flake8 tests src benchmarks datasets metrics
+	isort --check-only tests src benchmarks datasets/**/*.py metrics
+	flake8 tests src benchmarks datasets/**/*.py metrics
 
 # Format source code automatically
 

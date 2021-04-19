@@ -29,7 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Counter, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -191,30 +191,16 @@ def transmit_format(func):
     return wrapper
 
 
-def update_metadata_with_features(func):
+def update_metadata_with_features(table: Table, features: Features):
     """Wrapper for dataset transforms that modify the features of the dataset, which makes it necessary to update the features stored in the metadata of its schema."""
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if args:
-            self: "Dataset" = args[0]
-            args = args[1:]
-        else:
-            self: "Dataset" = kwargs.pop("self")
-        # apply actual function
-        out: Optional["Dataset"] = func(self, *args, **kwargs)
-        # get the dataset to update its metadata (to handle both in-place and not in-place transforms)
-        dataset: "Dataset" = out if out is not None else self
-        if dataset._data.schema.metadata is not None:
-            metadata = json.loads(dataset._data.schema.metadata["huggingface".encode("utf-8")].decode())
-            if "info" in metadata:
-                metadata["info"]["features"] = asdict(dataset._info)["features"]
-                new_schema = dataset._data.schema.with_metadata({"huggingface": json.dumps(metadata)})
-                dataset._data = dataset._data.cast(new_schema)
-        return out
-
-    wrapper._decorator_name_ = "update_metadata_with_features"
-    return wrapper
+    if table.schema.metadata is not None:
+        metadata = json.loads(table.schema.metadata["huggingface".encode("utf-8")].decode())
+        if "info" in metadata:
+            metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
+            new_schema = table.schema.with_metadata({"huggingface": json.dumps(metadata)})
+            table = table.cast(new_schema)
+    return table
 
 
 def _check_table(table) -> Table:
@@ -265,7 +251,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 self._fingerprint = metadata["fingerprint"]
 
         # Infer features if None
-
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
@@ -290,6 +275,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             assert pa.types.is_unsigned_integer(
                 self._indices.column(0)[0].type
             ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
+        counter = Counter(self._data.column_names)
+        if not all(count == 1 for count in counter.values()):
+            duplicated_columns = [col for col in counter if counter[col] > 1]
+            raise ValueError(
+                f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
+            )
 
     @classmethod
     def from_file(
@@ -734,7 +725,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column(column).unique().to_pylist()
 
     @deprecated()
-    @update_metadata_with_features
     @fingerprint_transform(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
@@ -757,9 +747,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         casted_schema.set(field_index, casted_field)
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
+        self._data = update_metadata_with_features(self._data, self.features)
 
     @deprecated(help_message="Use Dataset.flatten instead.")
-    @update_metadata_with_features
     @fingerprint_transform(inplace=True)
     def flatten_(self, max_depth=16):
         """In-place version of :meth:`Dataset.flatten`.
@@ -772,13 +762,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 self._data = self._data.flatten()
             else:
                 break
-        if self.info is not None:
-            self.info.features = Features.from_arrow_schema(self._data.schema)
+        self.info.features = Features.from_arrow_schema(self._data.schema)
+        self._data = update_metadata_with_features(self._data, self.features)
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
-    @update_metadata_with_features
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flatten the table.
@@ -794,8 +783,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 dataset._data = dataset._data.flatten()
             else:
                 break
-        if dataset.info is not None:
-            dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        self._data = update_metadata_with_features(self._data, self.features)
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
@@ -917,7 +906,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     @deprecated(help_message="Use Dataset.remove_columns instead.")
-    @update_metadata_with_features
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """In-place version of :meth:`Dataset.remove_columns`.
@@ -942,8 +930,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del self._info.features[column_name]
 
         self._data = self._data.drop(column_names)
+        self._data = update_metadata_with_features(self._data, self.features)
 
-    @update_metadata_with_features
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -974,11 +962,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del dataset._info.features[column_name]
 
         dataset._data = dataset._data.drop(column_names)
+        dataset._data = update_metadata_with_features(dataset._data, self.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
     @deprecated(help_message="Use Dataset.rename_column instead.")
-    @update_metadata_with_features
     @fingerprint_transform(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """In-place version of :meth:`Dataset.rename_column`.
@@ -1019,8 +1007,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
         self._data = self._data.rename_columns(new_column_names)
+        self._data = update_metadata_with_features(self._data, self.features)
 
-    @update_metadata_with_features
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
@@ -1065,6 +1053,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
+        dataset._data = update_metadata_with_features(dataset._data, self.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -2846,6 +2835,7 @@ def concatenate_datasets(
 
     # Concatenate tables
     table = concat_tables([dset._data for dset in dsets if len(dset._data) > 0], axis=axis)
+    table = update_metadata_with_features(table, None)
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:

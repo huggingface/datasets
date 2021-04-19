@@ -1948,9 +1948,11 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
         "memory_mapped": MemoryMappedTable.from_file(arrow_path),
     }
     tables = [
-        table[dataset_type if dataset_type != "mixed" else "in_memory"].slice(0, 2),  # shape = (2, 3)
-        table[dataset_type if dataset_type != "mixed" else "memory_mapped"].slice(2, 4),  # shape = (2, 3)
+        table[dataset_type if dataset_type != "mixed" else "memory_mapped"].slice(0, 2),  # shape = (2, 3)
+        table[dataset_type if dataset_type != "mixed" else "in_memory"].slice(2, 4),  # shape = (2, 3)
     ]
+    if axis == 1:  # don't duplicate columns
+        tables[1] = tables[1].rename_columns([col + "_bis" for col in tables[1].column_names])
     datasets = [Dataset(table) for table in tables]
     dataset = concatenate_datasets(datasets, axis=axis)
     assert dataset.shape == expected_shape
@@ -1992,10 +1994,20 @@ def test_concatenate_datasets_with_concatenation_tables(
     assert other_table.shape == (4, 3)
 
     tables = [concatenation_table, other_table]
+
+    if axis == 1:  # don't duplicate columns
+        tables[1] = tables[1].rename_columns([col + "_bis" for col in tables[1].column_names])
+
     for tables in [tables, reversed(tables)]:
         datasets = [Dataset(table) for table in tables]
         dataset = concatenate_datasets(datasets, axis=axis)
         assert dataset.shape == expected_shape
+
+
+def test_concatenate_datasets_duplicate_columns(dataset):
+    with pytest.raises(ValueError) as excinfo:
+        concatenate_datasets([dataset, dataset], axis=1)
+    assert "duplicated" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
