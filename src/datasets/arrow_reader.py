@@ -238,7 +238,7 @@ class BaseReader:
         pa_table = self._read_files(files, in_memory=in_memory)
         # If original_instructions is not None, convert it to a human-readable NamedSplit
         if original_instructions is not None:
-            from .splits import Split  # noqa: F401
+            from .splits import Split  # noqa
 
             split = Split(str(original_instructions))
         else:
