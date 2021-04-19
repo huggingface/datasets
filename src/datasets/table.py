@@ -653,6 +653,16 @@ class ConcatenationTable(Table):
 
     @classmethod
     def from_tables(cls, tables: List[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
+        """Create ConcatenationTable from list of tables.
+
+        Args:
+            tables (list of :class:`Table` or list of :obj:`pyarrow.Table`): List of tables.
+            axis: (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            .. versionadded:: 1.6.0
+        """
         def to_blocks(table):
             if isinstance(table, pa.Table):
                 return [[InMemoryTable(table)]]
@@ -809,7 +819,15 @@ class ConcatenationTable(Table):
 
 def concat_tables(tables: List[Table], axis: int = 0) -> Table:
     """
-    Concatenate tables vertically.
+    Concatenate tables.
+
+    Args:
+        tables (list of :class:`Table`): List of tables to be concatenated.
+        axis (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            .. versionadded:: 1.6.0
 
     Returns:
         :obj:`datasets.table.Table` that is the concatenated table:

@@ -2827,7 +2827,11 @@ def concatenate_datasets(
         dsets (:obj:`List[datasets.Dataset]`): List of Datasets to concatenate.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
         split (:class:`NamedSplit`, optional): Name of the dataset split.
-        axis (:obj:`int`, default ``0``): Axis to concatenate over.
+        axis (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            .. versionadded:: 1.6.0
     """
     if axis == 0 and not all([dset.features.type == dsets[0].features.type for dset in dsets]):
         raise ValueError("Features must match for all datasets")
