@@ -132,6 +132,19 @@ DATA_DICT_OF_LISTS = {
 
 
 @pytest.fixture(scope="session")
+def dataset_dict():
+    return DATA_DICT_OF_LISTS
+
+
+@pytest.fixture(scope="session")
+def arrow_path(tmp_path_factory):
+    dataset = Dataset.from_dict(DATA_DICT_OF_LISTS)
+    path = str(tmp_path_factory.mktemp("data") / "dataset.arrow")
+    dataset.map(cache_file_name=path)
+    return path
+
+
+@pytest.fixture(scope="session")
 def csv_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
     with open(path, "w") as f:

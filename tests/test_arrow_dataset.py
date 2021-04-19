@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import pickle
 import tempfile
@@ -13,10 +14,11 @@ from absl.testing import parameterized
 
 import datasets.arrow_dataset
 from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
-from datasets.arrow_dataset import Dataset, transmit_format
+from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
+from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -1211,9 +1213,9 @@ class BaseDatasetTest(TestCase):
 
                             self.assertEqual(dset._indices["indices"].to_pylist(), [1])
                             if not in_memory:
-                                self.assertEqual(
+                                self.assertIn(
+                                    ("rename_columns", (["file", "number"],), {}),
                                     dset._data.replays,
-                                    [("rename_columns", (["file", "number"],), {})],
                                 )
                             if not in_memory:
                                 dset._data.table = Unpicklable()  # check that we don't pickle the entire table
@@ -1858,6 +1860,92 @@ class MiscellaneousDatasetTest(TestCase):
         with Dataset.from_dict({"text": ["hello there", "foo"]}) as dset:
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+def test_update_metadata_with_features(dataset_dict):
+    table1 = pa.Table.from_pydict(dataset_dict)
+    features1 = Features.from_arrow_schema(table1.schema)
+    features2 = features1.copy()
+    features2["col_2"] = ClassLabel(num_classes=len(table1))
+    assert features1 != features2
+
+    table2 = update_metadata_with_features(table1, features2)
+    metadata = json.loads(table2.schema.metadata["huggingface".encode("utf-8")].decode())
+    assert features2 == Features.from_dict(metadata["info"]["features"])
+
+    with Dataset(table1) as dset1, Dataset(table2) as dset2:
+        assert dset1.features == features1
+        assert dset2.features == features2
+
+
+@pytest.mark.parametrize("dataset_type", ["in_memory", "memory_mapped", "mixed"])
+@pytest.mark.parametrize("axis, expected_shape", [(0, (4, 3)), (1, (2, 6))])
+def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, arrow_path):
+    table = {
+        "in_memory": InMemoryTable.from_pydict(dataset_dict),
+        "memory_mapped": MemoryMappedTable.from_file(arrow_path),
+    }
+    tables = [
+        table[dataset_type if dataset_type != "mixed" else "memory_mapped"].slice(0, 2),  # shape = (2, 3)
+        table[dataset_type if dataset_type != "mixed" else "in_memory"].slice(2, 4),  # shape = (2, 3)
+    ]
+    if axis == 1:  # don't duplicate columns
+        tables[1] = tables[1].rename_columns([col + "_bis" for col in tables[1].column_names])
+    datasets = [Dataset(table) for table in tables]
+    dataset = concatenate_datasets(datasets, axis=axis)
+    assert dataset.shape == expected_shape
+
+
+@pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped", "concatenation"])
+@pytest.mark.parametrize("axis, expected_shape", [(0, (8, 3)), (1, (4, 6))])
+def test_concatenate_datasets_with_concatenation_tables(
+    axis, expected_shape, other_dataset_type, dataset_dict, arrow_path
+):
+    def _create_concatenation_table(axis):
+        if axis == 0:  # shape: (4, 3) = (4, 1) + (4, 2)
+            concatenation_table = ConcatenationTable.from_blocks(
+                [
+                    [
+                        InMemoryTable.from_pydict({"col_1": dataset_dict["col_1"]}),
+                        MemoryMappedTable.from_file(arrow_path).remove_column(0),
+                    ]
+                ]
+            )
+        elif axis == 1:  # shape: (4, 3) = (1, 3) + (3, 3)
+            concatenation_table = ConcatenationTable.from_blocks(
+                [
+                    [InMemoryTable.from_pydict(dataset_dict).slice(0, 1)],
+                    [MemoryMappedTable.from_file(arrow_path).slice(1, 4)],
+                ]
+            )
+        return concatenation_table
+
+    concatenation_table = _create_concatenation_table(axis)
+    assert concatenation_table.shape == (4, 3)
+
+    if other_dataset_type == "in_memory":
+        other_table = InMemoryTable.from_pydict(dataset_dict)
+    elif other_dataset_type == "memory_mapped":
+        other_table = MemoryMappedTable.from_file(arrow_path)
+    elif other_dataset_type == "concatenation":
+        other_table = _create_concatenation_table(axis)
+    assert other_table.shape == (4, 3)
+
+    tables = [concatenation_table, other_table]
+
+    if axis == 1:  # don't duplicate columns
+        tables[1] = tables[1].rename_columns([col + "_bis" for col in tables[1].column_names])
+
+    for tables in [tables, reversed(tables)]:
+        datasets = [Dataset(table) for table in tables]
+        dataset = concatenate_datasets(datasets, axis=axis)
+        assert dataset.shape == expected_shape
+
+
+def test_concatenate_datasets_duplicate_columns(dataset):
+    with pytest.raises(ValueError) as excinfo:
+        concatenate_datasets([dataset, dataset], axis=1)
+    assert "duplicated" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
