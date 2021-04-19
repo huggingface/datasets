@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Sequence, Value, Array2D, Array3D
+from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 
 from .s3_fixtures import *  # noqa: load s3 fixtures
 

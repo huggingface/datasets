@@ -246,7 +246,9 @@ def test_load_dataset_local_with_default_in_memory(
 
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 50, 500])
-def test_load_from_disk_with_default_in_memory(max_in_memory_dataset_size, dataset_loading_script_dir, data_dir, tmp_dir, monkeypatch):
+def test_load_from_disk_with_default_in_memory(
+    max_in_memory_dataset_size, dataset_loading_script_dir, data_dir, tmp_dir, monkeypatch
+):
     current_dataset_size = 148
     if max_in_memory_dataset_size == "default":
         # default = 250 * 2 ** 20
@@ -272,6 +274,8 @@ def test_load_from_disk_with_default_in_memory(max_in_memory_dataset_size, datas
         assert (dataset.dataset_size < max_in_memory_dataset_size) is expected_in_memory
     print(dataset.dataset_size)  # Always None
     # assert False
+
+
 # def test_load_from_disk_with_default_in_memory(dataset_loading_script_dir, data_dir, tmp_path, tmp_dir):
 #     cache_dir = tmp_path / "cache"
 #     cache_dir.mkdir()
