@@ -850,11 +850,6 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        # If split is not None, convert it to a human-readable NamedSplit
-        assert "split" in dataset_kwargs  # Sanity check
-        split = dataset_kwargs["split"]
-        if split is not None:
-            dataset_kwargs["split"] = Split(str(split))
         return Dataset(**dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:

@@ -22,7 +22,7 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -36,6 +36,7 @@ from .utils import cached_path, logging
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
+    from .splits import Split
 
 
 logger = logging.get_logger(__name__)
@@ -217,8 +218,8 @@ class BaseReader:
 
     def read_files(
         self,
-        files,
-        original_instructions=None,
+        files: List[dict],
+        original_instructions: Union[None, "ReadInstruction", "Split"] = None,
         in_memory=False,
     ):
         """Returns single Dataset instance for the set of file instructions.
@@ -235,7 +236,14 @@ class BaseReader:
         """
         # Prepend path to filename
         pa_table = self._read_files(files, in_memory=in_memory)
-        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=original_instructions)
+        # If original_instructions is not None, convert it to a human-readable NamedSplit
+        if original_instructions is not None:
+            from .splits import Split
+
+            split = Split(str(original_instructions))
+        else:
+            split = None
+        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=split)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
@@ -554,7 +562,9 @@ class ReadInstruction(object):
                 from_ = str(from_) + unit if from_ is not None else ""
                 to = str(to) + unit if to is not None else ""
                 slice_str = f"[{from_}:{to}]"
-                rounding_str = f"({rounding})" if unit == "%" and rounding is not None else ""
+                rounding_str = (
+                    f"({rounding})" if unit == "%" and rounding is not None and rounding != "closest" else ""
+                )
                 rel_instr_spec += slice_str + rounding_str
             rel_instr_specs.append(rel_instr_spec)
         return "+".join(rel_instr_specs)

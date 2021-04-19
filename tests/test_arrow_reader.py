@@ -9,7 +9,7 @@ import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
 from datasets.info import DatasetInfo
-from datasets.splits import SplitDict, SplitInfo
+from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
@@ -54,16 +54,22 @@ class BaseReaderTest(TestCase):
             self.assertEqual(dset.num_rows, 33)
             self.assertEqual(dset.num_columns, 1)
 
-            instructions = ["train", "test[:33%]"]
-            datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
-            train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
-            self.assertEqual(train_dset["filename"][0], f"{name}-train")
-            self.assertEqual(train_dset.num_rows, 100)
-            self.assertEqual(train_dset.num_columns, 1)
-            self.assertEqual(test_dset["filename"][0], f"{name}-test")
-            self.assertEqual(test_dset.num_rows, 33)
-            self.assertEqual(test_dset.num_columns, 1)
-            del train_dset, test_dset
+            instructions1 = ["train", "test[:33%]"]
+            instructions2 = [Split.TRAIN, ReadInstruction.from_spec("test[:33%]")]
+            for instructions in [instructions1, instructions2]:
+                datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
+                train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
+                self.assertEqual(train_dset["filename"][0], f"{name}-train")
+                self.assertEqual(train_dset.num_rows, 100)
+                self.assertEqual(train_dset.num_columns, 1)
+                self.assertIsInstance(train_dset.split, NamedSplit)
+                self.assertEqual(str(train_dset.split), "train")
+                self.assertEqual(test_dset["filename"][0], f"{name}-test")
+                self.assertEqual(test_dset.num_rows, 33)
+                self.assertEqual(test_dset.num_columns, 1)
+                self.assertIsInstance(test_dset.split, NamedSplit)
+                self.assertEqual(str(test_dset.split), "test[:33%]")
+                del train_dset, test_dset
 
     def test_read_files(self):
         train_info = SplitInfo(name="train", num_examples=100)
@@ -80,7 +86,7 @@ class BaseReaderTest(TestCase):
                 {"filename": os.path.join(tmp_dir, "train")},
                 {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
             ]
-            dset = Dataset(**reader.read_files(files, original_instructions=""))
+            dset = Dataset(**reader.read_files(files, original_instructions="train+test[10:20]"))
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
             del dset
@@ -111,7 +117,7 @@ def test_read_files(in_memory, dataset, arrow_file):
 
 def test_read_instruction_spec():
     assert ReadInstruction("train", to=10, unit="abs").to_spec() == "train[:10]"
-    assert ReadInstruction("train", from_=-80, to=10, unit="%").to_spec() == "train[-80%:10%](closest)"
+    assert ReadInstruction("train", from_=-80, to=10, unit="%").to_spec() == "train[-80%:10%]"
 
     spec_train_test = "train+test"
     assert ReadInstruction.from_spec(spec_train_test).to_spec() == spec_train_test
@@ -120,7 +126,10 @@ def test_read_instruction_spec():
     assert ReadInstruction.from_spec(spec_train_abs).to_spec() == spec_train_abs
 
     spec_train_pct = "train[15%:-20%]"
-    assert ReadInstruction.from_spec(spec_train_pct).to_spec() == spec_train_pct + "(closest)"
+    assert ReadInstruction.from_spec(spec_train_pct).to_spec() == spec_train_pct
+
+    spec_train_pct_rounding = "train[:10%](closest)"
+    assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == "train[:10%]"
 
     spec_train_pct_rounding = "train[:10%](pct1_dropremainder)"
     assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == spec_train_pct_rounding
