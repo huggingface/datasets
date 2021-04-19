@@ -530,17 +530,30 @@ def test_concatenation_table_from_blocks_doesnt_increase_memory(
             assert table.blocks == blocks
 
 
-def test_concatenation_table_from_tables(in_memory_pa_table):
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     in_memory_table = InMemoryTable(in_memory_pa_table)
     concatenation_table = ConcatenationTable.from_blocks(in_memory_table)
+    memory_mapped_table = MemoryMappedTable.from_file(arrow_file)
+    tables = [in_memory_pa_table, in_memory_table, concatenation_table, memory_mapped_table]
+    if axis == 0:
+        expected_table = pa.concat_tables([in_memory_pa_table] * len(tables))
+    else:
+        expected_table = in_memory_pa_table
+        for _ in range(1, len(tables)):
+            for name, col in zip(in_memory_pa_table.column_names, in_memory_pa_table.columns):
+                expected_table = expected_table.append_column(name, col)
+
     with assert_arrow_memory_doesnt_increase():
-        table = ConcatenationTable.from_tables([in_memory_pa_table, in_memory_table, concatenation_table])
-        assert table.table == pa.concat_tables([in_memory_pa_table] * 3)
-        assert isinstance(table, ConcatenationTable)
-        assert len(table.blocks) == 1
-        assert all(len(tables) == 1 for tables in table.blocks)
-        assert all(isinstance(tables[0], InMemoryTable) for tables in table.blocks)
-        assert table.blocks[0][0].table == pa.concat_tables([in_memory_pa_table] * 3)
+        table = ConcatenationTable.from_tables(tables, axis=axis)
+    assert isinstance(table, ConcatenationTable)
+    assert table.table == expected_table
+    # because of consolidation, we end up with 1 InMemoryTable and 1 MemoryMappedTable
+    assert len(table.blocks) == 1 if axis == 1 else 2
+    assert len(table.blocks[0]) == 1 if axis == 0 else 2
+    assert axis == 1 or len(table.blocks[1]) == 1
+    assert isinstance(table.blocks[0][0], InMemoryTable)
+    assert isinstance(table.blocks[1][0] if axis == 0 else table.blocks[0][1], MemoryMappedTable)
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
