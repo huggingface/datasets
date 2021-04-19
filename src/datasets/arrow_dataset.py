@@ -192,14 +192,18 @@ def transmit_format(func):
 
 
 def update_metadata_with_features(table: Table, features: Features):
-    """Wrapper for dataset transforms that modify the features of the dataset, which makes it necessary to update the features stored in the metadata of its schema."""
-
-    if table.schema.metadata is not None:
+    """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
+    if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
+        pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
+    else:
         metadata = json.loads(table.schema.metadata["huggingface".encode("utf-8")].decode())
-        if "info" in metadata:
+        if "info" not in metadata:
+            metadata["info"] = asdict(DatasetInfo(features=features))
+        else:
             metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
-            new_schema = table.schema.with_metadata({"huggingface": json.dumps(metadata)})
-            table = table.cast(new_schema)
+        pa_metadata = {"huggingface": json.dumps(metadata)}
+    new_schema = table.schema.with_metadata(pa_metadata)
+    table = table.cast(new_schema)
     return table
 
 

@@ -3,7 +3,6 @@ import json
 import os
 import pickle
 import tempfile
-from dataclasses import asdict
 from functools import partial
 from unittest import TestCase
 
@@ -404,37 +403,6 @@ class BaseDatasetTest(TestCase):
             dset.set_format("numpy", columns=["col_1", "col_2"])
             self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
             del dset
-
-    def test_update_metadata_with_features(self, in_memory):
-        features = Features({"foo": Value("float64")})
-
-        @update_metadata_with_features
-        def update_features_inplace(dset):
-            dset.info.features = features
-
-        @update_metadata_with_features
-        def update_features(dset):
-            dset = copy.deepcopy(dset)
-            dset.info.features = features
-            return dset
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
-
-            # make sure the dataset has some features stored in the metadata
-            # otherwise the metadata will not be updated
-            metadata = {"info": {"features": asdict(dset.info)["features"]}}
-            schema = dset._data.schema
-            dset._data = dset._data.cast(schema.with_metadata({"huggingface": json.dumps(metadata)}))
-
-            new_dset = update_features(dset)
-            metadata = json.loads(new_dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
-            self.assertEqual(features, Features.from_dict(metadata["info"]["features"]))
-            update_features_inplace(dset)
-            metadata = json.loads(dset._data.schema.metadata["huggingface".encode("utf-8")].decode())
-            self.assertEqual(features, Features.from_dict(metadata["info"]["features"]))
-            del dset
-            del new_dset
 
     def test_cast_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1938,6 +1906,22 @@ class MiscellaneousDatasetTest(TestCase):
 
         dset.set_transform(transform=encode)
         self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+def test_update_metadata_with_features(dataset_dict):
+    table1 = pa.Table.from_pydict(dataset_dict)
+    features1 = Features.from_arrow_schema(table1.schema)
+    features2 = features1.copy()
+    features2["col_2"] = ClassLabel(num_classes=len(table1))
+    assert features1 != features2
+
+    table2 = update_metadata_with_features(table1, features2)
+    metadata = json.loads(table2.schema.metadata["huggingface".encode("utf-8")].decode())
+    assert features2 == Features.from_dict(metadata["info"]["features"])
+
+    with Dataset(table1) as dset1, Dataset(table2) as dset2:
+        assert dset1.features == features1
+        assert dset2.features == features2
 
 
 @pytest.mark.parametrize("dataset_type", ["in_memory", "memory_mapped", "mixed"])
