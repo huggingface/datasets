@@ -36,7 +36,7 @@ from .utils import cached_path, logging
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
-    from .splits import Split
+    from .splits import Split  # noqa: F401
 
 
 logger = logging.get_logger(__name__)
