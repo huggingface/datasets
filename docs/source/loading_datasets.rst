@@ -68,7 +68,8 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
     (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_datasets` to ``True``.
     The default in 🤗Datasets is to memory-map the dataset on drive if its size is larger than
     ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (default ``250`` MiB); otherwise, the dataset is copied
-    in-memory. This behavior can be disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``.
+    in-memory. This behavior can be disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``,
+    and in this case the dataset is not loaded in memory.
 
 3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 

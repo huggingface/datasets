@@ -688,7 +688,8 @@ def load_dataset(
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
             dataset will be copied in-memory if its size is smaller than
             `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
-            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``.
+            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is not
+            loaded in memory.
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
@@ -775,7 +776,8 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
             dataset will be copied in-memory if its size is smaller than
             `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
-            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``.
+            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is
+            not loaded in memory.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
