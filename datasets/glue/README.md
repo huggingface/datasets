@@ -143,7 +143,7 @@ The Recognizing Textual Entailment (RTE) datasets come from a series of annual t
 
 #### sst2
 
-The Stanford Sentiment Treebank consists of sentences from movie reviews and human annotations of their sentiment. The task is to predict the sentiment of a given sentence. The authors of the benchmark use the two-way (positive/negative) class split, and use only sentence-level labels.
+The Stanford Sentiment Treebank consists of sentences from movie reviews and human annotations of their sentiment. The task is to predict the sentiment of a given sentence. It uses the two-way (positive/negative) class split, with only sentence-level labels.
 
 #### stsb
 
