@@ -1213,9 +1213,9 @@ class BaseDatasetTest(TestCase):
 
                             self.assertEqual(dset._indices["indices"].to_pylist(), [1])
                             if not in_memory:
-                                self.assertEqual(
+                                self.assertIn(
+                                    ("rename_columns", (["file", "number"],), {}),
                                     dset._data.replays,
-                                    [("rename_columns", (["file", "number"],), {})],
                                 )
                             if not in_memory:
                                 dset._data.table = Unpicklable()  # check that we don't pickle the entire table
