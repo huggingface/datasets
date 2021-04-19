@@ -760,14 +760,12 @@ class ConcatenationTable(Table):
         blocks = []
         for subtables in self.blocks:
             new_tables = []
+            fields = list(target_schema)
             for subtable in subtables:
-                subschema = pa.schema(
-                    {
-                        name: type
-                        for (type, name) in zip(target_schema.types, target_schema.names)
-                        if name in subtable.schema.names
-                    }
-                )
+                subfields = []
+                for name in subtable.column_names:
+                    subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
+                subschema = pa.schema(subfields)
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
