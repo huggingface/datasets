@@ -14,7 +14,6 @@
 # limitations under the License.
 """NFH: Numeric Fused-Heads."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json

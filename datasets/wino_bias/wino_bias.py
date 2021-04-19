@@ -14,7 +14,6 @@
 # limitations under the License.
 """WinoBias: Winograd-schema dataset for detecting gender bias"""
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 

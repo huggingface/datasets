@@ -14,7 +14,6 @@
 # limitations under the License.
 """Sentiment lexicons for 81 languages generated via graph propagation based on a knowledge graph--a graphical representation of real-world entities and the links between them"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

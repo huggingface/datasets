@@ -18,11 +18,13 @@ import glob
 import importlib
 import inspect
 import os
+import re
 from contextlib import contextmanager
 from functools import wraps
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 from absl.testing import parameterized
 
 import datasets
@@ -167,3 +169,11 @@ def patch_comet(module_name):
     with patch("comet.models.download_model") as mock_download_model:
         mock_download_model.side_effect = download_model
         yield
+
+
+def test_seqeval_raises_when_incorrect_scheme():
+    metric = load_metric("./metrics/seqeval")
+    wrong_scheme = "ERROR"
+    error_message = f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {wrong_scheme}"
+    with pytest.raises(ValueError, match=re.escape(error_message)):
+        metric.compute(predictions=[], references=[], scheme=wrong_scheme)

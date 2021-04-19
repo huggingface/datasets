@@ -63,7 +63,7 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
-class DownloadManager(object):
+class DownloadManager:
     def __init__(
         self,
         dataset_name: Optional[str] = None,

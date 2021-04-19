@@ -22,7 +22,7 @@ import contextlib
 from tqdm import auto as tqdm_lib
 
 
-class EmptyTqdm(object):
+class EmptyTqdm:
     """Dummy tqdm which doesn't do anything."""
 
     def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -102,7 +102,7 @@ def _async_tqdm(*args, **kwargs):
         print()  # Avoid the next log to overlapp with the bar
 
 
-class _TqdmPbarAsync(object):
+class _TqdmPbarAsync:
     """Wrapper around Tqdm pbar which be shared between thread."""
 
     _tqdm_bars = []

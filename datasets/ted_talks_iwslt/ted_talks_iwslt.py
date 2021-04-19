@@ -14,7 +14,6 @@
 # limitations under the License.
 """TED TALKS IWSLT: Web Inventory of Transcribed and Translated Ted Talks in 109 languages."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import xml.etree.ElementTree as ET

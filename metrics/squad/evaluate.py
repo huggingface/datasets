@@ -1,5 +1,4 @@
 """ Official evaluation script for v1.1 of the SQuAD dataset. """
-from __future__ import print_function
 
 import argparse
 import json

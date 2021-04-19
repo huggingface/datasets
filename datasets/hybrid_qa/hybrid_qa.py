@@ -14,7 +14,6 @@
 # limitations under the License.
 """HybridQA: A Dataset of Multi-Hop Question Answering over Tabular and Textual Data"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

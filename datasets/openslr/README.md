@@ -4,6 +4,10 @@ annotations_creators:
 language_creators:
 - found
 languages:
+  SLR35:
+  - jv
+  SLR36:
+  - su
   SLR41:
   - jv
   SLR42:
@@ -22,6 +26,30 @@ languages:
   - te
   SLR69:
   - ca
+  SLR70:
+  - ng
+  SLR71:
+  - cl
+  SLR72:
+  - co
+  SLR73:
+  - pe
+  SLR74:
+  - pr
+  SLR75:
+  - ve
+  SLR76:
+  - eu
+  SLR77:
+  - gl
+  SLR78:
+  - gu
+  SLR79:
+  - kn
+  SLR80:
+  - my
+  SLR86:
+  - yo
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -74,6 +102,35 @@ task_ids:
 
 OpenSLR is a site devoted to hosting speech and language resources, such as training corpora for speech recognition, 
 and software related to speech recognition. Currently, following resources are available: 
+
+#### SLR35: Large Javanese ASR training data set.
+This data set contains transcribed audio data for Javanese (~185K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+This dataset was collected by Google in collaboration with Reykjavik University and Universitas Gadjah Mada 
+in Indonesia.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/35/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017 Google, Inc.
+
+#### SLR36: Large Sundanese ASR training data set.
+This data set contains transcribed audio data for Sundanese (~220K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+This dataset was collected by Google in Indonesia.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/36/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017 Google, Inc.
 
 #### SLR41: High quality TTS data for Javanese.
 This data set contains high-quality transcribed audio data for Javanese. The data set consists of wave files, 
@@ -209,6 +266,186 @@ https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
+#### SLR70: Crowdsourced high-quality Nigerian English speech data set
+This data set contains transcribed high-quality audio of Nigerian English sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/70/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR71: Crowdsourced high-quality Chilean Spanish speech data set
+This data set contains transcribed high-quality audio of Chilean Spanish sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/71/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR72: Crowdsourced high-quality Columbian Spanish speech data set
+This data set contains transcribed high-quality audio of Columbian Spanish sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/72/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR73: Crowdsourced high-quality Peruvian Spanish speech data set
+This data set contains transcribed high-quality audio of Peruvian Spanish sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/73/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR74: Crowdsourced high-quality Puerto Rico Spanish speech data set
+This data set contains transcribed high-quality audio of Puerto Rico Spanish sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/74/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR75: Crowdsourced high-quality Venezuelan Spanish speech data set
+This data set contains transcribed high-quality audio of Venezuelan Spanish sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/75/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR76: Crowdsourced high-quality Basque speech data set
+This data set contains transcribed high-quality audio of Basque sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/76/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR77: Crowdsourced high-quality Galician speech data set
+This data set contains transcribed high-quality audio of Galician sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/77/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR78: Crowdsourced high-quality Gujarati multi-speaker speech data set
+This data set contains transcribed high-quality audio of Gujarati sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/78/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR79: Crowdsourced high-quality Kannada multi-speaker speech data set
+This data set contains transcribed high-quality audio of Kannada sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/79/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR80: Crowdsourced high-quality Burmese speech data set
+This data set contains transcribed high-quality audio of Burmese sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/80/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR86: Crowdsourced high-quality  multi-speaker speech data set
+This data set contains transcribed high-quality audio of  sentences recorded by volunteers. The data set 
+consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
+the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+Please report any issues in the following issue tracker on GitHub. https://github.com/googlei18n/language-resources/issues
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/86/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019, 2020 Google, Inc.
+
 ### Supported Tasks and Leaderboards
 
 [Needs More Information]
@@ -223,7 +460,7 @@ Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan
 
 A typical data point comprises the path to the audio file, called path and its sentence. 
 
-#### SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69  
+#### SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
 ```
 {
   'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
@@ -297,6 +534,20 @@ The speech material has only train dataset.
 
 ### Citation Information
 
+#### SLR35, SLR36
+```
+@inproceedings{kjartansson-etal-sltu2018,
+    title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
+    author = {Oddur Kjartansson and Supheakmungkol Sarin and Knot Pipatsrisawat and Martin Jansche and Linne Ha},
+    booktitle = {Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)},
+    year  = {2018},
+    address = {Gurugram, India},
+    month = aug,
+    pages = {52--55},
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-11},
+}
+```
+
 #### SLR41, SLR42, SLR43, SLR44 
 ```
 @inproceedings{kjartansson-etal-tts-sltu2018,
@@ -307,11 +558,11 @@ The speech material has only train dataset.
     address = {Gurugram, India},
     month = aug,
     pages = {66--70},
-    URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-14}
 }
 ```
 
-#### SLR63, SLR64, SLR65, SLR66
+#### SLR63, SLR64, SLR65, SLR66, SLR78, SLR79
 ```
 @inproceedings{he-etal-2020-open,
   title = {{Open-source Multi-speaker Speech Corpora for Building Gujarati, Kannada, Malayalam, Marathi, Tamil and Telugu Speech Synthesis Systems}},
@@ -327,7 +578,7 @@ The speech material has only train dataset.
 }
 ```
 
-#### SLR69
+#### SLR69, SLR76, SLR77
 ```
 @inproceedings{kjartansson-etal-2020-open,
     title = {{Open-Source High Quality Speech Datasets for Basque, Catalan and Galician}},
@@ -343,6 +594,53 @@ The speech material has only train dataset.
 }
 ```
 
+#### SLR71, SLR71, SLR72, SLR73, SLR74, SLR75
+```
+@inproceedings{guevara-rukoz-etal-2020-crowdsourcing,
+    title = {{Crowdsourcing Latin American Spanish for Low-Resource Text-to-Speech}},
+    author = {Guevara-Rukoz, Adriana and Demirsahin, Isin and He, Fei and Chu, Shan-Hui Cathy and Sarin, Supheakmungkol and Pipatsrisawat, Knot and Gutkin, Alexander and Butryna, Alena and Kjartansson, Oddur},
+    booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+    year = {2020},
+    month = may,
+    address = {Marseille, France},
+    publisher = {European Language Resources Association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.lrec-1.801},
+    pages = {6504--6513},
+    ISBN = {979-10-95546-34-4},
+}
+```
+
+#### SLR80
+```
+@inproceedings{oo-etal-2020-burmese,
+    title = {{Burmese Speech Corpus, Finite-State Text Normalization and Pronunciation Grammars with an Application to Text-to-Speech}},
+    author = {Oo, Yin May and Wattanavekin, Theeraphol and Li, Chenfang and De Silva, Pasindu and Sarin, Supheakmungkol and Pipatsrisawat, Knot and Jansche, Martin and Kjartansson, Oddur and Gutkin, Alexander},
+    booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+    month = may,
+    year = {2020},
+    pages = "6328--6339",
+    address = {Marseille, France},
+    publisher = {European Language Resources Association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.lrec-1.777},
+    ISBN = {979-10-95546-34-4},
+}
+```
+
+#### SLR86
+```
+@inproceedings{gutkin-et-al-yoruba2020,
+    title = {{Developing an Open-Source Corpus of Yoruba Speech}},
+    author = {Alexander Gutkin and I{\c{s}}{\i}n Demir{\c{s}}ahin and Oddur Kjartansson and Clara Rivera and K\d{\'o}lá Túb\d{\`o}sún},
+    booktitle = {Proceedings of Interspeech 2020},
+    pages = {404--408},
+    month = {October},
+    year = {2020},
+    address = {Shanghai, China},
+    publisher = {International Speech and Communication Association (ISCA)},
+    doi = {10.21437/Interspeech.2020-1096},
+    url = {https://dx.doi.org/10.21437/Interspeech.2020-1096},
+}
+```
 ### Contributions
 
 Thanks to [@cahya-wirawan](https://github.com/cahya-wirawan) for adding this dataset.

@@ -161,7 +161,7 @@ Now that your dataset script runs and create a dataset with the format you expec
 
 1. To create the dummy data for continuous testing, there is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
 
-If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
+   If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 	```bash
 	datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
@@ -173,16 +173,15 @@ If the extensions of the raw data files of your dataset are in this list, then y
 	datasets-cli dummy_data ./datasets/snli --auto_generate
 	```
 
-If your data files are not in the supported format, you can run the same command without the `--auto_generate` flag. It should give you instructions on the files to manually create (basically, the same ones as for the real dataset but with only five items).
+    If your data files are not in the supported format, you can run the same command without the `--auto_generate` flag. It should give you instructions on the files to manually create (basically, the same ones as for the real dataset but with only five items).
 	
 	```bash
 	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 
-If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
+   If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
 
-If you've been fighting with dummy data creation without success for some time and can't seems to make it work:
-Go to the next step (open a Pull Request) and we'll help you cross the finish line 🙂
+   If you've been fighting with dummy data creation without success for some time and can't seems to make it work: Go to the next step (open a Pull Request) and we'll help you cross the finish line 🙂.
 
 2. Now test that both the real data and the dummy data work correctly using the following commands:
 

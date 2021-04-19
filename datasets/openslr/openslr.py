@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import re
+from pathlib import Path
 
 import datasets
 
@@ -25,6 +26,18 @@ import datasets
 _DATA_URL = "https://openslr.org/resources/{}"
 
 _CITATION = """\
+SLR35, SLR36:
+@inproceedings{kjartansson-etal-sltu2018,
+    title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
+    author = {Oddur Kjartansson and Supheakmungkol Sarin and Knot Pipatsrisawat and Martin Jansche and Linne Ha},
+    booktitle = {Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)},
+    year  = {2018},
+    address = {Gurugram, India},
+    month = aug,
+    pages = {52--55},
+    URL   = {http://dx.doi.org/10.21437/SLTU.2018-11},
+}
+
 SLR41, SLR42, SLR43, SLR44:
 @inproceedings{kjartansson-etal-tts-sltu2018,
     title = {{A Step-by-Step Process for Building TTS Voices Using Open Source Data and Framework for Bangla, Javanese, Khmer, Nepali, Sinhala, and Sundanese}},
@@ -37,7 +50,7 @@ SLR41, SLR42, SLR43, SLR44:
     URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
 }
 
-SLR63, SLR64, SLR65, SLR66:
+SLR63, SLR64, SLR65, SLR66, SLR78, SLR79:
 @inproceedings{he-etal-2020-open,
   title = {{Open-source Multi-speaker Speech Corpora for Building Gujarati, Kannada, Malayalam, Marathi, Tamil and Telugu Speech Synthesis Systems}},
   author = {He, Fei and Chu, Shan-Hui Cathy and Kjartansson, Oddur and Rivera, Clara and Katanova, Anna and Gutkin, Alexander and Demirsahin, Isin and Johny, Cibu and Jansche, Martin and Sarin, Supheakmungkol and Pipatsrisawat, Knot},
@@ -51,7 +64,7 @@ SLR63, SLR64, SLR65, SLR66:
   ISBN = "{979-10-95546-34-4},
 }
 
-SLR69:
+SLR69, SLR76, SLR77:
 @inproceedings{kjartansson-etal-2020-open,
     title = {{Open-Source High Quality Speech Datasets for Basque, Catalan and Galician}},
     author = {Kjartansson, Oddur and Gutkin, Alexander and Butryna, Alena and Demirsahin, Isin and Rivera, Clara},
@@ -63,6 +76,48 @@ SLR69:
     publisher = {European Language Resources association (ELRA)},
     url = {https://www.aclweb.org/anthology/2020.sltu-1.3},
     ISBN = {979-10-95546-35-1},
+}
+
+SLR71, SLR71, SLR72, SLR73, SLR74, SLR75:
+@inproceedings{guevara-rukoz-etal-2020-crowdsourcing,
+    title = {{Crowdsourcing Latin American Spanish for Low-Resource Text-to-Speech}},
+    author = {Guevara-Rukoz, Adriana and Demirsahin, Isin and He, Fei and Chu, Shan-Hui Cathy and Sarin, Supheakmungkol and Pipatsrisawat, Knot and Gutkin, Alexander and Butryna, Alena and Kjartansson, Oddur},
+    booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+    year = {2020},
+    month = may,
+    address = {Marseille, France},
+    publisher = {European Language Resources Association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.lrec-1.801},
+    pages = {6504--6513},
+    ISBN = {979-10-95546-34-4},
+}
+
+SLR80
+@inproceedings{oo-etal-2020-burmese,
+    title = {{Burmese Speech Corpus, Finite-State Text Normalization and Pronunciation Grammars with an Application to Text-to-Speech}},
+    author = {Oo, Yin May and Wattanavekin, Theeraphol and Li, Chenfang and De Silva, Pasindu and Sarin, Supheakmungkol and Pipatsrisawat, Knot and Jansche, Martin and Kjartansson, Oddur and Gutkin, Alexander},
+    booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+    month = may,
+    year = {2020},
+    pages = "6328--6339",
+    address = {Marseille, France},
+    publisher = {European Language Resources Association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.lrec-1.777},
+    ISBN = {979-10-95546-34-4},
+}
+
+SLR86
+@inproceedings{gutkin-et-al-yoruba2020,
+    title = {{Developing an Open-Source Corpus of Yoruba Speech}},
+    author = {Alexander Gutkin and Işın Demirşahin and Oddur Kjartansson and Clara Rivera and Kọ́lá Túbọ̀sún},
+    booktitle = {Proceedings of Interspeech 2020},
+    pages = {404--408},
+    month = {October},
+    year = {2020},
+    address = {Shanghai, China},
+    publisher = {International Speech and Communication Association (ISCA)},
+    doi = {10.21437/Interspeech.2020-1096},
+    url = {https://dx.doi.org/10.21437/Interspeech.2020-1096},
 }
 """
 
@@ -77,6 +132,58 @@ _HOMEPAGE = "https://openslr.org/"
 _LICENSE = ""
 
 _RESOURCES = {
+    "SLR35": {
+        "Language": "Javanese",
+        "LongName": "Large Javanese ASR training data set",
+        "Category": "Speech",
+        "Summary": "Javanese ASR training data set containing ~185K utterances",
+        "Files": [
+            "asr_javanese_0.zip",
+            "asr_javanese_1.zip",
+            "asr_javanese_2.zip",
+            "asr_javanese_3.zip",
+            "asr_javanese_4.zip",
+            "asr_javanese_5.zip",
+            "asr_javanese_6.zip",
+            "asr_javanese_7.zip",
+            "asr_javanese_8.zip",
+            "asr_javanese_9.zip",
+            "asr_javanese_a.zip",
+            "asr_javanese_b.zip",
+            "asr_javanese_c.zip",
+            "asr_javanese_d.zip",
+            "asr_javanese_e.zip",
+            "asr_javanese_f.zip",
+        ],
+        "IndexFiles": ["asr_javanese/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_javanese/data"] * 16,
+    },
+    "SLR36": {
+        "Language": "Sundanese",
+        "LongName": "Large Sundanese ASR training data set",
+        "Category": "Speech",
+        "Summary": "Sundanese ASR training data set containing ~220K utterances",
+        "Files": [
+            "asr_sundanese_0.zip",
+            "asr_sundanese_1.zip",
+            "asr_sundanese_2.zip",
+            "asr_sundanese_3.zip",
+            "asr_sundanese_4.zip",
+            "asr_sundanese_5.zip",
+            "asr_sundanese_6.zip",
+            "asr_sundanese_7.zip",
+            "asr_sundanese_8.zip",
+            "asr_sundanese_9.zip",
+            "asr_sundanese_a.zip",
+            "asr_sundanese_b.zip",
+            "asr_sundanese_c.zip",
+            "asr_sundanese_d.zip",
+            "asr_sundanese_e.zip",
+            "asr_sundanese_f.zip",
+        ],
+        "IndexFiles": ["asr_sundanese/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_sundanese/data"] * 16,
+    },
     "SLR41": {
         "Language": "Javanese",
         "LongName": "High quality TTS data for Javanese",
@@ -155,6 +262,114 @@ _RESOURCES = {
         "Category": "Speech",
         "Summary": "Data set which contains recordings of Catalan",
         "Files": ["ca_es_female.zip", "ca_es_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR70": {
+        "Language": "Nigerian English",
+        "LongName": "Crowdsourced high-quality Nigerian English speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Nigerian English",
+        "Files": ["en_ng_female.zip", "en_ng_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR71": {
+        "Language": "Chilean Spanish",
+        "LongName": "Crowdsourced high-quality Chilean Spanish speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Chilean Spanish",
+        "Files": ["es_cl_female.zip", "es_cl_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR72": {
+        "Language": "Columbian Spanish",
+        "LongName": "Crowdsourced high-quality Columbian Spanish speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Columbian Spanish",
+        "Files": ["es_co_female.zip", "es_co_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR73": {
+        "Language": "Peruvian Spanish",
+        "LongName": "Crowdsourced high-quality Peruvian Spanish speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Peruvian Spanish",
+        "Files": ["es_pe_female.zip", "es_pe_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR74": {
+        "Language": "Puerto Rico Spanish",
+        "LongName": "Crowdsourced high-quality Puerto Rico Spanish speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Puerto Rico Spanish",
+        "Files": ["es_pr_female.zip"],
+        "IndexFiles": ["line_index.tsv"],
+        "DataDirs": [""],
+    },
+    "SLR75": {
+        "Language": "Venezuelan Spanish",
+        "LongName": "Crowdsourced high-quality Venezuelan Spanish speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Venezuelan Spanish",
+        "Files": ["es_ve_female.zip", "es_ve_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR76": {
+        "Language": "Basque",
+        "LongName": "Crowdsourced high-quality Basque speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Basque",
+        "Files": ["eu_es_female.zip", "eu_es_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR77": {
+        "Language": "Galician",
+        "LongName": "Crowdsourced high-quality Galician speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Galician",
+        "Files": ["gl_es_female.zip", "gl_es_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR78": {
+        "Language": "Gujarati",
+        "LongName": "Crowdsourced high-quality Gujarati multi-speaker speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of native speakers of Gujarati",
+        "Files": ["gu_in_female.zip", "gu_in_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR79": {
+        "Language": "Kannada",
+        "LongName": "Crowdsourced high-quality Kannada multi-speaker speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of native speakers of Kannada",
+        "Files": ["kn_in_female.zip", "kn_in_male.zip"],
+        "IndexFiles": ["line_index.tsv", "line_index.tsv"],
+        "DataDirs": ["", ""],
+    },
+    "SLR80": {
+        "Language": "Burmese",
+        "LongName": "Crowdsourced high-quality Burmese speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Burmese",
+        "Files": ["my_mm_female.zip"],
+        "IndexFiles": ["line_index.tsv"],
+        "DataDirs": [""],
+    },
+    "SLR86": {
+        "Language": "Yoruba",
+        "LongName": "Crowdsourced high-quality Yoruba speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains recordings of Yoruba",
+        "Files": ["yo_ng_female.zip", "yo_ng_male.zip"],
         "IndexFiles": ["line_index.tsv", "line_index.tsv"],
         "DataDirs": ["", ""],
     },
@@ -239,18 +454,36 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         counter = -1
-        for i, path in enumerate(path_to_indexs):
-            with open(path, encoding="utf-8") as f:
-                lines = f.readlines()
-                for id_, line in enumerate(lines):
-                    # Following regexs are needed to normalise the lines, since the datasets
-                    # are not always consistent and have bugs:
-                    line = re.sub(r"\t[^\t]*\t", "\t", line.strip())
-                    field_values = re.split(r"\t\t?", line)
-                    if len(field_values) != 2:
+        if self.config.name in ["SLR35", "SLR36"]:
+            sentence_index = {}
+            for i, path_to_index in enumerate(path_to_indexs):
+                with open(path_to_index, encoding="utf-8") as f:
+                    lines = f.readlines()
+                    for id_, line in enumerate(lines):
+                        field_values = re.split(r"\t\t?", line.strip())
+                        filename, user_id, sentence = field_values
+                        sentence_index[filename] = sentence
+                for path_to_data in sorted(Path(path_to_datas[i]).rglob("*.flac")):
+                    filename = path_to_data.stem
+                    if path_to_data.stem not in sentence_index:
                         continue
-                    filename, sentence = field_values
-                    # set absolute path for audio file
-                    path = os.path.join(path_to_datas[i], f"{filename}.wav")
+                    path = str(path_to_data.resolve())
+                    sentence = sentence_index[filename]
                     counter += 1
                     yield counter, {"path": path, "sentence": sentence}
+        else:
+            for i, path_to_index in enumerate(path_to_indexs):
+                with open(path_to_index, encoding="utf-8") as f:
+                    lines = f.readlines()
+                    for id_, line in enumerate(lines):
+                        # Following regexs are needed to normalise the lines, since the datasets
+                        # are not always consistent and have bugs:
+                        line = re.sub(r"\t[^\t]*\t", "\t", line.strip())
+                        field_values = re.split(r"\t\t?", line)
+                        if len(field_values) != 2:
+                            continue
+                        filename, sentence = field_values
+                        # set absolute path for audio file
+                        path = os.path.join(path_to_datas[i], f"{filename}.wav")
+                        counter += 1
+                        yield counter, {"path": path, "sentence": sentence}

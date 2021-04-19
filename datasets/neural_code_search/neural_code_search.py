@@ -14,7 +14,6 @@
 # limitations under the License.
 """Neural-Code-Search-Evaluation-Dataset presents an evaluation dataset consisting of natural language query and code snippet pairs"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

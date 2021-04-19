@@ -14,7 +14,6 @@
 # limitations under the License.
 """Automated Hate Speech Detection and the Problem of Offensive Language."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

@@ -92,7 +92,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
     }
 
 
-class DatasetTester(object):
+class DatasetTester:
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
 
@@ -415,7 +415,7 @@ class TextTest(TestCase):
                 split="train",
                 keep_in_memory=False,
             )
-            data_file = ds.cache_files[0]
+            data_file = ds.cache_files[0]["filename"]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_samples)
             del ds
@@ -426,7 +426,7 @@ class TextTest(TestCase):
                 split="train",
                 keep_in_memory=False,
             )
-            self.assertEqual(ds.cache_files[0], data_file)
+            self.assertEqual(ds.cache_files[0]["filename"], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
 
@@ -440,7 +440,7 @@ class TextTest(TestCase):
                 split="train",
                 keep_in_memory=False,
             )
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_samples)
             del ds
@@ -465,7 +465,7 @@ class CsvTest(TestCase):
                 split="train",
                 keep_in_memory=False,
             )
-            data_file = ds.cache_files[0]
+            data_file = ds.cache_files[0]["filename"]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
@@ -476,7 +476,7 @@ class CsvTest(TestCase):
                 split="train",
                 keep_in_memory=False,
             )
-            self.assertEqual(ds.cache_files[0], data_file)
+            self.assertEqual(ds.cache_files[0]["filename"], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
             ds = load_dataset(
@@ -487,7 +487,7 @@ class CsvTest(TestCase):
                 features=features,
                 keep_in_memory=False,
             )
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             del ds
 
@@ -501,7 +501,7 @@ class CsvTest(TestCase):
                 split="train",
                 keep_in_memory=False,
             )
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
             del ds

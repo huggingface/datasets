@@ -14,7 +14,6 @@
 # limitations under the License.
 """Fake News vs Satire: A Dataset and Analysis."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

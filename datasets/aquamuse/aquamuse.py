@@ -14,7 +14,6 @@
 # limitations under the License.
 """AQuaMuSe is a novel scalable approach to automatically mine dual query based multi-document summarization datasets for extractive and abstractive summaries using question answering dataset (Google Natural Questions) and large document corpora (Common Crawl)"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 from os import listdir

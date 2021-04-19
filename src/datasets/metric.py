@@ -62,7 +62,7 @@ class FileFreeLock(BaseFileLock):
         self._lock_file_fd = None
 
 
-class MetricInfoMixin(object):
+class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
     """
