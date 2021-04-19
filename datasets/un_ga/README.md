@@ -5,56 +5,56 @@ language_creators:
 - found
 languages:
   ar-to-en:
-    - ar
-    - en
+  - ar
+  - en
   ar-to-es:
-    - ar
-    - es
+  - ar
+  - es
   ar-to-fr:
-    - ar
-    - fr
+  - ar
+  - fr
   ar-to-ru:
-    - ar
-    - ru
+  - ar
+  - ru
   ar-to-zh:
-    - ar
-    - zh
+  - ar
+  - zh
   en-to-es:
-    - en
-    - es
+  - en
+  - es
   en-to-fr:
-    - en
-    - fr
+  - en
+  - fr
   en-to-ru:
-    - en
-    - ru
+  - en
+  - ru
   en-to-zh:
-    - en
-    - zh
+  - en
+  - zh
   es-to-fr:
-    - es
-    - fr
+  - es
+  - fr
   es-to-ru:
-    - es
-    - ru
+  - es
+  - ru
   es-to-zh:
-    - es
-    - zh
+  - es
+  - zh
   fr-to-ru:
-    - fr
-    - ru
+  - fr
+  - ru
   fr-to-zh:
-    - fr
-    - zh
+  - fr
+  - zh
   ru-to-zh:
-    - ru
-    - zh
+  - ru
+  - zh
 licenses:
 - unknown
 multilinguality:
 - translation
 size_categories:
-- n>10M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -87,6 +87,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -186,3 +187,6 @@ language = "English",
 booktitle = "MT Summit XII proceedings",
 publisher = "International Association of Machine Translation",
 }
+### Contributions
+
+Thanks to [@param087](https://github.com/param087) for adding this dataset.

@@ -10,7 +10,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  nell_belief:
+  - 1M<n<10M
+  nell_belief_sentences:
+  - 10M<n<100M
+  nell_candidate:
+  - 10M<n<100M
+  nell_candidate_sentences:
+  - 100M<n<1B
 source_datasets:
 - original
 task_categories:
@@ -46,6 +53,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -242,3 +250,7 @@ There does not appear to be a license on http://rtw.ml.cmu.edu/rtw/resources. Th
   year = 2015
 }
 
+
+### Contributions
+
+Thanks to [@ontocord](https://github.com/ontocord) for adding this dataset.

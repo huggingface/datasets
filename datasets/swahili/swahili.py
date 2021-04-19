@@ -19,7 +19,6 @@ test partitions respectively which represent the ratio 80:10:10.
 The entire dataset is lowercased, has no punctuation marks and,
 the start and end of sentence markers have been incorporated to facilitate easy tokenization during language modelling."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

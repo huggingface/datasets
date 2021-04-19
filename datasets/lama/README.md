@@ -14,7 +14,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  conceptnet:
+  - 10K<n<100K
+  google_re:
+  - 1K<n<10K
+  squad:
+  - n<1K
+  trex:
+  - 1M<n<10M
 source_datasets:
 - extended|conceptnet5
 - extended|squad
@@ -50,6 +57,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -268,3 +276,7 @@ The Creative Commons Attribution-Noncommercial 4.0 International License. see ht
   url={https://openreview.net/forum?id=025X0zPfn}
 }
 
+
+### Contributions
+
+Thanks to [@ontocord](https://github.com/ontocord) for adding this dataset.

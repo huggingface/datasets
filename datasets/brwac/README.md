@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -76,8 +77,8 @@ An example from the BrWaC dataset looks as follows:
 ```
 {
   "doc_id": "netg-1afc73",
-  "paragraphs": {
-    "sentences": [
+  "text": {
+    "paragraphs": [
       [
         "Conteúdo recente"
       ],
@@ -113,7 +114,7 @@ An example from the BrWaC dataset looks as follows:
 - `doc_id`: The document ID
 - `title`: The document title
 - `uri`: URI where the document was extracted from
-- `paragraphs`: A list of document paragraphs (with a list of sentences in it as a list of strings)
+- `text`: A list of document paragraphs (with a list of sentences in it as a list of strings)
 
 ### Data Splits
 
@@ -183,3 +184,7 @@ The data is only split into train set with size of 3530796 samples.
   year={2018}
 }
 ```
+
+### Contributions
+
+Thanks to [@jonatasgrosman](https://github.com/jonatasgrosman) for adding this dataset.

@@ -8,7 +8,7 @@ licenses:
 - unknown
 multilinguality: []
 size_categories:
-- n<1K
+- 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
@@ -41,6 +41,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -152,3 +153,7 @@ Train and Test
     year = {2009}
 }
 ```
+
+### Contributions
+
+Thanks to [@czabo](https://github.com/czabo) for adding this dataset.

@@ -14,12 +14,13 @@
 # limitations under the License.
 """OneStopEnglish Corpus: Dataset of texts classified into reading levels/text complexities."""
 
-from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -92,7 +93,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
                     text = myfile.read().strip()
                     ele_samples.append(text)
             except Exception as e:
-                logging.info("Error with:", os.path.join(dir_path, f), e)
+                logger.info("Error with:", os.path.join(dir_path, f), e)
 
         int_samples = []
         dir_path = os.path.join(data_dir, "Int-Txt")
@@ -103,7 +104,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
                     text = myfile.read().strip()
                     int_samples.append(text)
             except Exception as e:
-                logging.info("Error with:", os.path.join(dir_path, f), e)
+                logger.info("Error with:", os.path.join(dir_path, f), e)
 
         adv_samples = []
         dir_path = os.path.join(data_dir, "Adv-Txt")
@@ -114,7 +115,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
                     text = myfile.read().strip()
                     adv_samples.append(text)
             except Exception as e:
-                logging.info("Error with:", os.path.join(dir_path, f), e)
+                logger.info("Error with:", os.path.join(dir_path, f), e)
 
         train_samples = ele_samples + int_samples + adv_samples
         train_labels = (["ele"] * len(ele_samples)) + (["int"] * len(int_samples)) + (["adv"] * len(adv_samples))

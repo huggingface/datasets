@@ -49,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -237,3 +238,7 @@ This benchmark dataset currently consists of a single data split `test` that con
       primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@tdiggelm](https://github.com/tdiggelm) for adding this dataset.

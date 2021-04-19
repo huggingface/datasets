@@ -16,7 +16,6 @@
 # Lint as: python3
 """Snips built in intents (2016-12-built-in-intents) dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

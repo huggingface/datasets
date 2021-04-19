@@ -1,5 +1,17 @@
 # How to contribute to Datasets?
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
+Datasets is an open source project, so all contributions and suggestions are welcome.
+
+You can contribute in many different ways: giving ideas, answering questions, reporting bugs, proposing enhancements, 
+improving the documentation, fixing bugs,...
+
+Many thanks in advance to every contributor.
+
+In order to facilitate healthy, constructive behavior in an open and inclusive community, we all respect and abide by 
+our [code of conduct](CODE_OF_CONDUCT.md).
+
+## How to create a Pull Request?
 1. Fork the [repository](https://github.com/huggingface/datasets) by clicking on the 'Fork' button on the repository's page. This creates a copy of the code under your GitHub user account.
 
 2. Clone your fork to your local disk, and add the base repository as a remote:
@@ -70,20 +82,20 @@ A [more complete guide](https://github.com/huggingface/datasets/blob/master/ADD_
 3. **Make sure you run all of the following commands from the root of your `datasets` git clone.** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 	```bash
-	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+	datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
 4. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
 
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder>
+	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 
 	There is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
 	If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+	datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 	```
 
 5. Now test that both the real data and the dummy data work correctly using the following commands:
@@ -110,7 +122,7 @@ Follow these steps in case the dummy data test keeps failing:
 
 - Verify that all filenames are spelled correctly. Rerun the command
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder>
+	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 	and make sure you follow the exact instructions provided by the command of step 5).
 
@@ -119,6 +131,11 @@ Follow these steps in case the dummy data test keeps failing:
 - If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
 
 If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/add_dataset.html).
+
+Note: You can use the CLI tool from the root of the repository with the following command:
+```bash
+python src/datasets/commands/datasets_cli.py <command>
+```
 
 ## How to contribute to the dataset cards
 
@@ -136,3 +153,8 @@ If you are a **user of a dataset**, the main source of information should be the
 Finally, if you want more information on the how and why of dataset cards, we strongly recommend reading the foundational works [Datasheets for Datasets](https://arxiv.org/abs/1803.09010) and [Data Statements for NLP](https://www.aclweb.org/anthology/Q18-1041/).
 
 Thank you for your contribution!
+
+## Code of conduct
+
+This project adheres to the HuggingFace [code of conduct](CODE_OF_CONDUCT.md). 
+By participating, you are expected to uphold this code.

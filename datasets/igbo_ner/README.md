@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -145,3 +146,7 @@ Here is an example from the dataset:
     archivePrefix={arXiv},  
     primaryClass={cs.CL}   
 }
+
+### Contributions
+
+Thanks to [@purvimisal](https://github.com/purvimisal) for adding this dataset.

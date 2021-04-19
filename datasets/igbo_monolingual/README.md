@@ -60,6 +60,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -193,3 +194,7 @@ eprint={2004.00648},
 archivePrefix={arXiv},  
 primaryClass={cs.CL}  
 }
+
+### Contributions
+
+Thanks to [@purvimisal](https://github.com/purvimisal) for adding this dataset.

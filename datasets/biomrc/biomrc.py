@@ -16,12 +16,13 @@
 # Lint as: python3
 """BioMRC Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -59,7 +60,7 @@ class BiomrcConfig(datasets.BuilderConfig):
             self.biomrc_setting = "B"
         else:
             if biomrc_setting.lower() != "a":
-                logging.warning("Wrong Setting for BioMRC, using Setting A instead.")
+                logger.warning("Wrong Setting for BioMRC, using Setting A instead.")
             self.biomrc_setting = "A"
 
         if biomrc_version.lower() == "small":
@@ -68,7 +69,7 @@ class BiomrcConfig(datasets.BuilderConfig):
             self.biomrc_version = "tiny"
         else:
             if biomrc_version.lower() != "large":
-                logging.warning("Wrong version for BioMRC, using BioMRC Large instead.")
+                logger.warning("Wrong version for BioMRC, using BioMRC Large instead.")
             self.biomrc_version = "large"
 
         super(BiomrcConfig, self).__init__(**kwargs)
@@ -190,7 +191,7 @@ class Biomrc(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         # Id for the biomrc dataset
         with open(filepath, encoding="utf-8") as fp:
             biomrc = json.load(fp)

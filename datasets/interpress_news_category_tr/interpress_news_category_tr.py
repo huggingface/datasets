@@ -15,13 +15,14 @@
 # Lint as: python3
 """Turkish News Category Dataset (270K) - Interpress Media Monitoring Company"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -112,7 +113,7 @@ class InterpressNewsCategoryTR(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate InterpressNewsCategoryTR examples."""
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for idx, row in enumerate(reader):

@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -232,3 +233,7 @@ There are 8967 dialogues for training, 1083 for validation and 1107 for testing.
     abstract = "We study a \textit{symmetric collaborative dialogue} setting in which two agents, each with private knowledge, must strategically communicate to achieve a common goal. The open-ended dialogue state in this setting poses new challenges for existing dialogue systems. We collected a dataset of 11K human-human dialogues, which exhibits interesting lexical, semantic, and strategic elements. To model both structured knowledge and unstructured language, we propose a neural model with dynamic knowledge graph embeddings that evolve as the dialogue progresses. Automatic and human evaluations show that our model is both more effective at achieving the goal and more human-like than baseline neural and rule-based models.",
 }
 ```
+
+### Contributions
+
+Thanks to [@VictorSanh](https://github.com/VictorSanh) for adding this dataset.

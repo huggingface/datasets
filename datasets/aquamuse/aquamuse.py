@@ -14,7 +14,6 @@
 # limitations under the License.
 """AQuaMuSe is a novel scalable approach to automatically mine dual query based multi-document summarization datasets for extractive and abstractive summaries using question answering dataset (Google Natural Questions) and large document corpora (Common Crawl)"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 from os import listdir
@@ -113,7 +112,6 @@ class Aquamuse(datasets.GeneratorBasedBuilder):
 
         else:
             data_dir = dl_manager.download_and_extract(zipped_data_url)
-            print(data_dir)
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,

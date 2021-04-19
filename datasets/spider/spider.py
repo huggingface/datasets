@@ -14,12 +14,13 @@
 # limitations under the License.
 """Spider: A Large-Scale Human-Labeled Dataset for Text-to-SQL Tasks"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -93,7 +94,7 @@ class Spider(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", data_filepath)
+        logger.info("generating examples from = %s", data_filepath)
         with open(data_filepath, encoding="utf-8") as f:
             spider = json.load(f)
             for idx, sample in enumerate(spider):

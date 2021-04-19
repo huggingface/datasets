@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -147,3 +148,7 @@ Each instance is a movie review written by Korean internet users on Naver, the m
   howpublished = {\\url{https://github.com/e9t/nsmc}}
 }
 ```
+
+### Contributions
+
+Thanks to [@jaketae](https://github.com/jaketae) for adding this dataset.

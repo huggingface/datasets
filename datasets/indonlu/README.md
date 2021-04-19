@@ -19,7 +19,7 @@ size_categories:
   facqa:
   - 1K<n<10K
   hoasa:
-  - n<1K
+  - 1K<n<10K
   keps:
   - 1K<n<10K
   nergrit:
@@ -86,7 +86,8 @@ task_ids:
   - structure-prediction-other-span-extraction
   wrete:
   - semantic-similarity-classification
-  ---
+---
+
 
 # Dataset Card for IndoNLU
 
@@ -112,6 +113,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -607,3 +609,7 @@ IndoNLU citation
   year={2007}
 }
 ```
+
+### Contributions
+
+Thanks to [@yasirabd](https://github.com/yasirabd) for adding this dataset.

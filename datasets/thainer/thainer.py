@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import datasets
 
 
@@ -156,9 +154,10 @@ class Thainer(datasets.GeneratorBasedBuilder):
                     pos_tags.append(splits[1])
                     ner_tags.append(ner_tag)
             # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "pos_tags": pos_tags,
-                "ner_tags": ner_tags,
-            }
+            if tokens:
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "pos_tags": pos_tags,
+                    "ner_tags": ner_tags,
+                }

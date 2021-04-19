@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -143,3 +143,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@mahajandiwakar](https://github.com/mahajandiwakar) for adding this dataset.

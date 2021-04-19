@@ -14,7 +14,6 @@
 # limitations under the License.
 """WMT MLQE Shared task 3."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import glob
@@ -106,9 +105,9 @@ class Wmt20MlqeTask3(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name=f"plain_text",
+            name="plain_text",
             version=datasets.Version("1.1.0"),
-            description=f"Plain text",
+            description="Plain text",
         )
     ]
 

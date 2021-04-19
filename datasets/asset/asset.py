@@ -14,7 +14,6 @@
 # limitations under the License.
 """ASSET: a dataset for sentence simplification evaluation"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
@@ -149,7 +148,7 @@ class Asset(datasets.GeneratorBasedBuilder):
             for id_, lines in enumerate(zip(*files)):
                 yield id_, {"original": lines[0].strip(), "simplifications": [line.strip() for line in lines[1:]]}
         else:
-            with open(filepaths[f"human_ratings.csv"], encoding="utf-8") as f:
+            with open(filepaths["human_ratings.csv"], encoding="utf-8") as f:
                 reader = csv.reader(f, delimiter=",")
                 for id_, row in enumerate(reader):
                     if id_ == 0:

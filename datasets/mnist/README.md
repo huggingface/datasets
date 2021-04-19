@@ -41,6 +41,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -144,3 +145,7 @@ MIT Licence
   year={2010}
 }
 ```
+
+### Contributions
+
+Thanks to [@sgugger](https://github.com/sgugger) for adding this dataset.

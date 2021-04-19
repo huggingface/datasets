@@ -16,7 +16,6 @@
 # Lint as: python3
 """MNIST Data Set"""
 
-from __future__ import absolute_import, division, print_function
 
 import struct
 
@@ -77,8 +76,6 @@ class MNIST(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         urls_to_download = {key: _URL + fname for key, fname in _URLS.items()}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
-        print(downloaded_files)
-
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

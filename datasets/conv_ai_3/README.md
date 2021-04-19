@@ -1,23 +1,23 @@
 ---
 annotations_creators:
-  - crowdsourced
+- crowdsourced
 language_creators:
-  - crowdsourced
+- crowdsourced
 languages:
-  - en
+- en
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 10K<n<100K
 source_datasets:
-  - original
+- original
 task_categories:
-  - conditional-text-generation
-  - text-scoring
+- conditional-text-generation
+- text-scoring
 task_ids:
-  - text-scoring-other-evaluating-dialogue-systems
+- text-scoring-other-evaluating-dialogue-systems
 ---
 
 # Dataset Card for [More Information Needed]
@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -195,3 +196,7 @@ eprint={2009.11352},
 archivePrefix={arXiv},
 primaryClass={cs.CL}
 }
+
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.

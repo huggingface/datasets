@@ -14,7 +14,6 @@
 # limitations under the License.
 """This code is used to read and load NewsQA dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json

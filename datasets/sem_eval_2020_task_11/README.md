@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -196,3 +197,7 @@ were not involved in the initial annotations.
       primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@ZacharySBrown](https://github.com/ZacharySBrown) for adding this dataset.

@@ -50,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -183,3 +184,7 @@ There are no data splits on the original data
   journal={ https://github.com/UCSD-AI4H/COVID-Dialogue}, 
   year={2020}
 }
+
+### Contributions
+
+Thanks to [@vrindaprabhu](https://github.com/vrindaprabhu) for adding this dataset.

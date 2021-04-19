@@ -14,7 +14,6 @@
 # limitations under the License.
 """Over 25k semiautomatically generated sentence pairs illustrating well-studied pragmatic inference types. IMPPRES is an NLI dataset following the format of SNLI (Bowman et al., 2015), MultiNLI (Williams et al., 2018) and XNLI (Conneau et al., 2018), which was created to evaluate how well trained NLI models recognize several classes of presuppositions and scalar implicatures."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -234,10 +233,6 @@ class Imppres(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 if "presupposition" in self.config.name:
-                    # for k, v in data.items():
-                    #     print('{}({}): {}'.format(k, type(v), v))
-                    # print('-'*55)
-
                     if "trigger1" not in list(data.keys()):
                         yield id_, {
                             "premise": data["sentence1"],

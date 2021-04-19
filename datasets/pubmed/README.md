@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 10M<n<100M
 source_datasets:
 - original
 task_categories:
@@ -49,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -196,3 +197,7 @@ There are no splits in this dataset. It is given as is.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@Narsil](https://github.com/Narsil) for adding this dataset.

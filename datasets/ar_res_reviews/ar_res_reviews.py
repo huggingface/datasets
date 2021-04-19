@@ -14,7 +14,6 @@
 # limitations under the License.
 """Dataset of 8364 restaurant reviews scrapped from qaym.com in Arabic for sentiment analysis"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

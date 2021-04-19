@@ -89,7 +89,7 @@ size_categories:
   structured_zeroshot:
   - 100K<n<1M
   trex:
-  - n>1M
+  - 1M<n<10M
   triviaqa_support_only:
   - 10K<n<100K
   wned:
@@ -226,6 +226,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -463,3 +464,7 @@ Examples from all configurations have the following features:
 ### Citation Information
 
 [Needs More Information]
+
+### Contributions
+
+Thanks to [@thomwolf](https://github.com/thomwolf), [@yjernite](https://github.com/yjernite) for adding this dataset.

@@ -19,7 +19,7 @@ languages:
 - km
 - ms
 - nl
-- no
+- "no"
 - pl
 - pt
 - ru
@@ -34,7 +34,7 @@ multilinguality:
 - multilingual
 - translation
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - extended|natural_questions
 - original
@@ -68,6 +68,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -244,3 +245,7 @@ when `aliases` field is not available it is set to an empty list [].
     URL = {https://arxiv.org/pdf/2007.15207.pdf}
 }
 ```
+
+### Contributions
+
+Thanks to [@cceyda](https://github.com/cceyda) for adding this dataset.

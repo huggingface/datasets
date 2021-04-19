@@ -16,12 +16,13 @@
 # Lint as: python3
 """Wikipedia knowledge source for KILT"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -142,7 +143,7 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
         Yields:
           dictionaries representing article data and metadata
         """
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 pre_article = json.loads(line.strip())

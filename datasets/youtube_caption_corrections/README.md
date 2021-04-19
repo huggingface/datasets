@@ -11,7 +11,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -167,3 +168,7 @@ MIT License
 ### Citation Information
 
 https://github.com/2dot71mily/youtube_captions_corrections
+
+### Contributions
+
+Thanks to [@2dot71mily](https://github.com/2dot71mily) for adding this dataset.

@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -154,3 +155,7 @@ WikiMovies was built with the following goals in mind: (i) machine learning tech
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@aclifton314](https://github.com/aclifton314) for adding this dataset.

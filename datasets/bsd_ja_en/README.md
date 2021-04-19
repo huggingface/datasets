@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -183,3 +184,6 @@ This dataset was released under the Creative Commons Attribution-NonCommercial-S
     pages = "54--61"
 }
 ```
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

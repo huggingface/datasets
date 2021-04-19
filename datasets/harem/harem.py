@@ -14,14 +14,15 @@
 # limitations under the License.
 """HAREM dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import unicodedata
 from typing import List, Tuple
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -249,7 +250,7 @@ class HAREM(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
 
         with open(filepath, "r", encoding="utf-8") as f:
 
@@ -265,7 +266,7 @@ class HAREM(datasets.GeneratorBasedBuilder):
 
                 def set_label(index, tag):
                     if tags[index] != "O":
-                        logging.warning(
+                        logger.warning(
                             "Overwriting tag %s at position %s to %s",
                             tags[index],
                             index,

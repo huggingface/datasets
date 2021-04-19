@@ -18,7 +18,6 @@ PerSenT is a crowd-sourced dataset that captures the sentiment of an author towa
 
 """
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

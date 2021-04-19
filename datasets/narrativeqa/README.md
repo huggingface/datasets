@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -192,3 +193,7 @@ year = {2018},
 pages = {TBD},
 }
 ```
+
+### Contributions
+
+Thanks to [@ghomasHudson](https://github.com/ghomasHudson) for adding this dataset.

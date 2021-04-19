@@ -197,7 +197,7 @@ languages:
   - nn
   en-no:
   - en
-  - no
+  - "no"
   en-oc:
   - en
   - oc
@@ -308,7 +308,234 @@ annotations_creators:
 source_datasets:
 - extended
 size_categories:
-- 10K<n<1M
+  af-en:
+  - 100K<n<1M
+  am-en:
+  - 10K<n<100K
+  an-en:
+  - 1K<n<10K
+  ar-de:
+  - 1K<n<10K
+  ar-en:
+  - 1M<n<10M
+  ar-fr:
+  - 1K<n<10K
+  ar-nl:
+  - 1K<n<10K
+  ar-ru:
+  - 1K<n<10K
+  ar-zh:
+  - 1K<n<10K
+  as-en:
+  - 100K<n<1M
+  az-en:
+  - 100K<n<1M
+  be-en:
+  - 10K<n<100K
+  bg-en:
+  - 1M<n<10M
+  bn-en:
+  - 1M<n<10M
+  br-en:
+  - 100K<n<1M
+  bs-en:
+  - 1M<n<10M
+  ca-en:
+  - 1M<n<10M
+  cs-en:
+  - 1M<n<10M
+  cy-en:
+  - 100K<n<1M
+  da-en:
+  - 1M<n<10M
+  de-en:
+  - 1M<n<10M
+  de-fr:
+  - 1K<n<10K
+  de-nl:
+  - 1K<n<10K
+  de-ru:
+  - 1K<n<10K
+  de-zh:
+  - 1K<n<10K
+  dz-en:
+  - n<1K
+  el-en:
+  - 1M<n<10M
+  en-eo:
+  - 100K<n<1M
+  en-es:
+  - 1M<n<10M
+  en-et:
+  - 1M<n<10M
+  en-eu:
+  - 1M<n<10M
+  en-fa:
+  - 1M<n<10M
+  en-fi:
+  - 1M<n<10M
+  en-fr:
+  - 1M<n<10M
+  en-fy:
+  - 10K<n<100K
+  en-ga:
+  - 100K<n<1M
+  en-gd:
+  - 10K<n<100K
+  en-gl:
+  - 100K<n<1M
+  en-gu:
+  - 100K<n<1M
+  en-ha:
+  - 100K<n<1M
+  en-he:
+  - 1M<n<10M
+  en-hi:
+  - 100K<n<1M
+  en-hr:
+  - 1M<n<10M
+  en-hu:
+  - 1M<n<10M
+  en-hy:
+  - 1K<n<10K
+  en-id:
+  - 1M<n<10M
+  en-ig:
+  - 10K<n<100K
+  en-is:
+  - 1M<n<10M
+  en-it:
+  - 1M<n<10M
+  en-ja:
+  - 1M<n<10M
+  en-ka:
+  - 100K<n<1M
+  en-kk:
+  - 10K<n<100K
+  en-km:
+  - 100K<n<1M
+  en-kn:
+  - 10K<n<100K
+  en-ko:
+  - 1M<n<10M
+  en-ku:
+  - 100K<n<1M
+  en-ky:
+  - 10K<n<100K
+  en-li:
+  - 10K<n<100K
+  en-lt:
+  - 1M<n<10M
+  en-lv:
+  - 1M<n<10M
+  en-mg:
+  - 100K<n<1M
+  en-mk:
+  - 1M<n<10M
+  en-ml:
+  - 100K<n<1M
+  en-mn:
+  - 1K<n<10K
+  en-mr:
+  - 10K<n<100K
+  en-ms:
+  - 1M<n<10M
+  en-mt:
+  - 1M<n<10M
+  en-my:
+  - 10K<n<100K
+  en-nb:
+  - 100K<n<1M
+  en-ne:
+  - 100K<n<1M
+  en-nl:
+  - 1M<n<10M
+  en-nn:
+  - 100K<n<1M
+  en-no:
+  - 1M<n<10M
+  en-oc:
+  - 10K<n<100K
+  en-or:
+  - 10K<n<100K
+  en-pa:
+  - 100K<n<1M
+  en-pl:
+  - 1M<n<10M
+  en-ps:
+  - 10K<n<100K
+  en-pt:
+  - 1M<n<10M
+  en-ro:
+  - 1M<n<10M
+  en-ru:
+  - 1M<n<10M
+  en-rw:
+  - 100K<n<1M
+  en-se:
+  - 10K<n<100K
+  en-sh:
+  - 100K<n<1M
+  en-si:
+  - 100K<n<1M
+  en-sk:
+  - 1M<n<10M
+  en-sl:
+  - 1M<n<10M
+  en-sq:
+  - 1M<n<10M
+  en-sr:
+  - 1M<n<10M
+  en-sv:
+  - 1M<n<10M
+  en-ta:
+  - 100K<n<1M
+  en-te:
+  - 10K<n<100K
+  en-tg:
+  - 100K<n<1M
+  en-th:
+  - 1M<n<10M
+  en-tk:
+  - 10K<n<100K
+  en-tr:
+  - 1M<n<10M
+  en-tt:
+  - 100K<n<1M
+  en-ug:
+  - 10K<n<100K
+  en-uk:
+  - 1M<n<10M
+  en-ur:
+  - 100K<n<1M
+  en-uz:
+  - 100K<n<1M
+  en-vi:
+  - 1M<n<10M
+  en-wa:
+  - 100K<n<1M
+  en-xh:
+  - 100K<n<1M
+  en-yi:
+  - 10K<n<100K
+  en-yo:
+  - 10K<n<100K
+  en-zh:
+  - 1M<n<10M
+  en-zu:
+  - 10K<n<100K
+  fr-nl:
+  - 1K<n<10K
+  fr-ru:
+  - 1K<n<10K
+  fr-zh:
+  - 1K<n<10K
+  nl-ru:
+  - 1K<n<10K
+  nl-zh:
+  - 1K<n<10K
+  ru-zh:
+  - 1K<n<10K
 licenses:
 - unknown
 ---
@@ -447,3 +674,7 @@ The dataset is split into training, development, and test portions. Data was pre
       primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@vasudevgupta7](https://github.com/vasudevgupta7) for adding this dataset.

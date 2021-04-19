@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import tempfile
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
@@ -73,12 +74,12 @@ class BaseIndex:
             total_indices.append(indices)
         return BatchedSearchResults(total_scores, total_indices)
 
-    def save(self, file: str):
+    def save(self, file: Union[str, PurePath]):
         """Serialize the index on disk"""
         raise NotImplementedError
 
     @classmethod
-    def load(cls, file: str) -> "BaseIndex":
+    def load(cls, file: Union[str, PurePath]) -> "BaseIndex":
         """Deserialize the index from disk"""
         raise NotImplementedError
 
@@ -266,8 +267,8 @@ class FaissIndex(BaseIndex):
 
         # Train
         if train_size is not None:
-            logger.info("Training the index with the first {} vectors".format(train_size))
             train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
+            logger.info("Training the index with the first {} vectors".format(len(train_vecs)))
             self.faiss_index.train(train_vecs)
         else:
             logger.info("Ignored the training step of the faiss index as `train_size` is None.")
@@ -314,7 +315,7 @@ class FaissIndex(BaseIndex):
         scores, indices = self.faiss_index.search(queries, k)
         return BatchedSearchResults(scores, indices.astype(int))
 
-    def save(self, file: str):
+    def save(self, file: Union[str, PurePath]):
         """Serialize the FaissIndex on disk"""
         import faiss  # noqa: F811
 
@@ -322,23 +323,27 @@ class FaissIndex(BaseIndex):
             hasattr(self.faiss_index, "device")
             and self.faiss_index.device is not None
             and self.faiss_index.device > -1
+        ) or (
+            hasattr(self.faiss_index, "getDevice")
+            and self.faiss_index.getDevice() is not None
+            and self.faiss_index.getDevice() > -1
         ):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
-        faiss.write_index(index, file)
+        faiss.write_index(index, str(file))
 
     @classmethod
     def load(
         cls,
-        file: str,
+        file: Union[str, PurePath],
         device: Optional[int] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         import faiss  # noqa: F811
 
         faiss_index = cls(device=device)
-        index = faiss.read_index(file)
+        index = faiss.read_index(str(file))
         if faiss_index.device is not None and faiss_index.device > -1:
             faiss_index.faiss_res = faiss.StandardGpuResources()
             index = faiss.index_cpu_to_gpu(faiss_index.faiss_res, faiss_index.device, index)
@@ -372,7 +377,14 @@ class IndexableMixin:
         return list(self._indexes)
 
     def get_index(self, index_name: str) -> BaseIndex:
-        """List the index_name/identifiers of all the attached indexes."""
+        """List the index_name/identifiers of all the attached indexes.
+
+        Args:
+            index_name (:obj:`str`): Index name.
+
+        Returns:
+            :class:`BaseIndex`
+        """
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name]
 
@@ -405,10 +417,11 @@ class IndexableMixin:
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = FaissIndex(
+        faiss_index = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
         )
-        self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
+        faiss_index.add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
+        self._indexes[index_name] = faiss_index
 
     def add_faiss_index_from_external_arrays(
         self,
@@ -438,15 +451,14 @@ class IndexableMixin:
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
-        self._indexes[index_name] = FaissIndex(
+        faiss_index = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
         )
-        self._indexes[index_name].add_vectors(
-            external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
-        )
+        faiss_index.add_vectors(external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose)
+        self._indexes[index_name] = faiss_index
 
-    def save_faiss_index(self, index_name: str, file: str):
-        """Save a FaissIndex on disk
+    def save_faiss_index(self, index_name: str, file: Union[str, PurePath]):
+        """Save a FaissIndex on disk.
 
         Args:
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
@@ -461,14 +473,17 @@ class IndexableMixin:
     def load_faiss_index(
         self,
         index_name: str,
-        file: str,
+        file: Union[str, PurePath],
         device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
-        If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs
+
+        If you want to do additional configurations, you can have access to the faiss index object by doing
+        `.get_index(index_name).faiss_index` to make it fit your needs.
 
         Args:
-            index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+            index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to
+                call `.get_nearest` or `.search`.
             file (:obj:`str`): The path to the serialized faiss index on disk.
             device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
         """
@@ -527,10 +542,11 @@ class IndexableMixin:
             }
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = ElasticSearchIndex(
+        es_index = ElasticSearchIndex(
             host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
         )
-        self._indexes[index_name].add_documents(self, column=column)
+        es_index.add_documents(self, column=column)
+        self._indexes[index_name] = es_index
 
     def load_elasticsearch_index(
         self,
@@ -545,34 +561,32 @@ class IndexableMixin:
 
         Args:
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-            es_index_name (`:obj:str`): The name of elasticsearch index to load.
+            es_index_name (:obj:`str`): The name of elasticsearch index to load.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
-            port (Optional `:obj:str`, defaults to 9200):
+            port (Optional :obj:`str`, defaults to 9200):
                 port of where ElasticSearch is running
             es_client (Optional :obj:`elasticsearch.Elasticsearch`):
                 The elasticsearch client used to create the index if host and port are None.
             es_index_config (Optional :obj:`dict`):
                 The configuration of the elasticsearch index.
-                Default config is:
+                Default config is::
 
-        Config::
-
-            {
-                "settings": {
-                    "number_of_shards": 1,
-                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-                },
-                "mappings": {
-                    "properties": {
-                        "text": {
-                            "type": "text",
-                            "analyzer": "standard",
-                            "similarity": "BM25"
+                    {
+                        "settings": {
+                            "number_of_shards": 1,
+                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                        },
+                        "mappings": {
+                            "properties": {
+                                "text": {
+                                    "type": "text",
+                                    "analyzer": "standard",
+                                    "similarity": "BM25"
+                                },
+                            }
                         },
                     }
-                },
-            }
         """
         self._indexes[index_name] = ElasticSearchIndex(
             host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
@@ -594,7 +608,7 @@ class IndexableMixin:
             query (:obj:`Union[str, np.ndarray]`): The query as a string if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
             k (:obj:`int`): The number of examples to retrieve.
 
-        Ouput:
+        Returns:
             scores (:obj:`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (:obj:`List[List[int]]`): The indices of the retrieved examples.
         """
@@ -607,9 +621,9 @@ class IndexableMixin:
         Args:
             index_name (:obj:`str`): The index_name/identifier of the index.
             queries (:obj:`Union[List[str], np.ndarray]`): The queries as a list of strings if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
-            k (`:obj:int`): The number of examples to retrieve per query.
+            k (:obj:`int`): The number of examples to retrieve per query.
 
-        Ouput:
+        Returns:
             total_scores (:obj:`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (:obj:`List[List[int]]`): The indices of the retrieved examples per query.
         """
@@ -626,7 +640,7 @@ class IndexableMixin:
             query (:obj:`Union[str, np.ndarray]`): The query as a string if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
             k (:obj:`int`): The number of examples to retrieve.
 
-        Ouput:
+        Returns:
             scores (:obj:`List[float]`): The retrieval scores of the retrieved examples.
             examples (:obj:`dict`): The retrieved examples.
         """
@@ -644,7 +658,7 @@ class IndexableMixin:
             queries (:obj:`Union[List[str], np.ndarray]`): The queries as a list of strings if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
             k (:obj:`int`): The number of examples to retrieve per query.
 
-        Ouput:
+        Returns:
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_examples (`List[dict]`): The retrieved examples per query.
         """

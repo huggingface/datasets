@@ -409,6 +409,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -501,3 +502,6 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+### Contributions
+
+Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten), [@jplu](https://github.com/jplu) for adding this dataset.

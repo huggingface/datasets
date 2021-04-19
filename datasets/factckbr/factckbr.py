@@ -14,7 +14,6 @@
 # limitations under the License.
 """FACTCK.BR: A dataset to study Fake News in Portuguese."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

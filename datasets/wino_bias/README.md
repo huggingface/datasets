@@ -10,15 +10,13 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - structure-prediction
 task_ids:
 - coreference-resolution
-- named-entity-recognition
-- part-of-speech-tagging
 ---
 
 # Dataset Card for Wino_Bias dataset
@@ -45,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -62,8 +61,7 @@ referred by their occupation (e.g. the nurse, the doctor, the carpenter).
 
 ### Supported Tasks and Leaderboards
 
-The underlying task is coreference resolution. But it also support NER and POS tasks.
-
+The underlying task is coreference resolution. 
 ### Languages
 
 English
@@ -91,7 +89,7 @@ English
 
 ### Data Splits
 
-Single Split available
+Dev and Test Split available
 
 ## Dataset Creation
 
@@ -166,3 +164,7 @@ MIT Licence
   biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+
+### Contributions
+
+Thanks to [@akshayb7](https://github.com/akshayb7) for adding this dataset. Updated by [@JieyuZhao](https://github.com/JieyuZhao).

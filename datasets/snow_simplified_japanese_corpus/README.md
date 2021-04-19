@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -205,3 +206,7 @@ CC BY 4.0
     url = "https://www.aclweb.org/anthology/L18-1072",
 }
 ```
+
+### Contributions
+
+Thanks to [@forest1988](https://github.com/forest1988), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

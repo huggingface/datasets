@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import glob
 import os
 from pathlib import Path
@@ -188,11 +186,12 @@ class Lst20(datasets.GeneratorBasedBuilder):
                         ner_tags.append(ner_tag)
                         clause_tags.append(splits[3].rstrip())
                 # last example
-                yield guid, {
-                    "id": str(guid),
-                    "fname": Path(fname).name,
-                    "tokens": tokens,
-                    "pos_tags": pos_tags,
-                    "ner_tags": ner_tags,
-                    "clause_tags": clause_tags,
-                }
+                if tokens:
+                    yield guid, {
+                        "id": str(guid),
+                        "fname": Path(fname).name,
+                        "tokens": tokens,
+                        "pos_tags": pos_tags,
+                        "ner_tags": ner_tags,
+                        "clause_tags": clause_tags,
+                    }

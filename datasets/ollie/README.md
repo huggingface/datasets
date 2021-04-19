@@ -10,7 +10,10 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  ollie_lemmagrep:
+  - 10M<n<100M
+  ollie_patterned:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -44,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -199,7 +203,7 @@ The authors of Ollie at The University of Washington
 
 ### Licensing Information
 
-The University of Washington acamdemic license: https://raw.githubusercontent.com/knowitall/ollie/master/LICENSE
+The University of Washington academic license: https://raw.githubusercontent.com/knowitall/ollie/master/LICENSE
 
 
 ### Citation Information
@@ -209,3 +213,7 @@ The University of Washington acamdemic license: https://raw.githubusercontent.co
   booktitle = {Proceedings of Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning (EMNLP-CONLL)},
   year = {2012}
 }
+
+### Contributions
+
+Thanks to [@ontocord](https://github.com/ontocord) for adding this dataset.

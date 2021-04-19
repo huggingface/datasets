@@ -14,13 +14,14 @@
 # limitations under the License.
 """Mac-Morpho dataset"""
 
-from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 import re
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -144,7 +145,7 @@ class MacMorpho(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
 
         with open(filepath, "r", encoding="utf-8") as f:
 

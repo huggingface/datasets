@@ -16,13 +16,14 @@
 # Lint as: python3
 """CRD3  dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -58,7 +59,7 @@ def get_train_test_dev_files(files, test_split, train_split, dev_split):
         elif filename in dev_split:
             dev_files.append(file)
         else:
-            logging.info("skipped file {}".format(file))
+            logger.info("skipped file {}".format(file))
     return test_files, train_files, dev_files
 
 

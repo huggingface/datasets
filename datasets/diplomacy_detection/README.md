@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 - **Homepage** : https://sites.google.com/view/qanta/projects/diplomacy
@@ -159,3 +160,7 @@ Booktitle = {Association for Computational Linguistics},
 Year = {2020},
 Location = {Seattle},
 }
+
+### Contributions
+
+Thanks to [@MisbahKhan789](https://github.com/MisbahKhan789) for adding this dataset.

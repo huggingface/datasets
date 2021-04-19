@@ -50,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -165,3 +166,7 @@ The dataset was created by Mehrdad Farahani.
   howpublished = {https://github.com/m3hrdadfi/wiki-summary},
 }
 ```
+
+### Contributions
+
+Thanks to [@tanmoyio](https://github.com/tanmoyio) for adding this dataset.

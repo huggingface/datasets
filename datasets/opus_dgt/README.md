@@ -34,7 +34,26 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  bg-ga:
+  - 100K<n<1M
+  bg-hr:
+  - 100K<n<1M
+  bg-sh:
+  - 1M<n<10M
+  es-ga:
+  - 100K<n<1M
+  fi-ga:
+  - 100K<n<1M
+  ga-nl:
+  - 100K<n<1M
+  ga-sh:
+  - 10K<n<100K
+  hr-sk:
+  - 100K<n<1M
+  hr-sv:
+  - 100K<n<1M
+  mt-sh:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -67,6 +86,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -181,3 +201,7 @@ E.g.
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
+
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.

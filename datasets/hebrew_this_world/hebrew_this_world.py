@@ -16,7 +16,6 @@
 # Lint as: python3
 """HebrewThisWorld: A corpus from https://thisworld.online/."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import ctypes

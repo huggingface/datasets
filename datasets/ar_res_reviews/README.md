@@ -10,11 +10,11 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<n<10k
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
 - sentiment-classification
 ---
@@ -42,6 +42,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -168,3 +169,7 @@ address="Cham",
 pages="23--34",
 isbn="978-3-319-18117-2"
 }
+
+### Contributions
+
+Thanks to [@abdulelahsm](https://github.com/abdulelahsm) for adding this dataset.

@@ -16,7 +16,6 @@
 # Lint as: python3
 """Arabic Poetry Metric dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

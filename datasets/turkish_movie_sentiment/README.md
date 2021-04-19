@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
 - sentiment-classification
 - sentiment-scoring
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -144,3 +145,7 @@ The data is under the [CC0: Public Domain](https://creativecommons.org/publicdom
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@yavuzKomecoglu](https://github.com/yavuzKomecoglu) for adding this dataset.

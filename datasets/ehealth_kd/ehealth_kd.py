@@ -14,7 +14,6 @@
 # limitations under the License.
 """The eHealth-KD 2020 Corpus."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

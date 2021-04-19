@@ -46,15 +46,15 @@ multilinguality:
 - multilingual
 size_categories:
   arabic:
-  - 10K<n<100K
+  - 1K<n<10K
   chinese:
-  - 10K<n<100K
+  - 1K<n<10K
   czech:
   - 1K<n<10K
   dutch:
   - 10K<n<100K
   english:
-  - 100K<n<500K
+  - 10K<n<100K
   french:
   - 10K<n<100K
   german:
@@ -66,21 +66,21 @@ size_categories:
   italian:
   - 10K<n<100K
   japanese:
-  - 10K<n<100K
+  - 1K<n<10K
   korean:
-  - 10K<n<100K
+  - 1K<n<10K
   portuguese:
   - 10K<n<100K
   russian:
   - 10K<n<100K
   spanish:
-  - 100K<n<500K
+  - 1K<n<10K
   thai:
-  - 10K<n<100K
+  - 1K<n<10K
   turkish:
   - 1K<n<10K
   vietnamese:
-  - 10K<n<100K
+  - 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -112,6 +112,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -247,3 +248,7 @@ ______________________________
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@katnoria](https://github.com/katnoria) for adding this dataset.

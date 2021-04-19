@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<n<10K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -135,3 +136,7 @@ Portuguese dataset for hate speech detection composed of 5,668 tweets with binar
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@hugoabonizio](https://github.com/hugoabonizio) for adding this dataset.

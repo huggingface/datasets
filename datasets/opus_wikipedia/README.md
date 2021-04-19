@@ -24,13 +24,21 @@ languages:
 - sl
 - tr
 - vi
-
 licenses:
 - unknown
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  ar-en:
+  - 100K<n<1M
+  ar-pl:
+  - 100K<n<1M
+  en-ru:
+  - 100K<n<1M
+  en-sl:
+  - 100K<n<1M
+  en-vi:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -63,6 +71,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -177,3 +186,7 @@ E.g.
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
+
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.

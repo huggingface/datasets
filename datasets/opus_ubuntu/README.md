@@ -159,7 +159,7 @@ languages:
 - mt
 - mus
 - my
-- nan
+- 'nan'
 - nap
 - nb
 - nds
@@ -253,7 +253,26 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  as-bs:
+  - 1K<n<10K
+  az-cs:
+  - n<1K
+  bg-de:
+  - n<1K
+  bn-ga:
+  - 1K<n<10K
+  br-es_PR:
+  - n<1K
+  br-hi:
+  - 10K<n<100K
+  br-la:
+  - n<1K
+  br-uz:
+  - 1K<n<10K
+  br-yi:
+  - 1K<n<10K
+  bs-szl:
+  - n<1K
 source_datasets:
 - original
 task_categories:
@@ -286,6 +305,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -400,3 +420,7 @@ E.g.
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
+
+### Contributions
+
+Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.

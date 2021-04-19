@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100k< n<500K
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -213,3 +214,7 @@ Proceedings of the 17th Annual ACM SIGIR Conference, 1994, 192-201.
 Hersh WR, Hickam DH, Use of a multi-application computer workstation
 in a clinical setting, Bulletin of the Medical Library Association,
 1994, 82: 382-389.
+
+### Contributions
+
+Thanks to [@skyprince999](https://github.com/skyprince999) for adding this dataset.

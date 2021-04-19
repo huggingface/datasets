@@ -3,7 +3,7 @@ Using a Dataset with PyTorch/Tensorflow
 
 Once your dataset is processed, you often want to use it with a framework such as PyTorch, Tensorflow, Numpy or Pandas. For instance we may want to use our dataset in a ``torch.Dataloader`` or a ``tf.data.Dataset`` and train a model with it.
 
-🤗datasets provides a simple way to do this through what is called the format of a dataset.
+🤗Datasets provides a simple way to do this through what is called the format of a dataset.
 
 The format of a :class:`datasets.Dataset` instance defines which columns of the dataset are returned by the :func:`datasets.Dataset.__getitem__` method and cast them in PyTorch, Tensorflow, Numpy or Pandas types.
 
@@ -25,8 +25,8 @@ The format of a :class:`datasets.Dataset` instance can be set using the :func:`d
     - ``'numpy'``/``'np'``: return Numpy arrays,
     - ``'pandas'``/``'pd'``: return Pandas DataFrames.
 
-- ``columns``: an optional list of column names (string) defining the list of the columns which should be formated and returned by :func:`datasets.Dataset.__getitem__`. Set to None to return all the columns in the dataset (default).
-- ``output_all_columns``: an optional boolean to return as python object the columns which are not selected to be formated (see the above arguments). This can be used for instance if you cannot format some columns (e.g. string columns cannot be formated as PyTorch Tensors) but would still like to have these columns returned. See an example below.
+- ``columns``: an optional list of column names (string) defining the list of the columns which should be formatted and returned by :func:`datasets.Dataset.__getitem__`. Set to None to return all the columns in the dataset (default).
+- ``output_all_columns``: an optional boolean to return as python object the columns which are not selected to be formatted (see the above arguments). This can be used for instance if you cannot format some columns (e.g. string columns cannot be formatted as PyTorch Tensors) but would still like to have these columns returned. See an example below.
 
 Here is how we can apply a format to a simple dataset using :func:`datasets.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
 
@@ -80,10 +80,18 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
 
 In this examples we filtered out the string columns `sentence1` and `sentence2` since they cannot be converted easily as tensors (at least in PyTorch). As detailed above, we could still output them as python object by setting ``output_all_columns=True``.
 
-Reseting the format
+We can also pass ``**kwargs`` to the respective convert functions like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant`` by adding keyword arguments to :func:`datasets.Dataset.set_format()`. For example, if we want the columns formatted as PyTorch CUDA tensors, we use the following:
+
+.. code-block::
+
+    >>> dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'], device='cuda')
+
+We don't support any keyword arguments for the ``'pandas'`` format.
+
+Resetting the format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Reseting the format to the default behavior (returning all columns as python object) can be done either by calling :func:`datasets.Dataset.reset_format` or by calling :func:`datasets.Dataset.set_format` with no arguments.
+Resetting the format to the default behavior (returning all columns as python object) can be done either by calling :func:`datasets.Dataset.reset_format` or by calling :func:`datasets.Dataset.set_format` with no arguments.
 
 Accessing the format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

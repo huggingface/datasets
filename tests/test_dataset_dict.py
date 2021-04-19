@@ -4,12 +4,20 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 
-from .utils import require_tf, require_torch
+from .conftest import s3_test_bucket_name
+from .utils import (
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    require_s3,
+    require_tf,
+    require_torch,
+)
 
 
 class DatasetDictTest(TestCase):
@@ -31,7 +39,7 @@ class DatasetDictTest(TestCase):
             }
         )
 
-    def test_flatten(self):
+    def test_flatten_in_place(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
             features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
@@ -45,21 +53,33 @@ class DatasetDictTest(TestCase):
         )
         del dset
 
+    def test_flatten(self):
+        dset_split = Dataset.from_dict(
+            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
+            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+        )
+        dset = DatasetDict({"train": dset_split, "test": dset_split})
+        dset = dset.flatten()
+        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
+        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertDictEqual(
+            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+        )
+        del dset
+
     def test_set_format_numpy(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset.set_format(type="numpy", columns=["col_1"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 1)
-            self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
-            self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+            self.assertIsInstance(dset_split[0]["col_1"], np.int64)
             self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.reset_format()
         with dset.formatted_as(type="numpy", columns=["col_1"]):
             for dset_split in dset.values():
                 self.assertEqual(len(dset_split[0]), 1)
-                self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
-                self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+                self.assertIsInstance(dset_split[0]["col_1"], np.int64)
                 self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         for dset_split in dset.values():
@@ -77,6 +97,7 @@ class DatasetDictTest(TestCase):
         dset.set_format(type="numpy", columns=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
+            self.assertIsInstance(dset_split[0]["col_2"], np.str_)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
@@ -143,7 +164,50 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
-    def test_cast_(self):
+    def test_set_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.set_transform(transform=transform, columns=["col_1"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.format["type"], "custom")
+            self.assertEqual(len(dset_split[0].keys()), 1)
+            self.assertEqual(dset_split[0]["col_1"], "3")
+            self.assertEqual(dset_split[:2]["col_1"], ["3", "2"])
+            self.assertEqual(dset_split["col_1"][:2], ["3", "2"])
+
+        prev_format = dset[list(dset.keys())[0]].format
+        for dset_split in dset.values():
+            dset_split.set_format(**dset_split.format)
+            self.assertEqual(prev_format, dset_split.format)
+
+        dset.set_transform(transform=transform, columns=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(len(dset_split[0].keys()), 2)
+            self.assertEqual(dset_split[0]["col_2"], "A")
+        del dset
+
+    def test_with_format(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_format("numpy", columns=["col_1"])
+        dset.set_format("numpy", columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
+
+    def test_with_transform(self):
+        def transform(batch):
+            return {k: [str(i).upper() for i in v] for k, v in batch.items()}
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset2 = dset.with_transform(transform, columns=["col_1"])
+        dset.set_transform(transform, columns=["col_1"])
+        for dset_split, dset_split2 in zip(dset.values(), dset2.values()):
+            self.assertDictEqual(dset_split.format, dset_split2.format)
+        del dset, dset2
+
+    def test_cast_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features
         features["col_1"] = Value("float64")
@@ -154,7 +218,18 @@ class DatasetDictTest(TestCase):
             self.assertIsInstance(dset_split[0]["col_1"], float)
         del dset
 
-    def test_remove_columns_(self):
+    def test_cast(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        features = dset["train"].features
+        features["col_1"] = Value("float64")
+        dset = dset.cast(features)
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+            self.assertEqual(dset_split.features["col_1"], Value("float64"))
+            self.assertIsInstance(dset_split[0]["col_1"], float)
+        del dset
+
+    def test_remove_columns_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset.remove_columns_(column_names="col_1")
         for dset_split in dset.values():
@@ -167,9 +242,30 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 0)
         del dset
 
-    def test_rename_column_(self):
+    def test_remove_columns(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.remove_columns(column_names="col_1")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_2"])
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.remove_columns(column_names=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 0)
+        del dset
+
+    def test_rename_column_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
+        del dset
+
+    def test_rename_column(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 2)
             self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
@@ -308,22 +404,21 @@ class DatasetDictTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
             dsets.save_to_disk(tmp_dir)
-            del dsets
-            dsets = DatasetDict.load_from_disk(tmp_dir)
-            self.assertListEqual(sorted(dsets), ["test", "train"])
-            self.assertEqual(len(dsets["train"]), 30)
-            self.assertListEqual(dsets["train"].column_names, ["filename"])
-            self.assertEqual(len(dsets["test"]), 30)
-            self.assertListEqual(dsets["test"].column_names, ["filename"])
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            del reloaded_dsets
 
             del dsets["test"]
             dsets.save_to_disk(tmp_dir)
-            del dsets
-            dsets = DatasetDict.load_from_disk(tmp_dir)
-            self.assertListEqual(sorted(dsets), ["train"])
-            self.assertEqual(len(dsets["train"]), 30)
-            self.assertListEqual(dsets["train"].column_names, ["filename"])
-            del dsets
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            del dsets, reloaded_dsets
 
     def test_load_from_disk(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -337,3 +432,131 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, "train", "test"])
+def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_path):
+    if split:
+        path = {split: csv_path}
+    else:
+        split = "train"
+        path = {"train": csv_path, "test": csv_path}
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_csv(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, DatasetDict)
+    dataset = dataset[split]
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    assert dataset.split == split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, "train", "test"])
+def test_datasetdict_from_json(
+    split,
+    features,
+    keep_in_memory,
+    jsonl_path,
+    tmp_path,
+):
+    file_path = jsonl_path
+    field = None
+    if split:
+        path = {split: file_path}
+    else:
+        split = "train"
+        path = {"train": file_path, "test": file_path}
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_json(
+            path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
+        )
+    assert isinstance(dataset, DatasetDict)
+    dataset = dataset[split]
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    assert dataset.split == split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"text": "string"},
+        {"text": "int32"},
+        {"text": "float32"},
+    ],
+)
+@pytest.mark.parametrize("split", [None, "train", "test"])
+def test_datasetdict_from_text(split, features, keep_in_memory, text_path, tmp_path):
+    if split:
+        path = {split: text_path}
+    else:
+        split = "train"
+        path = {"train": text_path, "test": text_path}
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"text": "string"}
+    expected_features = features.copy() if features else default_expected_features
+    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_text(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, DatasetDict)
+    dataset = dataset[split]
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 1
+    assert dataset.column_names == ["text"]
+    assert dataset.split == split
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@require_s3
+def test_dummy_dataset_serialize_s3(s3, dataset):
+    dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
+    mock_bucket = s3_test_bucket_name
+    dataset_path = f"s3://{mock_bucket}/datasets/dict"
+    column_names = dsets["train"].column_names
+    lengths = [len(dset) for dset in dsets.values()]
+    dataset.save_to_disk(dataset_path, s3)
+    dataset = dataset.load_from_disk(dataset_path, s3)
+
+    assert sorted(dsets) == ["test", "train"]
+    assert [len(dset) for dset in dsets.values()] == lengths
+    assert dsets["train"].column_names == column_names
+    assert dsets["test"].column_names == column_names

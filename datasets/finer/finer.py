@@ -16,12 +16,13 @@
 # Lint as: python3
 """"The Finnish News Corpus for Named Entity Recognition dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -140,7 +141,7 @@ class Finer(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating 🇫🇮 examples from = %s", filepath)
+        logger.info("⏳ Generating 🇫🇮 examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             current_tokens = []

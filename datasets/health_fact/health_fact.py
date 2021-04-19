@@ -14,7 +14,6 @@
 # limitations under the License.
 """Dataset for explainable fake news detection of public health claims."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

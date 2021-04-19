@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+- 10M<n<100M
 source_datasets:
 - original
 task_categories:
@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -170,3 +171,6 @@ The dataset is licensed under a Creative Commons Attribution-ShareAlike 4.0 Inte
      year = {2019}
 }
 ```
+### Contributions
+
+Thanks to [@mariagrandury](https://github.com/mariagrandury) for adding this dataset.

@@ -4,7 +4,7 @@ orbs:
     win: circleci/windows@2.2.0
 
 jobs:
-    run_dataset_script_tests_pyarrow_0p17:
+    run_dataset_script_tests_pyarrow_latest:
         working_directory: ~/datasets
         docker:
             - image: circleci/python:3.6
@@ -14,7 +14,8 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
-            - run: pip install pyarrow==0.17.1
+            - run: pip install -r additional-tests-requirements.txt --no-deps
+            - run: pip install pyarrow --upgrade
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
@@ -27,11 +28,12 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
 
-    run_dataset_script_tests_pyarrow_0p17_WIN:
+    run_dataset_script_tests_pyarrow_latest_WIN:
         working_directory: ~/datasets
         executor:
             name: win/default
@@ -44,7 +46,8 @@ jobs:
             - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
-            - run: pip install pyarrow==0.17.1
+            - run: pip install -r additional-tests-requirements.txt --no-deps
+            - run: pip install pyarrow --upgrade
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
@@ -61,6 +64,7 @@ jobs:
             - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
@@ -112,9 +116,9 @@ workflows:
     build_and_test:
         jobs:
             - check_code_quality
-            - run_dataset_script_tests_pyarrow_0p17
+            - run_dataset_script_tests_pyarrow_latest
             - run_dataset_script_tests_pyarrow_1
-            - run_dataset_script_tests_pyarrow_0p17_WIN
+            - run_dataset_script_tests_pyarrow_latest_WIN
             - run_dataset_script_tests_pyarrow_1_WIN
             - build_doc
             - deploy_doc: *workflow_filters

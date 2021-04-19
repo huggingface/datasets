@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Asian Language Treebank (ALT) Project"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -71,8 +70,8 @@ class AltParallelConfig(datasets.BuilderConfig):
         available_langs = set(
             ["bg", "en", "en_tok", "fil", "hi", "id", "ja", "khm", "lo", "ms", "my", "th", "vi", "zh"]
         )
-        for l in languages:
-            assert l in available_langs
+        for language in languages:
+            assert language in available_langs
 
         self.languages = languages
 
@@ -225,13 +224,6 @@ class Alt(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("alt-parallel"):
             files = self.config.languages
 
-            template = {
-                "SNT.URLID": None,
-                "SNT.URLID.SNTID": None,
-                "url": None,
-                "translation": {},
-            }
-
             data = {}
             for lang in files:
                 file_path = os.path.join(basepath, "ALT-Parallel-Corpus-20191206", f"data_{lang}.txt")
@@ -245,20 +237,22 @@ class Alt(datasets.GeneratorBasedBuilder):
                         continue
 
                     if sntid not in data:
-                        data[sntid] = template.copy()
+                        data[sntid] = {}
                         data[sntid]["SNT.URLID"] = urlid
                         data[sntid]["SNT.URLID.SNTID"] = sntid
                         data[sntid]["url"] = allow_urls[urlid]["url"]
+                        data[sntid]["translation"] = {}
 
                     # Note that Japanese and Myanmar texts have empty sentence fields in this release.
                     if len(sp) >= 2:
                         data[sntid]["translation"][lang] = sp[1]
+
                 fin.close()
 
         elif self.config.name == "alt-en":
             data = {}
             for fname in ["English-ALT-Draft.txt", "English-ALT-Reviewed.txt"]:
-                file_path = os.path.join(basepath, f"English-ALT-20170107", fname)
+                file_path = os.path.join(basepath, "English-ALT-20170107", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -287,7 +281,7 @@ class Alt(datasets.GeneratorBasedBuilder):
         elif self.config.name == "alt-jp":
             data = {}
             for fname in ["Japanese-ALT-Draft.txt", "Japanese-ALT-Reviewed.txt"]:
-                file_path = os.path.join(basepath, f"Japanese-ALT-20170330", fname)
+                file_path = os.path.join(basepath, "Japanese-ALT-20170330", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -321,7 +315,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                 "jp_tokenized": "word-alignment/data_ja.ja-tok",
             }
             for k in keys:
-                file_path = os.path.join(basepath, f"Japanese-ALT-20170330", keys[k])
+                file_path = os.path.join(basepath, "Japanese-ALT-20170330", keys[k])
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -343,7 +337,7 @@ class Alt(datasets.GeneratorBasedBuilder):
         elif self.config.name == "alt-my":
             data = {}
             for fname in ["data"]:
-                file_path = os.path.join(basepath, f"my-alt-190530", fname)
+                file_path = os.path.join(basepath, "my-alt-190530", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -363,7 +357,7 @@ class Alt(datasets.GeneratorBasedBuilder):
         elif self.config.name == "alt-km":
             data = {}
             for fname in ["data_km.km-tag.nova", "data_km.km-tok.nova"]:
-                file_path = os.path.join(basepath, f"km-nova-181101", fname)
+                file_path = os.path.join(basepath, "km-nova-181101", fname)
                 fin = open(file_path, encoding="utf-8")
                 for line in fin:
                     line = line.strip()
@@ -387,7 +381,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                 fin.close()
 
         elif self.config.name == "alt-my-transliteration":
-            file_path = os.path.join(basepath, f"my-en-transliteration", "data.txt")
+            file_path = os.path.join(basepath, "my-en-transliteration", "data.txt")
             # Need to set errors='ignore' because of the unknown error
             # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
             # It might due to some issues related to Myanmar alphabets
@@ -408,7 +402,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                 _id += 1
             fin.close()
         elif self.config.name == "alt-my-west-transliteration":
-            file_path = os.path.join(basepath, f"western-myanmar-transliteration", "321.txt")
+            file_path = os.path.join(basepath, "western-myanmar-transliteration", "321.txt")
             # Need to set errors='ignore' because of the unknown error
             # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
             # It might due to some issues related to Myanmar alphabets
@@ -419,7 +413,7 @@ class Alt(datasets.GeneratorBasedBuilder):
                 line = line.replace("\x00", "")
                 sp = line.split("|||")
 
-                data[_id] = {"en": sp[0].strip(), "my": [l.strip() for l in sp[1].split("|")]}
+                data[_id] = {"en": sp[0].strip(), "my": [k.strip() for k in sp[1].split("|")]}
                 _id += 1
             fin.close()
 

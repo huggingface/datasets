@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -155,3 +156,7 @@ the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)
   year={2018}
 }
 ```
+
+### Contributions
+
+Thanks to [@olinguyen](https://github.com/olinguyen) for adding this dataset.

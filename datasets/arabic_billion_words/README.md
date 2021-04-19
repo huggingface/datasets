@@ -10,7 +10,26 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  Alittihad:
+  - 10K<n<100K
+  Almasryalyoum:
+  - 1K<n<10K
+  Almustaqbal:
+  - 10K<n<100K
+  Alqabas:
+  - 10K<n<100K
+  Echoroukonline:
+  - 10K<n<100K
+  Ryiadh:
+  - 10K<n<100K
+  Sabanews:
+  - 10K<n<100K
+  SaudiYoum:
+  - 10K<n<100K
+  Techreen:
+  - 10K<n<100K
+  Youm7:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -43,6 +62,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -149,3 +169,7 @@ The data fields are:
   year={2016}
 }
 ```
+
+### Contributions
+
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.

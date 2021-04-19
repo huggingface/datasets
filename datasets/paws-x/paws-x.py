@@ -14,7 +14,6 @@
 # limitations under the License.
 """PAWS-X, a multilingual version of PAWS for six languages."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -160,10 +159,8 @@ class PAWSX(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
 
         with open(filepath, encoding="utf-8") as f:
-            data = csv.DictReader(f, delimiter="\t")
+            data = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for id_, row in enumerate(data):
-                if row["label"] not in ["0", "1"]:
-                    row["label"] = -1
                 yield id_, {
                     "id": row["id"],
                     "sentence1": row["sentence1"],

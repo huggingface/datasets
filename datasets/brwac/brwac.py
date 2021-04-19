@@ -14,7 +14,6 @@
 # limitations under the License.
 """BrWaC dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import re
@@ -65,7 +64,7 @@ class Brwac(datasets.GeneratorBasedBuilder):
                 "doc_id": datasets.Value("string"),
                 "title": datasets.Value("string"),
                 "uri": datasets.Value("string"),
-                "paragraphs": datasets.Sequence({"sentences": datasets.Sequence(datasets.Value("string"))}),
+                "text": datasets.Sequence({"paragraphs": datasets.Sequence(datasets.Value("string"))}),
             }
         )
         return datasets.DatasetInfo(
@@ -104,7 +103,7 @@ class Brwac(datasets.GeneratorBasedBuilder):
 
             add_space = 1
             doc_id, title, uri = None, None, None
-            current_sentence, current_paragraph_sentences, paragraphs = "", [], []
+            current_sentence, current_paragraph_sentences, text = "", [], []
             id_ = 0
             for line in f:
 
@@ -125,7 +124,7 @@ class Brwac(datasets.GeneratorBasedBuilder):
                         current_sentence = ""
 
                     elif line == "</p>":  # end paragraph
-                        paragraphs.append({"sentences": current_paragraph_sentences})
+                        text.append({"paragraphs": current_paragraph_sentences})
                         current_paragraph_sentences = []
 
                     elif len(current_sentence) == 0:
@@ -136,8 +135,8 @@ class Brwac(datasets.GeneratorBasedBuilder):
                         add_space = 1
 
                     if line.strip() == "</doc>":  # doc end
-                        yield id_, {"doc_id": doc_id, "title": title, "uri": uri, "paragraphs": paragraphs}
+                        yield id_, {"doc_id": doc_id, "title": title, "uri": uri, "text": text}
                         id_ += 1
                         add_space = 1
                         doc_id, title, uri = None, None, None
-                        current_sentence, current_paragraph_sentences, paragraphs = "", [], []
+                        current_sentence, current_paragraph_sentences, text = "", [], []

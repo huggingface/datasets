@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -150,3 +151,7 @@ IOB2 labeling scheme is used.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@stefan-it](https://github.com/stefan-it) for adding this dataset.

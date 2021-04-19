@@ -193,3 +193,7 @@ Slightly Negative, Neutral, Slightly Positive, or Positive. We then combine the 
         primaryClass={cs.CL}
   }
 ```
+
+### Contributions
+
+Thanks to [@jeromeku](https://github.com/jeromeku) for adding this dataset.

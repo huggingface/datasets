@@ -12,7 +12,7 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-- n<1K
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -189,3 +190,7 @@ CC BY-NC-SA 3.0
   language = {english}
 }
 
+
+### Contributions
+
+Thanks to [@rahul-art](https://github.com/rahul-art) for adding this dataset.

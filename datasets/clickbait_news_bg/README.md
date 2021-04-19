@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -179,3 +180,7 @@ The **validation dataset** contains 761 testing examples.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@tsvm](https://github.com/tsvm), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

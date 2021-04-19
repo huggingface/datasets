@@ -14,7 +14,6 @@
 # limitations under the License.
 # Lint as: python3
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -120,8 +119,8 @@ class Stereoset(datasets.GeneratorBasedBuilder):
                 sentences = []
                 for s in e["sentences"]:
                     labels = []
-                    for l in s["labels"]:
-                        labels.append({"label": l["label"], "human_id": l["human_id"]})
+                    for label in s["labels"]:
+                        labels.append({"label": label["label"], "human_id": label["human_id"]})
                     sentences.append(
                         {"sentence": s["sentence"], "id": s["id"], "labels": labels, "gold_label": s["gold_label"]}
                     )

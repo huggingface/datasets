@@ -25,11 +25,11 @@ size_categories:
   SQuAD:
   - 100K<n<1M
   SearchQA:
-  - n>1M
+  - 1M<n<10M
   TextbookQA:
   - 10K<n<100K
   TriviaQA:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
   BioASQ:
   - extended|other-BioASQ
@@ -79,6 +79,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -222,3 +223,7 @@ The annotators/curators of the dataset are [mandyguo-xyguo](https://github.com/m
     primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@Karthik-Bhaskar](https://github.com/Karthik-Bhaskar) for adding this dataset.

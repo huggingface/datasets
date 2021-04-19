@@ -19,6 +19,9 @@
     <a href="https://huggingface.co/datasets/">
         <img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen">
     </a>
+    <a href="CODE_OF_CONDUCT.md">
+        <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg">
+    </a>
 </p>
 
 `🤗Datasets` is a lightweight library providing **two** main features:
@@ -42,11 +45,23 @@
 
 # Installation
 
+## With pip
+
 `🤗Datasets` can be installed from PyPi and has to be installed in a virtual environment (venv or conda for instance)
 
 ```bash
 pip install datasets
 ```
+
+## With conda
+
+`🤗Datasets` can be installed using conda as follows:
+
+```bash
+conda install -c huggingface -c conda-forge datasets
+```
+
+Follow the installation pages of TensorFlow and PyTorch to see how to install them with conda.
 
 For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation.html
 
@@ -73,7 +88,7 @@ from datasets import list_datasets, load_dataset, list_metrics, load_metric
 # Print all the available datasets
 print(list_datasets())
 
-# Load a dataset and print the first examples in the training set
+# Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
 
@@ -86,29 +101,31 @@ squad_metric = load_metric('squad')
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
 
-# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗 transformers library)
+# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗Transformers library)
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
-For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on
+For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on:
 
 - Loading a dataset https://huggingface.co/docs/datasets/loading_datasets.html
 - What's in a Dataset: https://huggingface.co/docs/datasets/exploring.html
 - Processing data with `🤗Datasets`: https://huggingface.co/docs/datasets/processing.html
 - Writing your own dataset loading script: https://huggingface.co/docs/datasets/add_dataset.html
-- etc
+- etc.
 
 Another introduction to `🤗Datasets` is the tutorial on Google Colab here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
 
 # Add a new dataset to the Hub
 
-We know have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
+We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
 
-You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md) to add a dataset to this repository.
+
+You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share_dataset.html).
 
 # Main differences between `🤗Datasets` and `tfds`
 

@@ -10,7 +10,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  generics_kb:
+  - 1M<n<10M
+  generics_kb_best:
+  - 1M<n<10M
+  generics_kb_simplewiki:
+  - 10K<n<100K
+  generics_kb_waterloo:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -43,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -193,3 +201,7 @@ year={2020},
 publisher = {Allen Institute for AI},
 }
 ```
+
+### Contributions
+
+Thanks to [@bpatidar](https://github.com/bpatidar) for adding this dataset.

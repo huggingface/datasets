@@ -3,7 +3,7 @@ Sharing your dataset
 
 Once you've written a new dataset loading script as detailed on the :doc:`add_dataset` page, you may want to share it with the community for instance on the `HuggingFace Hub <https://huggingface.co/datasets>`__. There are two options to do that:
 
-- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗datasets <https://github.com/huggingface/datasets>`__,
+- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗Datasets <https://github.com/huggingface/datasets>`__,
 - directly upload it on the Hub as a community provided dataset.
 
 Here are the main differences between these two options.
@@ -31,7 +31,7 @@ Sharing a "canonical" dataset
 
 To add a "canonical" dataset to the library, you need to go through the following steps:
 
-**1. Fork the** `🤗datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
+**1. Fork the** `🤗Datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
 
 **2. Clone your fork** to your local disk, and add the base repository as a remote:
 
@@ -50,7 +50,7 @@ To add a "canonical" dataset to the library, you need to go through the followin
 
 .. note::
 
-    **do not** work on the ``master`` branch.
+    **Do not** work on the ``master`` branch.
 
 **4. Set up a development environment** by running the following command **in a virtual environment**:
 
@@ -60,7 +60,7 @@ To add a "canonical" dataset to the library, you need to go through the followin
 
 .. note::
 
-   If 🤗datasets was already installed in the virtual environment, remove
+   If 🤗Datasets was already installed in the virtual environment, remove
    it with ``pip uninstall datasets`` before reinstalling it in editable
    mode with the ``-e`` flag.
 
@@ -102,31 +102,188 @@ Push the changes to your account using:
 
 Sharing a "community provided" dataset
 -----------------------------------------
-Make a data directory, for example called ``my_local_dataset``, containing, at a minimum, ``my_local_dataset/my_local_dataset.py``, but also whatever other files your dataset needs.
 
-Then, simply upload with ``datasets-cli`` from the command line:
+In this page, we will show you how to share a dataset with the community on the `datasets hub <https://huggingface.co/datasets>`__.
 
-.. code::
+.. note::
 
-   datasets-cli login  # use your huggingface.co credentials, only needs to be run once.
-   datasets-cli upload_dataset my_local_dataset
+    You will need to create an account on `huggingface.co <https://huggingface.co/join>`__ for this.
 
+    Optionally, you can join an existing organization or create a new one.
 
+Prepare your dataset for uploading
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+We have seen in the :doc:`dataset script tutorial <add_dataset>`: how to write a dataset loading script. Let's see how you can share it on the
+`datasets hub <https://huggingface.co/datasets>`__.
 
-This uploads the dataset to your personal account. If you want your model to be namespaced by your organization name
-rather than your username, add the following flag to any command:
+Dataset versioning
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since version 2.0, the datasets hub has built-in dataset versioning based on git and git-lfs. It is based on the paradigm
+that one dataset *is* one repo.
+
+This allows:
+
+- built-in versioning
+- access control
+- scalability
+
+This is built around *revisions*, which is a way to pin a specific version of a dataset, using a commit hash, tag or
+branch.
+
+For instance:
 
 .. code-block::
 
-    --organization organization_name
+    >>> dataset = load_dataset(
+    >>>   "lhoestq/custom_squad",
+    >>>   script_version="main"  # tag name, or branch name, or commit hash
+    >>> )
 
-After ``upload_dataset``, the following python code should work:
+Basic steps
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code::
+In order to upload a dataset, you'll need to first create a git repo. This repo will live on the datasets hub, allowing
+users to clone it and you (and your organization members) to push to it.
 
-    import datasets
-    datasets.load_dataset('my_username/my_local_dataset')
+You can create a dataset repo directly from `the /new-dataset page on the website <https://huggingface.co/new-dataset>`__.
+
+Alternatively, you can use the ``huggingface-cli``. The next steps describe that process:
+
+Go to a terminal and run the following command. It should be in the virtual environment where you installed 🤗
+Datasets, since that command :obj:`huggingface-cli` comes from the library.
+
+.. code-block:: bash
+
+    huggingface-cli login
+
+
+Once you are logged in with your datasets hub credentials, you can start building your repositories. To create a repo:
+
+.. code-block:: bash
+
+    huggingface-cli repo create your_dataset_name --type dataset
+
+
+If you want to create a repo under a specific organization, you should add a `--organization` flag:
+
+.. code-block:: bash
+
+    huggingface-cli repo create your_dataset_name --type dataset --organization your-org-name
+
+
+This creates a repo on the datasets hub, which can be cloned.
+
+.. code-block:: bash
+
+    # Make sure you have git-lfs installed
+    # (https://git-lfs.github.com/)
+    git lfs install
+
+    git clone https://huggingface.co/datasets/username/your_dataset_name
+
+When you have your local clone of your repo and lfs installed, you can then add/remove from that clone as you would
+with any other git repo.
+
+.. code-block:: bash
+
+    # Commit as usual
+    cd your_dataset_name
+    echo "hello" >> README.md
+    git add . && git commit -m "Update from $USER"
+
+We are intentionally not wrapping git too much, so that you can go on with the workflow you're used to and the tools
+you already know.
+
+The only learning curve you might have compared to regular git is the one for git-lfs. The documentation at
+`git-lfs.github.com <https://git-lfs.github.com/>`__ is decent, but we'll work on a tutorial with some tips and tricks
+in the coming weeks!
+
+Additionally, if you want to change multiple repos at once, the `change_config.py script
+<https://github.com/huggingface/efficient_scripts/blob/main/change_config.py>`__ can probably save you some time.
+
+
+Check the directory before pushing to the datasets hub.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make sure there are no garbage files in the directory you'll upload. It should only have:
+
+- a `your_dataset_name.py` file, which is the dataset script;
+- an optional `dataset_infos.json` file, which contains metadata about your dataset like the split sizes;
+- optional dummy data files, which contains only a small subset from the dataset for tests and preview;
+- your raw data files (json, csv, txt, etc.) that you need for your dataset
+
+Other files can safely be deleted.
+
+
+Uploading your files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the repo is cloned, If you need to add data files, instead of relying on the data to be hosted
+elsewhere, add these files using the following steps. Let's say that the files you're adding are ``*.json`` files, then:
+
+.. code-block:: bash
+
+    cp /somewhere/data/*.json .
+    git lfs track *.json
+    git add .gitattributes
+    git add *.json
+    git commit -m "add json files"
+
+It's crucial that ``git lfs track`` gets run on the large data files before ``git add``. If later during ``git push`` you get the error:
+
+.. code-block:: bash
+
+  remote: Your push was rejected because it contains files larger than 10M.
+  remote: Please use https://git-lfs.github.com/ to store larger files.
+
+it means you ``git add``\ed the data files before telling ``lfs`` to track those.
+
+Now you can add the dataset script and `dataset_infos.json` file:
+
+.. code-block:: bash
+
+    cp /somewhere/data/dataset_infos.json .
+    cp /somewhere/data/load_script.py .
+    git add --all
+
+Quickly verify that they have been correctly staged with:
+
+.. code-block:: bash
+
+    git status
+
+Finally, the files are ready to be committed and pushed to the remote:
+
+.. code-block:: bash
+
+    git commit -m "First version of the your_dataset_name dataset."
+    git push
+
+This will upload the folder containing the dataset script and dataset infos and data files.
+
+
+Using your dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your dataset now has a page on huggingface.co/datasets 🔥
+
+Anyone can load it from code:
+
+.. code-block::
+
+    >>> dataset = load_dataset("namespace/your_dataset_name")
+
+
+You may specify a version by using the ``script_version`` flag in the ``load_dataset`` function:
+
+.. code-block::
+
+    >>> dataset = load_dataset(
+    >>>   "lhoestq/custom_squad",
+    >>>   script_version="main"  # tag name, or branch name, or commit hash
+    >>> )
 
 
 .. _adding-tests:
@@ -151,7 +308,7 @@ You can check that the new dataset loading script works correctly and create the
 
 .. code-block::
 
-    python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+    datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
 If the command was succesful, you should now have a ``dataset_infos.json`` file created in the folder of your dataset loading script. Here is a dummy example of the content for a dataset with a single configuration:
 
@@ -222,7 +379,7 @@ Now that we have the metadata prepared we can also create some dummy data for au
 
 .. code-block::
 
-    python datasets-cli dummy_data datasets/<your-dataset-folder>
+    datasets-cli dummy_data datasets/<your-dataset-folder>
 
 This command will output instructions specifically tailored to your dataset and will look like:
 
@@ -237,9 +394,9 @@ This command will output instructions specifically tailored to your dataset and 
 
     - If the method `_generate_examples(...)` includes multiple `open()` statements, you might have to create other files in addition to 'dummy_data/TREC_10.label, dummy_data/train_5500.label'. In this case please refer to the `_generate_examples(...)` method
 
-    -After all dummy data files are created, they should be zipped recursively to 'dummy_data.zip' with the command `zip -r dummy_data.zip dummy_data/`
+    - After all dummy data files are created, they should be zipped recursively to 'dummy_data.zip' with the command `zip -r dummy_data.zip dummy_data/`
 
-    -You can now delete the folder 'dummy_data' with the command `rm -r dummy_data`
+    - You can now delete the folder 'dummy_data' with the command `rm -r dummy_data`
 
     - To get the folder 'dummy_data' back for further changes to the dummy data, simply unzip dummy_data.zip with the command `unzip dummy_data.zip`
 
@@ -251,15 +408,15 @@ If the extensions of the raw data files of your dataset are in this list, then y
 
 .. code-block::
 
-    python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+    datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 
 Examples:
 
 .. code-block::
 
-    python datasets-cli dummy_data ./datasets/snli --auto_generate
-    python datasets-cli dummy_data ./datasets/squad --auto_generate --json_field data
-    python datasets-cli dummy_data ./datasets/iwslt2017 --auto_generate --xml_tag seg --match_text_files "train*" --n_lines 15
+    datasets-cli dummy_data ./datasets/snli --auto_generate
+    datasets-cli dummy_data ./datasets/squad --auto_generate --json_field data
+    datasets-cli dummy_data ./datasets/iwslt2017 --auto_generate --xml_tag seg --match_text_files "train*" --n_lines 15
     # --xml_tag seg => each sample corresponds to a "seg" tag in the xml tree
     # --match_text_files "train*" =>  also match text files that don't have a proper text file extension (no suffix like ".txt" for example)
     # --n_lines 15 => some text files have headers so we have to use at least 15 lines
@@ -316,26 +473,26 @@ Now test that both the real data and the dummy data work correctly. Go back to t
 
 .. code-block::
 
-    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
+    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your_dataset_name>
 
 
 And *for the dummy data*:
 
 .. code-block::
 
-    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+    RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your_dataset_name>
 
 
 If all tests pass, your dataset works correctly. Awesome! You can now follow the last steps of the :ref:`canonical-dataset` or :ref:`community-dataset` sections to share the dataset with the community. If you experienced problems with the dummy data tests, here are some additional tips:
 
-- Verify that all filenames are spelled correctly. Rerun the command
+- Verify that all filenames are spelled correctly. Rerun the command:
 
 .. code-block::
 
-        python datasets-cli dummy_data datasets/<your-dataset-folder>
+        datasets-cli dummy_data datasets/<your-dataset-folder>
 
 and make sure you follow the exact instructions provided by the command.
 
-- Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function ``_split_generations(...)`` and expected by the function ``_generate_examples(...)`` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
+- Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function ``_split_generators(...)`` and expected by the function ``_generate_examples(...)`` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
 
 - If the dummy data tests still fail, open a PR in the main repository on github and make a remark in the description that you need help creating the dummy data and we will be happy to help you.
