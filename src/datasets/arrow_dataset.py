@@ -734,7 +734,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
-    @update_metadata_with_features
     def class_encode_column(self, column: str) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
 
