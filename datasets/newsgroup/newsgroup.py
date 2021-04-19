@@ -131,7 +131,7 @@ class Newsgroups(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"files_path": os.path.join(path, "20news-bydate-train", self.config.sub_dir)},
+                    gen_kwargs={"files_path": os.path.join(path, "20news-bydate-test", self.config.sub_dir)},
                 ),
             ]
         elif self.config.name.startswith("19997"):

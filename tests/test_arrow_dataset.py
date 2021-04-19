@@ -397,6 +397,7 @@ class BaseDatasetTest(TestCase):
                 features["col_1"] = Value("float64")
                 features = Features({k: features[k] for k in list(features)[::-1]})
                 fingerprint = dset._fingerprint
+                # TODO: with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
                 with dset.cast(features) as casted_dset:
                     self.assertEqual(casted_dset.num_columns, 3)
                     self.assertEqual(casted_dset.features["col_1"], Value("float64"))
@@ -404,11 +405,45 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(casted_dset._fingerprint, fingerprint)
                     self.assertNotEqual(casted_dset, dset)
 
+    def test_class_encode_column(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with self.assertRaises(ValueError):
+                    dset.class_encode_column(column="does not exist")
+
+                with dset.class_encode_column("col_1") as casted_dset:
+                    self.assertIsInstance(casted_dset.features["col_1"], ClassLabel)
+                    self.assertListEqual(casted_dset.features["col_1"].names, ["0", "1", "2", "3"])
+                    self.assertListEqual(casted_dset["col_1"], [3, 2, 1, 0])
+                    self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
+                    self.assertNotEqual(casted_dset, dset)
+
+                with dset.class_encode_column("col_2") as casted_dset:
+                    self.assertIsInstance(casted_dset.features["col_2"], ClassLabel)
+                    self.assertListEqual(casted_dset.features["col_2"].names, ["a", "b", "c", "d"])
+                    self.assertListEqual(casted_dset["col_2"], [0, 1, 2, 3])
+                    self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
+                    self.assertNotEqual(casted_dset, dset)
+
+                with dset.class_encode_column("col_3") as casted_dset:
+                    self.assertIsInstance(casted_dset.features["col_3"], ClassLabel)
+                    self.assertListEqual(casted_dset.features["col_3"].names, ["False", "True"])
+                    self.assertListEqual(casted_dset["col_3"], [0, 1, 0, 1])
+                    self.assertNotEqual(casted_dset._fingerprint, dset._fingerprint)
+                    self.assertNotEqual(casted_dset, dset)
+
+            # Test raises if feature is an array / sequence
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True) as dset:
+                for column in dset.column_names:
+                    with self.assertRaises(ValueError):
+                        dset.class_encode_column(column)
+
     def test_remove_columns_in_place(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 fingerprint = dset._fingerprint
-                dset.remove_columns_(column_names="col_1")
+                with assert_arrow_memory_doesnt_increase():
+                    dset.remove_columns_(column_names="col_1")
                 self.assertEqual(dset.num_columns, 2)
                 self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
 
@@ -896,7 +931,7 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
-    def test_map_remove_colums(self, in_memory):
+    def test_map_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 with dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True) as dset:
@@ -905,12 +940,16 @@ class BaseDatasetTest(TestCase):
                         dset.features,
                         Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
                     )
-
                     with dset.map(lambda x: x, remove_columns=["id"]) as dset:
                         self.assertTrue("id" not in dset[0])
                         self.assertDictEqual(
                             dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
+                        dset = dset.with_format("numpy", columns=dset.column_names)
+                        with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
+                            self.assertTrue("filename" not in dset[0])
+                            self.assertTrue("name" in dset[0])
+                            self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
