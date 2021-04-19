@@ -663,6 +663,7 @@ class ConcatenationTable(Table):
 
             .. versionadded:: 1.6.0
         """
+
         def to_blocks(table):
             if isinstance(table, pa.Table):
                 return [[InMemoryTable(table)]]
