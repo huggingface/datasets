@@ -1,6 +1,7 @@
 import csv
 import json
 import lzma
+import os
 import shutil
 import textwrap
 
