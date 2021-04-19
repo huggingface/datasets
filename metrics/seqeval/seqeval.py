@@ -14,6 +14,9 @@
 # limitations under the License.
 """ seqeval metric. """
 
+import importlib
+from typing import List, Optional, Union
+
 from seqeval.metrics import accuracy_score, classification_report
 
 import datasets
@@ -62,6 +65,14 @@ Args:
     predictions: List of List of predicted labels (Estimated targets as returned by a tagger)
     references: List of List of reference labels (Ground truth (correct) target values)
     suffix: True if the IOB prefix is after type, False otherwise. default: False
+    scheme: Specify target tagging scheme. Should be one of ["IOB1", "IOB2", "IOE1", "IOE2", "IOBES", "BILOU"].
+        default: None
+    mode: Whether to count correct entity labels with incorrect I/B tags as true positives or not.
+        If you want to only count exact matches, pass mode="strict". default: None.
+    sample_weight: Array-like of shape (n_samples,), weights for individual samples. default: None
+    zero_division: Which value to substitute as a metric value when encountering zero division. Should be on of 0, 1,
+        "warn". "warn" acts as 0, but the warning is raised.
+
 Returns:
     'scores': dict. Summary of the scores for overall and per type
         Overall:
@@ -106,8 +117,32 @@ class Seqeval(datasets.Metric):
             reference_urls=["https://github.com/chakki-works/seqeval"],
         )
 
-    def _compute(self, predictions, references, suffix=False):
-        report = classification_report(y_true=references, y_pred=predictions, suffix=suffix, output_dict=True)
+    def _compute(
+        self,
+        predictions,
+        references,
+        suffix: bool = False,
+        scheme: Optional[str] = None,
+        mode: Optional[str] = None,
+        sample_weight: Optional[List[int]] = None,
+        zero_division: Union[str, int] = "warn",
+    ):
+        if scheme is not None:
+            try:
+                scheme_module = importlib.import_module("seqeval.scheme")
+                scheme = getattr(scheme_module, scheme)
+            except AttributeError:
+                raise ValueError(f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {scheme}")
+        report = classification_report(
+            y_true=references,
+            y_pred=predictions,
+            suffix=suffix,
+            output_dict=True,
+            scheme=scheme,
+            mode=mode,
+            sample_weight=sample_weight,
+            zero_division=zero_division,
+        )
         report.pop("macro avg")
         report.pop("weighted avg")
         overall_score = report.pop("micro avg")

@@ -233,6 +233,15 @@ class DatasetDict(dict):
             }
         )
 
+    def class_encode_column(self, column: str):
+        """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the tables.
+
+        Args:
+            column (`str`): The name of the column to cast
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.class_encode_column(column=column) for k, dataset in self.items()})
+
     @contextlib.contextmanager
     def formatted_as(
         self,

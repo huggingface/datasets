@@ -42,7 +42,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import Features, cast_to_python_objects
+from .features import ClassLabel, Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -572,7 +572,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Get json serializable state
         state = {
-            key: self.__dict__[key] if key != "_split" else str(self.__dict__[key])
+            key: self.__dict__[key]
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -580,9 +580,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "_format_type",
                 "_indexes",
                 "_output_all_columns",
-                "_split",
             ]
         }
+
+        split = self.__dict__["_split"]
+        state["_split"] = str(split) if split is not None else split
+
         state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
         state["_indices_data_files"] = (
             [{"filename": config.DATASET_INDICES_FILENAME}] if self._indices is not None else None
@@ -660,11 +663,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             indices_table = None
 
+        split = state["_split"]
+        split = NamedSplit(split) if split is not None else split
+
         return Dataset(
             arrow_table=arrow_table,
             indices_table=indices_table,
             info=dataset_info,
-            split=state["_split"],
+            split=split,
             fingerprint=state["_fingerprint"],
         )
 
@@ -727,6 +733,41 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         return self._data.column(column).unique().to_pylist()
+
+    @update_metadata_with_features
+    def class_encode_column(self, column: str) -> "Dataset":
+        """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
+
+        Args:
+            column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
+        """
+        # Sanity checks
+        if column not in self._data.column_names:
+            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
+        src_feat = self.features[column]
+        if not isinstance(src_feat, Value):
+            raise ValueError(
+                f"Class encoding is only supported for {type(Value)} column, and column {column} is {type(src_feat)}."
+            )
+
+        # Stringify the column
+        if src_feat.dtype != "string":
+            dset = self.map(
+                lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
+            )
+        else:
+            dset = self
+
+        # Create the new feature
+        class_names = sorted(dset.unique(column))
+        dst_feat = ClassLabel(names=class_names)
+        dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+
+        new_features = copy.deepcopy(dset.features)
+        new_features[column] = dst_feat
+        dset = dset.cast(new_features)
+
+        return dset
 
     @deprecated()
     @fingerprint_transform(inplace=True)
@@ -847,6 +888,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
+            features=features,
         )
         self._data = dataset._data
         self._info = dataset._info
@@ -905,6 +947,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
+            features=features,
         )
         dataset = dataset.with_format(**format)
         return dataset
@@ -1659,9 +1702,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if remove_columns is not None:
-                for column in remove_columns:
-                    inputs.pop(column)
             if self._format_type is not None:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
@@ -1669,6 +1709,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     format_columns=None,
                     format_kwargs=None,
                 )
+            if remove_columns is not None:
+                for column in remove_columns:
+                    inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(inputs[next(iter(inputs.keys()))])
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
