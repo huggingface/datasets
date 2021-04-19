@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""NLU Evaluation Data."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -39,10 +39,9 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-Raw part of NLU Evaluation Data.
+Raw part of NLU Evaluation Data. It contains 25 715 non-empty examples from 68 unique intents belonging to 18 scenarios.
 """
 
 _HOMEPAGE = "https://github.com/xliuhw/NLU-Evaluation-Data"
