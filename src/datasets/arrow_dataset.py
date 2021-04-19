@@ -577,7 +577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Get json serializable state
         state = {
-            key: self.__dict__[key] if key != "_split" else str(self.__dict__[key])
+            key: self.__dict__[key]
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -585,9 +585,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "_format_type",
                 "_indexes",
                 "_output_all_columns",
-                "_split",
             ]
         }
+
+        split = self.__dict__["_split"]
+        state["_split"] = str(split) if split is not None else split
+
         state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
         state["_indices_data_files"] = (
             [{"filename": config.DATASET_INDICES_FILENAME}] if self._indices is not None else None
@@ -665,11 +668,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             indices_table = None
 
+        split = state["_split"]
+        split = NamedSplit(split) if split is not None else split
+
         return Dataset(
             arrow_table=arrow_table,
             indices_table=indices_table,
             info=dataset_info,
-            split=state["_split"],
+            split=split,
             fingerprint=state["_fingerprint"],
         )
 
