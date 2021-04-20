@@ -10,13 +10,15 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .builder import DatasetBuilder, GeneratorBasedBuilder
+from .builder import ArrowBasedBuilder, DatasetBuilder, GeneratorBasedBuilder
 from .features import Features
+from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .load import import_main_class, prepare_module, url_or_path_parent
 from .splits import NamedSplit, Split
 from .utils import DownloadConfig, map_nested
 from .utils.download_manager import GenerateMode
+from .utils.file_utils import is_relative_path, url_or_path_join
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -72,6 +74,17 @@ class ExamplesIterable:
             else:
                 shuffled_kwargs[key] = value
         return ExamplesIterable(self.generate_examples_fn, shuffled_kwargs)
+
+
+def _generate_examples_from_tables_wrapper(generate_tables_fn):
+    def wrapper(**kwargs):
+        python_formatter = PythonFormatter()
+        for key, table in generate_tables_fn(**kwargs):
+            batch = python_formatter.format_batch(table)
+            for i, example in enumerate(_batch_to_examples(batch)):
+                yield f"{key}_{i}", example
+
+    return wrapper
 
 
 @dataclass
@@ -433,7 +446,14 @@ class StreamingDownloadManager(object):
         return self._data_dir
 
     def download(self, url_or_urls):
+        url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
         return url_or_urls
+
+    def _download(self, url_or_filename):
+        if is_relative_path(url_or_filename):
+            # append the relative path to the base_path
+            url_or_filename = url_or_path_join(self._base_path, url_or_filename)
+        return url_or_filename
 
     def extract(self, path_or_paths):
         return path_or_paths
@@ -443,12 +463,12 @@ class StreamingDownloadManager(object):
 
 
 def as_streaming_dataset(
-    builder_instance: GeneratorBasedBuilder,
+    builder_instance: Union[GeneratorBasedBuilder, ArrowBasedBuilder],
     split: Optional[str] = None,
     base_path: Optional[str] = None,
     use_auth_token: Optional[str] = None,
 ) -> Union[Dict[str, IterableDataset], IterableDataset]:
-    if not isinstance(builder_instance, GeneratorBasedBuilder):
+    if not isinstance(builder_instance, (GeneratorBasedBuilder, ArrowBasedBuilder)):
         raise ValueError(f"Builder {builder_instance.name} is not streamable.")
     # By default, return all splits
     if split is None:
@@ -472,7 +492,7 @@ def as_streaming_dataset(
 
 def _as_streaming_dataset_single(
     split: str,
-    builder_instance: GeneratorBasedBuilder,
+    builder_instance: Union[GeneratorBasedBuilder, ArrowBasedBuilder],
     base_path: Optional[str] = None,
     use_auth_token: Optional[str] = None,
 ) -> IterableDataset:
@@ -486,5 +506,10 @@ def _as_streaming_dataset_single(
     if split not in splits_generators:
         raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
     gen_kwargs = splits_generators[split].gen_kwargs
-    iterable = ExamplesIterable(builder_instance._generate_examples, kwargs=gen_kwargs)
+    if isinstance(builder_instance, ArrowBasedBuilder):
+        iterable = ExamplesIterable(
+            _generate_examples_from_tables_wrapper(builder_instance._generate_tables), kwargs=gen_kwargs
+        )
+    else:
+        iterable = ExamplesIterable(builder_instance._generate_examples, kwargs=gen_kwargs)
     return IterableDataset(iterable, info=builder_instance.info, split=split)
