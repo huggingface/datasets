@@ -14,7 +14,6 @@
 # limitations under the License.
 """fiskmo, a massive parallel corpus for Finnish and Swedish."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

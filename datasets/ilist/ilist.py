@@ -14,7 +14,6 @@
 # limitations under the License.
 """Indo-Aryan Language Identification Shared Task Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

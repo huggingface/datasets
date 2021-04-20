@@ -14,7 +14,6 @@
 # limitations under the License.
 """Parallel corpus of full-text articles in Portuguese, English and Spanish from SciELO"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

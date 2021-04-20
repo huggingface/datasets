@@ -18,7 +18,6 @@ financial news. The dataset consists of 4840 sentences from English language
 financial news categorised by sentiment. The dataset is divided by agreement
 rate of 5-8 annotators."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

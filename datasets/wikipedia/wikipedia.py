@@ -16,26 +16,18 @@
 # Lint as: python3
 """Wikipedia dataset containing cleaned articles of all languages."""
 
-from __future__ import absolute_import, division, print_function
 
+import bz2
 import codecs
 import json
 import re
 import xml.etree.cElementTree as etree
-
-import six
 
 import datasets
 
 
 logger = datasets.logging.get_logger(__name__)
 
-
-if six.PY3:
-    import bz2  # pylint:disable=g-import-not-at-top
-else:
-    # py2's built-in bz2 package does not support reading from file objects.
-    import bz2file as bz2  # pylint:disable=g-import-not-at-top
 
 _CITATION = """\
 @ONLINE {wikidump,
@@ -466,13 +458,8 @@ class Wikipedia(datasets.BeamBasedBuilder):
             logger.info("generating examples from = %s", filepath)
             with beam.io.filesystems.FileSystems.open(filepath) as f:
                 f = bz2.BZ2File(filename=f)
-                if six.PY3:
-                    # Workaround due to:
-                    # https://github.com/tensorflow/tensorflow/issues/33563
-                    utf_f = codecs.getreader("utf-8")(f)
-                else:
-                    utf_f = f
-
+                # Workaround due to: https://github.com/tensorflow/tensorflow/issues/33563
+                utf_f = codecs.getreader("utf-8")(f)
                 context = etree.iterparse(utf_f, events=("end",))
                 for unused_event, elem in context:
                     if not elem.tag.endswith("page"):
@@ -533,10 +520,10 @@ def _parse_and_clean_wikicode(raw_content, parser):
     re_rm_wikilink = re.compile("^(?:File|Image|Media):", flags=re.IGNORECASE | re.UNICODE)
 
     def rm_wikilink(obj):
-        return bool(re_rm_wikilink.match(six.text_type(obj.title)))
+        return bool(re_rm_wikilink.match(str(obj.title)))
 
     def rm_tag(obj):
-        return six.text_type(obj.tag) in {"ref", "table"}
+        return str(obj.tag) in {"ref", "table"}
 
     def rm_template(obj):
         return obj.name.lower() in {"reflist", "notelist", "notelist-ua", "notelist-lr", "notelist-ur", "notelist-lg"}

@@ -14,7 +14,6 @@
 # limitations under the License.
 """The United Nations Parallel Corpus v1.0"""
 
-from __future__ import absolute_import, division, print_function
 
 import itertools
 import os

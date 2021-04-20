@@ -16,7 +16,6 @@
 # Lint as: python3
 """WMT: Translate dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import codecs
 import functools
@@ -27,8 +26,6 @@ import os
 import re
 import xml.etree.cElementTree as ElementTree
 from abc import ABC, abstractmethod
-
-import six
 
 import datasets
 
@@ -61,7 +58,7 @@ builder = datasets.builder("wmt_translate", config=config)
 CWMT_SUBSET_NAMES = ["casia2015", "casict2011", "casict2015", "datum2015", "datum2017", "neu2017"]
 
 
-class SubDataset(object):
+class SubDataset:
     """Class to keep track of information on a sub-dataset of WMT."""
 
     def __init__(self, name, target, sources, url, path, manual_dl_files=None):
@@ -89,8 +86,8 @@ class SubDataset(object):
           manual_dl_files: `<list>(string)` (optional), the list of files that must
             be manually downloaded to the data directory.
         """
-        self._paths = (path,) if isinstance(path, six.string_types) else path
-        self._urls = (url,) if isinstance(url, six.string_types) else url
+        self._paths = (path,) if isinstance(path, str) else path
+        self._urls = (url,) if isinstance(url, str) else url
         self._manual_dl_files = manual_dl_files if manual_dl_files else []
         self.name = name
         self.target = target
@@ -941,11 +938,8 @@ def _parse_tmx(path):
         return segs[0].text
 
     with open(path, "rb") as f:
-        if six.PY3:
-            # Workaround due to: https://github.com/tensorflow/tensorflow/issues/33563
-            utf_f = codecs.getreader("utf-8")(f)
-        else:
-            utf_f = f
+        # Workaround due to: https://github.com/tensorflow/tensorflow/issues/33563
+        utf_f = codecs.getreader("utf-8")(f)
         for line_id, (_, elem) in enumerate(ElementTree.iterparse(utf_f)):
             if elem.tag == "tu":
                 yield line_id, {_get_tuv_lang(tuv): _get_tuv_seg(tuv) for tuv in elem.iterfind("tuv")}

@@ -14,7 +14,6 @@
 # limitations under the License.
 """An annotated dataset for hate speech and offensive language detection on tweets."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

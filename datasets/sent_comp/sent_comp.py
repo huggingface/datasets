@@ -14,7 +14,6 @@
 # limitations under the License.
 """Google Sentence Compression dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import gzip
 import json

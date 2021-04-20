@@ -16,7 +16,6 @@
 # Lint as: python3
 """Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Diplomacy: A Dataset for Deception Detection. It Takes Two to Lie: One to Lie, and One to Listen."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

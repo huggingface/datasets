@@ -14,7 +14,6 @@
 # limitations under the License.
 """Code-Mixed Tamil-English Text for Sentiment Analysis"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

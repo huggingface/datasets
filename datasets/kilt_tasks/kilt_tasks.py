@@ -16,7 +16,6 @@
 # Lint as: python3
 """KILT tasks training and evaluation data"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

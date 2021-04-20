@@ -220,26 +220,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-@inproceedings{molina-etal-2016-overview,
-   title = "Overview for the Second Shared Task on Language Identification in Code-Switched Data",
-   author = "Molina, Giovanni and
-             AlGhamdi, Fahad and
-             Ghoneim, Mahmoud and
-             Hawwari, Abdelati and
-             Rey-Villamizar, Nicolas and
-             Diab, Mona and
-             Solorio, Thamar",
-   booktitle = "Proceedings of the Second Workshop on Computational Approaches to Code Switching",
-   month = nov,
-   year = "2016",
-   address = "Austin, Texas",
-   publisher = "Association for Computational Linguistics",
-   url = "https://www.aclweb.org/anthology/W16-5805",
-   doi = "10.18653/v1/W16-5805",
-   pages = "40--49",
-}
-
 @inproceedings{aguilar-etal-2020-lince,
     title = "{L}in{CE}: A Centralized Benchmark for Linguistic Code-switching Evaluation",
     author = "Aguilar, Gustavo  and
@@ -255,11 +235,10 @@ The data fields are the same among all splits.
     language = "English",
     ISBN = "979-10-95546-34-4",
 }
-
-Note that each LinCE dataset has its own citation. Please see the source to see
-the correct citation for each contained dataset.
 ```
 
+Note that each LinCE dataset has its own citation too. Please see [here](https://ritual.uh.edu/lince/datasets)
+for the correct citation on each dataset.
 
 ### Contributions
 

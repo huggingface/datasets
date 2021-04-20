@@ -14,7 +14,6 @@
 # limitations under the License.
 """XED: A multilingual fine-grained emotion dataset. The dataset consists of humanannotated Finnish (25k) and English sentences (30k)."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

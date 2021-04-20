@@ -14,7 +14,6 @@
 # limitations under the License.
 """The SemEval-2010 Task 8 on Multi-way classification of semantic relations between pairs of nominals"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

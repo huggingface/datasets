@@ -16,7 +16,6 @@
 # Lint as: python3
 """Splits related API."""
 
-from __future__ import absolute_import, division, print_function
 
 import abc
 import collections
@@ -351,7 +350,7 @@ class NamedSplit(SplitBase):
         return self._name
 
     def __repr__(self):
-        return "NamedSplit('{name}')".format(name=self._name)
+        return f"NamedSplit({self._name!r})"
 
     def __eq__(self, other):
         """Equality: datasets.Split.TRAIN == 'train'."""
@@ -378,7 +377,7 @@ class NamedSplitAll(NamedSplit):
         super(NamedSplitAll, self).__init__("all")
 
     def __repr__(self):
-        return f"NamedSplitAll({self._name}"
+        return f"NamedSplitAll({self._name!r})"
 
     def get_read_instruction(self, split_dict):
         # Merge all dataset split together
@@ -386,7 +385,7 @@ class NamedSplitAll(NamedSplit):
         return sum(read_instructions, SplitReadInstruction())
 
 
-class Split(object):
+class Split:
     # pylint: disable=line-too-long
     """`Enum` for dataset splits.
 
@@ -424,7 +423,7 @@ SlicedSplitInfo = collections.namedtuple(
 )  # noqa: E231
 
 
-class SplitReadInstruction(object):
+class SplitReadInstruction:
     """Object containing the reading instruction for the dataset.
 
     Similarly to `SplitDescriptor` nodes, this object can be composed with itself,

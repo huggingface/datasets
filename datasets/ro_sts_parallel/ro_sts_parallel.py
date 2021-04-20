@@ -14,7 +14,6 @@
 # limitations under the License.
 """RO-STS-Parallel: a Parallel English-Romanian Dataset by translating the Semantic Textual Similarity dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

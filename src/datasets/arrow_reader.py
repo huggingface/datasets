@@ -22,10 +22,10 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
-import pyarrow.parquet
+import pyarrow.parquet as pq
 
 from datasets.utils.file_utils import DownloadConfig
 
@@ -36,6 +36,7 @@ from .utils import cached_path, logging
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
+    from .splits import Split  # noqa: F401
 
 
 logger = logging.get_logger(__name__)
@@ -52,7 +53,7 @@ _SUB_SPEC_RE = re.compile(
     :
     ((?P<to>-?\d+)
      (?P<to_pct>%)?)?
- \])?
+ \])?(\((?P<rounding>[^\)]*)\))?
 $
 """.format(
         split_re=_split_re[1:-1]
@@ -217,8 +218,8 @@ class BaseReader:
 
     def read_files(
         self,
-        files,
-        original_instructions=None,
+        files: List[dict],
+        original_instructions: Union[None, "ReadInstruction", "Split"] = None,
         in_memory=False,
     ):
         """Returns single Dataset instance for the set of file instructions.
@@ -235,7 +236,14 @@ class BaseReader:
         """
         # Prepend path to filename
         pa_table = self._read_files(files, in_memory=in_memory)
-        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=original_instructions)
+        # If original_instructions is not None, convert it to a human-readable NamedSplit
+        if original_instructions is not None:
+            from .splits import Split  # noqa
+
+            split = Split(str(original_instructions))
+        else:
+            split = None
+        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=split)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
@@ -343,7 +351,7 @@ class ParquetReader(BaseReader):
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
         # Parquet read_table always loads data in memory, independently of memory_map
-        pa_table = pa.parquet.read_table(filename, memory_map=True)
+        pa_table = pq.read_table(filename, memory_map=True)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
@@ -378,7 +386,7 @@ class _RelativeInstruction:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
 
 
-def _str_to_relative_instruction(spec):
+def _str_to_read_instruction(spec):
     """Returns ReadInstruction for given string."""
     res = _SUB_SPEC_RE.match(spec)
     if not res:
@@ -386,7 +394,7 @@ def _str_to_relative_instruction(spec):
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
-        rounding="closest",
+        rounding=res.group("rounding") if res.group("rounding") else "closest",
         from_=int(res.group("from")) if res.group("from") else None,
         to=int(res.group("to")) if res.group("to") else None,
         unit=unit,
@@ -442,7 +450,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
     return _AbsoluteInstruction(split, from_, to)
 
 
-class ReadInstruction(object):
+class ReadInstruction:
     """Reading instruction for a dataset.
 
     Examples of usage:
@@ -538,8 +546,28 @@ class ReadInstruction(object):
         subs = _ADDITION_SEP_RE.split(spec)
         if not subs:
             raise AssertionError("No instructions could be built out of %s" % spec)
-        instruction = _str_to_relative_instruction(subs[0])
-        return sum([_str_to_relative_instruction(sub) for sub in subs[1:]], instruction)
+        instruction = _str_to_read_instruction(subs[0])
+        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+
+    def to_spec(self):
+        rel_instr_specs = []
+        for rel_instr in self._relative_instructions:
+            rel_instr_spec = rel_instr.splitname
+            if rel_instr.from_ is not None or rel_instr.to is not None:
+                from_ = rel_instr.from_
+                to = rel_instr.to
+                unit = rel_instr.unit
+                rounding = rel_instr.rounding
+                unit = unit if unit == "%" else ""
+                from_ = str(from_) + unit if from_ is not None else ""
+                to = str(to) + unit if to is not None else ""
+                slice_str = f"[{from_}:{to}]"
+                rounding_str = (
+                    f"({rounding})" if unit == "%" and rounding is not None and rounding != "closest" else ""
+                )
+                rel_instr_spec += slice_str + rounding_str
+            rel_instr_specs.append(rel_instr_spec)
+        return "+".join(rel_instr_specs)
 
     def __add__(self, other):
         """Returns a new ReadInstruction obj, result of appending other to self."""
@@ -552,6 +580,9 @@ class ReadInstruction(object):
         return self._read_instruction_from_relative_instructions(self._relative_instructions + other_ris)
 
     def __str__(self):
+        return self.to_spec()
+
+    def __repr__(self):
         return "ReadInstruction(%s)" % self._relative_instructions
 
     def to_absolute(self, name2len):

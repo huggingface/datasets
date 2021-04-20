@@ -14,7 +14,6 @@
 # limitations under the License.
 """GEM: Generation Evaluation Metrics supporting datasets"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json
@@ -190,7 +189,7 @@ _URLs = {
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/mlsum_es.zip",
     },
     "schema_guided_dialog": {
-        "data": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_sgd.json.zip",
+        "data": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_sgd_context.zip",
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/schema_guided_dialog.zip",
     },
     "totto": {
@@ -210,8 +209,8 @@ _URLs = {
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/web_nlg_ru.zip",
     },
     "wiki_auto_asset_turk": {
-        "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/train.tsv",
-        "validation": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/dev.tsv",
+        "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/train.tsv",
+        "validation": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/valid.tsv",
         "test_turk": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_turk_detokenized.json",
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/wiki_auto_asset_turk_train_valid.zip",
     },
@@ -424,7 +423,9 @@ class Gem(datasets.GeneratorBasedBuilder):
                             "values": [datasets.Value("string")],
                         }
                     ],
+                    "context": [datasets.Value("string")],
                     "dialog_id": datasets.Value("string"),
+                    "service": datasets.Value("string"),
                     "turn_id": datasets.Value("int32"),
                     "prompt": datasets.Value("string"),
                     "target": datasets.Value("string"),
@@ -483,8 +484,6 @@ class Gem(datasets.GeneratorBasedBuilder):
                 {
                     "gem_id": datasets.Value("string"),
                     "gem_parent_id": datasets.Value("string"),
-                    "source_id": datasets.Value("string"),
-                    "target_id": datasets.Value("string"),
                     "source": datasets.Value("string"),
                     "target": datasets.Value("string"),
                     "references": [datasets.Value("string")],
@@ -623,7 +622,7 @@ class Gem(datasets.GeneratorBasedBuilder):
             challenge_sets = [
                 ("challenge_train_sample", f"train_mlsum_{lang}_RandomSample500.json"),
                 ("challenge_validation_sample", f"validation_mlsum_{lang}_RandomSample500.json"),
-                ("challenge_test_covid", f"{lang}_test_covid19.jsonl"),
+                ("challenge_test_covid", f"{lang}_test_covid19_cleaned.jsonl"),
             ]
             return [
                 datasets.SplitGenerator(
@@ -665,13 +664,19 @@ class Gem(datasets.GeneratorBasedBuilder):
             ]
         elif self.config.name == "schema_guided_dialog":
             challenge_sets = [
-                ("challenge_train_sample", "train_schema_guided_dialog_RandomSample500.json"),
-                ("challenge_validation_sample", "validation_schema_guided_dialog_RandomSample500.json"),
-                ("challenge_test_backtranslation", "test_schema_guided_dialog_BackTranslation500.json"),
-                ("challenge_test_bfp02", "test_schema_guided_dialog_ButterFingersPerturbation_p=0.02_500.json"),
-                ("challenge_test_bfp05", "test_schema_guided_dialog_ButterFingersPerturbation_p=0.05_500.json"),
-                ("challenge_test_nopunc", "test_schema_guided_dialog_WithoutPunctuation500.json"),
-                ("challenge_test_scramble", "test_schema_guided_dialog_ScrambleInputStructure500.json"),
+                ("challenge_train_sample", "train_schema_guided_dialog_RandomSample500_reformatted.json"),
+                ("challenge_validation_sample", "validation_schema_guided_dialog_RandomSample500_reformatted.json"),
+                ("challenge_test_backtranslation", "test_schema_guided_dialog_BackTranslation500_reformatted.json"),
+                (
+                    "challenge_test_bfp02",
+                    "test_schema_guided_dialog_ButterFingersPerturbation_p=0.02_500_reformatted.json",
+                ),
+                (
+                    "challenge_test_bfp05",
+                    "test_schema_guided_dialog_ButterFingersPerturbation_p=0.05_500_reformatted.json",
+                ),
+                ("challenge_test_nopunc", "test_schema_guided_dialog_WithoutPunctuation500_reformatted.json"),
+                ("challenge_test_scramble", "test_schema_guided_dialog_ScrambleInputStructure500_reformatted.json"),
             ]
             return [
                 datasets.SplitGenerator(
@@ -878,6 +883,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                 ("challenge_test_bfp_02", "test_xsum_ButterFingersPerturbation_p=0.02_500.json"),
                 ("challenge_test_bfp_05", "test_xsum_ButterFingersPerturbation_p=0.05_500.json"),
                 ("challenge_test_nopunc", "test_xsum_WithoutPunctuation500.json"),
+                ("challenge_test_covid", f"en_test_covid19.jsonl"),
             ]
             return [
                 datasets.SplitGenerator(
@@ -1050,7 +1056,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     id_ = -1
                     for line in f:
                         data = json.loads(line)
-                        if data["url"] in bad_ids:  # TODO : check | i or i-1?
+                        if data["url"] in bad_ids:
                             continue
                         else:
                             id_ += 1
@@ -1102,7 +1108,9 @@ class Gem(datasets.GeneratorBasedBuilder):
                             }
                             for act_id, slot, values in example["da"]
                         ],
+                        "context": example["context"],
                         "dialog_id": example["dialog_id"],
+                        "service": example["service"],
                         "turn_id": example["turn_ix"],
                         "prompt": example["prompt"],
                         "target": example["target"],
@@ -1212,16 +1220,14 @@ class Gem(datasets.GeneratorBasedBuilder):
         elif self.config.name == "wiki_auto_asset_turk":
             if split in ["train", "validation"]:
                 keys = [
-                    "target_id",
-                    "source_id",
-                    "target",
                     "source",
+                    "target",
                 ]
                 with open(filepath, encoding="utf-8") as f:
                     for id_, line in enumerate(f):
                         values = line.strip().split("\t")
-                        assert len(values) == 5, f"Not enough fields in ---- {line} --- {values}"
-                        example = dict([(k, val) for k, val in zip(keys, values[1:])])
+                        assert len(values) == 2, f"Not enough fields in ---- {line} --- {values}"
+                        example = dict([(k, val) for k, val in zip(keys, values)])
                         example["gem_id"] = f"{self.config.name}-{split}-{id_}"
                         example["gem_parent_id"] = example["gem_id"]
                         example["references"] = [] if split == "train" else [example["target"]]
@@ -1230,6 +1236,9 @@ class Gem(datasets.GeneratorBasedBuilder):
                 examples = json.load(open(filepath, encoding="utf-8"))
                 for id_, example in enumerate(examples):
                     example["gem_parent_id"] = example["gem_id"]
+                    for k in ["source_id", "target_id"]:
+                        if k in example:
+                            del example[k]
                     yield id_, example
             elif split == "test_asset":
                 files = [open(f_name, encoding="utf-8") for f_name in filepaths]
@@ -1237,8 +1246,6 @@ class Gem(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "gem_id": f"{self.config.name}-{split}-{id_}",
                         "gem_parent_id": f"{self.config.name}-{split}-{id_}",
-                        "source_id": "",
-                        "target_id": "",
                         "target": lines[1].strip(),
                         "source": lines[0].strip(),
                         "references": [line.strip() for line in lines[1:]],
@@ -1251,6 +1258,9 @@ class Gem(datasets.GeneratorBasedBuilder):
                 for id_, exple in enumerate(exples):
                     exple["gem_parent_id"] = exple["gem_id"]
                     exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
+                    for k in ["source_id", "target_id"]:
+                        if k in exple:
+                            del exple[k]
                     yield id_, exple
         elif self.config.name.startswith("wiki_lingua"):
             if "v0" in self.config.name:
@@ -1283,14 +1293,29 @@ class Gem(datasets.GeneratorBasedBuilder):
                                     }
         elif self.config.name == "xsum":
             if "challenge" in split:
-                exples = json.load(open(filepath, encoding="utf-8"))
-                if isinstance(exples, dict):
-                    assert len(exples) == 1, "multiple entries found"
-                    exples = list(exples.values())[0]
-                for id_, exple in enumerate(exples):
-                    exple["gem_parent_id"] = exple["gem_id"]
-                    exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
-                    yield id_, exple
+                if "covid" in split:
+                    with open(filepath, encoding="utf-8") as f:
+                        id_ = -1
+                        for line in f:
+                            data = json.loads(line)
+                            id_ += 1
+                            yield id_, {
+                                "gem_id": f"{self.config.name}-{split}-{id_}",
+                                "gem_parent_id": f"{self.config.name}-{split}-{id_}",
+                                "xsum_id": data["url"],
+                                "document": data["text"],
+                                "target": data["summary"],
+                                "references": [] if split == "train" else [data["summary"]],
+                            }
+                else:
+                    exples = json.load(open(filepath, encoding="utf-8"))
+                    if isinstance(exples, dict):
+                        assert len(exples) == 1, "multiple entries found"
+                        exples = list(exples.values())[0]
+                    for id_, exple in enumerate(exples):
+                        exple["gem_parent_id"] = exple["gem_id"]
+                        exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
+                        yield id_, exple
             else:
                 with open(filepath, "r", encoding="utf-8") as f:
                     split_ids = json.load(f)

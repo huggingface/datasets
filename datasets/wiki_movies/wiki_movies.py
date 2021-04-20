@@ -16,7 +16,6 @@
 It was built with the following goals in mind: (i) machine learning techniques should have ample training examples for learning; and (ii) one can analyze easily the performance of different representations of knowledge and break down the results by question type. The dataset can be downloaded fromhttp://fb.ai/babi
 """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
