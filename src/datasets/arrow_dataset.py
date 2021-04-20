@@ -2657,6 +2657,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def add_column(self, column: dict):
         """Add column to Dataset.
 
+        .. versionadded:: 1.6
+
         Args:
             column (dict): Column data to be added.
 
