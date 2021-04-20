@@ -264,12 +264,6 @@ def prepare_module(
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
-    dynamic_modules_path = dynamic_modules_path or init_dynamic_modules_cache()
-    dynamic_modules_name = os.path.basename(dynamic_modules_path)
-    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
-    datasets_modules_name = dynamic_modules_name + ".datasets"
-    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
-    metrics_modules_name = dynamic_modules_name + ".metrics"
 
     module_type = "dataset" if dataset else "metric"
     name = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
