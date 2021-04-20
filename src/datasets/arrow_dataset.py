@@ -2659,12 +2659,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             column (dict): Column data to be added.
+
+        Returns:
+            :class:`Dataset`
         """
         column_table = InMemoryTable.from_pydict(column)
         # Concatenate tables horizontally
-        self._data = ConcatenationTable.from_tables([self._data, column_table], axis=1)
+        table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
-        self.info.features = Features.from_arrow_schema(self._data.schema)
+        info = self.info
+        info.features = Features.from_arrow_schema(table.schema)
+        return Dataset(table, info=info)
 
     def add_faiss_index(
         self,
