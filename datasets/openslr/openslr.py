@@ -160,10 +160,10 @@ _RESOURCES = {
         "Summary": "Multi-speaker TTS data for four South African languages, Afrikaans, Sesotho, "
                    "Setswana and isiXhosa.",
         "Files": ["af_za.tar.gz", "st_za.tar.gz", "tn_za.tar.gz", "xh_za.tar.gz"],
-        "IndexFiles": ["af_za/za/afr/line_index.tsv", "st_za/za/afr/line_index.tsv",
-                       "tn_za/za/afr/line_index.tsv", "xh_za/za/afr/line_index.tsv"],
-        "DataDirs": ["af_za/za/afr/wavs", "st_za/za/afr/wavs",
-                     "tn_za/za/afr/wavs", "xh_za/za/afr/wavs"],
+        "IndexFiles": ["af_za/za/afr/line_index.tsv", "st_za/za/sso/line_index.tsv",
+                       "tn_za/za/tsn/line_index.tsv", "xh_za/za/xho/line_index.tsv"],
+        "DataDirs": ["af_za/za/afr/wavs", "st_za/za/sso/wavs",
+                     "tn_za/za/tsn/wavs", "xh_za/za/xho/wavs"],
     },
     "SLR35": {
         "Language": "Javanese",
