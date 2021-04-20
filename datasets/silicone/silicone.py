@@ -16,12 +16,10 @@
 # Lint as: python3
 """The Sequence labellIng evaLuatIon benChmark fOr spoken laNguagE (SILICONE) benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import textwrap
 
 import pandas as pd
-import six
 
 import datasets
 
@@ -256,7 +254,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 "Utterance": "Utterance",
                 "Emotion": "Emotion",
             },
-            label_classes=list(six.iterkeys(IEMOCAP_E_DESCRIPTION)),
+            label_classes=list(IEMOCAP_E_DESCRIPTION.keys()),
             label_column="Emotion",
             data_url={
                 "train": _URL + "/iemocap/train.csv",
@@ -403,7 +401,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 "Dialogue_ID": "Dialogue_ID",
                 "Utterance": "Utterance",
             },
-            label_classes=list(six.iterkeys(MRDA_DA_DESCRIPTION)),
+            label_classes=list(MRDA_DA_DESCRIPTION.keys()),
             label_column="Dialogue_Act",
             data_url={
                 "train": _URL + "/mrda/train.csv",
@@ -556,7 +554,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 "Dialogue_ID": "Dialogue_ID",
                 "Conv_ID": "Conv_ID",
             },
-            label_classes=list(six.iterkeys(SWDA_DA_DESCRIPTION)),
+            label_classes=list(SWDA_DA_DESCRIPTION.keys()),
             label_column="Dialogue_Act",
             data_url={
                 "train": _URL + "/swda/train.csv",
@@ -583,7 +581,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if self.config.label_classes:
             features["Label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         features["Idx"] = datasets.Value("int32")
@@ -629,7 +627,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_file, split):
         if self.config.name not in ("maptask", "iemocap", "oasis"):
             df = pd.read_csv(data_file, delimiter=",", header=0, quotechar='"', dtype=str)[
-                six.iterkeys(self.config.text_features)
+                self.config.text_features.keys()
             ]
 
         if self.config.name == "iemocap":
@@ -640,11 +638,11 @@ class Silicone(datasets.GeneratorBasedBuilder):
                 quotechar='"',
                 names=["Dialogue_ID", "Utterance_ID", "Utterance", "Emotion", "Valence", "Activation", "Dominance"],
                 dtype=str,
-            )[six.iterkeys(self.config.text_features)]
+            )[self.config.text_features.keys()]
 
         if self.config.name in ("maptask", "oasis"):
             df = pd.read_csv(data_file, delimiter="|", names=["Speaker", "Utterance", "Dialogue_Act"], dtype=str)[
-                six.iterkeys(self.config.text_features)
+                self.config.text_features.keys()
             ]
 
         rows = df.to_dict(orient="records")

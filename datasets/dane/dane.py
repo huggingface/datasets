@@ -15,7 +15,6 @@
 """DaNE: named entity annotation for the Danish Universal Dependencies
 treebank using the CoNLL-2003 annotation scheme."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

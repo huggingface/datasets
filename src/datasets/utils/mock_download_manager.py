@@ -30,7 +30,7 @@ from .version import Version
 logger = get_logger(__name__)
 
 
-class MockDownloadManager(object):
+class MockDownloadManager:
     dummy_file_name = "dummy_data"
     datasets_scripts_dir = "datasets"
 

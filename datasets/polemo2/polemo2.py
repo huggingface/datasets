@@ -14,7 +14,6 @@
 # limitations under the License.
 """PolEmo2.0 IN and OUT"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

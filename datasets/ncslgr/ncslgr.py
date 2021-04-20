@@ -14,7 +14,6 @@
 # limitations under the License.
 """NCSLGR: a small American Sign Language corpus annotated with non-manual features"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import re

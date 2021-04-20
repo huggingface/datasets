@@ -814,10 +814,14 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         datasets.Feature->pa.struct
     """
     # Nested structures: we allow dict, list/tuples, sequences
-    if isinstance(schema, dict):
+    if isinstance(schema, Features):
         return pa.struct(
             {key: get_nested_type(schema[key]) for key in sorted(schema)}
-        )  # sort to make the type deterministic
+        )  # sort to make the order of columns deterministic
+    elif isinstance(schema, dict):
+        return pa.struct(
+            {key: get_nested_type(schema[key]) for key in schema}
+        )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
         assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
         value_type = get_nested_type(schema[0])

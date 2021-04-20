@@ -205,20 +205,27 @@ def hash_url_to_filename(url, etag=None):
 
 @dataclass
 class DownloadConfig:
-    """Configuration for our cached path manager
-    Args:
-        cache_dir: specify a cache directory to save the file to (overwrite the default cache dir).
-        force_download: if True, re-dowload the file even if it's already cached in the cache dir.
-        resume_download: if True, resume the download if incompletly recieved file is found.
-        user_agent: Optional string or dict that will be appended to the user-agent on remote requests.
-        extract_compressed_file: if True and the path point to a zip or tar file, extract the compressed
-            file in a folder along the archive.
-        force_extract: if True when extract_compressed_file is True and the archive was already extracted,
-            re-extract the archive and overide the folder where it was extracted.
-        max_retries: the number of times to retry an HTTP request if it fails. Defaults to 1.
-        use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token
-            for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
+    """Configuration for our cached path manager.
 
+    Attributes:
+        cache_dir (:obj:`str` or :obj:`Path`, optional): Specify a cache directory to save the file to (overwrite the
+            default cache dir).
+        force_download (:obj:`bool`, default ``False``): If True, re-dowload the file even if it's already cached in
+            the cache dir.
+        resume_download (:obj:`bool`, default ``False``): If True, resume the download if incompletly recieved file is
+            found.
+        proxies (:obj:`dict`, optional):
+        user_agent (:obj:`str`, optional): Optional string or dict that will be appended to the user-agent on remote
+            requests.
+        extract_compressed_file (:obj:`bool`, default ``False``): If True and the path point to a zip or tar file,
+            extract the compressed file in a folder along the archive.
+        force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
+            was already extracted, re-extract the archive and override the folder where it was extracted.
+        use_etag (:obj:`bool`, default ``True``):
+        num_proc (:obj:`int`, optional):
+        max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
+        use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
+            for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
     """
 
     cache_dir: Optional[Union[str, Path]] = None

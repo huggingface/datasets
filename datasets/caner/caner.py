@@ -14,7 +14,6 @@
 # limitations under the License.
 """A new corpus of tagged data that can be useful for handling the issues in recognition of Classical Arabic named entities"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

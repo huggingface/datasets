@@ -16,7 +16,6 @@
 # Lint as: python3
 """ZEST: ZEroShot learning from Task descriptions"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

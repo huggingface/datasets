@@ -1,14 +1,11 @@
 """TODO(xtreme): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import glob
 import json
 import os
 import textwrap
-
-import six
 
 import datasets
 
@@ -71,6 +68,7 @@ _TATOEBA_LANG = [
     "spa",
     "swh",
     "tam",
+    "tel",
     "tgl",
     "tha",
     "tur",
@@ -441,7 +439,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO(xtreme): Specifies the datasets.DatasetInfo object
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if "answers" in features.keys():
             features["answers"] = datasets.features.Sequence(
                 {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}

@@ -15,7 +15,6 @@
 # Lint as: python3
 """Farsi News Datasets: Hamshahri and RadioFarda"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

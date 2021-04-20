@@ -5,10 +5,17 @@ from unittest import TestCase
 
 import numpy as np
 import pytest
+from multiprocess.pool import Pool
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
-from datasets.builder import FORCE_REDOWNLOAD, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from datasets.builder import (
+    FORCE_REDOWNLOAD,
+    REUSE_DATASET_IF_EXISTS,
+    BuilderConfig,
+    DatasetBuilder,
+    GeneratorBasedBuilder,
+)
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
@@ -114,6 +121,12 @@ class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
         return [SplitGenerator(name=Split.TRAIN)]
 
 
+def _run_concurrent_download_and_prepare(tmp_dir):
+    dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
+    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=REUSE_DATASET_IF_EXISTS)
+    return dummy_builder
+
+
 class BuilderTest(TestCase):
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -127,6 +140,27 @@ class BuilderTest(TestCase):
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
             )
+
+    def test_concurrent_download_and_prepare(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            processes = 2
+            with Pool(processes=processes) as pool:
+                jobs = [
+                    pool.apply_async(_run_concurrent_download_and_prepare, kwds={"tmp_dir": tmp_dir})
+                    for _ in range(processes)
+                ]
+                dummy_builders = [job.get() for job in jobs]
+                for dummy_builder in dummy_builders:
+                    self.assertTrue(
+                        os.path.exists(
+                            os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow")
+                        )
+                    )
+                    self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
+                    self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
+                    self.assertTrue(
+                        os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+                    )
 
     def test_download_and_prepare_with_base_path(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

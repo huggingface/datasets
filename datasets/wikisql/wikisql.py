@@ -1,6 +1,5 @@
 """A large crowd-sourced dataset for developing natural language interfaces for relational databases"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

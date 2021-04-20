@@ -32,7 +32,7 @@ from datasets.utils.mock_download_manager import MockDownloadManager
 
 from . import config, utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
+from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
@@ -68,10 +68,17 @@ class InvalidConfigName(ValueError):
 
 @dataclass
 class BuilderConfig:
-    """Base class for `DatasetBuilder` data configuration.
+    """Base class for :class:`DatasetBuilder` data configuration.
 
     DatasetBuilder subclasses with data configuration options should subclass
-    `BuilderConfig` and add their own properties.
+    :class:`BuilderConfig` and add their own properties.
+
+    Attributes:
+        name (:obj:`str`, default ``"default"``):
+        version (:class:`Version` or :obj:`str`, optional):
+        data_dir (:obj:`str`, optional):
+        data_files (:obj:`str` or :obj:`dict` or :obj:`list` or :obj:`tuple`, optional):
+        description (:obj:`str`, optional):
     """
 
     name: str = "default"
@@ -510,9 +517,11 @@ class DatasetBuilder:
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                # We need to update the info in case some splits were added in the meantime
+                # for example when calling load_dataset from multiple workers.
+                self.info = self._load_info()
                 self.download_post_processing_resources(dl_manager)
                 return
-
             logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
@@ -685,6 +694,9 @@ class DatasetBuilder:
                         )
                         shutil.move(downloaded_resource_path, resource_path)
 
+    def _load_info(self) -> DatasetInfo:
+        return DatasetInfo.from_directory(self._cache_dir)
+
     def _save_info(self):
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
@@ -750,7 +762,11 @@ class DatasetBuilder:
         return datasets
 
     def _build_single_dataset(
-        self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool, in_memory: bool = False
+        self,
+        split: Union[str, ReadInstruction, Split],
+        run_post_process: bool,
+        ignore_verifications: bool,
+        in_memory: bool = False,
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
@@ -813,7 +829,7 @@ class DatasetBuilder:
 
         return ds
 
-    def _as_dataset(self, split: Split = Split.TRAIN, in_memory: bool = False) -> Dataset:
+    def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -981,7 +997,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             finally:
                 num_examples, num_bytes = writer.finalize()
 
-        assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
 
@@ -1028,14 +1043,15 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(path=fpath) as writer:
+        with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        self.info.features = writer._features
+        if self.info.features is None:
+            self.info.features = writer._features
 
 
 class MissingBeamOptions(ValueError):

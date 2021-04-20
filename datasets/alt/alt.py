@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Asian Language Treebank (ALT) Project"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

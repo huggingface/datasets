@@ -14,7 +14,6 @@
 # limitations under the License.
 """XSum Hallucination Annotations: Faithfulness and factuality annotations of XSum summaries"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

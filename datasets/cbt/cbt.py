@@ -14,7 +14,6 @@
 # limitations under the License.
 """Children's Book Test Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

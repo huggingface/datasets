@@ -14,7 +14,6 @@
 # limitations under the License.
 """Opinion Corpus for Lebanese Arabic Reviews (OCLAR) Data Set"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

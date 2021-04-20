@@ -14,7 +14,6 @@
 # limitations under the License.
 """Covid Dialog dataset in English and Chinese"""
 
-from __future__ import absolute_import, division, print_function
 
 import copy
 import os
