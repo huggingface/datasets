@@ -2851,6 +2851,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def add_item(self, item: dict):
         """Add item to Dataset.
 
+        .. versionadded:: 1.6
+
         Args:
             item (dict): Item data to be added.
 
