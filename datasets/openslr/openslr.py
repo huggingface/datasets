@@ -26,6 +26,19 @@ import datasets
 _DATA_URL = "https://openslr.org/resources/{}"
 
 _CITATION = """\
+SLR32:
+@inproceedings{van-niekerk-etal-2017,
+    title = {{Rapid development of TTS corpora for four South African languages}},
+    author = {Daniel van Niekerk and Charl van Heerden and Marelie Davel and Neil Kleynhans and Oddur Kjartansson
+    and Martin Jansche and Linne Ha},
+    booktitle = {Proc. Interspeech 2017},
+    pages = {2178--2182},
+    address = {Stockholm, Sweden},
+    month = aug,
+    year  = {2017},
+    URL   = {http://dx.doi.org/10.21437/Interspeech.2017-1139}
+}
+
 SLR35, SLR36:
 @inproceedings{kjartansson-etal-sltu2018,
     title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
@@ -140,6 +153,18 @@ _HOMEPAGE = "https://openslr.org/"
 _LICENSE = ""
 
 _RESOURCES = {
+    "SLR32": {
+        "Language": "South African",
+        "LongName": "High quality TTS data for four South African languages (af, st, tn, xh)",
+        "Category": "Speech",
+        "Summary": "Multi-speaker TTS data for four South African languages, Afrikaans, Sesotho, "
+                   "Setswana and isiXhosa.",
+        "Files": ["af_za.tar.gz ", "st_za.tar.gz ", "tn_za.tar.gz ", "xh_za.tar.gz "],
+        "IndexFiles": ["af_za/za/afr/line_index.tsv", "st_za/za/afr/line_index.tsv",
+                       "tn_za/za/afr/line_index.tsv", "xh_za/za/afr/line_index.tsv"],
+        "DataDirs": ["af_za/za/afr/wavs", "st_za/za/afr/wavs",
+                     "tn_za/za/afr/wavs", "xh_za/za/afr/wavs"],
+    },
     "SLR35": {
         "Language": "Javanese",
         "LongName": "Large Javanese ASR training data set",
