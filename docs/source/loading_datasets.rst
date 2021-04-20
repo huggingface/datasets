@@ -28,15 +28,15 @@ All the datasets currently available on the `Hub <https://huggingface.co/dataset
     656
     >>> print(', '.join(dataset for dataset in datasets_list))
     aeslc, ag_news, ai2_arc, allocine, anli, arcd, art, billsum, blended_skill_talk, blimp, blog_authorship_corpus, bookcorpus, boolq, break_data,
-    c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e, 
-    cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli, 
-    event2Mind, fever, flores, fquad, gap, germeval_14, ghomasHudson/cqc, gigaword, glue, hansards, hellaswag, hyperpartisan_news_detection, 
-    imdb, jeopardy, json, k-halid/ar, kor_nli, lc_quad, lhoestq/c4, librispeech_lm, lm1b, math_dataset, math_qa, mlqa, movie_rationales, 
-    multi_news, multi_nli, multi_nli_mismatch, mwsc, natural_questions, newsroom, openbookqa, opinosis, pandas, para_crawl, pg19, piaf, qa4mre, 
-    qa_zre, qangaroo, qanta, qasc, quarel, quartz, quoref, race, reclor, reddit, reddit_tifu, rotten_tomatoes, scan, scicite, scientific_papers, 
-    scifact, sciq, scitail, sentiment140, snli, social_i_qa, squad, squad_es, squad_it, squad_v1_pt, squad_v2, squadshifts, super_glue, ted_hrlr, 
-    ted_multi, tiny_shakespeare, trivia_qa, tydiqa, ubuntu_dialogs_corpus, webis/tl_dr, wiki40b, wiki_dpr, wiki_qa, wiki_snippets, wiki_split, 
-    wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli, 
+    c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e,
+    cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli,
+    event2Mind, fever, flores, fquad, gap, germeval_14, ghomasHudson/cqc, gigaword, glue, hansards, hellaswag, hyperpartisan_news_detection,
+    imdb, jeopardy, json, k-halid/ar, kor_nli, lc_quad, lhoestq/c4, librispeech_lm, lm1b, math_dataset, math_qa, mlqa, movie_rationales,
+    multi_news, multi_nli, multi_nli_mismatch, mwsc, natural_questions, newsroom, openbookqa, opinosis, pandas, para_crawl, pg19, piaf, qa4mre,
+    qa_zre, qangaroo, qanta, qasc, quarel, quartz, quoref, race, reclor, reddit, reddit_tifu, rotten_tomatoes, scan, scicite, scientific_papers,
+    scifact, sciq, scitail, sentiment140, snli, social_i_qa, squad, squad_es, squad_it, squad_v1_pt, squad_v2, squadshifts, super_glue, ted_hrlr,
+    ted_multi, tiny_shakespeare, trivia_qa, tydiqa, ubuntu_dialogs_corpus, webis/tl_dr, wiki40b, wiki_dpr, wiki_qa, wiki_snippets, wiki_split,
+    wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli,
     xquad, xsum, xtreme, yelp_polarity
 
 
@@ -61,7 +61,15 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
 
 .. note::
 
-    An Apache Arrow Table is the internal storing format for 🤗Datasets. It allows to store arbitrarily long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗Datasets is thus to always memory-map dataset on drive.
+    An Apache Arrow Table is the internal storing format for 🤗Datasets. It allows to store arbitrarily long dataframe,
+    typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you
+    to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use
+    memory-mapping and pay effectively zero cost with O(1) random access. Alternatively, you can copy it in CPU memory
+    (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_datasets` to ``True``.
+    The default in 🤗Datasets is to memory-map the dataset on drive if its size is larger than
+    ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (default ``250`` MiB); otherwise, the dataset is copied
+    in-memory. This behavior can be disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``,
+    and in this case the dataset is not loaded in memory.
 
 3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 
@@ -129,7 +137,7 @@ After you've downloaded the files, you can point to the folder hosting them loca
 
     >>> dataset = load_dataset("xtreme", "PAN-X.fr")
     Downloading and preparing dataset xtreme/PAN-X.fr (download: Unknown size, generated: 5.80 MiB, total: 5.80 MiB) to /Users/thomwolf/.cache/huggingface/datasets/xtreme/PAN-X.fr/1.0.0...
-    AssertionError: The dataset xtreme with config PAN-X.fr requires manual data. 
+    AssertionError: The dataset xtreme with config PAN-X.fr requires manual data.
     Please follow the manual download instructions: You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file can be used to load the dataset via 'datasets.load_dataset("xtreme", data_dir="<path/to/folder>")'
 
 
@@ -167,7 +175,7 @@ Let's see an example of all the various ways you can provide files to :func:`dat
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('csv', data_files='my_file.csv')
     >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv', 'my_file_3.csv'])
-    >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'], 
+    >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'],
                                                   'test': 'my_test_file.csv'})
 
 .. note::
@@ -384,7 +392,7 @@ The following table describes the three available modes for download:
    * - ``"reuse_cache_if_exists"``
      - Reuse
      - Fresh
-   * - ``"force_redownload"``  
+   * - ``"force_redownload"``
      - Fresh
      - Fresh
 

@@ -59,6 +59,8 @@ from .splits import NamedSplit
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
+from .utils.file_utils import estimate_dataset_size
+from .utils.info_utils import is_small_dataset
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
@@ -619,7 +621,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> "Dataset":
+    def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
         filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
@@ -629,7 +631,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 the dataset directory where the dataset will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+                dataset will be copied in-memory if its size is smaller than
+                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and
+                in this case the dataset is not loaded in memory.
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -650,6 +656,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
+        dataset_size = estimate_dataset_size(
+            Path(dataset_path, data_file["filename"]) for data_file in state["_data_files"]
+        )
+        keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
             table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
