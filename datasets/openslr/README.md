@@ -452,7 +452,8 @@ Copyright 2018, 2019, 2020 Google, Inc.
 
 ### Languages
 
-Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan
+Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan, Nigerian English, Chilean Spanish,
+Columbian Spanish, Peruvian Spanish, Puerto Rico Spanish, Venezuelan Spanish, Basque, Galician, Gujarati and Kannada.
 
 ## Dataset Structure
 
@@ -594,7 +595,7 @@ The speech material has only train dataset.
 }
 ```
 
-#### SLR71, SLR71, SLR72, SLR73, SLR74, SLR75
+#### SLR70, SLR71, SLR72, SLR73, SLR74, SLR75
 ```
 @inproceedings{guevara-rukoz-etal-2020-crowdsourcing,
     title = {{Crowdsourcing Latin American Spanish for Low-Resource Text-to-Speech}},
