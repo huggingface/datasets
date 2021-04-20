@@ -159,7 +159,7 @@ _RESOURCES = {
         "Category": "Speech",
         "Summary": "Multi-speaker TTS data for four South African languages, Afrikaans, Sesotho, "
                    "Setswana and isiXhosa.",
-        "Files": ["af_za.tar.gz ", "st_za.tar.gz ", "tn_za.tar.gz ", "xh_za.tar.gz "],
+        "Files": ["af_za.tar.gz", "st_za.tar.gz", "tn_za.tar.gz", "xh_za.tar.gz"],
         "IndexFiles": ["af_za/za/afr/line_index.tsv", "st_za/za/afr/line_index.tsv",
                        "tn_za/za/afr/line_index.tsv", "xh_za/za/afr/line_index.tsv"],
         "DataDirs": ["af_za/za/afr/wavs", "st_za/za/afr/wavs",
