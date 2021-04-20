@@ -732,3 +732,7 @@ def add_end_docstrings(*docstr):
         return fn
 
     return docstring_decorator
+
+
+def estimate_dataset_size(paths):
+    return sum(path.stat().st_size for path in paths)
