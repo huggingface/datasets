@@ -1964,7 +1964,7 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path):
         if in_memory
         else Dataset(MemoryMappedTable.from_file(arrow_path))
     )
-    dataset.add_item(item)
+    dataset = dataset.add_item(item)
     assert dataset.data.shape == (5, 3)
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     assert dataset.data.column_names == list(expected_features.keys())
