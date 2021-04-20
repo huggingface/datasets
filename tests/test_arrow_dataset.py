@@ -1963,6 +1963,9 @@ def test_dataset_add_column(in_memory, dataset_dict, arrow_path):
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
     assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
+    column = {"col_5": ["a", "b", "c", "d"]}
+    dataset = dataset.add_column(column)
+    assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
