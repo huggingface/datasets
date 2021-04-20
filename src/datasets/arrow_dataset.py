@@ -2662,7 +2662,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         column_table = InMemoryTable.from_pydict(column)
         # Concatenate tables horizontally
-        self._data = ConcatenationTable.from_blocks([[self._data, column_table]])
+        self._data = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
