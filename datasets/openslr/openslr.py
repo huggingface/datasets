@@ -35,25 +35,29 @@ SLR35, SLR36:
     address = {Gurugram, India},
     month = aug,
     pages = {52--55},
-    URL   = {http://dx.doi.org/10.21437/SLTU.2018-11},
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-11},
 }
 
 SLR41, SLR42, SLR43, SLR44:
 @inproceedings{kjartansson-etal-tts-sltu2018,
-    title = {{A Step-by-Step Process for Building TTS Voices Using Open Source Data and Framework for Bangla, Javanese, Khmer, Nepali, Sinhala, and Sundanese}},
-    author = {Keshan Sodimana and Knot Pipatsrisawat and Linne Ha and Martin Jansche and Oddur Kjartansson and Pasindu De Silva and Supheakmungkol Sarin},
+    title = {{A Step-by-Step Process for Building TTS Voices Using Open Source Data and Framework for Bangla, Javanese,
+    Khmer, Nepali, Sinhala, and Sundanese}},
+    author = {Keshan Sodimana and Knot Pipatsrisawat and Linne Ha and Martin Jansche and Oddur Kjartansson and Pasindu
+    De Silva and Supheakmungkol Sarin},
     booktitle = {Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)},
     year  = {2018},
     address = {Gurugram, India},
     month = aug,
     pages = {66--70},
-    URL   = {http://dx.doi.org/10.21437/SLTU.2018-14}
+    URL   = {https://dx.doi.org/10.21437/SLTU.2018-14}
 }
 
 SLR63, SLR64, SLR65, SLR66, SLR78, SLR79:
 @inproceedings{he-etal-2020-open,
-  title = {{Open-source Multi-speaker Speech Corpora for Building Gujarati, Kannada, Malayalam, Marathi, Tamil and Telugu Speech Synthesis Systems}},
-  author = {He, Fei and Chu, Shan-Hui Cathy and Kjartansson, Oddur and Rivera, Clara and Katanova, Anna and Gutkin, Alexander and Demirsahin, Isin and Johny, Cibu and Jansche, Martin and Sarin, Supheakmungkol and Pipatsrisawat, Knot},
+  title = {{Open-source Multi-speaker Speech Corpora for Building Gujarati, Kannada, Malayalam, Marathi, Tamil and
+  Telugu Speech Synthesis Systems}},
+  author = {He, Fei and Chu, Shan-Hui Cathy and Kjartansson, Oddur and Rivera, Clara and Katanova, Anna and Gutkin,
+  Alexander and Demirsahin, Isin and Johny, Cibu and Jansche, Martin and Sarin, Supheakmungkol and Pipatsrisawat, Knot},
   booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
   month = may,
   year = {2020},
@@ -68,7 +72,8 @@ SLR69, SLR76, SLR77:
 @inproceedings{kjartansson-etal-2020-open,
     title = {{Open-Source High Quality Speech Datasets for Basque, Catalan and Galician}},
     author = {Kjartansson, Oddur and Gutkin, Alexander and Butryna, Alena and Demirsahin, Isin and Rivera, Clara},
-    booktitle = {Proceedings of the 1st Joint Workshop on Spoken Language Technologies for Under-resourced languages (SLTU) and Collaboration and Computing for Under-Resourced Languages (CCURL)},
+    booktitle = {Proceedings of the 1st Joint Workshop on Spoken Language Technologies for Under-resourced languages
+    (SLTU) and Collaboration and Computing for Under-Resourced Languages (CCURL)},
     year = {2020},
     pages = {21--27},
     month = may,
@@ -81,7 +86,8 @@ SLR69, SLR76, SLR77:
 SLR71, SLR71, SLR72, SLR73, SLR74, SLR75:
 @inproceedings{guevara-rukoz-etal-2020-crowdsourcing,
     title = {{Crowdsourcing Latin American Spanish for Low-Resource Text-to-Speech}},
-    author = {Guevara-Rukoz, Adriana and Demirsahin, Isin and He, Fei and Chu, Shan-Hui Cathy and Sarin, Supheakmungkol and Pipatsrisawat, Knot and Gutkin, Alexander and Butryna, Alena and Kjartansson, Oddur},
+    author = {Guevara-Rukoz, Adriana and Demirsahin, Isin and He, Fei and Chu, Shan-Hui Cathy and Sarin,
+    Supheakmungkol and Pipatsrisawat, Knot and Gutkin, Alexander and Butryna, Alena and Kjartansson, Oddur},
     booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
     year = {2020},
     month = may,
@@ -94,8 +100,10 @@ SLR71, SLR71, SLR72, SLR73, SLR74, SLR75:
 
 SLR80
 @inproceedings{oo-etal-2020-burmese,
-    title = {{Burmese Speech Corpus, Finite-State Text Normalization and Pronunciation Grammars with an Application to Text-to-Speech}},
-    author = {Oo, Yin May and Wattanavekin, Theeraphol and Li, Chenfang and De Silva, Pasindu and Sarin, Supheakmungkol and Pipatsrisawat, Knot and Jansche, Martin and Kjartansson, Oddur and Gutkin, Alexander},
+    title = {{Burmese Speech Corpus, Finite-State Text Normalization and Pronunciation Grammars with an Application
+    to Text-to-Speech}},
+    author = {Oo, Yin May and Wattanavekin, Theeraphol and Li, Chenfang and De Silva, Pasindu and Sarin,
+    Supheakmungkol and Pipatsrisawat, Knot and Jansche, Martin and Kjartansson, Oddur and Gutkin, Alexander},
     booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
     month = may,
     year = {2020},
@@ -395,7 +403,8 @@ class OpenSlrConfig(datasets.BuilderConfig):
         self.files = kwargs.pop("files", None)
         self.index_files = kwargs.pop("index_files", None)
         self.data_dirs = kwargs.pop("data_dirs", None)
-        description = f"Open Speech and Language Resources dataset in {self.language}. Name: {self.name}, Summary: {self.summary}."
+        description = f"Open Speech and Language Resources dataset in {self.language}. Name: {self.name}, " \
+                      f"Summary: {self.summary}."
         super(OpenSlrConfig, self).__init__(name=name, description=description, **kwargs)
 
 
