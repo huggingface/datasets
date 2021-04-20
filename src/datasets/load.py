@@ -72,9 +72,6 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]]
     hf_modules_cache = init_hf_modules(hf_modules_cache)
     dynamic_modules_path = os.path.join(hf_modules_cache, name)
     os.makedirs(dynamic_modules_path, exist_ok=True)
-    if not os.path.exists(os.path.join(dynamic_modules_path, "__init__.py")):
-        with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
-            pass
     return dynamic_modules_path
 
 
