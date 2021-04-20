@@ -2654,18 +2654,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
-    def add_column(self, column: dict):
+    def add_column(self, name: str, column: Union[list, np.array]):
         """Add column to Dataset.
 
         .. versionadded:: 1.6
 
         Args:
-            column (dict): Column data to be added.
+            name (str): Column name.
+            column (list or np.array): Column data to be added.
 
         Returns:
             :class:`Dataset`
         """
-        column_table = InMemoryTable.from_pydict(column)
+        column_table = InMemoryTable.from_pydict({name: column})
         # Concatenate tables horizontally
         table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
