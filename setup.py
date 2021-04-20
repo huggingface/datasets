@@ -20,15 +20,11 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
-   First pin the SCRIPTS_VERSION to VERSION in __init__.py (but don't commit this change)
-
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
    For the sources, run: "python setup.py sdist"
    You should now have a /dist directory with both .whl and .tar.gz source versions.
-
-   Then change the SCRIPTS_VERSION back to to "master" in __init__.py (but don't commit this change)
 
 5. Check that everything looks correct by uploading the package to the pypi test server:
 
@@ -43,12 +39,12 @@ To create the package for pypi.
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
 
-7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
+7. Fill release notes in the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js, and set version to X.X.Xdev0 in setup.py
+   Update the version mapping in docs/source/_static/js/custom.js,
+   and set version to X.X.X.dev0 in setup.py and __init__.py
 
-9. Update README.md to redirect to correct documentation.
 """
 
 import datetime
@@ -208,7 +204,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.5.0dev0",
+    version="1.5.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
