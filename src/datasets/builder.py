@@ -987,7 +987,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
+        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size, hash_salt=split_info.name) as writer:
             try:
                 for key, record in utils.tqdm(
                     generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose

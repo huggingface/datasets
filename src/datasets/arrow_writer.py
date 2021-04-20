@@ -156,6 +156,7 @@ class ArrowWriter:
         stream: Optional[pa.NativeFile] = None,
         fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
+        hash_salt: Optional[str] = None,
         disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
@@ -172,6 +173,11 @@ class ArrowWriter:
         else:
             self._features = None
             self._schema = None
+
+        if hash_salt is not None:
+            self._hash_salt = hash_salt
+        else:
+            self._hash_salt = None
 
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
