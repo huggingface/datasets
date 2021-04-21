@@ -14,7 +14,6 @@
 # limitations under the License.
 """Recognizing the flow of time in a story is a crucial aspect of understanding it. Prior work related to time has primarily focused on identifying temporal expressions or relative sequencing of events, but here we propose computationally annotating each line of a book with wall clock times, even in the absence of explicit time-descriptive phrases. To do so, we construct a data set of hourly time phrases from 52,183 fictional books."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

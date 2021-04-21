@@ -1,6 +1,5 @@
 """`generated_reviews_enth`: Generated product reviews dataset for machine translation quality prediction, part of [scb-mt-en-th-2020](https://arxiv.org/pdf/2007.03541.pdf)"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

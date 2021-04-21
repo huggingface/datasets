@@ -233,6 +233,15 @@ class DatasetDict(dict):
             }
         )
 
+    def class_encode_column(self, column: str):
+        """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the tables.
+
+        Args:
+            column (`str`): The name of the column to cast
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.class_encode_column(column=column) for k, dataset in self.items()})
+
     @contextlib.contextmanager
     def formatted_as(
         self,
@@ -664,20 +673,25 @@ class DatasetDict(dict):
             dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory=False) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "DatasetDict":
         """
-        Loads a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
+        Load a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
         :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`)
-                of the dataset dict directory where the dataset dict will be loaded from.
-            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+            dataset_dict_path (:obj:`str`): Path (e.g. ``"dataset/train"``) or remote URI (e.g.
+                ``"s3//my-bucket/dataset/train"``) of the dataset dict directory where the dataset dict will be loaded
+                from.
+            fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
-            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
+            keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+                dataset will be copied in-memory if its size is smaller than
+                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case
+                the dataset is not loaded in memory.
 
         Returns:
-            :class:`DatasetDict`.
+            :class:`DatasetDict`
         """
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):

@@ -16,12 +16,10 @@
 # Lint as: python3
 """The Multilingual dIalogAct benchMark."""
 
-from __future__ import absolute_import, division, print_function
 
 import textwrap
 
 import pandas as pd
-import six
 
 import datasets
 
@@ -119,7 +117,7 @@ class Miam(datasets.GeneratorBasedBuilder):
                 "Dialogue_ID": "Dialogue_ID",
                 "File_ID": "File_ID",
             },
-            label_classes=list(six.iterkeys(DIHANA_DA_DESCRIPTION)),
+            label_classes=list(DIHANA_DA_DESCRIPTION.keys()),
             label_column="Dialogue_Act",
             data_url={
                 "train": _URL + "/dihana/train.csv",
@@ -377,7 +375,7 @@ class Miam(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if self.config.label_classes:
             features["Label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         features["Idx"] = datasets.Value("int32")
@@ -422,7 +420,7 @@ class Miam(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_file, split):
         df = pd.read_csv(data_file, delimiter=",", header=0, quotechar='"', dtype=str)[
-            six.iterkeys(self.config.text_features)
+            self.config.text_features.keys()
         ]
 
         rows = df.to_dict(orient="records")

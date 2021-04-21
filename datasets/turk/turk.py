@@ -14,7 +14,6 @@
 # limitations under the License.
 """TURKCorpus: a dataset for sentence simplification evaluation"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

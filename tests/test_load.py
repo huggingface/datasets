@@ -11,7 +11,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 
 from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
@@ -222,3 +222,47 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
                 with pytest.raises(ConnectionError):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
         mock_head.assert_called()
+
+
+@pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 50, 500])
+def test_load_dataset_local_with_default_in_memory(
+    max_in_memory_dataset_size, dataset_loading_script_dir, data_dir, monkeypatch
+):
+    current_dataset_size = 148
+    if max_in_memory_dataset_size == "default":
+        # default = 250 * 2 ** 20
+        max_in_memory_dataset_size = datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
+    else:
+        monkeypatch.setattr(datasets.config, "MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", max_in_memory_dataset_size)
+    if max_in_memory_dataset_size is None:
+        max_in_memory_dataset_size = 0
+        expected_in_memory = False
+    else:
+        expected_in_memory = current_dataset_size < max_in_memory_dataset_size
+
+    with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
+    assert (dataset["train"].dataset_size < max_in_memory_dataset_size) is expected_in_memory
+
+
+@pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 100, 1000])
+def test_load_from_disk_with_default_in_memory(
+    max_in_memory_dataset_size, dataset_loading_script_dir, data_dir, tmp_path, monkeypatch
+):
+    current_dataset_size = 512  # arrow file size = 512, in-memory dataset size = 148
+    if max_in_memory_dataset_size == "default":
+        # default = 250 * 2 ** 20
+        max_in_memory_dataset_size = datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
+    else:
+        monkeypatch.setattr(datasets.config, "MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", max_in_memory_dataset_size)
+    if max_in_memory_dataset_size is None:
+        expected_in_memory = False
+    else:
+        expected_in_memory = current_dataset_size < max_in_memory_dataset_size
+
+    dset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=True)
+    dataset_path = os.path.join(tmp_path, "saved_dataset")
+    dset.save_to_disk(dataset_path)
+
+    with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
+        _ = load_from_disk(dataset_path)

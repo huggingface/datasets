@@ -14,7 +14,6 @@
 # limitations under the License.
 """Bianet: A parallel news corpus in Turkish, Kurdish and English"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Polish Summaries Corpus: the corpus of Polish news summaries"""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import xml.etree.ElementTree as ET

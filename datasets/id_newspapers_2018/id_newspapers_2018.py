@@ -14,7 +14,6 @@
 # limitations under the License.
 """Indonesian Newspapers 2018"""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import json

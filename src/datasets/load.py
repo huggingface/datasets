@@ -52,6 +52,7 @@ from .utils.file_utils import (
     url_or_path_parent,
 )
 from .utils.filelock import FileLock
+from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -635,13 +636,13 @@ def load_dataset(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     ignore_verifications: bool = False,
-    keep_in_memory: bool = False,
+    keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
-    r"""Load a dataset
+    """Load a dataset.
 
     This method does the following under the hood:
 
@@ -684,7 +685,11 @@ def load_dataset(
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-        keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+            dataset will be copied in-memory if its size is smaller than
+            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
+            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is not
+            loaded in memory.
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
@@ -692,8 +697,8 @@ def load_dataset(
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `~/.huggingface`.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
@@ -748,6 +753,9 @@ def load_dataset(
     )
 
     # Build dataset for splits
+    keep_in_memory = (
+        keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
+    )
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
     if save_infos:
         builder_instance._save_infos()
@@ -755,13 +763,21 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> Union[Dataset, DatasetDict]:
+def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
 
     Args:
-        dataset_path (``str``): path (e.g. ``dataset/train``) or remote uri (e.g. ``s3://my-bucket/dataset/train``) of the Dataset or DatasetDict directory where the dataset will be loaded from
-        fs (Optional[:class:`datasets.filesystems.S3FileSystem`,``fsspec.spec.AbstractFileSystem``],  `optional`, defaults ``None``): instance of :class:`datasets.filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem`` used to download the files from remote filesystem.
+        dataset_path (:obj:`str`): Path (e.g. ``"dataset/train"``) or remote uri (e.g.
+            ``"s3://my-bucket/dataset/train"``) of the Dataset or DatasetDict directory where the dataset will be
+            loaded from.
+        fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
+            Instance of of the remote filesystem used to download the files from.
+        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+            dataset will be copied in-memory if its size is smaller than
+            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
+            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is
+            not loaded in memory.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``

@@ -14,7 +14,6 @@
 # limitations under the License.
 """TEP: Tehran English-Persian parallel corpus."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

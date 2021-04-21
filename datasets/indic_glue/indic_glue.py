@@ -1,6 +1,5 @@
 """The IndicGLUE benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json
@@ -8,7 +7,6 @@ import os
 import textwrap
 
 import pandas as pd
-import six
 
 import datasets
 
@@ -455,7 +453,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
 
         if self.config.name.startswith("copa"):
             features["label"] = datasets.Value("int32")

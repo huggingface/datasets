@@ -14,7 +14,6 @@
 # limitations under the License.
 """COVID-19 Japanese Tweets Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import bz2
 import csv

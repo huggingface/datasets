@@ -105,7 +105,7 @@ You can check the current cache files backing the dataset with the ``cache_file`
 .. code-block::
 
     >>> dataset.cache_files
-    ['/Users/thomwolf/.cache/huggingface/datasets/glue/mrpc/1.0.0/glue-train.arrow']
+    [{'filename': '/Users/thomwolf/.cache/huggingface/datasets/glue/mrpc/1.0.0/glue-train.arrow'}]
 
 Using cache files allows:
 

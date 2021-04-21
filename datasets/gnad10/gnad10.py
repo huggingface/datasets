@@ -14,7 +14,6 @@
 # limitations under the License.
 """Ten Thousand German News Articles Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

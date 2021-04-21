@@ -16,7 +16,6 @@
 # Lint as: python3
 """OSCAR The Open Super-large Crawled ALMAnaCH coRpus."""
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 import gzip

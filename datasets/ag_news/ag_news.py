@@ -16,7 +16,6 @@
 # Lint as: python3
 """AG News topic classification dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
