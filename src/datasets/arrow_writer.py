@@ -18,7 +18,7 @@ import json
 import os
 import socket
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pyarrow as pa
 from tqdm.auto import tqdm
@@ -299,11 +299,12 @@ class ArrowWriter:
         self.write_table(table)
         self.current_rows = []
 
-    def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
-        """Add a given Example to the write-pool of examples which is written to file.
+    def write(self, example: Dict[str, Any], key: Union[str, int, bytes], writer_batch_size: Optional[int] = None):
+        """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
+            key: a unique identifier(str, int or bytes) associated with each example
         """
         self.current_examples.append(example)
         if writer_batch_size is None:

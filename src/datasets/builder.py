@@ -999,7 +999,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
                 ):
                     example = self.info.features.encode_example(record)
-                    writer.write(example)
+                    writer.write(example, key)
             finally:
                 num_examples, num_bytes = writer.finalize()
 
