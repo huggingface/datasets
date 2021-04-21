@@ -1,6 +1,5 @@
 import importlib
 import os
-import shutil
 import tempfile
 import time
 from hashlib import sha256
