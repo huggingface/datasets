@@ -9,7 +9,7 @@ languages:
 licenses:
 - cc-by-4.0
 multilinguality:
-- monolingual
+- multilingual
 size_categories:
 - 100K<n<1000K
 source_datasets:
@@ -17,12 +17,12 @@ source_datasets:
 task_categories:
 - question-answering
 task_ids:
-- extractive-qa
+- extractive-qadownloads/2019-10-23_Programm_IWSLT_2019_002.pdf
 ---
 
 # Dataset Card for "squad"
 
-## Table of Contents
+## Table of Contentshttps://zenodo.org/record/3524924
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks](#supported-tasks)
@@ -48,10 +48,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [https://rajpurkar.github.io/SQuAD-explorer/](https://rajpurkar.github.io/SQuAD-explorer/)
+- **Homepage:** [https://edoc.bbaw.de/frontdoor/index/index/docId/2919](https://edoc.bbaw.de/frontdoor/index/index/docId/2919)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian Hieroglyph](https://zenodo.org/record/3524924)
+- **Point of Contact:** [Philipp Wiesenbach](https://www.cl.uni-heidelberg.de/~wiesenbach/index.html)
 - **Size of downloaded dataset files:** 33.51 MB
 - **Size of the generated dataset:** 85.75 MB
 - **Total amount of disk used:** 119.27 MB
