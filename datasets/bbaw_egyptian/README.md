@@ -20,9 +20,9 @@ task_ids:
 - extractive-qadownloads/2019-10-23_Programm_IWSLT_2019_002.pdf
 ---
 
-# Dataset Card for "squad"
+# Dataset Card for "bbaw_egyptian"
 
-## Table of Contentshttps://zenodo.org/record/3524924
+## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks](#supported-tasks)
@@ -52,13 +52,12 @@ task_ids:
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian Hieroglyph](https://zenodo.org/record/3524924)
 - **Point of Contact:** [Philipp Wiesenbach](https://www.cl.uni-heidelberg.de/~wiesenbach/index.html)
-- **Size of downloaded dataset files:** 33.51 MB
-- **Size of the generated dataset:** 85.75 MB
-- **Total amount of disk used:** 119.27 MB
+- **Size of downloaded dataset files:** 34 MB
+
 
 ### Dataset Summary
 
-Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
+This dataset comprises parallel sentences of hieroglyphic encodings, transcription and translation as used in the paper [Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian Hieroglyph](https://zenodo.org/record/3524924). The data triples are extracted from the [digital corpus of Egyptian texts](https://edoc.bbaw.de/frontdoor/index/index/docId/2919) compiled by the project "Strukturen und Transformationen des Wortschatzes der ägyptischen Sprache".
 
 ### Supported Tasks
 
@@ -70,33 +69,21 @@ Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset, 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
+The dataset is not divided into 'train', 'dev' and 'test' split as it is not built for competitive purposes and we ask all scientists to build use partitioning for their needs. Due to the low resource setting it will probably advisable to use cross validation. The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
 
 ### Data Instances
 
-#### plain_text
-
-- **Size of downloaded dataset files:** 33.51 MB
-- **Size of the generated dataset:** 85.75 MB
-- **Total amount of disk used:** 119.27 MB
-
-An example of 'train' looks as follows.
+An example of 'all' looks as follows.
 ```
-{
-    "answers": {
-        "answer_start": [1],
-        "text": ["This is a test text"]
-    },
-    "context": "This is a test context.",
-    "id": "1",
-    "question": "Is this a test?",
-    "title": "train test"
-}
+{                                                                                                  
+    "transcription": "n rḏi̯(.w) gꜣ =j r dbḥ.t m pr-ḥḏ",                                            
+    "translation": "I was not let to suffer lack in the treasury with respect to what was needed;",
+    "hieroglyphs": "D35 D21 -D37 G1&W11 -V32B A1 D21 D46 -D58 *V28 -F18 *X1 -A2 G17 [? *O2 *?]"    
+}                                                                                              
+
 ```
 
 ### Data Fields
-
-The data fields are the same among all splits.
 
 #### plain_text
 - `id`: a `string` feature.
@@ -109,9 +96,9 @@ The data fields are the same among all splits.
 
 ### Data Splits Sample Size
 
-|   name   |train|validation|
-|----------|----:|---------:|
-|plain_text|87599|     10570|
+|   name   |all|
+|----------|----:|
+|plain_text|100708|
 
 ## Dataset Creation
 
