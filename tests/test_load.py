@@ -73,13 +73,6 @@ class LoadTest(TestCase):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
-    def setUp(self):
-        self.hf_modules_cache = tempfile.mkdtemp()
-        self.dynamic_modules_path = datasets.load.init_dynamic_modules("test_datasets_modules", self.hf_modules_cache)
-
-    def tearDown(self):
-        shutil.rmtree(self.hf_modules_cache)
-
     def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
         assert dummy_module_name.startswith("__")
         module_dir = os.path.join(modules_dir, dummy_module_name)
@@ -94,9 +87,7 @@ class LoadTest(TestCase):
             # prepare module from directory path
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
-            importable_module_path, module_hash = datasets.load.prepare_module(
-                module_dir, dynamic_modules_path=self.dynamic_modules_path
-            )
+            importable_module_path, module_hash = datasets.load.prepare_module(module_dir)
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
@@ -105,7 +96,7 @@ class LoadTest(TestCase):
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
             importable_module_path, module_hash, resolved_file_path = datasets.load.prepare_module(
-                module_path, dynamic_modules_path=self.dynamic_modules_path, return_resolved_file_path=True
+                module_path, return_resolved_file_path=True
             )
             self.assertEqual(resolved_file_path, module_path)
             dummy_module = importlib.import_module(importable_module_path)
@@ -115,30 +106,22 @@ class LoadTest(TestCase):
             for offline_simulation_mode in list(OfflineSimulationMode):
                 with offline(offline_simulation_mode):
                     with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
-                        datasets.load.prepare_module(
-                            "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
-                        )
+                        datasets.load.prepare_module("__missing_dummy_module_name__")
 
     def test_offline_prepare_module(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
-            importable_module_path1, _ = datasets.load.prepare_module(
-                module_dir, dynamic_modules_path=self.dynamic_modules_path
-            )
+            importable_module_path1, _ = datasets.load.prepare_module(module_dir)
             time.sleep(0.1)  # make sure there's a difference in the OS update time of the python file
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
-            importable_module_path2, _ = datasets.load.prepare_module(
-                module_dir, dynamic_modules_path=self.dynamic_modules_path
-            )
+            importable_module_path2, _ = datasets.load.prepare_module(module_dir)
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
                 self._caplog.clear()
                 # allow provide the module name without an explicit path to remote or local actual file
-                importable_module_path3, _ = datasets.load.prepare_module(
-                    "__dummy_module_name2__", dynamic_modules_path=self.dynamic_modules_path
-                )
+                importable_module_path3, _ = datasets.load.prepare_module("__dummy_module_name2__")
                 # it loads the most recent version of the module
                 self.assertEqual(importable_module_path2, importable_module_path3)
                 self.assertNotEqual(importable_module_path1, importable_module_path3)
