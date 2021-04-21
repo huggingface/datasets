@@ -79,20 +79,13 @@ def define_intent_name(scenario, intent):
     return f"{scenario}_{intent}"
 
 
-class NLUEvaluationDataset(datasets.GeneratorBasedBuilder):
+class NLUEvaluationData(datasets.GeneratorBasedBuilder):
     """Raw part of NLU Evaluation Data."""
 
     VERSION = datasets.Version("1.1.0")
 
     def _info(self):
         features = datasets.Features(
-            {
-                "answer_annotation": datasets.Value("string"),
-                "scenario": datasets.Value("string"),
-                "intent": datasets.Value("string"),
-            }
-        )
-        post_process_features = datasets.Features(
             {
                 "text": datasets.Value("string"),
                 "scenario": datasets.Value("string"),
@@ -178,9 +171,6 @@ class NLUEvaluationDataset(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            post_processed=datasets.info.PostProcessedInfo(
-                features=post_process_features,
-            ),
         )
 
     def _split_generators(self, dl_manager):
@@ -192,22 +182,7 @@ class NLUEvaluationDataset(datasets.GeneratorBasedBuilder):
 
     def _post_process(self, dataset, resources_paths):
         # remove empty examples
-        dataset = dataset.filter(lambda ex: True if ex["answer_annotation"] != "null" else False, with_indices=False)
-        # remove annotations from examples and define label
-        dataset = dataset.map(
-            lambda ex: dict(
-                ex,
-                text=remove_annotations(ex["answer_annotation"]),
-                label=self.info.post_processed.features["label"].encode_example(
-                    define_intent_name(ex["scenario"], ex["intent"])
-                ),
-            ),
-            batched=False,
-            with_indices=False,
-            features=datasets.Features(self.info.features, **self.info.post_processed.features),
-        )
-        # drop unused columns
-        dataset = dataset.remove_columns(["answer_annotation", "intent"])
+        dataset = dataset.filter(lambda ex: True if ex["text"] != "null" else False, with_indices=False)
         return dataset
 
     def _generate_examples(self, filepath):
@@ -231,4 +206,8 @@ class NLUEvaluationDataset(datasets.GeneratorBasedBuilder):
                     question,
                 ) = row
 
-                yield id_, {"answer_annotation": answer_annotation, "scenario": scenario, "intent": intent}
+                yield id_, {
+                    "text": remove_annotations(answer_annotation),
+                    "scenario": scenario,
+                    "label": define_intent_name(scenario, intent),
+                }

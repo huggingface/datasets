@@ -205,19 +205,11 @@ is much larger and contains 68 intents from 18 scenarios, which is much larger t
 
 #### Annotation process
 
-> To build the NLU component we collected real user data via Amazon Mechanical
-Turk (AMT). We designed tasks where the Turker’s goal was to answer questions
-about how people would interact with the home robot, in a wide range of scenarios
-designed in advance, namely: alarm, audio, audiobook, calendar, cooking, datetime,
-email, game, general, IoT, lists, music, news, podcasts, general Q&A, radio, recommendations, social, food takeaway, transport, and weather.
-The questions put to Turkers were designed to capture the different requests
-within each given scenario. 
+> To build the NLU component we collected real user data via Amazon Mechanical Turk (AMT). We designed tasks where the Turker’s goal was to answer questions about how people would interact with the home robot, in a wide range of scenarios designed in advance, namely: alarm, audio, audiobook, calendar, cooking, datetime, email, game, general, IoT, lists, music, news, podcasts, general Q&A, radio, recommendations, social, food takeaway, transport, and weather.
+The questions put to Turkers were designed to capture the different requests within each given scenario. 
 In the ‘calendar’ scenario, for example, these pre-designed intents were included: ‘set event’, ‘delete event’ and ‘query event’. 
-An example question for intent ‘set event’ is: “How would you ask your PDA to schedule a meeting with someone?” for which a user’s answer example was “Schedule
-a chat with Adam on Thursday afternoon”. 
-The Turkers would then type in their answers to these questions and select possible entities from the pre-designed suggested entities list for each of their answers.The Turkers didn’t always follow the
-instructions fully, e.g. for the specified ‘delete event’ Intent, an answer was: “PDA
-what is my next event?”; which clearly belongs to ‘query event’ Intent. 
+An example question for intent ‘set event’ is: “How would you ask your PDA to schedule a meeting with someone?” for which a user’s answer example was “Schedule a chat with Adam on Thursday afternoon”. 
+The Turkers would then type in their answers to these questions and select possible entities from the pre-designed suggested entities list for each of their answers.The Turkers didn’t always follow the instructions fully, e.g. for the specified ‘delete event’ Intent, an answer was: “PDA what is my next event?”; which clearly belongs to ‘query event’ Intent. 
 We have manually corrected all such errors either during post-processing or the subsequent annotations.
 
 #### Who are the annotators?
