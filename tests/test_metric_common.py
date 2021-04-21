@@ -53,7 +53,11 @@ def get_local_metric_names():
     return [{"testcase_name": x, "metric_name": x} for x in metrics if x != "gleu"]  # gleu is unfinished
 
 
-@parameterized.named_parameters(get_local_metric_names())
+# @parameterized.named_parameters(get_local_metric_names())
+# @parameterized.named_parameters([{"testcase_name": "sari", "metric_name": "sari"}])  # Bug: Anaconda in Windows
+# @parameterized.named_parameters([{"testcase_name": "glue", "metric_name": "glue"}])
+@parameterized.named_parameters([{"testcase_name": "bleurt", "metric_name": "bleurt"}])
+# @parameterized.named_parameters([{"testcase_name": "comet", "metric_name": "comet"}])  # comment next line: @for_all_test_methods(skip_if_dataset_requires_fairseq)
 @for_all_test_methods(skip_if_dataset_requires_fairseq)
 @local
 class LocalMetricTest(parameterized.TestCase):
@@ -61,10 +65,13 @@ class LocalMetricTest(parameterized.TestCase):
     metric_name = None
 
     def test_load_metric(self, metric_name):
+        import pdb;pdb.set_trace()
         doctest.ELLIPSIS_MARKER = "[...]"
-        metric_module = importlib.import_module(
-            datasets.load.prepare_module(os.path.join("metrics", metric_name), dataset=False)[0]
-        )
+        # metric_module = importlib.import_module(
+        #     datasets.load.prepare_module(os.path.join("metrics", metric_name), dataset=False)[0]
+        # )
+        metric_module_name = datasets.load.prepare_module(os.path.join("metrics", metric_name), dataset=False)[0]
+        metric_module = importlib.import_module(metric_module_name)
         metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
         # check parameters
         parameters = inspect.signature(metric._compute).parameters
@@ -181,3 +188,53 @@ def test_seqeval_raises_when_incorrect_scheme():
     error_message = f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {wrong_scheme}"
     with pytest.raises(ValueError, match=re.escape(error_message)):
         metric.compute(predictions=[], references=[], scheme=wrong_scheme)
+
+
+@pytest.mark.parametrize("metric_name", ["bleurt"])
+def test_albert(metric_name, monkeypatch):
+    doctest.ELLIPSIS_MARKER = "[...]"
+    # metric_module = importlib.import_module(
+    #     datasets.load.prepare_module(os.path.join("metrics", metric_name), dataset=False)[0]
+    # )
+    metric_module_name = datasets.load.prepare_module(os.path.join("metrics", metric_name), dataset=False)[0]
+    metric_module = importlib.import_module(metric_module_name)
+    metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
+    # check parameters
+    parameters = inspect.signature(metric._compute).parameters
+    assert "predictions" in parameters
+    assert "references" in parameters
+    assert all([p.kind != p.VAR_KEYWORD for p in parameters.values()])  # no **kwargs
+    # run doctest
+    # with self.patch_intensive_calls(metric_name, metric_module.__name__):
+    #     with self.use_local_metrics():
+    #         results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+
+    original_load_metric = datasets.load_metric
+    def mock_load_metric(metric_name, *args, **kwargs):
+        print("MOCK load_metric")
+        return original_load_metric(os.path.join("metrics", metric_name), *args, **kwargs)
+    monkeypatch.setattr("datasets.load_metric", mock_load_metric)
+
+    tmp = datasets.load_metric("bleurt")
+    assert False
+
+    # def mock_compute(*args, **kwrags):
+    #     return {"scores": np.array([1.03, 1.04])}
+    # monkeypatch.setattr("bleurt.compute", mock_compute)  # AttributeError: 'module' object at bleurt has no attribute 'compute'
+    import tensorflow.compat.v1 as tf
+    from bleurt.score import Predictor
+
+    tf.flags.DEFINE_string("sv", "", "")  # handle pytest cli flags
+
+    class MockedPredictor(Predictor):
+        def predict(self, input_dict):
+            assert len(input_dict["input_ids"]) == 2
+            return np.array([1.03, 1.04])
+
+    # mock predict_fn which is supposed to do a forward pass with a bleurt model
+    monkeypatch.setattr("bleurt.score._create_predictor", MockedPredictor())
+
+    results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+
+    assert results.failed == 0
+    assert results.attempted > 1

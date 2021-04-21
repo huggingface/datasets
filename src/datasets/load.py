@@ -617,6 +617,7 @@ def load_metric(
     )
 
     # Download and prepare resources for the metric
+    import pdb;pdb.set_trace()
     metric.download_and_prepare(download_config=download_config)
 
     return metric

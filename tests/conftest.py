@@ -10,17 +10,23 @@ from datasets.features import ClassLabel, Features, Sequence, Value
 
 from .s3_fixtures import *  # noqa: load s3 fixtures
 
+import shutil
+
 
 @pytest.fixture(autouse=True)
 def set_test_cache_config(tmp_path_factory, monkeypatch):
     # A cache dir per test function
-    test_hf_cache_home = tmp_path_factory.mktemp("cache")
+    # test_hf_cache_home = tmp_path_factory.mktemp("cache")
+    # test_hf_cache_home = tmp_path / "cache"
+    test_hf_cache_home = tmp_path_factory.getbasetemp() / "cache"
     test_hf_datasets_cache = str(test_hf_cache_home / "datasets")
     test_hf_metrics_cache = str(test_hf_cache_home / "metrics")
     test_hf_modules_cache = str(test_hf_cache_home / "modules")
     monkeypatch.setattr("datasets.config.HF_DATASETS_CACHE", test_hf_datasets_cache)
     monkeypatch.setattr("datasets.config.HF_METRICS_CACHE", test_hf_metrics_cache)
     monkeypatch.setattr("datasets.config.HF_MODULES_CACHE", test_hf_modules_cache)
+    # yield
+    # shutil.rmtree(tmp_path)
 
 
 FILE_CONTENT = """\

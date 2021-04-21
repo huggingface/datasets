@@ -179,7 +179,7 @@ class Metric(MetricInfoMixin):
 
         self.keep_in_memory = keep_in_memory
         self._data_dir_root = os.path.expanduser(cache_dir or config.HF_METRICS_CACHE)
-        self.data_dir = self._build_data_dir()
+        self.data_dir = "\\\\?\\" + self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
         self.timeout: Union[int, float] = timeout
 
