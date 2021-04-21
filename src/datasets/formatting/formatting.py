@@ -90,7 +90,7 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
         if len(key) == 0:
             return table.table.slice(0, 0)
         # don't use pyarrow.Table.take even for pyarrow >=1.0 (see https://issues.apache.org/jira/browse/ARROW-9773)
-        return pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in key)
+        return table.fast_gather(key)
 
     _raise_bad_key_type(key)
 

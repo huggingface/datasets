@@ -1771,8 +1771,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
+                # Only load the columns we actually need
+                if input_columns:
+                    input_dataset = self.with_format(
+                        self._format_type,
+                        columns=input_columns,
+                        output_all_columns=False,
+                        **self._format_kwargs
+                    )
+                    if remove_columns:
+                        remove_columns = list(set(remove_columns) & set(input_columns))
+                else:
+                    input_dataset = self
+
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = self if not batched else range(0, len(self), batch_size)
+                pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = "#" + str(rank) if rank is not None else None
                 pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
@@ -1790,13 +1803,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
-                        if drop_last_batch and i + batch_size > self.num_rows:
+                        if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = self[i : i + batch_size]
-                        indices = list(range(*(slice(i, i + batch_size).indices(self.num_rows))))  # Something simpler?
+                        batch = input_dataset[i : i + batch_size]
+                        indices = list(range(*(slice(i, i + batch_size).indices(input_dataset.num_rows))))  # Something simpler?
                         try:
                             batch = apply_function_on_filtered_inputs(
-                                batch, indices, check_same_num_examples=len(self.list_indexes()) > 0, offset=offset
+                                batch, indices, check_same_num_examples=len(input_dataset.list_indexes()) > 0, offset=offset
                             )
                         except NumExamplesMismatch:
                             raise DatasetTransformationNotAllowedError(

@@ -97,6 +97,19 @@ class IndexedTableMixin:
         self._batches = table.to_batches()
         self._offsets = np.cumsum([0] + [len(b) for b in self._batches])
 
+    def fast_gather(self, indices) -> pa.Table:
+        """
+        Create a pa.Table by gathering the records at the records at the specified indices. Should be faster
+        than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
+        the binary searches in parallel, highly optimized C
+        """
+        assert indices, "Indices must be non-empty"
+        batch_indices = np.searchsorted(self._offsets, indices, side='right') - 1
+        return pa.Table.from_batches([
+            self._batches[batch_idx].slice(i - self._offsets[batch_idx], 1)
+            for batch_idx, i in zip(batch_indices, indices)
+        ], schema=self._schema)
+
     def fast_slice(self, offset=0, length=None) -> pa.Table:
         """
         Slice the Table using interpolation search.
