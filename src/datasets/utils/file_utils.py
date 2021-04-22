@@ -240,6 +240,8 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
+    only_splits: Optional[list] = None
+
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
