@@ -1,14 +1,16 @@
 import copy
 import importlib
 import os
+import time
 from dataclasses import dataclass
 from functools import partial
-from itertools import cycle
+from itertools import cycle, repeat
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 import fsspec
 import numpy as np
 import pyarrow as pa
+from aiohttp.client_exceptions import ServerDisconnectedError
 
 from .arrow_dataset import DatasetInfoMixin
 from .builder import ArrowBasedBuilder, DatasetBuilder, GeneratorBasedBuilder
@@ -25,6 +27,9 @@ from .utils.version import Version
 
 
 logger = get_logger(__name__)
+
+HTTP_MAX_RETRIES = 3
+HTTP_RETRY_INTERVAL = 1
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -166,7 +171,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 keys, examples = zip(*key_examples)
                 batch = _examples_to_batch(examples)
                 transformed_batch = self.function(batch)
-                yield from zip(keys, _batch_to_examples(transformed_batch))
+                yield from zip(repeat(keys), _batch_to_examples(transformed_batch))
 
     def shuffle(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -521,9 +526,32 @@ def load_dataset(
     return ds
 
 
+def add_retries_to_file_obj_read_method(file_obj):
+    read = file_obj.read
+    max_retries = HTTP_MAX_RETRIES
+
+    def fault_tolerant_read(*args, **kwargs):
+        for retry in range(1, max_retries + 1):
+            try:
+                out = read(*args, **kwargs)
+                break
+            except ServerDisconnectedError:
+                logger.warning(
+                    f"Got diconnected from remote data host. Retrying in {HTTP_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+                )
+                time.sleep(HTTP_RETRY_INTERVAL)
+        else:
+            raise ConnectionError("Server Disconnected")
+        return out
+
+    file_obj.read = fault_tolerant_read
+
+
 def extend_module_for_streaming(module_path):
     def xopen(file, mode="r", *args, **kwargs):
-        return fsspec.open(file, mode=mode, *args, **kwargs).open()
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+        add_retries_to_file_obj_read_method(file_obj)
+        return file_obj
 
     module = importlib.import_module(module_path)
     module.open = xopen
