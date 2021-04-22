@@ -2633,6 +2633,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
+    def to_json(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **to_json_kwargs,
+    ) -> int:
+        """Exports the dataset to JSON.
+
+        Args:
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetWriter
+
+        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_json_kwargs).write()
+
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
