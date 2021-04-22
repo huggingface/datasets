@@ -3,7 +3,7 @@ import importlib
 import os
 from dataclasses import dataclass
 from functools import partial
-from itertools import cycle, repeat
+from itertools import cycle
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 import fsspec
@@ -52,7 +52,6 @@ def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
 
 
 class _BaseExamplesIterable:
-
     def __iter__(self):
         raise NotImplementedError()
 
@@ -119,7 +118,12 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self.probabilities = probabilities
 
     @staticmethod
-    def _iter_random_indices(rng: np.random.Generator, num_generate_examples_fn_: int, random_batch_size=1000, p: Optional[List[float]] = None):
+    def _iter_random_indices(
+        rng: np.random.Generator,
+        num_generate_examples_fn_: int,
+        random_batch_size=1000,
+        p: Optional[List[float]] = None,
+    ):
         if p is None:
             while True:
                 yield from rng.integers(0, num_generate_examples_fn_, size=random_batch_size)
@@ -145,7 +149,6 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
 
 class MappedExamplesIterable(_BaseExamplesIterable):
-
     def __init__(self, ex_iterable: _BaseExamplesIterable, function: Callable, batch_size: Optional[int] = None):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -157,7 +160,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             if self.batch_size is None:
                 yield key, self.function(example)
             else:
-                key_examples = [(key, example)] + [(key, example) for (key, example), _ in zip(iterator, range(self.batch_size - 1))]
+                key_examples = [(key, example)] + [
+                    (key, example) for (key, example), _ in zip(iterator, range(self.batch_size - 1))
+                ]
                 keys, examples = zip(*key_examples)
                 batch = _examples_to_batch(examples)
                 transformed_batch = self.function(batch)
@@ -165,11 +170,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     def shuffle(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
-        return MappedExamplesIterable(self.ex_iterable.shuffle(seed), function=self.function, batch_size=self.batch_size)
+        return MappedExamplesIterable(
+            self.ex_iterable.shuffle(seed), function=self.function, batch_size=self.batch_size
+        )
 
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
-
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, seed: Optional[int]):
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
@@ -280,11 +286,7 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
-    def map(
-        self,
-        function: Callable,
-        batch_size: Optional[int] = None
-    ):
+    def map(self, function: Callable, batch_size: Optional[int] = None):
         """
         Return a dataset with the specified map function. The function is applied on-the-fly on the examples
         when iterating the dataset
@@ -372,7 +374,9 @@ def iterable_dataset(
     )
 
 
-def merge_datasets(datasets: List[IterableDataset], probabilities: Optional[List[float]] = None, seed: Optional[int] = None) -> IterableDataset:
+def merge_datasets(
+    datasets: List[IterableDataset], probabilities: Optional[List[float]] = None, seed: Optional[int] = None
+) -> IterableDataset:
     """
     Merge several iterable datasets (sources) into one iterable dataset.
     The new iterable dataset alternates between the sources to yield the examples.
@@ -382,13 +386,15 @@ def merge_datasets(datasets: List[IterableDataset], probabilities: Optional[List
     Args:
         datasets (:obj:`List[IterableDataset]`): list of datasets to merge
         probabilities (:obj:`List[float]`, optional, default None): If specified, the new iterable datasets will sample
-            examples from one source at a time according to these probabilities. 
+            examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example to yield.
     """
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable([d._ex_iterable for d in datasets])
     else:
-        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable([d._ex_iterable for d in datasets], seed=seed, probabilities=probabilities)
+        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+            [d._ex_iterable for d in datasets], seed=seed, probabilities=probabilities
+        )
     info = DatasetInfo.from_merge([d.info for d in datasets])
     info.features = datasets[0].features
     return iterable_dataset(ex_iterable=ex_iterable, info=info)
