@@ -22,7 +22,7 @@ import urllib.parse
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
-from .file_utils import cached_path, hf_github_url
+from .file_utils import DownloadConfig, cached_path, hf_github_url
 from .logging import get_logger
 from .version import Version
 
@@ -60,6 +60,9 @@ class MockDownloadManager:
         # to be downloaded
         self._dummy_file = None
         self._bucket_url = None
+
+        # As DownloadManager
+        self._download_config = DownloadConfig()
 
     @property
     def dummy_file(self):
