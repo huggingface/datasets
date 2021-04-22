@@ -500,6 +500,15 @@ class DatasetBuilder:
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
+            else:
+                if not download_config.cache_dir:
+                    download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
+                if download_config._is_force_download_default:
+                    download_config.force_download = bool(download_mode == FORCE_REDOWNLOAD)
+                if download_config._is_use_etag_default:
+                    download_config.use_etag = False
+                if download_config.use_auth_token is None:
+                    download_config.use_auth_token = use_auth_token
 
             dl_manager = DownloadManager(
                 dataset_name=self.name,
