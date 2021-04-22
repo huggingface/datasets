@@ -343,7 +343,7 @@ class ParquetReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "parquet"
 
-    def _get_table_from_filename(self, filename_skip_take, **kwargs):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=True):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
@@ -351,7 +351,7 @@ class ParquetReader(BaseReader):
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
         # Parquet read_table always loads data in memory, independently of memory_map
-        pa_table = pq.read_table(filename, memory_map=True)
+        pa_table = pq.read_table(filename, memory_map=not in_memory)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
