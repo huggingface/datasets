@@ -641,6 +641,12 @@ class DatasetBuilder:
         split_dict = SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        if dl_manager._download_config.only_splits:
+            split_generators = [
+                split_generator
+                for split_generator in split_generators
+                if split_generator.name in dl_manager._download_config.only_splits
+            ]
 
         # Checksums verification
         if verify_infos:
