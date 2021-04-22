@@ -350,8 +350,8 @@ class ParquetReader(BaseReader):
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
-        # Parquet read_table always loads data in memory, independently of memory_map
-        pa_table = pq.read_table(filename, memory_map=True)  # TODO: not in_memory; False not valid for pyarrow v.1
+        # TODO: Parquet read_table always loads data in memory, independently of memory_map
+        pa_table = pq.read_table(filename, memory_map=not in_memory)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
