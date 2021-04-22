@@ -356,7 +356,7 @@ class ParquetReader(BaseReader):
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
         table_cls = InMemoryTable  # if in_memory else MemoryMappedTable
-        return InMemoryTable(pa_table)
+        return table_cls(pa_table)
 
 
 @dataclass(frozen=True)
