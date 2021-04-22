@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
+from datasets.arrow_reader import ArrowReader, BaseReader, ParquetReader, ReadInstruction
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
@@ -113,6 +113,23 @@ def test_read_files(in_memory, dataset, arrow_file):
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
     assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+
+
+class TestParquetReader:
+    @pytest.mark.parametrize("in_memory", [True])
+    def test_read_files(self, in_memory, dataset, parquet_file):
+        filename = parquet_file
+        reader = ParquetReader("", None)
+        # TODO: Parquet read_table always loads data in memory, independently of memory_map
+        with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+            dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
+        assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
+        table = dataset_kwargs["arrow_table"]
+        assert table.shape == dataset.data.shape
+        assert set(table.column_names) == set(dataset.data.column_names)
+        assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+        assert dataset_kwargs["info"] is None
+        assert dataset_kwargs["split"] is None
 
 
 def test_read_instruction_spec():
