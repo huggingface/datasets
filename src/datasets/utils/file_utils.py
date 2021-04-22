@@ -229,19 +229,28 @@ class DownloadConfig:
     """
 
     cache_dir: Optional[Union[str, Path]] = None
-    force_download: bool = False
+    force_download: Optional[bool] = None  # default False
+    _is_force_download_default = False
     resume_download: bool = False
     local_files_only: bool = False
     proxies: Optional[Dict] = None
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
-    use_etag: bool = True
+    use_etag: Optional[bool] = None  # default True
+    _is_use_etag_default = False
     num_proc: Optional[int] = None
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
     only_splits: Optional[list] = None
 
+    def __post_init__(self):
+        if self.use_etag is None:
+            self.use_etag = True
+            self._is_use_etag_default = True
+        if self.force_download is None:
+            self.force_download = False
+            self.is_force_download_default = True
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
