@@ -1995,6 +1995,25 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
+@pytest.mark.parametrize("in_memory", [True])  # TODO: False, once memory_map properly implemented for pq.read_table
+def test_dataset_from_parquet(in_memory, dataset, parquet_file):
+    filename = parquet_file
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset_from_parquet = Dataset.from_parquet(filename, in_memory=in_memory)
+    import pdb;pdb.set_trace()
+    assert dataset_from_parquet.features.type == dataset.features.type
+    # assert dataset_from_parquet.features == dataset.features
+    # TODO: "labels": Value vs. ClassLabel
+    #  Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None)
+    #  Sequence(feature=ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None), length=-1, id=None)
+    # TODO: "answers":
+    #  {'answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None), 'text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
+    #  Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None)
+    for feature_name in ["tokens", "id"]:
+        assert dataset_from_parquet.features[feature_name] == dataset.features[feature_name]
+    assert dataset_from_parquet.cache_files == ([{"filename": filename}] if not in_memory else [])
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",
