@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import time
 from hashlib import sha256
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -11,7 +12,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import load_dataset, load_from_disk
+from datasets import Dataset, DownloadConfig, load_dataset, load_from_disk
 
 from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
@@ -243,6 +244,21 @@ def test_load_dataset_local_with_default_in_memory(
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
     assert (dataset["train"].dataset_size < max_in_memory_dataset_size) is expected_in_memory
+
+
+# @pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_load_dataset_local_only_splits(dataset_loading_script_dir, data_dir):  # , keep_in_memory
+    download_config = DownloadConfig(only_splits="test")
+    # with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+    dataset = datasets.load_dataset(
+        dataset_loading_script_dir, data_dir=data_dir, split="test", download_config=download_config
+    )  # , keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, Dataset)
+    assert dataset.split == "test"
+    assert dataset.shape == (10, 1)
+    # pattern = "*/0.0.0/74c0095031cf868e2486de6e08bb3ca4a9f9de3a81b10af67a42aed21393e640/*.arrow"
+    generated_arrow_files = Path(datasets.config.HF_DATASETS_CACHE, dataset.builder_name).glob("**/*.arrow")
+    assert len(list(generated_arrow_files)) == 1
 
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 100, 1000])
