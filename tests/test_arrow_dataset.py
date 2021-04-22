@@ -2000,7 +2000,6 @@ def test_dataset_from_parquet(in_memory, dataset, parquet_file):
     filename = parquet_file
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset_from_parquet = Dataset.from_parquet(filename, in_memory=in_memory)
-    import pdb;pdb.set_trace()
     assert dataset_from_parquet.features.type == dataset.features.type
     # assert dataset_from_parquet.features == dataset.features
     # TODO: "labels": Value vs. ClassLabel
