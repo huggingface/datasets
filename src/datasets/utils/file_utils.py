@@ -27,7 +27,6 @@ from zipfile import ZipFile, is_zipfile
 
 import numpy as np
 import posixpath
-import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
