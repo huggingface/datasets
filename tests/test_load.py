@@ -247,17 +247,22 @@ def test_load_dataset_local_with_default_in_memory(
 
 
 # @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_load_dataset_local_only_splits(dataset_loading_script_dir, data_dir):  # , keep_in_memory
+def test_load_dataset_local_only_splits(dataset_loading_script_dir, data_dir, tmp_path):  # , keep_in_memory
+    cache_dir = str(tmp_path / "cache")
     download_config = DownloadConfig(only_splits="test")
     # with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
     dataset = datasets.load_dataset(
-        dataset_loading_script_dir, data_dir=data_dir, split="test", download_config=download_config
+        dataset_loading_script_dir,
+        data_dir=data_dir,
+        cache_dir=cache_dir,
+        split="test",
+        download_config=download_config,
     )  # , keep_in_memory=keep_in_memory)
     assert isinstance(dataset, Dataset)
     assert dataset.split == "test"
     assert dataset.shape == (10, 1)
     # pattern = "*/0.0.0/74c0095031cf868e2486de6e08bb3ca4a9f9de3a81b10af67a42aed21393e640/*.arrow"
-    generated_arrow_files = Path(datasets.config.HF_DATASETS_CACHE, dataset.builder_name).glob("**/*.arrow")
+    generated_arrow_files = Path(cache_dir, dataset.builder_name).glob("**/*.arrow")
     assert len(list(generated_arrow_files)) == 1
 
 
