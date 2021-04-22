@@ -3,8 +3,8 @@ import os
 import sys
 from pathlib import Path
 
-from packaging import version
 import pyarrow as pa
+from packaging import version
 
 from .utils.logging import get_logger
 
