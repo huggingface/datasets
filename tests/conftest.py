@@ -3,6 +3,7 @@ import json
 import lzma
 import textwrap
 
+import pyarrow.parquet as pq
 import pytest
 
 from datasets.arrow_dataset import Dataset
@@ -60,6 +61,14 @@ def dataset():
 def arrow_file(tmp_path_factory, dataset):
     filename = str(tmp_path_factory.mktemp("data") / "file.arrow")
     dataset.map(cache_file_name=filename)
+    return filename
+
+
+@pytest.fixture(scope="session")
+def parquet_file(tmp_path_factory, dataset):
+    filename = str(tmp_path_factory.mktemp("data") / "file.parquet")
+    dataset.map(cache_file_name=filename)
+    pq.write_table(dataset.data.table, filename)
     return filename
 
 
