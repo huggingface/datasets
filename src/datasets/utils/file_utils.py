@@ -365,7 +365,7 @@ def cached_path(
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(pa.__version__)
+    ua += "; pyarrow/{}".format(config.PYARROW_VERSION)
     if config.TORCH_AVAILABLE:
         ua += "; torch/{}".format(config.TORCH_VERSION)
     if config.TF_AVAILABLE:
