@@ -6,6 +6,7 @@ from unittest import TestCase
 import pyarrow as pa
 import pytest
 
+from datasets import config
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import ArrowReader, BaseReader, ParquetReader, ReadInstruction
 from datasets.info import DatasetInfo
@@ -116,6 +117,9 @@ def test_read_files(in_memory, dataset, arrow_file):
 
 
 class TestParquetReader:
+    @pytest.mark.skipif(
+        config.PYARROW_VERSION < "2", reason="pyarrow.lib.ArrowInvalid: Mix of struct and list types not yet supported"
+    )
     @pytest.mark.parametrize("in_memory", [True])
     def test_read_files(self, in_memory, dataset, parquet_file):
         filename = parquet_file

@@ -13,7 +13,7 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
+from datasets import NamedSplit, concatenate_datasets, config, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -1995,6 +1995,9 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
+@pytest.mark.skipif(
+    config.PYARROW_VERSION < "2", reason="pyarrow.lib.ArrowInvalid: Mix of struct and list types not yet supported"
+)
 @pytest.mark.parametrize("in_memory", [True])  # TODO: False, once memory_map properly implemented for pq.read_table
 def test_dataset_from_parquet(in_memory, dataset, parquet_file):
     filename = parquet_file
