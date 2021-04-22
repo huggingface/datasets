@@ -324,6 +324,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     @classmethod
+    def from_parquet(cls, filename: str, in_memory: bool = True):
+        """Create Dataset from Parquet file.
+
+        Args:
+            filename (:obj:`str`): Path of the Parquet file.
+            in_memory (:obj:`bool`, default ``True``): Whether to copy the data in-memory.
+
+        Returns:
+            :class:`Dataset`
+        """
+        from .arrow_reader import ParquetReader
+
+        dataset_kwargs = ParquetReader("", None).read_files([{"filename": filename}], in_memory=in_memory)
+        return cls(dataset_kwargs["arrow_table"])
+
+    @classmethod
     def from_buffer(
         cls,
         buffer: pa.Buffer,
