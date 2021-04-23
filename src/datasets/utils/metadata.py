@@ -28,7 +28,8 @@ def load_json_resource(resource: str) -> Tuple[Any, str]:
 
 
 # Source of languages.json:
-# https://github.com/unicode-org/cldr-json/blob/9f6b2f0c5eb3aabaa97343cd1ee431a3badc4851/cldr-json/cldr-localenames-full/main/en/languages.json
+# https://datahub.io/core/language-codes/r/ietf-language-tags.csv
+# Language names were obtained with langcodes: https://github.com/LuminosoInsight/langcodes
 known_language_codes, known_language_codes_url = load_json_resource("languages.json")
 known_licenses, known_licenses_url = load_json_resource("licenses.json")
 known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
