@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 from ..features import Features, Value
 from .base import TaskTemplate
@@ -22,6 +22,16 @@ class QuestionAnswering(TaskTemplate):
         self.context_column = context_column
         self.answer_start_column = answer_start_column
         self.answer_end_column = answer_end_column
+
+    @property
+    def column_mapping(self) -> Dict[str, str]:
+        column_mapping = {
+            self.question_column: "question",
+            self.context_column: "context",
+        }
+        if self.answer_start_column and self.answer_end_column:
+            column_mapping.update({self.answer_start_column: "answer_start", self.answer_end_column: "answer_end"})
+        return column_mapping
 
     @classmethod
     def from_dict(cls, template_dict: dict) -> "QuestionAnswering":
