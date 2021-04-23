@@ -38,16 +38,24 @@ known_size_categories, known_size_categories_url = load_json_resource("size_cate
 known_multilingualities, known_multilingualities_url = load_json_resource("multilingualities.json")
 
 
-def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
-    """"Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+def yaml_block_from_readme(path: Path) -> Optional[str]:
     with path.open() as readme_file:
         content = [line.strip() for line in readme_file]
 
     if content[0] == "---" and "---" in content[1:]:
         yamlblock = "\n".join(content[1 : content[1:].index("---") + 1])
-        metada_dict = yaml.safe_load(yamlblock) or dict()
-        return metada_dict
+        return yamlblock
+
     return None
+
+
+def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
+    """"Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+    yaml_block = yaml_block_from_readme(path=path)
+    if yaml_block is None:
+        return None
+    metada_dict = yaml.safe_load(yaml_block) or dict()
+    return metada_dict
 
 
 ValidatorOutput = Tuple[List[str], Optional[str]]
@@ -74,6 +82,16 @@ def escape_validation_for_predicate(
     return trues, falses
 
 
+def validate_metadata_type(metadata_dict: dict):
+    basic_typing_errors = {
+        name: value
+        for name, value in metadata_dict.items()
+        if not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str)
+    }
+    if len(basic_typing_errors) > 0:
+        raise TypeError(f"Found fields that are not non-empty list of strings: {basic_typing_errors}")
+
+
 @dataclass
 class DatasetMetadata:
     annotations_creators: List[str]
@@ -87,21 +105,13 @@ class DatasetMetadata:
     task_ids: List[str]
 
     def __post_init__(self):
-        basic_typing_errors = {
-            name: value
-            for name, value in vars(self).items()
-            if not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str)
-        }
-        if len(basic_typing_errors) > 0:
-            raise TypeError(f"Found fields that are not non-empty list of strings: {basic_typing_errors}")
+        validate_metadata_type(metadata_dict=vars(self))
 
-        self.annotations_creators, annotations_creators_errors = self.annotations_creators_must_be_in_known_set(
+        self.annotations_creators, annotations_creators_errors = self.validate_annotations_creators(
             self.annotations_creators
         )
-        self.language_creators, language_creators_errors = self.language_creators_must_be_in_known_set(
-            self.language_creators
-        )
-        self.languages, languages_errors = self.validate_language_codes(self.language_creators)
+        self.language_creators, language_creators_errors = self.validate_language_creators(self.language_creators)
+        self.languages, languages_errors = self.validate_language_codes(self.languages)
         self.licenses, licenses_errors = self.validate_licences(self.licenses)
         self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
         self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
@@ -143,10 +153,11 @@ class DatasetMetadata:
 
         Raises:
             :obj:`TypeError`: If the dataset card has no metadata (no YAML header)
+            :obj:`TypeError`: If the dataset's metadata is invalid
         """
-        metadata_dict = metadata_dict_from_readme(path)
-        if metadata_dict is not None:
-            return cls(**metadata_dict)
+        yaml_string = yaml_block_from_readme(path)
+        if yaml_string is not None:
+            return cls.from_yaml_string(yaml_string)
         else:
             raise TypeError(f"did not find a yaml block in '{path}'")
 
@@ -159,18 +170,21 @@ class DatasetMetadata:
 
         Returns:
             :class:`DatasetMetadata`: The dataset's metadata
+
+        Raises:
+            :obj:`TypeError`: If the dataset's metadata is invalid
         """
         metada_dict = yaml.safe_load(string) or dict()
         return cls(**metada_dict)
 
     @staticmethod
-    def annotations_creators_must_be_in_known_set(annotations_creators: List[str]) -> ValidatorOutput:
+    def validate_annotations_creators(annotations_creators: List[str]) -> ValidatorOutput:
         return tagset_validator(
             annotations_creators, known_creators["annotations"], "annotations_creators", known_creators_url
         )
 
     @staticmethod
-    def language_creators_must_be_in_known_set(language_creators: List[str]) -> ValidatorOutput:
+    def validate_language_creators(language_creators: List[str]) -> ValidatorOutput:
         return tagset_validator(language_creators, known_creators["language"], "language_creators", known_creators_url)
 
     @staticmethod
