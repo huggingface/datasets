@@ -1,5 +1,4 @@
 import abc
-from dataclasses import dataclass
 from typing import Dict, Optional
 
 from ..features import Features
