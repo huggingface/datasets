@@ -59,8 +59,6 @@ FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
 REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
 
-MAX_DIRECTORY_NAME_LENGTH = 255
-
 
 class InvalidConfigName(ValueError):
     pass
@@ -175,7 +173,7 @@ class BuilderConfig:
 
         if suffix:
             config_id = self.name + "-" + suffix
-            if len(config_id) > MAX_DIRECTORY_NAME_LENGTH:
+            if len(config_id) > config.MAX_DIRECTORY_NAME_LENGTH:
                 config_id = self.name + "-" + Hasher.hash(suffix)
             return config_id
         else:
