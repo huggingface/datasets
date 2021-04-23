@@ -14,7 +14,6 @@
 # limitations under the License.
 """OpusOpenoffice: A collection of documents from openoffice org"""
 
-from __future__ import absolute_import, division, print_function
 
 import itertools
 import os

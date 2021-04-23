@@ -14,7 +14,6 @@
 # limitations under the License.
 """ASSIN 2 dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import xml.etree.ElementTree as ET
 

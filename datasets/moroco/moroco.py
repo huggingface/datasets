@@ -14,7 +14,6 @@
 # limitations under the License.
 """MOROCO: The Moldavian and Romanian Dialectal Corpus"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

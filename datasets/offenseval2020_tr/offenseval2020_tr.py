@@ -2,7 +2,6 @@
 # Lint as: python3
 """OffensEval-TR 2020: A Corpus of Turkish Offensive Language on Social Media"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

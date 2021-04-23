@@ -14,7 +14,6 @@
 # limitations under the License.
 """ArmanPerosNERCorpus - the first manually-annotated Persian NER corpus."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

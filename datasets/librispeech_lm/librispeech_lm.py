@@ -16,7 +16,6 @@
 # Lint as: python3
 """Librispeech language modeling dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

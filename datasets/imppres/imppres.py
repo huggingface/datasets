@@ -14,7 +14,6 @@
 # limitations under the License.
 """Over 25k semiautomatically generated sentence pairs illustrating well-studied pragmatic inference types. IMPPRES is an NLI dataset following the format of SNLI (Bowman et al., 2015), MultiNLI (Williams et al., 2018) and XNLI (Conneau et al., 2018), which was created to evaluate how well trained NLI models recognize several classes of presuppositions and scalar implicatures."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

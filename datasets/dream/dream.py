@@ -16,7 +16,6 @@
 # Lint as: python3
 """DREAM: A Challenge Dataset and Models for Dialogue-Based Reading Comprehension"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

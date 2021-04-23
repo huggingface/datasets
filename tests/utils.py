@@ -287,7 +287,7 @@ def assert_arrow_memory_increases():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory > 0
+    assert pa.total_allocated_bytes() - previous_allocated_memory > 0, "Arrow memory didn't increase."
 
 
 @contextmanager
@@ -297,4 +297,4 @@ def assert_arrow_memory_doesnt_increase():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0
+    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."

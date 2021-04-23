@@ -14,7 +14,6 @@
 # limitations under the License.
 """The dataset contains a set of 31,030 Arabic newspaper articles alongwith metadata, extracted from various online Saudi newspapers."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

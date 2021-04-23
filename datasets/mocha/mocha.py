@@ -16,7 +16,6 @@
 # Lint as: python3
 """MOCHA: A Dataset for Training and Evaluating Generative Reading Comprehension Metrics"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

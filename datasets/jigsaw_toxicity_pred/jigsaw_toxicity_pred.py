@@ -14,7 +14,6 @@
 # limitations under the License.
 """Comments from Jigsaw Toxic Comment Classification Kaggle Competition """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

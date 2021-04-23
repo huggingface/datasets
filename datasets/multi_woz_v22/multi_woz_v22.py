@@ -14,7 +14,6 @@
 # limitations under the License.
 """MultiWOZ v2.2: Multi-domain Wizard of OZ version 2.2"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

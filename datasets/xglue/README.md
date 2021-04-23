@@ -265,7 +265,7 @@ task_ids:
   ntg:
   - summarization
   paws-x:
-  - text-classification-other-paraphrase identification
+  - text-classification-other-paraphrase-identification
   pos:
   - parsing
   qadsm:

@@ -21,7 +21,6 @@
 # TODO: enable custom configs; such as: "java+python"
 # TODO: enable fetching examples with a given license, eg: "java_MIT"
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

@@ -16,7 +16,6 @@
 # Lint as: python3
 """WikiHow Datasets."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -99,14 +98,14 @@ class Wikihow(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-  You need to manually download two wikihow files. An overview of which files to download can be seen at https://github.com/mahnazkoupaee/WikiHow-Dataset.
-  You need to download the following two files manually:
-    1) https://ucsb.app.box.com/s/ap23l8gafpezf4tq3wapr6u8241zz358 and save the file under <path/to/folder>/wikihowAll.csv
-    2) https://ucsb.app.box.com/s/7yq601ijl1lzvlfu4rjdbbxforzd2oag and save the file under <path/to/folder>/wikihowSep.csv
+  You need to manually download one of the wikihow files. An overview of which files to download can be seen at https://github.com/mahnazkoupaee/WikiHow-Dataset.
+  You need to download one the following two data files manually, depending on the version you want:
+    1) all: https://ucsb.app.box.com/s/ap23l8gafpezf4tq3wapr6u8241zz358 and save the file under <path/to/folder>/wikihowAll.csv
+    2) sep: https://ucsb.app.box.com/s/7yq601ijl1lzvlfu4rjdbbxforzd2oag and save the file under <path/to/folder>/wikihowSep.csv
 
   The <path/to/folder> can e.g. be "~/manual_wikihow_data".
 
-  Wikihow can then be loaded using the following command `datasets.load_dataset("wikihow", data_dir="<path/to/folder>")`.
+  Wikihow can then be loaded for example using the following command `datasets.load_dataset("wikihow", "all", data_dir="<path/to/folder>")`.
   """
 
     def _info(self):

@@ -16,7 +16,6 @@
 # Lint as: python3
 """Quora question pairs data"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
