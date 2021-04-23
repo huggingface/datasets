@@ -2858,7 +2858,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
-    def add_item(self, item: dict):
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
         .. versionadded:: 1.6
@@ -2875,7 +2877,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         item_table = item_table.cast(schema)
         # Concatenate tables
         table = concat_tables([self._data, item_table])
-        return Dataset(table)
+        if self._indices is None:
+            indices_table = None
+        else:
+            new_indices_array = pa.array([len(self._data)], type=pa.uint64())
+            new_indices_table = InMemoryTable.from_arrays([new_indices_array], names=["indices"])
+            indices_table = concat_tables([self._indices, new_indices_table])
+        return Dataset(
+            table,
+            info=copy.deepcopy(self.info),
+            split=self.split,
+            indices_table=indices_table,
+            fingerprint=new_fingerprint,
+        )
 
 
 def concatenate_datasets(

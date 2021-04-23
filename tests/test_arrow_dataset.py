@@ -1948,6 +1948,10 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+@pytest.mark.parametrize(
+    "transform",
+    [None, ("shuffle", (42,), {}), ("with_format", ("pandas",), {}), ("class_encode_column", ("col_2",), {})],
+)
 @pytest.mark.parametrize("in_memory", [False, True])
 @pytest.mark.parametrize(
     "item",
@@ -1958,22 +1962,28 @@ def test_concatenate_datasets_duplicate_columns(dataset):
         {"col_1": 4.0, "col_2": 4.0, "col_3": 4.0},
     ],
 )
-def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path):
-    dataset = (
+def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
+    dataset_to_test = (
         Dataset(InMemoryTable.from_pydict(dataset_dict))
         if in_memory
         else Dataset(MemoryMappedTable.from_file(arrow_path))
     )
-    dataset = dataset.add_item(item)
+    if transform is not None:
+        transform_name, args, kwargs = transform
+        dataset_to_test: Dataset = getattr(dataset_to_test, transform_name)(*args, **kwargs)
+    dataset = dataset_to_test.add_item(item)
     assert dataset.data.shape == (5, 3)
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = dataset_to_test.features
     assert dataset.data.column_names == list(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
+        assert dataset.features[feature] == expected_dtype
     assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
-    dataset = dataset.add_item(item)
-    assert dataset.data.shape == (6, 3)
-    assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
+    assert dataset.format["type"] == dataset_to_test.format["type"]
+    assert dataset._fingerprint != dataset_to_test._fingerprint
+    dataset.reset_format()
+    dataset_to_test.reset_format()
+    assert dataset[:-1] == dataset_to_test[:]
+    assert {k: int(v) for k, v in dataset[-1].items()} == {k: int(v) for k, v in item.items()}
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
