@@ -20,6 +20,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnswering
 
 
 logger = datasets.logging.get_logger(__name__)
@@ -98,6 +99,9 @@ class Squad(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://rajpurkar.github.io/SQuAD-explorer/",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnswering(),
+            ],
         )
 
     def _split_generators(self, dl_manager):

@@ -5,7 +5,6 @@ from typing import Dict, Optional
 from ..features import Features
 
 
-@dataclass
 class TaskTemplate(abc.ABC):
     task: str
     input_schema: Features
