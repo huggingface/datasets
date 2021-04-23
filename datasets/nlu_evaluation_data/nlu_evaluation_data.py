@@ -41,7 +41,7 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-Raw part of NLU Evaluation Data. It contains 25 715 non-empty examples from 68 unique intents belonging to 18 scenarios.
+Raw part of NLU Evaluation Data. It contains 25 715 non-empty examples (original dataset has 25716 examples) from 68 unique intents belonging to 18 scenarios.
 """
 
 _HOMEPAGE = "https://github.com/xliuhw/NLU-Evaluation-Data"
@@ -54,8 +54,7 @@ ANNOTATION_PATTERN = re.compile(r"\[(.+?)\s+\:+\s(.+?)\]")
 
 
 def remove_annotations(text):
-    """
-    Remove named entity annotations from text example.
+    """Remove named entity annotations from text example.
 
     Examples are defined based on `answer_annotation` column since it has the least number
     of Nans. However, this column contains patterns of annotation of the form:
@@ -70,8 +69,8 @@ def remove_annotations(text):
 
 
 def define_intent_name(scenario, intent):
-    """
-    Intent name is defined as concatenation of `scenario` and `intent` values.
+    """Intent name is defined as concatenation of `scenario` and `intent`
+    values.
 
     See Also:
         https://github.com/xliuhw/NLU-Evaluation-Data/issues/5
@@ -180,13 +179,8 @@ class NLUEvaluationData(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
         ]
 
-    def _post_process(self, dataset, resources_paths):
-        # remove empty examples
-        dataset = dataset.filter(lambda ex: True if ex["text"] != "null" else False, with_indices=False)
-        return dataset
-
     def _generate_examples(self, filepath):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         with open(filepath, encoding="utf-8") as f:
             csv_reader = csv.reader(f, quotechar='"', delimiter=";", quoting=csv.QUOTE_ALL, skipinitialspace=True)
             # call next to skip header
@@ -205,6 +199,10 @@ class NLUEvaluationData(datasets.GeneratorBasedBuilder):
                     answer,
                     question,
                 ) = row
+
+                # examples with empty answer are removed as part of the dataset
+                if answer_annotation == "null":
+                    continue
 
                 yield id_, {
                     "text": remove_annotations(answer_annotation),

@@ -66,7 +66,7 @@ task_ids:
 
 Dataset with short utterances from conversational domain annotated with their corresponding intents and scenarios.
 
-It has 25 715 non-zero examples belonging to 18 scenarios and 68 intents.
+It has 25 715 non-zero examples (original dataset has 25716 examples) belonging to 18 scenarios and 68 intents.
 Originally, the dataset was crowd-sourced and annotated with both intents and named entities 
 in order to evaluate commercial NLU systems such as RASA, IBM's Watson, Microsoft's LUIS and Google's Dialogflow.  
 **This version of the dataset only includes intent annotations!**
