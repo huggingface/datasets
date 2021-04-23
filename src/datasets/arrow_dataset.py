@@ -1113,6 +1113,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @fingerprint_transform(inplace=False)
+    def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`Dataset`: A copy of the dataset with renamed columns
+        """
+        dataset = copy.deepcopy(self)
+
+        extra_columns = set(column_mapping.keys()) - set(dataset.column_names)
+        if extra_columns:
+            raise ValueError(
+                f"Original column names {extra_columns} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+
+        number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(set(column_mapping.values()))
+        if number_of_duplicates_in_new_columns != 0:
+            raise ValueError(
+                "New column names must all be different, but this column mapping "
+                f"has {number_of_duplicates_in_new_columns} duplicates"
+            )
+
+        empty_new_columns = [new_col for new_col in column_mapping.values() if not new_col]
+        if empty_new_columns:
+            raise ValueError(f"New column names {empty_new_columns} are empty.")
+
+        def rename(columns):
+            return [column_mapping[col] if col in column_mapping else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
+        dataset._info.features = Features(
+            {
+                column_mapping[col] if col in column_mapping else col: feature
+                for col, feature in (self._info.features or {}).items()
+            }
+        )
+
+        dataset._data = dataset._data.rename_columns(new_column_names)
+        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
     def __len__(self):
         """ Number of rows in the dataset."""
         return self.num_rows

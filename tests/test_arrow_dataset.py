@@ -487,6 +487,34 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(list(dset.column_names), ["col_1", "col_2", "col_3"])
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
 
+    def test_rename_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                fingerprint = dset._fingerprint
+                with dset.rename_columns({"col_1": "new_name"}) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["new_name", "col_2", "col_3"])
+                    self.assertListEqual(list(dset.column_names), ["col_1", "col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+
+                with dset.rename_columns({"col_1": "new_name", "col_2": "new_name2"}) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["new_name", "new_name2", "col_3"])
+                    self.assertListEqual(list(dset.column_names), ["col_1", "col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+
+                # Original column not in dataset
+                with self.assertRaises(ValueError):
+                    dset.rename_columns({"not_there": "new_name"})
+
+                # Empty new name
+                with self.assertRaises(ValueError):
+                    dset.rename_columns({"col_1": ""})
+
+                # Duplicates
+                with self.assertRaises(ValueError):
+                    dset.rename_columns({"col_1": "new_name", "col_2": "new_name"})
+
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
