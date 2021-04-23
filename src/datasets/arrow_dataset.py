@@ -2863,7 +2863,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
-        .. versionadded:: 1.6
+        .. versionadded:: 1.7
 
         Args:
             item (dict): Item data to be added.
