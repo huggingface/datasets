@@ -1948,6 +1948,34 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+@pytest.mark.parametrize("in_memory", [False, True])
+@pytest.mark.parametrize(
+    "item",
+    [
+        {"col_1": "4", "col_2": 4, "col_3": 4.0},
+        {"col_1": "4", "col_2": "4", "col_3": "4"},
+        {"col_1": 4, "col_2": 4, "col_3": 4},
+        {"col_1": 4.0, "col_2": 4.0, "col_3": 4.0},
+    ],
+)
+def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path):
+    dataset = (
+        Dataset(InMemoryTable.from_pydict(dataset_dict))
+        if in_memory
+        else Dataset(MemoryMappedTable.from_file(arrow_path))
+    )
+    dataset = dataset.add_item(item)
+    assert dataset.data.shape == (5, 3)
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    assert dataset.data.column_names == list(expected_features.keys())
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+    assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
+    dataset = dataset.add_item(item)
+    assert dataset.data.shape == (6, 3)
+    assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 @pytest.mark.parametrize(
     "features",

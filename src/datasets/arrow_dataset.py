@@ -2858,6 +2858,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
+    def add_item(self, item: dict):
+        """Add item to Dataset.
+
+        .. versionadded:: 1.6
+
+        Args:
+            item (dict): Item data to be added.
+
+        Returns:
+            :class:`Dataset`
+        """
+        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        # Cast item
+        schema = pa.schema(self.features.type)
+        item_table = item_table.cast(schema)
+        # Concatenate tables
+        table = concat_tables([self._data, item_table])
+        return Dataset(table)
+
 
 def concatenate_datasets(
     dsets: List[Dataset],
