@@ -4,10 +4,11 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 from typing import Generator
 
-from datasets.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
+from datasets.builder import DatasetBuilder
 from datasets.commands import BaseTransformersCLICommand
 from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module
+from datasets.utils.download_manager import GenerateMode
 from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.logging import ERROR, get_logger
 
@@ -136,7 +137,9 @@ class TestCommand(BaseTransformersCLICommand):
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
             builder.download_and_prepare(
-                download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
+                download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
+                if not self._force_redownload
+                else GenerateMode.FORCE_REDOWNLOAD,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )

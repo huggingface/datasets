@@ -55,10 +55,6 @@ from .utils.logging import WARNING, get_logger
 
 logger = get_logger(__name__)
 
-FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
-REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
-REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
-
 
 class InvalidConfigName(ValueError):
     pass
@@ -494,7 +490,7 @@ class DatasetBuilder:
             if download_config is None:
                 download_config = DownloadConfig(
                     cache_dir=os.path.join(self._cache_dir_root, "downloads"),
-                    force_download=bool(download_mode == FORCE_REDOWNLOAD),
+                    force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
@@ -513,7 +509,7 @@ class DatasetBuilder:
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
+            if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
