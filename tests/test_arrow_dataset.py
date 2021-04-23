@@ -13,11 +13,12 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
+from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
+from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 

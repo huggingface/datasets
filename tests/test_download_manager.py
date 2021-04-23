@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from datasets.utils.download_manager import DownloadConfig, DownloadManager
-from datasets.utils.file_utils import hash_url_to_filename
+from datasets.utils.download_manager import DownloadManager
+from datasets.utils.file_utils import DownloadConfig, hash_url_to_filename
 
 
 URL = "http://www.mocksite.com/file1.txt"

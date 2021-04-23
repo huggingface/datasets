@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from datasets import Features, Sequence, Value, load_from_disk
+from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
+from datasets.features import Features, Sequence, Value
 
 from .conftest import s3_test_bucket_name
 from .utils import (

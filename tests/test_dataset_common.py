@@ -24,25 +24,15 @@ from unittest import TestCase
 
 from absl.testing import parameterized
 
-from datasets import (
-    BuilderConfig,
-    DatasetBuilder,
-    DownloadConfig,
-    Features,
-    GenerateMode,
-    MockDownloadManager,
-    Value,
-    cached_path,
-    hf_api,
-    import_main_class,
-    load_dataset,
-    prepare_module,
-)
-from datasets.features import ClassLabel
+from datasets import cached_path, hf_api, import_main_class, load_dataset, prepare_module
+from datasets.builder import BuilderConfig, DatasetBuilder
+from datasets.features import ClassLabel, Features, Value
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
-from datasets.utils.file_utils import is_remote_url
+from datasets.utils.download_manager import GenerateMode
+from datasets.utils.file_utils import DownloadConfig, is_remote_url
 from datasets.utils.logging import get_logger
+from datasets.utils.mock_download_manager import MockDownloadManager
 
 from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, remote, slow
 
