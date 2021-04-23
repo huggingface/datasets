@@ -273,7 +273,11 @@ class DownloadManager:
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
-        return defaultdict(str, extracted_paths.data)
+        return (
+            extracted_paths.data
+            if not isinstance(extracted_paths.data, dict)
+            else defaultdict(str, extracted_paths.data)
+        )
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.
