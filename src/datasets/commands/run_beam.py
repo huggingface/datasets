@@ -7,7 +7,6 @@ from typing import List
 from datasets import config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseTransformersCLICommand
-from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module
 from datasets.utils.download_manager import DownloadConfig, GenerateMode
 
@@ -129,7 +128,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         # Let's move it to the original directory of the dataset script, to allow the user to
         # upload them on S3 at the same time afterwards.
         if self._save_infos:
-            dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+            dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), config.DATASET_INFOS_DICT_FILE_NAME)
 
             name = Path(path).name + ".py"
 
@@ -143,6 +142,6 @@ class RunBeamCommand(BaseTransformersCLICommand):
                 exit(1)
 
             # Move datasetinfo back to the user
-            user_dataset_infos_path = os.path.join(dataset_dir, DATASET_INFOS_DICT_FILE_NAME)
+            user_dataset_infos_path = os.path.join(dataset_dir, config.DATASET_INFOS_DICT_FILE_NAME)
             copyfile(dataset_infos_path, user_dataset_infos_path)
             print("Dataset Infos file saved at {}".format(user_dataset_infos_path))

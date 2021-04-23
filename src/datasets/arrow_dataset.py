@@ -53,7 +53,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .info import DATASET_INFO_FILENAME, DatasetInfo
+from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
@@ -616,7 +616,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -653,7 +653,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
         ) as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
+        with open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(

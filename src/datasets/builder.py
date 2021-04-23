@@ -37,9 +37,6 @@ from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
 from .info import (
-    DATASET_INFO_FILENAME,
-    DATASET_INFOS_DICT_FILE_NAME,
-    LICENSE_FILENAME,
     DatasetInfo,
     DatasetInfosDict,
     PostProcessedInfo,
@@ -291,7 +288,7 @@ class DatasetBuilder:
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
         """Empty dict if doesn't exist"""
-        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), config.DATASET_INFOS_DICT_FILE_NAME)
         if os.path.exists(dset_infos_file_path):
             return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
         return {}
@@ -1168,9 +1165,9 @@ class BeamBasedBuilder(DatasetBuilder):
             import apache_beam as beam
 
             fs = beam.io.filesystems.FileSystems
-            with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
+            with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
                 self.info._dump_info(f)
-            with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
+            with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
                 self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):
