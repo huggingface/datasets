@@ -4,7 +4,7 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 from typing import Generator
 
-from datasets import config
+import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
@@ -152,7 +152,7 @@ class TestCommand(BaseTransformersCLICommand):
             # upload them on S3 at the same time afterwards.
             if self._save_infos:
                 dataset_infos_path = os.path.join(
-                    builder_cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME
+                    builder_cls.get_imported_module_dir(), datasets.config.DATASETDICT_INFOS_FILENAME
                 )
                 name = Path(path).name + ".py"
                 combined_path = os.path.join(path, name)
@@ -166,7 +166,7 @@ class TestCommand(BaseTransformersCLICommand):
 
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
-                    user_dataset_infos_path = os.path.join(dataset_dir, config.DATASETDICT_INFOS_FILENAME)
+                    user_dataset_infos_path = os.path.join(dataset_dir, datasets.config.DATASETDICT_INFOS_FILENAME)
                     copyfile(dataset_infos_path, user_dataset_infos_path)
                     print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
 
