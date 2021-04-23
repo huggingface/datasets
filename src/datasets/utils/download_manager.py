@@ -182,6 +182,12 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
+        if self._download_config.only_splits:
+            if isinstance(url_or_urls, dict) and all(
+                split in url_or_urls for split in self._download_config.only_splits
+            ):
+                url_or_urls = {split: url_or_urls[split] for split in self._download_config.only_splits}
+
         download_config = self._download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
