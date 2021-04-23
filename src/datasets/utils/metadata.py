@@ -12,7 +12,6 @@ except ImportError:
     # Try backported to PY<37 `importlib_resources`.
     import importlib_resources as pkg_resources
 
-import langcodes as lc
 import yaml
 
 from . import resources
@@ -28,6 +27,9 @@ def load_json_resource(resource: str) -> Tuple[Any, str]:
     return json.loads(content), f"{BASE_REF_URL}/resources/{resource}"
 
 
+# Source of languages.json:
+# https://github.com/unicode-org/cldr-json/blob/9f6b2f0c5eb3aabaa97343cd1ee431a3badc4851/cldr-json/cldr-localenames-full/main/en/languages.json
+known_language_codes, known_language_codes_url = load_json_resource("languages.json")
 known_licenses, known_licenses_url = load_json_resource("licenses.json")
 known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
 known_creators, known_creators_url = load_json_resource("creators.json")
@@ -35,14 +37,16 @@ known_size_categories, known_size_categories_url = load_json_resource("size_cate
 known_multilingualities, known_multilingualities_url = load_json_resource("multilingualities.json")
 
 
-def dict_from_readme(f: Path) -> Optional[Dict[str, List[str]]]:
-    with f.open() as fi:
-        content = [line.strip() for line in fi]
+def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
+    """"Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+    with path.open() as readme_file:
+        content = [line.strip() for line in readme_file]
 
     if content[0] == "---" and "---" in content[1:]:
         yamlblock = "\n".join(content[1 : content[1:].index("---") + 1])
         metada_dict = yaml.safe_load(yamlblock) or dict()
         return metada_dict
+    return None
 
 
 ValidatorOutput = Tuple[List[str], Optional[str]]
@@ -96,13 +100,13 @@ class DatasetMetadata:
         self.language_creators, language_creators_errors = self.language_creators_must_be_in_known_set(
             self.language_creators
         )
-        self.languages, languages_errors = self.language_code_must_be_recognized(self.language_creators)
-        self.licenses, licenses_errors = self.licenses_must_be_in_known_set(self.licenses)
-        self.multilinguality, multilinguality_errors = self.multilinguality_must_be_in_known_set(self.multilinguality)
-        self.size_categories, size_categories_errors = self.size_categories_must_be_in_known_set(self.size_categories)
-        self.source_datasets, source_datasets_errors = self.source_datasets_must_be_in_known_set(self.source_datasets)
-        self.task_categories, task_categories_errors = self.task_category_must_be_in_known_set(self.task_categories)
-        self.task_ids, task_ids_errors = self.task_id_must_be_in_known_set(self.task_ids)
+        self.languages, languages_errors = self.validate_language_codes(self.language_creators)
+        self.licenses, licenses_errors = self.validate_licences(self.licenses)
+        self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
+        self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
+        self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
+        self.task_categories, task_categories_errors = self.validate_task_categories(self.task_categories)
+        self.task_ids, task_ids_errors = self.validate_task_ids(self.task_ids)
 
         errors = {
             "annotations_creators": annotations_creators_errors,
@@ -113,6 +117,7 @@ class DatasetMetadata:
             "source_datasets": source_datasets_errors,
             "task_categories": task_categories_errors,
             "task_ids": task_ids_errors,
+            "languages": languages_errors,
         }
 
         exception_msg_dict = dict()
@@ -126,67 +131,82 @@ class DatasetMetadata:
             )
 
     @classmethod
-    def from_readme(cls, f: Path) -> "DatasetMetadata":
-        metadata_dict = dict_from_readme(f)
+    def from_readme(cls, path: Path) -> "DatasetMetadata":
+        """Loads and validates the dataset metadat from its dataset card (README.md)
+
+        Args:
+            path (:obj:`Path`): Path to the dataset card (its README.md file)
+
+        Returns:
+            :class:`DatasetMetadata`: The dataset's metadata
+
+        Raises:
+            :obj:`TypeError`: If the dataset card has no metadata (no YAML header)
+        """
+        metadata_dict = metadata_dict_from_readme(path)
         if metadata_dict is not None:
             return cls(**metadata_dict)
         else:
-            raise TypeError(f"did not find a yaml block in '{f}'")
+            raise TypeError(f"did not find a yaml block in '{path}'")
 
     @classmethod
     def from_yaml_string(cls, string: str) -> "DatasetMetadata":
+        """Loads and validates the dataset metadat from a YAML string
+
+        Args:
+            string (:obj:`str`): The YAML string
+
+        Returns:
+            :class:`DatasetMetadata`: The dataset's metadata
+        """
         metada_dict = yaml.safe_load(string) or dict()
         return cls(**metada_dict)
 
     @staticmethod
     def annotations_creators_must_be_in_known_set(annotations_creators: List[str]) -> ValidatorOutput:
-        return tagset_validator(annotations_creators, known_creators["annotations"], "annotations", known_creators_url)
+        return tagset_validator(
+            annotations_creators, known_creators["annotations"], "annotations_creators", known_creators_url
+        )
 
     @staticmethod
     def language_creators_must_be_in_known_set(language_creators: List[str]) -> ValidatorOutput:
-        return tagset_validator(language_creators, known_creators["language"], "annotations", known_creators_url)
+        return tagset_validator(language_creators, known_creators["language"], "language_creators", known_creators_url)
 
     @staticmethod
-    def language_code_must_be_recognized(languages: List[str]) -> ValidatorOutput:
-        invalid_values = []
-        for code in languages:
-            try:
-                lc.get(code)
-            except lc.tag_parser.LanguageTagError:
-                invalid_values.append(code)
-        if len(invalid_values) > 0:
-            return (
-                [],
-                f"{invalid_values} are not recognised as valid language codes (BCP47 norm), you can refer to https://github.com/LuminosoInsight/langcodes",
-            )
-        return languages, None
+    def validate_language_codes(languages: List[str]) -> ValidatorOutput:
+        return tagset_validator(
+            values=languages,
+            reference_values=known_language_codes.keys(),
+            name="languages",
+            url=known_language_codes_url,
+        )
 
     @staticmethod
-    def licenses_must_be_in_known_set(licenses: List[str]) -> ValidatorOutput:
+    def validate_licences(licenses: List[str]) -> ValidatorOutput:
         others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e)
         validated, error = tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url)
         return [*validated, *others], error
 
     @staticmethod
-    def task_category_must_be_in_known_set(task_categories: List[str]) -> ValidatorOutput:
+    def validate_task_categories(task_categories: List[str]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
         others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other"))
-        validated, error = tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url)
+        validated, error = tagset_validator(to_validate, known_set, "task_categories", known_task_ids_url)
         return [*validated, *others], error
 
     @staticmethod
-    def task_id_must_be_in_known_set(task_ids: List[str]) -> ValidatorOutput:
+    def validate_task_ids(task_ids: List[str]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
         others, to_validate = escape_validation_for_predicate(task_ids, lambda e: "-other-" in e)
-        validated, error = tagset_validator(to_validate, known_set, "tasks_ids", known_task_ids_url)
+        validated, error = tagset_validator(to_validate, known_set, "task_ids", known_task_ids_url)
         return [*validated, *others], error
 
     @staticmethod
-    def multilinguality_must_be_in_known_set(multilinguality: List[str]) -> ValidatorOutput:
+    def validate_mulitlinguality(multilinguality: List[str]) -> ValidatorOutput:
         others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other"))
         validated, error = tagset_validator(
             to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
@@ -194,11 +214,11 @@ class DatasetMetadata:
         return [*validated, *others], error
 
     @staticmethod
-    def size_categories_must_be_in_known_set(size_cats: List[str]) -> ValidatorOutput:
+    def validate_size_catgeories(size_cats: List[str]) -> ValidatorOutput:
         return tagset_validator(size_cats, known_size_categories, "size_categories", known_size_categories_url)
 
     @staticmethod
-    def source_datasets_must_be_in_known_set(sources: List[str]) -> ValidatorOutput:
+    def validate_source_datasets(sources: List[str]) -> ValidatorOutput:
         invalid_values = []
         for src in sources:
             is_ok = src in ["original", "extended"] or src.startswith("extended|")

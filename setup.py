@@ -154,7 +154,6 @@ TESTS_REQUIRE = [
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
     # metadata validation
-    "langcodes[data]>=3.1.0",
     "importlib_resources;python_version<'3.7'",
 ]
 
@@ -174,7 +173,7 @@ else:
     )
 
 
-QUALITY_REQUIRE = ["black", "flake8==3.7.9", "isort", "langcodes[data]>=3.1.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
