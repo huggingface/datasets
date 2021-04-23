@@ -288,7 +288,7 @@ class DatasetBuilder:
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
         """Empty dict if doesn't exist"""
-        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), config.DATASET_INFOS_DICT_FILE_NAME)
+        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dset_infos_file_path):
             return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
         return {}

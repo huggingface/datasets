@@ -241,7 +241,7 @@ class DatasetInfo:
 class DatasetInfosDict(dict):
     def write_to_directory(self, dataset_infos_dir, overwrite=False):
         total_dataset_infos = {}
-        dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASET_INFOS_DICT_FILE_NAME)
+        dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
             logger.info("Dataset Infos already exists in {}. Completing it with new infos.".format(dataset_infos_dir))
             total_dataset_infos = self.from_directory(dataset_infos_dir)
@@ -254,7 +254,7 @@ class DatasetInfosDict(dict):
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
-        with open(os.path.join(dataset_infos_dir, config.DATASET_INFOS_DICT_FILE_NAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()

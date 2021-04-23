@@ -156,7 +156,7 @@ DATASET_ARROW_FILENAME = "dataset.arrow"
 DATASET_INDICES_FILENAME = "indices.arrow"
 DATASET_STATE_JSON_FILENAME = "state.json"
 DATASET_INFO_FILENAME = "dataset_info.json"
-DATASET_INFOS_DICT_FILE_NAME = "dataset_infos.json"
+DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
 
