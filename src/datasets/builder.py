@@ -36,11 +36,7 @@ from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, Missi
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
-from .info import (
-    DatasetInfo,
-    DatasetInfosDict,
-    PostProcessedInfo,
-)
+from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode

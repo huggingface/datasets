@@ -151,7 +151,9 @@ class TestCommand(BaseTransformersCLICommand):
             # Let's move it to the original directory of the dataset script, to allow the user to
             # upload them on S3 at the same time afterwards.
             if self._save_infos:
-                dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME)
+                dataset_infos_path = os.path.join(
+                    builder_cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME
+                )
                 name = Path(path).name + ".py"
                 combined_path = os.path.join(path, name)
                 if os.path.isfile(path):

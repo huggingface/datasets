@@ -616,7 +616,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
+        ) as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -653,7 +655,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
         ) as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(

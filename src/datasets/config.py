@@ -61,8 +61,14 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
     TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
     if TF_AVAILABLE:
         # For the metadata, we have to look for both tensorflow and tensorflow-cpu
-        for package in ["tensorflow", "tensorflow-cpu", "tensorflow-gpu", "tf-nightly", "tf-nightly-cpu",
-                        "tf-nightly-gpu"]:
+        for package in [
+            "tensorflow",
+            "tensorflow-cpu",
+            "tensorflow-gpu",
+            "tf-nightly",
+            "tf-nightly-cpu",
+            "tf-nightly-gpu",
+        ]:
             try:
                 TF_VERSION = importlib_metadata.version(package)
             except importlib_metadata.PackageNotFoundError:
