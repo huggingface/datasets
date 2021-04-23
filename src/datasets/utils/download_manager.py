@@ -18,6 +18,7 @@
 
 import enum
 import os
+from collections import defaultdict
 from datetime import datetime
 from functools import partial
 from typing import Dict, Optional, Union
@@ -272,7 +273,7 @@ class DownloadManager:
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
-        return extracted_paths.data
+        return defaultdict(str, extracted_paths.data)
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.
