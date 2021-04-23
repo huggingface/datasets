@@ -266,6 +266,21 @@ class TestLoadDatasetOnlySplits:
         generated_arrow_files = sorted(Path(cache_dir, dataset.builder_name).glob("**/*.arrow"))
         assert len(generated_arrow_files) == 1
 
+    def test_load_dataset_from_hub_only_splits_downloaded_files(self, tmp_path):
+        download_config = DownloadConfig(only_splits=["train"])
+        cache_dir = str(tmp_path / "cache")
+        datasetdict = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=cache_dir, download_config=download_config)
+        assert isinstance(datasetdict, DatasetDict)
+        assert "train" in datasetdict
+        assert "validation" not in datasetdict
+        dataset = datasetdict["train"]
+        assert dataset.split == "train"
+        assert dataset.shape == (2, 1)
+        downloaded_files = set(str(path.stem) for path in Path(cache_dir, "downloads").glob("**/*"))
+        assert len(downloaded_files) == 1
+        generated_arrow_files = sorted(Path(cache_dir, dataset.builder_name).glob("**/*.arrow"))
+        assert len(generated_arrow_files) == 1
+
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 100, 1000])
 def test_load_from_disk_with_default_in_memory(
