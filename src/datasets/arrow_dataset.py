@@ -1774,10 +1774,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # Only load the columns we actually need
                 if input_columns:
                     input_dataset = self.with_format(
-                        self._format_type,
-                        columns=input_columns,
-                        output_all_columns=False,
-                        **self._format_kwargs
+                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
                     )
                     if remove_columns:
                         remove_columns = list(set(remove_columns) & set(input_columns))
@@ -1806,10 +1803,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
                         batch = input_dataset[i : i + batch_size]
-                        indices = list(range(*(slice(i, i + batch_size).indices(input_dataset.num_rows))))  # Something simpler?
+                        indices = list(
+                            range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
+                        )  # Something simpler?
                         try:
                             batch = apply_function_on_filtered_inputs(
-                                batch, indices, check_same_num_examples=len(input_dataset.list_indexes()) > 0, offset=offset
+                                batch,
+                                indices,
+                                check_same_num_examples=len(input_dataset.list_indexes()) > 0,
+                                offset=offset,
                             )
                         except NumExamplesMismatch:
                             raise DatasetTransformationNotAllowedError(

@@ -104,11 +104,14 @@ class IndexedTableMixin:
         the binary searches in parallel, highly optimized C
         """
         assert len(indices), "Indices must be non-empty"
-        batch_indices = np.searchsorted(self._offsets, indices, side='right') - 1
-        return pa.Table.from_batches([
-            self._batches[batch_idx].slice(i - self._offsets[batch_idx], 1)
-            for batch_idx, i in zip(batch_indices, indices)
-        ], schema=self._schema)
+        batch_indices = np.searchsorted(self._offsets, indices, side="right") - 1
+        return pa.Table.from_batches(
+            [
+                self._batches[batch_idx].slice(i - self._offsets[batch_idx], 1)
+                for batch_idx, i in zip(batch_indices, indices)
+            ],
+            schema=self._schema,
+        )
 
     def fast_slice(self, offset=0, length=None) -> pa.Table:
         """
