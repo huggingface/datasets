@@ -2861,8 +2861,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         # Cast item
-        type = self.features.type
-        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
+        schema = pa.schema(self.features.type)
         item_table = item_table.cast(schema)
         # Concatenate tables
         table = concat_tables([self._data, item_table])
