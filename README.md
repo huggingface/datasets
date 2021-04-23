@@ -19,6 +19,9 @@
     <a href="https://huggingface.co/datasets/">
         <img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen">
     </a>
+    <a href="CODE_OF_CONDUCT.md">
+        <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg">
+    </a>
 </p>
 
 `🤗Datasets` is a lightweight library providing **two** main features:

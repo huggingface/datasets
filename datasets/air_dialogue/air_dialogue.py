@@ -14,7 +14,6 @@
 # limitations under the License.
 """AirDialogue: A large dataset for goal oriented conversations."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

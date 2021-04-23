@@ -14,7 +14,6 @@
 # limitations under the License.
 """Coached Conversational Preference Elicitation Dataset to Understanding Movie Preferences"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os

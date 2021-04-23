@@ -148,8 +148,10 @@ if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
 else:
     HF_DATASETS_OFFLINE = False
 
-# File names
+# In-memory
+MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = 250 * 2 ** 20  # 250 MiB
 
+# File names
 DATASET_ARROW_FILENAME = "dataset.arrow"
 DATASET_INDICES_FILENAME = "indices.arrow"
 DATASET_STATE_JSON_FILENAME = "state.json"

@@ -8,6 +8,20 @@ import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
 
+from .s3_fixtures import *  # noqa: load s3 fixtures
+
+
+@pytest.fixture(autouse=True)
+def set_test_cache_config(tmp_path_factory, monkeypatch):
+    # test_hf_cache_home = tmp_path_factory.mktemp("cache")  # TODO: why a cache dir per test function does not work?
+    test_hf_cache_home = tmp_path_factory.getbasetemp() / "cache"
+    test_hf_datasets_cache = str(test_hf_cache_home / "datasets")
+    test_hf_metrics_cache = str(test_hf_cache_home / "metrics")
+    test_hf_modules_cache = str(test_hf_cache_home / "modules")
+    monkeypatch.setattr("datasets.config.HF_DATASETS_CACHE", test_hf_datasets_cache)
+    monkeypatch.setattr("datasets.config.HF_METRICS_CACHE", test_hf_metrics_cache)
+    monkeypatch.setattr("datasets.config.HF_MODULES_CACHE", test_hf_modules_cache)
+
 
 FILE_CONTENT = """\
     Text data.
@@ -115,6 +129,19 @@ DATA_DICT_OF_LISTS = {
     "col_2": [0, 1, 2, 3],
     "col_3": [0.0, 1.0, 2.0, 3.0],
 }
+
+
+@pytest.fixture(scope="session")
+def dataset_dict():
+    return DATA_DICT_OF_LISTS
+
+
+@pytest.fixture(scope="session")
+def arrow_path(tmp_path_factory):
+    dataset = Dataset.from_dict(DATA_DICT_OF_LISTS)
+    path = str(tmp_path_factory.mktemp("data") / "dataset.arrow")
+    dataset.map(cache_file_name=path)
+    return path
 
 
 @pytest.fixture(scope="session")

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Korean pairwise question binary classification dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

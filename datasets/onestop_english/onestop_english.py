@@ -14,7 +14,6 @@
 # limitations under the License.
 """OneStopEnglish Corpus: Dataset of texts classified into reading levels/text complexities."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

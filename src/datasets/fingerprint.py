@@ -183,7 +183,7 @@ def generate_fingerprint(dataset) -> str:
         hasher.update(state[key])
     # hash data files last modification timestamps as well
     for cache_file in dataset.cache_files:
-        hasher.update(os.path.getmtime(cache_file))
+        hasher.update(os.path.getmtime(cache_file["filename"]))
     return hasher.hexdigest()
 
 

@@ -14,7 +14,6 @@
 # limitations under the License.
 """ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

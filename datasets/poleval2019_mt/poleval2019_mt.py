@@ -14,7 +14,6 @@
 # limitations under the License.
 """Poleval 2019 dataset for Polish Translation"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

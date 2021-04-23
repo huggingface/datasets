@@ -2,8 +2,10 @@ import copy
 import os
 import tempfile
 from functools import wraps
+from itertools import groupby
 from typing import List, Optional, Tuple, TypeVar, Union
 
+import numpy as np
 import pyarrow as pa
 
 from . import config
@@ -43,7 +45,7 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     return pa_table
 
 
-def _write_table_to_file(table: pa.Table, filename: str, writer_batch_size: Optional[int] = None) -> int:
+def _write_table_to_file(table: pa.Table, filename: str) -> int:
     with open(filename, "wb") as sink:
         writer = pa.RecordBatchStreamWriter(sink=sink, schema=table.schema)
         batches: List[pa.RecordBatch] = table.to_batches()
@@ -53,7 +55,73 @@ def _write_table_to_file(table: pa.Table, filename: str, writer_batch_size: Opti
         return sum(batch.nbytes for batch in batches)
 
 
-class Table:
+def _deepcopy(x, memo: dict):
+    """deepcopy a regular class instance"""
+    cls = x.__class__
+    result = cls.__new__(cls)
+    memo[id(x)] = result
+    for k, v in x.__dict__.items():
+        setattr(result, k, copy.deepcopy(v, memo))
+    return result
+
+
+def _interpolation_search(arr: List[int], x: int) -> int:
+    """
+    Return the position i of a sorted array so that arr[i] <= x < arr[i+1]
+
+    Args:
+        arr (:obj:`List[int]`): non-empty sorted list of integers
+        x (:obj:`int`): query
+
+    Returns:
+        `int`: the position i so that arr[i] <= x < arr[i+1]
+
+    Raises:
+        `IndexError`: if the array is empty or if the query is outside the array values
+    """
+    i, j = 0, len(arr) - 1
+    while i < j and arr[i] <= x < arr[j]:
+        k = i + ((j - i) * (x - arr[i]) // (arr[j] - arr[i]))
+        if arr[k] <= x < arr[k + 1]:
+            return k
+        elif arr[k] < x:
+            i, j = k + 1, j
+        else:
+            i, j = i, k
+    raise IndexError(f"Invalid query '{x}' for size {arr[-1] if len(arr) else 'none'}.")
+
+
+class IndexedTableMixin:
+    def __init__(self, table: pa.Table):
+        self._schema = table.schema
+        self._batches = table.to_batches()
+        self._offsets = np.cumsum([0] + [len(b) for b in self._batches])
+
+    def fast_slice(self, offset=0, length=None) -> pa.Table:
+        """
+        Slice the Table using interpolation search.
+        The behavior is the same as :obj:`pyarrow.Table.slice` but it's significantly faster.
+
+        Interpolation search is used to find the start and end indexes of the batches we want to keep.
+        The batches to keep are then concatenated to form the sliced Table.
+        """
+        if offset < 0:
+            raise IndexError("Offset must be non-negative")
+        elif offset >= self._offsets[-1] or (length is not None and length <= 0):
+            return pa.Table.from_batches([], schema=self._schema)
+        i = _interpolation_search(self._offsets, offset)
+        if length is None or length + offset >= self._offsets[-1]:
+            batches = self._batches[i:]
+            batches[0] = batches[0].slice(offset - self._offsets[i])
+        else:
+            j = _interpolation_search(self._offsets, offset + length - 1)
+            batches = self._batches[i : j + 1]
+            batches[-1] = batches[-1].slice(0, offset + length - self._offsets[j])
+            batches[0] = batches[0].slice(offset - self._offsets[i])
+        return pa.Table.from_batches(batches, schema=self._schema)
+
+
+class Table(IndexedTableMixin):
     """
     Wraps a pyarrow Table by using composition.
     This is the base class for InMemoryTable, MemoryMappedTable and ConcatenationTable.
@@ -66,7 +134,15 @@ class Table:
     """
 
     def __init__(self, table: pa.Table):
+        super().__init__(table)
         self.table = table
+
+    def __deepcopy__(self, memo: dict):
+        # arrow tables are immutable, so there's no need to copy self.table
+        # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
+        # by adding it to the memo, self.table won't be copied
+        memo[id(self.table)] = self.table
+        return _deepcopy(self, memo)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -159,6 +235,9 @@ class Table:
     @property
     def column_names(self):
         return self.table.column_names
+
+    def __eq__(self, other):
+        return self.equals(other)
 
     def __getitem__(self, i):
         return self.table[i]
@@ -273,8 +352,9 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_batches(*args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.slice)
-    def slice(self, *args, **kwargs):
-        return InMemoryTable(self.table.slice(*args, **kwargs))
+    def slice(self, offset=0, length=None):
+        # Use fast slicing here
+        return InMemoryTable(self.fast_slice(offset=offset, length=length))
 
     @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):
@@ -378,10 +458,11 @@ class MemoryMappedTable(TableBlock):
         return replays
 
     @inject_arrow_table_documentation(pa.Table.slice)
-    def slice(self, *args, **kwargs):
-        replay = ("slice", copy.deepcopy(args), copy.deepcopy(kwargs))
+    def slice(self, offset=0, length=None):
+        replay = ("slice", (offset, length), {})
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.slice(*args, **kwargs), self.path, replays)
+        # Use fast slicing here
+        return MemoryMappedTable(self.fast_slice(offset=offset, length=length), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.filter)
     def filter(self, *args, **kwargs):
@@ -498,36 +579,72 @@ class ConcatenationTable(Table):
         self.__dict__ = state
 
     @staticmethod
-    def _concat_blocks_vertically(blocks: List[TableBlock]) -> pa.Table:
-        return pa.concat_tables([t.table for t in blocks])
+    def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
+        pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
+        if axis == 0:
+            # Align schemas: re-order the columns to make the schemas match before concatenating over rows
+            schema = pa_tables[0].schema
+            pa_tables = [
+                table
+                if table.schema == schema
+                else pa.Table.from_arrays([table[name] for name in schema.names], names=schema.names)
+                for table in pa_tables
+            ]
+            return pa.concat_tables(pa_tables)
+        elif axis == 1:
+            for i, table in enumerate(pa_tables):
+                if i == 0:
+                    pa_table = table
+                else:
+                    for name, col in zip(table.column_names, table.columns):
+                        pa_table = pa_table.append_column(name, col)
+            return pa_table
+        else:
+            raise ValueError("'axis' must be either 0 or 1")
 
-    @staticmethod
-    def _concat_blocks_horizontally_and_vertically(blocks: List[List[TableBlock]]) -> pa.Table:
-        tables_to_concat_vertically = []
+    @classmethod
+    def _concat_blocks_horizontally_and_vertically(cls, blocks: List[List[TableBlock]]) -> pa.Table:
+        pa_tables_to_concat_vertically = []
         for i, tables in enumerate(blocks):
             if not tables:
                 continue
-            for j, table in enumerate(tables):
-                if j == 0:
-                    combined_table = table.table
-                else:
-                    for name, col in zip(table.column_names, table.columns):
-                        combined_table = combined_table.append_column(name, col)
-            if i > 0 and combined_table.schema != tables_to_concat_vertically[0].schema:
-                # re-order the columns to make the schema match and concat the tables
-                names = tables_to_concat_vertically[0].schema.names
-                arrays = [combined_table[name] for name in names]
-                combined_table = pa.Table.from_arrays(arrays, names=names)
-            tables_to_concat_vertically.append(combined_table)
-        return pa.concat_tables(tables_to_concat_vertically)
+            pa_table_horizontally_concatenated = cls._concat_blocks(tables, axis=1)
+            pa_tables_to_concat_vertically.append(pa_table_horizontally_concatenated)
+        return cls._concat_blocks(pa_tables_to_concat_vertically, axis=0)
+
+    @classmethod
+    def _merge_blocks(cls, blocks: TableBlockContainer, axis: Optional[int] = None) -> TableBlockContainer:
+        if axis is not None:
+            merged_blocks = []
+            for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
+                if is_in_memory:
+                    block_group = [InMemoryTable(cls._concat_blocks(list(block_group), axis=axis))]
+                merged_blocks += list(block_group)
+        else:  # both
+            merged_blocks = [cls._merge_blocks(row_block, axis=1) for row_block in blocks]
+            if all(len(row_block) == 1 for row_block in merged_blocks):
+                merged_blocks = cls._merge_blocks(
+                    [block for row_block in merged_blocks for block in row_block], axis=0
+                )
+        return merged_blocks
+
+    @classmethod
+    def _consolidate_blocks(cls, blocks: TableBlockContainer) -> TableBlockContainer:
+        if isinstance(blocks, TableBlock):
+            return blocks
+        elif isinstance(blocks[0], TableBlock):
+            return cls._merge_blocks(blocks, axis=0)
+        else:
+            return cls._merge_blocks(blocks)
 
     @classmethod
     def from_blocks(cls, blocks: TableBlockContainer) -> "ConcatenationTable":
+        blocks = cls._consolidate_blocks(blocks)
         if isinstance(blocks, TableBlock):
             table = blocks
             return cls(table.table, [[table]])
         elif isinstance(blocks[0], TableBlock):
-            table = cls._concat_blocks_vertically(blocks)
+            table = cls._concat_blocks(blocks, axis=0)
             blocks = [[t] for t in blocks]
             return cls(table, blocks)
         else:
@@ -535,15 +652,54 @@ class ConcatenationTable(Table):
             return cls(table, blocks)
 
     @classmethod
-    def from_tables(cls, tables: List[Union[pa.Table, Table]]) -> "ConcatenationTable":
-        blocks = []
-        for table in tables:
+    def from_tables(cls, tables: List[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
+        """Create ConcatenationTable from list of tables.
+
+        Args:
+            tables (list of :class:`Table` or list of :obj:`pyarrow.Table`): List of tables.
+            axis: (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            .. versionadded:: 1.6.0
+        """
+
+        def to_blocks(table):
             if isinstance(table, pa.Table):
-                blocks.append([InMemoryTable(table)])
+                return [[InMemoryTable(table)]]
             elif isinstance(table, ConcatenationTable):
-                blocks.extend(copy.deepcopy(table.blocks))
+                return copy.deepcopy(table.blocks)
             else:
-                blocks.append([table])
+                return [[table]]
+
+        def _split_like(blocks_to_split, blocks_like):
+            splits = []
+            offset = 0
+            for block_row in blocks_like:
+                length = block_row[0].num_rows
+                splits.append((offset, length))
+                offset += length
+            return [
+                [block.slice(offset=split[0], length=split[1]) for block in blocks_to_split[0]] for split in splits
+            ]
+
+        def _extend_blocks(result, blocks: List[List[TableBlock]], axis: int = 0):
+            if axis == 0:
+                result.extend(blocks)
+            elif axis == 1:
+                if len(result) == 1 and len(blocks) > 1:
+                    result = _split_like(result, blocks)  # Split result
+                elif len(blocks) == 1 and len(result) > 1:
+                    blocks = _split_like(blocks, result)  # Split blocks
+                # TODO: This assumes each block_row has the same num_rows
+                for i, row_blocks in enumerate(blocks):
+                    result[i].extend(row_blocks)
+            return result
+
+        blocks = to_blocks(tables[0])
+        for table in tables[1:]:
+            table_blocks = to_blocks(table)
+            blocks = _extend_blocks(blocks, table_blocks, axis=axis)
         return cls.from_blocks(blocks)
 
     @property
@@ -604,14 +760,12 @@ class ConcatenationTable(Table):
         blocks = []
         for subtables in self.blocks:
             new_tables = []
+            fields = list(target_schema)
             for subtable in subtables:
-                subschema = pa.schema(
-                    {
-                        name: type
-                        for (type, name) in zip(target_schema.types, target_schema.names)
-                        if name in subtable.schema.names
-                    }
-                )
+                subfields = []
+                for name in subtable.column_names:
+                    subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
+                subschema = pa.schema(subfields)
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
@@ -662,9 +816,17 @@ class ConcatenationTable(Table):
         return ConcatenationTable(table, blocks)
 
 
-def concat_tables(tables: List[Table]) -> Table:
+def concat_tables(tables: List[Table], axis: int = 0) -> Table:
     """
-    Concatenate tables vertically.
+    Concatenate tables.
+
+    Args:
+        tables (list of :class:`Table`): List of tables to be concatenated.
+        axis (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            .. versionadded:: 1.6.0
 
     Returns:
         :obj:`datasets.table.Table` that is the concatenated table:
@@ -674,7 +836,7 @@ def concat_tables(tables: List[Table]) -> Table:
     tables = list(tables)
     if len(tables) == 1:
         return tables[0]
-    return ConcatenationTable.from_tables(tables)
+    return ConcatenationTable.from_tables(tables, axis=axis)
 
 
 def list_table_cache_files(table: Table) -> List[str]:

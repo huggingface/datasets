@@ -16,7 +16,6 @@
 # Lint as: python3
 """SQUAD: The Stanford Question Answering Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

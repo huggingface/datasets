@@ -1,5 +1,17 @@
 # How to contribute to Datasets?
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
+Datasets is an open source project, so all contributions and suggestions are welcome.
+
+You can contribute in many different ways: giving ideas, answering questions, reporting bugs, proposing enhancements, 
+improving the documentation, fixing bugs,...
+
+Many thanks in advance to every contributor.
+
+In order to facilitate healthy, constructive behavior in an open and inclusive community, we all respect and abide by 
+our [code of conduct](CODE_OF_CONDUCT.md).
+
+## How to create a Pull Request?
 1. Fork the [repository](https://github.com/huggingface/datasets) by clicking on the 'Fork' button on the repository's page. This creates a copy of the code under your GitHub user account.
 
 2. Clone your fork to your local disk, and add the base repository as a remote:
@@ -141,3 +153,8 @@ If you are a **user of a dataset**, the main source of information should be the
 Finally, if you want more information on the how and why of dataset cards, we strongly recommend reading the foundational works [Datasheets for Datasets](https://arxiv.org/abs/1803.09010) and [Data Statements for NLP](https://www.aclweb.org/anthology/Q18-1041/).
 
 Thank you for your contribution!
+
+## Code of conduct
+
+This project adheres to the HuggingFace [code of conduct](CODE_OF_CONDUCT.md). 
+By participating, you are expected to uphold this code.

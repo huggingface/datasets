@@ -1,6 +1,7 @@
 import pickle
-from typing import List
+from typing import List, Union
 
+import numpy as np
 import pyarrow as pa
 import pytest
 
@@ -12,6 +13,7 @@ from datasets.table import (
     TableBlock,
     _in_memory_arrow_table_from_buffer,
     _in_memory_arrow_table_from_file,
+    _interpolation_search,
     _memory_mapped_arrow_table_from_file,
     concat_tables,
     inject_arrow_table_documentation,
@@ -497,16 +499,16 @@ def test_concatenation_table_from_blocks(in_memory_pa_table, in_memory_blocks):
     assert table.blocks == [[in_memory_table]]
     table = ConcatenationTable.from_blocks([t1, t2])
     assert isinstance(table, ConcatenationTable)
-    assert table.blocks == [[t1], [t2]]
     assert table.table == in_memory_pa_table
+    assert table.blocks == [[in_memory_table]]
     table = ConcatenationTable.from_blocks([[t1], [t2]])
     assert isinstance(table, ConcatenationTable)
     assert table.table == in_memory_pa_table
-    assert table.blocks == [[t1], [t2]]
+    assert table.blocks == [[in_memory_table]]
     table = ConcatenationTable.from_blocks(in_memory_blocks)
     assert isinstance(table, ConcatenationTable)
     assert table.table == in_memory_pa_table
-    assert table.blocks == in_memory_blocks
+    assert table.blocks == [[in_memory_table]]
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
@@ -522,20 +524,36 @@ def test_concatenation_table_from_blocks_doesnt_increase_memory(
         table = ConcatenationTable.from_blocks(blocks)
         assert isinstance(table, ConcatenationTable)
         assert table.table == in_memory_pa_table
-        assert table.blocks == blocks
+        if blocks_type == "in_memory":
+            assert table.blocks == [[InMemoryTable(in_memory_pa_table)]]
+        else:
+            assert table.blocks == blocks
 
 
-def test_concatenation_table_from_tables(in_memory_pa_table):
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     in_memory_table = InMemoryTable(in_memory_pa_table)
     concatenation_table = ConcatenationTable.from_blocks(in_memory_table)
+    memory_mapped_table = MemoryMappedTable.from_file(arrow_file)
+    tables = [in_memory_pa_table, in_memory_table, concatenation_table, memory_mapped_table]
+    if axis == 0:
+        expected_table = pa.concat_tables([in_memory_pa_table] * len(tables))
+    else:
+        expected_table = in_memory_pa_table
+        for _ in range(1, len(tables)):
+            for name, col in zip(in_memory_pa_table.column_names, in_memory_pa_table.columns):
+                expected_table = expected_table.append_column(name, col)
+
     with assert_arrow_memory_doesnt_increase():
-        table = ConcatenationTable.from_tables([in_memory_pa_table, in_memory_table, concatenation_table])
-        assert table.table == pa.concat_tables([in_memory_pa_table] * 3)
-        assert isinstance(table, ConcatenationTable)
-        assert len(table.blocks) == 3
-        assert all(len(tables) == 1 for tables in table.blocks)
-        assert all(isinstance(tables[0], InMemoryTable) for tables in table.blocks)
-        assert all(tables[0].table == in_memory_pa_table for tables in table.blocks)
+        table = ConcatenationTable.from_tables(tables, axis=axis)
+    assert isinstance(table, ConcatenationTable)
+    assert table.table == expected_table
+    # because of consolidation, we end up with 1 InMemoryTable and 1 MemoryMappedTable
+    assert len(table.blocks) == 1 if axis == 1 else 2
+    assert len(table.blocks[0]) == 1 if axis == 0 else 2
+    assert axis == 1 or len(table.blocks[1]) == 1
+    assert isinstance(table.blocks[0][0], InMemoryTable)
+    assert isinstance(table.blocks[1][0] if axis == 0 else table.blocks[0][1], MemoryMappedTable)
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
@@ -731,11 +749,72 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     t1 = InMemoryTable(t0)
     t2 = MemoryMappedTable.from_file(arrow_file)
     t3 = ConcatenationTable.from_blocks(t1)
-    concatenated_table = concat_tables([t0, t1, t2, t3])
+    tables = [t0, t1, t2, t3]
+    concatenated_table = concat_tables(tables, axis=0)
     assert concatenated_table.table == pa.concat_tables([t0] * 4)
+    assert concatenated_table.table.shape == (40, 4)
     assert isinstance(concatenated_table, ConcatenationTable)
-    assert len(concatenated_table.blocks) == 4
+    assert len(concatenated_table.blocks) == 3  # t0 and t1 are consolidated as a single InMemoryTable
     assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
-    assert isinstance(concatenated_table.blocks[1][0], InMemoryTable)
-    assert isinstance(concatenated_table.blocks[2][0], MemoryMappedTable)
-    assert isinstance(concatenated_table.blocks[3][0], InMemoryTable)
+    assert isinstance(concatenated_table.blocks[1][0], MemoryMappedTable)
+    assert isinstance(concatenated_table.blocks[2][0], InMemoryTable)
+    concatenated_table = concat_tables(tables, axis=1)
+    assert concatenated_table.table.shape == (10, 16)
+    assert len(concatenated_table.blocks[0]) == 3  # t0 and t1 are consolidated as a single InMemoryTable
+    assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
+    assert isinstance(concatenated_table.blocks[0][1], MemoryMappedTable)
+    assert isinstance(concatenated_table.blocks[0][2], InMemoryTable)
+
+
+def _interpolation_search_ground_truth(arr: List[int], x: int) -> Union[int, IndexError]:
+    for i in range(len(arr) - 1):
+        if arr[i] <= x < arr[i + 1]:
+            return i
+    return IndexError
+
+
+class _ListWithGetitemCounter(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.unique_getitem_calls = set()
+
+    def __getitem__(self, i):
+        out = super().__getitem__(i)
+        self.unique_getitem_calls.add(i)
+        return out
+
+    @property
+    def getitem_unique_count(self):
+        return len(self.unique_getitem_calls)
+
+
+@pytest.mark.parametrize(
+    "arr, x",
+    [(np.arange(0, 14, 3), x) for x in range(-1, 22)]
+    + [(list(np.arange(-5, 5)), x) for x in range(-6, 6)]
+    + [([0, 1_000, 1_001, 1_003], x) for x in [-1, 0, 2, 100, 999, 1_000, 1_001, 1_002, 1_003, 1_004]]
+    + [(list(range(1_000)), x) for x in [-1, 0, 1, 10, 666, 999, 1_000, 1_0001]],
+)
+def test_interpolation_search(arr, x):
+    ground_truth = _interpolation_search_ground_truth(arr, x)
+    if isinstance(ground_truth, int):
+        arr = _ListWithGetitemCounter(arr)
+        output = _interpolation_search(arr, x)
+        assert ground_truth == output
+        # 4 maximum unique getitem calls is expected for the cases of this test
+        # but it can be bigger for large and messy arrays.
+        assert arr.getitem_unique_count <= 4
+    else:
+        with pytest.raises(ground_truth):
+            _interpolation_search(arr, x)
+
+
+def test_indexed_table_mixin():
+    n_rows_per_chunk = 10
+    n_chunks = 4
+    pa_table = pa.Table.from_pydict({"col": [0] * n_rows_per_chunk})
+    pa_table = pa.concat_tables([pa_table] * n_chunks)
+    table = Table(pa_table)
+    assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
+    assert table.fast_slice(5) == pa_table.slice(5)
+    assert table.fast_slice(2, 13) == pa_table.slice(2, 13)

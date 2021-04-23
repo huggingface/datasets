@@ -14,7 +14,6 @@
 # limitations under the License.
 """ASLG-PC12: Synthetic English-ASL Gloss Parallel Corpus 2012"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 

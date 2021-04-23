@@ -15,7 +15,6 @@
 # Lint as: python3
 """TTC4900: A Benchmark Data for Turkish Text Categorization"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

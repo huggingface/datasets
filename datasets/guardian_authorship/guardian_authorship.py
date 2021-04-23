@@ -14,7 +14,6 @@
 # limitations under the License.
 """This is an authorship attribution dataset based on the work of Stamatatos 2013. """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

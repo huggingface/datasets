@@ -14,7 +14,6 @@
 # limitations under the License.
 """IWSLT 2017 dataset """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

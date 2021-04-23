@@ -14,7 +14,6 @@
 # limitations under the License.
 """Hong Kong Cantonese Corpus (HKCanCor)."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import xml.etree.ElementTree as ET

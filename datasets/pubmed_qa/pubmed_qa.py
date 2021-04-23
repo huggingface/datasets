@@ -14,7 +14,6 @@
 # limitations under the License.
 """PubMedQA: A Dataset for Biomedical Research Question Answering"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

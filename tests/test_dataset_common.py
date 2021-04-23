@@ -38,6 +38,7 @@ from datasets import (
     load_dataset,
     prepare_module,
 )
+from datasets.features import ClassLabel
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
@@ -91,7 +92,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
     }
 
 
-class DatasetTester(object):
+class DatasetTester:
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
 
@@ -222,14 +223,14 @@ class LocalDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertTrue(isinstance(builder, DatasetBuilder))
+            self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
 
     @slow
     def test_load_dataset_all_configs(self, dataset_name):
@@ -291,14 +292,14 @@ class PackagedDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertTrue(isinstance(builder, DatasetBuilder))
+            self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
 
 
 def distributed_load_dataset(args):
@@ -353,14 +354,14 @@ class RemoteDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertTrue(isinstance(builder, DatasetBuilder))
+            self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
 
     def test_load_dataset(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
@@ -407,21 +408,39 @@ class TextTest(TestCase):
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
                 "\n".join("foo" for _ in range(n_samples))
             )
-            ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            data_file = ds.cache_files[0]
+            ds = load_dataset(
+                "text",
+                data_files=os.path.join(tmp_dir, "text.txt"),
+                cache_dir=tmp_dir,
+                split="train",
+                keep_in_memory=False,
+            )
+            data_file = ds.cache_files[0]["filename"]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_samples)
             del ds
-            ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            self.assertEqual(ds.cache_files[0], data_file)
+            ds = load_dataset(
+                "text",
+                data_files=os.path.join(tmp_dir, "text.txt"),
+                cache_dir=tmp_dir,
+                split="train",
+                keep_in_memory=False,
+            )
+            self.assertEqual(ds.cache_files[0]["filename"], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
 
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
                 "\n".join("bar" for _ in range(n_samples))
             )
-            ds = load_dataset("text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train")
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            ds = load_dataset(
+                "text",
+                data_files=os.path.join(tmp_dir, "text.txt"),
+                cache_dir=tmp_dir,
+                split="train",
+                keep_in_memory=False,
+            )
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_samples)
             del ds
@@ -439,13 +458,25 @@ class CsvTest(TestCase):
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
-            ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            data_file = ds.cache_files[0]
+            ds = load_dataset(
+                "csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                keep_in_memory=False,
+            )
+            data_file = ds.cache_files[0]["filename"]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
-            ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            self.assertEqual(ds.cache_files[0], data_file)
+            ds = load_dataset(
+                "csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                keep_in_memory=False,
+            )
+            self.assertEqual(ds.cache_files[0]["filename"], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
             ds = load_dataset(
@@ -454,16 +485,23 @@ class CsvTest(TestCase):
                 cache_dir=tmp_dir,
                 split="train",
                 features=features,
+                keep_in_memory=False,
             )
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             del ds
 
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
             )
-            ds = load_dataset("csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train")
-            self.assertNotEqual(ds.cache_files[0], data_file)
+            ds = load_dataset(
+                "csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                keep_in_memory=False,
+            )
+            self.assertNotEqual(ds.cache_files[0]["filename"], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
             del ds
@@ -515,13 +553,13 @@ class CsvTest(TestCase):
         n_cols = 3
 
         def get_features(type):
-            return Features({str(i): Value(type) for i in range(n_cols)})
+            return Features({str(i): type for i in range(n_cols)})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
             )
-            for type in ["float64", "int8"]:
+            for type in [Value("float64"), Value("int8"), ClassLabel(num_classes=n_cols)]:
                 features = get_features(type)
                 ds = load_dataset(
                     "csv",

@@ -20,15 +20,11 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
-   First pin the SCRIPTS_VERSION to VERSION in __init__.py (but don't commit this change)
-
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
    For the sources, run: "python setup.py sdist"
    You should now have a /dist directory with both .whl and .tar.gz source versions.
-
-   Then change the SCRIPTS_VERSION back to to "master" in __init__.py (but don't commit this change)
 
 5. Check that everything looks correct by uploading the package to the pypi test server:
 
@@ -43,12 +39,12 @@ To create the package for pypi.
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
 
-7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
+7. Fill release notes in the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js, and set version to X.X.Xdev0 in setup.py
+   Update the version mapping in docs/source/_static/js/custom.js,
+   and set version to X.X.X.dev0 in setup.py and __init__.py
 
-9. Update README.md to redirect to correct documentation.
 """
 
 import datetime
@@ -60,6 +56,18 @@ from setuptools import find_packages, setup
 
 
 DOCLINES = __doc__.split("\n")
+
+
+# Pin some dependencies for old python versions
+_deps = {
+    "fsspec": "fsspec"
+    if sys.version_info >= (3, 7)
+    else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
+    "s3fs": "s3fs"
+    if sys.version_info >= (3, 7)
+    else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
+}
+
 
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
@@ -85,10 +93,12 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
-    # for saving datsets to local
-    "fsspec",
+    # to save datasets locally or on any filesystem
+    _deps["fsspec"],
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
+    # Utilities from PyPA to e.g., compare versions
+    "packaging",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -106,12 +116,14 @@ TESTS_REQUIRE = [
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch",
+    "aiobotocore==1.2.2",
     "boto3==1.16.43",
-    "botocore==1.19.43",
+    "botocore==1.19.52",
     "faiss-cpu",
     "fsspec[s3]",
-    "moto[s3]==1.3.16",
+    "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
+    _deps["s3fs"],
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -134,12 +146,12 @@ TESTS_REQUIRE = [
     "seqeval",
     "sklearn",
     "jiwer",
+    "sentencepiece",  # for bleurt
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
-    "s3fs>=0.4.2",
     "Werkzeug>=1.0.1",
     # metadata validation
     "langcodes[data]>=3.1.0",
@@ -171,27 +183,31 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
     "s3": [
-        "fsspec[s3]",
+        _deps["fsspec"],
         "boto3==1.16.43",
-        "botocore==1.19.43",
+        "botocore==1.19.52",
+        _deps["s3fs"],
     ],
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
+        "docutils==0.16.0",
         "recommonmark",
         "sphinx==3.1.2",
         "sphinx-markdown-tables",
         "sphinx-rtd-theme==0.4.3",
+        "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        "fsspec[s3]",
+        _deps["fsspec"],
+        _deps["s3fs"],
     ],
 }
 
 setup(
     name="datasets",
-    version="1.5.0dev0",
+    version="1.6.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",

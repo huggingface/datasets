@@ -14,7 +14,6 @@
 # limitations under the License.
 """An Urdu text corpus for machine learning, natural language processing and linguistic analysis."""
 
-from __future__ import absolute_import, division, print_function
 
 import re
 import xml.etree.ElementTree as ET

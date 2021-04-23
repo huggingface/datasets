@@ -30,9 +30,17 @@ _VERSION_RESOLVED_REG = re.compile(_VERSION_TMPL.format(v=r"\d+"))
 @dataclass
 class Version:
     """Dataset version MAJOR.MINOR.PATCH.
+
     Args:
-        version_str: string. Eg: "1.2.3".
-        description: string, a description of what is new in this version.
+        version_str (:obj:`str`): Eg: "1.2.3".
+        description (:obj:`str`): A description of what is new in this version.
+
+    Attributes:
+        version_str (:obj:`str`): Eg: "1.2.3".
+        description (:obj:`str`): A description of what is new in this version.
+        major (:obj:`str`):
+        minor (:obj:`str`):
+        patch (:obj:`str`):
     """
 
     version_str: str
