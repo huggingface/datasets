@@ -34,36 +34,36 @@ in different splits due to same keys
 import hashlib
 from typing import Union
 
+def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
+    """
+    Returns the input hash_data in its bytes form
+
+    Args:
+    hash_data: the hash salt/key to be converted to bytes
+    """
+    if isinstance(hash_data, bytes):
+        #Data already in bytes, returns as it as
+        return hash_data
+    elif isinstance(hash_data, str):
+        #We keep the data as it as for it ot be later encoded to UTF-8
+        #However replace `\\` with `/` for Windows compatibility
+        hash_data = hash_data.replace('\\', '/')
+    elif isinstance(hash_data, int):
+        hash_data = str(hash_data)
+    else:
+        #If data is not of the required type, raise error
+        prefix = "Invalid key type detected: "
+        err_msg = f"Found {type(hash_data)}"
+        suffix = "\nKeys should be either str, int or bytes type"
+        raise TypeError(f'{prefix}{err_msg}{suffix}')
+
+    return hash_data.encode('utf-8')
+
 class KeyHasher(object):
     """KeyHasher class for providing hash using md5"""
 
     def __init__(self, hash_salt: str):
         self._split_md5 = hashlib.md5(_as_bytes(hash_salt))
-
-    def _as_bytes(self, hash_data: Union[str, int, bytes]) -> bytes:
-        """
-        Returns the input hash_data in its bytes form
-
-        Args:
-        hash_data: the hash salt/key to be converted to bytes
-        """
-        if instance(hash_data, bytes):
-            #Data already in bytes, returns as it as
-            return hash_data
-        elif isinstance(hash_data, str):
-            #We keep the data as it as for it ot be later encoded to UTF-8
-            #However replace `\\` with `/` for Windows compatibility
-            hash_data = hash_data.replace('\\', '/')
-        elif isinstance(hash_data, int):
-            hash_data = str(hash_data)
-        else:
-            #If data is not of the required type, raise error
-            prefix = "Invalid key type detected: "
-            err_msg = f"Found {type(hash_data)}"
-            suffix = "\nKeys should be either str, int or bytes type"
-            raise TypeError(f'{prefix}{err_msg}{suffix}')
-            
-        return hash_data.encode('utf-8')
 
     def hash(self, key: Union[str, int, bytes]) -> int:
         """ Returns 128-bits unique hash of input key
@@ -73,7 +73,7 @@ class KeyHasher(object):
 
         Returns: 128-bit int hash key"""
         md5 = self._split_md5.copy()
-        byte_key = _to_bytes(key)
+        byte_key = _as_bytes(key)
         md5.update(byte_key)
         #Convert to integer with hexadecimal conversion
         return int(md5.hexdigest(), 16)
