@@ -62,3 +62,17 @@ class KeyHasher(object):
             err_msg = f"Found {type(hash_data)}"
             suffix = "\nKeys should be either str, int or bytes type"
             raise TypeError(f'{prefix}{err_msg}{suffix}')
+        return hash_data.encode('utf-8')
+
+    def hash(self, key: Union[str, int, bytes]) -> int:
+        """ Returns 128-bits unique hash of input key
+
+        Args:
+        key: the input key to be hashed (should be str, int or bytes)
+
+        Returns: 128-bit int hash key"""
+        md5 = self._split_md5.copy()
+        byte_key = _to_bytes(key)
+        md5.update(byte_key)
+        #Convert to integer with hexadecimal conversion
+        return int(md5.hexdigest(), 16)
