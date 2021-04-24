@@ -42,7 +42,7 @@ Computes CUAD scores (F1, AUPR, Precision@80%Recall, and Precision@90%Recall).
 Args:
     predictions: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair as given in the references (see below)
-        - 'prediction_text': the text of the answer
+        - 'prediction_text': list of possible texts for the answer, as a list of strings
     references: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair (see above),
         - 'answers': a Dict in the CUAD dataset format
@@ -53,6 +53,7 @@ Args:
             Note that answer_start values are not taken into account to compute the metric.
 Returns:
     'f1': The F-score of predicted tokens versus the gold answer
+    'aupr': Area Under the Precision-Recall curve
     'prec_at_80_recall': Precision at 80% recall
     'prec_at_90_recall': Precision at 90% recall
 Examples:
