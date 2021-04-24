@@ -47,3 +47,18 @@ class KeyHasher(object):
         Args:
         hash_data: the hash salt/key to be converted to bytes
         """
+        if instance(hash_data, bytes):
+            #Data already in bytes, returns as it as
+            return hash_data
+        elif isinstance(hash_data, str):
+            #We keep the data as it as for it ot be later encoded to UTF-8
+            #However replace `\\` with `/` for Windows compatibility
+            hash_data = hash_data.replace('\\', '/')
+        elif isinstance(hash_data, int):
+            hash_data = str(hash_data)
+        else:
+            #If data is not of the required type, raise error
+            prefix = "Invalid key type detected: "
+            err_msg = f"Found {type(hash_data)}"
+            suffix = "\nKeys should be either str, int or bytes type"
+            raise TypeError(f'{prefix}{err_msg}{suffix}')
