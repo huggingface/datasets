@@ -21,7 +21,7 @@ from .evaluate import evaluate
 
 _CITATION = """\
 @article{hendrycks2021cuad,
-      title={CUAD\: An Expert-Annotated NLP Dataset for Legal Contract Review},
+      title={CUAD: An Expert-Annotated NLP Dataset for Legal Contract Review},
       author={Dan Hendrycks and Collin Burns and Anya Chen and Spencer Ball},
       journal={arXiv preprint arXiv:2103.06268},
       year={2021}
@@ -53,8 +53,8 @@ Args:
             Note that answer_start values are not taken into account to compute the metric.
 Returns:
     'f1': The F-score of predicted tokens versus the gold answer
-    'prec_at_80_recall': Precision at 80%\ recall
-    'prec_at_90_recall': Precision at 90%\ recall
+    'prec_at_80_recall': Precision at 80% recall
+    'prec_at_90_recall': Precision at 90% recall
 Examples:
 
     >>> predictions = [{'prediction_text': ['The seller:', 'The buyer/End-User: Shenzhen LOHAS Supply Chain Management Co., Ltd.'], 'id': 'LohaCompanyltd_20191209_F-1_EX-10.16_11917878_EX-10.16_Supply Agreement__Parties'}]
