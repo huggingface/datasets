@@ -48,6 +48,7 @@ from .features import (
     Value,
 )
 from .fingerprint import is_caching_enabled, set_caching_enabled
+from .keyhash import KeyHasher
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,

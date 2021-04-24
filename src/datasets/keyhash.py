@@ -62,6 +62,7 @@ class KeyHasher(object):
             err_msg = f"Found {type(hash_data)}"
             suffix = "\nKeys should be either str, int or bytes type"
             raise TypeError(f'{prefix}{err_msg}{suffix}')
+            
         return hash_data.encode('utf-8')
 
     def hash(self, key: Union[str, int, bytes]) -> int:

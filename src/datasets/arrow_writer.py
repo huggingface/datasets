@@ -25,6 +25,7 @@ from tqdm.auto import tqdm
 
 from . import config
 from .features import Features, _ArrayXDExtensionType
+from .keyhash import KeyHasher
 from .info import DatasetInfo
 from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
@@ -175,9 +176,9 @@ class ArrowWriter:
             self._schema = None
 
         if hash_salt is not None:
-            self._hash_salt = hash_salt
+            self._hasher = KeyHasher(hash_salt)
         else:
-            self._hash_salt = None
+            self._hasher = KeyHasher("")
 
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
