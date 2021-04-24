@@ -113,7 +113,7 @@ def get_prec_at_recall(precisions, recalls, recall_thresh):
 
 
 def evaluate(dataset, predictions):
-    f1 = exact_match = total = 0
+    f1 = total = 0
     precisions = []
     recalls = []
     for article in dataset:
