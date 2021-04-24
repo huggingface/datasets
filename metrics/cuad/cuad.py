@@ -63,7 +63,7 @@ Examples:
     >>> cuad_metric = datasets.load_metric("cuad")
     >>> results = cuad_metric.compute(predictions=predictions, references=references)
     >>> print(results)
-    {'f1': 100.0, 'aupr': 0.0, 'prec_at_80_recall': 100.0, 'prec_at_90_recall': 100.0}
+    {'f1': 100.0, 'aupr': 0.0, 'prec_at_80_recall': 1.0, 'prec_at_90_recall': 1.0}
 """
 
 
