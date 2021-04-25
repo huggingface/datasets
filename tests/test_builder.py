@@ -271,6 +271,15 @@ class BuilderTest(TestCase):
             self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             del dset
+            
+            dset= dummy_builder.as_dataset("all")
+            self.assertIsInstance(dset, Dataset)
+            self.assertEqual(dset.split, "train+test")
+            self.assertEqual(len(dset), 20)
+            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertListEqual(dset.column_names, ["text", "tokens"])
+            del dset
+
 
         def _post_process(self, dataset, resources_paths):
             return dataset.select([0, 1], keep_in_memory=True)

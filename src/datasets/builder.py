@@ -770,7 +770,10 @@ class DatasetBuilder:
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
-        if isinstance(split, str):
+        if not isinstance(split, ReadInstruction):
+            split = str(split)
+            if split == "all":
+                split = "+".join(self.info.splits.keys())
             split = Split(split)
 
         # Build base dataset
