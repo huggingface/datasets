@@ -48,7 +48,7 @@ _HOMEPAGE = ""
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-_URL ="https://github.com/allenai/gooaq/blob/main/data/qoogle.jsonl?raw=true"
+_URL = "https://github.com/allenai/gooaq/blob/main/data/qoogle.jsonl?raw=true"
 
 
 class GooAQ(datasets.GeneratorBasedBuilder):
@@ -63,7 +63,9 @@ class GooAQ(datasets.GeneratorBasedBuilder):
                 "question": datasets.Value("string"),
                 "short_answer": datasets.Value("string"),
                 "answer": datasets.Value("string"),
-                "answer_type": datasets.features.ClassLabel(names=["feat_snip", "collection", "knowledge", "unit_conv", "time_conv", "curr_conv"]),
+                "answer_type": datasets.features.ClassLabel(
+                    names=["feat_snip", "collection", "knowledge", "unit_conv", "time_conv", "curr_conv"]
+                ),
             }
         )
         return datasets.DatasetInfo(
