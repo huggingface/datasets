@@ -9,7 +9,7 @@ import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
 from datasets.info import DatasetInfo
-from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
+from datasets.splits import NamedSplit, NamedSplitAll, Split, SplitDict, SplitInfo
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
@@ -70,6 +70,11 @@ class BaseReaderTest(TestCase):
                 self.assertIsInstance(test_dset.split, NamedSplit)
                 self.assertEqual(str(test_dset.split), "test[:33%]")
                 del train_dset, test_dset
+
+            instructions = "all"
+            dset = Dataset(**reader.read(name, instructions, split_infos))
+            self.assertEqual(dset.num_rows, train_info.num_examples + test_info.num_examples)
+            self.assertIsInstance(dset.split, NamedSplitAll)
 
     def test_read_files(self):
         train_info = SplitInfo(name="train", num_examples=100)

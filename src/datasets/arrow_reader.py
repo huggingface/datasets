@@ -105,6 +105,8 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
     """
     name2len = {info.name: info.num_examples for info in split_infos}
     if not isinstance(instruction, ReadInstruction):
+        if str(instruction) == "all":
+            instruction = "+".join(name2len.keys())
         instruction = ReadInstruction.from_spec(instruction)
     # Create the absolute instruction (per split)
     absolute_instructions = instruction.to_absolute(name2len)
