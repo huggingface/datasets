@@ -38,7 +38,7 @@ clauses that lawyers look for when reviewing contracts in connection with corpor
 """
 
 _KWARGS_DESCRIPTION = """
-Computes CUAD scores (F1, AUPR, Precision@80%Recall, and Precision@90%Recall).
+Computes CUAD scores (EM, F1, AUPR, Precision@80%Recall, and Precision@90%Recall).
 Args:
     predictions: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair as given in the references (see below)
@@ -52,6 +52,7 @@ Args:
             }
             Note that answer_start values are not taken into account to compute the metric.
 Returns:
+    'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
     'aupr': Area Under the Precision-Recall curve
     'prec_at_80_recall': Precision at 80% recall
@@ -63,7 +64,7 @@ Examples:
     >>> cuad_metric = datasets.load_metric("cuad")
     >>> results = cuad_metric.compute(predictions=predictions, references=references)
     >>> print(results)
-    {'f1': 100.0, 'aupr': 0.0, 'prec_at_80_recall': 1.0, 'prec_at_90_recall': 1.0}
+    {'exact_match': 100.0, 'f1': 100.0, 'aupr': 0.0, 'prec_at_80_recall': 1.0, 'prec_at_90_recall': 1.0}
 """
 
 
