@@ -25,7 +25,7 @@ from tqdm.auto import tqdm
 
 from . import config
 from .features import Features, _ArrayXDExtensionType
-from .keyhash import KeyHasher
+from .keyhash import DuplicatedKeysError, KeyHasher
 from .info import DatasetInfo
 from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
@@ -176,6 +176,7 @@ class ArrowWriter:
             self._schema = None
 
         if hash_salt is not None:
+            #Create KeyHasher instance using split name as hash salt
             self._hasher = KeyHasher(hash_salt)
         else:
             self._hasher = KeyHasher("")
@@ -203,6 +204,7 @@ class ArrowWriter:
         self.current_examples: List[Dict[str, Any]] = []
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
+        self.hkey_record = []
 
     def __len__(self):
         """ Return the number of writed and staged examples """
@@ -307,11 +309,28 @@ class ArrowWriter:
             example: the Example to add.
             key: a unique identifier(str, int or bytes) associated with each example
         """
-        self.current_examples.append(example)
+        #Create unique hash from key and store as (key, example) pairs
+        hash = self._hasher.hash(key)
+        self.current_examples.append((hash, example))
+        #Maintain record of keys and their respective hashes for checking duplicates
+        self.hkey_record.append((hash, key))
+
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
+            self.check_duplicates()
             self.write_examples_on_file()
+            #Re-intializing to empty list for next batch
+            self.hkey_record = []
+
+    def check_duplicates(self):
+        """Raises error if duplicates found in a batch"""
+        tmp_record = set()
+        for hash, key in self.hkey_record:
+            if hash in tmp_record:
+                raise DuplicatedKeysError(key)
+            else:
+                tmp_record.add(hash, key)
 
     def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
         """Add a given single-row Table to the write-pool of rows which is written to file.

@@ -33,6 +33,7 @@ in different splits due to same keys
 
 import hashlib
 from typing import Union
+import sys
 
 def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
     """
@@ -52,12 +53,20 @@ def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
         hash_data = str(hash_data)
     else:
         #If data is not of the required type, raise error
-        prefix = "Invalid key type detected: "
-        err_msg = f"Found {type(hash_data)}"
+        prefix = "\nFAILURE TO GENERATE DATASET: Invalid key type detected"
+        err_msg = f"\nFound Key {hash_data} of type {type(hash_data)}"
         suffix = "\nKeys should be either str, int or bytes type"
         raise TypeError(f'{prefix}{err_msg}{suffix}')
 
     return hash_data.encode('utf-8')
+
+class DuplicatedKeysError:
+    """Raise an error when duplicate key found. """
+    def __init__(self, key):
+        prefix = "\nFAILURE TO GENERATE DATASET: Duplicate key detected"
+        err_msg = f"\nFound duplicate Key: {key}"
+        suffix = "\nKeys should be unique and deterministic in nature"
+        super().__init__(f'{prefix}{err_msg}{suffix}')
 
 class KeyHasher(object):
     """KeyHasher class for providing hash using md5"""
@@ -73,7 +82,11 @@ class KeyHasher(object):
 
         Returns: 128-bit int hash key"""
         md5 = self._split_md5.copy()
-        byte_key = _as_bytes(key)
+        try:
+            byte_key = _as_bytes(key)
+        except TypeError as err:
+            sys.exit(err)
+
         md5.update(byte_key)
         #Convert to integer with hexadecimal conversion
         return int(md5.hexdigest(), 16)
