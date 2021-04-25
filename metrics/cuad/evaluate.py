@@ -2,6 +2,8 @@
 
 import argparse
 import json
+import re
+import string
 import sys
 
 import numpy as np
@@ -25,6 +27,25 @@ def get_jaccard(prediction, ground_truth):
     union = ground_truth.union(prediction)
     jaccard = len(intersection) / len(union)
     return jaccard
+
+
+def normalize_answer(s):
+    """Lower text and remove punctuation, articles and extra whitespace."""
+
+    def remove_articles(text):
+        return re.sub(r"\b(a|an|the)\b", " ", text)
+
+    def white_space_fix(text):
+        return " ".join(text.split())
+
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return "".join(ch for ch in text if ch not in exclude)
+
+    def lower(text):
+        return text.lower()
+
+    return white_space_fix(remove_articles(remove_punc(lower(s))))
 
 
 def compute_precision_recall(predictions, ground_truths, qa_id):
@@ -112,8 +133,24 @@ def get_prec_at_recall(precisions, recalls, recall_thresh):
     return prec_at_recall
 
 
+def exact_match_score(prediction, ground_truth):
+    return normalize_answer(prediction) == normalize_answer(ground_truth)
+
+
+def metric_max_over_ground_truths(metric_fn, predictions, ground_truths):
+    score = 0
+    for pred in predictions:
+        for ground_truth in ground_truths:
+            score = metric_fn(pred, ground_truth)
+            if score == 1:  # break the loop when one prediction matches the ground truth
+                break
+        if score == 1:
+            break
+    return score
+
+
 def evaluate(dataset, predictions):
-    f1 = total = 0
+    f1 = exact_match = total = 0
     precisions = []
     recalls = []
     for article in dataset:
@@ -132,20 +169,29 @@ def evaluate(dataset, predictions):
                 recalls.append(recall)
 
                 if precision == 0 and recall == 0:
-                    f1 = 0
+                    f1 += 0
                 else:
                     f1 += 2 * (precision * recall) / (precision + recall)
+
+                exact_match += metric_max_over_ground_truths(exact_match_score, prediction, ground_truths)
 
     precisions = [x for _, x in sorted(zip(recalls, precisions))]
     recalls.sort()
 
     f1 = 100.0 * f1 / total
+    exact_match = 100.0 * exact_match / total
     aupr = get_aupr(precisions, recalls)
 
     prec_at_90_recall = get_prec_at_recall(precisions, recalls, recall_thresh=0.9)
     prec_at_80_recall = get_prec_at_recall(precisions, recalls, recall_thresh=0.8)
 
-    return {"f1": f1, "aupr": aupr, "prec_at_80_recall": prec_at_80_recall, "prec_at_90_recall": prec_at_90_recall}
+    return {
+        "exact_match": exact_match,
+        "f1": f1,
+        "aupr": aupr,
+        "prec_at_80_recall": prec_at_80_recall,
+        "prec_at_90_recall": prec_at_90_recall,
+    }
 
 
 if __name__ == "__main__":
