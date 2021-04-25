@@ -1,14 +1,4 @@
-# class_mapping = {
-#     "Dataset Description": DatasetDescription,
-# }
-
-# key_mapping = {
-#     "Dataset Desription": 'dataset_desc'
-# }
-
-import pprint
-
-# import json
+import os
 import yaml
 
 
@@ -246,3 +236,46 @@ def validate_readme(file_path):
         errors = "\n".join(list(map(lambda x: "-\t" + x, error_list)))
         error_string = "The following issues were found with the README\n" + errors
         raise ValueError(error_string)
+
+
+if __name__ == '__main__':
+    datasets = os.listdir('./datasets')
+    for dataset in sorted(datasets):
+        if not dataset.startswith('.'):
+            file_path = os.path.join("./datasets", dataset, "README.md")
+            if os.path.exists(file_path):
+                try:
+                    validate_readme(file_path)
+                except Exception as e:
+                    print("=" * 30)
+                    print(dataset)
+                    print("=" * 30)
+                    print(e)
+            else:
+                try:
+                    raise FileNotFoundError(f"No such file: {file_path}")
+                except Exception as e:
+                    print("=" * 30)
+                    print(dataset)
+                    print("=" * 30)
+                    print(e)
+    datasets = os.listdir('./datasets')
+    for dataset in sorted(datasets):
+        if not dataset.startswith('.'):
+            file_path = os.path.join("./datasets", dataset, "README.md")
+            if os.path.exists(file_path):
+                try:
+                    validate_readme(file_path)
+                except Exception as e:
+                    print("=" * 30)
+                    print(dataset)
+                    print("=" * 30)
+                    print(e)
+            else:
+                try:
+                    raise FileNotFoundError(f"No such file: {file_path}")
+                except Exception as e:
+                    print("=" * 30)
+                    print(dataset)
+                    print("=" * 30)
+                    print(e)
