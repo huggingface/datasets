@@ -13,8 +13,8 @@ Slicing API
 Slicing instructions are specified in :obj:`datasets.load_dataset` or :obj:`datasets.DatasetBuilder.as_dataset`.
 
 Instructions can be provided as either strings or :obj:`ReadInstruction`. Strings
-are more compact and readable for simple cases, while :obj:`ReadInstruction` provide
-more options and might be easier to use with variable slicing parameters.
+are more compact and readable for simple cases, while :obj:`ReadInstruction` 
+might be easier to use with variable slicing parameters.
 
 Examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,10 +35,13 @@ Examples using the string API:
     # From record 10 (included) to record 20 (excluded) of `train` split.
     train_10_20_ds = datasets.load_dataset('bookcorpus', split='train[10:20]')
 
-    # The first 10% of train split.
+    # The first 10% of `train` split.
     train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
+   
+    # The first 10% of `train` split with the `pct1_dropremainder` rounding.
+    train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%](pct1_dropremainder)')
 
-    # The first 10% of train + the last 80% of train.
+    # The first 10% of `train` + the last 80% of `train`.
     train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
 
     # 10-fold cross-validation (see also next section on rounding behavior):
@@ -77,11 +80,15 @@ Examples using the ``ReadInstruction`` API (equivalent as above):
     train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
         'train', from_=10, to=20, unit='abs'))
 
-    # The first 10% of train split.
+    # The first 10% of `train` split.
     train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
         'train', to=10, unit='%'))
+    
+    # The first 10% of `train` split with the `pct1_dropremainder` rounding.
+    train_10pct_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
+        'train', to=10, unit='%', rounding='pct1_dropremainder'))
 
-    # The first 10% of train + the last 80% of train.
+    # The first 10% of `train` + the last 80% of `train`.
     ri = (datasets.ReadInstruction('train', to=10, unit='%') +
         datasets.ReadInstruction('train', from_=-80, unit='%'))
     train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)

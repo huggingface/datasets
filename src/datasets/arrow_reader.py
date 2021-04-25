@@ -168,7 +168,7 @@ class BaseReader:
         pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
-            f.update(filename=os.path.join(self._path, f["filename"]))
+            f["filename"] = os.path.join(self._path, f["filename"])
         for f_dict in files:
             pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
             pa_tables.append(pa_table)
@@ -380,10 +380,14 @@ class _RelativeInstruction:
     def __post_init__(self):
         assert self.unit is None or self.unit in ["%", "abs"]
         assert self.rounding is None or self.rounding in ["closest", "pct1_dropremainder"]
+        if self.unit != "%" and self.rounding is not None:
+            raise AssertionError("It is forbidden to specify rounding if not using percents as the slicing unit.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
         if self.unit == "%" and self.to is not None and abs(self.to) > 100:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
+        # Update via __dict__ due to instance being "frozen"
+        self.__dict__["rounding"] = "closest" if self.rounding is None and self.unit == "%" else self.rounding
 
 
 def _str_to_read_instruction(spec):
@@ -394,7 +398,7 @@ def _str_to_read_instruction(spec):
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
-        rounding=res.group("rounding") if res.group("rounding") else "closest",
+        rounding=res.group("rounding"),
         from_=int(res.group("from")) if res.group("from") else None,
         to=int(res.group("to")) if res.group("to") else None,
         unit=unit,
@@ -455,32 +459,39 @@ class ReadInstruction:
 
     Examples of usage:
 
-    ```
-    # The following lines are equivalent:
-    ds = datasets.load_dataset('mnist', split='test[:33%]')
-    ds = datasets.load_dataset('mnist', split=ReadInstruction.from_spec('test[:33%]'))
-    ds = datasets.load_dataset('mnist', split=ReadInstruction('test', to=33, unit='%'))
-    ds = datasets.load_dataset('mnist', split=ReadInstruction(
-            'test', from_=0, to=33, unit='%'))
+    .. code:: python
 
-    # The following lines are equivalent:
-    ds = datasets.load_dataset('mnist', split='test[:33%]+train[1:-1]')
-    ds = datasets.load_dataset('mnist', split=ReadInstruction.from_spec(
-            'test[:33%]+train[1:-1]'))
-    ds = datasets.load_dataset('mnist', split=(
-            ReadInstruction('test', to=33, unit='%') +
-            ReadInstruction('train', from_=1, to=-1, unit='abs')))
+      # The following lines are equivalent:
+      ds = datasets.load_dataset('mnist', split='test[:33%]')
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec('test[:33%]'))
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction('test', to=33, unit='%'))
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction(
+          'test', from_=0, to=33, unit='%'))
 
-    # 10-fold validation:
-    tests = datasets.load_dataset(
-            'mnist',
-            [ReadInstruction('train', from_=k, to=k+10, unit='%')
-             for k in range(0, 100, 10)])
-    trains = datasets.load_dataset(
-            'mnist',
-            [ReadInstruction('train', to=k, unit='%') + ReadInstruction('train', from_=k+10, unit='%')
-             for k in range(0, 100, 10)])
-    ```
+      # The following lines are equivalent:
+      ds = datasets.load_dataset('mnist', split='test[:33%]+train[1:-1]')
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec(
+          'test[:33%]+train[1:-1]'))
+      ds = datasets.load_dataset('mnist', split=(
+          datasets.ReadInstruction('test', to=33, unit='%') +
+          datasets.ReadInstruction('train', from_=1, to=-1, unit='abs')))
+
+      # The following lines are equivalent:
+      ds = datasets.load_dataset('mnist', split='test[:33%](pct1_dropremainder)')
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec(
+          'test[:33%](pct1_dropremainder)'))
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction(
+          'test', from_=0, to=33, unit='%', rounding="pct1_dropremainder"))
+
+      # 10-fold validation:
+      tests = datasets.load_dataset(
+          'mnist',
+          [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%')
+          for k in range(0, 100, 10)])
+      trains = datasets.load_dataset(
+          'mnist',
+          [datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')
+          for k in range(0, 100, 10)])
 
     """
 
@@ -496,12 +507,12 @@ class ReadInstruction:
         result._init(relative_instructions)  # pylint: disable=protected-access
         return result
 
-    def __init__(self, split_name, rounding="closest", from_=None, to=None, unit=None):
+    def __init__(self, split_name, rounding=None, from_=None, to=None, unit=None):
         """Initialize ReadInstruction.
 
         Args:
             split_name (str): name of the split to read. Eg: 'train'.
-            rounding (str): The rounding behaviour to use when percent slicing is
+            rounding (str, optional): The rounding behaviour to use when percent slicing is
                 used. Ignored when slicing with absolute indices.
                 Possible values:
                  - 'closest' (default): The specified percentages are rounded to the
@@ -530,14 +541,17 @@ class ReadInstruction:
         """Creates a ReadInstruction instance out of a string spec.
 
         Args:
-            spec (str): split(s) + optional slice(s) to read. A slice can be
-                        specified, using absolute numbers (int) or percentages (int). E.g.
+            spec (str): split(s) + optional slice(s) to read + optional rounding
+                        if percents are used as the slicing unit. A slice can be specified,
+                        using absolute numbers (int) or percentages (int). E.g.
                             `test`: test split.
                             `test + validation`: test split + validation split.
                             `test[10:]`: test split, minus its first 10 records.
                             `test[:10%]`: first 10% records of test split.
+                            `test[:20%](pct1_dropremainder)`: first 10% records, rounded with
+                                                              the `pct1_dropremainder` rounding.
                             `test[:-5%]+train[40%:60%]`: first 95% of test + middle 20% of
-                                                                                     train.
+                                                         train.
 
         Returns:
             ReadInstruction instance.
@@ -574,10 +588,15 @@ class ReadInstruction:
         if not isinstance(other, ReadInstruction):
             msg = "ReadInstruction can only be added to another ReadInstruction obj."
             raise AssertionError(msg)
+        self_ris = self._relative_instructions
         other_ris = other._relative_instructions  # pylint: disable=protected-access
-        if self._relative_instructions[0].rounding != other_ris[0].rounding:
+        if (
+            self_ris[0].unit != "abs"
+            and other_ris[0].unit != "abs"
+            and self._relative_instructions[0].rounding != other_ris[0].rounding
+        ):
             raise AssertionError("It is forbidden to sum ReadInstruction instances with different rounding values.")
-        return self._read_instruction_from_relative_instructions(self._relative_instructions + other_ris)
+        return self._read_instruction_from_relative_instructions(self_ris + other_ris)
 
     def __str__(self):
         return self.to_spec()
