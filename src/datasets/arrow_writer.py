@@ -267,7 +267,7 @@ class ArrowWriter:
         """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
-        cols = sorted(self.current_examples[0].keys())
+        cols = sorted(self.current_examples[0][1].keys())
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
         arrays = []
@@ -276,7 +276,7 @@ class ArrowWriter:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(
-                [row[col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
+                [row[col] for key, row in self.current_examples], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
@@ -330,7 +330,7 @@ class ArrowWriter:
             if hash in tmp_record:
                 raise DuplicatedKeysError(key)
             else:
-                tmp_record.add(hash, key)
+                tmp_record.add(hash)
 
     def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
         """Add a given single-row Table to the write-pool of rows which is written to file.

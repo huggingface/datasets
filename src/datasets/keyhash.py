@@ -60,13 +60,13 @@ def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
 
     return hash_data.encode('utf-8')
 
-class DuplicatedKeysError:
+class DuplicatedKeysError(Exception):
     """Raise an error when duplicate key found. """
     def __init__(self, key):
-        prefix = "\nFAILURE TO GENERATE DATASET: Duplicate key detected"
-        err_msg = f"\nFound duplicate Key: {key}"
-        suffix = "\nKeys should be unique and deterministic in nature"
-        super().__init__(f'{prefix}{err_msg}{suffix}')
+        self.prefix = "FAILURE TO GENERATE DATASET !"
+        self.err_msg = f"\nFound duplicate Key: {key}"
+        self.suffix = "\nKeys should be unique and deterministic in nature"
+        super().__init__(f'{self.prefix}{self.err_msg}{self.suffix}')
 
 class KeyHasher(object):
     """KeyHasher class for providing hash using md5"""
