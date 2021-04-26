@@ -93,7 +93,7 @@ class LiveQA(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         data_raw = ""
         for filepath in filepaths:

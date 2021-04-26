@@ -133,7 +133,7 @@ class Poleval2019CyberBullying(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         if split == "train":
             text_path = os.path.join(filepath, "training_set_clean_only_text.txt")

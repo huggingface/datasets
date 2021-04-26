@@ -86,7 +86,7 @@ class Timeout(TimeoutError):
     """
 
     def __init__(self, lock_file):
-        """"""
+        """ """
         #: The path of the file lock.
         self.lock_file = lock_file
         return None
@@ -126,7 +126,7 @@ class BaseFileLock:
     """
 
     def __init__(self, lock_file, timeout=-1):
-        """"""
+        """ """
         # The path to the lock file.
         self._lock_file = lock_file
 
@@ -173,7 +173,7 @@ class BaseFileLock:
 
     @timeout.setter
     def timeout(self, value):
-        """"""
+        """ """
         self._timeout = float(value)
         return None
 

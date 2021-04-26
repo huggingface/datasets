@@ -77,7 +77,7 @@ _BASE_URL_RELATIONS = "https://opus.nlpl.eu/download.php?f=Europarl/v8/xml/{}-{}
 
 
 class EuroparlBilingualConfig(datasets.BuilderConfig):
-    """ Slightly custom config to require source and target languages. """
+    """Slightly custom config to require source and target languages."""
 
     def __init__(self, *args, lang1=None, lang2=None, **kwargs):
         super().__init__(
@@ -96,7 +96,7 @@ class EuroparlBilingualConfig(datasets.BuilderConfig):
 
 
 class EuroparlBilingual(datasets.GeneratorBasedBuilder):
-    """ Europarl contains aligned sentences in multiple west language pairs."""
+    """Europarl contains aligned sentences in multiple west language pairs."""
 
     VERSION = datasets.Version(_VERSION)
 
@@ -107,7 +107,7 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        """ This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset. """
+        """This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset."""
         features = datasets.Features(
             {
                 "translation": datasets.Translation(languages=(self.config.lang1, self.config.lang2)),

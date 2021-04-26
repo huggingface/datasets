@@ -256,7 +256,7 @@ class ParaPat(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         source, target = self.config.language_pair
         with open(filepath, encoding="utf-8") as f:
             if self.config.name in type1_datasets_features:

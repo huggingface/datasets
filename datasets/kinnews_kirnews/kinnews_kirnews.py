@@ -122,7 +122,7 @@ class KinnewsKirnews(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(

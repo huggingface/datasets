@@ -116,7 +116,7 @@ class Atomic(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the Atomic dataset. """
+        """Yields examples from the Atomic dataset."""
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):

@@ -922,7 +922,7 @@ class Gem(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split, filepaths=None, lang=None):
-        """ Yields examples. """
+        """Yields examples."""
         if self.config.name == "common_gen":
             if split.startswith("challenge"):
                 exples = json.load(open(filepath, encoding="utf-8"))

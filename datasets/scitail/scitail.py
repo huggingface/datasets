@@ -34,7 +34,7 @@ _URL = "http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip"
 
 class ScitailConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Xquad"""
+    """BuilderConfig for Xquad"""
 
     def __init__(self, **kwargs):
         """

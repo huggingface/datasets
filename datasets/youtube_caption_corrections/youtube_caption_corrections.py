@@ -87,7 +87,7 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths):
-        """ Yields examples. """
+        """Yields examples."""
         for fp in filepaths:
             with open(fp, "r", encoding="utf-8") as json_file:
                 json_lists = list(json_file)

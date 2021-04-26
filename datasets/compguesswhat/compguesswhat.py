@@ -6,7 +6,7 @@ import datasets
 
 
 class CompguesswhatConfig(datasets.BuilderConfig):
-    """ BuilderConfig for CompGuessWhat?!"""
+    """BuilderConfig for CompGuessWhat?!"""
 
     def __init__(self, data_url, splits, gameplay_scenario, **kwargs):
         """

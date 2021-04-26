@@ -48,7 +48,7 @@ The dataset could be used for automatic data extraction of the results of a give
 
 
 class EvidenceInferenceConfig(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """BuilderConfig for NewDataset"""
 
     def __init__(self, zip_file, **kwargs):
         """
@@ -219,7 +219,7 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, directory, items):
-        """ Yields examples. """
+        """Yields examples."""
         for id_, item in enumerate(items):
             pmcid = item["PMCID"]
             filename = os.path.join(directory, f"PMC{pmcid}.txt")

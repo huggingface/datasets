@@ -126,7 +126,7 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
             yield {"gloss": " ".join(relevant_gloss), "text": text}
 
     def _generate_examples(self, eaf_path: str, videos_path: str):
-        """ Yields examples. """
+        """Yields examples."""
 
         for i, eaf_file in enumerate(tqdm(os.listdir(eaf_path))):
             eaf_file_path = os.path.join(eaf_path, eaf_file)

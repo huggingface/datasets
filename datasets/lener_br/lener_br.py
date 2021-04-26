@@ -126,7 +126,7 @@ class LenerBr(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         logger.info("⏳ Generating examples from = %s", filepath)
 

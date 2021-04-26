@@ -129,7 +129,7 @@ class DealOrNoDialog(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split="train"):
-        """ Yields examples. """
+        """Yields examples."""
         if self.config.name == "dialogues":
             with open(filepath, encoding="utf-8") as f:
                 for idx, line in enumerate(f):

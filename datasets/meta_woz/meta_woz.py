@@ -118,7 +118,7 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
         if self.config.name == "tasks":
             filepath = os.path.join(data_dir, "tasks.txt")
             with open(filepath, encoding="utf-8") as f:

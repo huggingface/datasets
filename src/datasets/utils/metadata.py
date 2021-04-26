@@ -50,7 +50,7 @@ def yaml_block_from_readme(path: Path) -> Optional[str]:
 
 
 def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
-    """"Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+    """ "Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
     yaml_block = yaml_block_from_readme(path=path)
     if yaml_block is None:
         return None

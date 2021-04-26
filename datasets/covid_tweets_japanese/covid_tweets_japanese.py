@@ -79,7 +79,7 @@ class CovidTweetsJapanese(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with bz2.open(filepath, "rt") as f:
             data = csv.reader(f)

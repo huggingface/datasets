@@ -131,7 +131,7 @@ class EhealthKD(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, txt_path, ann_path):
-        """ Yields examples. """
+        """Yields examples."""
         with open(txt_path, encoding="utf-8") as txt_file, open(ann_path, encoding="utf-8") as ann_file:
             _id = 0
             entities = []

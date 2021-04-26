@@ -79,7 +79,7 @@ class OpusRFTranslationsConfig(datasets.BuilderConfig):
 
 
 class OpusRF(datasets.GeneratorBasedBuilder):
-    """RF is a tiny parallel corpus of the Declarations of the Swedish Government and its translations. """
+    """RF is a tiny parallel corpus of the Declarations of the Swedish Government and its translations."""
 
     BUILDER_CONFIGS = [
         OpusRFTranslationsConfig(
@@ -118,7 +118,7 @@ class OpusRF(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath):
-        """ Yields examples. """
+        """Yields examples."""
         l1, l2 = self.config.lang1, self.config.lang2
         folder = l1 + "-" + l2
         l1_file = _BASE_NAME.format(folder, l1)

@@ -126,7 +126,7 @@ class Counter(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
 
         def parse_file(file):
             tree = ET.parse(file)

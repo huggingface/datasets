@@ -152,7 +152,7 @@ class Nell(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the NELL belief knowledge base and candidate bleifs knowledge base if the config is 'nell_belief' and 'nell_candidate', respectively, otherwise yields the sentences for two dataset if the config is 'nell_belief_sentences' and 'nell_candidate_sentences' respectively. """
+        """Yields examples from the NELL belief knowledge base and candidate bleifs knowledge base if the config is 'nell_belief' and 'nell_candidate', respectively, otherwise yields the sentences for two dataset if the config is 'nell_belief_sentences' and 'nell_candidate_sentences' respectively."""
 
         with open(filepath, encoding="utf-8") as f:
             id_ = -1
