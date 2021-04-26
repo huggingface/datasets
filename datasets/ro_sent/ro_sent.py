@@ -109,7 +109,7 @@ class RoSent(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter=",", quotechar='"')

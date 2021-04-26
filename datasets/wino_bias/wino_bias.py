@@ -254,7 +254,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             id_ = 0
             document_id = None

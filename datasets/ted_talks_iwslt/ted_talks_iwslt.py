@@ -193,7 +193,7 @@ _YEAR_FOLDER = {"2014": "XML_releases/xml-20140120", "2015": "XML_releases/xml-2
 
 
 class TedTalksIWSLTConfig(datasets.BuilderConfig):
-    """"Builder Config for the TedTalks IWSLT dataset"""
+    """ "Builder Config for the TedTalks IWSLT dataset"""
 
     def __init__(self, language_pair=(None, None), year=None, **kwargs):
         """BuilderConfig for TedTalks IWSLT dataset.
@@ -290,7 +290,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)

@@ -140,7 +140,7 @@ class Asset(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepaths, split):
-        """ Yields examples. """
+        """Yields examples."""
         if self.config.name == "simplification":
             files = [open(filepaths[f"asset.{split}.orig"], encoding="utf-8")] + [
                 open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8") for i in range(10)

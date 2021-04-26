@@ -135,7 +135,7 @@ class Humicroedit(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         label_names = ["equal", "sentence1", "sentence2"]
 
         with open(filepath, encoding="utf-8") as csv_file:

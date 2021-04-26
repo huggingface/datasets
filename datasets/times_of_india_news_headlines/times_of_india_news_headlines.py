@@ -81,7 +81,7 @@ class TimesOfIndiaNewsHeadlines(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
 
     def _generate_examples(self, path=None):
-        """ Yields examples. """
+        """Yields examples."""
         with open(path, encoding="utf8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", skipinitialspace=True, quoting=csv.QUOTE_ALL

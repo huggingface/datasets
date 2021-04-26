@@ -133,7 +133,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         # Set default values for items when the information is missing
         # `items` is the description of the item advertised on craigslist

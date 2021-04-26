@@ -78,7 +78,7 @@ class HindiDiscourse(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             hindiDiscourse = json.load(f)
 

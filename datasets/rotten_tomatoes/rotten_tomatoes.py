@@ -65,7 +65,7 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
             yield ex["text"]
 
     def _split_generators(self, dl_manager):
-        """ Downloads Rotten Tomatoes sentences. """
+        """Downloads Rotten Tomatoes sentences."""
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(

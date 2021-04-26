@@ -120,7 +120,7 @@ class Jfleg(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         source_file = filepath["src"]
         with open(source_file, encoding="utf-8") as f:

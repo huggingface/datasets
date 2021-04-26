@@ -107,7 +107,7 @@ class Turk(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, split):
-        """ Yields examples. """
+        """Yields examples."""
         if split == "valid":
             split = "tune"
         files = [open(filepaths[f"{split}.8turkers.tok.norm"], encoding="utf-8")] + [

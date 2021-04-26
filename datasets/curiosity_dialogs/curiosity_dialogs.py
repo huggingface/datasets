@@ -156,7 +156,7 @@ class CuriosityDialogs(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         # Bool entries are converted to string entries because of PyArrow error
         with open(filepath, encoding="utf-8") as f:

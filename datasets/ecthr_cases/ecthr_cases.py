@@ -179,7 +179,7 @@ class EcthrCases(datasets.GeneratorBasedBuilder):
     def _generate_examples(
         self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):

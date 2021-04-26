@@ -94,7 +94,7 @@ def _get_choices_and_answer(cqa):
 
 class CosEConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for CosE"""
+    """BuilderConfig for CosE"""
 
     def __init__(self, **kwargs):
         """

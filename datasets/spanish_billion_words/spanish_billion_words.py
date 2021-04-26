@@ -81,7 +81,7 @@ class SpanishBillionWords(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, directory):
-        """ Yields examples. """
+        """Yields examples."""
         files = os.listdir(directory)
         files = sorted(files)
         _id = 0
