@@ -33,7 +33,6 @@ from datasets import (
     MockDownloadManager,
     Value,
     cached_path,
-    hf_api,
     import_main_class,
     load_dataset,
     prepare_module,
@@ -44,7 +43,7 @@ from datasets.search import _has_faiss
 from datasets.utils.file_utils import is_remote_url
 from datasets.utils.logging import get_logger
 
-from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, remote, slow
+from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, slow
 
 
 logger = get_logger(__name__)
@@ -331,72 +330,6 @@ class DistributedDatasetTest(TestCase):
                 for _ in range(len(datasets)):
                     dataset = datasets.pop()
                     del dataset
-
-
-def get_remote_dataset_names():
-    api = hf_api.HfApi()
-    # fetch all dataset names
-    datasets = api.dataset_list(with_community_datasets=False, id_only=True)
-    return [{"testcase_name": x, "dataset_name": x} for x in datasets]
-
-
-@parameterized.named_parameters(get_remote_dataset_names())
-@for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
-@remote
-class RemoteDatasetTest(parameterized.TestCase):
-    dataset_name = None
-
-    def setUp(self):
-        self.dataset_tester = DatasetTester(self)
-
-    def test_builder_class(self, dataset_name):
-        builder_cls = self.dataset_tester.load_builder_class(dataset_name)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
-        with tempfile.TemporaryDirectory() as tmp_cache_dir:
-            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
-            self.assertIsInstance(builder, DatasetBuilder)
-
-    def test_builder_configs(self, dataset_name):
-        builder_configs = self.dataset_tester.load_all_configs(dataset_name)
-        self.assertTrue(len(builder_configs) > 0)
-
-        if builder_configs[0] is not None:
-            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
-
-    def test_load_dataset(self, dataset_name):
-        configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
-        self.dataset_tester.check_load_dataset(dataset_name, configs)
-
-    @slow
-    def test_load_real_dataset(self, dataset_name):
-        path = dataset_name
-        module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
-        builder_cls = import_main_class(module_path, dataset=True)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
-        with tempfile.TemporaryDirectory() as temp_cache_dir:
-            dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
-            )
-            for split in dataset.keys():
-                self.assertTrue(len(dataset[split]) > 0)
-            del dataset
-
-    @slow
-    def test_load_real_dataset_all_configs(self, dataset_name):
-        path = dataset_name
-        module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
-        builder_cls = import_main_class(module_path, dataset=True)
-        config_names = (
-            [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
-        )
-        for name in config_names:
-            with tempfile.TemporaryDirectory() as temp_cache_dir:
-                dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
-                )
-                for split in dataset.keys():
-                    self.assertTrue(len(dataset[split]) > 0)
-                del dataset
 
 
 class TextTest(TestCase):
