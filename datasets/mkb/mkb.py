@@ -136,7 +136,7 @@ class Mkb(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, labelpath):
-        """ Yields examples. """
+        """Yields examples."""
         src_tag, tgt_tag = self.config.language_pair.split("-")
         with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
             src = f1.read().split("\n")[:-1]

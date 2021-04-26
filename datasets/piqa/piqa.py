@@ -116,7 +116,7 @@ class Piqa(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, input_filepath, label_filepath=None):
-        """ Yields examples. """
+        """Yields examples."""
         with open(input_filepath, encoding="utf-8") as input_file:
             inputs = input_file.read().splitlines()
 

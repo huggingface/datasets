@@ -490,7 +490,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, path_to_indexs, path_to_datas):
-        """ Yields examples. """
+        """Yields examples."""
 
         counter = -1
         if self.config.name in ["SLR35", "SLR36"]:

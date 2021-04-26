@@ -91,7 +91,7 @@ class HateSpeechPl(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths):
-        """ Yields examples. """
+        """Yields examples."""
         for file_id_, filepath in enumerate(filepaths):
             with open(filepath, encoding="utf-8") as f:
                 csv_reader = csv.DictReader(f, delimiter=",", escapechar="\\")

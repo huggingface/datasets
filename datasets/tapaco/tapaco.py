@@ -199,7 +199,7 @@ class Tapaco(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
         base_path = os.path.join(data_dir, "tapaco_v1.0")
         file_dict = {lang: os.path.join(base_path, lang + ".txt") for lang in self.config.languages}
         id_ = -1

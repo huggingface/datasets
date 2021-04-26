@@ -55,7 +55,7 @@ METADATA_PATTERN = re.compile(r'.+id="(?P<id>[^"]+)".+title="(?P<title>[^"]+)".+
 
 
 class WikicorpusConfig(datasets.BuilderConfig):
-    """ BuilderConfig for Wikicorpus."""
+    """BuilderConfig for Wikicorpus."""
 
     def __init__(self, form=None, language=None, **kwargs):
         """

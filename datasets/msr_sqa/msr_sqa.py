@@ -152,7 +152,7 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t")

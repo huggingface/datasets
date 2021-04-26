@@ -79,7 +79,7 @@ class FakeNewsEnglish(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "rb") as f:
             f = pd.read_excel(f, engine="openpyxl")
             for id_, row in f.iterrows():

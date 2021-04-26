@@ -87,12 +87,12 @@ class DatasetInfoMixin:
 
     @property
     def info(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """:class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
-        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
+        """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -711,7 +711,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @property
     def column_names(self) -> List[str]:
-        """Names of the columns in the dataset. """
+        """Names of the columns in the dataset."""
         return self._data.column_names
 
     @property
@@ -1114,7 +1114,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def __len__(self):
-        """ Number of rows in the dataset."""
+        """Number of rows in the dataset."""
         return self.num_rows
 
     def __iter__(self):
@@ -1675,7 +1675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             pass
 
         def validate_function_output(processed_inputs, indices):
-            """ Validate output of the map function. """
+            """Validate output of the map function."""
             if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
                 raise TypeError(
                     "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
@@ -1695,7 +1695,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
-            """ Utility to apply the function on a selection of columns. """
+            """Utility to apply the function on a selection of columns."""
             nonlocal update_data
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:

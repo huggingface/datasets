@@ -158,7 +158,7 @@ class NarrativeqaManual(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir, manual_dir, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         documents = {}
         with open(data_dir["documents"], encoding="utf-8") as f:

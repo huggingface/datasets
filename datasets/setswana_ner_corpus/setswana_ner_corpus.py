@@ -56,7 +56,7 @@ class SetswanaNerCorpusConfig(datasets.BuilderConfig):
 
 
 class SetswanaNerCorpus(datasets.GeneratorBasedBuilder):
-    """ Setswana Ner dataset"""
+    """Setswana Ner dataset"""
 
     BUILDER_CONFIGS = [
         SetswanaNerCorpusConfig(

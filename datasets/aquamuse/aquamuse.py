@@ -140,7 +140,7 @@ class Aquamuse(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         filepath = [join(filepath, f) for f in listdir(filepath) if isfile(join(filepath, f))]
         filepath = sorted(filepath)
         raw_dataset = tf.data.TFRecordDataset(filepath)

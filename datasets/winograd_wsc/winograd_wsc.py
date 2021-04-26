@@ -45,19 +45,19 @@ _DOWNLOAD_URL = "https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WSColl
 
 
 class WinogradWSCConfig(datasets.BuilderConfig):
-    """ BuilderConfig for WinogradWSC. """
+    """BuilderConfig for WinogradWSC."""
 
     def __init__(self, *args, language=None, inds=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.inds = set(inds) if inds is not None else None
 
     def is_in_range(self, id):
-        """ Takes an index and tells you if it belongs to the configuration's subset """
+        """Takes an index and tells you if it belongs to the configuration's subset"""
         return id in self.inds if self.inds is not None else True
 
 
 class WinogradWSC(datasets.GeneratorBasedBuilder):
-    """ The Winograd Schema Challenge Dataset """
+    """The Winograd Schema Challenge Dataset"""
 
     BUILDER_CONFIG_CLASS = WinogradWSCConfig
     BUILDER_CONFIGS = [

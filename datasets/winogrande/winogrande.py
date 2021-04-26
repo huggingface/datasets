@@ -31,7 +31,7 @@ _FORMATS = ["xs", "s", "m", "l", "xl", "debiased"]
 
 class WinograndeConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Discofuse"""
+    """BuilderConfig for Discofuse"""
 
     def __init__(self, data_size, **kwargs):
         """

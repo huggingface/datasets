@@ -156,7 +156,7 @@ class KdConv(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, data_dir, split):
-        """ Yields examples. """
+        """Yields examples."""
         if "dialogues" in self.config.name:
             if "all" in self.config.name:
                 file_dict = {
