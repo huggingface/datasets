@@ -36,7 +36,7 @@ _CITATION = """\
 _HOMEPAGE = "https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks"
 
 # TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Filipino-Text-Benchmarks is licensed under the GNU General Public License v3.0"
 
 _URL = "https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/newsph/newsph-nli.zip"
 
@@ -68,7 +68,7 @@ class NewsphNli(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         download_path = os.path.join(data_dir, "newsph-nli")
         train_path = os.path.join(download_path, "train.csv")
-        test_path = os.path.join(download_path, "train.csv")
+        test_path = os.path.join(download_path, "test.csv")
         validation_path = os.path.join(download_path, "valid.csv")
 
         return [
