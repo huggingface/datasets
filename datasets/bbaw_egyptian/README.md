@@ -1,11 +1,10 @@
 ---
 annotations_creators:
-- crowdsourced
+- specialized egyptologists
 language_creators:
-- crowdsourced
 - found
 languages:
-- de, en
+- de, en, eg
 licenses:
 - cc-by-4.0
 multilinguality:
@@ -15,9 +14,7 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 task_categories:
-- question-answering
-task_ids:
-- extractive-qadownloads/2019-10-23_Programm_IWSLT_2019_002.pdf
+- translation
 ---
 
 # Dataset Card for "bbaw_egyptian"
@@ -49,7 +46,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** [https://edoc.bbaw.de/frontdoor/index/index/docId/2919](https://edoc.bbaw.de/frontdoor/index/index/docId/2919)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [Github](https://phiwi.github.io/all.json)
 - **Paper:** [Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian Hieroglyph](https://zenodo.org/record/3524924)
 - **Point of Contact:** [Philipp Wiesenbach](https://www.cl.uni-heidelberg.de/~wiesenbach/index.html)
 - **Size of downloaded dataset files:** 34 MB
@@ -61,12 +58,15 @@ This dataset comprises parallel sentences of hieroglyphic encodings, transcripti
 
 ### Supported Tasks
 
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+The dataset consists of parallel tripls of 
+- "hieroglyphs": [hieroglyph encoding of the hieroglyphs with the [Gardiner's sign list](https://en.wikipedia.org/wiki/Gardiner%27s_sign_list)
+- "transscription": Transliteration of the above mentioned hieroglyphs with a [transliteration scheme](https://en.wikipedia.org/wiki/Transliteration_of_Ancient_Egyptian)
+- translation: translation in mostly German language (with some English mixed in)
 ## Dataset Structure
 
 The dataset is not divided into 'train', 'dev' and 'test' split as it is not built for competitive purposes and we ask all scientists to build use partitioning for their needs. Due to the low resource setting it will probably advisable to use cross validation. The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
@@ -86,13 +86,10 @@ An example of 'all' looks as follows.
 ### Data Fields
 
 #### plain_text
-- `id`: a `string` feature.
-- `title`: a `string` feature.
-- `context`: a `string` feature.
-- `question`: a `string` feature.
-- `answers`: a dictionary feature containing:
-  - `text`: a `string` feature.
-  - `answer_start`: a `int32` feature.
+- `transcription`: a `string` feature.
+- `translation`: a `string` feature.
+- `hieroglyphs`: a `string` feature.
+
 
 ### Data Splits Sample Size
 
@@ -108,7 +105,7 @@ An example of 'all' looks as follows.
 
 ### Source Data
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data source comes from the project "Strukturen und Transformationen des Wortschatzes der ägyptischen Sprache" which is compiling an extensively annotated digital corpus of Egyptian texts. Their [publication](https://edoc.bbaw.de/frontdoor/index/index/docId/2919) comprises an excerpt of the internal database's contents.
 
 ### Annotations
 
@@ -143,23 +140,27 @@ An example of 'all' looks as follows.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Citation Information
-
+Source corpus:
 ```
-@article{2016arXiv160605250R,
-       author = {{Rajpurkar}, Pranav and {Zhang}, Jian and {Lopyrev},
-                 Konstantin and {Liang}, Percy},
-        title = "{SQuAD: 100,000+ Questions for Machine Comprehension of Text}",
-      journal = {arXiv e-prints},
-         year = 2016,
-          eid = {arXiv:1606.05250},
-        pages = {arXiv:1606.05250},
-archivePrefix = {arXiv},
-       eprint = {1606.05250},
+@misc{OPUS4-2919,
+  title     = {Teilauszug der Datenbank des Vorhabens "Strukturen und Transformationen des Wortschatzes der {\"a}gyptischen Sprache" vom Januar 2018},
+  institution = {Akademienvorhaben Strukturen und Transformationen des Wortschatzes der {\"a}gyptischen Sprache. Text- und Wissenskultur im alten {\"A}gypten},
+  type      = {other},
+  year        = {2018},
 }
 
 ```
 
+Translation paper:
+```
+@article{wiesenbach19,
+  title = {Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian Hieroglyphs},
+  author = {Wiesenbach, Philipp and Riezler, Stefan},
+  journal = {Proceedings of the International Workshop on Spoken Language Translation},
+  journal-abbrev = {IWSLT},
+  year = {2019},
+  url = {https://www.cl.uni-heidelberg.de/statnlpgroup/publications/IWSLT2019_v2.pdf}
+}
+```
 
 ### Contributions
-
-Thanks to [@lewtun](https://github.com/lewtun), [@albertvillanova](https://github.com/albertvillanova), [@patrickvonplaten](https://github.com/patrickvonplaten), [@thomwolf](https://github.com/thomwolf) for adding this dataset.
