@@ -1948,10 +1948,13 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+@pytest.mark.parametrize(
+    "column, expected_dtype",
+    [(["a", "b", "c", "d"], "string"), ([1, 2, 3, 4], "int64"), ([1.0, 2.0, 3.0, 4.0], "float64")],
+)
 @pytest.mark.parametrize("in_memory", [False, True])
-def test_dataset_add_column(in_memory, dataset_dict, arrow_path):
+def test_dataset_add_column(column, expected_dtype, in_memory, dataset_dict, arrow_path):
     column_name = "col_4"
-    column = ["a", "b", "c", "d"]
     dataset = (
         Dataset(InMemoryTable.from_pydict(dataset_dict))
         if in_memory
@@ -1959,7 +1962,7 @@ def test_dataset_add_column(in_memory, dataset_dict, arrow_path):
     )
     dataset = dataset.add_column(column_name, column)
     assert dataset.data.shape == (4, 4)
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64", "col_4": "string"}
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64", "col_4": expected_dtype}
     assert dataset.data.column_names == list(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
