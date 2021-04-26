@@ -52,16 +52,20 @@ import itertools
 import os
 import sys
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
+
 
 DOCLINES = __doc__.split("\n")
 
 
 # Pin some dependencies for old python versions
 _deps = {
-    "fsspec": "fsspec" if sys.version_info >= (3, 7) else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
-    "s3fs": "s3fs" if sys.version_info >= (3, 7) else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
+    "fsspec": "fsspec"
+    if sys.version_info >= (3, 7)
+    else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
+    "s3fs": "s3fs"
+    if sys.version_info >= (3, 7)
+    else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
 }
 
 
@@ -149,6 +153,8 @@ TESTS_REQUIRE = [
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
+    # metadata validation
+    "importlib_resources;python_version<'3.7'",
 ]
 
 if os.name == "nt":  # windows
@@ -167,11 +173,7 @@ else:
     )
 
 
-QUALITY_REQUIRE = [
-    "black",
-    "isort",
-    "flake8==3.7.9",
-]
+QUALITY_REQUIRE = ["black", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
@@ -214,11 +216,7 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={
-        "datasets": [
-            "scripts/templates/*",
-        ],
-    },
+    package_data={"datasets": ["scripts/templates/*"], "datasets.utils.resources": ["*.json"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
