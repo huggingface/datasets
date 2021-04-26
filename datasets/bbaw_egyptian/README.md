@@ -64,16 +64,17 @@ This dataset comprises parallel sentences of hieroglyphic encodings, transcripti
 ### Languages
 
 The dataset consists of parallel tripls of
-- "hieroglyphs": [hieroglyph encoding of the hieroglyphs with the [Gardiner's sign list](https://en.wikipedia.org/wiki/Gardiner%27s_sign_list)
-- "transscription": Transliteration of the above mentioned hieroglyphs with a [transliteration scheme](https://en.wikipedia.org/wiki/Transliteration_of_Ancient_Egyptian)
-- "translation": translation in mostly German language (with some English mixed in)
+- `hieroglyphs`: [Encoding of the hieroglyphs with the [Gardiner's sign list](https://en.wikipedia.org/wiki/Gardiner%27s_sign_list)
+- `transcription`: Transliteration of the above mentioned hieroglyphs with a [transliteration scheme](https://en.wikipedia.org/wiki/Transliteration_of_Ancient_Egyptian)
+- `translation`: Translation in mostly German language (with some English mixed in)
 ## Dataset Structure
 
-The dataset is not divided into 'train', 'dev' and 'test' split as it is not built for competitive purposes and we encourage all scientists to use individual partitioning to suit their needs (due to the low resource setting it might be advisable to use cross validation anyway). The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
+The dataset is not divided into 'train', 'dev' and 'test' splits as it was not built for competitive purposes and we encourage all scientists to use individual partitioning schemes to suit their needs (due to the low resource setting it might be advisable to use cross validation anyway). The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
 
 ### Data Instances
 
-An example of 'all' looks as follows.
+An example of a data triple looks the following way:
+
 ```
 {
     "transcription": "n rḏi̯(.w) gꜣ =j r dbḥ.t m pr-ḥḏ",
@@ -83,7 +84,7 @@ An example of 'all' looks as follows.
 
 ```
 
-*Important*: Not Only about a third of the instance actually cover hieroglyphic encodings (the rest is the empty string "") as the leftover encodings have not yet been incorporated into the BBAW's project database.
+*Important*: Only about a third of the instance actually cover hieroglyphic encodings (the rest is the empty string `""`) as the leftover encodings have not yet been incorporated into the BBAW's project database.
 
 ### Data Fields
 
