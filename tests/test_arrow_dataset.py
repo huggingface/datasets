@@ -1976,43 +1976,6 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path):
     assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
 
 
-@pytest.mark.parametrize("keep_in_memory", [False, True])
-@pytest.mark.parametrize(
-    "features",
-    [
-        None,
-        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
-        {"col_1": "string", "col_2": "string", "col_3": "string"},
-        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
-        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
-    ],
-)
-@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-@pytest.mark.parametrize("path_type", [str, list])
-def test_dataset_from_csv(path_type, split, features, keep_in_memory, csv_path, tmp_path):
-    if issubclass(path_type, str):
-        path = csv_path
-    elif issubclass(path_type, list):
-        path = [csv_path]
-    cache_dir = tmp_path / "cache"
-    expected_split = str(split) if split else "train"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
-    default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
-    expected_features = features.copy() if features else default_expected_features
-    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = Dataset.from_csv(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-        )
-    assert isinstance(dataset, Dataset)
-    assert dataset.num_rows == 4
-    assert dataset.num_columns == 3
-    assert dataset.column_names == ["col_1", "col_2", "col_3"]
-    assert dataset.split == expected_split
-    for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
-
-
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_dataset_from_file(in_memory, dataset, arrow_file):
     filename = arrow_file
@@ -2023,7 +1986,24 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
+def _check_csv_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_csv_keep_in_memory(keep_in_memory, csv_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_csv(csv_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_csv_dataset(dataset, expected_features)
+
+
 @pytest.mark.parametrize(
     "features",
     [
@@ -2034,41 +2014,118 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-@pytest.mark.parametrize("path_type", [str, list])
-def test_dataset_from_json(
-    path_type,
-    split,
-    features,
-    keep_in_memory,
-    jsonl_path,
-    tmp_path,
-):
-    file_path = jsonl_path
-    field = None
-    if issubclass(path_type, str):
-        path = file_path
-    elif issubclass(path_type, list):
-        path = [file_path]
+def test_dataset_from_csv_features(features, csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    expected_split = str(split) if split else "train"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
-    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = Dataset.from_json(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
-        )
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_csv(csv_path, features=features, cache_dir=cache_dir)
+    _check_csv_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_dataset_from_csv_split(split, csv_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_csv(csv_path, cache_dir=cache_dir, split=split)
+    _check_csv_dataset(dataset, expected_features)
+    assert dataset.split == str(split) if split else "train"
+
+
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_csv_path_type(path_type, csv_path, tmp_path):
+    if issubclass(path_type, str):
+        path = csv_path
+    elif issubclass(path_type, list):
+        path = [csv_path]
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_csv(path, cache_dir=cache_dir)
+    _check_csv_dataset(dataset, expected_features)
+
+
+def _check_json_dataset(dataset, expected_features):
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
-    assert dataset.split == expected_split
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_json(jsonl_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_json_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_json_features(features, jsonl_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_json(jsonl_path, features=features, cache_dir=cache_dir)
+    _check_json_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_dataset_from_json_split(split, jsonl_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_json(jsonl_path, cache_dir=cache_dir, split=split)
+    _check_json_dataset(dataset, expected_features)
+    assert dataset.split == str(split) if split else "train"
+
+
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_json_path_type(path_type, jsonl_path, tmp_path):
+    if issubclass(path_type, str):
+        path = jsonl_path
+    elif issubclass(path_type, list):
+        path = [jsonl_path]
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_json(path, cache_dir=cache_dir)
+    _check_json_dataset(dataset, expected_features)
+
+
+def _check_text_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 1
+    assert dataset.column_names == ["text"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"text": "string"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_text(text_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_text_dataset(dataset, expected_features)
+
+
 @pytest.mark.parametrize(
     "features",
     [
@@ -2078,31 +2135,37 @@ def test_dataset_from_json(
         {"text": "float32"},
     ],
 )
+def test_dataset_from_text_features(features, text_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"text": "string"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_text(text_path, features=features, cache_dir=cache_dir)
+    _check_text_dataset(dataset, expected_features)
+
+
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_dataset_from_text_split(split, text_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"text": "string"}
+    dataset = Dataset.from_text(text_path, cache_dir=cache_dir, split=split)
+    _check_text_dataset(dataset, expected_features)
+    assert dataset.split == str(split) if split else "train"
+
+
 @pytest.mark.parametrize("path_type", [str, list])
-def test_dataset_from_text(path_type, split, features, keep_in_memory, text_path, tmp_path):
+def test_dataset_from_text_path_type(path_type, text_path, tmp_path):
     if issubclass(path_type, str):
         path = text_path
     elif issubclass(path_type, list):
         path = [text_path]
     cache_dir = tmp_path / "cache"
-
-    expected_split = str(split) if split else "train"
-
-    default_expected_features = {"text": "string"}
-    expected_features = features.copy() if features else default_expected_features
-    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = Dataset.from_text(
-            path, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-        )
-    assert isinstance(dataset, Dataset)
-    assert dataset.num_rows == 4
-    assert dataset.num_columns == 1
-    assert dataset.column_names == ["text"]
-    assert dataset.split == expected_split
-    for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
+    expected_features = {"text": "string"}
+    dataset = Dataset.from_text(path, cache_dir=cache_dir)
+    _check_text_dataset(dataset, expected_features)
 
 
 @pytest.mark.parametrize("in_memory", [False, True])

@@ -9,6 +9,7 @@ import pytest
 from datasets import Features, Sequence, Value, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
+from datasets.splits import NamedSplit
 
 from .conftest import s3_test_bucket_name
 from .utils import (
@@ -434,7 +435,26 @@ class DatasetDictTest(TestCase):
             del dsets
 
 
+def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
+    assert isinstance(dataset_dict, DatasetDict)
+    for split in splits:
+        dataset = dataset_dict[split]
+        assert dataset.num_rows == 4
+        assert dataset.num_columns == 3
+        assert dataset.column_names == ["col_1", "col_2", "col_3"]
+        for feature, expected_dtype in expected_features.items():
+            assert dataset.features[feature].dtype == expected_dtype
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_datasetdict_from_csv_keep_in_memory(keep_in_memory, csv_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_csv({"train": csv_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_csv_datasetdict(dataset, expected_features)
+
+
 @pytest.mark.parametrize(
     "features",
     [
@@ -445,31 +465,52 @@ class DatasetDictTest(TestCase):
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-@pytest.mark.parametrize("split", [None, "train", "test"])
-def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_path):
+def test_datasetdict_from_csv_features(features, csv_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = DatasetDict.from_csv({"train": csv_path}, features=features, cache_dir=cache_dir)
+    _check_csv_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_datasetdict_from_csv_split(split, csv_path, tmp_path):
     if split:
         path = {split: csv_path}
     else:
         split = "train"
         path = {"train": csv_path, "test": csv_path}
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
-    default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
-    expected_features = features.copy() if features else default_expected_features
-    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_csv(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
-    assert isinstance(dataset, DatasetDict)
-    dataset = dataset[split]
-    assert dataset.num_rows == 4
-    assert dataset.num_columns == 3
-    assert dataset.column_names == ["col_1", "col_2", "col_3"]
-    assert dataset.split == split
-    for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
+    expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
+    dataset = DatasetDict.from_csv(path, cache_dir=cache_dir)
+    _check_csv_datasetdict(dataset, expected_features, splits=list(path.keys()))
+    assert all(dataset[split].split == split for split in path.keys())
+
+
+def _check_json_datasetdict(dataset_dict, expected_features, splits=("train",)):
+    assert isinstance(dataset_dict, DatasetDict)
+    for split in splits:
+        dataset = dataset_dict[split]
+        assert dataset.num_rows == 4
+        assert dataset.num_columns == 3
+        assert dataset.column_names == ["col_1", "col_2", "col_3"]
+        for feature, expected_dtype in expected_features.items():
+            assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_json({"train": jsonl_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_json_datasetdict(dataset, expected_features)
+
+
 @pytest.mark.parametrize(
     "features",
     [
@@ -480,40 +521,52 @@ def test_datasetdict_from_csv(split, features, keep_in_memory, csv_path, tmp_pat
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-@pytest.mark.parametrize("split", [None, "train", "test"])
-def test_datasetdict_from_json(
-    split,
-    features,
-    keep_in_memory,
-    jsonl_path,
-    tmp_path,
-):
-    file_path = jsonl_path
-    field = None
-    if split:
-        path = {split: file_path}
-    else:
-        split = "train"
-        path = {"train": file_path, "test": file_path}
+def test_datasetdict_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
-    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_json(
-            path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, field=field
-        )
-    assert isinstance(dataset, DatasetDict)
-    dataset = dataset[split]
-    assert dataset.num_rows == 4
-    assert dataset.num_columns == 3
-    assert dataset.column_names == ["col_1", "col_2", "col_3"]
-    assert dataset.split == split
-    for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = DatasetDict.from_json({"train": jsonl_path}, features=features, cache_dir=cache_dir)
+    _check_json_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_datasetdict_from_json_splits(split, jsonl_path, tmp_path):
+    if split:
+        path = {split: jsonl_path}
+    else:
+        split = "train"
+        path = {"train": jsonl_path, "test": jsonl_path}
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = DatasetDict.from_json(path, cache_dir=cache_dir)
+    _check_json_datasetdict(dataset, expected_features, splits=list(path.keys()))
+    assert all(dataset[split].split == split for split in path.keys())
+
+
+def _check_text_datasetdict(dataset_dict, expected_features, splits=("train",)):
+    assert isinstance(dataset_dict, DatasetDict)
+    for split in splits:
+        dataset = dataset_dict[split]
+        assert dataset.num_rows == 4
+        assert dataset.num_columns == 1
+        assert dataset.column_names == ["text"]
+        for feature, expected_dtype in expected_features.items():
+            assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"text": "string"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_text({"train": text_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_text_datasetdict(dataset, expected_features)
+
+
 @pytest.mark.parametrize(
     "features",
     [
@@ -523,27 +576,30 @@ def test_datasetdict_from_json(
         {"text": "float32"},
     ],
 )
-@pytest.mark.parametrize("split", [None, "train", "test"])
-def test_datasetdict_from_text(split, features, keep_in_memory, text_path, tmp_path):
+def test_datasetdict_from_text_features(features, text_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"text": "string"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = DatasetDict.from_text({"train": text_path}, features=features, cache_dir=cache_dir)
+    _check_text_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_datasetdict_from_text_split(split, text_path, tmp_path):
     if split:
         path = {split: text_path}
     else:
         split = "train"
         path = {"train": text_path, "test": text_path}
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"text": "string"}
-    expected_features = features.copy() if features else default_expected_features
-    features = Features({feature: Value(dtype) for feature, dtype in features.items()}) if features else None
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_text(path, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
-    assert isinstance(dataset, DatasetDict)
-    dataset = dataset[split]
-    assert dataset.num_rows == 4
-    assert dataset.num_columns == 1
-    assert dataset.column_names == ["text"]
-    assert dataset.split == split
-    for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
+    expected_features = {"text": "string"}
+    dataset = DatasetDict.from_text(path, cache_dir=cache_dir)
+    _check_text_datasetdict(dataset, expected_features, splits=list(path.keys()))
+    assert all(dataset[split].split == split for split in path.keys())
 
 
 @require_s3
