@@ -21,16 +21,18 @@ import datasets
 
 
 _DESCRIPTION = """\
-    First benchmark dataset for sentence entailment in the low-resource Filipino language. Constructed through exploting the structure of news articles. Contains 600,000 premise-hypothesis pairs, in 70-15-15 split for training, validation, and testing.
+First benchmark dataset for sentence entailment in the low-resource Filipino language.
+Constructed through exploting the structure of news articles. Contains 600,000 premise-hypothesis pairs,
+in 70-15-15 split for training, validation, and testing.
 """
 
 _CITATION = """\
-    @article{cruz2020investigating,
-      title={Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation},
-      author={Jan Christian Blaise Cruz and Jose Kristian Resabal and James Lin and Dan John Velasco and Charibeth Cheng},
-      journal={arXiv preprint arXiv:2010.11574},
-      year={2020}
-    }
+@article{cruz2020investigating,
+    title={Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation},
+    author={Jan Christian Blaise Cruz and Jose Kristian Resabal and James Lin and Dan John Velasco and Charibeth Cheng},
+    journal={arXiv preprint arXiv:2010.11574},
+    year={2020}
+}
 """
 
 _HOMEPAGE = "https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks"
