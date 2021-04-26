@@ -2664,7 +2664,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
-    def add_column(self, name: str, column: Union[list, np.array]):
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
         """Add column to Dataset.
 
         .. versionadded:: 1.7
@@ -2682,7 +2684,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Update features
         info = copy.deepcopy(self.info)
         info.features.update(Features.from_arrow_schema(column_table.schema))
-        return Dataset(table, info=info)
+        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
