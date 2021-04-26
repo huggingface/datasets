@@ -2680,8 +2680,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Concatenate tables horizontally
         table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
-        info = self.info
-        info.features = Features.from_arrow_schema(table.schema)
+        info = copy.deepcopy(self.info)
+        info.features.update(Features.from_arrow_schema(column_table.schema))
         return Dataset(table, info=info)
 
     def add_faiss_index(
