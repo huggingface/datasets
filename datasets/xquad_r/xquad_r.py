@@ -49,7 +49,7 @@ _LANG = ["ar", "de", "zh", "vi", "en", "es", "hi", "el", "th", "tr", "ru"]
 
 class XquadRConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for XquadR"""
+    """BuilderConfig for XquadR"""
 
     def __init__(self, lang, **kwargs):
         """

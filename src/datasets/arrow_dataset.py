@@ -59,6 +59,8 @@ from .splits import NamedSplit
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
+from .utils.file_utils import estimate_dataset_size
+from .utils.info_utils import is_small_dataset
 from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
@@ -85,12 +87,12 @@ class DatasetInfoMixin:
 
     @property
     def info(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """:class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
-        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
+        """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -619,7 +621,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> "Dataset":
+    def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
         filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
@@ -629,7 +631,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 the dataset directory where the dataset will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+                dataset will be copied in-memory if its size is smaller than
+                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and
+                in this case the dataset is not loaded in memory.
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -650,6 +656,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
+        dataset_size = estimate_dataset_size(
+            Path(dataset_path, data_file["filename"]) for data_file in state["_data_files"]
+        )
+        keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
             table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
@@ -701,7 +711,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @property
     def column_names(self) -> List[str]:
-        """Names of the columns in the dataset. """
+        """Names of the columns in the dataset."""
         return self._data.column_names
 
     @property
@@ -1104,7 +1114,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def __len__(self):
-        """ Number of rows in the dataset."""
+        """Number of rows in the dataset."""
         return self.num_rows
 
     def __iter__(self):
@@ -1665,7 +1675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             pass
 
         def validate_function_output(processed_inputs, indices):
-            """ Validate output of the map function. """
+            """Validate output of the map function."""
             if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
                 raise TypeError(
                     "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
@@ -1685,7 +1695,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
-            """ Utility to apply the function on a selection of columns. """
+            """Utility to apply the function on a selection of columns."""
             nonlocal update_data
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
@@ -2867,6 +2877,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 es_index_config=es_index_config,
             )
         return self
+
+    def add_item(self, item: dict):
+        """Add item to Dataset.
+
+        .. versionadded:: 1.6
+
+        Args:
+            item (dict): Item data to be added.
+
+        Returns:
+            :class:`Dataset`
+        """
+        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        # Cast item
+        schema = pa.schema(self.features.type)
+        item_table = item_table.cast(schema)
+        # Concatenate tables
+        table = concat_tables([self._data, item_table])
+        return Dataset(table)
 
 
 def concatenate_datasets(

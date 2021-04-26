@@ -56,7 +56,7 @@ class IsizuluNerCorpusConfig(datasets.BuilderConfig):
 
 
 class IsizuluNerCorpus(datasets.GeneratorBasedBuilder):
-    """ Isizulu Ner dataset"""
+    """Isizulu Ner dataset"""
 
     BUILDER_CONFIGS = [
         IsizuluNerCorpusConfig(

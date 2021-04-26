@@ -696,7 +696,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, path_to_clips):
-        """ Yields examples. """
+        """Yields examples."""
         data_fields = list(self._info().features.keys())
         path_idx = data_fields.index("path")
 

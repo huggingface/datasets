@@ -162,7 +162,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir, keys, split, labels, tc_test_template=None):
-        """ Yields examples. """
+        """Yields examples."""
 
         # Get the main path for the articles
         articles_path = os.path.join(data_dir, f"{split}-articles")

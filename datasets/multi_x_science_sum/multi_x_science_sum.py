@@ -41,7 +41,7 @@ _URL_VAL = "https://raw.githubusercontent.com/yaolu/Multi-XScience/master/data/v
 
 
 class MultiXScienceSum(datasets.GeneratorBasedBuilder):
-    """"Multi-XScience Dataset."""
+    """ "Multi-XScience Dataset."""
 
     VERSION = datasets.Version("1.1.0")
 

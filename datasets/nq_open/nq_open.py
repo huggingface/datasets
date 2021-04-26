@@ -82,7 +82,7 @@ class NQOpenConfig(datasets.BuilderConfig):
 
 
 class NQOpen(datasets.GeneratorBasedBuilder):
-    """ NQ_Open open domain question answering dataset. """
+    """NQ_Open open domain question answering dataset."""
 
     BUILDER_CONFIGS = [
         NQOpenConfig(

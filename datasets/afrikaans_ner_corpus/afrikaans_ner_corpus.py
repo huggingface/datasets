@@ -59,7 +59,7 @@ class AfrikaansNerCorpusConfig(datasets.BuilderConfig):
 
 
 class AfrikaansNerCorpus(datasets.GeneratorBasedBuilder):
-    """ Afrikaans Ner dataset"""
+    """Afrikaans Ner dataset"""
 
     BUILDER_CONFIGS = [
         AfrikaansNerCorpusConfig(

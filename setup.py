@@ -20,15 +20,11 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
-   First pin the SCRIPTS_VERSION to VERSION in __init__.py (but don't commit this change)
-
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
    For the sources, run: "python setup.py sdist"
    You should now have a /dist directory with both .whl and .tar.gz source versions.
-
-   Then change the SCRIPTS_VERSION back to to "master" in __init__.py (but don't commit this change)
 
 5. Check that everything looks correct by uploading the package to the pypi test server:
 
@@ -43,12 +39,12 @@ To create the package for pypi.
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
 
-7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
+7. Fill release notes in the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js, and set version to X.X.Xdev0 in setup.py
+   Update the version mapping in docs/source/_static/js/custom.js,
+   and set version to X.X.X.dev0 in setup.py and __init__.py
 
-9. Update README.md to redirect to correct documentation.
 """
 
 import datetime
@@ -56,16 +52,20 @@ import itertools
 import os
 import sys
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
+
 
 DOCLINES = __doc__.split("\n")
 
 
 # Pin some dependencies for old python versions
 _deps = {
-    "fsspec": "fsspec" if sys.version_info >= (3, 7) else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
-    "s3fs": "s3fs" if sys.version_info >= (3, 7) else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
+    "fsspec": "fsspec"
+    if sys.version_info >= (3, 7)
+    else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
+    "s3fs": "s3fs"
+    if sys.version_info >= (3, 7)
+    else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
 }
 
 
@@ -153,6 +153,8 @@ TESTS_REQUIRE = [
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
+    # metadata validation
+    "importlib_resources;python_version<'3.7'",
 ]
 
 if os.name == "nt":  # windows
@@ -171,11 +173,7 @@ else:
     )
 
 
-QUALITY_REQUIRE = [
-    "black",
-    "isort",
-    "flake8==3.7.9",
-]
+QUALITY_REQUIRE = ["black>=21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
@@ -208,7 +206,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.5.0dev0",
+    version="1.6.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
@@ -218,11 +216,7 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={
-        "datasets": [
-            "scripts/templates/*",
-        ],
-    },
+    package_data={"datasets": ["scripts/templates/*"], "datasets.utils.resources": ["*.json"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,

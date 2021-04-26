@@ -97,7 +97,7 @@ class IgboNer(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         dictionary = {}
         with open(filepath, "r", encoding="utf-8-sig") as f:
             if self.config.name == "ner_data":

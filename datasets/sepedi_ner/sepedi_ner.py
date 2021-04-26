@@ -59,7 +59,7 @@ class SepediNerConfig(datasets.BuilderConfig):
 
 
 class SepediNer(datasets.GeneratorBasedBuilder):
-    """ Sepedi Ner dataset"""
+    """Sepedi Ner dataset"""
 
     BUILDER_CONFIGS = [
         SepediNerConfig(

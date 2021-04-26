@@ -109,7 +109,7 @@ class ArxivDataset(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
 
     def _generate_examples(self, path=None, title_set=None):
-        """ Yields examples. """
+        """Yields examples."""
         with open(path, encoding="utf8") as f:
             for i, entry in enumerate(f):
                 data = dict(json.loads(entry))
