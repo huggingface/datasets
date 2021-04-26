@@ -14,8 +14,8 @@
 # limitations under the License.
 
 
+""" Middle Egyptian dataset as used in the paper  """
 import json
-
 import datasets
 
 
@@ -30,12 +30,13 @@ year        = {2018},
 
 
 _DESCRIPTION = """\
-The project `Strukturen und Transformationen des Wortschatzes der ägyptischen Sprache`
-is compiling an extensively annotated digital corpus of Egyptian texts.
-This publication comprises an excerpt of the internal database's contents.
+This dataset comprises parallel sentences of hieroglyphic encodings, transcription and translation
+as used in the paper Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian
+Hieroglyph. The data triples are extracted from the digital corpus of Egyptian texts compiled by
+the project "Strukturen und Transformationen des Wortschatzes der ägyptischen Sprache".
 """
 
-_HOMEPAGE = "https://aaew.bbaw.de/tla/index.html"
+_HOMEPAGE = "https://edoc.bbaw.de/frontdoor/index/index/docId/2919"
 
 _LICENSE = "Creative Commons-Lizenz - CC BY-SA - 4.0 International"
 
