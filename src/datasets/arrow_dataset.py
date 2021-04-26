@@ -2667,7 +2667,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def add_column(self, name: str, column: Union[list, np.array]):
         """Add column to Dataset.
 
-        .. versionadded:: 1.6
+        .. versionadded:: 1.7
 
         Args:
             name (str): Column name.
