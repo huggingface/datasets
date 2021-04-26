@@ -63,25 +63,27 @@ This dataset comprises parallel sentences of hieroglyphic encodings, transcripti
 
 ### Languages
 
-The dataset consists of parallel tripls of 
+The dataset consists of parallel tripls of
 - "hieroglyphs": [hieroglyph encoding of the hieroglyphs with the [Gardiner's sign list](https://en.wikipedia.org/wiki/Gardiner%27s_sign_list)
 - "transscription": Transliteration of the above mentioned hieroglyphs with a [transliteration scheme](https://en.wikipedia.org/wiki/Transliteration_of_Ancient_Egyptian)
-- translation: translation in mostly German language (with some English mixed in)
+- "translation": translation in mostly German language (with some English mixed in)
 ## Dataset Structure
 
-The dataset is not divided into 'train', 'dev' and 'test' split as it is not built for competitive purposes and we ask all scientists to build use partitioning for their needs. Due to the low resource setting it will probably advisable to use cross validation. The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
+The dataset is not divided into 'train', 'dev' and 'test' split as it is not built for competitive purposes and we encourage all scientists to use individual partitioning to suit their needs (due to the low resource setting it might be advisable to use cross validation anyway). The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
 
 ### Data Instances
 
 An example of 'all' looks as follows.
 ```
-{                                                                                                  
-    "transcription": "n rḏi̯(.w) gꜣ =j r dbḥ.t m pr-ḥḏ",                                            
+{
+    "transcription": "n rḏi̯(.w) gꜣ =j r dbḥ.t m pr-ḥḏ",
     "translation": "I was not let to suffer lack in the treasury with respect to what was needed;",
-    "hieroglyphs": "D35 D21 -D37 G1&W11 -V32B A1 D21 D46 -D58 *V28 -F18 *X1 -A2 G17 [? *O2 *?]"    
-}                                                                                              
+    "hieroglyphs": "D35 D21 -D37 G1&W11 -V32B A1 D21 D46 -D58 *V28 -F18 *X1 -A2 G17 [? *O2 *?]"
+}
 
 ```
+
+*Important*: Not Only about a third of the instance actually cover hieroglyphic encodings (the rest is the empty string "") as the leftover encodings have not yet been incorporated into the BBAW's project database.
 
 ### Data Fields
 
