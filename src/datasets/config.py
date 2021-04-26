@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 
+import pyarrow as pa
 from packaging import version
 
 from .utils.logging import get_logger
@@ -30,6 +31,8 @@ if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
     import importlib_metadata
 else:
     import importlib.metadata as importlib_metadata
+
+PYARROW_VERSION: str = pa.__version__
 
 # General environment variables accepted values for booleans
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}

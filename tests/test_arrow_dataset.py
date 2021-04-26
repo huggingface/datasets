@@ -13,7 +13,7 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
+from datasets import NamedSplit, concatenate_datasets, config, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -2021,6 +2021,27 @@ def test_dataset_from_file(in_memory, dataset, arrow_file):
     assert dataset_from_file.features.type == dataset.features.type
     assert dataset_from_file.features == dataset.features
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
+
+
+@pytest.mark.skipif(
+    config.PYARROW_VERSION < "2", reason="pyarrow.lib.ArrowInvalid: Mix of struct and list types not yet supported"
+)
+@pytest.mark.parametrize("in_memory", [True])  # TODO: False, once memory_map properly implemented for pq.read_table
+def test_dataset_from_parquet(in_memory, dataset, parquet_file):
+    filename = parquet_file
+    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+        dataset_from_parquet = Dataset.from_parquet(filename, in_memory=in_memory)
+    assert dataset_from_parquet.features.type == dataset.features.type
+    # assert dataset_from_parquet.features == dataset.features
+    # TODO: "labels": Value vs. ClassLabel
+    #  Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None)
+    #  Sequence(feature=ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None), length=-1, id=None)
+    # TODO: "answers":
+    #  {'answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None), 'text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
+    #  Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None)
+    for feature_name in ["tokens", "id"]:
+        assert dataset_from_parquet.features[feature_name] == dataset.features[feature_name]
+    assert dataset_from_parquet.cache_files == ([{"filename": filename}] if not in_memory else [])
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])

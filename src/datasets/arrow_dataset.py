@@ -70,11 +70,6 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-if int(pa.__version__.split(".")[0]) == 0:
-    PYARROW_V0 = True
-else:
-    PYARROW_V0 = False
-
 
 class DatasetInfoMixin:
     """This base class exposes some attributes of DatasetInfo
@@ -322,6 +317,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             split=split,
             indices_table=indices_pa_table,
         )
+
+    @classmethod
+    def from_parquet(cls, filename: str, in_memory: bool = True):
+        """Create Dataset from Parquet file.
+
+        Args:
+            filename (:obj:`str`): Path of the Parquet file.
+            in_memory (:obj:`bool`, default ``True``): Whether to copy the data in-memory.
+
+        Returns:
+            :class:`Dataset`
+        """
+        from .arrow_reader import ParquetReader
+
+        dataset_kwargs = ParquetReader("", None).read_files([{"filename": filename}], in_memory=in_memory)
+        return cls(dataset_kwargs["arrow_table"])
 
     @classmethod
     def from_buffer(
