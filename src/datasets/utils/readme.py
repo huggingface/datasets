@@ -1,9 +1,19 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 import yaml
+
+
+# loading package files: https://stackoverflow.com/a/20885799
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
+
+from .import resources
 
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
@@ -12,34 +22,40 @@ logger = logging.getLogger(__name__)
 
 
 def load_yaml_resource(resource: str) -> Tuple[Any, str]:
-    with open(resource) as f:
-        content = yaml.safe_load(f)
-    return content, f"{BASE_REF_URL}/resources/{resource}"
+    content = pkg_resources.read_text(resources, resource)
+    return yaml.safe_load(content), f"{BASE_REF_URL}/resources/{resource}"
 
 
 readme_structure, known_readme_structure_url = load_yaml_resource("readme_structure.yaml")
-filler_text = [
+
+FILLER_TEXT = [
     "[Needs More Information]",
     "[More Information Needed]",
     "(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
 ]
 
+# Dictionary representation of section/readme, error_list, warning_list
+ReadmeValidatorOutput = Tuple[dict, List[str], List[str]]
 
+
+@dataclass
 class Section:
-    def __init__(self, name, level, lines=None):
-        self.name = name
-        self.level = level
+    name: str
+    level: str
+    lines: List[str] = None
+
+    def __post_init__(self):
         self.text = ""
         self.is_empty = True
         self.content = {}
-        if lines is not None:
-            self.parse(lines)
+        if self.lines is not None:
+            self.parse()
 
-    def parse(self, lines):
+    def parse(self):
         current_sub_level = ""
         current_lines = []
         code_start = False
-        for line in lines:
+        for line in self.lines:
             if line.strip(" \n") == "":
                 continue
             elif line.strip(" \n")[:3] == "```":
@@ -51,7 +67,7 @@ class Section:
                 else:
                     if current_lines != []:
                         self.text += "".join(current_lines).strip()
-                        if self.text != "" and self.text not in filler_text:
+                        if self.text != "" and self.text not in FILLER_TEXT:
                             self.is_empty = False
                         current_lines = []
 
@@ -60,14 +76,79 @@ class Section:
                 current_lines.append(line)
         else:
             if current_sub_level != "":
+                if current_sub_level in self.content:
+                    print(
+                        f"Multiple sections with the same heading '{current_sub_level}' have been found. Using the latest one found."
+                    )
                 self.content[current_sub_level] = Section(current_sub_level, self.level + "#", current_lines)
             else:
                 if current_lines != []:
                     self.text += "".join(current_lines).strip()
-                    if self.text != "" and self.text not in filler_text:
+                    if self.text != "" and self.text not in FILLER_TEXT:
                         self.is_empty = False
 
-    def to_dict(self):
+    def validate(self, structure: dict) -> ReadmeValidatorOutput:
+        """Validates a Section class object recursively using the structure provided as a dictionary.
+
+        Args:
+            structute (:obj: `dict`): The dictionary representing expected structure.
+
+        Returns:
+            :obj: `ReadmeValidatorOutput`: The dictionary representation of the section, and the errors.
+        """
+        # Header text validation
+        error_list = []
+        warning_list = []
+        if structure["allow_empty"] == False:
+            # If header text is expected
+            if self.is_empty:
+                # If no header text is found, mention it in the error_list
+                error_list.append(
+                    f"Expected some header text for section '{self.name}', reference at {known_readme_structure_url}."
+                )
+
+        # Subsections Validation
+        if structure["subsections"] is not None:
+            # If subsections are expected
+            if self.content == {}:
+                # If no subsections are present
+                values = [subsection["name"] for subsection in structure["subsections"]]
+                # Mention the expected values in the error_list
+                error_list.append(
+                    f"Section '{self.name}' expected the following subsections: {values}, found `None`, reference at {known_readme_structure_url}."
+                )
+            else:
+                # If some subsections are present
+                structure_names = [subsection["name"] for subsection in structure["subsections"]]
+                for idx, name in enumerate(structure_names):
+                    if name not in self.content:
+                        # If the expected subsection is not present
+                        error_list.append(
+                            f"Section '{self.name}' is missing subsection: '{name}', reference at {known_readme_structure_url}."
+                        )
+                    else:
+                        # If the subsection is present, validate subsection, return the result
+                        # and concat the errors from subsection to section error_list
+                        _, subsec_error_list, subsec_warning_list = self.content[name].validate(
+                            structure["subsections"][idx]
+                        )
+                        error_list += subsec_error_list
+                        warning_list += subsec_warning_list
+
+                for name in self.content:
+                    if name not in structure_names:
+                        # If an extra subsection is present
+                        warning_list.append(
+                            f"'{self.name}' has an extra subsection: '{name}'. Skipping further validation checks for this subsection as expected structure is unknown."
+                        )
+        if error_list:
+            # If there are errors, do not return the dictionary as it is invalid
+            return {}, error_list, warning_list
+        else:
+            return self.to_dict(), error_list, warning_list
+
+    def to_dict(self) -> dict:
+        """Returns the dictionary representation of a section."""
         return {
             "name": self.name,
             "text": self.text,
@@ -77,90 +158,96 @@ class Section:
 
 
 class ReadMe(Section):  # Level 0
-    def __init__(self, file_path):
-        super().__init__(name=file_path, level="")
+    def __init__(self, name: str, lines: List[str], structure: dict = None):
+        super().__init__(name=name, level="")  # Not using lines here as we need to use a child class parse
+        self.structure = structure
         self.yaml_tags_line_count = -2
-        self.parse(file_path)
+        self.lines = lines
+        if self.lines is not None:
+            self.parse()
+        if self.structure is None:
+            content, error_list, warning_list = self.validate(readme_structure)
+        else:
+            content, error_list, warning_list = self.validate(self.structure)
 
-    def parse(self, file_path):
-        with open(self.name) as f:
-            # Skip Tags
-            tag_count = 0
-            for line in f:
-                self.yaml_tags_line_count += 1
-                if line.strip(" \n") == "---":
-                    tag_count += 1
+        if error_list != [] or warning_list != []:
+            errors = "\n".join(list(map(lambda x: "-\t" + x, error_list + warning_list)))
+            error_string = f"The following issues were found for the README at `{self.name}`:\n" + errors
+            raise ValueError(error_string)
 
-                    if tag_count == 2:
-                        break
-            else:
-                raise ValueError(
-                    "The README doesn't contain proper tags. Please ensure you add the correct YAML tags."
-                )
-            super().parse(f)
+    @classmethod
+    def from_readme(cls, path: Path, structure: dict = None):
+        with open(path) as f:
+            lines = f.readlines()
+        return cls(path, lines, structure)
 
-    def _validate_section(self, section, structure):
-        # Text validation
-        error_list = []
-        if structure["allow_empty"] == False:
-            if section.is_empty:
-                error_list.append(f"Expected some text for section '{section.name}'")
+    @classmethod
+    def from_string(cls, string: str, structure: dict = None, root_name:str="root"):
+        lines = string.split("\n")
+        return cls(root_name, lines, structure)
 
-        if structure["subsections"] is not None:
-            # If no subsections present
-            if section.content == {}:
-                values = [subsection["name"] for subsection in structure["subsections"]]
-                error_list.append(f"'{section.name}' expected the following subsections: {values}, found `None`.")
-            else:
-                # Each key validation
-                structure_names = [subsection["name"] for subsection in structure["subsections"]]
-                for idx, name in enumerate(structure_names):
-                    if name not in section.content:
-                        error_list.append(f"'{section.name}' is missing subsection: '{name}'.")
-                    else:
-                        error_list += self._validate_section(section.content[name], structure["subsections"][idx])
+    def parse(self):
+        # Skip Tags
+        tag_count = 0
+        line_count = 0
 
-                for name in section.content:
-                    if name not in structure_names:
-                        error_list.append(
-                            f"'{section.name}' has an extra subsection: '{name}'. Skipping validation checks for this subsection."
-                        )
+        for line in self.lines:
+            self.yaml_tags_line_count += 1
+            if line.strip(" \n") == "---":
+                tag_count += 1
+                if tag_count == 2:
+                    break
+            line_count+=1
 
-        return error_list
+        self.lines = self.lines[line_count+1:]  # Get the last + 1 th item.
+        super().parse()
 
     def __str__(self):
+        """Returns the string of dictionary representation of the ReadMe."""
         return str(self.to_dict())
 
     def validate(self, readme_structure):
         error_list = []
+        warning_list = []
+        if self.yaml_tags_line_count == 0:
+            warning_list.append(f"YAML Tags are not present in the README at `{self.name}`.")
+        elif self.yaml_tags_line_count == -1:
+            warning_list.append(f"Only the start of YAML tags present in the README at `{self.name}`.")
+
+        # Check how many first level sections are present.
         num_first_level_keys = len(self.content.keys())
         if num_first_level_keys > 1:
+            # If more than one, add to the error list, continue
             error_list.append(
-                f"The README has found several first-level headings: {list(self.content.keys())}. Only one heading is expected."
+                f"The README present at `{self.name}` has found several first-level headings: {list(self.content.keys())}. Only one heading is expected. Skipping further validation for this README."
             )
         elif num_first_level_keys < 1:
-            error_list.append(f"The README has no first-level headings.")
+            # If less than one, append error.
+            error_list.append(
+                f"The README present as `{self.name}` has no first-level headings. One heading is expected. Skipping further validation for this README."
+            )
 
         else:
-            start_key = list(self.content.keys())[0]
-            if start_key.startswith("Dataset Card for"):
-                error_list += self._validate_section(self.content[start_key], readme_structure["subsections"][0])
+            # If one exactly
+            start_key = list(self.content.keys())[0]  # Get the key
+            if start_key.startswith("Dataset Card for"):  # Check correct start
+
+                # If the starting is correct, validate all the sections
+                _, sec_error_list, sec_warning_list = self.content[start_key].validate(
+                    readme_structure["subsections"][0]
+                )
+                error_list += sec_error_list
+                warning_list += sec_warning_list
             else:
-                error_list.append("No first-level heading starting with `Dataset Card for` found.")
-        return error_list
-
-
-def validate_readme(file_path):
-    readme = ReadMe(file_path)
-    if readme.yaml_tags_line_count == 0:
-        raise Warning("YAML Tags are not present in this README.")
-    elif readme.yaml_tags_line_count == -1:
-        raise Warning("Only the start of YAML tags present in this README.")
-    error_list = readme.validate(readme_structure)
-    if error_list != []:
-        errors = "\n".join(list(map(lambda x: "-\t" + x, error_list)))
-        error_string = "The following issues were found with the README\n" + errors
-        raise ValueError(error_string)
+                # If not found, append error
+                error_list.append(
+                    f"No first-level heading starting with `Dataset Card for` found in README present at `{self.name}`. Skipping further validation for this README."
+                )
+        if error_list:
+            # If there are errors, do not return the dictionary as it is invalid
+            return {}, error_list, warning_list
+        else:
+            return self.to_dict(), error_list, warning_list
 
 
 if __name__ == "__main__":
@@ -170,4 +257,4 @@ if __name__ == "__main__":
     ap.add_argument("readme_filepath")
     args = ap.parse_args()
     readme_filepath = Path(args.readme_filepath)
-    validate_readme(readme_filepath)
+    readme = ReadMe.from_readme(readme_filepath)
