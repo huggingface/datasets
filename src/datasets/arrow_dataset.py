@@ -2684,6 +2684,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Update features
         info = copy.deepcopy(self.info)
         info.features.update(Features.from_arrow_schema(column_table.schema))
+        table = update_metadata_with_features(table, info.features)
         return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
 
     def add_faiss_index(
