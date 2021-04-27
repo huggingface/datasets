@@ -102,7 +102,7 @@ def compute_precision_recall(predictions, ground_truths, qa_id):
 
 def process_precisions(precisions):
     """
-    Processes precisions to ensure that precision and recall don't both get worse
+    Processes precisions to ensure that precision and recall don't both get worse.
     Assumes the list precision is sorted in order of recalls
     """
     precision_best = precisions[::-1]
@@ -121,9 +121,7 @@ def get_aupr(precisions, recalls):
 
 
 def get_prec_at_recall(precisions, recalls, recall_thresh):
-    """
-    Assumes recalls are sorted in increasing order
-    """
+    """Assumes recalls are sorted in increasing order"""
     processed_precisions = process_precisions(precisions)
     prec_at_recall = 0
     for prec, recall in zip(processed_precisions, recalls):
