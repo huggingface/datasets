@@ -77,7 +77,7 @@ class Gnad10(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """Generate German news articles examples. """
+        """Generate German news articles examples."""
 
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=";", quotechar="'", quoting=csv.QUOTE_ALL)

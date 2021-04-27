@@ -56,7 +56,7 @@ _TRAIN_URL = "https://drive.google.com/file/d/12Uz59TYg_NtxOy7SXraYeXPMRT7oaO7X/
 
 
 class Emo(datasets.GeneratorBasedBuilder):
-    """ SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0 """
+    """SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0"""
 
     VERSION = datasets.Version("1.0.0")
 
@@ -106,7 +106,7 @@ class Emo(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "rb") as f:
             data = json.load(f)
             for id_, text, label in zip(data["text"].keys(), data["text"].values(), data["Label"].values()):

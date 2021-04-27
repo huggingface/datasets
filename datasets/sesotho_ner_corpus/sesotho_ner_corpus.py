@@ -65,7 +65,7 @@ class SesothoNerCorpusConfig(datasets.BuilderConfig):
 
 
 class SesothoNerCorpus(datasets.GeneratorBasedBuilder):
-    """ SesothoNerCorpus Ner dataset"""
+    """SesothoNerCorpus Ner dataset"""
 
     BUILDER_CONFIGS = [
         SesothoNerCorpusConfig(

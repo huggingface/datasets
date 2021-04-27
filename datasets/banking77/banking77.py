@@ -159,7 +159,7 @@ class Banking77(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         with open(filepath, encoding="utf-8") as f:
             csv_reader = csv.reader(f, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True)
             # call next to skip header
