@@ -144,7 +144,7 @@ class BbcHindiNLI(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as tsv_file:
             tsv_reader = csv.reader(tsv_file, delimiter="\t")

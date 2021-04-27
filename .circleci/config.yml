@@ -81,6 +81,7 @@ jobs:
             - run: black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
             - run: isort --check-only tests src benchmarks datasets metrics
             - run: flake8 tests src benchmarks datasets metrics
+            - run: ./scripts/datasets_metadata_validator.py
 
     build_doc:
         working_directory: ~/datasets

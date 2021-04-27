@@ -103,7 +103,7 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, split="train", train_path=None, test_text_path=None, test_labels_path=None):
-        """ Yields examples. """
+        """Yields examples."""
         # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)

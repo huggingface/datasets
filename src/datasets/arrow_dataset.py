@@ -87,12 +87,12 @@ class DatasetInfoMixin:
 
     @property
     def info(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """:class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
-        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
+        """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -711,7 +711,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @property
     def column_names(self) -> List[str]:
-        """Names of the columns in the dataset. """
+        """Names of the columns in the dataset."""
         return self._data.column_names
 
     @property
@@ -838,7 +838,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 break
         dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
-        self._data = update_metadata_with_features(self._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
@@ -1018,7 +1018,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del dataset._info.features[column_name]
 
         dataset._data = dataset._data.drop(column_names)
-        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -1109,12 +1109,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
-        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
     def __len__(self):
-        """ Number of rows in the dataset."""
+        """Number of rows in the dataset."""
         return self.num_rows
 
     def __iter__(self):
@@ -1675,7 +1675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             pass
 
         def validate_function_output(processed_inputs, indices):
-            """ Validate output of the map function. """
+            """Validate output of the map function."""
             if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
                 raise TypeError(
                     "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
@@ -1695,7 +1695,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
-            """ Utility to apply the function on a selection of columns. """
+            """Utility to apply the function on a selection of columns."""
             nonlocal update_data
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
@@ -1771,8 +1771,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
+                # Only load the columns we actually need
+                if input_columns:
+                    input_dataset = self.with_format(
+                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
+                    )
+                    if remove_columns:
+                        remove_columns = list(set(remove_columns) & set(input_columns))
+                else:
+                    input_dataset = self
+
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = self if not batched else range(0, len(self), batch_size)
+                pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = "#" + str(rank) if rank is not None else None
                 pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
@@ -1790,13 +1800,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
-                        if drop_last_batch and i + batch_size > self.num_rows:
+                        if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = self[i : i + batch_size]
-                        indices = list(range(*(slice(i, i + batch_size).indices(self.num_rows))))  # Something simpler?
+                        batch = input_dataset[i : i + batch_size]
+                        indices = list(
+                            range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
+                        )  # Something simpler?
                         try:
                             batch = apply_function_on_filtered_inputs(
-                                batch, indices, check_same_num_examples=len(self.list_indexes()) > 0, offset=offset
+                                batch,
+                                indices,
+                                check_same_num_examples=len(input_dataset.list_indexes()) > 0,
+                                offset=offset,
                             )
                         except NumExamplesMismatch:
                             raise DatasetTransformationNotAllowedError(

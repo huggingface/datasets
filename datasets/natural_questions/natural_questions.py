@@ -133,7 +133,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
             html_bytes = ex_json["document_html"].encode("utf-8")
 
             def _parse_short_answer(short_ans):
-                """"Extract text of short answer."""
+                """ "Extract text of short answer."""
                 ans_bytes = html_bytes[short_ans["start_byte"] : short_ans["end_byte"]]
                 # Remove non-breaking spaces.
                 ans_bytes = ans_bytes.replace(b"\xc2\xa0", b" ")

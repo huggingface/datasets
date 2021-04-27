@@ -129,7 +129,7 @@ class DailyDialog(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, file_path, act_path, emotion_path, split):
-        """ Yields examples. """
+        """Yields examples."""
         # Yields (key, example) tuples from the dataset
         with open(file_path, "r", encoding="utf-8") as f, open(act_path, "r", encoding="utf-8") as act, open(
             emotion_path, "r", encoding="utf-8"
