@@ -33,8 +33,8 @@ class RandIter:
         rng = np.random.default_rng(self.seed)
         self._sampled_values = rng.integers(low=self.low, high=self.high, size=self.size).tolist()
 
-    def __iter__(self):
-        return iter(self._sampled_values)
+    def __getitem__(self, item):
+        return self._sampled_values.__getitem__(item)
 
     def __len__(self):
         return self.size
