@@ -53,7 +53,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .info import DATASET_INFO_FILENAME, DatasetInfo
+from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
@@ -616,7 +616,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
+        ) as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -653,7 +655,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
         ) as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(
@@ -771,6 +775,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = copy.deepcopy(dset.features)
         new_features[column] = dst_feat
@@ -2648,6 +2653,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
+    def to_json(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **to_json_kwargs,
+    ) -> int:
+        """Exports the dataset to JSON.
+
+        Args:
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetWriter
+
+        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_json_kwargs).write()
+
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
@@ -2896,10 +2923,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
-    def add_item(self, item: dict):
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
-        .. versionadded:: 1.6
+        .. versionadded:: 1.7
 
         Args:
             item (dict): Item data to be added.
@@ -2913,7 +2942,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         item_table = item_table.cast(schema)
         # Concatenate tables
         table = concat_tables([self._data, item_table])
-        return Dataset(table)
+        if self._indices is None:
+            indices_table = None
+        else:
+            item_indices_array = pa.array([len(self._data)], type=pa.uint64())
+            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
+            indices_table = concat_tables([self._indices, item_indices_table])
+        return Dataset(
+            table,
+            info=copy.deepcopy(self.info),
+            split=self.split,
+            indices_table=indices_table,
+            fingerprint=new_fingerprint,
+        )
 
 
 def concatenate_datasets(
