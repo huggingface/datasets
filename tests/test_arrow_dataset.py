@@ -1984,6 +1984,10 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
     dataset_to_test.reset_format()
     assert dataset[:-1] == dataset_to_test[:]
     assert {k: int(v) for k, v in dataset[-1].items()} == {k: int(v) for k, v in item.items()}
+    if dataset._indices is not None:
+        dataset_indices = dataset._indices["indices"].to_pylist()
+        dataset_to_test_indices = dataset_to_test._indices["indices"].to_pylist()
+        assert dataset_indices == dataset_to_test_indices + [len(dataset_to_test._data)]
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
