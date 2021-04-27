@@ -219,7 +219,7 @@ class MLama(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the mLAMA dataset. """
+        """Yields examples from the mLAMA dataset."""
         id_ = -1
         for language in self.config.languages:
             # load templates

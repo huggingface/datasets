@@ -496,7 +496,7 @@ class Flue(datasets.GeneratorBasedBuilder):
         return text
 
     def _wsdv_prepare_data(self, dirpath):
-        """ Get data paths from FSE dir"""
+        """Get data paths from FSE dir"""
         paths = {}
 
         for f in os.listdir(dirpath):
@@ -520,10 +520,10 @@ class Flue(datasets.GeneratorBasedBuilder):
 
 # The WSDDatasetReader classes come from https://github.com/getalp/Flaubert/blob/master/flue/wsd/verbs/modules/dataset.py
 class WSDDatasetReader:
-    """ Class to read a WSD data directory. The directory should contain .data.xml and .gold.key.txt files"""
+    """Class to read a WSD data directory. The directory should contain .data.xml and .gold.key.txt files"""
 
     def get_data_paths(self, indir):
-        """ Get file paths from WSD dir """
+        """Get file paths from WSD dir"""
         xml_fpath, gold_fpath = None, None
 
         for f in os.listdir(indir):
@@ -546,7 +546,7 @@ class WSDDatasetReader:
         }
 
     def read_from_data_dirs(self, data_dirs):
-        """ Read WSD data and return as WSDDataset """
+        """Read WSD data and return as WSDDataset"""
         for d in data_dirs:
             xml_fpath, gold_fpath = self.get_data_paths(d)
 
@@ -614,13 +614,13 @@ class WSDDatasetReader:
                     )
 
     def read_sentences(self, data_dir, keep_mwe=True):
-        """ Read sentences from WSD data"""
+        """Read sentences from WSD data"""
 
         xml_fpath, _ = self.get_data_paths(data_dir)
         return self.read_sentences_from_xml(xml_fpath, keep_mwe=keep_mwe)
 
     def read_sentences_from_xml(self, infile, keep_mwe=False):
-        """ Read sentences from xml file """
+        """Read sentences from xml file"""
 
         # Parse xml
         tree = etree.parse(infile)
@@ -635,5 +635,5 @@ class WSDDatasetReader:
                 yield sent
 
     def read_target_keys(self, infile):
-        """ Read target keys """
+        """Read target keys"""
         return [x.rstrip("\n") for x in open(infile, encoding="utf-8").readlines()]

@@ -181,7 +181,7 @@ class Wmt20MlqeTask3(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         def open_and_read(fp):
             with open(fp, encoding="utf-8") as f:

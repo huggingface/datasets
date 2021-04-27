@@ -45,7 +45,7 @@ _URLS = {"tmx": "http://opus.nlpl.eu/download.php?f=DOGC/v2/tmx/ca-es.tmx.gz"}
 
 
 class OpusDogcConfig(datasets.BuilderConfig):
-    """ BuilderConfig for OpusDogcConfig."""
+    """BuilderConfig for OpusDogcConfig."""
 
     def __init__(self, file_format=None, **kwargs):
         """

@@ -3,9 +3,12 @@ import shutil
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-from datasets.builder import DatasetInfo, DownloadConfig, GeneratorBasedBuilder, Split, SplitGenerator
+from datasets.builder import GeneratorBasedBuilder
 from datasets.commands.dummy_data import DummyDataGeneratorDownloadManager, MockDownloadManager
 from datasets.features import Features, Value
+from datasets.info import DatasetInfo
+from datasets.splits import Split, SplitGenerator
+from datasets.utils.download_manager import DownloadConfig
 from datasets.utils.version import Version
 
 

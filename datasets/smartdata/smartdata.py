@@ -174,7 +174,7 @@ class Smartdata(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         NOT_WHITESPACE = re.compile(r"[^\s]")
 

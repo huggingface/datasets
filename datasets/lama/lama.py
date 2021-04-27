@@ -220,7 +220,7 @@ class Lama(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the LAMA dataset. """
+        """Yields examples from the LAMA dataset."""
         if self.config.name == "trex":
             paths = filepath
             relations_path = paths[0]

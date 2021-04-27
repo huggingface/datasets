@@ -366,7 +366,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         article["PubmedData"]["ReferenceList"] = citations
 
     def _generate_examples(self, filenames):
-        """ Yields examples. """
+        """Yields examples."""
         id_ = 0
         for filename in filenames:
             try:

@@ -141,7 +141,7 @@ class FinancialPhrasebank(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="iso-8859-1") as f:
             for id_, line in enumerate(f):
                 sentence, label = line.rsplit("@", 1)

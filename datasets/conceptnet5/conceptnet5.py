@@ -147,7 +147,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the conceptnet5 graph if the config is 'conceptnet5', otherwise yields the sentences for omcs. """
+        """Yields examples from the conceptnet5 graph if the config is 'conceptnet5', otherwise yields the sentences for omcs."""
 
         with open(filepath, "rb") as f:
             for id_, row in enumerate(f):
