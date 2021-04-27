@@ -197,7 +197,7 @@ class SentiLex(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
 
         filepaths = [
             os.path.join(data_dir, "sentiment-lexicons", "negative_words_" + self.config.name + ".txt"),

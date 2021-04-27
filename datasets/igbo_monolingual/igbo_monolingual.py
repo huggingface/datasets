@@ -271,7 +271,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         if self.config.name == "eze_goes_to_school":
             with open(filepath, "r", encoding="utf-8") as f:
                 json_data = json.load(f)

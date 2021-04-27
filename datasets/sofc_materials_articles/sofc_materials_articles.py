@@ -49,7 +49,7 @@ _URL = "https://github.com/boschresearch/sofc-exp_textmining_resources/archive/m
 
 
 class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
-    """"""
+    """ """
 
     VERSION = datasets.Version("1.1.0")
 
@@ -280,7 +280,7 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, names, data_dir, split):
-        """ Yields examples. """
+        """Yields examples."""
         # The dataset consists of the original article text as well as annotations
         textfile_base_path = os.path.join(data_dir, "texts")
         annotations_base_path = os.path.join(data_dir, "annotations")

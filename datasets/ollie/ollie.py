@@ -131,7 +131,7 @@ class Ollie(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the Ollie predicates and sentences. """
+        """Yields examples from the Ollie predicates and sentences."""
 
         with bz2.open(filepath, "rt") as f:
             id_ = -1

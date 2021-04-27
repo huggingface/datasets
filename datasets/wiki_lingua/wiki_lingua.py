@@ -190,7 +190,7 @@ class WikiLingua(datasets.GeneratorBasedBuilder):
         return processed_article
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "rb") as f:
             data = pickle.load(f)
             for id_, row in enumerate(data.items()):

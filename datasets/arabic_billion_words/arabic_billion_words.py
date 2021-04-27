@@ -144,7 +144,7 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
         return text.replace("?", "")
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         current_multi_line = ""
         _idx = 0
         data_tag = self.config.name

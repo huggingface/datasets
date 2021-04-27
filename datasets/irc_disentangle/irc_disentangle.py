@@ -182,7 +182,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         if self.config.name == "ubuntu":
             # run loop for each date

@@ -156,7 +156,7 @@ class Wmt20MlqeTask1(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split, source_lg, target_lg):
-        """ Yields examples. """
+        """Yields examples."""
         docids_filepath = os.path.join(filepath, f"{split}.doc_ids")
         with open(docids_filepath, encoding="utf-8") as f:
             docids = f.read().splitlines()[1:]

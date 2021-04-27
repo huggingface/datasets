@@ -151,7 +151,7 @@ class Assin(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         id_ = 0
 
