@@ -74,7 +74,7 @@ REQUIRED_PKGS = [
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
-    "pyarrow>=1.0.0",
+    "pyarrow>=1.0.0<4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -173,7 +173,7 @@ else:
     )
 
 
-QUALITY_REQUIRE = ["black>=21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
@@ -206,7 +206,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.6.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.6.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
