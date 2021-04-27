@@ -775,6 +775,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = copy.deepcopy(dset.features)
         new_features[column] = dst_feat
@@ -2899,10 +2900,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
-    def add_item(self, item: dict):
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
-        .. versionadded:: 1.6
+        .. versionadded:: 1.7
 
         Args:
             item (dict): Item data to be added.
@@ -2916,7 +2919,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         item_table = item_table.cast(schema)
         # Concatenate tables
         table = concat_tables([self._data, item_table])
-        return Dataset(table)
+        if self._indices is None:
+            indices_table = None
+        else:
+            item_indices_array = pa.array([len(self._data)], type=pa.uint64())
+            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
+            indices_table = concat_tables([self._indices, item_indices_table])
+        return Dataset(
+            table,
+            info=copy.deepcopy(self.info),
+            split=self.split,
+            indices_table=indices_table,
+            fingerprint=new_fingerprint,
+        )
 
 
 def concatenate_datasets(
