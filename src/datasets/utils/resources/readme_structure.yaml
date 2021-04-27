@@ -34,30 +34,30 @@ subsections:
       - name: "Dataset Creation"
         allow_empty: true
         subsections:
-        - name: "Curation Rationale"
-          allow_empty: true
-          subsections: null
-        - name: "Source Data"
-          allow_empty: true
-          subsections:
-            - name: "Initial Data Collection and Normalization"
-              allow_empty: true
-              subsections: null
-            - name: "Who are the source language producers?"
-              allow_empty: true
-              subsections: null
-        - name: "Annotations"
-          allow_empty: true
-          subsections:
-            - name: "Annotation process"
-              allow_empty: true
-              subsections: null
-            - name: "Who are the annotators?"
-              allow_empty: true
-              subsections: null
-        - name: "Personal and Sensitive Information"
-          allow_empty: true
-          subsections: null
+          - name: "Curation Rationale"
+            allow_empty: true
+            subsections: null
+          - name: "Source Data"
+            allow_empty: true
+            subsections:
+              - name: "Initial Data Collection and Normalization"
+                allow_empty: true
+                subsections: null
+              - name: "Who are the source language producers?"
+                allow_empty: true
+                subsections: null
+          - name: "Annotations"
+            allow_empty: true
+            subsections:
+              - name: "Annotation process"
+                allow_empty: true
+                subsections: null
+              - name: "Who are the annotators?"
+                allow_empty: true
+                subsections: null
+          - name: "Personal and Sensitive Information"
+            allow_empty: true
+            subsections: null
       - name: "Considerations for Using the Data"
         allow_empty: true
         subsections:

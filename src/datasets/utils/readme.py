@@ -13,7 +13,7 @@ except ImportError:
     # Try backported to PY<37 `importlib_resources`.
     import importlib_resources as pkg_resources
 
-from .import resources
+from . import resources
 
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
@@ -182,7 +182,7 @@ class ReadMe(Section):  # Level 0
         return cls(path, lines, structure)
 
     @classmethod
-    def from_string(cls, string: str, structure: dict = None, root_name:str="root"):
+    def from_string(cls, string: str, structure: dict = None, root_name: str = "root"):
         lines = string.split("\n")
         return cls(root_name, lines, structure)
 
@@ -197,9 +197,9 @@ class ReadMe(Section):  # Level 0
                 tag_count += 1
                 if tag_count == 2:
                     break
-            line_count+=1
+            line_count += 1
 
-        self.lines = self.lines[line_count+1:]  # Get the last + 1 th item.
+        self.lines = self.lines[line_count + 1 :]  # Get the last + 1 th item.
         super().parse()
 
     def __str__(self):
