@@ -775,6 +775,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = copy.deepcopy(dset.features)
         new_features[column] = dst_feat

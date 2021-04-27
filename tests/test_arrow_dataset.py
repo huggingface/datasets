@@ -1975,7 +1975,7 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
     dataset = dataset_to_test.add_item(item)
     assert dataset.data.shape == (5, 3)
     expected_features = dataset_to_test.features
-    assert dataset.data.column_names == list(expected_features.keys())
+    assert sorted(dataset.data.column_names) == sorted(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature] == expected_dtype
     assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
