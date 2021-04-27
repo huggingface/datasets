@@ -2880,9 +2880,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None:
             indices_table = None
         else:
-            new_indices_array = pa.array([len(self._data)], type=pa.uint64())
-            new_indices_table = InMemoryTable.from_arrays([new_indices_array], names=["indices"])
-            indices_table = concat_tables([self._indices, new_indices_table])
+            item_indices_array = pa.array([len(self._data)], type=pa.uint64())
+            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
+            indices_table = concat_tables([self._indices, item_indices_table])
         return Dataset(
             table,
             info=copy.deepcopy(self.info),
