@@ -738,13 +738,20 @@ class DatasetBuilder:
         datasets = utils.map_nested(
             partial(
                 self._build_single_dataset,
-                run_post_process=run_post_process,
-                ignore_verifications=ignore_verifications,
                 in_memory=in_memory,
             ),
             split,
             map_tuple=True,
         )
+        if run_post_process:
+            datasets = utils.map_nested(
+                partial(
+                    self._run_post_process,
+                    ignore_verifications=ignore_verifications,
+                ),
+                datasets,
+                map_tuple=True,
+            )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
         return datasets
@@ -752,8 +759,6 @@ class DatasetBuilder:
     def _build_single_dataset(
         self,
         split: Union[str, ReadInstruction, Split],
-        run_post_process: bool,
-        ignore_verifications: bool,
         in_memory: bool = False,
     ):
         """as_dataset for a single split."""
@@ -768,12 +773,10 @@ class DatasetBuilder:
             split=split,
             in_memory=in_memory,
         )
-        if run_post_process:
-            ds = self._run_post_process(ds, ignore_verifications)
 
         return ds
 
-    def _run_post_process(self, ds, ignore_verifications):
+    def _run_post_process(self, ds, ignore_verifications=False):
         verify_infos = not ignore_verifications
         for resource_file_name in self._post_processing_resources(ds.split).values():
             if os.sep in resource_file_name:
