@@ -491,7 +491,7 @@ class DatasetBuilder:
                 if not download_config.cache_dir:
                     download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
                 if download_config._is_force_download_default:
-                    download_config.force_download = bool(download_mode == FORCE_REDOWNLOAD)
+                    download_config.force_download = bool(download_mode == GenerateMode.FORCE_REDOWNLOAD)
                 if download_config._is_use_etag_default:
                     download_config.use_etag = False
                 if download_config.use_auth_token is None:
