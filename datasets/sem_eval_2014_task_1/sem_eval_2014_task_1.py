@@ -108,7 +108,7 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "r", encoding="us-ascii") as file:
             lines = file.readlines()
 

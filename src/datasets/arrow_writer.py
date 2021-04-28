@@ -198,7 +198,7 @@ class ArrowWriter:
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
     def __len__(self):
-        """ Return the number of writed and staged examples """
+        """Return the number of writed and staged examples"""
         return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
     def __enter__(self):

@@ -131,7 +131,7 @@ class FewRel(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, pid2name, return_names):
-        """ Yields examples. """
+        """Yields examples."""
         pid2name_dict = {}
         with open(pid2name, encoding="utf-8") as f:
             data = json.load(f)

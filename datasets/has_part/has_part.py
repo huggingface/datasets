@@ -102,7 +102,7 @@ class HasPart(datasets.GeneratorBasedBuilder):
         return dd
 
     def _generate_examples(self, input_file, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(input_file, encoding="utf-8") as f:
             for id_, line in enumerate(f):
                 _, arg1, arg2, score, metadata = line.split("\t")

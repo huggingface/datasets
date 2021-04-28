@@ -246,7 +246,7 @@ class Omp(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         if self.config.name in ["posts_labeled", "posts_unlabeled"]:
             posts_labeled = pd.read_csv(

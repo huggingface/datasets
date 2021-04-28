@@ -14,7 +14,9 @@ Main classes
 The base class :class:`datasets.Dataset` implements a Dataset backed by an Apache Arrow table.
 
 .. autoclass:: datasets.Dataset
-    :members: from_file, from_buffer, from_pandas, from_dict,
+    :members:
+        add_item,
+        from_file, from_buffer, from_pandas, from_dict,
         data, cache_files, num_columns, num_rows, column_names, shape,
         unique,
         flatten_, cast_, remove_columns_, rename_column_,

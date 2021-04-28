@@ -183,7 +183,7 @@ class PAWS(datasets.GeneratorBasedBuilder):
             raise NotImplementedError("{} does not exist".format(self.config.name))
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="\t")

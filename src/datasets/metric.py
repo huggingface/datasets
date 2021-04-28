@@ -72,7 +72,7 @@ class MetricInfoMixin:
 
     @property
     def info(self):
-        """ :class:`datasets.MetricInfo` object containing all the metadata in the metric."""
+        """:class:`datasets.MetricInfo` object containing all the metadata in the metric."""
         return self._metric_info
 
     @property
@@ -233,7 +233,7 @@ class Metric(MetricInfoMixin):
         return builder_data_dir
 
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
-        """ Create a new cache file. If the default cache file is used, we generated a new hash. """
+        """Create a new cache file. If the default cache file is used, we generated a new hash."""
         file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
         filelock = None
         for i in range(self.max_concurrent_cache_files):
@@ -547,7 +547,7 @@ class Metric(MetricInfoMixin):
         return None
 
     def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
-        """ This method defines the common API for all the metrics in the library """
+        """This method defines the common API for all the metrics in the library"""
         raise NotImplementedError
 
     def __del__(self):

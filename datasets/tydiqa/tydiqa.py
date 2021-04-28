@@ -41,7 +41,7 @@ _SECONDARY_URLS = {
 
 class TydiqaConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Tydiqa"""
+    """BuilderConfig for Tydiqa"""
 
     def __init__(self, **kwargs):
         """

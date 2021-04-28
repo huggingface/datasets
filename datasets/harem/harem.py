@@ -125,7 +125,7 @@ def reconstruct_text_from_tokens(tokens: List[Token], include_last_tail: bool = 
 
 
 def tokenize(text: str) -> Tuple[List[Token], List[int]]:
-    """ Perform whitespace and punctuation tokenization keeping track of char alignment"""
+    """Perform whitespace and punctuation tokenization keeping track of char alignment"""
     doc_tokens = []
     char_to_word_offset = []
 
@@ -248,7 +248,7 @@ class HAREM(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         logger.info("⏳ Generating examples from = %s", filepath)
 
