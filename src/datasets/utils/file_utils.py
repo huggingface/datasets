@@ -242,7 +242,7 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
-    only_splits: Optional[list] = None
+    splits: Optional[list] = None
 
     def __post_init__(self):
         if self.use_etag is None:

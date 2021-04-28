@@ -248,7 +248,7 @@ def test_load_dataset_local_with_default_in_memory(
 
 class TestLoadDatasetOnlySplits:
     def test_load_dataset_local_only_splits_processed_files(self, dataset_loading_script_dir, data_dir, tmp_path):
-        download_config = DownloadConfig(only_splits=["test"])
+        download_config = DownloadConfig(splits=["test"])
         cache_dir = str(tmp_path / "cache")
         datasetdict = datasets.load_dataset(
             dataset_loading_script_dir,
@@ -267,7 +267,7 @@ class TestLoadDatasetOnlySplits:
         assert len(generated_arrow_files) == 1
 
     def test_load_dataset_from_hub_only_splits_downloaded_files(self, tmp_path):
-        download_config = DownloadConfig(only_splits=["train"])
+        download_config = DownloadConfig(splits=["train"])
         cache_dir = str(tmp_path / "cache")
         datasetdict = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=cache_dir, download_config=download_config)
         assert isinstance(datasetdict, DatasetDict)
