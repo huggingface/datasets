@@ -48,6 +48,8 @@ class Section:
         self.text = ""
         self.is_empty = True
         self.content = {}
+        self.parsing_error_list = []
+        self.parsing_warning_list = []
         if self.lines is not None:
             self.parse()
 
@@ -77,8 +79,8 @@ class Section:
         else:
             if current_sub_level != "":
                 if current_sub_level in self.content:
-                    print(
-                        f"Multiple sections with the same heading '{current_sub_level}' have been found. Using the latest one found."
+                    self.parsing_error_list.append(
+                        f"Multiple sections with the same heading '{current_sub_level}' have been found. Please keep only one of these sections."
                     )
                 self.content[current_sub_level] = Section(current_sub_level, self.level + "#", current_lines)
             else:
@@ -103,9 +105,7 @@ class Section:
             # If header text is expected
             if self.is_empty:
                 # If no header text is found, mention it in the error_list
-                error_list.append(
-                    f"Expected some header text for section '{self.name}', reference at {known_readme_structure_url}."
-                )
+                error_list.append(f"Expected some header text for section '{self.name}'.")
 
         # Subsections Validation
         if structure["subsections"] is not None:
@@ -114,18 +114,14 @@ class Section:
                 # If no subsections are present
                 values = [subsection["name"] for subsection in structure["subsections"]]
                 # Mention the expected values in the error_list
-                error_list.append(
-                    f"Section '{self.name}' expected the following subsections: {values}, found `None`, reference at {known_readme_structure_url}."
-                )
+                error_list.append(f"Section '{self.name}' expected the following subsections: {values}, found `None`.")
             else:
                 # If some subsections are present
                 structure_names = [subsection["name"] for subsection in structure["subsections"]]
                 for idx, name in enumerate(structure_names):
                     if name not in self.content:
                         # If the expected subsection is not present
-                        error_list.append(
-                            f"Section '{self.name}' is missing subsection: '{name}', reference at {known_readme_structure_url}."
-                        )
+                        error_list.append(f"Section '{self.name}' is missing subsection: '{name}'.")
                     else:
                         # If the subsection is present, validate subsection, return the result
                         # and concat the errors from subsection to section error_list
@@ -141,6 +137,8 @@ class Section:
                         warning_list.append(
                             f"'{self.name}' has an extra subsection: '{name}'. Skipping further validation checks for this subsection as expected structure is unknown."
                         )
+        error_list = self.parsing_error_list + error_list
+        warning_list = self.parsing_warning_list + warning_list
         if error_list:
             # If there are errors, do not return the dictionary as it is invalid
             return {}, error_list, warning_list
@@ -162,14 +160,19 @@ class ReadMe(Section):  # Level 0
         super().__init__(name=name, level="")  # Not using lines here as we need to use a child class parse
         self.structure = structure
         self.yaml_tags_line_count = -2
+        self.tag_count = 0
         self.lines = lines
         if self.lines is not None:
             self.parse()
+
+        # Validation
         if self.structure is None:
             content, error_list, warning_list = self.validate(readme_structure)
         else:
             content, error_list, warning_list = self.validate(self.structure)
 
+        error_list = self.parsing_error_list + error_list
+        warning_list = self.parsing_warning_list + warning_list
         if error_list != [] or warning_list != []:
             errors = "\n".join(list(map(lambda x: "-\t" + x, error_list + warning_list)))
             error_string = f"The following issues were found for the README at `{self.name}`:\n" + errors
@@ -188,18 +191,19 @@ class ReadMe(Section):  # Level 0
 
     def parse(self):
         # Skip Tags
-        tag_count = 0
         line_count = 0
 
         for line in self.lines:
             self.yaml_tags_line_count += 1
             if line.strip(" \n") == "---":
-                tag_count += 1
-                if tag_count == 2:
+                self.tag_count += 1
+                if self.tag_count == 2:
                     break
             line_count += 1
-
-        self.lines = self.lines[line_count + 1 :]  # Get the last + 1 th item.
+        if self.tag_count == 2:
+            self.lines = self.lines[line_count + 1 :]  # Get the last + 1 th item.
+        else:
+            self.lines = self.lines[self.tag_count :]
         super().parse()
 
     def __str__(self):
@@ -210,21 +214,23 @@ class ReadMe(Section):  # Level 0
         error_list = []
         warning_list = []
         if self.yaml_tags_line_count == 0:
-            warning_list.append(f"YAML Tags are not present in the README at `{self.name}`.")
-        elif self.yaml_tags_line_count == -1:
-            warning_list.append(f"Only the start of YAML tags present in the README at `{self.name}`.")
-
+            warning_list.append("Empty YAML markers are present in the README.")
+        elif self.tag_count == 0:
+            warning_list.append("No YAML markers are present in the README.")
+        elif self.tag_count == 1:
+            warning_list.append("Only the start of YAML tags present in the README.")
         # Check how many first level sections are present.
         num_first_level_keys = len(self.content.keys())
+        print(self.content)
         if num_first_level_keys > 1:
             # If more than one, add to the error list, continue
             error_list.append(
-                f"The README present at `{self.name}` has found several first-level headings: {list(self.content.keys())}. Only one heading is expected. Skipping further validation for this README."
+                f"The README has several first-level headings: {list(self.content.keys())}. Only one heading is expected. Skipping further validation for this README."
             )
         elif num_first_level_keys < 1:
             # If less than one, append error.
             error_list.append(
-                f"The README present as `{self.name}` has no first-level headings. One heading is expected. Skipping further validation for this README."
+                f"The README has no first-level headings. One heading is expected. Skipping further validation for this README."
             )
 
         else:
@@ -241,7 +247,7 @@ class ReadMe(Section):  # Level 0
             else:
                 # If not found, append error
                 error_list.append(
-                    f"No first-level heading starting with `Dataset Card for` found in README present at `{self.name}`. Skipping further validation for this README."
+                    f"No first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
                 )
         if error_list:
             # If there are errors, do not return the dictionary as it is invalid
