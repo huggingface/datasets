@@ -30,7 +30,7 @@ class CacheManager:
 
     def _build_a_dataset(
         self,
-        split: Union[str, ReadInstruction, Split],
+        split: Union[str, ReadInstruction, Split] = Split.TRAIN,
         in_memory: bool = False,
         info=None,
         name=None,
@@ -39,39 +39,11 @@ class CacheManager:
         if isinstance(split, str):
             split = Split(split)
         # Build base dataset
-        ds = self._as_dataset(
-            split=split,
-            in_memory=in_memory,
-            info=info,
-            name=name,
-        )
-        return ds
-
-    def _as_dataset(
-        self,
-        split: Union[ReadInstruction, Split] = Split.TRAIN,
-        in_memory: bool = False,
-        info=None,
-        name=None,
-    ) -> Dataset:
-        """Constructs a `Dataset`.
-
-        This is the internal implementation to overwrite called when user calls
-        `as_dataset`. It should read the pre-processed datasets files and generate
-        the `Dataset` object.
-
-        Args:
-            split: `datasets.Split` which subset of the data to read.
-            in_memory (bool, default False): Whether to copy the data in-memory.
-
-        Returns:
-            `Dataset`
-        """
-
         dataset_kwargs = ArrowReader(self.cache_dir, info).read(
             name=name,
             instructions=split,
             split_infos=info.splits.values(),
             in_memory=in_memory,
         )
-        return Dataset(**dataset_kwargs)
+        ds = Dataset(**dataset_kwargs)
+        return ds
