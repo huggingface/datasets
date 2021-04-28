@@ -769,18 +769,18 @@ class DatasetBuilder:
             in_memory=in_memory,
         )
         if run_post_process:
-            ds = self._run_post_process(ds, ignore_verifications, split)
+            ds = self._run_post_process(ds, ignore_verifications)
 
         return ds
 
-    def _run_post_process(self, ds, ignore_verifications, split):
+    def _run_post_process(self, ds, ignore_verifications):
         verify_infos = not ignore_verifications
-        for resource_file_name in self._post_processing_resources(split).values():
+        for resource_file_name in self._post_processing_resources(ds.split).values():
             if os.sep in resource_file_name:
                 raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
         resources_paths = {
             resource_name: os.path.join(self._cache_dir, resource_file_name)
-            for resource_name, resource_file_name in self._post_processing_resources(split).items()
+            for resource_name, resource_file_name in self._post_processing_resources(ds.split).items()
         }
         post_processed = self._post_process(ds, resources_paths)
         if post_processed is not None:
@@ -793,13 +793,13 @@ class DatasetBuilder:
                 if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
                     expected_checksums = None
                 else:
-                    expected_checksums = self.info.post_processed.resources_checksums.get(split)
+                    expected_checksums = self.info.post_processed.resources_checksums.get(ds.split)
                 verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
             if self.info.post_processed is None:
                 self.info.post_processed = PostProcessedInfo()
             if self.info.post_processed.resources_checksums is None:
                 self.info.post_processed.resources_checksums = {}
-            self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
+            self.info.post_processed.resources_checksums[str(ds.split)] = recorded_checksums
             self.info.post_processing_size = sum(
                 checksums_dict["num_bytes"]
                 for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
