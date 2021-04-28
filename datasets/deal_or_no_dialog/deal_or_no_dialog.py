@@ -91,9 +91,9 @@ class DealOrNoDialog(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         if self.config.name == "dialogues":
-            path_train = dl_manager.download_and_extract(_URLs["train"])
-            path_test = dl_manager.download_and_extract(_URLs["test"])
-            path_val = dl_manager.download_and_extract(_URLs["val"])
+            path_train = dl_manager.download(_URLs["train"])
+            path_test = dl_manager.download(_URLs["test"])
+            path_val = dl_manager.download(_URLs["val"])
 
             return [
                 datasets.SplitGenerator(

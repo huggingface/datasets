@@ -83,7 +83,7 @@ class Arcd(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         urls_to_download = _URLs
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

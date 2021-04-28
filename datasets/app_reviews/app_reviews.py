@@ -58,7 +58,7 @@ class AppReviews(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
+        train_path = dl_manager.download(_TRAIN_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
         ]

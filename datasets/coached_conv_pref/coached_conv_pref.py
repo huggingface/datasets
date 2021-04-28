@@ -122,7 +122,7 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = dl_manager.download_and_extract(_URLs)
+        data_dir = dl_manager.download(_URLs)
 
         # Dataset is a single corpus (does not contain any split)
         return [

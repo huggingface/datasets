@@ -118,7 +118,7 @@ class Codah(datasets.GeneratorBasedBuilder):
             "dev": base_url + "dev.tsv",
             "test": base_url + "test.tsv",
         }
-        downloaded_files = dl_manager.download_and_extract(_urls)
+        downloaded_files = dl_manager.download(_urls)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_file": downloaded_files["train"]}),

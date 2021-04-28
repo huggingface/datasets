@@ -107,7 +107,7 @@ class Amttl(datasets.GeneratorBasedBuilder):
             "dev": f"{_URL}{_DEV_FILE}",
             "test": f"{_URL}{_TEST_FILE}",
         }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

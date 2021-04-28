@@ -95,7 +95,7 @@ class BingCoronavirusQuerySet(datasets.GeneratorBasedBuilder):
             return _BASE_URL.format(queries_by, start_date, end_date)
 
         download_url = _base_url(self.config.queries_by, self.config.start_date, self.config.end_date)
-        path = dl_manager.download_and_extract(download_url)
+        path = dl_manager.download(download_url)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

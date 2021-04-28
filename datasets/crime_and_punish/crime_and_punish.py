@@ -59,7 +59,7 @@ class CrimeAndPunish(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         if self.config.name == "crime-and-punish":
-            data = dl_manager.download_and_extract(self.config.data_url)
+            data = dl_manager.download(self.config.data_url)
 
             return [
                 datasets.SplitGenerator(

@@ -59,9 +59,9 @@ class AcronymIdentification(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        train_path = dl_manager.download_and_extract(_TRAIN_URL)
-        valid_path = dl_manager.download_and_extract(_VALID_URL)
-        test_path = dl_manager.download_and_extract(_TEST_URL)
+        train_path = dl_manager.download(_TRAIN_URL)
+        valid_path = dl_manager.download(_VALID_URL)
+        test_path = dl_manager.download(_TEST_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

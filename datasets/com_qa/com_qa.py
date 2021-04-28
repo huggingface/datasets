@@ -82,7 +82,7 @@ class ComQa(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = _URLS
-        dl_dir = dl_manager.download_and_extract(urls_to_download)
+        dl_dir = dl_manager.download(urls_to_download)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

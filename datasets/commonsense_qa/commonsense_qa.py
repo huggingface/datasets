@@ -71,7 +71,7 @@ class CommonsenseQa(datasets.GeneratorBasedBuilder):
 
         download_urls = _URLS
 
-        downloaded_files = dl_manager.download_and_extract(download_urls)
+        downloaded_files = dl_manager.download(download_urls)
 
         return [
             datasets.SplitGenerator(

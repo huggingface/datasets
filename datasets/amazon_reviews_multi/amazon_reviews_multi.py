@@ -112,9 +112,9 @@ class AmazonReviewsMulti(datasets.GeneratorBasedBuilder):
         dev_urls = [_DOWNLOAD_URL.format(split="dev", lang=lang) for lang in self.config.languages]
         test_urls = [_DOWNLOAD_URL.format(split="test", lang=lang) for lang in self.config.languages]
 
-        train_paths = dl_manager.download_and_extract(train_urls)
-        dev_paths = dl_manager.download_and_extract(dev_urls)
-        test_paths = dl_manager.download_and_extract(test_urls)
+        train_paths = dl_manager.download(train_urls)
+        dev_paths = dl_manager.download(dev_urls)
+        test_paths = dl_manager.download(test_urls)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"file_paths": train_paths}),

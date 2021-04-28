@@ -108,7 +108,7 @@ class C3(datasets.GeneratorBasedBuilder):
         # m or d
         T = self.config.type_[0]
         files = [_URL + f"c3-{T}-{split}.json" for split in ["train", "test", "dev"]]
-        dl_dir = dl_manager.download_and_extract(files)
+        dl_dir = dl_manager.download(files)
 
         return [
             datasets.SplitGenerator(

@@ -151,8 +151,8 @@ class Banking77(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
-        test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
+        train_path = dl_manager.download(_TRAIN_DOWNLOAD_URL)
+        test_path = dl_manager.download(_TEST_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),

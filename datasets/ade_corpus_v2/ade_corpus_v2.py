@@ -158,9 +158,9 @@ class ADECorpusV2(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        DAE_path = dl_manager.download_and_extract(_DOWNLOAD_URL.format("DRUG", "AE", "rel"))
-        DD_path = dl_manager.download_and_extract(_DOWNLOAD_URL.format("DRUG", "DOSE", "rel"))
-        DAE_NEG_path = dl_manager.download_and_extract(_DOWNLOAD_URL.format("ADE", "NEG", "txt"))
+        DAE_path = dl_manager.download(_DOWNLOAD_URL.format("DRUG", "AE", "rel"))
+        DD_path = dl_manager.download(_DOWNLOAD_URL.format("DRUG", "DOSE", "rel"))
+        DAE_NEG_path = dl_manager.download(_DOWNLOAD_URL.format("ADE", "NEG", "txt"))
 
         return [
             datasets.SplitGenerator(

@@ -166,7 +166,7 @@ class Blimp(datasets.GeneratorBasedBuilder):
         cfg = self.config
         download_urls = {cfg.name: _DOWNLOAD_URL + f"data/{cfg.name}.jsonl"}
 
-        downloaded_files = dl_manager.download_and_extract(download_urls)
+        downloaded_files = dl_manager.download(download_urls)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})

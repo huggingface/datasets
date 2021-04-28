@@ -68,9 +68,9 @@ class CrawlDomain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        train_path = dl_manager.download_and_extract(_URLs["train"])
-        test_path = dl_manager.download_and_extract(_URLs["test"])
-        dev_path = dl_manager.download_and_extract(_URLs["dev"])
+        train_path = dl_manager.download(_URLs["train"])
+        test_path = dl_manager.download(_URLs["test"])
+        dev_path = dl_manager.download(_URLs["dev"])
 
         return [
             datasets.SplitGenerator(

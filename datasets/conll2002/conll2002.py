@@ -185,7 +185,7 @@ class Conll2002(datasets.GeneratorBasedBuilder):
             "dev": f"{_URL}{_ES_DEV_FILE if self.config.name == 'es' else _NL_DEV_FILE}",
             "test": f"{_URL}{_ES_TEST_FILE if self.config.name == 'es' else _NL_TEST_FILE}",
         }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

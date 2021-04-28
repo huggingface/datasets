@@ -116,7 +116,7 @@ class Ethos(datasets.GeneratorBasedBuilder):
                 "train": "https://raw.githubusercontent.com/intelligence-csd-auth-gr/Ethos-Hate-Speech-Dataset"
                 "/master/ethos/ethos_data/Ethos_Dataset_Multi_Label.csv"
             }
-        downloaded_files = dl_manager.download_and_extract(url)
+        downloaded_files = dl_manager.download(url)
 
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]})]
 

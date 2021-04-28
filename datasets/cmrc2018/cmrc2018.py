@@ -83,7 +83,7 @@ class Cmrc2018(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {"train": _TRAIN_FILE, "dev": _DEV_FILE, "test": _TEST_FILE}
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

@@ -68,7 +68,6 @@ class CovidTweetsJapanese(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         my_urls = _URLs["url"]
-        # data_url = dl_manager.download_and_extract(my_urls)
         data_url = dl_manager.download(my_urls)
 
         return [
