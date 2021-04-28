@@ -760,12 +760,11 @@ class DatasetBuilder:
             split = Split(split)
 
         # Build base dataset
-        ds = CacheManager()._as_dataset(
-            self._cache_dir,
-            self.info,
-            self.name,
+        ds = CacheManager(cache_dir=self._cache_dir)._as_dataset(
             split=split,
             in_memory=in_memory,
+            info=self.info,
+            name=self.name,
         )
 
         return ds

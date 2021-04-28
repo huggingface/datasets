@@ -6,8 +6,15 @@ from datasets.splits import Split
 
 
 class CacheManager:
+    def __init__(self, cache_dir=None):
+        self.cache_dir = cache_dir
+
     def _as_dataset(
-        self, _cache_dir, info, name, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False
+        self,
+        split: Union[ReadInstruction, Split] = Split.TRAIN,
+        in_memory: bool = False,
+        info=None,
+        name=None,
     ) -> Dataset:
         """Constructs a `Dataset`.
 
@@ -23,7 +30,7 @@ class CacheManager:
             `Dataset`
         """
 
-        dataset_kwargs = ArrowReader(_cache_dir, info).read(
+        dataset_kwargs = ArrowReader(self.cache_dir, info).read(
             name=name,
             instructions=split,
             split_infos=info.splits.values(),
