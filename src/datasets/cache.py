@@ -9,6 +9,25 @@ class CacheManager:
     def __init__(self, cache_dir=None):
         self.cache_dir = cache_dir
 
+    def _build_a_dataset(
+        self,
+        split: Union[str, ReadInstruction, Split],
+        in_memory: bool = False,
+        info=None,
+        name=None,
+    ):
+        """as_dataset for a single split."""
+        if isinstance(split, str):
+            split = Split(split)
+        # Build base dataset
+        ds = self._as_dataset(
+            split=split,
+            in_memory=in_memory,
+            info=info,
+            name=name,
+        )
+        return ds
+
     def _as_dataset(
         self,
         split: Union[ReadInstruction, Split] = Split.TRAIN,

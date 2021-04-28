@@ -746,28 +746,15 @@ class DatasetBuilder:
         # Create a dataset for each of the given splits
         datasets = utils.map_nested(
             partial(
-                self._build_a_dataset,
+                CacheManager(cache_dir=self._cache_dir)._build_a_dataset,
                 in_memory=in_memory,
+                info=self.info,
+                name=self.name,
             ),
             split,
             map_tuple=True,
         )
         return datasets
-
-    def _build_a_dataset(self, split: Union[str, ReadInstruction, Split], in_memory: bool = False):
-        """as_dataset for a single split."""
-        if isinstance(split, str):
-            split = Split(split)
-
-        # Build base dataset
-        ds = CacheManager(cache_dir=self._cache_dir)._as_dataset(
-            split=split,
-            in_memory=in_memory,
-            info=self.info,
-            name=self.name,
-        )
-
-        return ds
 
     def _run_post_process(self, datasets, ignore_verifications: bool = False):
         datasets = utils.map_nested(
