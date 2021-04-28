@@ -34,6 +34,7 @@ from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
 from .arrow_writer import ArrowWriter, BeamWriter
+from .cache import CacheManager
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
@@ -761,7 +762,10 @@ class DatasetBuilder:
             split = Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(
+        ds = CacheManager()._as_dataset(
+            self._cache_dir,
+            self.info,
+            self.name,
             split=split,
             in_memory=in_memory,
         )
@@ -815,29 +819,6 @@ class DatasetBuilder:
                         ds.info.features = self.info.post_processed.features
 
         return ds
-
-    def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
-        """Constructs a `Dataset`.
-
-        This is the internal implementation to overwrite called when user calls
-        `as_dataset`. It should read the pre-processed datasets files and generate
-        the `Dataset` object.
-
-        Args:
-            split: `datasets.Split` which subset of the data to read.
-            in_memory (bool, default False): Whether to copy the data in-memory.
-
-        Returns:
-            `Dataset`
-        """
-
-        dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name,
-            instructions=split,
-            split_infos=self.info.splits.values(),
-            in_memory=in_memory,
-        )
-        return Dataset(**dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
