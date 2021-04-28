@@ -649,7 +649,13 @@ class DatasetBuilder:
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        try:
+            split_generators = self._split_generators(
+                dl_manager, splits=dl_manager._download_config.splits, **split_generators_kwargs
+            )
+        except TypeError:
+            split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        # For downloaded splits not filtered by self._split_generators, filter now to avoid caching at least
         if dl_manager._download_config.splits:
             split_generators = [
                 split_generator
