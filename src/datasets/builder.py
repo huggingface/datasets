@@ -32,7 +32,7 @@ from datasets.utils.mock_download_manager import MockDownloadManager
 
 from . import config, utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
+from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .cache import CacheManager
 from .dataset_dict import DatasetDict
@@ -730,30 +730,15 @@ class DatasetBuilder:
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
-        datasets = self._build_dataset(split, in_memory)
+        datasets = CacheManager(cache_dir=self._cache_dir)._build_dataset(
+            split, in_memory=in_memory, info=self.info, name=self.name
+        )
 
         if run_post_process:
             datasets = self._run_post_process(datasets, ignore_verifications)
 
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
-        return datasets
-
-    def _build_dataset(self, split: Union[str, ReadInstruction, Split], in_memory: bool = False):
-        # By default, return all splits
-        if split is None:
-            split = {s: s for s in self.info.splits}
-        # Create a dataset for each of the given splits
-        datasets = utils.map_nested(
-            partial(
-                CacheManager(cache_dir=self._cache_dir)._build_a_dataset,
-                in_memory=in_memory,
-                info=self.info,
-                name=self.name,
-            ),
-            split,
-            map_tuple=True,
-        )
         return datasets
 
     def _run_post_process(self, datasets, ignore_verifications: bool = False):
