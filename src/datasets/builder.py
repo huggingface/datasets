@@ -737,7 +737,7 @@ class DatasetBuilder:
         # Create a dataset for each of the given splits
         datasets = utils.map_nested(
             partial(
-                self._build_single_dataset,
+                self._build_a_dataset,
                 in_memory=in_memory,
             ),
             split,
@@ -746,7 +746,7 @@ class DatasetBuilder:
         if run_post_process:
             datasets = utils.map_nested(
                 partial(
-                    self._run_post_process,
+                    self._run_a_post_process,
                     ignore_verifications=ignore_verifications,
                 ),
                 datasets,
@@ -756,7 +756,7 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(
+    def _build_a_dataset(
         self,
         split: Union[str, ReadInstruction, Split],
         in_memory: bool = False,
@@ -776,7 +776,7 @@ class DatasetBuilder:
 
         return ds
 
-    def _run_post_process(self, ds, ignore_verifications=False):
+    def _run_a_post_process(self, ds, ignore_verifications=False):
         verify_infos = not ignore_verifications
         for resource_file_name in self._post_processing_resources(ds.split).values():
             if os.sep in resource_file_name:
