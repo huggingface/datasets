@@ -36,6 +36,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
+from . import config
 from .features import Features, Value
 from .splits import SplitDict
 from .utils import Version
@@ -43,12 +44,6 @@ from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
-
-# Name of the file to output the DatasetInfo p rotobuf object.
-DATASET_INFO_FILENAME = "dataset_info.json"
-DATASET_INFOS_DICT_FILE_NAME = "dataset_infos.json"
-LICENSE_FILENAME = "LICENSE"
-METRIC_INFO_FILENAME = "metric_info.json"
 
 
 @dataclass
@@ -156,17 +151,17 @@ class DatasetInfo:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
 
     def _license_path(self, dataset_info_dir):
-        return os.path.join(dataset_info_dir, LICENSE_FILENAME)
+        return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir):
         """Write `DatasetInfo` as JSON to `dataset_info_dir`.
 
         Also save the license separately in LICENCE.
         """
-        with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "wb") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f)
 
-        with open(os.path.join(dataset_info_dir, LICENSE_FILENAME), "wb") as f:
+        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
             self._dump_license(f)
 
     def _dump_info(self, file):
@@ -220,7 +215,7 @@ class DatasetInfo:
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
@@ -246,7 +241,7 @@ class DatasetInfo:
 class DatasetInfosDict(dict):
     def write_to_directory(self, dataset_infos_dir, overwrite=False):
         total_dataset_infos = {}
-        dataset_infos_path = os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME)
+        dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
             logger.info("Dataset Infos already exists in {}. Completing it with new infos.".format(dataset_infos_dir))
             total_dataset_infos = self.from_directory(dataset_infos_dir)
@@ -259,7 +254,7 @@ class DatasetInfosDict(dict):
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
-        with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -308,10 +303,10 @@ class MetricInfo:
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
         """
-        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, LICENSE_FILENAME), "w", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
             f.write(self.license)
 
     @classmethod
@@ -326,7 +321,7 @@ class MetricInfo:
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 
