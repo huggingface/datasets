@@ -185,6 +185,7 @@ EXTRAS_REQUIRE = {
         "botocore==1.19.52",
         _deps["s3fs"],
     ],
+    "streaming": ["aiohttp"],
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
