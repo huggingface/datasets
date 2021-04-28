@@ -757,7 +757,6 @@ class DatasetBuilder:
         in_memory: bool = False,
     ):
         """as_dataset for a single split."""
-        verify_infos = not ignore_verifications
         if isinstance(split, str):
             split = Split(split)
 
@@ -770,54 +769,59 @@ class DatasetBuilder:
             in_memory=in_memory,
         )
         if run_post_process:
-            for resource_file_name in self._post_processing_resources(split).values():
-                if os.sep in resource_file_name:
-                    raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
-            resources_paths = {
-                resource_name: os.path.join(self._cache_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources(split).items()
-            }
-            post_processed = self._post_process(ds, resources_paths)
-            if post_processed is not None:
-                ds = post_processed
-                recorded_checksums = {}
-                for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
-                    recorded_checksums[resource_name] = size_checksum
-                if verify_infos:
-                    if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
-                        expected_checksums = None
-                    else:
-                        expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
-                if self.info.post_processed is None:
-                    self.info.post_processed = PostProcessedInfo()
-                if self.info.post_processed.resources_checksums is None:
-                    self.info.post_processed.resources_checksums = {}
-                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
-                self.info.post_processing_size = sum(
-                    checksums_dict["num_bytes"]
-                    for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
-                    for checksums_dict in split_checksums_dicts.values()
-                )
-                if self.info.dataset_size is not None and self.info.download_size is not None:
-                    self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
-                    )
-                self._save_info()
-                ds._info.post_processed = self.info.post_processed
-                ds._info.post_processing_size = self.info.post_processing_size
-                ds._info.size_in_bytes = self.info.size_in_bytes
-                if self.info.post_processed.features is not None:
-                    if self.info.post_processed.features.type != ds.features.type:
-                        raise ValueError(
-                            "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
-                                self.info.post_processed.features, ds.features
-                            )
-                        )
-                    else:
-                        ds.info.features = self.info.post_processed.features
+            ds = self._run_post_process(ds, ignore_verifications, split)
 
+        return ds
+
+    def _run_post_process(self, ds, ignore_verifications, split):
+        verify_infos = not ignore_verifications
+        for resource_file_name in self._post_processing_resources(split).values():
+            if os.sep in resource_file_name:
+                raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
+        resources_paths = {
+            resource_name: os.path.join(self._cache_dir, resource_file_name)
+            for resource_name, resource_file_name in self._post_processing_resources(split).items()
+        }
+        post_processed = self._post_process(ds, resources_paths)
+        if post_processed is not None:
+            ds = post_processed
+            recorded_checksums = {}
+            for resource_name, resource_path in resources_paths.items():
+                size_checksum = get_size_checksum_dict(resource_path)
+                recorded_checksums[resource_name] = size_checksum
+            if verify_infos:
+                if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
+                    expected_checksums = None
+                else:
+                    expected_checksums = self.info.post_processed.resources_checksums.get(split)
+                verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+            if self.info.post_processed is None:
+                self.info.post_processed = PostProcessedInfo()
+            if self.info.post_processed.resources_checksums is None:
+                self.info.post_processed.resources_checksums = {}
+            self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
+            self.info.post_processing_size = sum(
+                checksums_dict["num_bytes"]
+                for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
+                for checksums_dict in split_checksums_dicts.values()
+            )
+            if self.info.dataset_size is not None and self.info.download_size is not None:
+                self.info.size_in_bytes = (
+                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                )
+            self._save_info()
+            ds._info.post_processed = self.info.post_processed
+            ds._info.post_processing_size = self.info.post_processing_size
+            ds._info.size_in_bytes = self.info.size_in_bytes
+            if self.info.post_processed.features is not None:
+                if self.info.post_processed.features.type != ds.features.type:
+                    raise ValueError(
+                        "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                            self.info.post_processed.features, ds.features
+                        )
+                    )
+                else:
+                    ds.info.features = self.info.post_processed.features
         return ds
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
