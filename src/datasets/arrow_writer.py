@@ -182,6 +182,11 @@ class ArrowWriter:
         else:
             self._hasher = KeyHasher("")
 
+        if check_duplicates:
+            self._check_duplicates = True
+        else:
+            self._check_duplicates = False
+
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
 
@@ -268,12 +273,10 @@ class ArrowWriter:
         """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
-        if self.check_duplicates:
-            #Since current_examples will contain (key, example) pairs
-            cols = sorted(self.current_examples[0][1].keys())
-        else:
-            cols = sorted(self.current_examples[0].keys())
-            
+
+        #Since current_examples will contain (example, key) or (example, ) tuples
+        cols = sorted(self.current_examples[0][0].keys())
+
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
         arrays = []
@@ -282,7 +285,7 @@ class ArrowWriter:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(
-                [row[col] for key, row in self.current_examples], type=col_type, try_type=col_try_type, col=col
+                [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
@@ -315,20 +318,21 @@ class ArrowWriter:
             example: the Example to add.
             key: Optional, a unique identifier(str, int or bytes) associated with each example
         """
-        #Utilize the keys and duplicate checking when `check_duplicates` is passed True
-        if self.check_duplicates:
+        #Utilize the keys and duplicate checking when `self._check_duplicates` is passed True
+        if self._check_duplicates:
             #Create unique hash from key and store as (key, example) pairs
             hash = self._hasher.hash(key)
-            self.current_examples.append((hash, example))
+            self.current_examples.append((example, hash))
             #Maintain record of keys and their respective hashes for checking duplicates
             self.hkey_record.append((hash, key))
         else:
-            self.current_examples.append(example)
+            #Store example as a tuple so as to keep the structure of `self.current_examples` uniform
+            self.current_examples.append((example,))
 
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
-            if self.check_duplicates:
+            if self._check_duplicates:
                 self.check_duplicate_keys()
                 #Re-intializing to empty list for next batch
                 self.hkey_record = []
