@@ -57,7 +57,7 @@ _URLs["all"] = _URLs.copy()
 
 
 class CodeSearchNet(datasets.GeneratorBasedBuilder):
-    """"CodeSearchNet corpus: proxy dataset for semantic code search."""
+    """ "CodeSearchNet corpus: proxy dataset for semantic code search."""
 
     VERSION = datasets.Version("1.0.0", "Add CodeSearchNet corpus dataset")
     BUILDER_CONFIGS = [

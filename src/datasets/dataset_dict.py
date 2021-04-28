@@ -53,7 +53,7 @@ class DatasetDict(dict):
 
     @property
     def column_names(self) -> Dict[str, List[str]]:
-        """Names of the columns in each split of the dataset. """
+        """Names of the columns in each split of the dataset."""
         self._check_values_type()
         return {k: dataset.column_names for k, dataset in self.items()}
 

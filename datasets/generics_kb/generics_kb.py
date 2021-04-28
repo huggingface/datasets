@@ -52,7 +52,7 @@ _FILEPATHS = {
 
 
 class GenericsKb(datasets.GeneratorBasedBuilder):
-    """ The GenericsKB is the first large-scale resource containing naturally occurring generic sentences, and is rich in high-quality, general, semantically complete statements."""
+    """The GenericsKB is the first large-scale resource containing naturally occurring generic sentences, and is rich in high-quality, general, semantically complete statements."""
 
     VERSION = datasets.Version("1.0.0")
 
@@ -178,7 +178,7 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
 
         if self.config.name == "generics_kb_waterloo" or self.config.name == "generics_kb_simplewiki":
 

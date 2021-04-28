@@ -86,7 +86,7 @@ class SanskritClassic(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):

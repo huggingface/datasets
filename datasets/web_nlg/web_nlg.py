@@ -247,7 +247,7 @@ class WebNlg(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filedirs):
-        """ Yields examples. """
+        """Yields examples."""
 
         id_ = 0
         for xml_location in filedirs:

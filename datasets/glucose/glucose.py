@@ -50,7 +50,7 @@ _URLs = {
 
 
 class Glucose(datasets.GeneratorBasedBuilder):
-    """GLUCOSE: GeneraLized and COntextualized Story Explanations, is a novel conceptual framework and dataset for commonsense reasoning. """
+    """GLUCOSE: GeneraLized and COntextualized Story Explanations, is a novel conceptual framework and dataset for commonsense reasoning."""
 
     VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [

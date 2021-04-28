@@ -61,25 +61,20 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
     TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
     if TF_AVAILABLE:
         # For the metadata, we have to look for both tensorflow and tensorflow-cpu
-        try:
-            TF_VERSION = importlib_metadata.version("tensorflow")
-        except importlib_metadata.PackageNotFoundError:
+        for package in [
+            "tensorflow",
+            "tensorflow-cpu",
+            "tensorflow-gpu",
+            "tf-nightly",
+            "tf-nightly-cpu",
+            "tf-nightly-gpu",
+        ]:
             try:
-                TF_VERSION = importlib_metadata.version("tensorflow-cpu")
+                TF_VERSION = importlib_metadata.version(package)
             except importlib_metadata.PackageNotFoundError:
-                try:
-                    TF_VERSION = importlib_metadata.version("tensorflow-gpu")
-                except importlib_metadata.PackageNotFoundError:
-                    try:
-                        TF_VERSION = importlib_metadata.version("tf-nightly")
-                    except importlib_metadata.PackageNotFoundError:
-                        try:
-                            TF_VERSION = importlib_metadata.version("tf-nightly-cpu")
-                        except importlib_metadata.PackageNotFoundError:
-                            try:
-                                TF_VERSION = importlib_metadata.version("tf-nightly-gpu")
-                            except importlib_metadata.PackageNotFoundError:
-                                pass
+                continue
+            else:
+                break
     if TF_AVAILABLE:
         if version.parse(TF_VERSION) < version.parse("2"):
             logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
@@ -155,3 +150,9 @@ MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = 250 * 2 ** 20  # 250 MiB
 DATASET_ARROW_FILENAME = "dataset.arrow"
 DATASET_INDICES_FILENAME = "indices.arrow"
 DATASET_STATE_JSON_FILENAME = "state.json"
+DATASET_INFO_FILENAME = "dataset_info.json"
+DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
+LICENSE_FILENAME = "LICENSE"
+METRIC_INFO_FILENAME = "metric_info.json"
+
+MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
