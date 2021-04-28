@@ -807,7 +807,7 @@ class DatasetBuilder:
             )
             if self.info.dataset_size is not None and self.info.download_size is not None:
                 self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                    self.info.dataset_size + self.info.download_size + self.info.post_processing_size
                 )
             self._save_info()
             ds._info.post_processed = self.info.post_processed
