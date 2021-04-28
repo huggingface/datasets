@@ -158,6 +158,7 @@ class ArrowWriter:
         fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
         hash_salt: Optional[str] = None,
+        check_duplicates: Optional[bool] = False,
         disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
@@ -267,7 +268,12 @@ class ArrowWriter:
         """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
-        cols = sorted(self.current_examples[0][1].keys())
+        if self.check_duplicates:
+            #Since current_examples will contain (key, example) pairs
+            cols = sorted(self.current_examples[0][1].keys())
+        else:
+            cols = sorted(self.current_examples[0].keys())
+            
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
         arrays = []
@@ -302,28 +308,35 @@ class ArrowWriter:
         self.write_table(table)
         self.current_rows = []
 
-    def write(self, example: Dict[str, Any], key: Union[str, int, bytes], writer_batch_size: Optional[int] = None):
+    def write(self, example: Dict[str, Any], key: Optional[Union[str, int, bytes]], writer_batch_size: Optional[int] = None):
         """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
-            key: a unique identifier(str, int or bytes) associated with each example
+            key: Optional, a unique identifier(str, int or bytes) associated with each example
         """
-        #Create unique hash from key and store as (key, example) pairs
-        hash = self._hasher.hash(key)
-        self.current_examples.append((hash, example))
-        #Maintain record of keys and their respective hashes for checking duplicates
-        self.hkey_record.append((hash, key))
+        #Utilize the keys and duplicate checking when `check_duplicates` is passed True
+        if self.check_duplicates:
+            #Create unique hash from key and store as (key, example) pairs
+            hash = self._hasher.hash(key)
+            self.current_examples.append((hash, example))
+            #Maintain record of keys and their respective hashes for checking duplicates
+            self.hkey_record.append((hash, key))
+        else:
+            self.current_examples.append(example)
 
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
-            self.check_duplicates()
-            self.write_examples_on_file()
-            #Re-intializing to empty list for next batch
-            self.hkey_record = []
+            if self.check_duplicates:
+                self.check_duplicate_keys()
+                #Re-intializing to empty list for next batch
+                self.hkey_record = []
 
-    def check_duplicates(self):
+            self.write_examples_on_file()
+
+
+    def check_duplicate_keys(self):
         """Raises error if duplicates found in a batch"""
         tmp_record = set()
         for hash, key in self.hkey_record:
