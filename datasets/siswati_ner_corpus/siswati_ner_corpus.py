@@ -68,7 +68,7 @@ class SiswatiNerCorpusConfig(datasets.BuilderConfig):
 
 
 class SiswatiNerCorpus(datasets.GeneratorBasedBuilder):
-    """ SiswatiNerCorpus Ner dataset"""
+    """SiswatiNerCorpus Ner dataset"""
 
     BUILDER_CONFIGS = [
         SiswatiNerCorpusConfig(

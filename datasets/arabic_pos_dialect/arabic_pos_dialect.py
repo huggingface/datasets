@@ -45,7 +45,7 @@ _DIALECTS = ["egy", "lev", "glf", "mgr"]
 
 
 class ArabicPosDialectConfig(datasets.BuilderConfig):
-    """ BuilderConfig for ArabicPosDialect"""
+    """BuilderConfig for ArabicPosDialect"""
 
     def __init__(self, dialect=None, **kwargs):
         """
@@ -112,7 +112,7 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples in the raw (text) form. """
+        """Yields examples in the raw (text) form."""
         with open(filepath, encoding="utf-8") as csv_file:
             reader = csv.DictReader(csv_file, delimiter="\t", quoting=csv.QUOTE_NONE)
             fold = -1

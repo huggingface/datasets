@@ -158,7 +158,7 @@ class WikiBio(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, id_file, infobox_file, nb_lines_file, sentences_file, article_title_file):
-        """ Yields examples."""
+        """Yields examples."""
         with open(id_file, "r", encoding="utf-8") as id_src, open(
             infobox_file, "r", encoding="utf-8"
         ) as infobox_src, open(nb_lines_file, "r", encoding="utf-8") as nb_lines_src, open(

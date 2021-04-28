@@ -136,7 +136,7 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         # Empty Segment list with annotations dictionary
         # First prompt of a conversation does not contain the segment dictionary

@@ -126,7 +126,7 @@ class S2orc(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, split):
-        """ Yields examples. """
+        """Yields examples."""
         for train_files in filepaths:
             with open(train_files, encoding="utf-8") as f:
                 for id_, row in enumerate(f):

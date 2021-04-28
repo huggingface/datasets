@@ -82,7 +82,7 @@ class Makhzan(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
         data_dir_path = Path(data_dir)
         data_dir_path = data_dir_path / ("makhzan-" + _SHA) / "text"
         file_paths = sorted(data_dir_path.glob(r"*.xml"))
