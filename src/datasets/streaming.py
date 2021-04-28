@@ -5,10 +5,12 @@ import time
 from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, repeat
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 import fsspec
 import numpy as np
+import posixpath
 import pyarrow as pa
 from aiohttp.client_exceptions import ServerDisconnectedError
 
@@ -21,7 +23,7 @@ from .load import import_main_class, prepare_module, url_or_path_parent
 from .splits import NamedSplit, Split
 from .utils import DownloadConfig, map_nested
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import is_relative_path, url_or_path_join
+from .utils.file_utils import is_local_path, is_relative_path, url_or_path_join
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -526,11 +528,57 @@ def load_dataset(
     return ds
 
 
+class PatchedModuleObj:
+    """Set all the modules components as attributes of the PatchedModuleObj object"""
+
+    def __init__(self, module):
+        for key in getattr(module, "__all__", module.__dict__):
+            if not key.startswith("__"):
+                setattr(self, key, getattr(module, key))
+
+
+def get_patched_submodule(module, target: str, new):
+    """Return a patched copy of the module."""
+    _, *submodules, attr = target.split(".")
+    out = module if isinstance(module, PatchedModuleObj) else PatchedModuleObj(module)
+    current = out
+    for key in submodules:
+        setattr(current, key, PatchedModuleObj(getattr(current, key)))
+        current = getattr(current, key)
+    setattr(current, attr, new)
+    return out
+
+
+def xjoin(a, *p):
+    """
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xjoin function allows you to apply the join one the first path of the chain.
+
+    Example::
+
+        >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
+        zip://folder1/file.txt::https://host.com/archive.zip
+    """
+    a, *b = a.split("::")
+    if is_local_path(a):
+        a = Path(a, *p).as_posix()
+    else:
+        a = posixpath.join(a, *p)
+    return "::".join([a] + b)
+
+
 def add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = HTTP_MAX_RETRIES
 
-    def fault_tolerant_read(*args, **kwargs):
+    def read_with_retries(*args, **kwargs):
         for retry in range(1, max_retries + 1):
             try:
                 out = read(*args, **kwargs)
@@ -544,7 +592,7 @@ def add_retries_to_file_obj_read_method(file_obj):
             raise ConnectionError("Server Disconnected")
         return out
 
-    file_obj.read = fault_tolerant_read
+    file_obj.read = read_with_retries
 
 
 def extend_module_for_streaming(module_path):
@@ -554,7 +602,10 @@ def extend_module_for_streaming(module_path):
         return file_obj
 
     module = importlib.import_module(module_path)
+    # open files in a streaming fashion
     module.open = xopen
+    # allow to navigate in remote zip files
+    module.os = get_patched_submodule(os, "os.path.join", xjoin)
 
 
 class StreamingDownloadManager(object):
@@ -585,7 +636,17 @@ class StreamingDownloadManager(object):
         return url_or_filename
 
     def extract(self, path_or_paths):
-        return path_or_paths
+        urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
+        return urlpaths
+
+    def _extract(self, urlpath):
+        protocol = self._get_extraction_protocol(urlpath)
+        return f"{protocol}://::{urlpath}"
+
+    def _get_extraction_protocol(self, urlpath):
+        if urlpath.split("::")[0].endswith("zip"):
+            return "zip"
+        raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
