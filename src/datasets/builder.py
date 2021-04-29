@@ -898,6 +898,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         # and also the length of the arrow chunks
         # None means that the ArrowWriter will use its default value
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
+        self.dataset_cache_manager = DatasetCacheManager(
+            cache_dir=self._cache_dir, writer_batch_size=self._writer_batch_size
+        )
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
@@ -934,9 +937,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         generator = self._generate_examples(**split_generator.gen_kwargs)
         split_generator_name = split_generator.name
 
-        num_bytes, num_examples = DatasetCacheManager(
-            cache_dir=self._cache_dir, writer_batch_size=self._writer_batch_size
-        ).save(generator, split_generator_name, total=total, name=self.name, info=self.info)
+        num_bytes, num_examples = self.dataset_cache_manager.save(
+            generator, split_generator_name, total=total, name=self.name, info=self.info
+        )
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
