@@ -1,3 +1,4 @@
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,7 +14,8 @@ from datasets.utils.metadata import (
 
 
 def _dedent(string: str) -> str:
-    return "\n".join([line.lstrip() for line in string.splitlines()])
+    indent_level = min(re.search("^ +", t).end() if t.startswith(" ") else 0 for t in string.splitlines())
+    return "\n".join([line[indent_level:] for line in string.splitlines()])
 
 
 README_YAML = """\
@@ -185,7 +187,34 @@ class TestMetadataUtils(unittest.TestCase):
             - open-domain-qa
             """
         )
-        DatasetMetadata.from_yaml_string(valid_yaml_string)
+        # DatasetMetadata.from_yaml_string(valid_yaml_string)
+
+        valid_yaml_string_with_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              fr:
+              - fr
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_configs)
 
         invalid_tag_yaml = _dedent(
             """\
