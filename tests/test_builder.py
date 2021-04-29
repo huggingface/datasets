@@ -707,10 +707,12 @@ def test_generator_based_builder_as_dataset(in_memory, tmp_path):
 @pytest.mark.parametrize(
     "writer_batch_size, default_writer_batch_size, expected_chunks", [(None, None, 1), (None, 5, 20), (10, None, 10)]
 )
-def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_batch_size, expected_chunks):
+def test_custom_writer_batch_size(
+    tmp_path, writer_batch_size, default_writer_batch_size, expected_chunks, monkeypatch
+):
     cache_dir = str(tmp_path)
     if default_writer_batch_size:
-        DummyGeneratorBasedBuilder.DEFAULT_WRITER_BATCH_SIZE = default_writer_batch_size
+        monkeypatch.setattr("datasets.config.DEFAULT_MAX_BATCH_SIZE", default_writer_batch_size)
     dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", writer_batch_size=writer_batch_size)
     dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
     dataset = dummy_builder.as_dataset("train")
