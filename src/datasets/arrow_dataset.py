@@ -56,7 +56,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
@@ -2709,6 +2709,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 ).to_pandas()
                 for offset in range(0, len(self), batch_size)
             )
+
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
+        """Add column to Dataset.
+
+        .. versionadded:: 1.7
+
+        Args:
+            name (str): Column name.
+            column (list or np.array): Column data to be added.
+
+        Returns:
+            :class:`Dataset`
+        """
+        column_table = InMemoryTable.from_pydict({name: column})
+        # Concatenate tables horizontally
+        table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
+        # Update features
+        info = copy.deepcopy(self.info)
+        info.features.update(Features.from_arrow_schema(column_table.schema))
+        table = update_metadata_with_features(table, info.features)
+        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
