@@ -15,7 +15,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
 
 .. autoclass:: datasets.Dataset
     :members:
-        add_item,
+        add_column, add_item,
         from_file, from_buffer, from_pandas, from_dict,
         data, cache_files, num_columns, num_rows, column_names, shape,
         unique,
