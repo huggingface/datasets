@@ -55,7 +55,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit
+from .splits import NamedSplit, Split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
@@ -682,7 +682,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = None
 
         split = state["_split"]
-        split = NamedSplit(split) if split is not None else split
+        split = Split(split) if split is not None else split
 
         return Dataset(
             arrow_table=arrow_table,
