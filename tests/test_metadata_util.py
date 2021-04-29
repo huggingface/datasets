@@ -187,7 +187,7 @@ class TestMetadataUtils(unittest.TestCase):
             - open-domain-qa
             """
         )
-        # DatasetMetadata.from_yaml_string(valid_yaml_string)
+        DatasetMetadata.from_yaml_string(valid_yaml_string)
 
         valid_yaml_string_with_configs = _dedent(
             """\
