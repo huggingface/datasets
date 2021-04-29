@@ -12,10 +12,22 @@ class DatasetCacheManager:
         self.cache_dir = cache_dir
 
     def load(self, split: Union[str, ReadInstruction, Split], in_memory: bool = False, info=None, name=None):
+        """
+        Load cached preprocessed Dataset.
+
+        Args:
+            split (:class:`Split` or :class:`ReadInstruction` or :obj:`str`): Which split of the Dataset to load.
+            in_memory (:obj:`bool`, default ``False``): Whether to copy the dataset in-memory.
+            info (:class:`DatasetInfo`, optional): Information about the Dataset.
+            name (:obj:`str`, optional): Dataset name.
+
+        Returns:
+            :class:`DatasetDict`
+        """
         # By default, return all splits
         if split is None:
             split = {s: s for s in info.splits}
-        # Create a dataset for each of the given splits
+        # Load a dataset for each of the given splits
         datasets = utils.map_nested(
             partial(
                 self._load_one,
@@ -35,10 +47,10 @@ class DatasetCacheManager:
         info=None,
         name=None,
     ):
-        """as_dataset for a single split."""
+        """Load a single split."""
         if isinstance(split, str):
             split = Split(split)
-        # Build base dataset
+        # Read Arrow dataset
         dataset_kwargs = ArrowReader(self.cache_dir, info).read(
             name=name,
             instructions=split,
