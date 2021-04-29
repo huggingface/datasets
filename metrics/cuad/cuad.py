@@ -42,6 +42,7 @@ Args:
     predictions: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair as given in the references (see below)
         - 'prediction_text': list of possible texts for the answer, as a list of strings
+        depending on a threshold on the confidence probability of each prediction.
     references: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair (see above),
         - 'answers': a Dict in the CUAD dataset format
