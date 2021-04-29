@@ -271,6 +271,7 @@ class DatasetBuilder:
 
         # Set download manager
         self.dl_manager = None
+        self.dataset_cache_manager = DatasetCacheManager(cache_dir=self._cache_dir)
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -730,7 +731,7 @@ class DatasetBuilder:
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
-        datasets = DatasetCacheManager(cache_dir=self._cache_dir).load(
+        datasets = self.dataset_cache_manager.load(
             split, in_memory=in_memory, info=self.info, name=self.name
         )
 
