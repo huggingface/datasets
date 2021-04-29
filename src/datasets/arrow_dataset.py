@@ -288,6 +288,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
             )
 
+        # Update metadata
+
+        self._data = update_metadata_with_features(self._data, self.features)
+
     @classmethod
     def from_file(
         cls,
@@ -2989,7 +2993,8 @@ def concatenate_datasets(
 
     # Concatenate tables
     table = concat_tables([dset._data for dset in dsets if len(dset._data) > 0], axis=axis)
-    table = update_metadata_with_features(table, None)
+    if axis == 1:
+        table = update_metadata_with_features(table, None)
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
