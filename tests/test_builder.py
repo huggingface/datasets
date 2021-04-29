@@ -712,7 +712,6 @@ def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_ba
     if default_writer_batch_size:
         DummyGeneratorBasedBuilder.DEFAULT_WRITER_BATCH_SIZE = default_writer_batch_size
     dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", writer_batch_size=writer_batch_size)
-    assert dummy_builder._writer_batch_size == (writer_batch_size or default_writer_batch_size)
     dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
     dataset = dummy_builder.as_dataset("train")
     assert len(dataset.data[0].chunks) == expected_chunks
