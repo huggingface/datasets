@@ -731,9 +731,7 @@ class DatasetBuilder:
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
-        datasets = self.dataset_cache_manager.load(
-            split, in_memory=in_memory, info=self.info, name=self.name
-        )
+        datasets = self.dataset_cache_manager.load(split, in_memory=in_memory, info=self.info, name=self.name)
 
         if run_post_process:
             datasets = self._run_post_process(datasets, ignore_verifications)
