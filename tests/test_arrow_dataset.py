@@ -2028,6 +2028,7 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
         dataset_indices = dataset._indices["indices"].to_pylist()
         expected_dataset_indices = original_dataset._indices["indices"].to_pylist()
         assert dataset_indices == expected_dataset_indices
+    assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
 @pytest.mark.parametrize(
