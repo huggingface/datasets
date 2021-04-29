@@ -7,7 +7,6 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import DatasetInfo
 from datasets.arrow_dataset import Dataset
 from datasets.features import (
     ClassLabel,
@@ -19,6 +18,7 @@ from datasets.features import (
     cast_to_python_objects,
     string_to_arrow,
 )
+from datasets.info import DatasetInfo
 
 from .utils import require_tf, require_torch
 

@@ -13,11 +13,12 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import NamedSplit, concatenate_datasets, load_from_disk, temp_seed
+from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
+from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
 from datasets.utils.logging import WARNING
 
@@ -1948,6 +1949,10 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+@pytest.mark.parametrize(
+    "transform",
+    [None, ("shuffle", (42,), {}), ("with_format", ("pandas",), {}), ("class_encode_column", ("col_2",), {})],
+)
 @pytest.mark.parametrize("in_memory", [False, True])
 @pytest.mark.parametrize(
     "item",
@@ -1958,22 +1963,32 @@ def test_concatenate_datasets_duplicate_columns(dataset):
         {"col_1": 4.0, "col_2": 4.0, "col_3": 4.0},
     ],
 )
-def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path):
-    dataset = (
+def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
+    dataset_to_test = (
         Dataset(InMemoryTable.from_pydict(dataset_dict))
         if in_memory
         else Dataset(MemoryMappedTable.from_file(arrow_path))
     )
-    dataset = dataset.add_item(item)
+    if transform is not None:
+        transform_name, args, kwargs = transform
+        dataset_to_test: Dataset = getattr(dataset_to_test, transform_name)(*args, **kwargs)
+    dataset = dataset_to_test.add_item(item)
     assert dataset.data.shape == (5, 3)
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
-    assert dataset.data.column_names == list(expected_features.keys())
+    expected_features = dataset_to_test.features
+    assert sorted(dataset.data.column_names) == sorted(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
-        assert dataset.features[feature].dtype == expected_dtype
+        assert dataset.features[feature] == expected_dtype
     assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
-    dataset = dataset.add_item(item)
-    assert dataset.data.shape == (6, 3)
-    assert len(dataset.data.blocks) == 1 if in_memory else 2  # multiple InMemoryTables are consolidated as one
+    assert dataset.format["type"] == dataset_to_test.format["type"]
+    assert dataset._fingerprint != dataset_to_test._fingerprint
+    dataset.reset_format()
+    dataset_to_test.reset_format()
+    assert dataset[:-1] == dataset_to_test[:]
+    assert {k: int(v) for k, v in dataset[-1].items()} == {k: int(v) for k, v in item.items()}
+    if dataset._indices is not None:
+        dataset_indices = dataset._indices["indices"].to_pylist()
+        dataset_to_test_indices = dataset_to_test._indices["indices"].to_pylist()
+        assert dataset_indices == dataset_to_test_indices + [len(dataset_to_test._data)]
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
@@ -2166,6 +2181,16 @@ def test_dataset_from_text_path_type(path_type, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(path, cache_dir=cache_dir)
     _check_text_dataset(dataset, expected_features)
+
+
+def test_dataset_to_json(dataset, tmp_path):
+    file_path = tmp_path / "test_path.jsonl"
+    bytes_written = dataset.to_json(path_or_buf=file_path)
+    assert file_path.is_file()
+    assert bytes_written == file_path.stat().st_size
+    df = pd.read_json(file_path)
+    assert df.shape == dataset.shape
+    assert list(df.columns) == list(dataset.column_names)
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
