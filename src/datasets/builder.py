@@ -934,25 +934,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
         generator = self._generate_examples(**split_generator.gen_kwargs)
         split_generator_name = split_generator.name
 
-        num_bytes, num_examples = self.save(generator, split_generator_name, total)
+        num_bytes, num_examples = DatasetCacheManager(
+            cache_dir=self._cache_dir, writer_batch_size=self._writer_batch_size
+        ).save(generator, split_generator_name, total=total, name=self.name, info=self.info)
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-
-    def save(self, generator, split_generator_name, total=None):
-        fname = "{}-{}.arrow".format(self.name, split_generator_name)
-        fpath = os.path.join(self._cache_dir, fname)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
-            try:
-                for key, record in utils.tqdm(
-                        generator, unit=" examples", total=total, leave=False, disable=not_verbose
-                ):
-                    example = self.info.features.encode_example(record)
-                    writer.write(example)
-            finally:
-                num_examples, num_bytes = writer.finalize()
-        return num_bytes, num_examples
 
 
 class ArrowBasedBuilder(DatasetBuilder):

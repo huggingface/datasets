@@ -1,15 +1,22 @@
+import os
 from functools import partial
 from typing import Union
 
 from datasets import utils
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import ArrowReader, ReadInstruction
+from datasets.arrow_writer import ArrowWriter
 from datasets.splits import Split
+from datasets.utils.logging import WARNING, get_logger
+
+
+logger = get_logger(__name__)
 
 
 class DatasetCacheManager:
-    def __init__(self, cache_dir=None):
+    def __init__(self, cache_dir=None, writer_batch_size=None):
         self.cache_dir = cache_dir
+        self.writer_batch_size = writer_batch_size
 
     def load(self, split: Union[str, ReadInstruction, Split], in_memory: bool = False, info=None, name=None):
         """
@@ -59,3 +66,18 @@ class DatasetCacheManager:
         )
         ds = Dataset(**dataset_kwargs)
         return ds
+
+    def save(self, generator, split_generator_name, total=None, name=None, info=None):
+        fname = "{}-{}.arrow".format(name, split_generator_name)
+        fpath = os.path.join(self.cache_dir, fname)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+        with ArrowWriter(features=info.features, path=fpath, writer_batch_size=self.writer_batch_size) as writer:
+            try:
+                for key, record in utils.tqdm(
+                    generator, unit=" examples", total=total, leave=False, disable=not_verbose
+                ):
+                    example = info.features.encode_example(record)
+                    writer.write(example)
+            finally:
+                num_examples, num_bytes = writer.finalize()
+        return num_bytes, num_examples
