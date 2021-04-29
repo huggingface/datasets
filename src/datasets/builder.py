@@ -897,9 +897,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
         # None means that the ArrowWriter will use its default value
-        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
         self.dataset_cache_manager = DatasetCacheManager(
-            cache_dir=self._cache_dir, writer_batch_size=self._writer_batch_size
+            cache_dir=self._cache_dir, writer_batch_size=writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
         )
 
     @abc.abstractmethod
