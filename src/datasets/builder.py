@@ -34,7 +34,7 @@ from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
-from .cache import CacheManager
+from .cache import DatasetCacheManager
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
@@ -730,7 +730,7 @@ class DatasetBuilder:
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
-        datasets = CacheManager(cache_dir=self._cache_dir)._build_dataset(
+        datasets = DatasetCacheManager(cache_dir=self._cache_dir).load(
             split, in_memory=in_memory, info=self.info, name=self.name
         )
 
