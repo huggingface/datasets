@@ -12,22 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """ Middle Egyptian dataset as used in the paper  """
 import json
 import datasets
 
-
 _CITATION = """\
 @misc{OPUS4-2919,
-title     = {Teilauszug der Datenbank des Vorhabens "Strukturen und Transformationen des Wortschatzes der {\"a}gyptischen Sprache" vom Januar 2018},
+title  = {Teilauszug der Datenbank des Vorhabens "Strukturen und Transformationen des Wortschatzes der {\"a}gyptischen Sprache" vom Januar 2018},
 institution = {Akademienvorhaben Strukturen und Transformationen des Wortschatzes der {\"a}gyptischen Sprache. Text- und Wissenskultur im alten {\"A}gypten},
-type      = {other},
-year        = {2018},
+type = {other},
+year = {2018},
 }
 """
-
 
 _DESCRIPTION = """\
 This dataset comprises parallel sentences of hieroglyphic encodings, transcription and translation
@@ -74,8 +70,7 @@ class BbawEgyptian(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": data_dir["all"]},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["all"]},
             )
         ]
 
