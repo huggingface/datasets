@@ -158,6 +158,7 @@ class Table(IndexedTableMixin):
         # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
         # by adding it to the memo, self.table won't be copied
         memo[id(self.table)] = self.table
+        memo[id(self._batches)] = self._batches
         return _deepcopy(self, memo)
 
     def __getstate__(self):
