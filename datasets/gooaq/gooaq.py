@@ -48,7 +48,7 @@ _HOMEPAGE = ""
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-_URL = "https://github.com/allenai/gooaq/blob/main/data/qoogle.jsonl?raw=true"
+_URL = "https://github.com/allenai/gooaq/raw/main/data/qoogle.jsonl"
 
 
 class GooAQ(datasets.GeneratorBasedBuilder):
@@ -93,7 +93,7 @@ class GooAQ(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
+                    "filepath": data_dir,
                     "split": "train",
                 },
             ),
