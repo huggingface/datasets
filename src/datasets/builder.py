@@ -930,13 +930,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
         generator = self._generate_examples(**split_generator.gen_kwargs)
         split_generator_name = split_generator.name
 
-        # TODO: this fix is needed because of: with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
-        original_cache_dir = self.dataset_cache_manager.cache_dir
-        self.dataset_cache_manager.cache_dir = self.cache_dir  # +.incomplete
+        # TODO: tmp_cache_dir instead of self.cache_dir because of:
+        #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
         num_bytes, num_examples = self.dataset_cache_manager.save(
-            generator, split_generator_name, total=total, name=self.name, info=self.info
+            generator, split_generator_name, total=total, name=self.name, info=self.info, tmp_cache_dir=self.cache_dir
         )
-        self.dataset_cache_manager.cache_dir = original_cache_dir
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes

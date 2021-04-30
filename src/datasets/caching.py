@@ -67,9 +67,11 @@ class DatasetCacheManager:
         ds = Dataset(**dataset_kwargs)
         return ds
 
-    def save(self, generator, split_generator_name, total=None, name=None, info=None):
+    def save(self, generator, split_generator_name, total=None, name=None, info=None, tmp_cache_dir=None):
+        # TODO: tmp_cache_dir instead of self.cache_dir because of:
+        #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
         fname = "{}-{}.arrow".format(name, split_generator_name)
-        fpath = os.path.join(self.cache_dir, fname)
+        fpath = os.path.join(tmp_cache_dir, fname)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         with ArrowWriter(features=info.features, path=fpath, writer_batch_size=self.writer_batch_size) as writer:
             try:
