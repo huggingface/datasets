@@ -982,20 +982,26 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator):
-        fname = "{}-{}.arrow".format(self.name, split_generator.name)
-        fpath = os.path.join(self._cache_dir, fname)
+        generator = self._generate_examples(**split_generator.gen_kwargs)
+        split_generator_name = split_generator.name
 
-        generator = self._generate_tables(**split_generator.gen_kwargs)
+        num_bytes, num_examples, writer_features = self._save_tables(generator, split_generator_name)
+
+        split_generator.split_info.num_examples = num_examples
+        split_generator.split_info.num_bytes = num_bytes
+        if self.info.features is None:
+            self.info.features = writer_features
+
+    def _save_tables(self, generator, split_generator_name):
+        fname = "{}-{}.arrow".format(self.name, split_generator_name)
+        fpath = os.path.join(self._cache_dir, fname)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
-
-        split_generator.split_info.num_examples = num_examples
-        split_generator.split_info.num_bytes = num_bytes
-        if self.info.features is None:
-            self.info.features = writer._features
+            writer_features = writer._features
+        return num_bytes, num_examples, writer_features
 
 
 class MissingBeamOptions(ValueError):
