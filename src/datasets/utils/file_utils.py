@@ -324,6 +324,12 @@ def cached_path(
     ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
         return output_path_extracted
 
+    _extract(output_path, output_path_extracted)
+
+    return output_path_extracted
+
+
+def _extract(output_path, output_path_extracted):
     # Prevent parallel extractions
     lock_path = output_path + ".lock"
     with FileLock(lock_path):
@@ -358,8 +364,6 @@ def cached_path(
                 raise EnvironmentError("Please pip install rarfile")
         else:
             raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
-
-    return output_path_extracted
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
