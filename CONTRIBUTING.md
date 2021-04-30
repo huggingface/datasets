@@ -20,9 +20,9 @@ If you would like to work on any of the open Issues:
 
 1. Make sure it is not already assigned to someone else. You have the assignee (if any) on the top of the right column of the Issue page.
 
-1. You can self-assign it by commenting on the Issue page with one of the keywords: `#take` or `#self-assign`.
+2. You can self-assign it by commenting on the Issue page with one of the keywords: `#take` or `#self-assign`.
 
-1. Work on your self-assigned issue and eventually create a Pull Request.
+3. Work on your self-assigned issue and eventually create a Pull Request.
 
 ## How to create a Pull Request?
 1. Fork the [repository](https://github.com/huggingface/datasets) by clicking on the 'Fork' button on the repository's page. This creates a copy of the code under your GitHub user account.
