@@ -77,6 +77,21 @@ class DatasetCacheManager:
         features=None,
         tmp_cache_dir=None,
     ):
+        """Save preprocessed Dataset to cache.
+
+        Args:
+            generator (:obj:`Generator`): Generator of Dataset examples, as returned by
+                :meth:`DatasetBuilder._generate_examples`.
+            split_generator_name (:class:`SplitGenerator`): Split generator name.
+            units {"examples", "tables"}: Whether the `generator` iterates over examples or tables.
+            total (int, optional): Total number of examples.
+            name (:obj:`str`, optional): Dataset name.
+            features (:class:`Features`, optional): Dataset features.
+            tmp_cache_dir (:obj:`str`): Temporary cache directory where to save the Dataset until completed.
+
+        Returns:
+            tuple[int, int, :class:Features]: num_examples, num_bytes, writer_features.
+        """
         # TODO: tmp_cache_dir instead of self.cache_dir because of:
         #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
         fname = "{}-{}.arrow".format(name, split_generator_name)
