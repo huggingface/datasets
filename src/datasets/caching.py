@@ -83,3 +83,14 @@ class DatasetCacheManager:
             finally:
                 num_examples, num_bytes = writer.finalize()
         return num_bytes, num_examples
+
+    def _save_tables(self, generator, split_generator_name, name=None, features=None, tmp_cache_dir=None):
+        fname = "{}-{}.arrow".format(name, split_generator_name)
+        fpath = os.path.join(tmp_cache_dir, fname)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+        with ArrowWriter(features=features, path=fpath) as writer:
+            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
+                writer.write_table(table)
+            num_examples, num_bytes = writer.finalize()
+            writer_features = writer._features
+        return num_bytes, num_examples, writer_features

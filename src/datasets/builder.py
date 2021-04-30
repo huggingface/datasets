@@ -33,7 +33,7 @@ from datasets.utils.mock_download_manager import MockDownloadManager
 from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
-from .arrow_writer import ArrowWriter, BeamWriter
+from .arrow_writer import BeamWriter
 from .caching import DatasetCacheManager
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
@@ -44,7 +44,7 @@ from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import WARNING, get_logger
+from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
@@ -985,23 +985,14 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_examples(**split_generator.gen_kwargs)
         split_generator_name = split_generator.name
 
-        num_bytes, num_examples, writer_features = self._save_tables(generator, split_generator_name)
+        num_bytes, num_examples, writer_features = DatasetCacheManager(cache_dir=self._cache_dir)._save_tables(
+            generator, split_generator_name, name=self.name, features=self.info.features, tmp_cache_dir=self._cache_dir
+        )
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
         if self.info.features is None:
             self.info.features = writer_features
-
-    def _save_tables(self, generator, split_generator_name):
-        fname = "{}-{}.arrow".format(self.name, split_generator_name)
-        fpath = os.path.join(self._cache_dir, fname)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
-                writer.write_table(table)
-            num_examples, num_bytes = writer.finalize()
-            writer_features = writer._features
-        return num_bytes, num_examples, writer_features
 
 
 class MissingBeamOptions(ValueError):
