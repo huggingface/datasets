@@ -115,7 +115,7 @@ _GAME_SCORE_DELTA = [
 
 
 class DiplomacyDetection(datasets.GeneratorBasedBuilder):
-    """Diplomacy: A Dataset for Deception Detection. """
+    """Diplomacy: A Dataset for Deception Detection."""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -162,7 +162,7 @@ class DiplomacyDetection(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)

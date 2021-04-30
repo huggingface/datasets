@@ -187,7 +187,7 @@ submissions and assigned them a CEFR level."""
             assert False
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         if split == "validation":
             split = "dev"
