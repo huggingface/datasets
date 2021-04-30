@@ -932,7 +932,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         # TODO: tmp_cache_dir instead of self.cache_dir because of:
         #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
-        num_bytes, num_examples, _ = self.dataset_cache_manager.save(
+        num_examples, num_bytes, _ = self.dataset_cache_manager.save(
             generator,
             split_generator_name,
             total=total,
@@ -985,7 +985,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
         split_generator_name = split_generator.name
 
-        num_bytes, num_examples, writer_features = DatasetCacheManager(cache_dir=self._cache_dir).save(
+        num_examples, num_bytes, writer_features = DatasetCacheManager(cache_dir=self._cache_dir).save(
             generator,
             split_generator_name,
             units="tables",

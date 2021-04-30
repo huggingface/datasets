@@ -98,7 +98,7 @@ class DatasetCacheManager:
             finally:
                 num_examples, num_bytes = writer.finalize()
                 writer_features = writer._features
-        return num_bytes, num_examples, writer_features
+        return num_examples, num_bytes, writer_features
 
     def _save_tables(self, generator, fpath, features, not_verbose):
         with ArrowWriter(features=features, path=fpath) as writer:
@@ -106,4 +106,4 @@ class DatasetCacheManager:
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
             writer_features = writer._features
-        return num_bytes, num_examples, writer_features
+        return num_examples, num_bytes, writer_features
