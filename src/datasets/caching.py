@@ -67,12 +67,27 @@ class DatasetCacheManager:
         ds = Dataset(**dataset_kwargs)
         return ds
 
-    def save(self, generator, split_generator_name, total=None, name=None, features=None, tmp_cache_dir=None):
+    def save(
+        self,
+        generator,
+        split_generator_name,
+        units="examples",
+        total=None,
+        name=None,
+        features=None,
+        tmp_cache_dir=None,
+    ):
         # TODO: tmp_cache_dir instead of self.cache_dir because of:
         #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
         fname = "{}-{}.arrow".format(name, split_generator_name)
         fpath = os.path.join(tmp_cache_dir, fname)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+        if units == "examples":
+            return self._save_examples(generator, fpath, features, not_verbose, total)
+        elif units == "tables":
+            return self._save_tables(generator, fpath, features, not_verbose)
+
+    def _save_examples(self, generator, fpath, features, not_verbose, total):
         with ArrowWriter(features=features, path=fpath, writer_batch_size=self.writer_batch_size) as writer:
             try:
                 for key, record in utils.tqdm(
@@ -82,12 +97,10 @@ class DatasetCacheManager:
                     writer.write(example)
             finally:
                 num_examples, num_bytes = writer.finalize()
-        return num_bytes, num_examples
+                writer_features = writer._features
+        return num_bytes, num_examples, writer_features
 
-    def _save_tables(self, generator, split_generator_name, name=None, features=None, tmp_cache_dir=None):
-        fname = "{}-{}.arrow".format(name, split_generator_name)
-        fpath = os.path.join(tmp_cache_dir, fname)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+    def _save_tables(self, generator, fpath, features, not_verbose):
         with ArrowWriter(features=features, path=fpath) as writer:
             for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
                 writer.write_table(table)
