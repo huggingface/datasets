@@ -300,67 +300,66 @@ def cached_path(
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if download_config.extract_compressed_file and output_path is not None:
+    if not download_config.extract_compressed_file or output_path is None:
+        return output_path
 
-        if (
-            not is_zipfile(output_path)
-            and not tarfile.is_tarfile(output_path)
-            and not is_gzip(output_path)
-            and not is_xz(output_path)
-            and not is_rarfile(output_path)
-        ):
-            return output_path
+    if (
+        not is_zipfile(output_path)
+        and not tarfile.is_tarfile(output_path)
+        and not is_gzip(output_path)
+        and not is_xz(output_path)
+        and not is_rarfile(output_path)
+    ):
+        return output_path
 
-        # Path where we extract compressed archives
-        # We extract in the cache dir, and get the extracted path name by hashing the original path"
-        abs_output_path = os.path.abspath(output_path)
-        output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
+    # Path where we extract compressed archives
+    # We extract in the cache dir, and get the extracted path name by hashing the original path"
+    abs_output_path = os.path.abspath(output_path)
+    output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
 
-        if (
-            os.path.isdir(output_path_extracted)
-            and os.listdir(output_path_extracted)
-            and not download_config.force_extract
-        ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
-            return output_path_extracted
-
-        # Prevent parallel extractions
-        lock_path = output_path + ".lock"
-        with FileLock(lock_path):
-            shutil.rmtree(output_path_extracted, ignore_errors=True)
-            os.makedirs(output_path_extracted, exist_ok=True)
-            if tarfile.is_tarfile(output_path):
-                tar_file = tarfile.open(output_path)
-                tar_file.extractall(output_path_extracted)
-                tar_file.close()
-            elif is_gzip(output_path):
-                os.rmdir(output_path_extracted)
-                with gzip.open(output_path, "rb") as gzip_file:
-                    with open(output_path_extracted, "wb") as extracted_file:
-                        shutil.copyfileobj(gzip_file, extracted_file)
-            elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
-                with ZipFile(output_path, "r") as zip_file:
-                    zip_file.extractall(output_path_extracted)
-                    zip_file.close()
-            elif is_xz(output_path):
-                os.rmdir(output_path_extracted)
-                with lzma.open(output_path) as compressed_file:
-                    with open(output_path_extracted, "wb") as extracted_file:
-                        shutil.copyfileobj(compressed_file, extracted_file)
-            elif is_rarfile(output_path):
-                if config.RARFILE_AVAILABLE:
-                    import rarfile
-
-                    rf = rarfile.RarFile(output_path)
-                    rf.extractall(output_path_extracted)
-                    rf.close()
-                else:
-                    raise EnvironmentError("Please pip install rarfile")
-            else:
-                raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
-
+    if (
+        os.path.isdir(output_path_extracted)
+        and os.listdir(output_path_extracted)
+        and not download_config.force_extract
+    ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
         return output_path_extracted
 
-    return output_path
+    # Prevent parallel extractions
+    lock_path = output_path + ".lock"
+    with FileLock(lock_path):
+        shutil.rmtree(output_path_extracted, ignore_errors=True)
+        os.makedirs(output_path_extracted, exist_ok=True)
+        if tarfile.is_tarfile(output_path):
+            tar_file = tarfile.open(output_path)
+            tar_file.extractall(output_path_extracted)
+            tar_file.close()
+        elif is_gzip(output_path):
+            os.rmdir(output_path_extracted)
+            with gzip.open(output_path, "rb") as gzip_file:
+                with open(output_path_extracted, "wb") as extracted_file:
+                    shutil.copyfileobj(gzip_file, extracted_file)
+        elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
+            with ZipFile(output_path, "r") as zip_file:
+                zip_file.extractall(output_path_extracted)
+                zip_file.close()
+        elif is_xz(output_path):
+            os.rmdir(output_path_extracted)
+            with lzma.open(output_path) as compressed_file:
+                with open(output_path_extracted, "wb") as extracted_file:
+                    shutil.copyfileobj(compressed_file, extracted_file)
+        elif is_rarfile(output_path):
+            if config.RARFILE_AVAILABLE:
+                import rarfile
+
+                rf = rarfile.RarFile(output_path)
+                rf.extractall(output_path_extracted)
+                rf.close()
+            else:
+                raise EnvironmentError("Please pip install rarfile")
+        else:
+            raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
+
+    return output_path_extracted
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
