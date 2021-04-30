@@ -982,7 +982,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator):
-        generator = self._generate_examples(**split_generator.gen_kwargs)
+        generator = self._generate_tables(**split_generator.gen_kwargs)
         split_generator_name = split_generator.name
 
         num_bytes, num_examples, writer_features = DatasetCacheManager(cache_dir=self._cache_dir).save(
