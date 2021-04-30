@@ -933,7 +933,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
         # TODO: tmp_cache_dir instead of self.cache_dir because of:
         #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
         num_bytes, num_examples = self.dataset_cache_manager.save(
-            generator, split_generator_name, total=total, name=self.name, info=self.info, tmp_cache_dir=self.cache_dir
+            generator,
+            split_generator_name,
+            total=total,
+            name=self.name,
+            features=self.info.features,
+            tmp_cache_dir=self.cache_dir,
         )
 
         split_generator.split_info.num_examples = num_examples
