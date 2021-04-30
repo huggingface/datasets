@@ -305,11 +305,11 @@ def cached_path(
         return output_path
 
     if (
-        not ZipExtractor.is_zipfile(output_path)
-        and not TarExtractor.is_tarfile(output_path)
-        and not GzipExtractor.is_gzip(output_path)
-        and not XzExtractor.is_xz(output_path)
-        and not RarExtractor.is_rarfile(output_path)
+        not ZipExtractor.is_extractable(output_path)
+        and not TarExtractor.is_extractable(output_path)
+        and not GzipExtractor.is_extractable(output_path)
+        and not XzExtractor.is_extractable(output_path)
+        and not RarExtractor.is_extractable(output_path)
     ):
         return output_path
 
@@ -338,17 +338,17 @@ class Extractor:
         with FileLock(lock_path):
             shutil.rmtree(output_path_extracted, ignore_errors=True)
             os.makedirs(output_path_extracted, exist_ok=True)
-            if TarExtractor.is_tarfile(output_path):
+            if TarExtractor.is_extractable(output_path):
                 TarExtractor.extract(output_path, output_path_extracted)
-            elif GzipExtractor.is_gzip(output_path):
+            elif GzipExtractor.is_extractable(output_path):
                 GzipExtractor.extract(output_path, output_path_extracted)
-            elif ZipExtractor.is_zipfile(
+            elif ZipExtractor.is_extractable(
                 output_path
             ):  # put zip file to the last, b/c it is possible wrongly detected as zip
                 ZipExtractor.extract(output_path, output_path_extracted)
-            elif XzExtractor.is_xz(output_path):
+            elif XzExtractor.is_extractable(output_path):
                 XzExtractor.extract(output_path, output_path_extracted)
-            elif RarExtractor.is_rarfile(output_path):
+            elif RarExtractor.is_extractable(output_path):
                 RarExtractor.extract(output_path, output_path_extracted)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
@@ -356,7 +356,7 @@ class Extractor:
 
 class TarExtractor:
     @staticmethod
-    def is_tarfile(path):
+    def is_extractable(path):
         return tarfile.is_tarfile(path)
 
     @staticmethod
@@ -368,7 +368,7 @@ class TarExtractor:
 
 class GzipExtractor:
     @staticmethod
-    def is_gzip(path: str) -> bool:
+    def is_extractable(path: str) -> bool:
         """from https://stackoverflow.com/a/60634210"""
         with gzip.open(path, "r") as fh:
             try:
@@ -387,7 +387,7 @@ class GzipExtractor:
 
 class ZipExtractor:
     @staticmethod
-    def is_zipfile(path):
+    def is_extractable(path):
         return _is_zipfile(path)
 
     @staticmethod
@@ -399,7 +399,7 @@ class ZipExtractor:
 
 class XzExtractor:
     @staticmethod
-    def is_xz(path: str) -> bool:
+    def is_extractable(path: str) -> bool:
         """https://tukaani.org/xz/xz-file-format-1.0.4.txt"""
         with open(path, "rb") as f:
             try:
@@ -421,7 +421,7 @@ class XzExtractor:
 
 class RarExtractor:
     @staticmethod
-    def is_rarfile(path: str) -> bool:
+    def is_extractable(path: str) -> bool:
         """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
         RAR_ID = b"Rar!\x1a\x07\x00"
         RAR5_ID = b"Rar!\x1a\x07\x01\x00"
