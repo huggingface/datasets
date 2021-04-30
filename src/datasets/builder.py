@@ -1129,8 +1129,6 @@ class BeamBasedBuilder(DatasetBuilder):
         import apache_beam as beam
 
         split_name = split_generator.split_info.name
-        output_prefix = filename_prefix_for_split(self.name, split_name)
-        output_prefix = os.path.join(self._cache_dir, output_prefix)
 
         # To write examples to disk:
         fname = "{}-{}.arrow".format(self.name, split_name)
