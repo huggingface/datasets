@@ -1010,10 +1010,10 @@ class BeamBasedBuilder(DatasetBuilder):
     # BeamBasedBuilder does not have dummy data for tests yet
     test_dummy_data = False
 
-    def __init__(self, *args, **kwargs):
-        self._beam_runner = kwargs.pop("beam_runner", None)
-        self._beam_options = kwargs.pop("beam_options", None)
-        super(BeamBasedBuilder, self).__init__(*args, **kwargs)
+    def __init__(self, *args, beam_runner=None, beam_options=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._beam_runner = beam_runner
+        self._beam_options = beam_options
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
