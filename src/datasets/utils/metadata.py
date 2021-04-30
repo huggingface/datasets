@@ -175,6 +175,10 @@ class DatasetMetadata:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
         metada_dict = yaml.safe_load(string) or dict()
+        # flatten the metadata of each config
+        for key in metada_dict:
+            if isinstance(metada_dict[key], dict):
+                metada_dict[key] = list(set(sum(metada_dict[key].values(), [])))
         return cls(**metada_dict)
 
     @staticmethod
