@@ -304,13 +304,7 @@ def cached_path(
     if not download_config.extract_compressed_file or output_path is None:
         return output_path
 
-    if (
-        not ZipExtractor.is_extractable(output_path)
-        and not TarExtractor.is_extractable(output_path)
-        and not GzipExtractor.is_extractable(output_path)
-        and not XzExtractor.is_extractable(output_path)
-        and not RarExtractor.is_extractable(output_path)
-    ):
+    if not Extractor.is_extractable(output_path):
         return output_path
 
     # Path where we extract compressed archives
@@ -332,26 +326,36 @@ def cached_path(
 
 class Extractor:
     @staticmethod
-    def extract(output_path, output_path_extracted):
+    def is_extractable(path):
+        return (
+            ZipExtractor.is_extractable(path)
+            or TarExtractor.is_extractable(path)
+            or GzipExtractor.is_extractable(path)
+            or XzExtractor.is_extractable(path)
+            or RarExtractor.is_extractable(path)
+        )
+
+    @staticmethod
+    def extract(input_path, output_path):
         # Prevent parallel extractions
-        lock_path = output_path + ".lock"
+        lock_path = input_path + ".lock"
         with FileLock(lock_path):
-            shutil.rmtree(output_path_extracted, ignore_errors=True)
-            os.makedirs(output_path_extracted, exist_ok=True)
-            if TarExtractor.is_extractable(output_path):
-                TarExtractor.extract(output_path, output_path_extracted)
-            elif GzipExtractor.is_extractable(output_path):
-                GzipExtractor.extract(output_path, output_path_extracted)
+            shutil.rmtree(output_path, ignore_errors=True)
+            os.makedirs(output_path, exist_ok=True)
+            if TarExtractor.is_extractable(input_path):
+                TarExtractor.extract(input_path, output_path)
+            elif GzipExtractor.is_extractable(input_path):
+                GzipExtractor.extract(input_path, output_path)
             elif ZipExtractor.is_extractable(
-                output_path
+                input_path
             ):  # put zip file to the last, b/c it is possible wrongly detected as zip
-                ZipExtractor.extract(output_path, output_path_extracted)
-            elif XzExtractor.is_extractable(output_path):
-                XzExtractor.extract(output_path, output_path_extracted)
-            elif RarExtractor.is_extractable(output_path):
-                RarExtractor.extract(output_path, output_path_extracted)
+                ZipExtractor.extract(input_path, output_path)
+            elif XzExtractor.is_extractable(input_path):
+                XzExtractor.extract(input_path, output_path)
+            elif RarExtractor.is_extractable(input_path):
+                RarExtractor.extract(input_path, output_path)
             else:
-                raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
+                raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
 
 
 class TarExtractor:
