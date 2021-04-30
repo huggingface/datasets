@@ -335,35 +335,59 @@ def _extract(output_path, output_path_extracted):
     with FileLock(lock_path):
         shutil.rmtree(output_path_extracted, ignore_errors=True)
         os.makedirs(output_path_extracted, exist_ok=True)
-        if tarfile.is_tarfile(output_path):
-            tar_file = tarfile.open(output_path)
-            tar_file.extractall(output_path_extracted)
-            tar_file.close()
+        if is_tarfile(output_path):
+            extract_tarfile(output_path, output_path_extracted)
         elif is_gzip(output_path):
-            os.rmdir(output_path_extracted)
-            with gzip.open(output_path, "rb") as gzip_file:
-                with open(output_path_extracted, "wb") as extracted_file:
-                    shutil.copyfileobj(gzip_file, extracted_file)
+            extract_gzip(output_path, output_path_extracted)
         elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
-            with ZipFile(output_path, "r") as zip_file:
-                zip_file.extractall(output_path_extracted)
-                zip_file.close()
+            extract_zipfile(output_path, output_path_extracted)
         elif is_xz(output_path):
-            os.rmdir(output_path_extracted)
-            with lzma.open(output_path) as compressed_file:
-                with open(output_path_extracted, "wb") as extracted_file:
-                    shutil.copyfileobj(compressed_file, extracted_file)
+            extract_xz(output_path, output_path_extracted)
         elif is_rarfile(output_path):
-            if config.RARFILE_AVAILABLE:
-                import rarfile
-
-                rf = rarfile.RarFile(output_path)
-                rf.extractall(output_path_extracted)
-                rf.close()
-            else:
-                raise EnvironmentError("Please pip install rarfile")
+            extract_rarfile(output_path, output_path_extracted)
         else:
             raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
+
+
+def extract_rarfile(output_path, output_path_extracted):
+    if config.RARFILE_AVAILABLE:
+        import rarfile
+
+        rf = rarfile.RarFile(output_path)
+        rf.extractall(output_path_extracted)
+        rf.close()
+    else:
+        raise EnvironmentError("Please pip install rarfile")
+
+
+def extract_xz(output_path, output_path_extracted):
+    os.rmdir(output_path_extracted)
+    with lzma.open(output_path) as compressed_file:
+        with open(output_path_extracted, "wb") as extracted_file:
+            shutil.copyfileobj(compressed_file, extracted_file)
+
+
+def extract_zipfile(output_path, output_path_extracted):
+    with ZipFile(output_path, "r") as zip_file:
+        zip_file.extractall(output_path_extracted)
+        zip_file.close()
+
+
+def extract_gzip(output_path, output_path_extracted):
+    os.rmdir(output_path_extracted)
+    with gzip.open(output_path, "rb") as gzip_file:
+        with open(output_path_extracted, "wb") as extracted_file:
+            shutil.copyfileobj(gzip_file, extracted_file)
+
+
+def extract_tarfile(output_path, output_path_extracted):
+    tar_file = tarfile.open(output_path)
+    tar_file.extractall(output_path_extracted)
+    tar_file.close()
+
+
+def is_tarfile(output_path):
+    return tarfile.is_tarfile(output_path)
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
