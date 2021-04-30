@@ -271,7 +271,7 @@ class DatasetBuilder:
 
         # Set download manager
         self.dl_manager = None
-        self.dataset_cache_manager: DatasetCacheManager = None
+        self.dataset_cache_manager = DatasetCacheManager(cache_dir=self._cache_dir)
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
