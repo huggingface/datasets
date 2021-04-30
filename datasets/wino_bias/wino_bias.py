@@ -73,7 +73,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     def __init__(self, *args, writer_batch_size=100, **kwargs):
-        super(WinoBias, self).__init__(*args, **kwargs)
+        super(WinoBias, self).__init__(*args, writer_batch_size=writer_batch_size, **kwargs)
 
     BUILDER_CONFIGS = [
         WinoBiasConfig(
