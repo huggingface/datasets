@@ -2,12 +2,13 @@ from typing import Optional
 
 from .base import TaskTemplate
 from .question_answering import QuestionAnswering
+from .text_classification import TextClassification
 
 
-__all__ = ["TaskTemplate", "QuestionAnswering"]
+__all__ = ["TaskTemplate", "QuestionAnswering", "TextClassification"]
 
 
-NAME2TEMPLATE = {QuestionAnswering.task: QuestionAnswering}
+NAME2TEMPLATE = {QuestionAnswering.task: QuestionAnswering, TextClassification.task: TextClassification}
 
 
 def task_template_from_dict(task_template_dict: dict) -> Optional[TaskTemplate]:

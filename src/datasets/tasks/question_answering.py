@@ -1,11 +1,9 @@
-from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict
 
 from ..features import Features, Value
 from .base import TaskTemplate
 
 
-@dataclass
 class QuestionAnswering(TaskTemplate):
     task = "question_answering"
     input_schema = Features({"question": Value("string"), "context": Value("string")})
@@ -15,8 +13,8 @@ class QuestionAnswering(TaskTemplate):
         self,
         question_column: str = "question",
         context_column: str = "context",
-        answer_start_column: Optional[str] = None,
-        answer_end_column: Optional[str] = None,
+        answer_start_column: str = "answer_start",
+        answer_end_column: str = "answer_end",
     ):
         self.question_column = question_column
         self.context_column = context_column
@@ -25,19 +23,18 @@ class QuestionAnswering(TaskTemplate):
 
     @property
     def column_mapping(self) -> Dict[str, str]:
-        column_mapping = {
+        return {
             self.question_column: "question",
             self.context_column: "context",
+            self.answer_start_column: "answer_start",
+            self.answer_end_column: "answer_end",
         }
-        if self.answer_start_column and self.answer_end_column:
-            column_mapping.update({self.answer_start_column: "answer_start", self.answer_end_column: "answer_end"})
-        return column_mapping
 
     @classmethod
     def from_dict(cls, template_dict: dict) -> "QuestionAnswering":
         return cls(
             question_column=template_dict["question_column"],
             context_column=template_dict["answer_column"],
-            answer_start_column=template_dict.get("answer_start_column"),
-            answer_end_column=template_dict.get("answer_end_column"),
+            answer_start_column=template_dict["answer_start_column"],
+            answer_end_column=template_dict["answer_end_column"],
         )

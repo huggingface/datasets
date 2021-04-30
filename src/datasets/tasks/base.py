@@ -1,5 +1,5 @@
 import abc
-from typing import Dict, Optional
+from typing import Dict
 
 from ..features import Features
 
@@ -7,14 +7,11 @@ from ..features import Features
 class TaskTemplate(abc.ABC):
     task: str
     input_schema: Features
-    label_schema: Optional[Features]
+    label_schema: Features
 
     @property
     def features(self) -> Features:
-        if not self.label_schema:
-            return self.input_schema
-        else:
-            return Features(**self.input_schema, **self.label_schema)
+        return Features(**self.input_schema, **self.label_schema)
 
     @property
     @abc.abstractmethod
