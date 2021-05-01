@@ -672,7 +672,7 @@ To disable caching you can run:
 You can also query the current status of the caching with :func:`datasets.is_caching_enabled`:
 
 Mapping in a distributed setting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In a distributed setting, you may use caching and a :func:`torch.distributed.barrier` to make sure that only the main process performs the mapping, while the other ones load its results. This avoids duplicating work between all the processes, or worse, requesting more CPUs than your system can handle. For example:
 
