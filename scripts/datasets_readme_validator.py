@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-""" This script will run in CI and make sure all new changes to datasets readme files have valid readme content.
-"""
+""" This script will run in CI and make sure all new changes to datasets readme files have valid readme content."""
 
 from pathlib import Path
 from subprocess import check_output
