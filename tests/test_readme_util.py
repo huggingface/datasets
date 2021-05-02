@@ -198,7 +198,7 @@ Some text here.
 # Dataset Card My Dataset
 """
 
-EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tThe README has several first-level headings: \['Dataset Card for My Dataset', 'Dataset Card My Dataset'\]. Only one heading is expected. Skipping further validation for this README."
+EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tThe README has several first-level headings: `Dataset Card for My Dataset`, `Dataset Card My Dataset`. Only one heading is expected. Skipping further validation for this README."
 
 README_WRONG_FIRST_LEVEL = """\
 ---
@@ -278,7 +278,7 @@ def test_readme_from_readme_correct():
         out = ReadMe.from_readme(path, example_yaml_structure).to_dict()
         assert out["name"] == path
         assert out["text"] == ""
-        assert out["is_empty"] == True
+        assert out["is_empty"]
         assert out["subsections"] == CORRECT_DICT["subsections"]
 
 

@@ -101,7 +101,7 @@ class Section:
         # Header text validation
         error_list = []
         warning_list = []
-        if structure["allow_empty"] == False:
+        if structure["allow_empty"] is False:
             # If header text is expected
             if self.is_empty:
                 # If no header text is found, mention it in the error_list
@@ -224,7 +224,7 @@ class ReadMe(Section):  # Level 0
         if num_first_level_keys > 1:
             # If more than one, add to the error list, continue
             error_list.append(
-                f"The README has several first-level headings: {list(self.content.keys())}. Only one heading is expected. Skipping further validation for this README."
+                f"The README has several first-level headings: {', '.join(['`'+x+'`' for x in list(self.content.keys())])}. Only one heading is expected. Skipping further validation for this README."
             )
         elif num_first_level_keys < 1:
             # If less than one, append error.
