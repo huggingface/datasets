@@ -114,7 +114,9 @@ class Section:
                 # If no subsections are present
                 values = [subsection["name"] for subsection in structure["subsections"]]
                 # Mention the expected values in the error_list
-                error_list.append(f"Section `{self.name}` expected the following subsections: {', '.join(['`'+x+'`' for x in values])}. Found 'None'.")
+                error_list.append(
+                    f"Section `{self.name}` expected the following subsections: {', '.join(['`'+x+'`' for x in values])}. Found 'None'."
+                )
             else:
                 # If some subsections are present
                 structure_names = [subsection["name"] for subsection in structure["subsections"]]

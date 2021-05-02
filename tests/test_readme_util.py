@@ -137,9 +137,7 @@ Some text here.
 ### Languages
 """
 
-EXPECTED_ERROR_README_INCORRECT_YAML = (
-    "The following issues were found for the README at `{path}`:\n-\tOnly the start of YAML tags present in the README."
-)
+EXPECTED_ERROR_README_INCORRECT_YAML = "The following issues were found for the README at `{path}`:\n-\tOnly the start of YAML tags present in the README."
 
 README_MISSING_TEXT = """\
 ---
