@@ -101,18 +101,21 @@ class Subjqa(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir,
-                f"SubjQA-master/SubjQA/{self.config.name}/splits/train.csv")},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, f"SubjQA-master/SubjQA/{self.config.name}/splits/train.csv")
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir,
-                f"SubjQA-master/SubjQA/{self.config.name}/splits/test.csv")},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, f"SubjQA-master/SubjQA/{self.config.name}/splits/test.csv")
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir,
-                f"SubjQA-master/SubjQA/{self.config.name}/splits/dev.csv")},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, f"SubjQA-master/SubjQA/{self.config.name}/splits/dev.csv")
+                },
             ),
         ]
 
@@ -121,4 +124,4 @@ class Subjqa(datasets.GeneratorBasedBuilder):
             csv_reader = csv.reader(csv_file, delimiter=",")
             column_names = next(csv_reader)
             for _id, row in enumerate(csv_reader):
-                yield _id, {column_name:value for column_name, value in zip(column_names, row)}
+                yield _id, {column_name: value for column_name, value in zip(column_names, row)}
