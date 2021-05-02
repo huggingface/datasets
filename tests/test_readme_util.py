@@ -266,7 +266,7 @@ def test_readme_from_string_correct():
     ],
 )
 def test_readme_from_string_errors(readme_md, expected_error):
-    with pytest.raises(ValueError, match=expected_error.format(path='root')):
+    with pytest.raises(ValueError, match=expected_error.format(path="root")):
         ReadMe.from_string(readme_md, example_yaml_structure)
 
 
@@ -275,11 +275,11 @@ def test_readme_from_readme_correct():
         path = Path(tmp_dir) / "README.md"
         with open(path, "w+") as readme_file:
             readme_file.write(README_CORRECT)
-        out =  ReadMe.from_readme(path, example_yaml_structure).to_dict()
-        assert out['name']==path
-        assert out['text']==""
-        assert out['is_empty']==True
-        assert out['subsections']==CORRECT_DICT['subsections']
+        out = ReadMe.from_readme(path, example_yaml_structure).to_dict()
+        assert out["name"] == path
+        assert out["text"] == ""
+        assert out["is_empty"] == True
+        assert out["subsections"] == CORRECT_DICT["subsections"]
 
 
 @pytest.mark.parametrize(
