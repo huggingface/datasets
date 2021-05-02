@@ -124,6 +124,23 @@ EXPECTED_ERROR_README_NO_YAML = (
     "The following issues were found for the README at `{path}`:\n-\tNo YAML markers are present in the README."
 )
 
+README_INCORRECT_YAML = """\
+---
+# Dataset Card for My Dataset
+## Table of Contents
+Some text here.
+## Dataset Description
+Some text here.
+### Dataset Summary
+Some text here.
+### Supported Tasks and Leaderboards
+### Languages
+"""
+
+EXPECTED_ERROR_README_INCORRECT_YAML = (
+    "The following issues were found for the README at `{path}`:\n-\tOnly the start of YAML tags present in the README."
+)
+
 README_MISSING_TEXT = """\
 ---
 languages:
@@ -268,6 +285,7 @@ def test_readme_from_string_correct():
     [
         (README_NO_YAML, EXPECTED_ERROR_README_NO_YAML),
         (README_EMPTY_YAML, EXPECTED_ERROR_README_EMPTY_YAML),
+        (README_INCORRECT_YAML, EXPECTED_ERROR_README_INCORRECT_YAML),
         (README_EMPTY, EXPECTED_ERROR_README_EMPTY),
         (README_NONE_SUBSECTION, EXPECTED_ERROR_README_NONE_SUBSECTION),
         (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
@@ -300,6 +318,7 @@ def test_readme_from_readme_correct():
     [
         (README_NO_YAML, EXPECTED_ERROR_README_NO_YAML),
         (README_EMPTY_YAML, EXPECTED_ERROR_README_EMPTY_YAML),
+        (README_INCORRECT_YAML, EXPECTED_ERROR_README_INCORRECT_YAML),
         (README_EMPTY, EXPECTED_ERROR_README_EMPTY),
         (README_NONE_SUBSECTION, EXPECTED_ERROR_README_NONE_SUBSECTION),
         (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
