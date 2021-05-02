@@ -11,7 +11,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import load_dataset, load_from_disk
+from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
 
 from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
@@ -148,7 +148,7 @@ class LoadTest(TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+            f"https://raw.githubusercontent.com/huggingface/datasets/{SCRIPTS_VERSION}/datasets/_dummy/_dummy.py",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
@@ -162,7 +162,7 @@ class LoadTest(TestCase):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("_dummy")
                 self.assertIn(
-                    "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+                    f"https://raw.githubusercontent.com/huggingface/datasets/{SCRIPTS_VERSION}/datasets/_dummy/_dummy.py",
                     str(context.exception),
                 )
 
