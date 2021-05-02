@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-""" This script will run in CI and make sure all new changes to datasets readme files have valid content present.
+""" This script will run in CI and make sure all new changes to datasets readme files have valid readme content.
 """
 
 from pathlib import Path
 from subprocess import check_output
 from typing import List
 
-from datasets.utils.readme import validate_readme
+from datasets.utils.readme import ReadMe
 
 
 def get_changed_files(repo_path: Path) -> List[Path]:
@@ -41,11 +41,11 @@ if __name__ == "__main__":
     failed: List[Path] = []
     for readme in sorted(readmes):
         try:
-            DatasetMetadata.from_readme(readme)
+            ReadMe.from_readme(readme)
             logging.debug(f"✅️ Validated '{readme.relative_to(repo_path)}'")
-        except TypeError as e:
+        except ValueError as e:
             failed.append(readme)
-            logging.warning(f"❌ Failed to validate '{readme.relative_to(repo_path)}':\n{e}")
+            logging.warning(f"❌ Validation failed for '{readme.relative_to(repo_path)}':\n{e}")
         except Exception as e:
             failed.append(readme)
             logging.warning(f"⁉️ Something unexpected happened on '{readme.relative_to(repo_path)}':\n{e}")
