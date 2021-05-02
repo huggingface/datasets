@@ -221,7 +221,6 @@ class ReadMe(Section):  # Level 0
             warning_list.append("Only the start of YAML tags present in the README.")
         # Check how many first level sections are present.
         num_first_level_keys = len(self.content.keys())
-        print(self.content)
         if num_first_level_keys > 1:
             # If more than one, add to the error list, continue
             error_list.append(
