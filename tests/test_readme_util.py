@@ -140,7 +140,19 @@ Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
 """
-EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some header text for section 'Dataset Summary'."
+EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some header text for section `Dataset Summary`."
+
+
+README_NONE_SUBSECTION = """\
+---
+languages:
+- zh
+- en
+---
+
+# Dataset Card for My Dataset
+"""
+EXPECTED_ERROR_README_NONE_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tSection `Dataset Card for My Dataset` expected the following subsections: `Table of Contents`, `Dataset Description`. Found 'None'."
 
 README_MISSING_SUBSECTION = """\
 ---
@@ -159,7 +171,7 @@ Some text here.
 ### Languages
 """
 
-EXPECTED_ERROR_README_MISSING_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tSection 'Dataset Description' is missing subsection: 'Supported Tasks and Leaderboards'."
+EXPECTED_ERROR_README_MISSING_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tSection `Dataset Description` is missing subsection: `Supported Tasks and Leaderboards`."
 
 README_MISSING_FIRST_LEVEL = """\
 ---
@@ -243,7 +255,7 @@ Some text here.
 ### Languages
 """
 
-EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `{path}`:\n-\tMultiple sections with the same heading 'Dataset Card for My Dataset' have been found. Please keep only one of these sections."
+EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `{path}`:\n-\tMultiple sections with the same heading `Dataset Card for My Dataset` have been found. Please keep only one of these sections."
 
 
 def test_readme_from_string_correct():
@@ -257,6 +269,7 @@ def test_readme_from_string_correct():
         (README_NO_YAML, EXPECTED_ERROR_README_NO_YAML),
         (README_EMPTY_YAML, EXPECTED_ERROR_README_EMPTY_YAML),
         (README_EMPTY, EXPECTED_ERROR_README_EMPTY),
+        (README_NONE_SUBSECTION, EXPECTED_ERROR_README_NONE_SUBSECTION),
         (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
         (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
         (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),
@@ -288,6 +301,7 @@ def test_readme_from_readme_correct():
         (README_NO_YAML, EXPECTED_ERROR_README_NO_YAML),
         (README_EMPTY_YAML, EXPECTED_ERROR_README_EMPTY_YAML),
         (README_EMPTY, EXPECTED_ERROR_README_EMPTY),
+        (README_NONE_SUBSECTION, EXPECTED_ERROR_README_NONE_SUBSECTION),
         (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
         (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
         (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),

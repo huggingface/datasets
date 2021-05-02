@@ -80,7 +80,7 @@ class Section:
             if current_sub_level != "":
                 if current_sub_level in self.content:
                     self.parsing_error_list.append(
-                        f"Multiple sections with the same heading '{current_sub_level}' have been found. Please keep only one of these sections."
+                        f"Multiple sections with the same heading `{current_sub_level}` have been found. Please keep only one of these sections."
                     )
                 self.content[current_sub_level] = Section(current_sub_level, self.level + "#", current_lines)
             else:
@@ -105,7 +105,7 @@ class Section:
             # If header text is expected
             if self.is_empty:
                 # If no header text is found, mention it in the error_list
-                error_list.append(f"Expected some header text for section '{self.name}'.")
+                error_list.append(f"Expected some header text for section `{self.name}`.")
 
         # Subsections Validation
         if structure["subsections"] is not None:
@@ -114,14 +114,14 @@ class Section:
                 # If no subsections are present
                 values = [subsection["name"] for subsection in structure["subsections"]]
                 # Mention the expected values in the error_list
-                error_list.append(f"Section '{self.name}' expected the following subsections: {values}, found `None`.")
+                error_list.append(f"Section `{self.name}` expected the following subsections: {', '.join(['`'+x+'`' for x in values])}. Found 'None'.")
             else:
                 # If some subsections are present
                 structure_names = [subsection["name"] for subsection in structure["subsections"]]
                 for idx, name in enumerate(structure_names):
                     if name not in self.content:
                         # If the expected subsection is not present
-                        error_list.append(f"Section '{self.name}' is missing subsection: '{name}'.")
+                        error_list.append(f"Section `{self.name}` is missing subsection: `{name}`.")
                     else:
                         # If the subsection is present, validate subsection, return the result
                         # and concat the errors from subsection to section error_list
@@ -135,7 +135,7 @@ class Section:
                     if name not in structure_names:
                         # If an extra subsection is present
                         warning_list.append(
-                            f"'{self.name}' has an extra subsection: '{name}'. Skipping further validation checks for this subsection as expected structure is unknown."
+                            f"`{self.name}` has an extra subsection: `{name}`. Skipping further validation checks for this subsection as expected structure is unknown."
                         )
         error_list = self.parsing_error_list + error_list
         warning_list = self.parsing_warning_list + warning_list
