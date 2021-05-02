@@ -105,7 +105,7 @@ Some text here.
 """
 
 EXPECTED_ERROR_README_EMPTY_YAML = (
-    "The following issues were found for the README at `root`:\n-\tEmpty YAML markers are present in the README."
+    "The following issues were found for the README at `{path}`:\n-\tEmpty YAML markers are present in the README."
 )
 
 README_NO_YAML = """\
@@ -121,7 +121,7 @@ Some text here.
 """
 
 EXPECTED_ERROR_README_NO_YAML = (
-    "The following issues were found for the README at `root`:\n-\tNo YAML markers are present in the README."
+    "The following issues were found for the README at `{path}`:\n-\tNo YAML markers are present in the README."
 )
 
 README_MISSING_TEXT = """\
@@ -140,7 +140,7 @@ Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
 """
-EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `root`:\n-\tExpected some header text for section 'Dataset Summary'."
+EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some header text for section 'Dataset Summary'."
 
 README_MISSING_SUBSECTION = """\
 ---
@@ -159,7 +159,7 @@ Some text here.
 ### Languages
 """
 
-EXPECTED_ERROR_README_MISSING_SUBSECTION = "The following issues were found for the README at `root`:\n-\tSection 'Dataset Description' is missing subsection: 'Supported Tasks and Leaderboards'."
+EXPECTED_ERROR_README_MISSING_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tSection 'Dataset Description' is missing subsection: 'Supported Tasks and Leaderboards'."
 
 README_MISSING_FIRST_LEVEL = """\
 ---
@@ -177,7 +177,7 @@ Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
 """
-EXPECTED_ERROR_README_MISSING_FIRST_LEVEL = "The following issues were found for the README at `root`:\n-\tThe README has no first-level headings. One heading is expected. Skipping further validation for this README."
+EXPECTED_ERROR_README_MISSING_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tThe README has no first-level headings. One heading is expected. Skipping further validation for this README."
 
 README_MULTIPLE_WRONG_FIRST_LEVEL = """\
 ---
@@ -198,7 +198,7 @@ Some text here.
 # Dataset Card My Dataset
 """
 
-EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL = "The following issues were found for the README at `root`:\n-\tThe README has several first-level headings: \['Dataset Card for My Dataset', 'Dataset Card My Dataset'\]. Only one heading is expected. Skipping further validation for this README."
+EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tThe README has several first-level headings: \['Dataset Card for My Dataset', 'Dataset Card My Dataset'\]. Only one heading is expected. Skipping further validation for this README."
 
 README_WRONG_FIRST_LEVEL = """\
 ---
@@ -218,11 +218,11 @@ Some text here.
 ### Languages
 """
 
-EXPECTED_ERROR_README_WRONG_FIRST_LEVEL = "The following issues were found for the README at `root`:\n-\tNo first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
+EXPECTED_ERROR_README_WRONG_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tNo first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
 
 README_EMPTY = ""
 
-EXPECTED_ERROR_README_EMPTY = "The following issues were found for the README at `root`:\n-\tThe README has no first-level headings. One heading is expected. Skipping further validation for this README.\n-\tNo YAML markers are present in the README."
+EXPECTED_ERROR_README_EMPTY = "The following issues were found for the README at `{path}`:\n-\tThe README has no first-level headings. One heading is expected. Skipping further validation for this README.\n-\tNo YAML markers are present in the README."
 
 README_MULTIPLE_SAME_HEADING_1 = """\
 ---
@@ -243,7 +243,7 @@ Some text here.
 ### Languages
 """
 
-EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `root`:\n-\tMultiple sections with the same heading 'Dataset Card for My Dataset' have been found. Please keep only one of these sections."
+EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `{path}`:\n-\tMultiple sections with the same heading 'Dataset Card for My Dataset' have been found. Please keep only one of these sections."
 
 
 def test_readme_from_string_correct():
@@ -266,6 +266,40 @@ def test_readme_from_string_correct():
     ],
 )
 def test_readme_from_string_errors(readme_md, expected_error):
-
-    with pytest.raises(ValueError, match=expected_error):
+    with pytest.raises(ValueError, match=expected_error.format(path='root')):
         ReadMe.from_string(readme_md, example_yaml_structure)
+
+
+def test_readme_from_readme_correct():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / "README.md"
+        with open(path, "w+") as readme_file:
+            readme_file.write(README_CORRECT)
+        out =  ReadMe.from_readme(path, example_yaml_structure).to_dict()
+        assert out['name']==path
+        assert out['text']==""
+        assert out['is_empty']==True
+        assert out['subsections']==CORRECT_DICT['subsections']
+
+
+@pytest.mark.parametrize(
+    "readme_md, expected_error",
+    [
+        (README_NO_YAML, EXPECTED_ERROR_README_NO_YAML),
+        (README_EMPTY_YAML, EXPECTED_ERROR_README_EMPTY_YAML),
+        (README_EMPTY, EXPECTED_ERROR_README_EMPTY),
+        (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
+        (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
+        (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),
+        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
+        (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
+        (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
+    ],
+)
+def test_readme_from_readme_error(readme_md, expected_error):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / "README.md"
+        with open(path, "w+") as readme_file:
+            readme_file.write(readme_md)
+        with pytest.raises(ValueError, match=expected_error.format(path=path)):
+            ReadMe.from_readme(path, example_yaml_structure)
