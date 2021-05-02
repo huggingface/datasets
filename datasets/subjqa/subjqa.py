@@ -18,7 +18,6 @@ electronics, TripAdvisor (i.e. hotels), and restaurants."""
 
 
 import csv
-import json
 import os
 
 import datasets
@@ -61,10 +60,8 @@ class Subjqa(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="grocery", version=VERSION, description="Amazon grocery reviews"),
         datasets.BuilderConfig(name="movies", version=VERSION, description="Amazon movie reviews"),
         datasets.BuilderConfig(name="restaurants", version=VERSION, description="Yelp restaurant reviews"),
-        datasets.BuilderConfig(name="tripadvisor", version=VERSION, description="TripAdvisor reviews"),
+        datasets.BuilderConfig(name="tripadvisor", version=VERSION, description="TripAdvisor hotel reviews"),
     ]
-
-    DEFAULT_CONFIG_NAME = ""  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         features = datasets.Features(
