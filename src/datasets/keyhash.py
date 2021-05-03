@@ -63,7 +63,7 @@ def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
 
 
 class DuplicatedKeysError(Exception):
-    """Raise an error when duplicate key found. """
+    """Raise an error when duplicate key found."""
 
     def __init__(self, key):
         self.prefix = "FAILURE TO GENERATE DATASET !"
