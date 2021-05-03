@@ -14,7 +14,9 @@
 # limitations under the License.
 """ Middle Egyptian dataset as used in the paper  """
 import json
+
 import datasets
+
 
 _CITATION = """\
 @misc{OPUS4-2919,
@@ -76,7 +78,7 @@ class BbawEgyptian(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
         for id_, row in enumerate(data):
