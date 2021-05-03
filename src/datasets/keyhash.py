@@ -32,8 +32,8 @@ in different splits due to same keys
 """
 
 import hashlib
-from typing import Union
 import sys
+from typing import Union
 
 
 def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:

@@ -25,8 +25,8 @@ from tqdm.auto import tqdm
 
 from . import config
 from .features import Features, _ArrayXDExtensionType
-from .keyhash import DuplicatedKeysError, KeyHasher
 from .info import DatasetInfo
+from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
 

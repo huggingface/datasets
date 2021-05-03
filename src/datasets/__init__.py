@@ -48,7 +48,6 @@ from .features import (
     Value,
 )
 from .fingerprint import is_caching_enabled, set_caching_enabled
-from .keyhash import KeyHasher
 from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_names,
@@ -58,6 +57,7 @@ from .inspect import (
     list_datasets,
     list_metrics,
 )
+from .keyhash import KeyHasher
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
