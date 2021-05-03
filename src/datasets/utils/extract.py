@@ -11,12 +11,6 @@ from datasets import config
 from datasets.utils.filelock import FileLock
 
 
-@dataclass
-class ExtractConfig:
-    extract_compressed_file: bool = False
-    force_extract: bool = False
-
-
 class ExtractManager:
     def __init__(self, cache_dir=None):
         self.cache_dir = cache_dir
