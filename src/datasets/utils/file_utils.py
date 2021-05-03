@@ -324,40 +324,6 @@ def cached_path(
     return output_path_extracted
 
 
-class Extractor:
-    @staticmethod
-    def is_extractable(path):
-        return (
-            ZipExtractor.is_extractable(path)
-            or TarExtractor.is_extractable(path)
-            or GzipExtractor.is_extractable(path)
-            or XzExtractor.is_extractable(path)
-            or RarExtractor.is_extractable(path)
-        )
-
-    @staticmethod
-    def extract(input_path, output_path):
-        # Prevent parallel extractions
-        lock_path = input_path + ".lock"
-        with FileLock(lock_path):
-            shutil.rmtree(output_path, ignore_errors=True)
-            os.makedirs(output_path, exist_ok=True)
-            if TarExtractor.is_extractable(input_path):
-                TarExtractor.extract(input_path, output_path)
-            elif GzipExtractor.is_extractable(input_path):
-                GzipExtractor.extract(input_path, output_path)
-            elif ZipExtractor.is_extractable(
-                input_path
-            ):  # put zip file to the last, b/c it is possible wrongly detected as zip
-                ZipExtractor.extract(input_path, output_path)
-            elif XzExtractor.is_extractable(input_path):
-                XzExtractor.extract(input_path, output_path)
-            elif RarExtractor.is_extractable(input_path):
-                RarExtractor.extract(input_path, output_path)
-            else:
-                raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
-
-
 class TarExtractor:
     @staticmethod
     def is_extractable(path):
@@ -447,6 +413,29 @@ class RarExtractor:
             rf.close()
         else:
             raise EnvironmentError("Please pip install rarfile")
+
+
+class Extractor:
+    #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
+    extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor]
+
+    @classmethod
+    def is_extractable(cls, path):
+        return any(extractor.is_extractable() for extractor in cls.extractors)
+
+    @classmethod
+    def extract(cls, input_path, output_path):
+        if not cls.is_extractable(input_path):
+            raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
+        # Prevent parallel extractions
+        lock_path = input_path + ".lock"
+        with FileLock(lock_path):
+            shutil.rmtree(output_path, ignore_errors=True)
+            os.makedirs(output_path, exist_ok=True)
+            for extractor in cls.extractors:
+                if extractor.is_extractable(input_path):
+                    extractor.extract(input_path, output_path)
+                    break
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
