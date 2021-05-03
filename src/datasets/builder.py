@@ -980,7 +980,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             path=fpath,
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
-            check_duplicates=True
+            check_duplicates=True,
         ) as writer:
             try:
                 for key, record in utils.tqdm(

@@ -35,6 +35,7 @@ import hashlib
 from typing import Union
 import sys
 
+
 def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
     """
     Returns the input hash_data in its bytes form
@@ -43,30 +44,33 @@ def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
     hash_data: the hash salt/key to be converted to bytes
     """
     if isinstance(hash_data, bytes):
-        #Data already in bytes, returns as it as
+        # Data already in bytes, returns as it as
         return hash_data
     elif isinstance(hash_data, str):
-        #We keep the data as it as for it ot be later encoded to UTF-8
-        #However replace `\\` with `/` for Windows compatibility
-        hash_data = hash_data.replace('\\', '/')
+        # We keep the data as it as for it ot be later encoded to UTF-8
+        # However replace `\\` with `/` for Windows compatibility
+        hash_data = hash_data.replace("\\", "/")
     elif isinstance(hash_data, int):
         hash_data = str(hash_data)
     else:
-        #If data is not of the required type, raise error
+        # If data is not of the required type, raise error
         prefix = "\nFAILURE TO GENERATE DATASET: Invalid key type detected"
         err_msg = f"\nFound Key {hash_data} of type {type(hash_data)}"
         suffix = "\nKeys should be either str, int or bytes type"
-        raise TypeError(f'{prefix}{err_msg}{suffix}')
+        raise TypeError(f"{prefix}{err_msg}{suffix}")
 
-    return hash_data.encode('utf-8')
+    return hash_data.encode("utf-8")
+
 
 class DuplicatedKeysError(Exception):
     """Raise an error when duplicate key found. """
+
     def __init__(self, key):
         self.prefix = "FAILURE TO GENERATE DATASET !"
         self.err_msg = f"\nFound duplicate Key: {key}"
         self.suffix = "\nKeys should be unique and deterministic in nature"
-        super().__init__(f'{self.prefix}{self.err_msg}{self.suffix}')
+        super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
+
 
 class KeyHasher(object):
     """KeyHasher class for providing hash using md5"""
@@ -75,7 +79,7 @@ class KeyHasher(object):
         self._split_md5 = hashlib.md5(_as_bytes(hash_salt))
 
     def hash(self, key: Union[str, int, bytes]) -> int:
-        """ Returns 128-bits unique hash of input key
+        """Returns 128-bits unique hash of input key
 
         Args:
         key: the input key to be hashed (should be str, int or bytes)
@@ -88,5 +92,5 @@ class KeyHasher(object):
             sys.exit(err)
 
         md5.update(byte_key)
-        #Convert to integer with hexadecimal conversion
+        # Convert to integer with hexadecimal conversion
         return int(md5.hexdigest(), 16)
