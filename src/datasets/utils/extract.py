@@ -22,7 +22,7 @@ class ExtractManager:
         self.cache_dir = cache_dir
         self.extractor = Extractor
 
-    def _get_outout_path(self, path):
+    def _get_output_path(self, path):
         from datasets.utils.file_utils import hash_url_to_filename
 
         # Path where we extract compressed archives
@@ -38,7 +38,7 @@ class ExtractManager:
     def extract(self, input_path, force_extract=False):
         output_path = input_path
         if self.extractor.is_extractable(input_path):
-            output_path = self._get_outout_path(input_path)
+            output_path = self._get_output_path(input_path)
             if self._do_extract(output_path, force_extract):
                 self.extractor.extract(input_path, output_path)
         return output_path
