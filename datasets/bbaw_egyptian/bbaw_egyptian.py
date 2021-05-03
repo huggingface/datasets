@@ -67,7 +67,7 @@ class BbawEgyptian(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = self._URLS
-        data_dir = dl_manager.download_and_extract(my_urls)
+        data_dir = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["all"]},

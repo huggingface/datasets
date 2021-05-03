@@ -1,10 +1,12 @@
 ---
 annotations_creators:
-- specialized egyptologists
+- expert-generated
 language_creators:
 - found
 languages:
-- de, en, eg
+- de
+- en
+- eg
 licenses:
 - cc-by-4.0
 multilinguality:
@@ -14,7 +16,9 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 task_categories:
-- translation
+- conditional-text-generation
+task_ids:
+- machine translation
 ---
 
 # Dataset Card for "bbaw_egyptian"
@@ -112,7 +116,20 @@ The data source comes from the project "Strukturen und Transformationen des Wort
 
 ### Annotations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The corpus has not been preprocessed as we encourage every scientist to prepare the corpus to their desired needs. This means, that all textcritic symbols are still included in the transliteration and translation. This concerns the following annotations:
+
+- `()`: defective
+- `[]`: lost
+- `{}`: surplus
+- `〈〉`: omitted
+- `⸢⸣`: damaged
+- `⸮?`: unclear
+- `{{}}`: erasure
+- `(())`: above
+- `[[]]`: overstrike
+- `〈〈〉〉`: haplography
+
+Their exists a similar sign list for the annotation of the hieroglyphic encoding. If you wish access to this list, please get in contact with the author.
 
 ### Personal and Sensitive Information
 
@@ -167,3 +184,5 @@ Translation paper:
 ```
 
 ### Contributions
+
+Thanks to [@phiwi](https://github.com/phiwi) for adding this dataset.
