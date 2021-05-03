@@ -332,6 +332,9 @@ class WindowsFileLock(BaseFileLock):
     Uses the :func:`msvcrt.locking` function to hard lock the lock file on
     windows systems.
     """
+    def __init__(self, lock_file, timeout=-1):
+        lock_file = "\\\\?\\" + lock_file if os.path.isabs(lock_file) else lock_file
+        super().__init__(lock_file, timeout=timeout)
 
     def _acquire(self):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC

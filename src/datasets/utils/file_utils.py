@@ -41,7 +41,7 @@ logger = get_logger(__name__)  # pylint: disable=invalid-name
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
-def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
+def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None, original_sys_path=sys.path) -> str:
     """
     Add hf_modules_cache to the python path.
     By default hf_modules_cache='~/.cache/huggingface/modules'.
@@ -51,12 +51,9 @@ def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
     hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else config.HF_MODULES_CACHE
     hf_modules_cache = str(hf_modules_cache)
     if hf_modules_cache not in sys.path:
+        sys.path = original_sys_path[:]
         sys.path.append(hf_modules_cache)
-
         os.makedirs(hf_modules_cache, exist_ok=True)
-        if not os.path.exists(os.path.join(hf_modules_cache, "__init__.py")):
-            with open(os.path.join(hf_modules_cache, "__init__.py"), "w"):
-                pass
     return hf_modules_cache
 
 
@@ -633,7 +630,7 @@ def get_from_cache(
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
-
+        cache_path = "\\\\?\\" + cache_path
         if resume_download:
             incomplete_path = cache_path + ".incomplete"
 
