@@ -28,7 +28,7 @@ import requests
 from tqdm.auto import tqdm
 
 from .. import __version__, config
-from .extract import Extractor
+from .extract import ExtractManager
 from .filelock import FileLock
 from .logging import WARNING, get_logger
 
@@ -297,27 +297,15 @@ def cached_path(
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if not download_config.extract_compressed_file or output_path is None:
+    if output_path is None:
         return output_path
 
-    if not Extractor.is_extractable(output_path):
-        return output_path
+    if download_config.extract_compressed_file:
+        output_path = ExtractManager(cache_dir=cache_dir).extract(
+            output_path, force_extract=download_config.force_extract
+        )
 
-    # Path where we extract compressed archives
-    # We extract in the cache dir, and get the extracted path name by hashing the original path"
-    abs_output_path = os.path.abspath(output_path)
-    output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
-
-    if (
-        os.path.isdir(output_path_extracted)
-        and os.listdir(output_path_extracted)
-        and not download_config.force_extract
-    ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
-        return output_path_extracted
-
-    Extractor.extract(output_path, output_path_extracted)
-
-    return output_path_extracted
+    return output_path
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:

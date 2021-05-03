@@ -3,11 +3,45 @@ import lzma
 import os
 import shutil
 import tarfile
+from dataclasses import dataclass
 from zipfile import ZipFile
 from zipfile import is_zipfile as _is_zipfile
 
 from datasets import config
+from datasets.utils.file_utils import hash_url_to_filename
 from datasets.utils.filelock import FileLock
+
+
+@dataclass
+class ExtractConfig:
+    extract_compressed_file: bool = False
+    force_extract: bool = False
+
+
+class ExtractManager:
+    def __init__(self, cache_dir=None):
+        self.cache_dir = cache_dir
+        self.extractor = Extractor
+
+    def _get_outout_path(self, path):
+        # Path where we extract compressed archives
+        # We extract in the cache dir, and get the extracted path name by hashing the original path"
+        abs_path = os.path.abspath(path)
+        return os.path.join(self.cache_dir, "extracted", hash_url_to_filename(abs_path))
+
+    def _do_extract(self, output_path, force_extract):
+        return force_extract or (
+            not os.path.isfile(output_path)
+            and not (os.path.isdir(output_path) and os.listdir(output_path))
+        )
+
+    def extract(self, input_path, force_extract=False):
+        output_path = input_path
+        if self.extractor.is_extractable(input_path):
+            output_path = self._get_outout_path(input_path)
+            if self._do_extract(output_path, force_extract):
+                self.extractor.extract(input_path, output_path)
+        return output_path
 
 
 class TarExtractor:
