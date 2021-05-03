@@ -311,7 +311,7 @@ class ArrowWriter:
         self.write_table(table)
         self.current_rows = []
 
-    def write(self, example: Dict[str, Any], key: Optional[Union[str, int, bytes]], writer_batch_size: Optional[int] = None):
+    def write(self, example: Dict[str, Any], key: Optional[Union[str, int, bytes]] = None, writer_batch_size: Optional[int] = None):
         """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
