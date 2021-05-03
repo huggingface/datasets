@@ -27,7 +27,7 @@ _DESCRIPTION = """\
 
 class DiscofuseConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Discofuse"""
+    """BuilderConfig for Discofuse"""
 
     def __init__(self, data_url, balanced=False, **kwargs):
         """

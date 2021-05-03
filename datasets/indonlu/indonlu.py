@@ -571,7 +571,7 @@ class Indonlu(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         csv_file = ["emot", "wrete", "facqa", "casa", "hoasa"]
         tsv_file = ["smsa"]
         txt_file = ["terma", "keps"]

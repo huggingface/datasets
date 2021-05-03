@@ -213,7 +213,7 @@ class ArrowWriter:
         self.hkey_record = []
 
     def __len__(self):
-        """ Return the number of writed and staged examples """
+        """Return the number of writed and staged examples"""
         return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
     def __enter__(self):

@@ -165,7 +165,7 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
         self,
         filepath,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
         with open(filepath, newline="", encoding="utf-8") as csvfile:

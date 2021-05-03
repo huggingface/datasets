@@ -36,14 +36,7 @@ from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, Missi
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
-from .info import (
-    DATASET_INFO_FILENAME,
-    DATASET_INFOS_DICT_FILE_NAME,
-    LICENSE_FILENAME,
-    DatasetInfo,
-    DatasetInfosDict,
-    PostProcessedInfo,
-)
+from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
@@ -54,12 +47,6 @@ from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
-
-FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
-REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
-REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
-
-MAX_DIRECTORY_NAME_LENGTH = 255
 
 
 class InvalidConfigName(ValueError):
@@ -175,7 +162,7 @@ class BuilderConfig:
 
         if suffix:
             config_id = self.name + "-" + suffix
-            if len(config_id) > MAX_DIRECTORY_NAME_LENGTH:
+            if len(config_id) > config.MAX_DATASET_CONFIG_ID_READABLE_LENGTH:
                 config_id = self.name + "-" + Hasher.hash(suffix)
             return config_id
         else:
@@ -297,7 +284,7 @@ class DatasetBuilder:
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
         """Empty dict if doesn't exist"""
-        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dset_infos_file_path):
             return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
         return {}
@@ -496,7 +483,7 @@ class DatasetBuilder:
             if download_config is None:
                 download_config = DownloadConfig(
                     cache_dir=os.path.join(self._cache_dir_root, "downloads"),
-                    force_download=bool(download_mode == FORCE_REDOWNLOAD),
+                    force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
@@ -515,7 +502,7 @@ class DatasetBuilder:
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
+            if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
@@ -1181,9 +1168,9 @@ class BeamBasedBuilder(DatasetBuilder):
             import apache_beam as beam
 
             fs = beam.io.filesystems.FileSystems
-            with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
+            with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
                 self.info._dump_info(f)
-            with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
+            with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
                 self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):

@@ -4,6 +4,11 @@ annotations_creators:
 language_creators:
 - found
 languages:
+  SLR32:
+  - af
+  - st
+  - tn
+  - xh
   SLR35:
   - jv
   SLR36:
@@ -102,6 +107,20 @@ task_ids:
 
 OpenSLR is a site devoted to hosting speech and language resources, such as training corpora for speech recognition, 
 and software related to speech recognition. Currently, following resources are available: 
+
+#### SLR32: High quality TTS data for four South African languages (af, st, tn, xh).
+This data set contains multi-speaker high quality transcribed audio data for four languages of South Africa.
+The data set consists of wave files, and a TSV file transcribing the audio. In each folder, the file line_index.tsv
+contains a FileID, which in turn contains the UserID and the Transcription of audio in the file.
+
+The data set has had some quality checks, but there might still be errors.
+
+This data set was collected by as a collaboration between North West University and Google.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See https://github.com/google/language-resources#license for license information.
+
+Copyright 2017 Google, Inc.
 
 #### SLR35: Large Javanese ASR training data set.
 This data set contains transcribed audio data for Javanese (~185K utterances). The data set consists of wave files,
@@ -452,7 +471,9 @@ Copyright 2018, 2019, 2020 Google, Inc.
 
 ### Languages
 
-Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan
+Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan, Nigerian English, Chilean Spanish,
+Columbian Spanish, Peruvian Spanish, Puerto Rico Spanish, Venezuelan Spanish, Basque, Galician, Gujarati, Kannada,
+Afrikaans, Sesotho, Setswana and isiXhosa.
 
 ## Dataset Structure
 
@@ -460,7 +481,7 @@ Javanese, Khmer, Nepali, Sundanese, Malayalam, Marathi, Tamil, Telugu, Catalan
 
 A typical data point comprises the path to the audio file, called path and its sentence. 
 
-#### SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
+#### SLR32, SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
 ```
 {
   'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
@@ -533,6 +554,19 @@ The speech material has only train dataset.
 [More Information Needed] 
 
 ### Citation Information
+#### SLR32
+```
+@inproceedings{van-niekerk-etal-2017,
+    title = {{Rapid development of TTS corpora for four South African languages}},
+    author = {Daniel van Niekerk and Charl van Heerden and Marelie Davel and Neil Kleynhans and Oddur Kjartansson and Martin Jansche and Linne Ha},
+    booktitle = {Proc. Interspeech 2017},
+    pages = {2178--2182},
+    address = {Stockholm, Sweden},
+    month = aug,
+    year  = {2017},
+    URL   = {https://dx.doi.org/10.21437/Interspeech.2017-1139}
+}
+```
 
 #### SLR35, SLR36
 ```
@@ -594,7 +628,7 @@ The speech material has only train dataset.
 }
 ```
 
-#### SLR71, SLR71, SLR72, SLR73, SLR74, SLR75
+#### SLR70, SLR71, SLR72, SLR73, SLR74, SLR75
 ```
 @inproceedings{guevara-rukoz-etal-2020-crowdsourcing,
     title = {{Crowdsourcing Latin American Spanish for Low-Resource Text-to-Speech}},
