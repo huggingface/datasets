@@ -70,7 +70,8 @@ class BbawEgyptian(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["all"]},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": data_dir["all"]},
             )
         ]
 
