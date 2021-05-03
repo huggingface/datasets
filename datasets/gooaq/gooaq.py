@@ -16,13 +16,10 @@
 
 
 import json
-import os
 
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @article{gooaq2021,
   title={GooAQ: Open Question Answering with Diverse Answer Types},
@@ -59,7 +56,7 @@ class GooAQ(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "id": datasets.Value("string"),
+                "id": datasets.Value("int32"),
                 "question": datasets.Value("string"),
                 "short_answer": datasets.Value("string"),
                 "answer": datasets.Value("string"),
@@ -102,12 +99,24 @@ class GooAQ(datasets.GeneratorBasedBuilder):
     def _generate_examples(
         self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
+        dominant_classes = ["feat_snip", "collection", "knowledge", "unit_conv", "time_conv", "curr_conv"]
+
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
-                yield id_, {
-                    "question": data["question"],
-                    "short_answer": data["short_answer"],
-                    "answer": data["answer"],
-                    "answer_type": data["answer_type"],
-                }
+                if data["answer_type"] not in dominant_classes:
+                    yield id_, {
+                        "id": data["id"],
+                        "question": data["question"],
+                        "short_answer": data["short_answer"],
+                        "answer": data["answer"],
+                        "answer_type": -1,
+                    }
+                else:
+                    yield id_, {
+                        "id": data["id"],
+                        "question": data["question"],
+                        "short_answer": data["short_answer"],
+                        "answer": data["answer"],
+                        "answer_type": data["answer_type"],
+                    }
