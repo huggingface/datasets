@@ -8,7 +8,6 @@ from zipfile import ZipFile
 from zipfile import is_zipfile as _is_zipfile
 
 from datasets import config
-from datasets.utils.file_utils import hash_url_to_filename
 from datasets.utils.filelock import FileLock
 
 
@@ -24,6 +23,8 @@ class ExtractManager:
         self.extractor = Extractor
 
     def _get_outout_path(self, path):
+        from datasets.utils.file_utils import hash_url_to_filename
+
         # Path where we extract compressed archives
         # We extract in the cache dir, and get the extracted path name by hashing the original path"
         abs_path = os.path.abspath(path)
@@ -31,8 +32,7 @@ class ExtractManager:
 
     def _do_extract(self, output_path, force_extract):
         return force_extract or (
-            not os.path.isfile(output_path)
-            and not (os.path.isdir(output_path) and os.listdir(output_path))
+            not os.path.isfile(output_path) and not (os.path.isdir(output_path) and os.listdir(output_path))
         )
 
     def extract(self, input_path, force_extract=False):
