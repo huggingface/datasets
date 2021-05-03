@@ -189,7 +189,7 @@ class CcalignedMultilingual(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, from_english=False):
-        """ Yields examples. """
+        """Yields examples."""
         lc = self.config.language_code
         reverse = lc in reverse_mapped_sentences
         with open(filepath, encoding="utf-8") as f:
