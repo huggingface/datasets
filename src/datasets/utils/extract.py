@@ -107,7 +107,7 @@ class Extractor:
 
     @classmethod
     def is_extractable(cls, path):
-        return any(extractor.is_extractable() for extractor in cls.extractors)
+        return any(extractor.is_extractable(path) for extractor in cls.extractors)
 
     @classmethod
     def extract(cls, input_path, output_path):
