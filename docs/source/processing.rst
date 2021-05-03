@@ -684,13 +684,13 @@ In a distributed setting, you may use caching and a :func:`torch.distributed.bar
     >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
     >>> 
     >>> if training_args.local_rank > 0:
-    >>> print("Waiting for main process to perform the mapping")
-    >>> torch.distributed.barrier()
+    ...     print("Waiting for main process to perform the mapping")
+    ...     torch.distributed.barrier()
     >>> 
     >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
     >>> 
     >>> if training_args.local_rank == 0:
-    >>> print("Loading results from main process")
-    >>> torch.distributed.barrier()
+    ...     print("Loading results from main process")
+    ...     torch.distributed.barrier()
 
-When it encounter a barrier, each process will stop until all other processes have reached the barrier. The non-main processes reach the barrier first, before the mapping, and wait there. The main processes reaches the mapping first, and creates the cache for the processed dataset. It then reaches the barrier, at which point the other processes resume, and load the cache instead of performing the processing themselves.
+When it encounters a barrier, each process will stop until all other processes have reached the barrier. The non-main processes reach the barrier first, before the mapping, and wait there. The main processes creates the cache for the processed dataset. It then reaches the barrier, at which point the other processes resume, and load the cache instead of performing the processing themselves.
