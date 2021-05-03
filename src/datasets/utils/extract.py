@@ -3,7 +3,6 @@ import lzma
 import os
 import shutil
 import tarfile
-from dataclasses import dataclass
 from zipfile import ZipFile
 from zipfile import is_zipfile as _is_zipfile
 
