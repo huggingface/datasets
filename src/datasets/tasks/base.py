@@ -1,9 +1,11 @@
 import abc
+from dataclasses import dataclass
 from typing import Dict
 
 from ..features import Features
 
 
+@dataclass
 class TaskTemplate(abc.ABC):
     task: str
     input_schema: Features
