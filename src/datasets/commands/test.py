@@ -35,7 +35,7 @@ def test_command_factory(args):
 class TestCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        test_parser = parser.add_parser("test")
+        test_parser = parser.add_parser("test", help="Test dataset implementation.")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
             "--cache_dir",

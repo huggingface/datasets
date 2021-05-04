@@ -28,7 +28,7 @@ def run_beam_command_factory(args):
 class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        run_beam_parser = parser.add_parser("run_beam")
+        run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline.")
         run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         run_beam_parser.add_argument(
             "--cache_dir",

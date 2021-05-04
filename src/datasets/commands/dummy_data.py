@@ -215,7 +215,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
 class DummyDataCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        test_parser = parser.add_parser("dummy_data")
+        test_parser = parser.add_parser("dummy_data", help="Generate dummy data.")
         test_parser.add_argument("--auto_generate", action="store_true", help="Automatically generate dummy data")
         test_parser.add_argument(
             "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"
