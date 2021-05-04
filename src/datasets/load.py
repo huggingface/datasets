@@ -66,7 +66,7 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]]
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
     The module is created in the HF_MODULE_CACHE directory by default (~/.cache/huggingface/modules) but it can
-    be overriden by specifying a path to another directory in `hf_modules_cache`.
+    be overridden by specifying a path to another directory in `hf_modules_cache`.
     """
     hf_modules_cache = init_hf_modules(hf_modules_cache)
     dynamic_modules_path = os.path.join(hf_modules_cache, name)
@@ -75,6 +75,19 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]]
         with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
             pass
     return dynamic_modules_path
+
+
+def _initialize_dynamic_modules_namespace_package(dynamic_modules_path, is_dataset):
+    dynamic_modules_path = (
+        dynamic_modules_path
+        if dynamic_modules_path is not None
+        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
+    )
+    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
+    package_name = "datasets" if is_dataset else "metrics"
+    modules_name = module_name_for_dynamic_modules + "." + package_name
+    modules_path = os.path.join(dynamic_modules_path, package_name)
+    return modules_name, modules_path
 
 
 def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetBuilder], Type[Metric]]]:
@@ -266,38 +279,27 @@ def prepare_module(
     download_config.force_extract = True
 
     module_type = "dataset" if dataset else "metric"
-    name = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
-    if not name.endswith(".py"):
-        name = name + ".py"
+    module_filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
+    if not module_filename.endswith(".py"):
+        module_filename = module_filename + ".py"
 
     # Short name is name without the '.py' at the end (for the module)
-    short_name = name[:-3]
+    module_name = module_filename[:-3]
 
     # first check if the module is packaged with the `datasets` package
     if dataset and path in _PACKAGED_DATASETS_MODULES:
         try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+            head_hf_s3(path, filename=module_filename, dataset=dataset, max_retries=download_config.max_retries)
         except Exception:
             logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
         module_path, hash = _PACKAGED_DATASETS_MODULES[path]
-        if return_resolved_file_path:
-            return module_path, hash, None
-        return module_path, hash
+        return (module_path, hash) if not return_resolved_file_path else (module_path, hash, None)
 
     # otherwise the module is added to the dynamic modules
-    dynamic_modules_path = (
-        dynamic_modules_path
-        if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
-    )
-    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
-    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
-    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
-    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
-    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
+    modules_name, modules_path = _initialize_dynamic_modules_namespace_package(dynamic_modules_path, dataset)
 
     if force_local_path is None:
-        main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name)
+        main_folder_path = os.path.join(modules_path, module_name)
     else:
         main_folder_path = force_local_path
 
@@ -305,7 +307,7 @@ def prepare_module(
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-    combined_path = os.path.join(path, name)
+    combined_path = os.path.join(path, module_filename)
     if os.path.isfile(combined_path):
         file_path = combined_path
         local_path = file_path
@@ -315,78 +317,28 @@ def prepare_module(
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
         try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
-            script_version = str(script_version) if script_version is not None else None
-            if path.count("/") == 0:  # canonical datasets/metrics: github path
-                file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
-                try:
-                    local_path = cached_path(file_path, download_config=download_config)
-                except FileNotFoundError:
-                    if script_version is not None:
-                        raise FileNotFoundError(
-                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name".format(
-                                script_version, file_path, "dataset" if dataset else "metric"
-                            )
-                        )
-                    else:
-                        github_file_path = file_path
-                        file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
-                        try:
-                            local_path = cached_path(file_path, download_config=download_config)
-                            logger.warning(
-                                "Couldn't find file locally at {}, or remotely at {}.\n"
-                                "The file was picked from the master branch on github instead at {}.".format(
-                                    combined_path, github_file_path, file_path
-                                )
-                            )
-                        except FileNotFoundError:
-                            raise FileNotFoundError(
-                                "Couldn't find file locally at {}, or remotely at {}.\n"
-                                "The file is also not present on the master branch on github.".format(
-                                    combined_path, github_file_path
-                                )
-                            )
-            elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
-                if dataset:
-                    file_path = hf_hub_url(path=path, name=name, version=script_version)
-                else:
-                    file_path = hf_bucket_url(path, filename=name, dataset=False)
-                try:
-                    local_path = cached_path(file_path, download_config=download_config)
-                except FileNotFoundError:
-                    raise FileNotFoundError(
-                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                            combined_path, file_path, "dataset" if dataset else "metric"
-                        )
-                    )
-            else:
-                raise FileNotFoundError(
-                    "Couldn't find file locally at {}. Please provide a valid {} name".format(
-                        combined_path, "dataset" if dataset else "metric"
-                    )
-                )
+            file_path, local_path = _find_module_in_github_or_s3(
+                combined_path, dataset, download_config, module_filename, module_type, path, script_version
+            )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
             if os.path.isdir(main_folder_path):
                 hashes = [h for h in os.listdir(main_folder_path) if len(h) == 64]
                 if hashes:
                     # get most recent
                     def _get_modification_time(module_hash):
-                        return (Path(main_folder_path) / module_hash / name).stat().st_mtime
+                        return (Path(main_folder_path) / module_hash / module_filename).stat().st_mtime
 
                     hash = sorted(hashes, key=_get_modification_time)[-1]
-                    module_path = ".".join(
-                        [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
-                    )
+                    module_path = ".".join([modules_name, module_name, hash, module_name])
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
                         f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
                     )
                     if return_resolved_file_path:
-                        with open(os.path.join(main_folder_path, hash, short_name + ".json")) as cache_metadata:
+                        with open(os.path.join(main_folder_path, hash, module_name + ".json")) as cache_metadata:
                             file_path = json.load(cache_metadata)["original file path"]
-                        return module_path, hash, file_path
-                    return module_path, hash
+                    return (module_path, hash) if not return_resolved_file_path else (module_path, hash, file_path)
             raise
 
     # Load the module in two steps:
@@ -414,7 +366,7 @@ def prepare_module(
             library_imports.append((import_name, import_path))  # Import from a library
             continue
 
-        if import_name == short_name:
+        if import_name == module_name:
             raise ValueError(
                 f"Error in {module_type} script at {file_path}, importing relative {import_name} module "
                 f"but {import_name} is the name of the {module_type} script. "
@@ -460,7 +412,7 @@ def prepare_module(
     else:
         hash_folder_path = force_local_path
 
-    local_file_path = os.path.join(hash_folder_path, name)
+    local_file_path = os.path.join(hash_folder_path, module_filename)
     dataset_infos_path = os.path.join(hash_folder_path, config.DATASETDICT_INFOS_FILENAME)
 
     # Prevent parallel disk operations
@@ -497,24 +449,24 @@ def prepare_module(
 
         # Copy dataset.py file in hash folder if needed
         if not os.path.exists(local_file_path):
-            logger.info("Copying script file from %s to %s", file_path, local_file_path)
+            logger.info(f"Copying script file from {file_path} to {local_file_path}")
             shutil.copyfile(local_path, local_file_path)
         else:
-            logger.info("Found script file from %s to %s", file_path, local_file_path)
+            logger.info(f"Found script file from {file_path} to {local_file_path}")
 
         # Copy dataset infos file if needed
         if not os.path.exists(dataset_infos_path):
             if local_dataset_infos_path is not None:
-                logger.info("Copying dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(f"Copying dataset infos file from {dataset_infos} to {dataset_infos_path}")
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Couldn't find dataset infos file at %s", dataset_infos)
+                logger.info(f"Couldn't find dataset infos file at {dataset_infos}")
         else:
             if local_dataset_infos_path is not None and not filecmp.cmp(local_dataset_infos_path, dataset_infos_path):
-                logger.info("Updating dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(f"Updating dataset infos file from {dataset_infos} to {dataset_infos_path}")
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(f"Found dataset infos file from {dataset_infos} to {dataset_infos_path}")
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"
@@ -532,33 +484,78 @@ def prepare_module(
             if os.path.isfile(import_path):
                 full_path_local_import = os.path.join(hash_folder_path, import_name + ".py")
                 if not os.path.exists(full_path_local_import):
-                    logger.info("Copying local import file from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Copying local import file from {import_path} at {full_path_local_import}")
                     shutil.copyfile(import_path, full_path_local_import)
                 else:
-                    logger.info("Found local import file from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Found local import file from {import_path} at {full_path_local_import}")
             elif os.path.isdir(import_path):
                 full_path_local_import = os.path.join(hash_folder_path, import_name)
                 if not os.path.exists(full_path_local_import):
-                    logger.info("Copying local import directory from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Copying local import directory from {import_path} at {full_path_local_import}")
                     shutil.copytree(import_path, full_path_local_import)
                 else:
-                    logger.info("Found local import directory from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Found local import directory from {import_path} at {full_path_local_import}")
             else:
                 raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
-        module_path = ".".join(
-            [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
-        )
+        module_path = ".".join([modules_name, module_name, hash, module_name])
     else:
         module_path = local_file_path
 
     # make the new module to be noticed by the import system
     importlib.invalidate_caches()
 
-    if return_resolved_file_path:
-        return module_path, hash, file_path
-    return module_path, hash
+    return (module_path, hash) if not return_resolved_file_path else (module_path, hash, file_path)
+
+
+def _find_module_in_github_or_s3(
+    combined_path, dataset, download_config, module_filename, module_type, path, script_version
+):
+    head_hf_s3(path, filename=module_filename, dataset=dataset, max_retries=download_config.max_retries)
+    script_version = str(script_version) if script_version is not None else None
+    if path.count("/") == 0:  # canonical datasets/metrics: github path
+        file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version=script_version)
+        try:
+            local_path = cached_path(file_path, download_config=download_config)
+        except FileNotFoundError:
+            if script_version is not None:
+                raise FileNotFoundError(
+                    f"Couldn't find remote file with version {script_version} at {file_path}. Please provide "
+                    f"a valid version and a valid {module_type} name"
+                )
+            else:
+                github_file_path = file_path
+                file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version="master")
+                try:
+                    local_path = cached_path(file_path, download_config=download_config)
+                    logger.warning(
+                        f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
+                        f"The file was picked from the master branch on github instead at {file_path}."
+                    )
+                except FileNotFoundError:
+                    raise FileNotFoundError(
+                        f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
+                        "The file is also not present on the master branch on github."
+                    )
+    elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
+        if dataset:
+            file_path = hf_hub_url(path=path, name=module_filename, version=script_version)
+        else:
+            file_path = hf_bucket_url(path, filename=module_filename, dataset=False)
+        try:
+            local_path = cached_path(file_path, download_config=download_config)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
+                    combined_path, file_path, module_type
+                )
+            )
+    else:
+        raise FileNotFoundError(
+            f"Couldn't find file locally at {combined_path}. Please provide a valid {module_type} name"
+        )
+    return file_path, local_path
 
 
 def load_metric(
