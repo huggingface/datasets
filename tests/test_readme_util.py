@@ -1,3 +1,4 @@
+import re
 import tempfile
 from pathlib import Path
 
@@ -332,6 +333,6 @@ def test_readme_from_readme_error(readme_md, expected_error):
         path = Path(tmp_dir) / "README.md"
         with open(path, "w+") as readme_file:
             readme_file.write(readme_md)
-        expected_error = expected_error.format(path=path).encode("unicode_escape").decode("ascii")
-        with pytest.raises(ValueError, match=expected_error):
+        expected_error = expected_error.format(path=path)
+        with pytest.raises(ValueError, match=re.escape(expected_error)):
             ReadMe.from_readme(path, example_yaml_structure)
