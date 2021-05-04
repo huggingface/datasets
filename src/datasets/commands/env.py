@@ -1,16 +1,17 @@
+import sys
 import platform
 from argparse import ArgumentParser
 
 from datasets import __version__ as version
 from datasets import config
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 
 
 def info_command_factory(_):
     return EnvironmentCommand()
 
 
-class EnvironmentCommand(BaseTransformersCLICommand):
+class EnvironmentCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         download_parser = parser.add_parser("env")
@@ -40,7 +41,7 @@ class EnvironmentCommand(BaseTransformersCLICommand):
 
         info = {
             "`datasets` version": version,
-            "Platform": platform.platform(),
+            "Platform": sys.version,
             "Python version": platform.python_version(),
             "PyTorch version (GPU?)": "{} ({})".format(pt_version, pt_cuda_available),
             "Tensorflow version (GPU?)": "{} ({})".format(tf_version, tf_cuda_available),
@@ -48,7 +49,7 @@ class EnvironmentCommand(BaseTransformersCLICommand):
             "Using distributed or parallel set-up in script?": "<fill in>",
         }
 
-        print("\nCopy-and-paste the text below in your GitHub issue and FILL OUT the two last points.\n")
+        print("\nCopy-and-paste the text below in your GitHub issue and FILL OUT the last two points.\n")
         print(self.format_dict(info))
 
         return info

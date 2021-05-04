@@ -6,7 +6,7 @@ from typing import Generator
 
 import datasets.config
 from datasets.builder import DatasetBuilder
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils.download_manager import GenerateMode
 from datasets.utils.filelock import logger as fl_logger
@@ -32,7 +32,7 @@ def test_command_factory(args):
     )
 
 
-class TestCommand(BaseTransformersCLICommand):
+class TestCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")

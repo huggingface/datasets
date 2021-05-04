@@ -22,15 +22,4 @@ A clear and concise description of the expected results.
 Specify the actual results or traceback.
 
 ## Versions
-Paste the output of the following code:
-```python
-import datasets
-import sys
-import platform
-
-print(f"""
-- Datasets: {datasets.__version__}
-- Python: {sys.version}
-- Platform: {platform.platform()}
-""")
-```
+Paste the output of the following command: `datasets-cli env`, and fill out the last two points.
