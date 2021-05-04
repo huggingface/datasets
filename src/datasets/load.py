@@ -280,9 +280,7 @@ def prepare_module(
         except Exception:
             logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
         module_path, hash = _PACKAGED_DATASETS_MODULES[path]
-        if return_resolved_file_path:
-            return module_path, hash, None
-        return module_path, hash
+        return (module_path, hash) if not return_resolved_file_path else (module_path, hash, None)
 
     # otherwise the module is added to the dynamic modules
     dynamic_modules_path = (
@@ -378,8 +376,7 @@ def prepare_module(
                     if return_resolved_file_path:
                         with open(os.path.join(main_folder_path, hash, module_name + ".json")) as cache_metadata:
                             file_path = json.load(cache_metadata)["original file path"]
-                        return module_path, hash, file_path
-                    return module_path, hash
+                    return (module_path, hash) if not return_resolved_file_path else (module_path, hash, file_path)
             raise
 
     # Load the module in two steps:
@@ -549,9 +546,7 @@ def prepare_module(
     # make the new module to be noticed by the import system
     importlib.invalidate_caches()
 
-    if return_resolved_file_path:
-        return module_path, hash, file_path
-    return module_path, hash
+    return (module_path, hash) if not return_resolved_file_path else (module_path, hash, file_path)
 
 
 def load_metric(
