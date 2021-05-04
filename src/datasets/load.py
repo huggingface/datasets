@@ -317,49 +317,9 @@ def prepare_module(
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
         try:
-            head_hf_s3(path, filename=module_filename, dataset=dataset, max_retries=download_config.max_retries)
-            script_version = str(script_version) if script_version is not None else None
-            if path.count("/") == 0:  # canonical datasets/metrics: github path
-                file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version=script_version)
-                try:
-                    local_path = cached_path(file_path, download_config=download_config)
-                except FileNotFoundError:
-                    if script_version is not None:
-                        raise FileNotFoundError(
-                            f"Couldn't find remote file with version {script_version} at {file_path}. Please provide "
-                            f"a valid version and a valid {module_type} name"
-                        )
-                    else:
-                        github_file_path = file_path
-                        file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version="master")
-                        try:
-                            local_path = cached_path(file_path, download_config=download_config)
-                            logger.warning(
-                                f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
-                                f"The file was picked from the master branch on github instead at {file_path}."
-                            )
-                        except FileNotFoundError:
-                            raise FileNotFoundError(
-                                f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
-                                "The file is also not present on the master branch on github."
-                            )
-            elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
-                if dataset:
-                    file_path = hf_hub_url(path=path, name=module_filename, version=script_version)
-                else:
-                    file_path = hf_bucket_url(path, filename=module_filename, dataset=False)
-                try:
-                    local_path = cached_path(file_path, download_config=download_config)
-                except FileNotFoundError:
-                    raise FileNotFoundError(
-                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                            combined_path, file_path, module_type
-                        )
-                    )
-            else:
-                raise FileNotFoundError(
-                    f"Couldn't find file locally at {combined_path}. Please provide a valid {module_type} name"
-                )
+            file_path, local_path = _find_module_in_github_or_s3(
+                combined_path, dataset, download_config, module_filename, module_type, path, script_version
+            )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
             if os.path.isdir(main_folder_path):
                 hashes = [h for h in os.listdir(main_folder_path) if len(h) == 64]
@@ -547,6 +507,55 @@ def prepare_module(
     importlib.invalidate_caches()
 
     return (module_path, hash) if not return_resolved_file_path else (module_path, hash, file_path)
+
+
+def _find_module_in_github_or_s3(
+    combined_path, dataset, download_config, module_filename, module_type, path, script_version
+):
+    head_hf_s3(path, filename=module_filename, dataset=dataset, max_retries=download_config.max_retries)
+    script_version = str(script_version) if script_version is not None else None
+    if path.count("/") == 0:  # canonical datasets/metrics: github path
+        file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version=script_version)
+        try:
+            local_path = cached_path(file_path, download_config=download_config)
+        except FileNotFoundError:
+            if script_version is not None:
+                raise FileNotFoundError(
+                    f"Couldn't find remote file with version {script_version} at {file_path}. Please provide "
+                    f"a valid version and a valid {module_type} name"
+                )
+            else:
+                github_file_path = file_path
+                file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version="master")
+                try:
+                    local_path = cached_path(file_path, download_config=download_config)
+                    logger.warning(
+                        f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
+                        f"The file was picked from the master branch on github instead at {file_path}."
+                    )
+                except FileNotFoundError:
+                    raise FileNotFoundError(
+                        f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
+                        "The file is also not present on the master branch on github."
+                    )
+    elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
+        if dataset:
+            file_path = hf_hub_url(path=path, name=module_filename, version=script_version)
+        else:
+            file_path = hf_bucket_url(path, filename=module_filename, dataset=False)
+        try:
+            local_path = cached_path(file_path, download_config=download_config)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
+                    combined_path, file_path, module_type
+                )
+            )
+    else:
+        raise FileNotFoundError(
+            f"Couldn't find file locally at {combined_path}. Please provide a valid {module_type} name"
+        )
+    return file_path, local_path
 
 
 def load_metric(
