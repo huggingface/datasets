@@ -266,17 +266,17 @@ def prepare_module(
     download_config.force_extract = True
 
     module_type = "dataset" if dataset else "metric"
-    name = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
-    if not name.endswith(".py"):
-        name = name + ".py"
+    module_filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
+    if not module_filename.endswith(".py"):
+        module_filename = module_filename + ".py"
 
     # Short name is name without the '.py' at the end (for the module)
-    short_name = name[:-3]
+    short_name = module_filename[:-3]
 
     # first check if the module is packaged with the `datasets` package
     if dataset and path in _PACKAGED_DATASETS_MODULES:
         try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+            head_hf_s3(path, filename=module_filename, dataset=dataset, max_retries=download_config.max_retries)
         except Exception:
             logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
         module_path, hash = _PACKAGED_DATASETS_MODULES[path]
@@ -305,7 +305,7 @@ def prepare_module(
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-    combined_path = os.path.join(path, name)
+    combined_path = os.path.join(path, module_filename)
     if os.path.isfile(combined_path):
         file_path = combined_path
         local_path = file_path
@@ -315,10 +315,10 @@ def prepare_module(
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
         try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+            head_hf_s3(path, filename=module_filename, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
             if path.count("/") == 0:  # canonical datasets/metrics: github path
-                file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
+                file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version=script_version)
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
@@ -330,7 +330,7 @@ def prepare_module(
                         )
                     else:
                         github_file_path = file_path
-                        file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
+                        file_path = hf_github_url(path=path, name=module_filename, dataset=dataset, version="master")
                         try:
                             local_path = cached_path(file_path, download_config=download_config)
                             logger.warning(
@@ -348,9 +348,9 @@ def prepare_module(
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 if dataset:
-                    file_path = hf_hub_url(path=path, name=name, version=script_version)
+                    file_path = hf_hub_url(path=path, name=module_filename, version=script_version)
                 else:
-                    file_path = hf_bucket_url(path, filename=name, dataset=False)
+                    file_path = hf_bucket_url(path, filename=module_filename, dataset=False)
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
@@ -371,7 +371,7 @@ def prepare_module(
                 if hashes:
                     # get most recent
                     def _get_modification_time(module_hash):
-                        return (Path(main_folder_path) / module_hash / name).stat().st_mtime
+                        return (Path(main_folder_path) / module_hash / module_filename).stat().st_mtime
 
                     hash = sorted(hashes, key=_get_modification_time)[-1]
                     module_path = ".".join(
@@ -460,7 +460,7 @@ def prepare_module(
     else:
         hash_folder_path = force_local_path
 
-    local_file_path = os.path.join(hash_folder_path, name)
+    local_file_path = os.path.join(hash_folder_path, module_filename)
     dataset_infos_path = os.path.join(hash_folder_path, config.DATASETDICT_INFOS_FILENAME)
 
     # Prevent parallel disk operations
