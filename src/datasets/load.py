@@ -325,7 +325,7 @@ def prepare_module(
                     if script_version is not None:
                         raise FileNotFoundError(
                             "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name".format(
-                                script_version, file_path, "dataset" if dataset else "metric"
+                                script_version, file_path, module_type
                             )
                         )
                     else:
@@ -356,13 +356,13 @@ def prepare_module(
                 except FileNotFoundError:
                     raise FileNotFoundError(
                         "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                            combined_path, file_path, "dataset" if dataset else "metric"
+                            combined_path, file_path, module_type
                         )
                     )
             else:
                 raise FileNotFoundError(
                     "Couldn't find file locally at {}. Please provide a valid {} name".format(
-                        combined_path, "dataset" if dataset else "metric"
+                        combined_path, module_type
                     )
                 )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
