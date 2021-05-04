@@ -84,12 +84,9 @@ def _initialize_dynamic_modules_namespace_package(dynamic_modules_path, is_datas
         else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
     )
     module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
-    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
-    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
-    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
-    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
-    modules_path = datasets_modules_path if dataset else metrics_modules_path
-    modules_name = datasets_modules_name if dataset else metrics_modules_name
+    package_name = "datasets" if is_dataset else "metrics"
+    modules_name = module_name_for_dynamic_modules + "." + package_name
+    modules_path = os.path.join(dynamic_modules_path, package_name)
     return modules_name, modules_path
 
 
