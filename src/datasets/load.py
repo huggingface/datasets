@@ -66,7 +66,7 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]]
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
     The module is created in the HF_MODULE_CACHE directory by default (~/.cache/huggingface/modules) but it can
-    be overriden by specifying a path to another directory in `hf_modules_cache`.
+    be overridden by specifying a path to another directory in `hf_modules_cache`.
     """
     hf_modules_cache = init_hf_modules(hf_modules_cache)
     dynamic_modules_path = os.path.join(hf_modules_cache, name)
@@ -75,6 +75,22 @@ def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]]
         with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
             pass
     return dynamic_modules_path
+
+
+def _initialize_dynamic_modules_namespace_package(dynamic_modules_path, is_dataset):
+    dynamic_modules_path = (
+        dynamic_modules_path
+        if dynamic_modules_path is not None
+        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
+    )
+    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
+    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
+    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
+    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
+    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
+    modules_path = datasets_modules_path if dataset else metrics_modules_path
+    modules_name = datasets_modules_name if dataset else metrics_modules_name
+    return modules_name, modules_path
 
 
 def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetBuilder], Type[Metric]]]:
@@ -283,18 +299,7 @@ def prepare_module(
         return (module_path, hash) if not return_resolved_file_path else (module_path, hash, None)
 
     # otherwise the module is added to the dynamic modules
-    dynamic_modules_path = (
-        dynamic_modules_path
-        if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
-    )
-    module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
-    datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
-    datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
-    metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
-    metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
-    modules_path = datasets_modules_path if dataset else metrics_modules_path
-    modules_name = datasets_modules_name if dataset else metrics_modules_name
+    modules_name, modules_path = _initialize_dynamic_modules_namespace_package(dynamic_modules_path, dataset)
 
     if force_local_path is None:
         main_folder_path = os.path.join(modules_path, module_name)
