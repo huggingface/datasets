@@ -42,7 +42,6 @@ from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
     cached_path,
-    head_hf_s3,
     hf_bucket_url,
     hf_github_url,
     hf_hub_url,
@@ -275,10 +274,6 @@ def prepare_module(
 
     # first check if the module is packaged with the `datasets` package
     if dataset and path in _PACKAGED_DATASETS_MODULES:
-        try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
-        except Exception:
-            logger.debug(f"Couldn't head HF s3 for packaged dataset module '{path}'. Running in offline mode.")
         module_path, hash = _PACKAGED_DATASETS_MODULES[path]
         if return_resolved_file_path:
             return module_path, hash, None
@@ -315,7 +310,6 @@ def prepare_module(
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
         try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
             if path.count("/") == 0:  # canonical datasets/metrics: github path
                 file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
