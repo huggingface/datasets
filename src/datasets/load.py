@@ -271,7 +271,7 @@ def prepare_module(
         module_filename = module_filename + ".py"
 
     # Short name is name without the '.py' at the end (for the module)
-    short_name = module_filename[:-3]
+    module_name = module_filename[:-3]
 
     # first check if the module is packaged with the `datasets` package
     if dataset and path in _PACKAGED_DATASETS_MODULES:
@@ -297,7 +297,7 @@ def prepare_module(
     metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
 
     if force_local_path is None:
-        main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name)
+        main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, module_name)
     else:
         main_folder_path = force_local_path
 
@@ -375,7 +375,7 @@ def prepare_module(
 
                     hash = sorted(hashes, key=_get_modification_time)[-1]
                     module_path = ".".join(
-                        [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
+                        [datasets_modules_name if dataset else metrics_modules_name, module_name, hash, module_name]
                     )
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
@@ -383,7 +383,7 @@ def prepare_module(
                         f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
                     )
                     if return_resolved_file_path:
-                        with open(os.path.join(main_folder_path, hash, short_name + ".json")) as cache_metadata:
+                        with open(os.path.join(main_folder_path, hash, module_name + ".json")) as cache_metadata:
                             file_path = json.load(cache_metadata)["original file path"]
                         return module_path, hash, file_path
                     return module_path, hash
@@ -414,7 +414,7 @@ def prepare_module(
             library_imports.append((import_name, import_path))  # Import from a library
             continue
 
-        if import_name == short_name:
+        if import_name == module_name:
             raise ValueError(
                 f"Error in {module_type} script at {file_path}, importing relative {import_name} module "
                 f"but {import_name} is the name of the {module_type} script. "
@@ -548,7 +548,7 @@ def prepare_module(
 
     if force_local_path is None:
         module_path = ".".join(
-            [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
+            [datasets_modules_name if dataset else metrics_modules_name, module_name, hash, module_name]
         )
     else:
         module_path = local_file_path
