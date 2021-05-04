@@ -293,9 +293,11 @@ def prepare_module(
     datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
     metrics_modules_path = os.path.join(dynamic_modules_path, "metrics")
     metrics_modules_name = module_name_for_dynamic_modules + ".metrics"
+    modules_path = datasets_modules_path if dataset else metrics_modules_path
+    modules_name = datasets_modules_name if dataset else metrics_modules_name
 
     if force_local_path is None:
-        main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, module_name)
+        main_folder_path = os.path.join(modules_path, module_name)
     else:
         main_folder_path = force_local_path
 
@@ -365,9 +367,7 @@ def prepare_module(
                         return (Path(main_folder_path) / module_hash / module_filename).stat().st_mtime
 
                     hash = sorted(hashes, key=_get_modification_time)[-1]
-                    module_path = ".".join(
-                        [datasets_modules_name if dataset else metrics_modules_name, module_name, hash, module_name]
-                    )
+                    module_path = ".".join([modules_name, module_name, hash, module_name])
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
@@ -537,9 +537,7 @@ def prepare_module(
                 raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
-        module_path = ".".join(
-            [datasets_modules_name if dataset else metrics_modules_name, module_name, hash, module_name]
-        )
+        module_path = ".".join([modules_name, module_name, hash, module_name])
     else:
         module_path = local_file_path
 
