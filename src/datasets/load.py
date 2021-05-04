@@ -324,9 +324,8 @@ def prepare_module(
                 except FileNotFoundError:
                     if script_version is not None:
                         raise FileNotFoundError(
-                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name".format(
-                                script_version, file_path, module_type
-                            )
+                            f"Couldn't find remote file with version {script_version} at {file_path}. Please provide "
+                            f"a valid version and a valid {module_type} name"
                         )
                     else:
                         github_file_path = file_path
@@ -334,17 +333,13 @@ def prepare_module(
                         try:
                             local_path = cached_path(file_path, download_config=download_config)
                             logger.warning(
-                                "Couldn't find file locally at {}, or remotely at {}.\n"
-                                "The file was picked from the master branch on github instead at {}.".format(
-                                    combined_path, github_file_path, file_path
-                                )
+                                f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
+                                f"The file was picked from the master branch on github instead at {file_path}."
                             )
                         except FileNotFoundError:
                             raise FileNotFoundError(
-                                "Couldn't find file locally at {}, or remotely at {}.\n"
-                                "The file is also not present on the master branch on github.".format(
-                                    combined_path, github_file_path
-                                )
+                                f"Couldn't find file locally at {combined_path}, or remotely at {github_file_path}.\n"
+                                "The file is also not present on the master branch on github."
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 if dataset:
@@ -361,9 +356,7 @@ def prepare_module(
                     )
             else:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {}. Please provide a valid {} name".format(
-                        combined_path, module_type
-                    )
+                    f"Couldn't find file locally at {combined_path}. Please provide a valid {module_type} name"
                 )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
             if os.path.isdir(main_folder_path):
@@ -497,24 +490,24 @@ def prepare_module(
 
         # Copy dataset.py file in hash folder if needed
         if not os.path.exists(local_file_path):
-            logger.info("Copying script file from %s to %s", file_path, local_file_path)
+            logger.info(f"Copying script file from {file_path} to {local_file_path}")
             shutil.copyfile(local_path, local_file_path)
         else:
-            logger.info("Found script file from %s to %s", file_path, local_file_path)
+            logger.info(f"Found script file from {file_path} to {local_file_path}")
 
         # Copy dataset infos file if needed
         if not os.path.exists(dataset_infos_path):
             if local_dataset_infos_path is not None:
-                logger.info("Copying dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(f"Copying dataset infos file from {dataset_infos} to {dataset_infos_path}")
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Couldn't find dataset infos file at %s", dataset_infos)
+                logger.info(f"Couldn't find dataset infos file at {dataset_infos}")
         else:
             if local_dataset_infos_path is not None and not filecmp.cmp(local_dataset_infos_path, dataset_infos_path):
-                logger.info("Updating dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(f"Updating dataset infos file from {dataset_infos} to {dataset_infos_path}")
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(f"Found dataset infos file from {dataset_infos} to {dataset_infos_path}")
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"
@@ -532,17 +525,17 @@ def prepare_module(
             if os.path.isfile(import_path):
                 full_path_local_import = os.path.join(hash_folder_path, import_name + ".py")
                 if not os.path.exists(full_path_local_import):
-                    logger.info("Copying local import file from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Copying local import file from {import_path} at {full_path_local_import}")
                     shutil.copyfile(import_path, full_path_local_import)
                 else:
-                    logger.info("Found local import file from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Found local import file from {import_path} at {full_path_local_import}")
             elif os.path.isdir(import_path):
                 full_path_local_import = os.path.join(hash_folder_path, import_name)
                 if not os.path.exists(full_path_local_import):
-                    logger.info("Copying local import directory from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Copying local import directory from {import_path} at {full_path_local_import}")
                     shutil.copytree(import_path, full_path_local_import)
                 else:
-                    logger.info("Found local import directory from %s at %s", import_path, full_path_local_import)
+                    logger.info(f"Found local import directory from {import_path} at {full_path_local_import}")
             else:
                 raise OSError(f"Error with local import at {import_path}")
 
