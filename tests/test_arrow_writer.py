@@ -8,7 +8,8 @@ from packaging import version
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
 from datasets.features import Array2DExtensionType
-from datasets.keyhash import InvalidKeyError, DuplicatedKeysError
+from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
+
 
 class TypedSequenceTest(TestCase):
     def test_no_type(self):
@@ -96,9 +97,15 @@ def test_write(fields, writer_batch_size):
 def test_key_datatype(fields, writer_batch_size):
     output = pa.BufferOutputStream()
     schema = pa.schema(fields) if fields else None
-    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True) as writer:
+    with ArrowWriter(
+        stream=output,
+        schema=schema,
+        writer_batch_size=writer_batch_size,
+        hash_salt="split_name",
+        check_duplicates=True,
+    ) as writer:
         with pytest.raises(InvalidKeyError):
-            writer.write({"col_1": "foo", "col_2": 1}, key=[1,2])
+            writer.write({"col_1": "foo", "col_2": 1}, key=[1, 2])
             num_examples, num_bytes = writer.finalize()
 
 
@@ -109,7 +116,13 @@ def test_key_datatype(fields, writer_batch_size):
 def test_duplicate_keys(fields, writer_batch_size):
     output = pa.BufferOutputStream()
     schema = pa.schema(fields) if fields else None
-    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True) as writer:
+    with ArrowWriter(
+        stream=output,
+        schema=schema,
+        writer_batch_size=writer_batch_size,
+        hash_salt="split_name",
+        check_duplicates=True,
+    ) as writer:
         with pytest.raises(DuplicatedKeysError):
             writer.write({"col_1": "foo", "col_2": 1}, key=10)
             writer.write({"col_1": "bar", "col_2": 2}, key=10)
