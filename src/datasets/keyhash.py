@@ -54,12 +54,19 @@ def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
         hash_data = str(hash_data)
     else:
         # If data is not of the required type, raise error
-        prefix = "\nFAILURE TO GENERATE DATASET: Invalid key type detected"
-        err_msg = f"\nFound Key {hash_data} of type {type(hash_data)}"
-        suffix = "\nKeys should be either str, int or bytes type"
-        raise TypeError(f"{prefix}{err_msg}{suffix}")
+        raise InvalidKeyError(hash_data)
 
     return hash_data.encode("utf-8")
+
+
+class InvalidKeyError(Exception):
+    """Raises an error when given key is of invalid datatype."""
+
+    def __init__(self, hash_data):
+        self.prefix = "\nFAILURE TO GENERATE DATASET: Invalid key type detected"
+        self.err_msg = f"\nFound Key {hash_data} of type {type(hash_data)}"
+        self.suffix = "\nKeys should be either str, int or bytes type"
+        super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
 
 
 class DuplicatedKeysError(Exception):
@@ -86,11 +93,7 @@ class KeyHasher(object):
 
         Returns: 128-bit int hash key"""
         md5 = self._split_md5.copy()
-        try:
-            byte_key = _as_bytes(key)
-        except TypeError as err:
-            sys.exit(err)
-
+        byte_key = _as_bytes(key)
         md5.update(byte_key)
         # Convert to integer with hexadecimal conversion
         return int(md5.hexdigest(), 16)
