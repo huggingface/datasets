@@ -6,19 +6,19 @@ language_creators:
 languages:
 - de
 - en
-- eg
+- ar-EG
 licenses:
 - cc-by-4.0
 multilinguality:
 - multilingual
 size_categories:
-- 100K<n<1000K
+- 100K<n<1M
 source_datasets:
 - extended|wikipedia
 task_categories:
 - conditional-text-generation
 task_ids:
-- machine translation
+- machine-translation
 ---
 
 # Dataset Card for "bbaw_egyptian"
