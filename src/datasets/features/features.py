@@ -31,8 +31,8 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from pyarrow.lib import TimestampType
 from pyarrow.types import is_boolean, is_primitive
 
-from . import config, utils
-from .utils.logging import get_logger
+from datasets import config, utils
+from datasets.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
