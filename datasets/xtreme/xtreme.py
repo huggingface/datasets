@@ -758,9 +758,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(lang_folder, "dev")
-                    },
+                    gen_kwargs={"filepath": os.path.join(lang_folder, "dev")},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
