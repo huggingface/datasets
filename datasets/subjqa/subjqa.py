@@ -73,7 +73,6 @@ class Subjqa(datasets.GeneratorBasedBuilder):
                 "query_mod": datasets.Value("string"),
                 "query_asp": datasets.Value("string"),
                 "q_reviews_id": datasets.Value("string"),
-                "question": datasets.Value("string"),
                 "question_subj_level": datasets.Value("int64"),
                 "ques_subj_score": datasets.Value("float"),
                 "is_ques_subjective": datasets.Value("bool"),
