@@ -407,6 +407,11 @@ class ArrowWriter:
 
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
+        # In case current_examples < writer_batch_size, but user uses finalize()
+        if self._check_duplicates:
+            self.check_duplicate_keys()
+            # Re-intializing to empty list for next batch
+            self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:
             if self._schema is not None:

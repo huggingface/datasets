@@ -88,6 +88,7 @@ def test_write(fields, writer_batch_size):
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
     _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
 
+
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
     "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
@@ -98,6 +99,21 @@ def test_key_datatype(fields, writer_batch_size):
     with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True) as writer:
         with pytest.raises(InvalidKeyError):
             writer.write({"col_1": "foo", "col_2": 1}, key=[1,2])
+            num_examples, num_bytes = writer.finalize()
+
+
+@pytest.mark.parametrize("writer_batch_size", [None, 2, 10])
+@pytest.mark.parametrize(
+    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+)
+def test_duplicate_keys(fields, writer_batch_size):
+    output = pa.BufferOutputStream()
+    schema = pa.schema(fields) if fields else None
+    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True) as writer:
+        with pytest.raises(DuplicatedKeysError):
+            writer.write({"col_1": "foo", "col_2": 1}, key=10)
+            writer.write({"col_1": "bar", "col_2": 2}, key=10)
+            num_examples, num_bytes = writer.finalize()
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
