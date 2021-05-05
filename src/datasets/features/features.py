@@ -32,7 +32,7 @@ from pyarrow.lib import TimestampType
 from pyarrow.types import is_boolean, is_primitive
 
 from datasets import config, utils
-from datasets.features import Translation, TranslationVariableLanguages
+from datasets.features import Audio, Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
 
 
@@ -690,6 +690,7 @@ FeatureType = Union[
     Array3D,
     Array4D,
     Array5D,
+    Audio,
 ]
 
 
