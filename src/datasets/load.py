@@ -58,11 +58,9 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
-
 
 def init_dynamic_modules(
-    name: str = MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
+    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
 ):
     """
     Create a module with name `name` in which you can add dynamic modules
