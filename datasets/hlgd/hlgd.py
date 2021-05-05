@@ -22,6 +22,7 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 @inproceedings{Laban2021NewsHG,
   title={News Headline Grouping as a Challenging NLU Task},
@@ -41,6 +42,7 @@ _HOMEPAGE = "https://github.com/tingofurro/headline_grouping"
 _LICENSE = "Apache-2.0 License"
 _DOWNLOAD_URL = "https://github.com/tingofurro/headline_grouping/releases/download/0.1/hlgd_classification_0.1.zip"
 
+
 class HLGD(datasets.GeneratorBasedBuilder):
     """Headline Grouping Dataset."""
 
@@ -56,7 +58,7 @@ class HLGD(datasets.GeneratorBasedBuilder):
                 "date_b": datasets.Value("string"),
                 "url_a": datasets.Value("string"),
                 "url_b": datasets.Value("string"),
-                "label": datasets.features.ClassLabel(names=[0, 1])
+                "label": datasets.features.ClassLabel(names=[0, 1]),
             }
         )
 
@@ -90,10 +92,7 @@ class HLGD(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.json"),
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "test.json"), "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -107,7 +106,7 @@ class HLGD(datasets.GeneratorBasedBuilder):
     def _generate_examples(
         self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
 
