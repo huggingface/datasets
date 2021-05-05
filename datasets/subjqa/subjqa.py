@@ -17,8 +17,9 @@ The dataset consists of roughly 10,000 questions over reviews from 6 different d
 electronics, TripAdvisor (i.e. hotels), and restaurants."""
 
 
-import csv
 import os
+
+import pandas as pd
 
 import datasets
 
@@ -66,25 +67,30 @@ class Subjqa(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "item_id": datasets.Value("string"),
                 "domain": datasets.Value("string"),
                 "nn_mod": datasets.Value("string"),
                 "nn_asp": datasets.Value("string"),
                 "query_mod": datasets.Value("string"),
                 "query_asp": datasets.Value("string"),
-                "q_review_id": datasets.Value("string"),
                 "q_reviews_id": datasets.Value("string"),
                 "question": datasets.Value("string"),
                 "question_subj_level": datasets.Value("int64"),
                 "ques_subj_score": datasets.Value("float"),
                 "is_ques_subjective": datasets.Value("bool"),
                 "review_id": datasets.Value("string"),
-                "review": datasets.Value("string"),
-                "human_ans_spans": datasets.Value("string"),
-                "human_ans_indices": datasets.Value("string"),
-                "answer_subj_level": datasets.Value("int64"),
-                "ans_subj_score": datasets.Value("float"),
-                "is_ans_subjective": datasets.Value("bool"),
+                "id": datasets.Value("string"),
+                "title": datasets.Value("string"),
+                "context": datasets.Value("string"),
+                "question": datasets.Value("string"),
+                "answers": datasets.features.Sequence(
+                    {
+                        "text": datasets.Value("string"),
+                        "answer_start": datasets.Value("int32"),
+                        "answer_subj_level": datasets.Value("int64"),
+                        "ans_subj_score": datasets.Value("float"),
+                        "is_ans_subjective": datasets.Value("bool"),
+                    }
+                ),
             }
         )
         return datasets.DatasetInfo(
@@ -120,8 +126,90 @@ class Subjqa(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        with open(filepath, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            column_names = next(csv_reader)
-            for _id, row in enumerate(csv_reader):
-                yield _id, {column_name: value for column_name, value in zip(column_names, row)}
+        df = pd.read_csv(filepath)
+        squad_format = self._convert_to_squad(df)
+        for example in squad_format["data"]:
+            title = example.get("title", "").strip()
+            for paragraph in example["paragraphs"]:
+                context = paragraph["context"].strip()
+                for qa in paragraph["qas"]:
+                    question = qa["question"].strip()
+                    question_meta = {k: v for k, v in qa.items() if k in self.question_meta_columns}
+                    id_ = qa["id"]
+                    answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                    answers = [answer["text"].strip() for answer in qa["answers"]]
+                    answer_meta = {k: [] for k in self.answer_meta_columns}
+                    for answer in qa["answers"]:
+                        for k, v in answer.items():
+                            if k in self.answer_meta_columns:
+                                answer_meta[k].append(v)
+                    yield id_, {
+                        **{
+                            "title": title,
+                            "context": context,
+                            "question": question,
+                            "id": id_,
+                            "answers": {
+                                **{
+                                    "answer_start": answer_starts,
+                                    "text": answers,
+                                },
+                                **answer_meta,
+                            },
+                        },
+                        **question_meta,
+                    }
+
+    def _create_paragraphs(self, df):
+        "A helper function to convert a pandas.DataFrame of (question, context, answer) rows to SQuAD paragraphs."
+        self.question_meta_columns = [
+            "domain",
+            "nn_mod",
+            "nn_asp",
+            "query_mod",
+            "query_asp",
+            "q_reviews_id",
+            "question_subj_level",
+            "ques_subj_score",
+            "is_ques_subjective",
+            "review_id",
+        ]
+        self.answer_meta_columns = ["answer_subj_level", "ans_subj_score", "is_ans_subjective"]
+        id2review = dict(zip(df["review_id"], df["review"]))
+        pars = []
+        for review_id, review in id2review.items():
+            qas = []
+            review_df = df.query(f"review_id == '{review_id}'")
+            id2question = dict(zip(review_df["q_review_id"], review_df["question"]))
+
+            for k, v in id2question.items():
+                d = df.query(f"q_review_id == '{k}'").to_dict(orient="list")
+                answer_starts = [eval(a)[0] for a in d["human_ans_indices"]]
+                answer_meta = {k: v[0] for k, v in d.items() if k in self.answer_meta_columns}
+                question_meta = {k: v[0] for k, v in d.items() if k in self.question_meta_columns}
+                # Only fill answerable questions
+                if pd.unique(d["human_ans_spans"])[0] != "ANSWERNOTFOUND":
+                    answers = [
+                        {**{"text": text, "answer_start": answer_start}, **answer_meta}
+                        for text, answer_start in zip(d["human_ans_spans"], answer_starts)
+                        if text != "ANSWERNOTFOUND"
+                    ]
+                else:
+                    answers = []
+                qas.append({**{"question": v, "id": k, "answers": answers}, **question_meta})
+            # Slice off ANSWERNOTFOUND from context
+            pars.append({"qas": qas, "context": review[: -len(" ANSWERNOTFOUND")]})
+        return pars
+
+    def _convert_to_squad(self, df):
+        "A helper function to convert a pandas.DataFrame of product-based QA dataset into SQuAD format"
+        groups = (
+            df.groupby("item_id")
+            .apply(self._create_paragraphs)
+            .to_frame(name="paragraphs")
+            .reset_index()
+            .rename(columns={"item_id": "title"})
+        )
+        subjqa_data = {}
+        subjqa_data["data"] = groups.to_dict(orient="records")
+        return subjqa_data
