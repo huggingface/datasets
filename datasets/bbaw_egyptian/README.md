@@ -6,7 +6,7 @@ language_creators:
 languages:
 - de
 - en
-- ar-EG
+- egy
 licenses:
 - cc-by-4.0
 multilinguality:
