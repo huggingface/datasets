@@ -153,7 +153,7 @@ _PAN_X_LANG = [
     "yo",
     "zh",
 ]
-_PAN_X_FOLDER = "AmazonPhotos.zip"
+
 _NAMES = ["XNLI", "tydiqa", "SQuAD"]
 for lang in _PAN_X_LANG:
     _NAMES.append("PAN-X.{}".format(lang))
@@ -373,7 +373,7 @@ _DATA_URLS = {
     "tatoeba": "https://github.com/facebookresearch/LASER/raw/master/data/tatoeba/v1",
     "udpos": "https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-3105/ud-treebanks-v2.5.tgz",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/dataset/",
-    "PAN-X": "",
+    "PAN-X": "https://www.dropbox.com/s/12h3qqog6q4bjve/panx_dataset.tar?dl=1",
 }
 
 _URLS = {
@@ -386,7 +386,7 @@ _URLS = {
     "tatoeba": "https://github.com/facebookresearch/LASER/blob/master/data/tatoeba/v1/README.md",
     "udpos": "https://universaldependencies.org/",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/",
-    "PAN-X": "",
+    "PAN-X": "https://github.com/afshinrahimi/mmner",
 }
 
 
@@ -426,16 +426,6 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         )
         for name in _NAMES
     ]
-
-    @property
-    def manual_download_instructions(self):
-        if self.config.name.startswith("PAN-X"):
-            return """\
-             You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-             (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file
-             can be used to load the dataset via `datasets.load_dataset("xtreme", data_dir="<path/to/folder>").
-            """
-        return None
 
     def _info(self):
         # TODO(xtreme): Specifies the datasets.DatasetInfo object
@@ -759,18 +749,11 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             ]
 
         if self.config.name.startswith("PAN-X"):
-            path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-            panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)
-            if not os.path.exists(panx_path):
-                raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('xtreme', data_dir=...)` that includes {}. Manual download instructions: {}".format(
-                        panx_path, _PAN_X_FOLDER, self.manual_download_instructions
-                    )
-                )
-
-            panx_dl_dir = dl_manager.extract(panx_path)
+            panx_dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            print(panx_dl_dir)
             lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, "panx_dataset", lang + ".tar.gz"))
+            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
+
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
