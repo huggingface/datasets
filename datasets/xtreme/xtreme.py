@@ -694,6 +694,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 ]
             else:
                 return [
+                    # We exclude Arabic-NYUAD which does not contains any words, only _
                     datasets.SplitGenerator(
                         name=datasets.Split.VALIDATION,
                         # These kwargs will be passed to _generate_examples
@@ -704,7 +705,6 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 for file in sorted(os.listdir(folder))
                                 if "NYUAD" not in folder and "dev" in file and file.endswith(".conllu")
                             ]
-                            # we exclude Arabic NYUAD which deos not contains any word, only _
                         },
                     ),
                     datasets.SplitGenerator(
@@ -760,7 +760,6 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(lang_folder, "dev")
-                        # we exclude Arabic NYUAD which deos not contains any word, only _
                     },
                 ),
                 datasets.SplitGenerator(
@@ -905,7 +904,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 with open(file, encoding="utf-8") as f:
                     data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for id_row, row in enumerate(data):
-                        if len(row) >= 10 and row[1] != "_":
+                        if len(row) >= 10 and row[1] != "_" and row[3] != "_":
                             yield str(id_file) + "_" + str(id_row), {"token": row[1], "pos_tag": row[3]}
         if self.config.name.startswith("PAN-X"):
             guid_index = 1
