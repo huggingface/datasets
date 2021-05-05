@@ -166,7 +166,7 @@ The dataset only distributes headlines, a URL and a publication date. Users of t
 ```
 @inproceedings{Laban2021NewsHG,
   title={News Headline Grouping as a Challenging NLU Task},
-  author={Philippe Laban and Lucas Bandarkar},
+  author={Laban, Philippe and Bandarkar, Lucas and Hearst, Marti A},
   booktitle={NAACL 2021},
   publisher = {Association for Computational Linguistics},
   year={2021}
