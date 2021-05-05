@@ -130,25 +130,25 @@ An example from Books domain is shown below:
 
 Each domain and split consists of the following columns:
 
-* ```domain```: The category/domain of the review (e.g., hotels, books, ...).
+* ```title```: The id of the item/business discussed in the review.
 * ```question```: The question (written based on a query opinion).
-* ```review```: The review (that mentions the neighboring opinion).
-* ```human_ans_spans```: The span labeled by annotators as the answer.
-* ```human_ans_indices```: The (character-level) start and end indices of the answer span highlighted by annotators.
+* ```id```: A unique id assigned to the question-review pair.
+* ```q_reviews_id```: A unique id assigned to all question-review pairs with a shared question.
 * ```question_subj_level```: The subjectiviy level of the question (on a 1 to 5 scale with 1 being the most subjective).
 * ```ques_subj_score```: The subjectivity score of the question computed using the [TextBlob](https://textblob.readthedocs.io/en/dev/) package.
+* ```context```: The review (that mentions the neighboring opinion).
+* ```review_id```: A unique id associated with the review.
+* ```answers.text```: The span labeled by annotators as the answer.
+* ```answers.answer_start```: The (character-level) start index of the answer span highlighted by annotators.
 * ```is_ques_subjective```: A boolean subjectivity label derived from ```question_subj_level``` (i.e., scores below 4 are considered as subjective)
-* ```answer_subj_level```: The subjectiviy level of the answer span (on a 1 to 5 scale with 5 being the most subjective).
-* ```ans_subj_score```: The subjectivity score of the answer span computed usign the [TextBlob](https://textblob.readthedocs.io/en/dev/) package.
-* ```is_ans_subjective```: A boolean subjectivity label derived from ```answer_subj_level``` (i.e., scores below 4 are considered as subjective)
+* ```answers.answer_subj_level```: The subjectiviy level of the answer span (on a 1 to 5 scale with 5 being the most subjective).
+* ```answers.ans_subj_score```: The subjectivity score of the answer span computed usign the [TextBlob](https://textblob.readthedocs.io/en/dev/) package.
+* ```answers.is_ans_subjective```: A boolean subjectivity label derived from ```answer_subj_level``` (i.e., scores below 4 are considered as subjective)
+* ```domain```: The category/domain of the review (e.g., hotels, books, ...).
 * ```nn_mod```: The modifier of the neighboring opinion (which appears in the review).
 * ```nn_asp```: The aspect of the neighboring opinion (which appears in the review).
 * ```query_mod```: The modifier of the query opinion (around which a question is manually written).
 * ```query_asp```: The aspect of the query opinion (around which a question is manually written).
-* ```item_id```: The id of the item/business discussed in the review.
-* ```review_id```: A unique id associated with the review.
-* ```q_review_id```: A unique id assigned to the question-review pair.
-* ```q_reviews_id```: A unique id assigned to all question-review pairs with a shared question.
 
 ### Data Splits
 
