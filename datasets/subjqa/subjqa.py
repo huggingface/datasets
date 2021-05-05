@@ -138,11 +138,7 @@ class Subjqa(datasets.GeneratorBasedBuilder):
                     id_ = qa["id"]
                     answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                     answers = [answer["text"].strip() for answer in qa["answers"]]
-                    answer_meta = {k: [] for k in self.answer_meta_columns}
-                    for answer in qa["answers"]:
-                        for k, v in answer.items():
-                            if k in self.answer_meta_columns:
-                                answer_meta[k].append(v)
+                    answer_meta = pd.DataFrame(qa["answers"], columns=self.answer_meta_columns).to_dict("list")
                     yield id_, {
                         **{
                             "title": title,
@@ -210,6 +206,6 @@ class Subjqa(datasets.GeneratorBasedBuilder):
             .reset_index()
             .rename(columns={"item_id": "title"})
         )
-        subjqa_data = {}
-        subjqa_data["data"] = groups.to_dict(orient="records")
-        return subjqa_data
+        squad_data = {}
+        squad_data["data"] = groups.to_dict(orient="records")
+        return squad_data
