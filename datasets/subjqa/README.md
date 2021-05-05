@@ -22,28 +22,35 @@ task_ids:
 # Dataset Card for subjqa
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for subjqa](#dataset-card-for-subjqa)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+      - [Data collection](#data-collection)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -94,25 +101,29 @@ The text in the dataset is in English and the associated BCP-47 code is `en`.
 An example from Books domain is shown below:
 
 ```json
-{'ans_subj_score': 1.0,
- 'answer_subj_level': 5,
- 'domain': 'books',
- 'human_ans_indices': '(1568, 1585)',
- 'human_ans_spans': 'excellent writing',
- 'is_ans_subjective': True,
- 'is_ques_subjective': True,
- 'item_id': '014104179X',
- 'nn_asp': 'write',
- 'nn_mod': 'outstanding',
- 'q_review_id': '5680d7a8e25e322c08c0247547b397e8',
- 'q_reviews_id': 'fccf9075ab3d3ee56ba71d04d900b786',
- 'query_asp': 'write',
- 'query_mod': 'intelligent',
- 'ques_subj_score': 0.0,
- 'question': 'How is the write?',
- 'question_subj_level': 5,
- 'review': 'This was a really tough book to get through. I only did because I thought the writing was outstanding. Tolz is a literary virtuoso. There are great positives in this book, from the overall originality of the novel; to the very moving and powerful climax; to an extraordinarily original and intricate plot; through Tolz\'s writing. But there are also aspects that irritate and almost made me give up halfway. These are:- the characters are impossible to like. This applies to Martin and Jasper Dean, both of whom are just too wierd and eccentric and self-important to care about. The review on the cover page comparing this novel to " A Confederacy of Dunces" does "Confederacy..." a disservice: Ignatius O Reilly is also wierd and eccentric and self important but he was comic and pathetic in a way that the Deans never manage to be.  By the way, its not easy to like much any of the secondary characters either...- some plot twists are hard to handle, eg. Anouk\'s transformation from hippy into "one of the richest women in Australia";- while the book had a hugely entertaining first 100 or so pages and equally excellent final 100 pages, the middle was boring at times, irratating at others (where it seems Tolz wants to show he\'s read every book on philosophy ever written). The one exception here is the part involving bullying and suicides at Jasper\'s school, which is really really emotionally devastating - enough so to make one persist through the book in search of more of the same power (which does finally happen).3 stars therefore for exceptional power and excellent writing, versus some (rather lengthy) deeply irritating sections and unsympathetic characters. But I\'m very curious to see what Tolz will come up with next ANSWERNOTFOUND',
- 'review_id': '8d63e311f8f6ab0ae17a6a883fdae5d7'}
+{
+    "answers": {
+        "ans_subj_score": [1.0],
+        "answer_start": [324],
+        "answer_subj_level": [2],
+        "is_ans_subjective": [True],
+        "text": ["This is a wonderfully written book"],
+    },
+    "context": "While I would not recommend this book to a young reader due to a couple pretty explicate scenes I would recommend it to any adult who just loves a good book.  Once I started reading it I could not put it down.  I hesitated reading it because I didn't think that the subject matter would be interesting, but I was so wrong.  This is a wonderfully written book.",
+    "domain": "books",
+    "id": "0255768496a256c5ed7caed9d4e47e4c",
+    "is_ques_subjective": False,
+    "nn_asp": "matter",
+    "nn_mod": "interesting",
+    "q_reviews_id": "a907837bafe847039c8da374a144bff9",
+    "query_asp": "part",
+    "query_mod": "fascinating",
+    "ques_subj_score": 0.0,
+    "question": "What are the parts like?",
+    "question_subj_level": 2,
+    "review_id": "a7f1a2503eac2580a0ebbc1d24fffca1",
+    "title": "0002007770",
+}
 ```
 
 ### Data Fields
@@ -226,3 +237,7 @@ If you are using the dataset, please cite the following in your work:
     publisher = "Association for Computational Linguistics",
 }
 ```
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun) for adding this dataset.
