@@ -21,5 +21,13 @@ A clear and concise description of the expected results.
 ## Actual results
 Specify the actual results or traceback.
 
-## Versions
-Paste the output of the following command: `datasets-cli env`, and fill out the last two points.
+## Environment info
+<!-- You can run the command `datasets-cli env` and copy-and-paste its output below.
+     Don't forget to fill out the missing fields in that output! -->
+- `datasets` version:
+- Platform:
+- Python version:
+- PyTorch version (GPU?):
+- Tensorflow version (GPU?):
+- Using GPU in script?:
+- Using distributed or parallel set-up in script?:
