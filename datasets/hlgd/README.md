@@ -82,11 +82,25 @@ Dataset is in english.
 
 ### Data Instances
 
-[More Information Needed]
+A typical dataset consists of a timeline_id, two headlines (A/B), each associated with a URL, and a date. Finally, a label indicates whether the two headlines describe the same underlying event (1) or not (0). Below is an example from the training set:
+```
+{'timeline_id': 4,
+ 'headline_a': 'France fines Google nearly $57 million for first major violation of new European privacy regime',
+ 'headline_b': "France hits Google with record EUR50mn fine over 'forced consent' data collection",
+ 'date_a': '2019-01-21',
+ 'date_b': '2019-01-21',
+ 'url_a': 'https://www.chicagotribune.com/business/ct-biz-france-fines-google-privacy-20190121-story.html',
+ 'url_b': 'https://www.rt.com/news/449369-france-hits-google-with-record-fine/',
+ 'label': 1}
+```
 
 ### Data Fields
 
-[More Information Needed]
+- `timeline_id`: Represents the id of the timeline that the headline pair belongs to (values 0 to 9). The dev set is composed of timelines 0 and 5, and the test set timelines 7 and 8
+- `headline_a`, `headline_b`: Raw text for the headline pair being compared
+- `date_a`, `date_b`: Publication date of the respective headlines, in the `YYYY-MM-DD` format
+- `url_a`, `url_b`: Original URL of the respective headlines. Can be used to retrieve additional meta-data on the headline.
+- `label`: 1 if the two headlines are part of the the same headline group and describe the same underlying event, 0 otherwise.
 
 ### Data Splits
 
