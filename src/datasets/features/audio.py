@@ -10,6 +10,6 @@ class Audio:
     _type: str = field(default="Audio", init=False, repr=False)
 
     def encode_example(self, value):
-        with open(value, 'rb') as f:
+        with open(value, "rb") as f:
             array, sample_rate = sf.read(f)
         return {"array": array, "sample_rate": sample_rate}
