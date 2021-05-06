@@ -288,6 +288,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
             )
 
+        if self.cache_files and self.info.cache_dir is not None:
+            assert os.path.samefile(os.path.dirname(self.cache_files[0]["filename"]), self.info.cache_dir)
+
         # Update metadata
 
         self._data = update_metadata_with_features(self._data, self.features)
@@ -1379,9 +1382,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        if is_caching_enabled() and self.cache_files:
+        if is_caching_enabled() and (self.cache_files or self.info.cache_dir is not None):
             cache_file_name = "cache-" + fingerprint + ".arrow"
-            cache_directory = os.path.dirname(self.cache_files[0]["filename"])
+            cache_directory = (
+                os.path.dirname(self.cache_files[0]["filename"]) if self.cache_files else self.info.cache_dir
+            )
         else:
             cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
             cache_directory = get_temporary_cache_files_directory()
@@ -1664,7 +1669,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size = self.num_rows
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files:
+        if self.cache_files or self.info.cache_dir is not None:
             if cache_file_name is None:
                 # we create a unique hash from the function,
                 # current dataset file and the mapping args
@@ -2166,7 +2171,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files:
+        if self.cache_files or self.info.cache_dir is not None:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
@@ -2249,7 +2254,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files:
+        if self.cache_files or self.info.cache_dir is not None:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
@@ -2415,7 +2420,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files:
+        if self.cache_files or self.info.cache_dir is not None:
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
 
