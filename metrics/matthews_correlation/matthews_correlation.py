@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
