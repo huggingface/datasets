@@ -26,7 +26,6 @@ task_ids:
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
-      - [Data collection](#data-collection)
     - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
     - [Languages](#languages)
   - [Dataset Structure](#dataset-structure)
@@ -58,7 +57,7 @@ task_ids:
 - **Paper:** https://arxiv.org/abs/2004.14283
 - **Point of Contact:** [Lewis Tunstall](mailto:lewis.c.tunstall@gmail.com)
 
-### Dataset Summary 
+### Dataset Summary
 
 SubjQA is a question answering dataset that focuses on subjective (as opposed to factual) questions and answers. The dataset consists of roughly **10,000** questions over reviews from 6 different domains: books, movies, grocery, electronics, TripAdvisor (i.e. hotels), and restaurants. Each question is paired with a review and a span is highlighted as the answer to the question (with some questions having no answer). Moreover, both questions and answer spans are assigned a _subjectivity_ label by annotators. Questions such as _"How much does this product weigh?"_ is a factual question (i.e., low subjectivity), while "Is this easy to use?" is a subjective question (i.e., high subjectivity).
 
@@ -157,7 +156,7 @@ The question-review pairs from each domain are split into training, development,
 
 Based on the subjectivity labels provided by annotators, one observes that 73% of the questions and 74% of the answers in the dataset are subjective. This provides a substantial number of subjective QA pairs as well as a reasonable number of factual questions to compare and constrast the performance of QA systems on each type of QA pairs.
 
-Finally, the next table summarizes the average length of the question, the review, and the highlighted answer span for each category. 
+Finally, the next table summarizes the average length of the question, the review, and the highlighted answer span for each category.
 
 | Domain      | Review Len | Question Len | Answer Len | % answerable |
 |-------------|------------|--------------|------------|--------------|
@@ -171,6 +170,8 @@ Finally, the next table summarizes the average length of the question, the revie
 ## Dataset Creation
 
 ### Curation Rationale
+
+Most question-answering datasets like SQuAD and Natural Questions focus on answering questions over factual data such as Wikipedia and news articles. However, in domains like e-commerce the questions and answers are often _subjective_, that is, they depend on the personal experience of the users. For example, a customer on Amazon may ask "Is the sound quality any good?", which is more difficult to answer than a factiod question like "What is the capital of Australia?" These considerations motivate the creation of SubjQA as a tool to investigate the relationship between subjectivity and question-answering.
 
 ### Source Data
 
@@ -188,7 +189,7 @@ The process of constructing SubjQA is discussed in detail in the [paper](https:/
 
 #### Who are the source language producers?
 
-[Needs More Information]
+As described above, the source data for SubjQA is customer reviews of products and services on e-commerce websites like Amazon and TripAdvisor.
 
 ### Annotations
 
