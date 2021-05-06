@@ -110,6 +110,17 @@ class HLGD(datasets.GeneratorBasedBuilder):
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
 
-        with open(filepath, "r") as f:
+        with open(filepath, encoding="utf-8") as f:
             dataset_split = json.load(f)
-        return enumerate(dataset_split)
+
+        for id_, row in enumerate(dataset_split):
+            yield id_, {
+                "timeline_id": row["timeline_id"],
+                "headline_a": row["headline_a"],
+                "headline_b": row["headline_b"],
+                "date_a": row["date_a"],
+                "date_b": row["date_b"],
+                "url_a": row["url_a"],
+                "url_b": row["url_b"],
+                "label": row["label"],
+            }
