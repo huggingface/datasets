@@ -12,7 +12,7 @@ NAME2TEMPLATE = {QuestionAnswering.task: QuestionAnswering, TextClassification.t
 
 
 def task_template_from_dict(task_template_dict: dict) -> Optional[TaskTemplate]:
-    task_name = task_template_dict.get("name")
+    task_name = task_template_dict.get("task")
     if task_name is None:
         return None
     template = NAME2TEMPLATE.get(task_name)
