@@ -750,7 +750,6 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("PAN-X"):
             panx_dl_dir = dl_manager.download_and_extract(self.config.data_url)
-            print(panx_dl_dir)
             lang = self.config.name.split(".")[1]
             lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
 
