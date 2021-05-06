@@ -81,11 +81,11 @@ The dataset contains samples in English only.
 ### Data Instances
 
 Each row of the data file should look like this:
-```json
+```
 {
   "id": 3339543,
   "question": "what is the difference between collagen and whey protein?",
-  "short_answer": null,
+  "short_answer": None,
   "answer": "The main differences between the amino acid profiles of whey and collagen are that whey contains all 9 essential amino acids, while collagen only has 8. ... Collagen is a fibrous protein found in the skin, cartilage, and bones of animals whereas whey comes from milk.",
   "answer_type": "feat_snip"
 }
@@ -107,8 +107,8 @@ Here is the dominant types in the current dataset:
 
 - `id`: an `int` feature.
 - `question`: a `string` feature.
-- `short_answer`: a `string` feature.
-- `answer`: a `string` feature.
+- `short_answer`: a `string` feature (could be None as well in some cases).
+- `answer`: a `string` feature (could be None as well in some cases).
 - `answer_type`: a `string` feature.
 
 ### Data Splits
@@ -132,11 +132,7 @@ Such answer type diversity is not represented in any existing dataset.
 
 #### Initial Data Collection and Normalization
 
-Describe the data collection process. Describe any criteria for data selection or filtering. List any key words or search terms used. If possible, include runtime information for the collection process.
-
-If data was collected from other pre-existing datasets, link to source here and to their [Hugging Face version](https://huggingface.co/datasets/dataset_name).
-
-If the data was modified or normalized after being collected (e.g. if the data is word-tokenized), describe the process and the tools used.
+Answered below.
 
 #### Who are the source language producers?
 

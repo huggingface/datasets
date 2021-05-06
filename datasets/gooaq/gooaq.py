@@ -39,16 +39,14 @@ the answer boxes in the search results. This yields a rich space of answer types
 textual answers (short and long) as well as more structured ones such as collections.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
-_HOMEPAGE = ""
+_HOMEPAGE = "https://github.com/allenai/gooaq"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Licensed under the Apache License, Version 2.0"
 
 _URL = "https://github.com/allenai/gooaq/raw/main/data/qoogle.jsonl"
 
 
-class GooAQ(datasets.GeneratorBasedBuilder):
+class Gooaq(datasets.GeneratorBasedBuilder):
     """GooAQ - Question-answers, collected from Google"""
 
     VERSION = datasets.Version("1.1.0")
@@ -85,7 +83,7 @@ class GooAQ(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = dl_manager.download_and_extract(_URL)
+        data_dir = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -104,6 +102,11 @@ class GooAQ(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
+                if data["short_answer"] is "null":
+                    data["short_answer"] = None
+                if data["answer"] is "null":
+                    data["answer"] = None
+
                 if data["answer_type"] not in dominant_classes:
                     yield id_, {
                         "id": data["id"],
