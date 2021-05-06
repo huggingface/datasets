@@ -132,10 +132,6 @@ Such answer type diversity is not represented in any existing dataset.
 
 #### Initial Data Collection and Normalization
 
-Answered below.
-
-#### Who are the source language producers?
-
 Construction this dataset involved two main steps, extracting questions from search auto-complete and extracting answers from answer boxes.
 
 1) Query Extraction: To extract a rich yet natural set of questions they used Google auto-completion. They start with a seed set of question terms (e.g., “who”, “where”, etc.). They bootstrap based on this set, by repeatedly querying prefixes of previously extracted questions, in order to discover longer and richer sets of questions. Such questions extracted from the autocomplete algorithm are highly reflective of popular questions posed by users of Google. They filter out any questions shorter than 5 tokens as they are often in-complete questions. This process yields over ∼5M questions, which were collected over a span of 6 months. The average length of the questions is about 8 tokens.
@@ -143,6 +139,10 @@ Construction this dataset involved two main steps, extracting questions from sea
 2) Answer Extraction:  They rely on the Google answer boxes shown on top of the search results when the questions are issued to Google. There are a variety of answer boxes. The most common kind involves highlighted sentences (extracted from various websites) that contain the answer to a given question. These form the snippet and collection answers in GOOAQ. In some cases, the answer box shows the answer directly, possibly in addition to the textual snippet. These form theshort answers in GOOAQ.
 
 They first scrape the search results for all questions. This is the main extraction bottleneck, which was done over a span of 2 months. Subsequently, they extract answer strings from the HTML content of the search results. Answer types are also inferred at this stage, based on the HTML tags around the answer.
+
+#### Who are the source language producers?
+
+Answered above.
 
 ### Annotations
 

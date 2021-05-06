@@ -102,10 +102,6 @@ class Gooaq(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
-                if data["short_answer"] is "null":
-                    data["short_answer"] = None
-                if data["answer"] is "null":
-                    data["answer"] = None
 
                 if data["answer_type"] not in dominant_classes:
                     yield id_, {
