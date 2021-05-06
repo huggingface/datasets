@@ -257,6 +257,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 self._fingerprint = metadata["fingerprint"]
 
         # Infer features if None
+
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
@@ -265,6 +266,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         if self._fingerprint is None:
             self._fingerprint = generate_fingerprint(self)
+
+        # Infer cache directory if None
+
+        if self.info.cache_dir is None and self.cache_files:
+            self.info.cache_dir = os.path.dirname(self.cache_files[0]["filename"])
 
         # Sanity checks
 
@@ -287,9 +293,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(
                 f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
             )
-
-        if self.cache_files and self.info.cache_dir is not None:
-            assert os.path.samefile(os.path.dirname(self.cache_files[0]["filename"]), self.info.cache_dir)
 
         # Update metadata
 
