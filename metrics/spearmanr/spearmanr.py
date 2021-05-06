@@ -51,7 +51,7 @@ Examples:
     {'spearmanr': 1.0}
 """
 
-_CITATION = """\
+_CITATION = r"""\
 @article{2020SciPy-NMeth,
   author  = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and
             Haberland, Matt and Reddy, Tyler and Cournapeau, David and
