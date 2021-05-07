@@ -51,7 +51,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, filenames):
         """Generate TurkishProductReviews examples."""
         logger.info("⏳ Generating examples from = %s", filepath)
-        for f in sorted(filenames):
+        for file_idx, f in enumerate(sorted(filenames)):
             filename, file_extension = os.path.splitext(f)
             label = "negative" if file_extension == "neg" else "positive"
 
@@ -59,7 +59,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
             with open(file_fullpath, encoding="utf-8") as f:
                 for idx, line in enumerate(f):
                     line = line.strip()
-                    yield idx, {
+                    yield f"{file_idx}_{idx}", {
                         "sentence": line,
                         "sentiment": label,
                     }
