@@ -105,7 +105,7 @@ def test_key_datatype(writer_batch_size):
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 2, 10])
-def test_duplicate_keys(fields, writer_batch_size):
+def test_duplicate_keys(writer_batch_size):
     output = pa.BufferOutputStream()
     with ArrowWriter(
         stream=output,

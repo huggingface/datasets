@@ -18,7 +18,7 @@ import json
 import os
 import socket
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pyarrow as pa
 from tqdm.auto import tqdm
