@@ -1373,19 +1373,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def prepare_for_task(self, task: str) -> "Dataset":
-        """Prepares a dataset for the given task
+        """Prepares a dataset for the given task.
 
-        TODO(sbrandeis): Add a docstring
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+
+        Args:
+            task (``str``): One of the compatible tasks in ['text_classification', 'question_answering']
         """
+        tasks = [template.task for template in (self.info.task_templates or [])]
         compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
         if not compatible_templates:
-            raise ValueError(
-                f"This dataset is not compatible with the {task} task!"
-            )  # TODO(sbrandeis): tell the user how they can make it compatible
+            raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
 
         if len(compatible_templates) > 1:
-            raise NotImplementedError  # TODO(sbrandeis): handle this case
-
+            raise ValueError(
+                f"""Expected 1 task template but found {len(compatible_templates)}! Please ensure that \
+                :attr:`datasets.DatasetInfo.task_templates` contains a unique set of task types."""
+            )
         template = compatible_templates[0]
         column_mapping = template.column_mapping
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
