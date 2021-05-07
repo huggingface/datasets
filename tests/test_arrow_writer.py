@@ -119,6 +119,23 @@ def test_duplicate_keys(writer_batch_size):
             num_examples, num_bytes = writer.finalize()
 
 
+@pytest.mark.parametrize("writer_batch_size", [None, 2, 10])
+def test_write_with_keys(writer_batch_size):
+    output = pa.BufferOutputStream()
+    with ArrowWriter(
+        stream=output,
+        writer_batch_size=writer_batch_size,
+        hash_salt="split_name",
+        check_duplicates=True,
+    ) as writer:
+        writer.write({"col_1": "foo", "col_2": 1}, key=1)
+        writer.write({"col_1": "bar", "col_2": 2}, key=2)
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+
+
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
     "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
