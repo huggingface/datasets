@@ -105,7 +105,9 @@ class Section:
             # If header text is expected
             if self.is_empty:
                 # If no header text is found, mention it in the error_list
-                error_list.append(f"Expected some header text for section `{self.name}`.")
+                error_list.append(
+                    f"Expected some text in section `{self.name}` but it is empty (text in subsections are ignored)."
+                )
 
         # Subsections Validation
         if structure["subsections"] is not None:
@@ -127,9 +129,12 @@ class Section:
                     else:
                         # If the subsection is present, validate subsection, return the result
                         # and concat the errors from subsection to section error_list
-                        _, subsec_error_list, subsec_warning_list = self.content[name].validate(
-                            structure["subsections"][idx]
-                        )
+                        if self.level == "###":
+                            continue
+                        else:
+                            _, subsec_error_list, subsec_warning_list = self.content[name].validate(
+                                structure["subsections"][idx]
+                            )
                         error_list += subsec_error_list
                         warning_list += subsec_warning_list
 

@@ -10,6 +10,7 @@ from datasets.utils.readme import ReadMe
 
 # @pytest.fixture
 # def example_yaml_structure():
+
 example_yaml_structure = yaml.safe_load(
     """\
 name: ""
@@ -91,6 +92,64 @@ Some text here.
 ### Languages
 """
 
+
+README_CORRECT_FOUR_LEVEL = """\
+---
+languages:
+- zh
+- en
+---
+
+# Dataset Card for My Dataset
+## Table of Contents
+Some text here.
+## Dataset Description
+Some text here.
+### Dataset Summary
+Some text here.
+#### Extra Ignored Subsection
+### Supported Tasks and Leaderboards
+### Languages
+"""
+
+CORRECT_DICT_FOUR_LEVEL = {
+    "name": "root",
+    "text": "",
+    "is_empty": True,
+    "subsections": [
+        {
+            "name": "Dataset Card for My Dataset",
+            "text": "",
+            "is_empty": True,
+            "subsections": [
+                {"name": "Table of Contents", "text": "Some text here.", "is_empty": False, "subsections": []},
+                {
+                    "name": "Dataset Description",
+                    "text": "Some text here.",
+                    "is_empty": False,
+                    "subsections": [
+                        {
+                            "name": "Dataset Summary",
+                            "text": "Some text here.",
+                            "is_empty": False,
+                            "subsections": [
+                                {"name": "Extra Ignored Subsection", "text": "", "is_empty": True, "subsections": []}
+                            ],
+                        },
+                        {
+                            "name": "Supported Tasks and Leaderboards",
+                            "text": "",
+                            "is_empty": True,
+                            "subsections": [],
+                        },
+                        {"name": "Languages", "text": "", "is_empty": True, "subsections": []},
+                    ],
+                },
+            ],
+        }
+    ],
+}
+
 README_EMPTY_YAML = """\
 ---
 ---
@@ -156,7 +215,7 @@ Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
 """
-EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some header text for section `Dataset Summary`."
+EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some text in section `Dataset Summary` but it is empty (text in subsections are ignored)."
 
 
 README_NONE_SUBSECTION = """\
@@ -274,9 +333,15 @@ Some text here.
 EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `{path}`:\n-\tMultiple sections with the same heading `Dataset Card for My Dataset` have been found. Please keep only one of these sections."
 
 
-def test_readme_from_string_correct():
-
-    assert ReadMe.from_string(README_CORRECT, example_yaml_structure).to_dict() == CORRECT_DICT
+@pytest.mark.parametrize(
+    "readme_md, expected_dict",
+    [
+        (README_CORRECT, CORRECT_DICT),
+        (README_CORRECT_FOUR_LEVEL, CORRECT_DICT_FOUR_LEVEL),
+    ],
+)
+def test_readme_from_string_correct(readme_md, expected_dict):
+    assert ReadMe.from_string(readme_md, example_yaml_structure).to_dict() == expected_dict
 
 
 @pytest.mark.parametrize(
@@ -296,20 +361,27 @@ def test_readme_from_string_correct():
     ],
 )
 def test_readme_from_string_errors(readme_md, expected_error):
-    with pytest.raises(ValueError, match=expected_error.format(path="root")):
+    with pytest.raises(ValueError, match=re.escape(expected_error.format(path="root"))):
         ReadMe.from_string(readme_md, example_yaml_structure)
 
 
-def test_readme_from_readme_correct():
+@pytest.mark.parametrize(
+    "readme_md, expected_dict",
+    [
+        (README_CORRECT, CORRECT_DICT),
+        (README_CORRECT_FOUR_LEVEL, CORRECT_DICT_FOUR_LEVEL),
+    ],
+)
+def test_readme_from_readme_correct(readme_md, expected_dict):
     with tempfile.TemporaryDirectory() as tmp_dir:
         path = Path(tmp_dir) / "README.md"
         with open(path, "w+") as readme_file:
-            readme_file.write(README_CORRECT)
+            readme_file.write(readme_md)
         out = ReadMe.from_readme(path, example_yaml_structure).to_dict()
         assert out["name"] == path
         assert out["text"] == ""
         assert out["is_empty"]
-        assert out["subsections"] == CORRECT_DICT["subsections"]
+        assert out["subsections"] == expected_dict["subsections"]
 
 
 @pytest.mark.parametrize(
