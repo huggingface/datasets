@@ -55,12 +55,12 @@ class Emotion(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"text": datasets.Value("string"), "label": datasets.ClassLabel(names=class_names)}
+                {"tweet": datasets.Value("string"), "emotion": datasets.ClassLabel(names=class_names)}
             ),
             supervised_keys=("text", "label"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[TextClassification(labels=class_names)],
+            task_templates=[TextClassification(labels=class_names, text_column="tweet", label_column="emotion")],
         )
 
     def _split_generators(self, dl_manager):
@@ -80,4 +80,4 @@ class Emotion(datasets.GeneratorBasedBuilder):
             csv_reader = csv.reader(csv_file, delimiter=";")
             for id_, row in enumerate(csv_reader):
                 text, label = row
-                yield id_, {"text": text, "label": label}
+                yield id_, {"tweet": text, "emotion": label}
