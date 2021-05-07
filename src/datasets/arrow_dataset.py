@@ -1379,6 +1379,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             task (``str``): One of the compatible tasks in ['text_classification', 'question_answering']
+            TODO(lewtun): Provide link to compatible tasks in docs.
         """
         tasks = [template.task for template in (self.info.task_templates or [])]
         compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
