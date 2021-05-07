@@ -174,7 +174,7 @@ class CastToPythonObjectsTest(TestCase):
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
-    @patch("datasets.features._cast_to_python_objects", side_effect=_cast_to_python_objects)
+    @patch("datasets.features.features._cast_to_python_objects", side_effect=_cast_to_python_objects)
     def test_dont_iterate_over_each_element_in_a_list(self, mocked_cast):
         obj = {"col_1": [[1, 2], [3, 4], [5, 6]]}
         cast_to_python_objects(obj)

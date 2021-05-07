@@ -40,6 +40,7 @@ from .features import (
     Array3D,
     Array4D,
     Array5D,
+    Audio,
     ClassLabel,
     Features,
     Sequence,
