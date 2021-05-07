@@ -106,7 +106,7 @@ class Section:
             if self.is_empty_text and self.content == {}:
                 # If no content is found, mention it in the error_list
                 error_list.append(f"Expected some content in section `{self.name}` but it is empty.")
-        
+
         if structure["allow_empty_text"] is False:
             # If some text is expected
             if self.is_empty_text:
