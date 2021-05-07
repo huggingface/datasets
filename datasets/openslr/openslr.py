@@ -39,7 +39,7 @@ SLR32:
     URL   = {http://dx.doi.org/10.21437/Interspeech.2017-1139}
 }
 
-SLR35, SLR36:
+SLR35, SLR36, SLR52, SLR53, SLR54:
 @inproceedings{kjartansson-etal-sltu2018,
     title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
     author = {Oddur Kjartansson and Supheakmungkol Sarin and Knot Pipatsrisawat and Martin Jansche and Linne Ha},
@@ -255,6 +255,84 @@ _RESOURCES = {
         "Files": ["su_id_female.zip", "su_id_male.zip"],
         "IndexFiles": ["su_id_female/line_index.tsv", "su_id_male/line_index.tsv"],
         "DataDirs": ["su_id_female/wavs", "su_id_male/wavs"],
+    },
+    "SLR52": {
+        "Language": "Sinhala",
+        "LongName": "Large Sinhala ASR training data set",
+        "Category": "Speech",
+        "Summary": "Sinhala ASR training data set containing ~185K utterances",
+        "Files": [
+            "asr_sinhala_0.zip",
+            "asr_sinhala_1.zip",
+            "asr_sinhala_2.zip",
+            "asr_sinhala_3.zip",
+            "asr_sinhala_4.zip",
+            "asr_sinhala_5.zip",
+            "asr_sinhala_6.zip",
+            "asr_sinhala_7.zip",
+            "asr_sinhala_8.zip",
+            "asr_sinhala_9.zip",
+            "asr_sinhala_a.zip",
+            "asr_sinhala_b.zip",
+            "asr_sinhala_c.zip",
+            "asr_sinhala_d.zip",
+            "asr_sinhala_e.zip",
+            "asr_sinhala_f.zip",
+        ],
+        "IndexFiles": ["asr_sinhala/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_sinhala/data"] * 16,
+    },
+    "SLR53": {
+        "Language": "Bengali",
+        "LongName": "Large Bengali ASR training data set",
+        "Category": "Speech",
+        "Summary": "Bengali ASR training data set containing ~196K utterances",
+        "Files": [
+            "asr_bengali_0.zip",
+            "asr_bengali_1.zip",
+            "asr_bengali_2.zip",
+            "asr_bengali_3.zip",
+            "asr_bengali_4.zip",
+            "asr_bengali_5.zip",
+            "asr_bengali_6.zip",
+            "asr_bengali_7.zip",
+            "asr_bengali_8.zip",
+            "asr_bengali_9.zip",
+            "asr_bengali_a.zip",
+            "asr_bengali_b.zip",
+            "asr_bengali_c.zip",
+            "asr_bengali_d.zip",
+            "asr_bengali_e.zip",
+            "asr_bengali_f.zip",
+        ],
+        "IndexFiles": ["asr_bengali/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_bengali/data"] * 16,
+    },
+    "SLR54": {
+        "Language": "Nepali",
+        "LongName": "Large Nepali ASR training data set",
+        "Category": "Speech",
+        "Summary": "Nepali ASR training data set containing ~157K utterances",
+        "Files": [
+            "asr_nepali_0.zip",
+            "asr_nepali_1.zip",
+            "asr_nepali_2.zip",
+            "asr_nepali_3.zip",
+            "asr_nepali_4.zip",
+            "asr_nepali_5.zip",
+            "asr_nepali_6.zip",
+            "asr_nepali_7.zip",
+            "asr_nepali_8.zip",
+            "asr_nepali_9.zip",
+            "asr_nepali_a.zip",
+            "asr_nepali_b.zip",
+            "asr_nepali_c.zip",
+            "asr_nepali_d.zip",
+            "asr_nepali_e.zip",
+            "asr_nepali_f.zip",
+        ],
+        "IndexFiles": ["asr_nepali/utt_spk_text.tsv"] * 16,
+        "DataDirs": ["asr_nepali/data"] * 16,
     },
     "SLR63": {
         "Language": "Malayalam",
@@ -493,7 +571,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         counter = -1
-        if self.config.name in ["SLR35", "SLR36"]:
+        if self.config.name in ["SLR35", "SLR36", "SLR52", "SLR53", "SLR54"]:
             sentence_index = {}
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:

@@ -11,6 +11,19 @@ Many thanks in advance to every contributor.
 In order to facilitate healthy, constructive behavior in an open and inclusive community, we all respect and abide by 
 our [code of conduct](CODE_OF_CONDUCT.md).
 
+## How to work on an open Issue?
+You have the list of open Issues at: https://github.com/huggingface/datasets/issues
+
+Some of them may have the label `help wanted`: that means that any contributor is welcomed!
+
+If you would like to work on any of the open Issues:
+
+1. Make sure it is not already assigned to someone else. You have the assignee (if any) on the top of the right column of the Issue page.
+
+2. You can self-assign it by commenting on the Issue page with one of the keywords: `#take` or `#self-assign`.
+
+3. Work on your self-assigned issue and eventually create a Pull Request.
+
 ## How to create a Pull Request?
 1. Fork the [repository](https://github.com/huggingface/datasets) by clicking on the 'Fork' button on the repository's page. This creates a copy of the code under your GitHub user account.
 

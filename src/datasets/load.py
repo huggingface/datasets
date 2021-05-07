@@ -58,10 +58,10 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
-
-def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]] = None):
+def init_dynamic_modules(
+    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
+):
     """
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
@@ -285,11 +285,7 @@ def prepare_module(
         return module_path, hash
 
     # otherwise the module is added to the dynamic modules
-    dynamic_modules_path = (
-        dynamic_modules_path
-        if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
-    )
+    dynamic_modules_path = dynamic_modules_path if dynamic_modules_path else init_dynamic_modules()
     module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
     datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
     datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
