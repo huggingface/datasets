@@ -182,10 +182,7 @@ class ArrowWriter:
         else:
             self._hasher = KeyHasher("")
 
-        if check_duplicates:
-            self._check_duplicates = True
-        else:
-            self._check_duplicates = False
+        self._check_duplicates = check_duplicates
 
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
@@ -207,7 +204,7 @@ class ArrowWriter:
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_examples: List[Dict[str, Any]] = []
+        self.current_examples: List[Tuple[Dict[str, Any], str]] = []
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
@@ -332,7 +329,7 @@ class ArrowWriter:
             self.hkey_record.append((hash, key))
         else:
             # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
-            self.current_examples.append((example,))
+            self.current_examples.append((example, ""))
 
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size

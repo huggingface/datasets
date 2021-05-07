@@ -91,15 +91,10 @@ def test_write(fields, writer_batch_size):
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
-@pytest.mark.parametrize(
-    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
-)
-def test_key_datatype(fields, writer_batch_size):
+def test_key_datatype(writer_batch_size):
     output = pa.BufferOutputStream()
-    schema = pa.schema(fields) if fields else None
     with ArrowWriter(
         stream=output,
-        schema=schema,
         writer_batch_size=writer_batch_size,
         hash_salt="split_name",
         check_duplicates=True,
@@ -110,15 +105,10 @@ def test_key_datatype(fields, writer_batch_size):
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 2, 10])
-@pytest.mark.parametrize(
-    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
-)
 def test_duplicate_keys(fields, writer_batch_size):
     output = pa.BufferOutputStream()
-    schema = pa.schema(fields) if fields else None
     with ArrowWriter(
         stream=output,
-        schema=schema,
         writer_batch_size=writer_batch_size,
         hash_salt="split_name",
         check_duplicates=True,
