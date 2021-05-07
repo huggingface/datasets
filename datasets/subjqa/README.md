@@ -13,6 +13,9 @@ size_categories:
 - 1K<n<10K
 source_datasets:
 - original
+- yelp_review_full
+- other-amazon_reviews_ucsd
+- other-tripadvisor_reviews
 task_categories:
 - question-answering
 task_ids:
