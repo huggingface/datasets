@@ -635,6 +635,7 @@ def load_dataset(
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    task: Optional[str] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     """Load a dataset.
@@ -730,6 +731,7 @@ def load_dataset(
         data_files=data_files,
         hash=hash,
         features=features,
+        task=task,
         **config_kwargs,
     )
 

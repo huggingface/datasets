@@ -1372,6 +1372,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
+    def prepare_for_task(self, task: str) -> "Dataset":
+        """Prepares a dataset for the given task.
+
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+
+        Args:
+            task (``str``): One of the compatible tasks in ['text_classification', 'question_answering']
+            TODO(lewtun): Provide link to compatible tasks in docs.
+        """
+        tasks = [template.task for template in (self.info.task_templates or [])]
+        compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
+        if not compatible_templates:
+            raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
+
+        if len(compatible_templates) > 1:
+            raise ValueError(
+                f"""Expected 1 task template but found {len(compatible_templates)}! Please ensure that \
+                :attr:`datasets.DatasetInfo.task_templates` contains a unique set of task types."""
+            )
+        template = compatible_templates[0]
+        column_mapping = template.column_mapping
+        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
+        dataset = self.remove_columns(columns_to_drop)
+        # TODO(sbrandeis): Add support for unnesting columns too
+        dataset = dataset.rename_columns(column_mapping)
+        dataset = dataset.cast(features=template.features)
+        return dataset
+
     def _getitem(
         self,
         key: Union[int, slice, str],

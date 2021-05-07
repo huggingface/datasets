@@ -39,6 +39,7 @@ from typing import List, Optional, Union
 from . import config
 from .features import Features, Value
 from .splits import SplitDict
+from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
 
@@ -108,6 +109,7 @@ class DatasetInfo:
         post_processing_size (int, optional):
         dataset_size (int, optional):
         size_in_bytes (int, optional):
+        task_templates (List[TaskTemplate], optional): TODO(sbrandeis) - document this
     """
 
     # Set in the dataset scripts
@@ -131,6 +133,8 @@ class DatasetInfo:
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
 
+    task_templates: Optional[List[TaskTemplate]] = None
+
     def __post_init__(self):
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
@@ -149,6 +153,19 @@ class DatasetInfo:
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
+
+        if self.task_templates is not None:
+            if isinstance(self.task_templates, (list, tuple)):
+                templates = [
+                    template if isinstance(template, TaskTemplate) else task_template_from_dict(template)
+                    for template in self.task_templates
+                ]
+                self.task_templates = [template for template in templates if template is not None]
+            elif isinstance(self.task_templates, TaskTemplate):
+                self.task_templates = [self.task_templates]
+            else:
+                template = task_template_from_dict(self.task_templates)
+                self.task_templates = [template] if template is not None else []
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
@@ -189,6 +206,9 @@ class DatasetInfo:
         features = None
         supervised_keys = None
 
+        # Can be prepared for a pipeline if all members can also be prepared for this specific pipeline
+        task_templates = None  # TODO(sbrandeis)
+
         return cls(
             description=description,
             citation=citation,
@@ -196,6 +216,7 @@ class DatasetInfo:
             license=license,
             features=features,
             supervised_keys=supervised_keys,
+            task_templates=task_templates,
         )
 
     @classmethod
