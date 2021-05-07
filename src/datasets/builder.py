@@ -204,6 +204,7 @@ class DatasetBuilder:
         name: Optional[str] = None,
         hash: Optional[str] = None,
         features: Optional[Features] = None,
+        task=None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -226,6 +227,7 @@ class DatasetBuilder:
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__class__.__name__)
         self.hash: Optional[str] = hash
+        self.task = task
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
@@ -813,6 +815,14 @@ class DatasetBuilder:
                         )
                     else:
                         ds.info.features = self.info.post_processed.features
+            # Rename feature column names to match task schema
+            tasks = [template.task for template in self.info.task_templates]
+            if self.task not in tasks:
+                raise ValueError(f"Task {self.task} not found! Avaliable tasks: {tasks}")
+            else:
+                for template in self.info.task_templates:
+                    if template.task == self.task:
+                        ds = ds.rename_columns(template.column_mapping)
 
         return ds
 

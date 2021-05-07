@@ -735,6 +735,7 @@ def load_dataset(
         data_files=data_files,
         hash=hash,
         features=features,
+        task=task,
         **config_kwargs,
     )
 
@@ -757,11 +758,6 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
-    # Rename feature column names to match task schema
-    for template in builder_instance.info.task_templates:
-        if template.task == task:
-            for k, v in template.column_mapping.items():
-                ds = ds.rename_column(k, v)
     if save_infos:
         builder_instance._save_infos()
 
