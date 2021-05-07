@@ -815,14 +815,9 @@ class DatasetBuilder:
                         )
                     else:
                         ds.info.features = self.info.post_processed.features
-            # Rename feature column names to match task schema
-            tasks = [template.task for template in self.info.task_templates]
-            if self.task not in tasks:
-                raise ValueError(f"Task {self.task} not found! Avaliable tasks: {tasks}")
-            else:
-                for template in self.info.task_templates:
-                    if template.task == self.task:
-                        ds = ds.rename_columns(template.column_mapping)
+            # Rename and cast features to match task schema
+            if self.task is not None:
+                ds = ds.prepare_for_task(self.task)
 
         return ds
 
