@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import time
 from hashlib import sha256
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -11,7 +12,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
+from datasets import SCRIPTS_VERSION, DatasetDict, DownloadConfig, load_dataset, load_from_disk
 
 from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
@@ -245,6 +246,42 @@ def test_load_dataset_local_with_default_in_memory(
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
     assert (dataset["train"].dataset_size < max_in_memory_dataset_size) is expected_in_memory
+
+
+class TestLoadDatasetOnlySplits:
+    def test_load_dataset_local_only_splits_processed_files(self, dataset_loading_script_dir, data_dir, tmp_path):
+        download_config = DownloadConfig(splits=["test"])
+        cache_dir = str(tmp_path / "cache")
+        datasetdict = datasets.load_dataset(
+            dataset_loading_script_dir,
+            data_dir=data_dir,
+            cache_dir=cache_dir,
+            download_config=download_config,
+        )
+        assert isinstance(datasetdict, DatasetDict)
+        assert "train" not in datasetdict
+        assert "test" in datasetdict
+        dataset = datasetdict["test"]
+        assert dataset.split == "test"
+        assert dataset.shape == (10, 1)
+        # pattern = "*/0.0.0/74c0095031cf868e2486de6e08bb3ca4a9f9de3a81b10af67a42aed21393e640/*.arrow"
+        generated_arrow_files = sorted(Path(cache_dir, dataset.builder_name).glob("**/*.arrow"))
+        assert len(generated_arrow_files) == 1
+
+    def test_load_dataset_from_hub_only_splits_downloaded_files(self, tmp_path):
+        download_config = DownloadConfig(splits=["train"])
+        cache_dir = str(tmp_path / "cache")
+        datasetdict = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=cache_dir, download_config=download_config)
+        assert isinstance(datasetdict, DatasetDict)
+        assert "train" in datasetdict
+        assert "validation" not in datasetdict
+        dataset = datasetdict["train"]
+        assert dataset.split == "train"
+        assert dataset.shape == (2, 1)
+        downloaded_files = set(str(path.stem) for path in Path(cache_dir, "downloads").glob("**/*"))
+        assert len(downloaded_files) == 1
+        generated_arrow_files = sorted(Path(cache_dir, dataset.builder_name).glob("**/*.arrow"))
+        assert len(generated_arrow_files) == 1
 
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", None, 0, 100, 1000])
