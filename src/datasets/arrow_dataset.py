@@ -551,6 +551,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
+
+        Note regarding sliced datasets:
+
+        If you sliced the dataset in some way (using shard, train_test_split or select for example), then an indices mapping
+        is added to avoid having to rewrite a new arrow Table (save time + disk/memory usage).
+        It maps the indices used by __getitem__ to the right rows if the arrow Table.
+        By default save_to_disk does save the full dataset table + the mapping.
+
+        If you want to only save the shard of the dataset instead of the original arrow file and the indices,
+        then you have to call :func:`datasets.Dataset.flatten_indices` before saving.
+        This will create a new arrow table by using the right rows of the original table.
+
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
