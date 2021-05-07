@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 
 
-class BaseTransformersCLICommand(ABC):
+class BaseDatasetsCLICommand(ABC):
     @staticmethod
     @abstractmethod
     def register_subcommand(parser: ArgumentParser):
