@@ -171,7 +171,7 @@ Finally, the next table summarizes the average length of the question, the revie
 
 ### Curation Rationale
 
-Most question-answering datasets like SQuAD and Natural Questions focus on answering questions over factual data such as Wikipedia and news articles. However, in domains like e-commerce the questions and answers are often _subjective_, that is, they depend on the personal experience of the users. For example, a customer on Amazon may ask "Is the sound quality any good?", which is more difficult to answer than a factiod question like "What is the capital of Australia?" These considerations motivate the creation of SubjQA as a tool to investigate the relationship between subjectivity and question-answering.
+Most question-answering datasets like SQuAD and Natural Questions focus on answering questions over factual data such as Wikipedia and news articles. However, in domains like e-commerce the questions and answers are often _subjective_, that is, they depend on the personal experience of the users. For example, a customer on Amazon may ask "Is the sound quality any good?", which is more difficult to answer than a factoid question like "What is the capital of Australia?" These considerations motivate the creation of SubjQA as a tool to investigate the relationship between subjectivity and question-answering.
 
 ### Source Data
 
