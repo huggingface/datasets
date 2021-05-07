@@ -75,7 +75,9 @@ class LoadTest(TestCase):
 
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
-        self.dynamic_modules_path = datasets.load.init_dynamic_modules("test_datasets_modules", self.hf_modules_cache)
+        self.dynamic_modules_path = datasets.load.init_dynamic_modules(
+            name="test_datasets_modules", hf_modules_cache=self.hf_modules_cache
+        )
 
     def tearDown(self):
         shutil.rmtree(self.hf_modules_cache)

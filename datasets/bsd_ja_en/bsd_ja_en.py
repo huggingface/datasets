@@ -150,7 +150,7 @@ class BsdJaEn(datasets.GeneratorBasedBuilder):
                     en_sentence = turn["en_sentence"]
                     ja_sentence = turn["ja_sentence"]
 
-                    yield id_, {
+                    yield f"{id_}_{sent_no}", {
                         "id": id_,
                         "tag": tag,
                         "title": title,
