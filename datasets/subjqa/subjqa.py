@@ -17,6 +17,7 @@ The dataset consists of roughly 10,000 questions over reviews from 6 different d
 electronics, TripAdvisor (i.e. hotels), and restaurants."""
 
 
+import ast
 import os
 
 import pandas as pd
@@ -179,7 +180,7 @@ class Subjqa(datasets.GeneratorBasedBuilder):
 
             for k, v in id2question.items():
                 d = df.query(f"q_review_id == '{k}'").to_dict(orient="list")
-                answer_starts = [eval(a)[0] for a in d["human_ans_indices"]]
+                answer_starts = [ast.literal_eval(a)[0] for a in d["human_ans_indices"]]
                 answer_meta = {k: v[0] for k, v in d.items() if k in self.answer_meta_columns}
                 question_meta = {k: v[0] for k, v in d.items() if k in self.question_meta_columns}
                 # Only fill answerable questions
