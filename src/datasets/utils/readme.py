@@ -46,7 +46,7 @@ class Section:
 
     def __post_init__(self):
         self.text = ""
-        self.is_empty = True
+        self.is_empty_text = True
         self.content = {}
         self.parsing_error_list = []
         self.parsing_warning_list = []
@@ -70,7 +70,7 @@ class Section:
                     if current_lines != []:
                         self.text += "".join(current_lines).strip()
                         if self.text != "" and self.text not in FILLER_TEXT:
-                            self.is_empty = False
+                            self.is_empty_text = False
                         current_lines = []
 
                 current_sub_level = " ".join(line.split()[1:]).strip(" \n")
@@ -87,7 +87,7 @@ class Section:
                 if current_lines != []:
                     self.text += "".join(current_lines).strip()
                     if self.text != "" and self.text not in FILLER_TEXT:
-                        self.is_empty = False
+                        self.is_empty_text = False
 
     def validate(self, structure: dict) -> ReadmeValidatorOutput:
         """Validates a Section class object recursively using the structure provided as a dictionary.
@@ -102,13 +102,18 @@ class Section:
         error_list = []
         warning_list = []
         if structure["allow_empty"] is False:
-            # If header text is expected
-            if self.is_empty:
-                # If no header text is found, mention it in the error_list
+            # If content is expected
+            if self.is_empty_text and self.content == {}:
+                # If no content is found, mention it in the error_list
+                error_list.append(f"Expected some content in section `{self.name}` but it is empty.")
+        
+        if structure["allow_empty_text"] is False:
+            # If some text is expected
+            if self.is_empty_text:
+                # If no text is found, mention it in the error_list
                 error_list.append(
                     f"Expected some text in section `{self.name}` but it is empty (text in subsections are ignored)."
                 )
-
         # Subsections Validation
         if structure["subsections"] is not None:
             # If subsections are expected
@@ -129,6 +134,8 @@ class Section:
                     else:
                         # If the subsection is present, validate subsection, return the result
                         # and concat the errors from subsection to section error_list
+
+                        # Skip sublevel validation if current level is `###`
                         if self.level == "###":
                             continue
                         else:
@@ -157,7 +164,7 @@ class Section:
         return {
             "name": self.name,
             "text": self.text,
-            "is_empty": self.is_empty,
+            "is_empty_text": self.is_empty_text,
             "subsections": [value.to_dict() for value in self.content.values()],
         }
 

@@ -15,24 +15,31 @@ example_yaml_structure = yaml.safe_load(
     """\
 name: ""
 allow_empty: false
+allow_empty_text: true
 subsections:
   - name: "Dataset Card for X" # First-level markdown heading
-    allow_empty: true
+    allow_empty: false
+    allow_empty_text: true
     subsections:
       - name: "Table of Contents"
         allow_empty: false
-        subsections: null # meaning it should not be checked.
+        allow_empty_text: false
+        subsections: null
       - name: "Dataset Description"
         allow_empty: false
+        allow_empty_text: false
         subsections:
           - name: "Dataset Summary"
             allow_empty: false
+            allow_empty_text: false
             subsections: null
           - name: "Supported Tasks and Leaderboards"
             allow_empty: true
+            allow_empty_text: true
             subsections: null
           - name: Languages
-            allow_empty: true
+            allow_empty: false
+            allow_empty_text: true
             subsections: null
 """
 )
@@ -41,38 +48,39 @@ subsections:
 CORRECT_DICT = {
     "name": "root",
     "text": "",
-    "is_empty": True,
+    "is_empty_text": True,
     "subsections": [
         {
             "name": "Dataset Card for My Dataset",
             "text": "",
-            "is_empty": True,
+            "is_empty_text": True,
             "subsections": [
-                {"name": "Table of Contents", "text": "Some text here.", "is_empty": False, "subsections": []},
+                {"name": "Table of Contents", "text": "Some text here.", "is_empty_text": False, "subsections": []},
                 {
                     "name": "Dataset Description",
                     "text": "Some text here.",
-                    "is_empty": False,
+                    "is_empty_text": False,
                     "subsections": [
                         {
                             "name": "Dataset Summary",
                             "text": "Some text here.",
-                            "is_empty": False,
+                            "is_empty_text": False,
                             "subsections": [],
                         },
                         {
                             "name": "Supported Tasks and Leaderboards",
                             "text": "",
-                            "is_empty": True,
+                            "is_empty_text": True,
                             "subsections": [],
                         },
-                        {"name": "Languages", "text": "", "is_empty": True, "subsections": []},
+                        {"name": "Languages", "text": "Language Text", "is_empty_text": False, "subsections": []},
                     ],
                 },
             ],
         }
     ],
 }
+
 
 README_CORRECT = """\
 ---
@@ -90,6 +98,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 
@@ -110,39 +119,45 @@ Some text here.
 #### Extra Ignored Subsection
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 CORRECT_DICT_FOUR_LEVEL = {
     "name": "root",
     "text": "",
-    "is_empty": True,
+    "is_empty_text": True,
     "subsections": [
         {
             "name": "Dataset Card for My Dataset",
             "text": "",
-            "is_empty": True,
+            "is_empty_text": True,
             "subsections": [
-                {"name": "Table of Contents", "text": "Some text here.", "is_empty": False, "subsections": []},
+                {"name": "Table of Contents", "text": "Some text here.", "is_empty_text": False, "subsections": []},
                 {
                     "name": "Dataset Description",
                     "text": "Some text here.",
-                    "is_empty": False,
+                    "is_empty_text": False,
                     "subsections": [
                         {
                             "name": "Dataset Summary",
                             "text": "Some text here.",
-                            "is_empty": False,
+                            "is_empty_text": False,
                             "subsections": [
-                                {"name": "Extra Ignored Subsection", "text": "", "is_empty": True, "subsections": []}
+                                {
+                                    "name": "Extra Ignored Subsection",
+                                    "text": "",
+                                    "is_empty_text": True,
+                                    "subsections": [],
+                                }
                             ],
                         },
                         {
                             "name": "Supported Tasks and Leaderboards",
                             "text": "",
-                            "is_empty": True,
+                            "is_empty_text": True,
                             "subsections": [],
                         },
-                        {"name": "Languages", "text": "", "is_empty": True, "subsections": []},
+                        {"name": "Languages", "text": "Language Text", "is_empty_text": False, "subsections": []},
                     ],
                 },
             ],
@@ -162,6 +177,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 EXPECTED_ERROR_README_EMPTY_YAML = (
@@ -178,6 +194,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 EXPECTED_ERROR_README_NO_YAML = (
@@ -195,6 +212,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 EXPECTED_ERROR_README_INCORRECT_YAML = "The following issues were found for the README at `{path}`:\n-\tOnly the start of YAML tags present in the README."
@@ -214,8 +232,9 @@ Some text here.
 ### Dataset Summary
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
-EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some text in section `Dataset Summary` but it is empty (text in subsections are ignored)."
+EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the README at `{path}`:\n-\tExpected some content in section `Dataset Summary` but it is empty.\n-\tExpected some text in section `Dataset Summary` but it is empty (text in subsections are ignored)."
 
 
 README_NONE_SUBSECTION = """\
@@ -227,7 +246,7 @@ languages:
 
 # Dataset Card for My Dataset
 """
-EXPECTED_ERROR_README_NONE_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tSection `Dataset Card for My Dataset` expected the following subsections: `Table of Contents`, `Dataset Description`. Found 'None'."
+EXPECTED_ERROR_README_NONE_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tExpected some content in section `Dataset Card for My Dataset` but it is empty.\n-\tSection `Dataset Card for My Dataset` expected the following subsections: `Table of Contents`, `Dataset Description`. Found 'None'."
 
 README_MISSING_SUBSECTION = """\
 ---
@@ -244,9 +263,31 @@ Some text here.
 ### Dataset Summary
 Some text here.
 ### Languages
+Language Text
 """
 
 EXPECTED_ERROR_README_MISSING_SUBSECTION = "The following issues were found for the README at `{path}`:\n-\tSection `Dataset Description` is missing subsection: `Supported Tasks and Leaderboards`."
+
+
+README_MISSING_CONTENT = """\
+---
+languages:
+- zh
+- en
+---
+
+# Dataset Card for My Dataset
+## Table of Contents
+Some text here.
+## Dataset Description
+Some text here.
+### Dataset Summary
+Some text here.
+### Supported Tasks and Leaderboards
+### Languages
+"""
+
+EXPECTED_ERROR_README_MISSING_CONTENT = "The following issues were found for the README at `{path}`:\n-\tExpected some content in section `Languages` but it is empty."
 
 README_MISSING_FIRST_LEVEL = """\
 ---
@@ -263,6 +304,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 EXPECTED_ERROR_README_MISSING_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tThe README has no first-level headings. One heading is expected. Skipping further validation for this README."
 
@@ -282,6 +324,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 # Dataset Card My Dataset
 """
 
@@ -303,6 +346,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 EXPECTED_ERROR_README_WRONG_FIRST_LEVEL = "The following issues were found for the README at `{path}`:\n-\tNo first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
@@ -328,6 +372,7 @@ Some text here.
 Some text here.
 ### Supported Tasks and Leaderboards
 ### Languages
+Language Text
 """
 
 EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `{path}`:\n-\tMultiple sections with the same heading `Dataset Card for My Dataset` have been found. Please keep only one of these sections."
@@ -358,6 +403,7 @@ def test_readme_from_string_correct(readme_md, expected_dict):
         (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
         (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
         (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
+        (README_MISSING_CONTENT, EXPECTED_ERROR_README_MISSING_CONTENT),
     ],
 )
 def test_readme_from_string_errors(readme_md, expected_error):
@@ -380,7 +426,7 @@ def test_readme_from_readme_correct(readme_md, expected_dict):
         out = ReadMe.from_readme(path, example_yaml_structure).to_dict()
         assert out["name"] == path
         assert out["text"] == ""
-        assert out["is_empty"]
+        assert out["is_empty_text"]
         assert out["subsections"] == expected_dict["subsections"]
 
 
@@ -398,6 +444,7 @@ def test_readme_from_readme_correct(readme_md, expected_dict):
         (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
         (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
         (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
+        (README_MISSING_CONTENT, EXPECTED_ERROR_README_MISSING_CONTENT),
     ],
 )
 def test_readme_from_readme_error(readme_md, expected_error):
