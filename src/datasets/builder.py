@@ -765,6 +765,10 @@ class DatasetBuilder:
             split=split,
             in_memory=in_memory,
         )
+        # Required for in-memory datasets
+        ds.info.cache_dir = self._cache_dir
+        if ds.cache_files:
+            assert os.path.samefile(os.path.dirname(ds.cache_files[0]["filename"]), ds.info.cache_dir)
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
