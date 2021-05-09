@@ -18,38 +18,13 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
         download_parser.set_defaults(func=info_command_factory)
 
     def run(self):
-        pt_version = "not installed"
-        pt_cuda_available = "NA"
-        if config.TORCH_AVAILABLE:
-            import torch
-
-            pt_version = torch.__version__
-            pt_cuda_available = torch.cuda.is_available()
-
-        tf_version = "not installed"
-        tf_cuda_available = "NA"
-        if config.TF_AVAILABLE:
-            import tensorflow as tf
-
-            tf_version = tf.__version__
-            try:
-                # deprecated in v2.1
-                tf_cuda_available = tf.test.is_gpu_available()
-            except AttributeError:
-                # returns list of devices, convert to bool
-                tf_cuda_available = bool(tf.config.list_physical_devices("GPU"))
-
         info = {
             "`datasets` version": version,
             "Platform": sys.version,
             "Python version": platform.python_version(),
-            "PyTorch version (GPU?)": "{} ({})".format(pt_version, pt_cuda_available),
-            "Tensorflow version (GPU?)": "{} ({})".format(tf_version, tf_cuda_available),
-            "Using GPU in script?": "<fill in>",
-            "Using distributed or parallel set-up in script?": "<fill in>",
         }
 
-        print("\nCopy-and-paste the text below in your GitHub issue and FILL OUT the last two points.\n")
+        print("\nCopy-and-paste the text below in your GitHub issue.\n")
         print(self.format_dict(info))
 
         return info
