@@ -135,14 +135,13 @@ class AscentKB(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
-                data_copy = data.copy()
                 if self.config.name == "canonical":
-                    data_copy.pop("subject")
-                    data_copy.pop("predicate")
-                    data_copy.pop("object")
-                    yield id_, data_copy
+                    data.pop("subject")
+                    data.pop("predicate")
+                    data.pop("object")
+                    yield id_, data
                 else:  # "open"
-                    data_copy.pop("arg1")
-                    data_copy.pop("rel")
-                    data_copy.pop("arg2")
-                    yield id_, data_copy
+                    data.pop("arg1")
+                    data.pop("rel")
+                    data.pop("arg2")
+                    yield id_, data
