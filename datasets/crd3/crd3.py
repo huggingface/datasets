@@ -126,7 +126,7 @@ class CRD3(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, files_path):
         """Yields examples."""
 
-        for file in files_path:
+        for id0, file in enumerate(files_path):
             with open(file, encoding="utf-8") as f:
                 data = json.load(f)
                 for id1, row in enumerate(data):
@@ -139,7 +139,7 @@ class CRD3(datasets.GeneratorBasedBuilder):
                         turn_names = turn["NAMES"]
                         turn_utterances = turn["UTTERANCES"]
                         turn_num = turn["NUMBER"]
-                        yield str(id1) + "_" + str(id2), {
+                        yield str(id0) + "_" + str(id1) + "_" + str(id2), {
                             "chunk": chunk,
                             "chunk_id": chunk_id,
                             "turn_start": turn_start,

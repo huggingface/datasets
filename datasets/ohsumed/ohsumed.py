@@ -188,7 +188,7 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
                 if line.startswith(".I"):
                     tag = ".I"
                     if data["medline_ui"] != -1:
-                        id_ = data["seq_id"]
+                        id_ = data["seq_id"] + "_" + data["medline_ui"]
                         yield id_, {
                             "seq_id": data["seq_id"],
                             "medline_ui": data["medline_ui"],

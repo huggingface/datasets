@@ -21,6 +21,12 @@ languages:
   - ne
   SLR44:
   - su
+  SLR52:
+  - si
+  SLR53:
+  - bn
+  SLR54:
+  - ne
   SLR63:
   - ml
   SLR64:
@@ -210,6 +216,42 @@ See [LICENSE](https://www.openslr.org/resources/44/LICENSE) file and
 https://github.com/google/language-resources#license for license information.
 
 Copyright 2016, 2017, 2018 Google LLC
+
+#### SLR52: Large Sinhala ASR training data set.
+This data set contains transcribed audio data for Sinhala (~185K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/52/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017, 2018 Google, Inc.
+
+#### SLR53: Large Bengali ASR training data set.
+This data set contains transcribed audio data for Bengali (~196K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/53/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017, 2018 Google, Inc.
+
+#### SLR54: Large Nepali ASR training data set.
+This data set contains transcribed audio data for Nepali (~157K utterances). The data set consists of wave files,
+and a TSV file. The file utt_spk_text.tsv contains a FileID, UserID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/54/LICENSE) file and 
+https://github.com/google/language-resources#license for license information.
+
+Copyright 2016, 2017, 2018 Google, Inc.
 
 #### SLR63: Crowdsourced high-quality Malayalam multi-speaker speech data set
 This data set contains transcribed high-quality audio of Malayalam sentences recorded by volunteers. The data set 
@@ -481,7 +523,7 @@ Afrikaans, Sesotho, Setswana and isiXhosa.
 
 A typical data point comprises the path to the audio file, called path and its sentence. 
 
-#### SLR32, SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
+#### SLR32, SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR52, SLR53, SLR54, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
 ```
 {
   'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
@@ -568,7 +610,7 @@ The speech material has only train dataset.
 }
 ```
 
-#### SLR35, SLR36
+#### SLR35, SLR36, SLR52, SLR53, SLR54
 ```
 @inproceedings{kjartansson-etal-sltu2018,
     title = {{Crowd-Sourced Speech Corpora for Javanese, Sundanese,  Sinhala, Nepali, and Bangladeshi Bengali}},
