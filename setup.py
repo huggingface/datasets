@@ -74,7 +74,7 @@ REQUIRED_PKGS = [
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
-    "pyarrow>=1.0.0<4.0.0",
+    "pyarrow>=1.0.0,<4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
