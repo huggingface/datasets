@@ -108,6 +108,7 @@ class DatasetInfo:
         post_processing_size (int, optional):
         dataset_size (int, optional):
         size_in_bytes (int, optional):
+        cache_dir (str, optional):
     """
 
     # Set in the dataset scripts
@@ -174,7 +175,7 @@ class DatasetInfo:
         file.write(self.license.encode("utf-8"))
 
     @classmethod
-    def from_merge(cls, dataset_infos: List["DatasetInfo"]):
+    def from_merge(cls, dataset_infos: List["DatasetInfo"]) -> "DatasetInfo":
         def unique(values):
             seen = set()
             for value in values:

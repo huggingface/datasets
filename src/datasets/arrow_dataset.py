@@ -611,6 +611,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
 
+        # Don't store the cache directory info for memory-mapped datasets
+        # because it points to the initial cache directory and not to the new one
+        # and instead infer it in Dataset.__init__
+        if self.cache_files:
+            dataset_info["cache_dir"] = None
+
         # Save dataset + indices + state + info
         fs.makedirs(dataset_path, exist_ok=True)
         with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
@@ -1681,6 +1687,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
+                info.cache_dir = None
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # We set this variable to True after processing the first example/batch in
@@ -1866,6 +1873,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # Create new Dataset from buffer or file
             info = self.info.copy()
             info.features = writer._features
+            info.cache_dir = None
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
@@ -3041,6 +3049,13 @@ def concatenate_datasets(
     # Concatenate infos
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
+        # Cache directory cannot be infered from the cache files
+        # so pick the first chache dir that is not None from the dataset infos
+        if all(not dset.cache_files for dset in dsets):
+            cache_dirs = [dset.info.cache_dir for dset in dsets if dset.info.cache_dir is not None]
+            cache_dir = cache_dirs[0] if cache_dirs else None
+            info.cache_dir = cache_dir
+
     fingerprint = update_fingerprint(
         "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
     )
