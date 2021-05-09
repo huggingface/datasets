@@ -551,6 +551,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
+
+        Note regarding sliced datasets:
+
+        If you sliced the dataset in some way (using shard, train_test_split or select for example), then an indices mapping
+        is added to avoid having to rewrite a new arrow Table (save time + disk/memory usage).
+        It maps the indices used by __getitem__ to the right rows if the arrow Table.
+        By default save_to_disk does save the full dataset table + the mapping.
+
+        If you want to only save the shard of the dataset instead of the original arrow file and the indices,
+        then you have to call :func:`datasets.Dataset.flatten_indices` before saving.
+        This will create a new arrow table by using the right rows of the original table.
+
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
@@ -1119,6 +1131,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
+    @fingerprint_transform(inplace=False)
+    def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`Dataset`: A copy of the dataset with renamed columns
+        """
+        dataset = copy.deepcopy(self)
+
+        extra_columns = set(column_mapping.keys()) - set(dataset.column_names)
+        if extra_columns:
+            raise ValueError(
+                f"Original column names {extra_columns} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+
+        number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(set(column_mapping.values()))
+        if number_of_duplicates_in_new_columns != 0:
+            raise ValueError(
+                "New column names must all be different, but this column mapping "
+                f"has {number_of_duplicates_in_new_columns} duplicates"
+            )
+
+        empty_new_columns = [new_col for new_col in column_mapping.values() if not new_col]
+        if empty_new_columns:
+            raise ValueError(f"New column names {empty_new_columns} are empty.")
+
+        def rename(columns):
+            return [column_mapping[col] if col in column_mapping else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
+        dataset._info.features = Features(
+            {
+                column_mapping[col] if col in column_mapping else col: feature
+                for col, feature in (self._info.features or {}).items()
+            }
+        )
+
+        dataset._data = dataset._data.rename_columns(new_column_names)
+        dataset._data = update_metadata_with_features(dataset._data, self.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 

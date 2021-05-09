@@ -113,7 +113,7 @@ class Cifar10(datasets.GeneratorBasedBuilder):
 
                     img_reshaped = np.transpose(np.reshape(images[idx], (3, 32, 32)), (1, 2, 0))
 
-                    yield idx, {
+                    yield f"{batch}_{idx}", {
                         "img": img_reshaped,
                         "label": labels[idx],
                     }

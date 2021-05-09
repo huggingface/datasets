@@ -128,7 +128,6 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, split_key, data_dir):
         """Yields examples for a given split of dataset."""
         split_text, split_labels = self._get_examples_from_split(split_key, data_dir)
-        for text, label in zip(split_text, split_labels):
-            data_key = split_key + "_" + text
+        for id_, (text, label) in enumerate(zip(split_text, split_labels)):
             feature_dict = {"text": text, "label": label}
-            yield data_key, feature_dict
+            yield id_, feature_dict

@@ -81,9 +81,9 @@ class Bswac(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        for fp in filepath:
+        for file_idx, fp in enumerate(filepath):
             with open(fp, encoding="utf8") as f:
-                for id_, row in enumerate(f):
-                    yield id_, {
+                for row_idx, row in enumerate(f):
+                    yield f"{file_idx}_{row_idx}", {
                         "sentence": row.strip(),
                     }
