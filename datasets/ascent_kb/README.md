@@ -2,7 +2,7 @@
 annotations_creators:
 - found
 language_creators:
-- machine-generated
+- found
 languages:
 - en
 licenses:
