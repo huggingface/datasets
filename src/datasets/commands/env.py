@@ -3,7 +3,6 @@ import sys
 from argparse import ArgumentParser
 
 from datasets import __version__ as version
-from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
 
 
