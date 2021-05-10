@@ -23,9 +23,6 @@ class TextClassificationTest(TestCase):
 
 
 class QuestionAnsweringTest(TestCase):
-    def setUp(self):
-        self.labels = sorted(["pos", "neg"])
-
     def test_column_mapping(self):
         task = QuestionAnswering(
             context_column="input_context", question_column="input_question", answers_column="input_answers"
