@@ -20,10 +20,8 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks.question_answering import QuestionAnswering
+from datasets.tasks import QuestionAnswering, TextClassification
 from datasets.utils.logging import WARNING
-from datasets.tasks.text_classification import TextClassification
-
 
 from .conftest import s3_test_bucket_name
 from .utils import (

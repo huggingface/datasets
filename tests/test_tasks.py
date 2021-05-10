@@ -1,11 +1,7 @@
-from typing import ValuesView
 from unittest.case import TestCase
-from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Sequence, Value
 
-from datasets.info import DatasetInfo
-from datasets.tasks.question_answering import QuestionAnswering
-from datasets.tasks.text_classification import TextClassification
+from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.tasks import QuestionAnswering, TextClassification
 
 
 class TextClassificationTest(TestCase):
