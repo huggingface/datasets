@@ -33,6 +33,7 @@ task_ids:
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
+  - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
   - [Social Impact of Dataset](#social-impact-of-dataset)
@@ -42,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -68,7 +70,7 @@ For more details, take a look at
 
 ### Supported Tasks and Leaderboards
 
-The dataset of commonsense assertions can be used in a wide range of
+The dataset can be used in a wide range of
 downstream tasks such as commonsense question answering or dialogue
 systems.
 
@@ -103,27 +105,27 @@ and a list of `source_sentences`.
 
 ### Data Fields
 
-#### For `canonical` configuration
-- `arg1`: the first argument to the relationship, e.g., *elephant*
-- `rel`: the canonical relation, e.g., */r/HasProperty*
-- `arg2`: the second argument to the relationship, e.g., *intelligence*
-- `support`: the number of occurrences of the assertion, e.g., *15*
-- `facets`: an array of semantic facets, each contains
-  - `value`: facet value, e.g., *extremely*
-  - `type`: facet type, e.g., *DEGREE*
-  - `support`: the number of occurrences of the facet, e.g., *11*
-- `source_sentences`: an array of source sentences from which the assertion was
-  extracted, each contains
-  - `text`: the raw text of the sentence
-  - `source`: the URL to its parent document
+- **For `canonical` configuration**
+    - `arg1`: the first argument to the relationship, e.g., *elephant*
+    - `rel`: the canonical relation, e.g., */r/HasProperty*
+    - `arg2`: the second argument to the relationship, e.g., *intelligence*
+    - `support`: the number of occurrences of the assertion, e.g., *15*
+    - `facets`: an array of semantic facets, each contains
+      - `value`: facet value, e.g., *extremely*
+      - `type`: facet type, e.g., *DEGREE*
+      - `support`: the number of occurrences of the facet, e.g., *11*
+    - `source_sentences`: an array of source sentences from which the assertion was
+      extracted, each contains
+      - `text`: the raw text of the sentence
+      - `source`: the URL to its parent document
 
-#### For `open` configuration
-The fields of this configuration are the same as the `canonical`
-configuration's, except that
-the (`arg1`, `rel`, `arg2`) fields are replaced with the
-(`subject`, `predicate`, `object`) fields  which are free 
-text phrases extracted directly from the source sentences
-using an Open Information Extraction (OpenIE) tool.
+- **For `open` configuration**
+    - The fields of this configuration are the same as the `canonical`
+      configuration's, except that
+      the (`arg1`, `rel`, `arg2`) fields are replaced with the
+      (`subject`, `predicate`, `object`) fields  which are free 
+      text phrases extracted directly from the source sentences
+      using an Open Information Extraction (OpenIE) tool.
 
 ### Data Splits
 
@@ -149,6 +151,16 @@ Take a look at the research paper for more details.
 #### Who are the source language producers?
 
 Web users.
+
+### Annotations
+
+#### Annotation process
+
+None.
+
+#### Who are the annotators?
+
+None.
 
 ### Personal and Sensitive Information
 
@@ -191,3 +203,7 @@ Contact [Tuan-Phong Nguyen](http://tuan-phong.com) in case of questions and comm
   booktitle={The Web Conference 2021},
 }
 ```
+
+### Contributions
+
+Thanks to [@phongnt570](https://github.com/phongnt570) for adding this dataset.
