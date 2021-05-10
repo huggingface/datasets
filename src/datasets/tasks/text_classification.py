@@ -9,7 +9,7 @@ from .base import TaskTemplate
 class TextClassification(TaskTemplate):
     task = "text_classification"
     input_schema = Features({"text": Value("string")})
-    label_schema = Features({"label": ClassLabel})
+    label_schema = Features({"labels": ClassLabel})
     labels: List[str]
     text_column: str
     label_column: str
@@ -18,21 +18,22 @@ class TextClassification(TaskTemplate):
         self,
         labels,
         text_column="text",
-        label_column="label",
+        label_column="labels",
     ):
         assert sorted(set(labels)) == sorted(labels), "Labels must be unique"
         self.ordered_labels = sorted(labels)
-        self.label_schema["label"] = ClassLabel(names=self.ordered_labels)
+        self.label_schema["labels"] = ClassLabel(names=self.ordered_labels)
         self.labels = labels
         self.text_column = text_column
         self.label_column = label_column
+        # TODO(lewtun): consider adding id2label mapping if we need these attributes for instatiating models
         self.label2id = {label: idx for idx, label in enumerate(self.ordered_labels)}
 
     @property
     def column_mapping(self) -> Dict[str, str]:
         return {
             self.text_column: "text",
-            self.label_column: "label",
+            self.label_column: "labels",
         }
 
     @classmethod

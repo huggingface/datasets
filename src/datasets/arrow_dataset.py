@@ -1148,7 +1148,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         dataset = copy.deepcopy(self)
 
-        # Flatten dataset to handle nested columns
         extra_columns = set(column_mapping.keys()) - set(dataset.column_names)
         if extra_columns:
             raise ValueError(
