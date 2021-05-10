@@ -1136,7 +1136,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         dataset = copy.deepcopy(self)
 
-        extra_columns = set(column_mapping.keys()) - set(dataset.column_names)
+        # Flatten dataset to handle nested columns
+        extra_columns = set(column_mapping.keys()) - set(dataset.flatten().column_names)
         if extra_columns:
             raise ValueError(
                 f"Original column names {extra_columns} not in the dataset. "
@@ -1392,9 +1393,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         template = compatible_templates[0]
         column_mapping = template.column_mapping
-        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
+        # Flatten dataset to handle nested columns
+        columns_to_drop = [column for column in self.flatten().column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)
-        # TODO(sbrandeis): Add support for unnesting columns too
         dataset = dataset.rename_columns(column_mapping)
         dataset = dataset.cast(features=template.features)
         return dataset
