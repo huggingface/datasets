@@ -1,6 +1,7 @@
 import platform
-import sys
 from argparse import ArgumentParser
+
+import pyarrow
 
 from datasets import __version__ as version
 from datasets.commands import BaseDatasetsCLICommand
@@ -19,8 +20,9 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
     def run(self):
         info = {
             "`datasets` version": version,
-            "Platform": sys.version,
+            "Platform": platform.platform(),
             "Python version": platform.python_version(),
+            "PyArrow version": pyarrow.__version__,
         }
 
         print("\nCopy-and-paste the text below in your GitHub issue.\n")
