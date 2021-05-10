@@ -21,35 +21,21 @@ class QuestionAnswering(TaskTemplate):
     )
     question_column: str
     context_column: str
-    answer_start_column: str
-    answer_text_column: str
+    answers_column: str
 
-    def __init__(
-        self,
-        question_column="question",
-        context_column="context",
-        answer_start_column="answers.answer_start",
-        answer_text_column="answers.text",
-    ):
+    def __init__(self, question_column="question", context_column="context", answers_column="answers"):
         self.question_column = question_column
         self.context_column = context_column
-        self.answer_start_column = answer_start_column
-        self.answer_text_column = answer_text_column
+        self.answers_column = answers_column
 
     @property
     def column_mapping(self) -> Dict[str, str]:
-        return {
-            self.question_column: "question",
-            self.context_column: "context",
-            self.answer_start_column: "answers.answer_start",
-            self.answer_text_column: "answers.text",
-        }
+        return {self.question_column: "question", self.context_column: "context", self.answers_column: "answers"}
 
     @classmethod
     def from_dict(cls, template_dict: dict) -> "QuestionAnswering":
         return cls(
             question_column=template_dict["question_column"],
             context_column=template_dict["context_column"],
-            answer_start_column=template_dict["answer_start_column"],
-            answer_text_column=template_dict["answer_text_column"],
+            answers_column=template_dict["answers_column"],
         )
