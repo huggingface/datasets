@@ -26,3 +26,4 @@ Specify the actual results or traceback.
 - `datasets` version:
 - Platform:
 - Python version:
+- PyArrow version:
