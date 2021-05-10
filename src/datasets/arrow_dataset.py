@@ -1373,13 +1373,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def prepare_for_task(self, task: str) -> "Dataset":
-        """Prepares a dataset for the given task.
+        """Prepare a dataset for the given task.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
 
         Args:
-            task (``str``): One of the compatible tasks in ['text_classification', 'question_answering']
-            TODO(lewtun): Provide link to compatible tasks in docs.
+            task (``str``): One of the compatible tasks in `~tasks`.
         """
         tasks = [template.task for template in (self.info.task_templates or [])]
         compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]

@@ -790,3 +790,14 @@ class DatasetDict(dict):
         return TextDatasetReader(
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
+
+    def prepare_for_task(self, task: str):
+        """Prepare a dataset for the given task.
+
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+
+        Args:
+            task (``str``): One of the compatible tasks in `~tasks`.
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})

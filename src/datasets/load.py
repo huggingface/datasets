@@ -695,6 +695,7 @@ def load_dataset(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` according to one of the schemas in `~tasks`.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
@@ -731,7 +732,6 @@ def load_dataset(
         data_files=data_files,
         hash=hash,
         features=features,
-        task=task,
         **config_kwargs,
     )
 
@@ -754,6 +754,9 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
+    # Rename and cast features to match task schema
+    if task is not None:
+        ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 
