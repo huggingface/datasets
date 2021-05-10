@@ -95,7 +95,7 @@ class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema = table.schema
         self._batches = table.to_batches()
-        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches])
+        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
     def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
         """
