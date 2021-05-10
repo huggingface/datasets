@@ -20,7 +20,10 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
+from datasets.tasks.question_answering import QuestionAnswering
 from datasets.utils.logging import WARNING
+from datasets.tasks.text_classification import TextClassification
+
 
 from .conftest import s3_test_bucket_name
 from .utils import (
@@ -1849,6 +1852,87 @@ class BaseDatasetTest(TestCase):
                     dset.reset_format()
                     self.assertNotEqual(dset.format, dset2.format)
                     self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+
+    def test_task_text_classification(self, in_memory):
+        self.labels = sorted(["pos", "neg"])
+        self.features_before_cast = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": Value("int32"),
+            }
+        )
+        self.features_after_cast = Features(
+            {
+                "text": Value("string"),
+                "labels": ClassLabel(names=self.labels),
+            }
+        )
+        info = DatasetInfo(
+            features=self.features_before_cast,
+            task_templates=TextClassification(
+                text_column="input_text", label_column="input_labels", labels=self.labels
+            ),
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict(data, info=info)
+            dset = self._to(in_memory, tmp_dir, dset)
+            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertDictEqual(self.features_before_cast, dset.features)
+            dset = dset.prepare_for_task(task="text_classification")
+            self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+            self.assertDictEqual(self.features_after_cast, dset.features)
+
+    def test_task_question_answering(self, in_memory):
+        self.features_before_cast = Features(
+            {
+                "input_context": Value("string"),
+                "input_question": Value("string"),
+                "input_answers": Sequence(
+                    {
+                        "text": Value("string"),
+                        "answer_start": Value("int32"),
+                    }
+                ),
+            }
+        )
+        self.features_after_cast = Features(
+            {
+                "context": Value("string"),
+                "question": Value("string"),
+                "answers": Sequence(
+                    {
+                        "text": Value("string"),
+                        "answer_start": Value("int32"),
+                    }
+                ),
+            }
+        )
+        info = DatasetInfo(
+            features=self.features_before_cast,
+            task_templates=QuestionAnswering(
+                context_column="input_context", question_column="input_question", answers_column="input_answers"
+            ),
+        )
+        data = {
+            "input_context": ["huggingface is going to the moon!"],
+            "input_question": ["where is huggingface going?"],
+            "input_answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict(data, info=info)
+            dset = self._to(in_memory, tmp_dir, dset)
+            self.assertSetEqual(
+                set(["input_context", "input_question", "input_answers.text", "input_answers.answer_start"]),
+                set(dset.flatten().column_names),
+            )
+            self.assertDictEqual(self.features_before_cast, dset.features)
+            dset = dset.prepare_for_task(task="question_answering")
+            self.assertSetEqual(
+                set(["context", "question", "answers.text", "answers.answer_start"]),
+                set(dset.flatten().column_names),
+            )
+            self.assertDictEqual(self.features_after_cast, dset.features)
 
 
 class MiscellaneousDatasetTest(TestCase):
