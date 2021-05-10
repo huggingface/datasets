@@ -42,6 +42,3 @@ class TextClassification(TaskTemplate):
             label_column=template_dict["label_column"],
             labels=template_dict["labels"],
         )
-
-    def label_mapping(self, id2label: Dict[int, str]) -> Dict[int, int]:
-        return {idx: self.label2id[label] for label, idx in self.label2id.items()}
