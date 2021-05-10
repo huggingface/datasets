@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from ..features import Features, Value, Sequence
+from ..features import Features, Sequence, Value
 from .base import TaskTemplate
 
 
