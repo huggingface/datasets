@@ -92,7 +92,7 @@ There are two configurations available for this dataset:
       schema, although they grouped all `/r/HasA` and
       `/r/HasProperty` into `/r/HasProperty`.
     - The `/r/UsedFor` relation was replaced with `/r/ObjectUse`
-      which is broader (could be either "used for", "used in", "used as", ect.).
+      which is broader (could be either _"used for"_, _"used in"_, or _"used as"_, ect.).
       This is also taken from ATOMIC-2020.
 2. `open`: This part contains open assertions of the form
   `<subject ; predicate ; object>` extracted directly from web
@@ -102,6 +102,34 @@ In both configurations, each assertion is equipped with
 extra information including: a set of semantic `facets`
 (e.g., *LOCATION*, *TEMPORAL*, etc.), its `support` (i.e., number of occurrences),
 and a list of `source_sentences`.
+
+An example row in the `canonical` configuration:
+
+```JSON
+{
+  "arg1": "elephant",
+  "rel": "/r/HasProperty",
+  "arg2": "intelligent",
+  "support": 15,
+  "facets": [
+    {
+      "value": "extremely",
+      "type": "DEGREE",
+      "support": 11
+    }
+  ],
+  "source_sentences": [
+    {
+      "text": "Elephants are extremely intelligent animals.",
+      "source": "https://www.softschools.com/facts/animals/asian_elephant_facts/2310/"
+    },
+    {
+      "text": "Elephants are extremely intelligent creatures and an elephant's brain can weigh as much as 4-6 kg.",
+      "source": "https://www.elephantsforafrica.org/elephant-facts/"
+    }
+  ]
+}
+```
 
 ### Data Fields
 
@@ -123,7 +151,8 @@ and a list of `source_sentences`.
     - The fields of this configuration are the same as the `canonical`
       configuration's, except that
       the (`arg1`, `rel`, `arg2`) fields are replaced with the
-      (`subject`, `predicate`, `object`) fields  which are free 
+      (`subject`, `predicate`, `object`) fields
+      which are free
       text phrases extracted directly from the source sentences
       using an Open Information Extraction (OpenIE) tool.
 
