@@ -1880,6 +1880,7 @@ class BaseDatasetTest(TestCase):
             dset = dset.prepare_for_task(task="text_classification")
             self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
             self.assertDictEqual(self.features_after_cast, dset.features)
+            del dset
 
     def test_task_question_answering(self, in_memory):
         self.features_before_cast = Features(
@@ -1931,6 +1932,7 @@ class BaseDatasetTest(TestCase):
                 set(dset.flatten().column_names),
             )
             self.assertDictEqual(self.features_after_cast, dset.features)
+            del dset
 
 
 class MiscellaneousDatasetTest(TestCase):
