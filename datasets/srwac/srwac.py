@@ -83,9 +83,9 @@ class Srwac(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        for fp in filepath:
+        for file_idx, fp in enumerate(filepath):
             with open(fp, encoding="utf8") as f:
                 for id_, row in enumerate(f):
-                    yield id_, {
+                    yield f"{file_idx}_{id_}", {
                         "sentence": row.strip(),
                     }
