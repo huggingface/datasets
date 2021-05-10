@@ -24,6 +24,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -56,14 +57,20 @@ by the Ascent pipeline developed at the
 [Max Planck Institute for Informatics](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/).
 The focus of this dataset is on everyday concepts
 such as *elephant*, *car*, *laptop*, etc.
-The current version of Ascent KB (v1.0.0) is approximately **19x larger 
+The current version of Ascent KB (v1.0.0) is approximately **19 times larger 
 than ConceptNet**
-(**Note:** in this comparison, non-commonsense knowledge in ConceptNet such as
+(note that, in this comparison, non-commonsense knowledge in ConceptNet such as
 lexical relations is excluded).
 
 For more details, take a look at
 [the research paper](https://arxiv.org/abs/2011.00905) and
 [the website](https://ascent.mpi-inf.mpg.de).
+
+### Supported Tasks and Leaderboards
+
+The dataset of commonsense assertions can be used in a wide range of
+downstream tasks such as commonsense question answering or dialogue
+systems.
 
 ### Languages
 
