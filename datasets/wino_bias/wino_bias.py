@@ -72,13 +72,8 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # You will be able to load one or the other configurations in the following list with
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
-    def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super(WinoBias, self).__init__(*args, **kwargs)
-        # Batch size used by the ArrowWriter
-        # It defines the number of samples that are kept in memory before writing them
-        # and also the length of the arrow chunks
-        # None means that the ArrowWriter will use its default value
-        self._writer_batch_size = writer_batch_size or 100
+    def __init__(self, *args, writer_batch_size=100, **kwargs):
+        super(WinoBias, self).__init__(*args, writer_batch_size=writer_batch_size, **kwargs)
 
     BUILDER_CONFIGS = [
         WinoBiasConfig(

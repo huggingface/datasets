@@ -32,8 +32,9 @@ from datasets.utils.mock_download_manager import MockDownloadManager
 
 from . import config, utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
-from .arrow_writer import ArrowWriter, BeamWriter
+from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
+from .arrow_writer import BeamWriter
+from .caching import DatasetCacheManager
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
@@ -43,7 +44,7 @@ from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import WARNING, get_logger
+from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
@@ -270,6 +271,7 @@ class DatasetBuilder:
 
         # Set download manager
         self.dl_manager = None
+        self.dataset_cache_manager = DatasetCacheManager(cache_dir=self._cache_dir)
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -729,115 +731,76 @@ class DatasetBuilder:
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
-        # By default, return all splits
-        if split is None:
-            split = {s: s for s in self.info.splits}
+        datasets = self.dataset_cache_manager.load(split, in_memory=in_memory, info=self.info, name=self.name)
 
-        # Create a dataset for each of the given splits
-        datasets = utils.map_nested(
-            partial(
-                self._build_single_dataset,
-                run_post_process=run_post_process,
-                ignore_verifications=ignore_verifications,
-                in_memory=in_memory,
-            ),
-            split,
-            map_tuple=True,
-        )
+        if run_post_process:
+            datasets = self._run_post_process(datasets, ignore_verifications)
+
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(
-        self,
-        split: Union[str, ReadInstruction, Split],
-        run_post_process: bool,
-        ignore_verifications: bool,
-        in_memory: bool = False,
-    ):
-        """as_dataset for a single split."""
+    def _run_post_process(self, datasets, ignore_verifications: bool = False):
+        datasets = utils.map_nested(
+            partial(
+                self._run_a_post_process,
+                ignore_verifications=ignore_verifications,
+            ),
+            datasets,
+            map_tuple=True,
+        )
+        return datasets
+
+    def _run_a_post_process(self, ds, ignore_verifications: bool = False):
         verify_infos = not ignore_verifications
-        if isinstance(split, str):
-            split = Split(split)
-
-        # Build base dataset
-        ds = self._as_dataset(
-            split=split,
-            in_memory=in_memory,
-        )
-        if run_post_process:
-            for resource_file_name in self._post_processing_resources(split).values():
-                if os.sep in resource_file_name:
-                    raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
-            resources_paths = {
-                resource_name: os.path.join(self._cache_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources(split).items()
-            }
-            post_processed = self._post_process(ds, resources_paths)
-            if post_processed is not None:
-                ds = post_processed
-                recorded_checksums = {}
-                for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
-                    recorded_checksums[resource_name] = size_checksum
-                if verify_infos:
-                    if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
-                        expected_checksums = None
-                    else:
-                        expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
-                if self.info.post_processed is None:
-                    self.info.post_processed = PostProcessedInfo()
-                if self.info.post_processed.resources_checksums is None:
-                    self.info.post_processed.resources_checksums = {}
-                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
-                self.info.post_processing_size = sum(
-                    checksums_dict["num_bytes"]
-                    for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
-                    for checksums_dict in split_checksums_dicts.values()
+        for resource_file_name in self._post_processing_resources(ds.split).values():
+            if os.sep in resource_file_name:
+                raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
+        resources_paths = {
+            resource_name: os.path.join(self._cache_dir, resource_file_name)
+            for resource_name, resource_file_name in self._post_processing_resources(ds.split).items()
+        }
+        post_processed = self._post_process(ds, resources_paths)
+        if post_processed is not None:
+            ds = post_processed
+            recorded_checksums = {}
+            for resource_name, resource_path in resources_paths.items():
+                size_checksum = get_size_checksum_dict(resource_path)
+                recorded_checksums[resource_name] = size_checksum
+            if verify_infos:
+                if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
+                    expected_checksums = None
+                else:
+                    expected_checksums = self.info.post_processed.resources_checksums.get(ds.split)
+                verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+            if self.info.post_processed is None:
+                self.info.post_processed = PostProcessedInfo()
+            if self.info.post_processed.resources_checksums is None:
+                self.info.post_processed.resources_checksums = {}
+            self.info.post_processed.resources_checksums[str(ds.split)] = recorded_checksums
+            self.info.post_processing_size = sum(
+                checksums_dict["num_bytes"]
+                for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
+                for checksums_dict in split_checksums_dicts.values()
+            )
+            if self.info.dataset_size is not None and self.info.download_size is not None:
+                self.info.size_in_bytes = (
+                    self.info.dataset_size + self.info.download_size + self.info.post_processing_size
                 )
-                if self.info.dataset_size is not None and self.info.download_size is not None:
-                    self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
-                    )
-                self._save_info()
-                ds._info.post_processed = self.info.post_processed
-                ds._info.post_processing_size = self.info.post_processing_size
-                ds._info.size_in_bytes = self.info.size_in_bytes
-                if self.info.post_processed.features is not None:
-                    if self.info.post_processed.features.type != ds.features.type:
-                        raise ValueError(
-                            "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
-                                self.info.post_processed.features, ds.features
-                            )
+            self._save_info()
+            ds._info.post_processed = self.info.post_processed
+            ds._info.post_processing_size = self.info.post_processing_size
+            ds._info.size_in_bytes = self.info.size_in_bytes
+            if self.info.post_processed.features is not None:
+                if self.info.post_processed.features.type != ds.features.type:
+                    raise ValueError(
+                        "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                            self.info.post_processed.features, ds.features
                         )
-                    else:
-                        ds.info.features = self.info.post_processed.features
-
+                    )
+                else:
+                    ds.info.features = self.info.post_processed.features
         return ds
-
-    def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
-        """Constructs a `Dataset`.
-
-        This is the internal implementation to overwrite called when user calls
-        `as_dataset`. It should read the pre-processed datasets files and generate
-        the `Dataset` object.
-
-        Args:
-            split: `datasets.Split` which subset of the data to read.
-            in_memory (bool, default False): Whether to copy the data in-memory.
-
-        Returns:
-            `Dataset`
-        """
-
-        dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name,
-            instructions=split,
-            split_infos=self.info.splits.values(),
-            in_memory=in_memory,
-        )
-        return Dataset(**dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
@@ -922,19 +885,15 @@ class GeneratorBasedBuilder(DatasetBuilder):
     # GeneratorBasedBuilder should have dummy data for tests by default
     test_dummy_data = True
 
-    # Default batch size used by the ArrowWriter
-    # It defines the number of samples that are kept in memory before writing them
-    # and also the length of the arrow chunks
-    # None means that the ArrowWriter will use its default value
-    DEFAULT_WRITER_BATCH_SIZE = None
-
     def __init__(self, *args, writer_batch_size=None, **kwargs):
         super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
         # None means that the ArrowWriter will use its default value
-        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
+        self.dataset_cache_manager = DatasetCacheManager(
+            cache_dir=self._cache_dir, writer_batch_size=writer_batch_size
+        )
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
@@ -967,22 +926,20 @@ class GeneratorBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator):
-        split_info = split_generator.split_info
-
-        fname = "{}-{}.arrow".format(self.name, split_generator.name)
-        fpath = os.path.join(self._cache_dir, fname)
-
+        total = split_generator.split_info.num_examples
         generator = self._generate_examples(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
-            try:
-                for key, record in utils.tqdm(
-                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
-                ):
-                    example = self.info.features.encode_example(record)
-                    writer.write(example)
-            finally:
-                num_examples, num_bytes = writer.finalize()
+        split_generator_name = split_generator.name
+
+        # TODO: tmp_cache_dir instead of self.cache_dir because of:
+        #  with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir)
+        num_examples, num_bytes, _ = self.dataset_cache_manager.save(
+            generator,
+            split_generator_name,
+            total=total,
+            name=self.name,
+            features=self.info.features,
+            tmp_cache_dir=self.cache_dir,
+        )
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
@@ -1025,20 +982,22 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator):
-        fname = "{}-{}.arrow".format(self.name, split_generator.name)
-        fpath = os.path.join(self._cache_dir, fname)
-
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
-                writer.write_table(table)
-            num_examples, num_bytes = writer.finalize()
+        split_generator_name = split_generator.name
+
+        num_examples, num_bytes, writer_features = DatasetCacheManager(cache_dir=self._cache_dir).save(
+            generator,
+            split_generator_name,
+            units="tables",
+            name=self.name,
+            features=self.info.features,
+            tmp_cache_dir=self._cache_dir,
+        )
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
         if self.info.features is None:
-            self.info.features = writer._features
+            self.info.features = writer_features
 
 
 class MissingBeamOptions(ValueError):
@@ -1051,10 +1010,10 @@ class BeamBasedBuilder(DatasetBuilder):
     # BeamBasedBuilder does not have dummy data for tests yet
     test_dummy_data = False
 
-    def __init__(self, *args, **kwargs):
-        self._beam_runner = kwargs.pop("beam_runner", None)
-        self._beam_options = kwargs.pop("beam_options", None)
-        super(BeamBasedBuilder, self).__init__(*args, **kwargs)
+    def __init__(self, *args, beam_runner=None, beam_options=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._beam_runner = beam_runner
+        self._beam_options = beam_options
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -1170,8 +1129,7 @@ class BeamBasedBuilder(DatasetBuilder):
         import apache_beam as beam
 
         split_name = split_generator.split_info.name
-        output_prefix = filename_prefix_for_split(self.name, split_name)
-        output_prefix = os.path.join(self._cache_dir, output_prefix)
+        _ = filename_prefix_for_split(self.name, split_name)
 
         # To write examples to disk:
         fname = "{}-{}.arrow".format(self.name, split_name)
