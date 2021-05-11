@@ -85,21 +85,6 @@ def test_changed_readme_content(dataset_name):
 
 @slow
 @pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
-def test_dataset_tags(dataset_name):
-    card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
-    DatasetMetadata.from_readme(card_path)
-
-
-@pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
-def test_changed_dataset_tags(dataset_name):
-    card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
-    DatasetMetadata.from_readme(card_path)
-
-
-@slow
-@pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
 def test_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert os.path.exists(card_path)
