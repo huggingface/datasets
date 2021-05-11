@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- other
 task_ids:
-- other-stuctured-to-text
+- other-other-knowledge-base
 ---
 
 # Dataset Card for Ascent KB
