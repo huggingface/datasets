@@ -50,7 +50,7 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
-    return [x.parts[-1] for x in (repo_path / "datasets").iterdir()]
+    return [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
 
 
 @slow
