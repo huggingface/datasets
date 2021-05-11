@@ -238,13 +238,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
-        self._cache_dir: Optional[str] = None
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
         self._output_all_columns: bool = False
         self._fingerprint: str = fingerprint
+        self._cache_dir: Optional[str] = None
 
         # Read metadata
 
@@ -620,6 +620,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 json.dumps(state["_format_kwargs"][k])
             except TypeError as e:
                 raise TypeError(str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't.")
+        state["_cached"] = bool(self._cache_dir)
 
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
@@ -703,13 +704,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         split = state["_split"]
         split = NamedSplit(split) if split is not None else split
 
-        return Dataset(
+        dataset = Dataset(
             arrow_table=arrow_table,
             indices_table=indices_table,
             info=dataset_info,
             split=split,
             fingerprint=state["_fingerprint"],
         )
+
+        # Pre
+        if state["_cached"] and dataset._cache_dir is None:
+            dataset._cache_dir = str(Path(dataset_path).expanduser())
+
+        return dataset
 
     @property
     def data(self) -> Table:
