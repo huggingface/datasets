@@ -712,7 +712,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fingerprint=state["_fingerprint"],
         )
 
-        # Pre
+        # Update cache directory for in-memory datasets created with load_dataset
         if state["_cached"] and dataset._cache_dir is None:
             dataset._cache_dir = str(Path(dataset_path).expanduser())
 
