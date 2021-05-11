@@ -1877,7 +1877,7 @@ class BaseDatasetTest(TestCase):
             dset = self._to(in_memory, tmp_dir, dset)
             self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
             self.assertDictEqual(self.features_before_cast, dset.features)
-            dset = dset.prepare_for_task(task="text_classification")
+            dset = dset.prepare_for_task(task="text-classification")
             self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
             self.assertDictEqual(self.features_after_cast, dset.features)
             del dset
@@ -1926,7 +1926,7 @@ class BaseDatasetTest(TestCase):
                 set(dset.flatten().column_names),
             )
             self.assertDictEqual(self.features_before_cast, dset.features)
-            dset = dset.prepare_for_task(task="question_answering")
+            dset = dset.prepare_for_task(task="question-answering")
             self.assertSetEqual(
                 set(["context", "question", "answers.text", "answers.answer_start"]),
                 set(dset.flatten().column_names),

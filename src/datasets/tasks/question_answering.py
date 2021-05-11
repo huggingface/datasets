@@ -7,7 +7,7 @@ from .base import TaskTemplate
 
 @dataclass
 class QuestionAnswering(TaskTemplate):
-    task = "question_answering"
+    task = "question-answering"
     input_schema = Features({"question": Value("string"), "context": Value("string")})
     label_schema = Features(
         {

@@ -17,7 +17,7 @@ class TextClassificationTest(TestCase):
         label_schema = Features({"labels": ClassLabel(names=self.labels)})
         template_dict = {"text_column": "input_text", "label_column": "input_labels", "labels": self.labels}
         task = TextClassification.from_dict(template_dict)
-        self.assertEqual("text_classification", task.task)
+        self.assertEqual("text-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
 
@@ -49,6 +49,6 @@ class QuestionAnsweringTest(TestCase):
             "answers_column": "input_answers",
         }
         task = QuestionAnswering.from_dict(template_dict)
-        self.assertEqual("question_answering", task.task)
+        self.assertEqual("question-answering", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)

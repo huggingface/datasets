@@ -7,7 +7,7 @@ from .base import TaskTemplate
 
 @dataclass
 class TextClassification(TaskTemplate):
-    task = "text_classification"
+    task = "text-classification"
     input_schema = Features({"text": Value("string")})
     label_schema = Features({"labels": ClassLabel})
     labels: List[str]
