@@ -54,15 +54,9 @@ task_ids:
 
 ### Dataset Summary
 
-This dataset contains 8.9M commonsense assertions extracted 
-by the Ascent pipeline developed at the
-[Max Planck Institute for Informatics](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/).
-The focus of this dataset is on everyday concepts
-such as *elephant*, *car*, *laptop*, etc.
-The current version of Ascent KB (v1.0.0) is approximately **19 times larger 
-than ConceptNet**
-(note that, in this comparison, non-commonsense knowledge in ConceptNet such as
-lexical relations is excluded).
+This dataset contains 8.9M commonsense assertions extracted  by the Ascent pipeline developed at the [Max Planck Institute for Informatics](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/).
+The focus of this dataset is on everyday concepts such as *elephant*, *car*, *laptop*, etc.
+The current version of Ascent KB (v1.0.0) is approximately **19 times larger  than ConceptNet** (note that, in this comparison, non-commonsense knowledge in ConceptNet such as lexical relations is excluded).
 
 For more details, take a look at
 [the research paper](https://arxiv.org/abs/2011.00905) and
@@ -70,9 +64,7 @@ For more details, take a look at
 
 ### Supported Tasks and Leaderboards
 
-The dataset can be used in a wide range of
-downstream tasks such as commonsense question answering or dialogue
-systems.
+The dataset can be used in a wide range of downstream tasks such as commonsense question answering or dialogue systems.
 
 ### Languages
 
@@ -164,16 +156,13 @@ There are no splits. All data points come to a default split called `train`.
 
 ### Curation Rationale
 
-The commonsense knowledge base was created to assist in development
-of robust and reliable AI.
+The commonsense knowledge base was created to assist in development of robust and reliable AI.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-Texts were collected from the web using the Bing Search API,
-and went through various cleaning steps before being processed
-by an OpenIE tool to get open assertions.
+Texts were collected from the web using the Bing Search API, and went through various cleaning steps before being processed by an OpenIE tool to get open assertions.
 The assertions were then grouped into semantically equivalent clusters.
 Take a look at the research paper for more details.
 
