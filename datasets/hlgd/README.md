@@ -9,7 +9,6 @@ licenses:
 - apache-2.0
 multilinguality:
 - monolingual
-size_categories: []
 source_datasets:
 - original
 task_categories:
@@ -20,7 +19,7 @@ size_categories:
 - 10K<n<100K
 ---
 
-# Dataset Card for HLGD
+# Dataset Card for Headline Grouping (HLGD)
 
 ## Table of Contents
 - [Dataset Card for HLGD](#dataset-card-for-dataset-name)
