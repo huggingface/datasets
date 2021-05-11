@@ -18,13 +18,14 @@ from pathlib import Path
 from subprocess import check_output
 from typing import List
 
-from datasets.utils.logging import get_logger
-
 import pytest
+
+from datasets.utils.logging import get_logger
 from datasets.utils.metadata import DatasetMetadata
 from datasets.utils.readme import ReadMe
 
 from .utils import slow
+
 
 repo_path = Path.cwd()
 
@@ -35,7 +36,11 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     diff_output = check_output(["git", "diff", "--name-only", "HEAD..origin/master"], cwd=repo_path)
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
     changed_datasets_unique = []
-    changed_datasets = [f.parent.parts[-1] for f in changed_files if f.exists() and f.parent.parent.name == "datasets" and f.parent.parent.parent.name == "datasets"]
+    changed_datasets = [
+        f.parent.parts[-1]
+        for f in changed_files
+        if f.exists() and f.parent.parent.name == "datasets" and f.parent.parent.parent.name == "datasets"
+    ]
 
     for dataset_name in changed_datasets:
         if dataset_name not in changed_datasets_unique:
