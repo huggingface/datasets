@@ -238,6 +238,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
+        self._cache_dir: Optional[str] = None
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -269,8 +270,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Infer cache directory if None
 
-        if self.info.cache_dir is None and self.cache_files:
-            self.info.cache_dir = os.path.dirname(self.cache_files[0]["filename"])
+        if self._cache_dir is None and self.cache_files:
+            self._cache_dir = os.path.dirname(self.cache_files[0]["filename"])
 
         # Sanity checks
 
@@ -622,12 +623,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
-
-        # Don't store the cache directory info for memory-mapped datasets
-        # because it points to the initial cache directory and not to the new one
-        # and instead infer it in Dataset.__init__
-        if self.cache_files:
-            dataset_info["cache_dir"] = None
 
         # Save dataset + indices + state + info
         fs.makedirs(dataset_path, exist_ok=True)
@@ -1454,11 +1449,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, fingerprint):
-        if is_caching_enabled() and (self.cache_files or self.info.cache_dir is not None):
+        if is_caching_enabled() and self._cache_dir is not None:
             cache_file_name = "cache-" + fingerprint + ".arrow"
-            cache_directory = (
-                os.path.dirname(self.cache_files[0]["filename"]) if self.cache_files else self.info.cache_dir
-            )
+            cache_directory = self._cache_dir
         else:
             cache_file_name = "cache-" + generate_random_fingerprint() + ".arrow"
             cache_directory = get_temporary_cache_files_directory()
@@ -1741,7 +1734,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size = self.num_rows
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files or self.info.cache_dir is not None:
+        if self._cache_dir is not None:
             if cache_file_name is None:
                 # we create a unique hash from the function,
                 # current dataset file and the mapping args
@@ -1750,7 +1743,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                info.cache_dir = None
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # We set this variable to True after processing the first example/batch in
@@ -1936,7 +1928,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # Create new Dataset from buffer or file
             info = self.info.copy()
             info.features = writer._features
-            info.cache_dir = None
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
@@ -2245,7 +2236,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files or self.info.cache_dir is not None:
+        if self._cache_dir is not None:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
@@ -2328,7 +2319,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files or self.info.cache_dir is not None:
+        if self._cache_dir is not None:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
@@ -2494,7 +2485,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files or self.info.cache_dir is not None:
+        if self._cache_dir is not None:
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
 
@@ -3112,12 +3103,6 @@ def concatenate_datasets(
     # Concatenate infos
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
-        # Cache directory cannot be infered from the cache files
-        # so pick the first chache dir that is not None from the dataset infos
-        if all(not dset.cache_files for dset in dsets):
-            cache_dirs = [dset.info.cache_dir for dset in dsets if dset.info.cache_dir is not None]
-            cache_dir = cache_dirs[0] if cache_dirs else None
-            info.cache_dir = cache_dir
 
     fingerprint = update_fingerprint(
         "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}

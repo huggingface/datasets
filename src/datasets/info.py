@@ -108,7 +108,6 @@ class DatasetInfo:
         post_processing_size (int, optional):
         dataset_size (int, optional):
         size_in_bytes (int, optional):
-        cache_dir (str, optional):
     """
 
     # Set in the dataset scripts
@@ -131,7 +130,6 @@ class DatasetInfo:
     post_processing_size: Optional[int] = None
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
-    cache_dir: Optional[str] = None
 
     def __post_init__(self):
         # Convert back to the correct classes when we reload from dict

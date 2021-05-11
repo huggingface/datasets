@@ -767,7 +767,7 @@ class DatasetBuilder:
         )
         # Required for in-memory datasets
         if not ds.cache_files:
-            ds.info.cache_dir = self._cache_dir
+            ds._cache_dir = self._cache_dir
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
