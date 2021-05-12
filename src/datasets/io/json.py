@@ -79,8 +79,16 @@ class JsonDatasetWriter:
             written = self._write(file_obj=self.path_or_buf, batch_size=batch_size, **self.to_json_kwargs)
         return written
 
-    def _write(self, file_obj: BinaryIO, batch_size: int, encoding: str = "utf-8", **to_json_kwargs) -> int:
-        """Writes the pyarrow table as JSON to a binary file handle.
+    def _write(
+        self,
+        file_obj: BinaryIO,
+        batch_size: int,
+        encoding: str = "utf-8",
+        orient="records",
+        lines=True,
+        **to_json_kwargs,
+    ) -> int:
+        """Writes the pyarrow table as JSON lines to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
         """
@@ -93,6 +101,6 @@ class JsonDatasetWriter:
                 key=slice(offset, offset + batch_size),
                 indices=self.dataset._indices if self.dataset._indices is not None else None,
             )
-            json_str = batch.to_pandas().to_json(path_or_buf=None, **to_json_kwargs)
+            json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
             written += file_obj.write(json_str.encode(encoding))
         return written

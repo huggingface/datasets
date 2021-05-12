@@ -2726,13 +2726,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batch_size: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
-        """Exports the dataset to JSON.
+        """Exports the dataset to JSON lines.
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`.
+                Defaults are ``orient="records"`` and ``lines=True``.
 
         Returns:
             int: The number of characters or bytes written
