@@ -109,7 +109,7 @@ class DatasetInfo:
         post_processing_size (int, optional):
         dataset_size (int, optional):
         size_in_bytes (int, optional):
-        task_templates (List[TaskTemplate], optional): TODO(sbrandeis) - document this
+        task_templates (List[TaskTemplate], optional):
     """
 
     # Set in the dataset scripts
