@@ -6,7 +6,7 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueTTTextToText(Child):
+class CodeXGlueTtTextToText(Child):
     _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
 
     _FEATURES = {
@@ -47,11 +47,11 @@ class CodeXGlueTTTextToText(Child):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueTTTextToText": CodeXGlueTTTextToText,
+    "CodeXGlueTtTextToText": CodeXGlueTtTextToText,
 }
 
 
-class CodeXGlueTTTextToTextMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueTtTextToTextMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

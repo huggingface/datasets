@@ -8,7 +8,7 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCCodeCompletionToken(Child):
+class CodeXGlueCcCodeCompletionToken(Child):
     _DESCRIPTION = """Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
     Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
     """
@@ -31,7 +31,7 @@ class CodeXGlueCCCodeCompletionToken(Child):
     }"""
 
 
-class CodeXGlueCCCodeCompletionTokenJava(CodeXGlueCCCodeCompletionToken):
+class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):
     SPLITS = {"training": datasets.Split.TRAIN, "validation": datasets.Split.VALIDATION, "test": datasets.Split.TEST}
 
     _FEATURES = {
@@ -58,7 +58,7 @@ class CodeXGlueCCCodeCompletionTokenJava(CodeXGlueCCCodeCompletionToken):
                 yield idx, entry
 
 
-class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
+class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
     SPLITS = {"train": datasets.Split.TRAIN, "test": datasets.Split.TEST}
 
     _FEATURES = {
@@ -183,12 +183,12 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCCodeCompletionTokenJava": CodeXGlueCCCodeCompletionTokenJava,
-    "CodeXGlueCCCodeCompletionTokenPython": CodeXGlueCCCodeCompletionTokenPython,
+    "CodeXGlueCcCodeCompletionTokenJava": CodeXGlueCcCodeCompletionTokenJava,
+    "CodeXGlueCcCodeCompletionTokenPython": CodeXGlueCcCodeCompletionTokenPython,
 }
 
 
-class CodeXGlueCCCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

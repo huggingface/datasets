@@ -9,7 +9,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCCloneDetectionPOJ104(TrainValidTestChild):
+class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
     _DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task."""
 
@@ -78,11 +78,11 @@ We use POJ-104 dataset on this task."""
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCCloneDetectionPOJ104": CodeXGlueCCCloneDetectionPOJ104,
+    "CodeXGlueCcCloneDetectionPoj104": CodeXGlueCcCloneDetectionPoj104,
 }
 
 
-class CodeXGlueCCCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

@@ -6,7 +6,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCCodeRefinement(TrainValidTestChild):
+class CodeXGlueCcCodeRefinement(TrainValidTestChild):
     _DESCRIPTION = """We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length."""
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
@@ -42,11 +42,11 @@ class CodeXGlueCCCodeRefinement(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCCodeRefinement": CodeXGlueCCCodeRefinement,
+    "CodeXGlueCcCodeRefinement": CodeXGlueCcCodeRefinement,
 }
 
 
-class CodeXGlueCCCodeRefinementMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeRefinementMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

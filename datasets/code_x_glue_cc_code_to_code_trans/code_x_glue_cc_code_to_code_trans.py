@@ -6,7 +6,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCCodeToCodeTrans(TrainValidTestChild):
+class CodeXGlueCcCodeToCodeTrans(TrainValidTestChild):
     _DESCRIPTION = """The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
         We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets."""
     _FEATURES = {
@@ -40,11 +40,11 @@ class CodeXGlueCCCodeToCodeTrans(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCCodeToCodeTrans": CodeXGlueCCCodeToCodeTrans,
+    "CodeXGlueCcCodeToCodeTrans": CodeXGlueCcCodeToCodeTrans,
 }
 
 
-class CodeXGlueCCCodeToCodeTransMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeToCodeTransMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

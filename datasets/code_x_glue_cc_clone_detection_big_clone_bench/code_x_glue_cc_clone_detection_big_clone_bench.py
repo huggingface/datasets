@@ -6,7 +6,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCCloneDetectionBigCloneBench(TrainValidTestChild):
+class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
     _DESCRIPTION = """Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree."""
 
@@ -63,11 +63,11 @@ The dataset we use is BigCloneBench and filtered following the paper Detecting C
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCCloneDetectionBigCloneBench": CodeXGlueCCCloneDetectionBigCloneBench,
+    "CodeXGlueCcCloneDetectionBigCloneBench": CodeXGlueCcCloneDetectionBigCloneBench,
 }
 
 
-class CodeXGlueCCCloneDetectionBigCloneBenchMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCloneDetectionBigCloneBenchMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

@@ -7,7 +7,7 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueTCTextToCode(Child):
+class CodeXGlueTcTextToCode(Child):
     _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
     _CITATION = """@article{iyer2018mapping,
   title={Mapping language to code in programmatic context},
@@ -38,11 +38,11 @@ class CodeXGlueTCTextToCode(Child):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueTCTextToCode": CodeXGlueTCTextToCode,
+    "CodeXGlueTcTextToCode": CodeXGlueTcTextToCode,
 }
 
 
-class CodeXGlueTCTextToCodeMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueTcTextToCodeMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

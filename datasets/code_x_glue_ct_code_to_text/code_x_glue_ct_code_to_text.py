@@ -9,7 +9,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCTCodeToTextBase(TrainValidTestChild):
+class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
     _DESCRIPTION = """The dataset we use comes from CodeSearchNet and we filter the dataset as the following:
 - Remove examples that codes cannot be parsed into an abstract syntax tree.
 - Remove examples that #tokens of documents is < 3 or >256
@@ -109,7 +109,7 @@ class CodeXGlueCTCodeToTextBase(TrainValidTestChild):
             f.close()
 
 
-class CodeXGlueCTCodeToText(CodeXGlueCTCodeToTextBase):
+class CodeXGlueCtCodeToText(CodeXGlueCtCodeToTextBase):
     SINGLE_LANGUAGE = False
 
     def generate_urls(self, split_name):
@@ -124,11 +124,11 @@ class CodeXGlueCTCodeToText(CodeXGlueCTCodeToTextBase):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCTCodeToText": CodeXGlueCTCodeToText,
+    "CodeXGlueCtCodeToText": CodeXGlueCtCodeToText,
 }
 
 
-class CodeXGlueCTCodeToTextMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCtCodeToTextMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

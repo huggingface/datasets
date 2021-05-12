@@ -7,7 +7,7 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCClozeTesting(Child):
+class CodeXGlueCcClozeTesting(Child):
     _DESCRIPTION = """Cloze tests are widely adopted in Natural Languages Processing to evaluate the performance of the trained language models. The task is aimed to predict the answers for the blank with the context of the blank, which can be formulated as a multi-choice classification problem.
 Here we present the two cloze testing datasets in code domain with six different programming languages: ClozeTest-maxmin and ClozeTest-all. Each instance in the dataset contains a masked code function, its docstring and the target word.
 The only difference between ClozeTest-maxmin and ClozeTest-all is their selected words sets, where ClozeTest-maxmin only contains two words while ClozeTest-all contains 930 words."""
@@ -51,16 +51,16 @@ The only difference between ClozeTest-maxmin and ClozeTest-all is their selected
                 index += 1
 
 
-class CodeXGlueCCClozeTestingMaxmin(CodeXGlueCCClozeTesting):
+class CodeXGlueCcClozeTestingMaxmin(CodeXGlueCcClozeTesting):
     pass
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCClozeTestingMaxmin": CodeXGlueCCClozeTestingMaxmin,
+    "CodeXGlueCcClozeTestingMaxmin": CodeXGlueCcClozeTestingMaxmin,
 }
 
 
-class CodeXGlueCCClozeTestingMaxminMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcClozeTestingMaxminMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

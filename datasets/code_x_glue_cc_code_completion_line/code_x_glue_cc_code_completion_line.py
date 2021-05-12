@@ -7,7 +7,7 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCCodeCompletionLine(Child):
+class CodeXGlueCcCodeCompletionLine(Child):
     _DESCRIPTION = """Complete the unfinished line given previous context. Models are evaluated by exact match and edit similarity.
 We propose line completion task to test model's ability to autocomplete a line. Majority code completion systems behave well in token level completion, but fail in completing an unfinished line like a method call with specific parameters, a function signature, a loop condition, a variable definition and so on. When a software develop finish one or more tokens of the current line, the line level completion model is expected to generate the entire line of syntactically correct code.
 Line level code completion task shares the train/dev dataset with token level completion. After training a model on CodeCompletion-token, you could directly use it to test on line-level completion."""
@@ -49,11 +49,11 @@ Line level code completion task shares the train/dev dataset with token level co
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCCodeCompletionLine": CodeXGlueCCCodeCompletionLine,
+    "CodeXGlueCcCodeCompletionLine": CodeXGlueCcCodeCompletionLine,
 }
 
 
-class CodeXGlueCCCodeCompletionLineMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeCompletionLineMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

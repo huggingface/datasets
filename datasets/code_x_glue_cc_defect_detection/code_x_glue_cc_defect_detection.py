@@ -6,7 +6,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCCDefectDetection(TrainValidTestChild):
+class CodeXGlueCcDefectDetection(TrainValidTestChild):
     _DESCRIPTION = """Given a source code, the task is to identify whether it is an insecure code that may attack software systems, such as resource leaks, use-after-free vulnerabilities and DoS attack. We treat the task as binary classification (0/1), where 1 stands for insecure code and 0 for secure code.
 The dataset we use comes from the paper Devign: Effective Vulnerability Identification by Learning Comprehensive Program Semantics via Graph Neural Networks. We combine all projects and split 80%/10%/10% for training/dev/test."""
     _CITATION = """@inproceedings{zhou2019devign,
@@ -47,11 +47,11 @@ pages={10197--10207}, year={2019}"""
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCCDefectDetection": CodeXGlueCCDefectDetection,
+    "CodeXGlueCcDefectDetection": CodeXGlueCcDefectDetection,
 }
 
 
-class CodeXGlueCCDefectDetectionMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcDefectDetectionMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()
