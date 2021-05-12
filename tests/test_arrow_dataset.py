@@ -1874,9 +1874,9 @@ class BaseDatasetTest(TestCase):
             with self._to(in_memory, tmp_dir, dset) as dset:
                 self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
                 self.assertDictEqual(features_before_cast, dset.features)
-                dset = dset.prepare_for_task(task="text-classification")
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
-                self.assertDictEqual(features_after_cast, dset.features)
+                with dset.prepare_for_task(task="text-classification") as dset:
+                    self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                    self.assertDictEqual(features_after_cast, dset.features)
 
     def test_task_question_answering(self, in_memory):
         features_before_cast = Features(
@@ -1921,12 +1921,12 @@ class BaseDatasetTest(TestCase):
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_before_cast, dset.features)
-                dset = dset.prepare_for_task(task="question-answering")
-                self.assertSetEqual(
-                    set(["context", "question", "answers.text", "answers.answer_start"]),
-                    set(dset.flatten().column_names),
-                )
-                self.assertDictEqual(features_after_cast, dset.features)
+                with dset.prepare_for_task(task="question-answering") as dset:
+                    self.assertSetEqual(
+                        set(["context", "question", "answers.text", "answers.answer_start"]),
+                        set(dset.flatten().column_names),
+                    )
+                    self.assertDictEqual(features_after_cast, dset.features)
 
 
 class MiscellaneousDatasetTest(TestCase):
