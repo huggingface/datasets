@@ -99,9 +99,6 @@ class Squad(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://rajpurkar.github.io/SQuAD-explorer/",
             citation=_CITATION,
-            task_templates=[
-                QuestionAnswering(),
-            ],
         )
 
     def _split_generators(self, dl_manager):
