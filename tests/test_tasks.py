@@ -44,7 +44,7 @@ class QuestionAnsweringTest(TestCase):
             }
         )
         template_dict = {
-            "context_column": "input_input_contexttext",
+            "context_column": "input_input_context",
             "question_column": "input_question",
             "answers_column": "input_answers",
         }

@@ -26,8 +26,8 @@ class TextClassification(TaskTemplate):
         self.labels = labels
         self.text_column = text_column
         self.label_column = label_column
-        # TODO(lewtun): consider adding id2label mapping if we need these attributes for instatiating models
         self.label2id = {label: idx for idx, label in enumerate(self.ordered_labels)}
+        self.id2label = {idx: label for label, idx in self.label2id.items()}
 
     @property
     def column_mapping(self) -> Dict[str, str]:

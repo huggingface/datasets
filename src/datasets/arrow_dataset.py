@@ -1399,8 +1399,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         if len(compatible_templates) > 1:
             raise ValueError(
-                f"""Expected 1 task template but found {len(compatible_templates)}! Please ensure that \
-                :attr:`datasets.DatasetInfo.task_templates` contains a unique set of task types."""
+                f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that :attr:`datasets.DatasetInfo.task_templates` contains a unique set of task types."
             )
         template = compatible_templates[0]
         column_mapping = template.column_mapping
