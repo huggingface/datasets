@@ -206,8 +206,9 @@ class DatasetInfo:
         features = None
         supervised_keys = None
 
-        # Can be prepared for a pipeline if all members can also be prepared for this specific pipeline
-        task_templates = None  # TODO(sbrandeis)
+        # Find common task templates across all dataset infos
+        all_task_templates = [info.task_templates for info in dataset_infos]
+        task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
 
         return cls(
             description=description,

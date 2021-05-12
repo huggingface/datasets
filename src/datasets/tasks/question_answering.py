@@ -39,3 +39,6 @@ class QuestionAnswering(TaskTemplate):
             context_column=template_dict["context_column"],
             answers_column=template_dict["answers_column"],
         )
+
+    def __hash__(self):
+        return hash((self.task, self.question_column, self.context_column, self.answers_column))

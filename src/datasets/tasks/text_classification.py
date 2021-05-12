@@ -43,3 +43,6 @@ class TextClassification(TaskTemplate):
             label_column=template_dict["label_column"],
             labels=template_dict["labels"],
         )
+
+    def __hash__(self):
+        return hash((self.task, frozenset(self.labels), self.text_column, self.label_column))

@@ -24,3 +24,7 @@ class TaskTemplate(abc.ABC):
     @abc.abstractmethod
     def from_dict(cls, template_dict: dict) -> "TaskTemplate":
         return NotImplemented
+
+    @abc.abstractmethod
+    def __hash__(self):
+        raise NotImplemented
