@@ -28,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -68,7 +68,7 @@ that covers a range of genres of spoken and written text, and supports a
 distinctive cross-genre generalization evaluation. The corpus served as the
 basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -113,7 +113,7 @@ The data fields are the same among all splits.
 - `genre`: a `string` feature.
 - `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
 
-### Data Splits Sample Size
+### Data Splits
 
 |train |validation_matched|validation_mismatched|
 |-----:|-----------------:|--------------------:|
@@ -130,6 +130,12 @@ They constructed MultiNLI so as to make it possible to explicitly evaluate model
 They created each sentence pair by selecting a premise sentence from a preexisting text source and asked a human annotator to compose a novel sentence to pair with it as a hypothesis.
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
