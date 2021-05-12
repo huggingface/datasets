@@ -208,7 +208,12 @@ class DatasetInfo:
 
         # Find common task templates across all dataset infos
         all_task_templates = [info.task_templates for info in dataset_infos if info.task_templates is not None]
-        task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
+        if len(all_task_templates) > 1:
+            task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
+        elif len(all_task_templates):
+            task_templates = list(set(all_task_templates[0]))
+        else:
+            task_templates = None
 
         return cls(
             description=description,
