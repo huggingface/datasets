@@ -3110,7 +3110,6 @@ def concatenate_datasets(
     # Concatenate infos
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
-
     fingerprint = update_fingerprint(
         "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
     )
@@ -3123,6 +3122,9 @@ def concatenate_datasets(
         indices_table=indices_table,
         fingerprint=fingerprint,
     )
+    cache_dirs = [dset._cache_dir for dset in dsets if dset._cache_dir is not None]
+    if concatenated_dataset._cache_dir is None and cache_dirs:
+        concatenated_dataset._cache_dir = cache_dirs[0]
     concatenated_dataset.set_format(**format)
     return concatenated_dataset
 
