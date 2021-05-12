@@ -20,7 +20,6 @@
 import json
 
 import datasets
-from datasets.tasks import QuestionAnswering
 
 
 logger = datasets.logging.get_logger(__name__)

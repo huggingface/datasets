@@ -27,4 +27,4 @@ class TaskTemplate(abc.ABC):
 
     @abc.abstractmethod
     def __hash__(self):
-        raise NotImplemented
+        raise NotImplementedError
