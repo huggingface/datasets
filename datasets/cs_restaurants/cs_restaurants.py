@@ -14,7 +14,6 @@
 # limitations under the License.
 """Czech restaurant information dataset for NLG"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -90,7 +89,7 @@ class CSRestaurants(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf8") as f:
             data = json.load(f)

@@ -71,7 +71,7 @@ This call to :func:`datasets.load_metric` does the following steps under the hoo
 
 .. note::
 
-    The :class:`datasets.Metric` object use Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗datasets is to always memory-map metrics data on drive.
+    The :class:`datasets.Metric` object use Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗Datasets is to always memory-map metrics data on drive.
 
 Using a custom metric script
 -----------------------------------------------------------
@@ -119,46 +119,46 @@ To select a specific configuration of a metric, just provide its name as the sec
 Distributed setups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In several settings, computing metrics in distributed or parrallel processing environments can be tricky since the evaluation on different sub-sets of the data is done in separate python processes. The ``datasets`` library make this easier to deal with as we detail in this section.
+Computing metrics in distributed and parallel processing environments can be tricky since the evaluation on different sub-sets of the data is done in separate python processes. The ``datasets`` library overcomes this difficulty using the method described in this section.
 
 .. note::
 
-    When a metric score is additive with regards to the dataset sub-set (meaning that ``f(A∪B) = f(A) + f(B)``) you can use distributed reduce operations to gather the scores computed by different processes. But when a metric is non additive (``f(A∪B) ≠ f(A) + f(B)``) which happens even for simple metrics like F1, you cannot simply gather the results of metrics evaluation on different sub-sets. A usual way to overcome this issue is to fallback on (inefficient) single process evaluation (e.g. evaluating metrics on a single GPU). The ``datasets`` library solve this problem by allowing distributed evaluation for any type of metric as detailed in this section.
+    When a metric score is additive with regards to the dataset sub-set (meaning that ``f(A∪B) = f(A) + f(B)``) you can use distributed reduce operations to gather the scores computed by different processes. But when a metric is non-additive (``f(A∪B) ≠ f(A) + f(B)``) which happens even for simple metrics like F1, you cannot simply gather the results of metrics evaluation on different sub-sets. A usual way to overcome this issue is to fallback on (inefficient) single process evaluation (e.g. evaluating metrics on a single GPU). The ``datasets`` library solves this problem by allowing distributed evaluation for any type of metric as detailed in this section.
 
 Let's first see how to use a metric in a distributed setting before giving a few words about the internals. Let's say we train and evaluate a model in 8 parallel processes (e.g. using PyTorch's `DistributedDataParallel <https://pytorch.org/tutorials/intermediate/ddp_tutorial.html>`__ on a server with 8 GPUs).
 
-We assume your python script can have access to:
+We assume your python script has access to:
 
-- the total number of processes as an integer we'll call ``num_process`` (in our example 8),
-- the process id of each process as an integer between 0 and ``num_process-1`` that we'll call ``rank`` (in our case betwen 0 and 7 included).
+1. the total number of processes as an integer we'll call ``num_process`` (in our example 8).
+2. the process rank as an integer between 0 and ``num_process-1`` that we'll call ``rank`` (in our example between 0 and 7 included).
 
 Here is how we can instantiate the metric in such a distributed script:
 
 .. code-block::
 
     >>> from datasets import load_metric
-    >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id)
+    >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=rank)
 
 And that's it, you can use the metric on each node as described in :doc:`using_metrics` without taking special care for the distributed setting. In particular, the predictions and references can be computed and provided to the metric separately on each process. By default, the final evaluation of the metric will be done on the first node (rank 0) only when calling :func:`datasets.Metric.compute` after gathering the predictions and references from all the nodes. Computing on other processes (rank > 0) returns ``None``.
 
-Under the hood :class:`datasets.Metric` use an Apache Arrow table to store (temporarly) predictions and references for each node on the hard-drive thereby avoiding to cluter the GPU or CPU memory. Once the final metric evalution is requested with :func:`datasets.Metric.compute`, the first node get access to all the nodes temp files and read them to compute the metric in one time.
+Under the hood :class:`datasets.Metric` uses an Apache Arrow table to store (temporarly) predictions and references for each node on the filesystem thereby not cluttering the GPU or CPU memory. Once the final metric evalution is requested with :func:`datasets.Metric.compute`, the first node gets access to all the nodes' temp files and reads them to compute the metric at once.
 
-This way it's possible to perform distributed predictions (which is important for evaluation speed in distributed setting) while allowing to use complex non-additive metrics and avoiding to cluter GPU/CPU memory for prediction storage.
+This way it's possible to perform distributed predictions (which is important for evaluation speed in distributed setting) while allowing to use complex non-additive metrics and not wasting GPU/CPU memory with prediction data.
 
-The synchronization is basically provided by the hard drive file access and filelocks.
+The synchronization is performed with the help of file locks on the filesystem.
 
 
-Multiple and independant distributed setups
+Multiple and independent distributed setups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases, several **independant and not related** distributed evaluations might be running on the same server and the same file system at the same time (e.g. two independant multi-processing trainings running on the same server) and it is then important to distinguish these experiemnts and allow them to operate in independantly.
+In some cases, several **independent and not related** distributed evaluations might be running on the same server and the same file system at the same time (e.g. two independent multiprocessing trainings running on the same server) and it is then important to distinguish these experiemnts and allow them to operate in independently.
 
 In this situation you should provide an ``experiment_id`` to :func:`datasets.load_metric` which has to be a unique identifier of the current distributed experiment.
 
 This identifier will be added to the cache file used by each process of this evaluation to avoid conflicting access to the same cache files for storing predictions and references for each node.
 
 .. note::
-    Specifying an ``experiment_id`` to :func:`datasets.load_metric` is only required in the specific situation where you have **independant (i.e. not related) distributed** evaluations running on the same file system at the same time.
+    Specifying an ``experiment_id`` to :func:`datasets.load_metric` is only required in the specific situation where you have **independent (i.e. not related) distributed** evaluations running on the same file system at the same time.
 
 Here is an example:
 

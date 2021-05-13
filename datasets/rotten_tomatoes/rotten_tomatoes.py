@@ -16,7 +16,6 @@
 # Lint as: python3
 """Rotten tomatoes movie reviews dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -66,7 +65,7 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
             yield ex["text"]
 
     def _split_generators(self, dl_manager):
-        """ Downloads Rotten Tomatoes sentences. """
+        """Downloads Rotten Tomatoes sentences."""
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(

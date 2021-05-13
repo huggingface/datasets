@@ -10,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10k<n<100k
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -42,6 +42,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -150,3 +151,7 @@ The dataset does not contain any additional annotations.
   publisher={Elsevier}
 }
 ```
+
+### Contributions
+
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.

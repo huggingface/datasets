@@ -1,6 +1,5 @@
 """Korean Dataset for NLI and STS"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

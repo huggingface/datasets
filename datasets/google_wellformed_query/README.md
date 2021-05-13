@@ -50,11 +50,11 @@ licenses:
 
 ## Dataset Description
 
-- **Homepage:** 
+- **Homepage:** [GitHub](https://github.com/google-research-datasets/query-wellformedness)
 - **Repository:** [GitHub](https://github.com/google-research-datasets/query-wellformedness)
 - **Paper:** [ARXIV](https://arxiv.org/abs/1808.09419)
-- **Leaderboard:** 
-- **Point of Contact:** 
+- **Leaderboard:**
+- **Point of Contact:**
 
 ### Dataset Summary
 
@@ -155,3 +155,7 @@ Query-wellformedness dataset is licensed under CC BY-SA 4.0. Any third party con
    year = {2018}
 }
 ```
+
+### Contributions
+
+Thanks to [@vasudevgupta7](https://github.com/vasudevgupta7) for adding this dataset.

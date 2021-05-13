@@ -1,9 +1,5 @@
-from __future__ import absolute_import, division, print_function
-
 import csv
 import os
-
-import six
 
 import datasets
 
@@ -176,7 +172,7 @@ class Matinf(datasets.GeneratorBasedBuilder):
                     example["label"] = label
 
                 # Filter out corrupted rows.
-                for value in six.itervalues(example):
+                for value in example.values():
                     if value is None:
                         break
                 else:

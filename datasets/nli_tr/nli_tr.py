@@ -14,7 +14,6 @@
 # limitations under the License.
 """NLI-TR: The Turkish translation of SNLI and MultiNLI datasets using Amazon Translate."""
 
-from __future__ import absolute_import, division, print_function
 
 import codecs
 import json
@@ -46,7 +45,7 @@ _HOMEPAGE = "https://github.com/boun-tabi/NLI-TR"
 
 
 class NLITRConfig(datasets.BuilderConfig):
-    """ BuilderConfig for NLI-TR"""
+    """BuilderConfig for NLI-TR"""
 
     def __init__(self, version=None, data_url=None, **kwargs):
         super(NLITRConfig, self).__init__(version=datasets.Version(version, ""), **kwargs)
@@ -151,7 +150,7 @@ class NliTr(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with codecs.open(filepath, encoding="utf-8") as f:
             for idx, row in enumerate(f):

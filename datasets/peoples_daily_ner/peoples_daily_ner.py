@@ -16,9 +16,10 @@
 # Lint as: python3
 """Introduction to People's Daily Dataset"""
 
-import logging
-
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -98,7 +99,7 @@ class PeoplesDailyNer(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []

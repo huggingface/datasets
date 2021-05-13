@@ -17,7 +17,6 @@ DFKI SmartData Corpus is a dataset of 2598 German-language documents
 which has been annotated with fine-grained geo-entities, such as streets,
 stops and routes, as well as standard named entity types."""
 
-from __future__ import absolute_import, division, print_function
 
 import re
 from json import JSONDecodeError, JSONDecoder
@@ -175,7 +174,7 @@ class Smartdata(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         NOT_WHITESPACE = re.compile(r"[^\s]")
 

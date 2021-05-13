@@ -16,7 +16,6 @@
 # Lint as: python3
 """Universal Declaration of Human Rights"""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import os

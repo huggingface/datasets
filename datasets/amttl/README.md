@@ -43,12 +43,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/adapt-sjtu/AMTTL/tree/master/medical_data)
+- **Repository:** [Github](https://github.com/adapt-sjtu/AMTTL/tree/master/medical_data)
+- **Paper:** [Aclweb](http://aclweb.org/anthology/C18-1307)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -142,3 +143,6 @@ task_ids:
   year={2018}
 }
 ```
+### Contributions
+
+Thanks to [@JetRunner](https://github.com/JetRunner) for adding this dataset.

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -157,3 +158,6 @@ The DBPedia ontology classification dataset is licensed under the terms of the C
 Xiang Zhang, Junbo Zhao, Yann LeCun. Character-level Convolutional Networks for Text Classification. Advances in Neural Information Processing Systems 28 (NIPS 2015).
 
 Lehmann, Jens, Robert Isele, Max Jakob, Anja Jentzsch, Dimitris Kontokostas, Pablo N. Mendes, Sebastian Hellmann et al. "DBpedia–a large-scale, multilingual knowledge base extracted from Wikipedia." Semantic web 6, no. 2 (2015): 167-195.
+### Contributions
+
+Thanks to [@hfawaz](https://github.com/hfawaz) for adding this dataset.

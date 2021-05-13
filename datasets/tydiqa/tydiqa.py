@@ -1,6 +1,5 @@
 """TODO(tydiqa): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import textwrap
@@ -42,7 +41,7 @@ _SECONDARY_URLS = {
 
 class TydiqaConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Tydiqa"""
+    """BuilderConfig for Tydiqa"""
 
     def __init__(self, **kwargs):
         """

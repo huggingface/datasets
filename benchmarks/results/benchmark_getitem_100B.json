@@ -1,0 +1,1 @@
+{"num examples": 100000000000, "get_first_row": 0.00019991099999927542, "get_last_row": 5.4411000000698095e-05, "get_batch_of_1024_rows": 0.0004897069999998394, "get_batch_of_1024_random_rows": 0.01800621099999944}

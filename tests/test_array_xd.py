@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 import pandas as pd
+import pytest
 from absl.testing import parameterized
 
 import datasets
@@ -46,14 +47,14 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
     def test_array2d_nonspecific_shape(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(
-                features=my_features,
-                num_examples=1,
-            ):
-                example = my_features.encode_example(record)
-                writer.write(example)
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+                for key, record in generate_examples(
+                    features=my_features,
+                    num_examples=1,
+                ):
+                    example = my_features.encode_example(record)
+                    writer.write(example)
+                num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             row = dataset[0]
@@ -67,11 +68,11 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
     def test_multiple_extensions_same_row(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(features=my_features, num_examples=1):
-                example = my_features.encode_example(record)
-                writer.write(example)
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+                for key, record in generate_examples(features=my_features, num_examples=1):
+                    example = my_features.encode_example(record)
+                    writer.write(example)
+                num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             row = dataset[0]
@@ -85,24 +86,24 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             my_features["image_id"] = datasets.Value("string")
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(features=my_features, num_examples=1):
-                example = my_features.encode_example(record)
-                writer.write(example)
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+                for key, record in generate_examples(features=my_features, num_examples=1):
+                    example = my_features.encode_example(record)
+                    writer.write(example)
+                num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self.assertTrue(isinstance(dataset[0]["image_id"], str), "image id must be of type string")
+            self.assertIsInstance(dataset[0]["image_id"], str, "image id must be of type string")
             del dataset
 
     def test_extension_indexing(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             my_features["explicit_ext"] = Array2D((3, 3), dtype="float32")
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(features=my_features, num_examples=1):
-                example = my_features.encode_example(record)
-                writer.write(example)
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+                for key, record in generate_examples(features=my_features, num_examples=1):
+                    example = my_features.encode_example(record)
+                    writer.write(example)
+                num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             data = dataset[0]["explicit_ext"]
@@ -193,15 +194,15 @@ class ArrayXDTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
             my_features = self.get_features(array_feature, shape_1, shape_2)
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
             my_examples = [
                 (0, self.get_dict_example_0(shape_1, shape_2)),
                 (1, self.get_dict_example_1(shape_1, shape_2)),
             ]
-            for key, record in my_examples:
-                example = my_features.encode_example(record)
-                writer.write(example)
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+                for key, record in my_examples:
+                    example = my_features.encode_example(record)
+                    writer.write(example)
+                num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, my_examples[0][1]["matrix"])
             del dataset
@@ -211,12 +212,11 @@ class ArrayXDTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
             my_features = self.get_features(array_feature, shape_1, shape_2)
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-
             dict_examples = self.get_dict_examples(shape_1, shape_2)
             dict_examples = my_features.encode_batch(dict_examples)
-            writer.write_batch(dict_examples)
-            num_examples, num_bytes = writer.finalize()
+            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+                writer.write_batch(dict_examples)
+                num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
             del dataset
@@ -228,3 +228,13 @@ class ArrayXDTest(unittest.TestCase):
         )
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
         del dataset
+
+
+@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+def test_table_to_pandas(dtype, dummy_value):
+    features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    df = dataset._data.to_pandas()
+    assert type(df.foo.dtype) == datasets.features.PandasArrayExtensionDtype
+    arr = df.foo.to_numpy()
+    np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))

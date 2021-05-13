@@ -1,7 +1,7 @@
 Adding a FAISS or Elastic Search index to a Dataset
 ====================================================================
 
-It is possible to do documents retrieval in a dataset.
+It is possible to do document retrieval in a dataset.
 
 For example, one way to do Open Domain Question Answering, one way to do that is to first retrieve documents that may be relevant to answer a question, and then we can use a model to generate an answer given the retrieved documents.
 

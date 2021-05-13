@@ -16,7 +16,6 @@
 # Lint as: python3
 """HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import textwrap

@@ -1,6 +1,5 @@
 """Urdu Fake News Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import os
@@ -89,9 +88,10 @@ class UrduFakeNews(datasets.GeneratorBasedBuilder):
             key = name.rstrip(".txt")
 
             _class = 1 if ("Real" in filename) else 0
+            _class_name = "Real" if ("Real" in filename) else "Fake"
             category = "".join([i for i in key if not i.isdigit()])
             if category == "":
                 continue
             category = self.category_list.index(category)
 
-            yield key, {"news": news, "label": _class, "category": category}
+            yield f"{_class_name}_{key}", {"news": news, "label": _class, "category": category}

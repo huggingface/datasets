@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -168,3 +169,7 @@ This dataset is curated by Jihyung Moon, Won Ik Cho and Junbum Lee.
     abstract = "Toxic comments in online platforms are an unavoidable social issue under the cloak of anonymity. Hate speech detection has been actively done for languages such as English, German, or Italian, where manually labeled corpus has been released. In this work, we first present 9.4K manually labeled entertainment news comments for identifying Korean toxic speech, collected from a widely used online news platform in Korea. The comments are annotated regarding social bias and hate speech since both aspects are correlated. The inter-annotator agreement Krippendorff{'}s alpha score is 0.492 and 0.496, respectively. We provide benchmarks using CharCNN, BiLSTM, and BERT, where BERT achieves the highest score on all tasks. The models generally display better performance on bias identification, since the hate speech detection is a more subjective issue. Additionally, when BERT is trained with bias label for hate speech detection, the prediction score increases, implying that bias and hate are intertwined. We make our dataset publicly available and open competitions with the corpus and benchmarks.",
 }
 ```
+
+### Contributions
+
+Thanks to [@stevhliu](https://github.com/stevhliu) for adding this dataset.

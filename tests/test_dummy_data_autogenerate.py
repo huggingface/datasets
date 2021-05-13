@@ -3,10 +3,25 @@ import shutil
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-from datasets.builder import DatasetInfo, DownloadConfig, GeneratorBasedBuilder, Split, SplitGenerator
+from datasets.builder import GeneratorBasedBuilder
 from datasets.commands.dummy_data import DummyDataGeneratorDownloadManager, MockDownloadManager
 from datasets.features import Features, Value
+from datasets.info import DatasetInfo
+from datasets.splits import Split, SplitGenerator
+from datasets.utils.download_manager import DownloadConfig
 from datasets.utils.version import Version
+
+
+EXPECTED_XML_DUMMY_DATA = """\
+<tmx version="1.4">
+  <header segtype="sentence" srclang="ca" />
+  <body>
+    <tu>
+      <tuv xml:lang="ca"><seg>Contingut 1</seg></tuv>
+      <tuv xml:lang="en"><seg>Content 1</seg></tuv>
+    </tu>
+    </body>
+</tmx>"""
 
 
 class DummyBuilder(GeneratorBasedBuilder):
@@ -54,7 +69,7 @@ class DummyDataAutoGenerationTest(TestCase):
                 dataset_name=dataset_builder.name,
                 config=None,
                 version=Version("0.0.0"),
-                is_local=True,
+                use_local_dummy_data=True,
                 cache_dir=cache_dir,
                 load_existing_dummy_data=False,  # dummy data don't exist yet
             )
@@ -78,3 +93,11 @@ class DummyDataAutoGenerationTest(TestCase):
             dataset = dataset_builder.as_dataset(split="train")
             self.assertEqual(len(dataset), n_lines)
             del dataset
+
+
+def test_create_xml_dummy_data(xml_file, tmp_path):
+    dst_path = tmp_path / "file.xml"
+    DummyDataGeneratorDownloadManager._create_xml_dummy_data(xml_file, dst_path, "tu", n_lines=1)
+    with open(dst_path) as f:
+        xml_dummy_data = f.read()
+    assert xml_dummy_data == EXPECTED_XML_DUMMY_DATA

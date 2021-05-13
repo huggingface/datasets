@@ -86,7 +86,7 @@ class Timeout(TimeoutError):
     """
 
     def __init__(self, lock_file):
-        """"""
+        """ """
         #: The path of the file lock.
         self.lock_file = lock_file
         return None
@@ -107,7 +107,7 @@ class Timeout(TimeoutError):
 # automatically.
 #
 # :seealso: issue #37 (memory leak)
-class _Acquire_ReturnProxy(object):
+class _Acquire_ReturnProxy:
     def __init__(self, lock):
         self.lock = lock
         return None
@@ -120,13 +120,13 @@ class _Acquire_ReturnProxy(object):
         return None
 
 
-class BaseFileLock(object):
+class BaseFileLock:
     """
     Implements the base class of a file lock.
     """
 
     def __init__(self, lock_file, timeout=-1):
-        """"""
+        """ """
         # The path to the lock file.
         self._lock_file = lock_file
 
@@ -173,7 +173,7 @@ class BaseFileLock(object):
 
     @timeout.setter
     def timeout(self, value):
-        """"""
+        """ """
         self._timeout = float(value)
         return None
 

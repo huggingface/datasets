@@ -14,7 +14,6 @@
 # limitations under the License.
 """The Large Spanish Corpus is a compilation of Spanish corpora spanning Wikipedia to European parliament notes."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -89,7 +88,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
         for corpus in _CORPORA
     ] + [
         LargeSpanishCorpusConfig(
-            name=_COMBINED, corpora=_CORPORA, description=f"Complete Spanish dataset with all corpora."
+            name=_COMBINED, corpora=_CORPORA, description="Complete Spanish dataset with all corpora."
         )
     ]
     BUILDER_CONFIG_CLASS = LargeSpanishCorpusConfig

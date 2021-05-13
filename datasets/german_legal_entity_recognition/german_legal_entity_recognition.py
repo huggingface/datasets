@@ -48,7 +48,7 @@ class GermanLegalEntityRecognition(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         GermanLegalEntityRecognitionConfig(name=court, courts=[court], description=f"Court. {court}.")
         for court in _COURTS
-    ] + [GermanLegalEntityRecognitionConfig(name=_ALL, courts=_COURTS, description=f"All courts included.")]
+    ] + [GermanLegalEntityRecognitionConfig(name=_ALL, courts=_COURTS, description="All courts included.")]
     BUILDER_CONFIG_CLASS = GermanLegalEntityRecognitionConfig
     DEFAULT_CONFIG_NAME = _ALL
 

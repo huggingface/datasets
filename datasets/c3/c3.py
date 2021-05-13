@@ -14,7 +14,6 @@
 # limitations under the License.
 """C3 Parallel Corpora"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -40,7 +39,7 @@ _URL = "https://raw.githubusercontent.com/nlpdata/c3/master/data/"
 
 
 class C3Config(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """BuilderConfig for NewDataset"""
 
     def __init__(self, type_, **kwargs):
         """
@@ -139,7 +138,7 @@ class C3(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filename, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filename, "r", encoding="utf-8") as sf:
             data = json.load(sf)
             for id_, (documents, questions, document_id) in enumerate(data):

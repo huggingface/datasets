@@ -45,12 +45,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [SemEval-2014 Task 1](https://alt.qcri.org/semeval2014/task1/)
 - **Repository:**
-- **Paper:**
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/S14-2001/)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -137,3 +138,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@ashmeet13](https://github.com/ashmeet13) for adding this dataset.

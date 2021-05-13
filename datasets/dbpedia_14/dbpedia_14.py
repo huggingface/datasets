@@ -14,7 +14,6 @@
 # limitations under the License.
 """The DBpedia dataset for text classification."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -134,7 +133,7 @@ class DBpedia14(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             data = csv.reader(f, delimiter=",", quoting=csv.QUOTE_NONNUMERIC)

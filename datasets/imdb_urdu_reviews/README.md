@@ -44,14 +44,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:** https://github.com/mirfan899/Urdu
-- **Paper:**
+- **Homepage:** [Github](https://github.com/mirfan899/Urdu)
+- **Repository:** [Github](https://github.com/mirfan899/Urdu)
+- **Paper:** [Aclweb](http://www.aclweb.org/anthology/P11-1015)
 - **Leaderboard:**
-- **Point of Contact:** <a href="https://github.com/akkefa">Ikram Ali</a>
+- **Point of Contact:** [Ikram Ali](https://github.com/akkefa)
 
 ### Dataset Summary
 
@@ -137,3 +138,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@chaitnayabasava](https://github.com/chaitnayabasava) for adding this dataset.

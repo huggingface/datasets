@@ -14,7 +14,6 @@
 # limitations under the License.
 """Roman Urdu data corpus with 20,000 polarity labeled records"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os

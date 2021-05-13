@@ -81,7 +81,7 @@ class UM005(datasets.GeneratorBasedBuilder):
         UM005Config(
             name=_ALL,
             sources=_SOURCES,
-            description=f"All sources included: bible, quran",
+            description="All sources included: bible, quran",
         )
     ]
     BUILDER_CONFIG_CLASS = UM005Config

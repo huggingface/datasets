@@ -14,7 +14,6 @@
 # limitations under the License.
 """Dataset containing polar questions and indirect answers."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

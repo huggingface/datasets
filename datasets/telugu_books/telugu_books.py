@@ -14,7 +14,6 @@
 # limitations under the License.
 """Telugu Books Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -96,7 +95,7 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file)
             for id_, row in enumerate(csv_reader):

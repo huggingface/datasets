@@ -3,7 +3,7 @@ import re
 import shutil
 from argparse import ArgumentParser, Namespace
 
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.utils.logging import get_logger
 
 
@@ -42,22 +42,24 @@ TO_CONVERT = [
 def convert_command_factory(args: Namespace):
     """
     Factory function used to convert a model TF 1.0 checkpoint in a PyTorch checkpoint.
-    :return: ServeCommand
+
+    Returns: ConvertCommand
     """
     return ConvertCommand(args.tfds_path, args.datasets_directory)
 
 
-class ConvertCommand(BaseTransformersCLICommand):
+class ConvertCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         """
-        Register this command to argparse so it's available for the transformer-cli
-        :param parser: Root parser to register command-specific arguments
-        :return:
+        Register this command to argparse so it's available for the datasets-cli
+
+        Args:
+            parser: Root parser to register command-specific arguments
         """
         train_parser = parser.add_parser(
             "convert",
-            help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
+            help="Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.",
         )
         train_parser.add_argument(
             "--tfds_path",
@@ -66,7 +68,7 @@ class ConvertCommand(BaseTransformersCLICommand):
             help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert.",
         )
         train_parser.add_argument(
-            "--datasets_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
+            "--datasets_directory", type=str, required=True, help="Path to the HuggingFace Datasets folder."
         )
         train_parser.set_defaults(func=convert_command_factory)
 
@@ -166,7 +168,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
                 self._logger.info("Adding directory %s", output_dir)
-                imports_to_builder_map.update(dict((imp, output_dir) for imp in tfds_imports))
+                imports_to_builder_map.update({imp: output_dir for imp in tfds_imports})
             else:
                 # Utilities will be moved at the end
                 utils_files.append(output_file)

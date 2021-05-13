@@ -14,7 +14,6 @@
 # limitations under the License.
 """TupleInf Open IE Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -106,7 +105,7 @@ class TupleIE(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
         id_ = -1
         for domain in self.config.domains:
             with open(os.path.join(data_dir, _DOMAIN_FILES[domain]), encoding="utf-8") as f:

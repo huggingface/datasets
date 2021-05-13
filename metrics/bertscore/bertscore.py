@@ -64,9 +64,18 @@ Returns:
     'recall': Recall,
     'f1', F1 score,
     'hashcode': Hashcode of the library,
+Examples:
+
+    >>> predictions = ["hello there", "general kenobi"]
+    >>> references = ["hello there", "general kenobi"]
+    >>> bertscore = datasets.load_metric("bertscore")
+    >>> results = bertscore.compute(predictions=predictions, references=references, lang="en")
+    >>> print([round(v, 2) for v in results["f1"]])
+    [1.0, 1.0]
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class BERTScore(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -139,9 +148,9 @@ class BERTScore(datasets.Metric):
             batch_size=batch_size,
         )
         output_dict = {
-            "precision": P,
-            "recall": R,
-            "f1": F,
+            "precision": P.tolist(),
+            "recall": R.tolist(),
+            "f1": F.tolist(),
             "hashcode": hashcode,
         }
         return output_dict

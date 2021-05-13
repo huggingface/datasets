@@ -1,14 +1,11 @@
 """TODO(xtreme): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import glob
 import json
 import os
 import textwrap
-
-import six
 
 import datasets
 
@@ -71,6 +68,7 @@ _TATOEBA_LANG = [
     "spa",
     "swh",
     "tam",
+    "tel",
     "tgl",
     "tha",
     "tur",
@@ -155,7 +153,7 @@ _PAN_X_LANG = [
     "yo",
     "zh",
 ]
-_PAN_X_FOLDER = "AmazonPhotos.zip"
+
 _NAMES = ["XNLI", "tydiqa", "SQuAD"]
 for lang in _PAN_X_LANG:
     _NAMES.append("PAN-X.{}".format(lang))
@@ -375,7 +373,7 @@ _DATA_URLS = {
     "tatoeba": "https://github.com/facebookresearch/LASER/raw/master/data/tatoeba/v1",
     "udpos": "https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-3105/ud-treebanks-v2.5.tgz",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/dataset/",
-    "PAN-X": "",
+    "PAN-X": "https://www.dropbox.com/s/12h3qqog6q4bjve/panx_dataset.tar?dl=1",
 }
 
 _URLS = {
@@ -388,7 +386,7 @@ _URLS = {
     "tatoeba": "https://github.com/facebookresearch/LASER/blob/master/data/tatoeba/v1/README.md",
     "udpos": "https://universaldependencies.org/",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/",
-    "PAN-X": "",
+    "PAN-X": "https://github.com/afshinrahimi/mmner",
 }
 
 
@@ -429,19 +427,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         for name in _NAMES
     ]
 
-    @property
-    def manual_download_instructions(self):
-        if self.config.name.startswith("PAN-X"):
-            return """\
-             You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-             (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file
-             can be used to load the dataset via `datasets.load_dataset("xtreme", data_dir="<path/to/folder>").
-            """
-        return None
-
     def _info(self):
         # TODO(xtreme): Specifies the datasets.DatasetInfo object
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if "answers" in features.keys():
             features["answers"] = datasets.features.Sequence(
                 {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
@@ -706,6 +694,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 ]
             else:
                 return [
+                    # We exclude Arabic-NYUAD which does not contains any words, only _
                     datasets.SplitGenerator(
                         name=datasets.Split.VALIDATION,
                         # These kwargs will be passed to _generate_examples
@@ -716,7 +705,6 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 for file in sorted(os.listdir(folder))
                                 if "NYUAD" not in folder and "dev" in file and file.endswith(".conllu")
                             ]
-                            # we exclude Arabic NYUAD which deos not contains any word, only _
                         },
                     ),
                     datasets.SplitGenerator(
@@ -761,26 +749,15 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             ]
 
         if self.config.name.startswith("PAN-X"):
-            path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-            panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)
-            if not os.path.exists(panx_path):
-                raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('xtreme', data_dir=...)` that includes {}. Manual download instructions: {}".format(
-                        panx_path, _PAN_X_FOLDER, self.manual_download_instructions
-                    )
-                )
-
-            panx_dl_dir = dl_manager.extract(panx_path)
+            panx_dl_dir = dl_manager.download_and_extract(self.config.data_url)
             lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, "panx_dataset", lang + ".tar.gz"))
+            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
+
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(lang_folder, "dev")
-                        # we exclude Arabic NYUAD which deos not contains any word, only _
-                    },
+                    gen_kwargs={"filepath": os.path.join(lang_folder, "dev")},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
@@ -924,7 +901,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 with open(file, encoding="utf-8") as f:
                     data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for id_row, row in enumerate(data):
-                        if len(row) >= 10 and row[1] != "_":
+                        if len(row) >= 10 and row[1] != "_" and row[3] != "_":
                             yield str(id_file) + "_" + str(id_row), {"token": row[1], "pos_tag": row[3]}
         if self.config.name.startswith("PAN-X"):
             guid_index = 1
@@ -933,7 +910,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 ner_tags = []
                 langs = []
                 for line in f:
-                    if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                    if line == "" or line == "\n":
                         if tokens:
                             yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs}
                             guid_index += 1

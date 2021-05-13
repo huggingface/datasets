@@ -16,7 +16,6 @@
 # Lint as: python3
 """Annotated Enron Subject Line Corpus Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import os

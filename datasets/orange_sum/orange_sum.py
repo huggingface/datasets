@@ -14,7 +14,6 @@
 # limitations under the License.
 """OrangeSum dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -101,7 +100,7 @@ class OrangeSum(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(
             os.path.join(filepath, self.config.name, "{}.source".format(split)), encoding="utf-8"
         ) as f_source, open(

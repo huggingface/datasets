@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -159,3 +160,7 @@ Ondřej Dušek, Filip Jurčíček, Josef Dvořák, Petra Grycová, Matěj Hejda,
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
+
+### Contributions
+
+Thanks to [@TevenLeScao](https://github.com/TevenLeScao) for adding this dataset.

@@ -14,7 +14,6 @@
 # limitations under the License.
 """The SemEval-2014 Task 1 on Evaluation of Compositional Distributional Semantic Models on Full Sentences through Semantic Relatedness and Entailment"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -109,7 +108,7 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "r", encoding="us-ascii") as file:
             lines = file.readlines()
 

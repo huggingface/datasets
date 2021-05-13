@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import gzip
 import json
 import os
@@ -8,7 +6,7 @@ import datasets
 
 
 class CompguesswhatConfig(datasets.BuilderConfig):
-    """ BuilderConfig for CompGuessWhat?!"""
+    """BuilderConfig for CompGuessWhat?!"""
 
     def __init__(self, data_url, splits, gameplay_scenario, **kwargs):
         """

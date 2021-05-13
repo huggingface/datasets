@@ -16,7 +16,6 @@
 # Lint as: python3
 """Inquisitive Question Generation for High Level Text Comprehension"""
 
-from __future__ import absolute_import, division, print_function
 
 import itertools
 import os
@@ -159,3 +158,4 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                     "article": article,
                 }
                 yield id_, example
+                questions_counter += 1

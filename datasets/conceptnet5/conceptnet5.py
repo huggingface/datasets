@@ -14,7 +14,6 @@
 # limitations under the License.
 """Conceptnet 5.7.0 and OMCSNet raw data"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -148,7 +147,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples from the conceptnet5 graph if the config is 'conceptnet5', otherwise yields the sentences for omcs. """
+        """Yields examples from the conceptnet5 graph if the config is 'conceptnet5', otherwise yields the sentences for omcs."""
 
         with open(filepath, "rb") as f:
             for id_, row in enumerate(f):

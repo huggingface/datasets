@@ -16,12 +16,13 @@
 # Lint as: python3
 """Mathematics database."""
 
-from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -230,9 +231,9 @@ class MathDataset(datasets.GeneratorBasedBuilder):
                 with open(data_file, encoding="utf-8") as f:
                     ls = f.read().split("\n")
 
-                    for l in ls[::-1]:
-                        if not l:
-                            ls.remove(l)
+                    for line in ls[::-1]:
+                        if not line:
+                            ls.remove(line)
 
                     lines.extend(ls)
 
@@ -267,7 +268,7 @@ class MathDataset(datasets.GeneratorBasedBuilder):
         """Yields examples based on directory, module file.."""
 
         lines = self._read_data_from_all_categories(directory, config, categories)
-        logging.info("%s: %s contains total: %d", categories, config, len(lines))
+        logger.info("%s: %s contains total: %d", categories, config, len(lines))
         questions = lines[::2]
         answers = lines[1::2]
 

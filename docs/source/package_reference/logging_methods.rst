@@ -1,7 +1,7 @@
 Logging methods
 ----------------------------------------------------
 
-`datasets` tries to be very transparent and explicit about its inner working, but this can be quite verbose at times.
+🤗Datasets tries to be very transparent and explicit about its inner working, but this can be quite verbose at times.
 
 A series of logging methods let you easily adjust the level of verbosity of the whole library.
 
@@ -48,10 +48,6 @@ Functions
 .. autofunction:: datasets.logging.set_verbosity_debug
 
 .. autofunction:: datasets.logging.set_verbosity_error
-
-.. autofunction:: datasets.logging.disable_default_handler
-
-.. autofunction:: datasets.logging.enable_default_handler
 
 .. autofunction:: datasets.logging.disable_propagation
 

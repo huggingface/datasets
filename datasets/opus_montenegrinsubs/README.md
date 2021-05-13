@@ -11,7 +11,7 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-- 1k<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -136,3 +137,7 @@ The underlying task is machine translation from en to me
 ### Citation Information
 
  J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
+
+### Contributions
+
+Thanks to [@spatil6](https://github.com/spatil6) for adding this dataset.

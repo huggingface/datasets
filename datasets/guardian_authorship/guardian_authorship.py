@@ -14,7 +14,6 @@
 # limitations under the License.
 """This is an authorship attribution dataset based on the work of Stamatatos 2013. """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -66,7 +65,7 @@ _URL = "https://www.dropbox.com/s/lc5mje0owl9shms/Guardian.zip?dl=1"
 # to add specific attributes.
 # here we give an example for three sub-set of the dataset with difference sizes.
 class GuardianAuthorshipConfig(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """BuilderConfig for NewDataset"""
 
     def __init__(self, train_folder, valid_folder, test_folder, **kwargs):
         """
@@ -305,7 +304,7 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir, samples_folders, split):
-        """ Yields examples. """
+        """Yields examples."""
         # Yields (key, example) tuples from the dataset
 
         # Training and validation are on 1 topic/genre, while testing is on multiple topics
@@ -345,7 +344,7 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
 
                     # The whole article is stored as one line. We access the 1st element of the list
                     # to store it as string, not as a list
-                    yield id_, {
+                    yield f"{topic}_{author}_{id_}", {
                         "article": art[0],
                         "author": author,
                         "topic": topic,

@@ -1,0 +1,394 @@
+{
+  "adversarialQA": {
+    "description": "AdversarialQA is a Reading Comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles using an adversarial model-in-the-loop.\nWe use three different models; BiDAF (Seo et al., 2016), BERT-Large (Devlin et al., 2018), and RoBERTa-Large (Liu et al., 2019) in the annotation loop and construct three datasets; D(BiDAF), D(BERT), and D(RoBERTa), each with 10,000 training examples, 1,000 validation, and 1,000 test examples.\nThe adversarial human annotation paradigm ensures that these datasets consist of questions that current state-of-the-art models (at least the ones used as adversaries in the annotation loop) find challenging.\n",
+    "citation": "@article{bartolo2020beat,\n    author = {Bartolo, Max and Roberts, Alastair and Welbl, Johannes and Riedel, Sebastian and Stenetorp, Pontus},\n    title = {Beat the AI: Investigating Adversarial Human Annotation for Reading Comprehension},\n    journal = {Transactions of the Association for Computational Linguistics},\n    volume = {8},\n    number = {},\n    pages = {662-678},\n    year = {2020},\n    doi = {10.1162/tacl\\_a\\_00338},\n    URL = { https://doi.org/10.1162/tacl_a_00338 },\n    eprint = { https://doi.org/10.1162/tacl_a_00338 },\n    abstract = { Innovations in annotation methodology have been a catalyst for Reading Comprehension (RC) datasets and models. One recent trend to challenge current RC models is to involve a model in the annotation process: Humans create questions adversarially, such that the model fails to answer them correctly. In this work we investigate this annotation methodology and apply it in three different settings, collecting a total of 36,000 samples with progressively stronger models in the annotation loop. This allows us to explore questions such as the reproducibility of the adversarial effect, transfer from data collected with varying model-in-the-loop strengths, and generalization to data collected without a model. We find that training on adversarially collected samples leads to strong generalization to non-adversarially collected datasets, yet with progressive performance deterioration with increasingly stronger models-in-the-loop. Furthermore, we find that stronger models can still learn from datasets collected with substantially weaker models-in-the-loop. When trained on data collected with a BiDAF model in the loop, RoBERTa achieves 39.9F1 on questions that it cannot answer when trained on SQuAD\u2014only marginally lower than when trained on data collected using RoBERTa itself (41.0F1). }\n}\n",
+    "homepage": "https://adversarialqa.github.io/",
+    "license": "",
+    "features": {
+      "id": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "title": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "context": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "question": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "answers": {
+        "feature": {
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "answer_start": {
+            "dtype": "int32",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
+      "metadata": {
+        "split": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        },
+        "model_in_the_loop": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        }
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "adversarial_qa",
+    "config_name": "adversarialQA",
+    "version": {
+      "version_str": "1.0.0",
+      "description": null,
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 27858794,
+        "num_examples": 30000,
+        "dataset_name": "adversarial_qa"
+      },
+      "validation": {
+        "name": "validation",
+        "num_bytes": 2757128,
+        "num_examples": 3000,
+        "dataset_name": "adversarial_qa"
+      },
+      "test": {
+        "name": "test",
+        "num_bytes": 2919643,
+        "num_examples": 3000,
+        "dataset_name": "adversarial_qa"
+      }
+    },
+    "download_checksums": {
+      "https://adversarialqa.github.io/data/aqa_v1.0.zip": {
+        "num_bytes": 9018914,
+        "checksum": "f4f3c23224a5060b28c35e35581bd5cf46256dda3665418fb83d036d0e0c93cf"
+      }
+    },
+    "download_size": 9018914,
+    "post_processing_size": null,
+    "dataset_size": 33535565,
+    "size_in_bytes": 42554479
+  },
+  "dbidaf": {
+    "description": "AdversarialQA is a Reading Comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles using an adversarial model-in-the-loop.\nWe use three different models; BiDAF (Seo et al., 2016), BERT-Large (Devlin et al., 2018), and RoBERTa-Large (Liu et al., 2019) in the annotation loop and construct three datasets; D(BiDAF), D(BERT), and D(RoBERTa), each with 10,000 training examples, 1,000 validation, and 1,000 test examples.\nThe adversarial human annotation paradigm ensures that these datasets consist of questions that current state-of-the-art models (at least the ones used as adversaries in the annotation loop) find challenging.\n",
+    "citation": "@article{bartolo2020beat,\n    author = {Bartolo, Max and Roberts, Alastair and Welbl, Johannes and Riedel, Sebastian and Stenetorp, Pontus},\n    title = {Beat the AI: Investigating Adversarial Human Annotation for Reading Comprehension},\n    journal = {Transactions of the Association for Computational Linguistics},\n    volume = {8},\n    number = {},\n    pages = {662-678},\n    year = {2020},\n    doi = {10.1162/tacl\\_a\\_00338},\n    URL = { https://doi.org/10.1162/tacl_a_00338 },\n    eprint = { https://doi.org/10.1162/tacl_a_00338 },\n    abstract = { Innovations in annotation methodology have been a catalyst for Reading Comprehension (RC) datasets and models. One recent trend to challenge current RC models is to involve a model in the annotation process: Humans create questions adversarially, such that the model fails to answer them correctly. In this work we investigate this annotation methodology and apply it in three different settings, collecting a total of 36,000 samples with progressively stronger models in the annotation loop. This allows us to explore questions such as the reproducibility of the adversarial effect, transfer from data collected with varying model-in-the-loop strengths, and generalization to data collected without a model. We find that training on adversarially collected samples leads to strong generalization to non-adversarially collected datasets, yet with progressive performance deterioration with increasingly stronger models-in-the-loop. Furthermore, we find that stronger models can still learn from datasets collected with substantially weaker models-in-the-loop. When trained on data collected with a BiDAF model in the loop, RoBERTa achieves 39.9F1 on questions that it cannot answer when trained on SQuAD\u2014only marginally lower than when trained on data collected using RoBERTa itself (41.0F1). }\n}\n",
+    "homepage": "https://adversarialqa.github.io/",
+    "license": "",
+    "features": {
+      "id": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "title": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "context": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "question": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "answers": {
+        "feature": {
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "answer_start": {
+            "dtype": "int32",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
+      "metadata": {
+        "split": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        },
+        "model_in_the_loop": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        }
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "adversarial_qa",
+    "config_name": "dbidaf",
+    "version": {
+      "version_str": "1.0.0",
+      "description": null,
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 9282518,
+        "num_examples": 10000,
+        "dataset_name": "adversarial_qa"
+      },
+      "validation": {
+        "name": "validation",
+        "num_bytes": 917943,
+        "num_examples": 1000,
+        "dataset_name": "adversarial_qa"
+      },
+      "test": {
+        "name": "test",
+        "num_bytes": 947111,
+        "num_examples": 1000,
+        "dataset_name": "adversarial_qa"
+      }
+    },
+    "download_checksums": {
+      "https://adversarialqa.github.io/data/aqa_v1.0.zip": {
+        "num_bytes": 9018914,
+        "checksum": "f4f3c23224a5060b28c35e35581bd5cf46256dda3665418fb83d036d0e0c93cf"
+      }
+    },
+    "download_size": 9018914,
+    "post_processing_size": null,
+    "dataset_size": 11147572,
+    "size_in_bytes": 20166486
+  },
+  "dbert": {
+    "description": "AdversarialQA is a Reading Comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles using an adversarial model-in-the-loop.\nWe use three different models; BiDAF (Seo et al., 2016), BERT-Large (Devlin et al., 2018), and RoBERTa-Large (Liu et al., 2019) in the annotation loop and construct three datasets; D(BiDAF), D(BERT), and D(RoBERTa), each with 10,000 training examples, 1,000 validation, and 1,000 test examples.\nThe adversarial human annotation paradigm ensures that these datasets consist of questions that current state-of-the-art models (at least the ones used as adversaries in the annotation loop) find challenging.\n",
+    "citation": "@article{bartolo2020beat,\n    author = {Bartolo, Max and Roberts, Alastair and Welbl, Johannes and Riedel, Sebastian and Stenetorp, Pontus},\n    title = {Beat the AI: Investigating Adversarial Human Annotation for Reading Comprehension},\n    journal = {Transactions of the Association for Computational Linguistics},\n    volume = {8},\n    number = {},\n    pages = {662-678},\n    year = {2020},\n    doi = {10.1162/tacl\\_a\\_00338},\n    URL = { https://doi.org/10.1162/tacl_a_00338 },\n    eprint = { https://doi.org/10.1162/tacl_a_00338 },\n    abstract = { Innovations in annotation methodology have been a catalyst for Reading Comprehension (RC) datasets and models. One recent trend to challenge current RC models is to involve a model in the annotation process: Humans create questions adversarially, such that the model fails to answer them correctly. In this work we investigate this annotation methodology and apply it in three different settings, collecting a total of 36,000 samples with progressively stronger models in the annotation loop. This allows us to explore questions such as the reproducibility of the adversarial effect, transfer from data collected with varying model-in-the-loop strengths, and generalization to data collected without a model. We find that training on adversarially collected samples leads to strong generalization to non-adversarially collected datasets, yet with progressive performance deterioration with increasingly stronger models-in-the-loop. Furthermore, we find that stronger models can still learn from datasets collected with substantially weaker models-in-the-loop. When trained on data collected with a BiDAF model in the loop, RoBERTa achieves 39.9F1 on questions that it cannot answer when trained on SQuAD\u2014only marginally lower than when trained on data collected using RoBERTa itself (41.0F1). }\n}\n",
+    "homepage": "https://adversarialqa.github.io/",
+    "license": "",
+    "features": {
+      "id": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "title": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "context": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "question": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "answers": {
+        "feature": {
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "answer_start": {
+            "dtype": "int32",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
+      "metadata": {
+        "split": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        },
+        "model_in_the_loop": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        }
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "adversarial_qa",
+    "config_name": "dbert",
+    "version": {
+      "version_str": "1.0.0",
+      "description": null,
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 9345557,
+        "num_examples": 10000,
+        "dataset_name": "adversarial_qa"
+      },
+      "validation": {
+        "name": "validation",
+        "num_bytes": 918192,
+        "num_examples": 1000,
+        "dataset_name": "adversarial_qa"
+      },
+      "test": {
+        "name": "test",
+        "num_bytes": 971454,
+        "num_examples": 1000,
+        "dataset_name": "adversarial_qa"
+      }
+    },
+    "download_checksums": {
+      "https://adversarialqa.github.io/data/aqa_v1.0.zip": {
+        "num_bytes": 9018914,
+        "checksum": "f4f3c23224a5060b28c35e35581bd5cf46256dda3665418fb83d036d0e0c93cf"
+      }
+    },
+    "download_size": 9018914,
+    "post_processing_size": null,
+    "dataset_size": 11235203,
+    "size_in_bytes": 20254117
+  },
+  "droberta": {
+    "description": "AdversarialQA is a Reading Comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles using an adversarial model-in-the-loop.\nWe use three different models; BiDAF (Seo et al., 2016), BERT-Large (Devlin et al., 2018), and RoBERTa-Large (Liu et al., 2019) in the annotation loop and construct three datasets; D(BiDAF), D(BERT), and D(RoBERTa), each with 10,000 training examples, 1,000 validation, and 1,000 test examples.\nThe adversarial human annotation paradigm ensures that these datasets consist of questions that current state-of-the-art models (at least the ones used as adversaries in the annotation loop) find challenging.\n",
+    "citation": "@article{bartolo2020beat,\n    author = {Bartolo, Max and Roberts, Alastair and Welbl, Johannes and Riedel, Sebastian and Stenetorp, Pontus},\n    title = {Beat the AI: Investigating Adversarial Human Annotation for Reading Comprehension},\n    journal = {Transactions of the Association for Computational Linguistics},\n    volume = {8},\n    number = {},\n    pages = {662-678},\n    year = {2020},\n    doi = {10.1162/tacl\\_a\\_00338},\n    URL = { https://doi.org/10.1162/tacl_a_00338 },\n    eprint = { https://doi.org/10.1162/tacl_a_00338 },\n    abstract = { Innovations in annotation methodology have been a catalyst for Reading Comprehension (RC) datasets and models. One recent trend to challenge current RC models is to involve a model in the annotation process: Humans create questions adversarially, such that the model fails to answer them correctly. In this work we investigate this annotation methodology and apply it in three different settings, collecting a total of 36,000 samples with progressively stronger models in the annotation loop. This allows us to explore questions such as the reproducibility of the adversarial effect, transfer from data collected with varying model-in-the-loop strengths, and generalization to data collected without a model. We find that training on adversarially collected samples leads to strong generalization to non-adversarially collected datasets, yet with progressive performance deterioration with increasingly stronger models-in-the-loop. Furthermore, we find that stronger models can still learn from datasets collected with substantially weaker models-in-the-loop. When trained on data collected with a BiDAF model in the loop, RoBERTa achieves 39.9F1 on questions that it cannot answer when trained on SQuAD\u2014only marginally lower than when trained on data collected using RoBERTa itself (41.0F1). }\n}\n",
+    "homepage": "https://adversarialqa.github.io/",
+    "license": "",
+    "features": {
+      "id": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "title": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "context": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "question": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "answers": {
+        "feature": {
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "answer_start": {
+            "dtype": "int32",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
+      "metadata": {
+        "split": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        },
+        "model_in_the_loop": {
+          "dtype": "string",
+          "id": null,
+          "_type": "Value"
+        }
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "adversarial_qa",
+    "config_name": "droberta",
+    "version": {
+      "version_str": "1.0.0",
+      "description": null,
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 9270719,
+        "num_examples": 10000,
+        "dataset_name": "adversarial_qa"
+      },
+      "validation": {
+        "name": "validation",
+        "num_bytes": 925065,
+        "num_examples": 1000,
+        "dataset_name": "adversarial_qa"
+      },
+      "test": {
+        "name": "test",
+        "num_bytes": 1005406,
+        "num_examples": 1000,
+        "dataset_name": "adversarial_qa"
+      }
+    },
+    "download_checksums": {
+      "https://adversarialqa.github.io/data/aqa_v1.0.zip": {
+        "num_bytes": 9018914,
+        "checksum": "f4f3c23224a5060b28c35e35581bd5cf46256dda3665418fb83d036d0e0c93cf"
+      }
+    },
+    "download_size": 9018914,
+    "post_processing_size": null,
+    "dataset_size": 11201190,
+    "size_in_bytes": 20220104
+  }
+}

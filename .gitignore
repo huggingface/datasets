@@ -1,5 +1,6 @@
 # Locked files
 *.lock
+!dvc.lock
 
 # Extracted dummy data
 datasets/**/dummy_data-zip-extracted/

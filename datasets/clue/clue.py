@@ -16,14 +16,11 @@
 # Lint as: python3
 """A Chinese Language Understanding Evaluation Benchmark (CLUE) benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
 import re
 import textwrap
-
-import six
 
 import datasets
 
@@ -335,9 +332,7 @@ class Clue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         if self.config.name in ["afqmc", "tnews", "iflytek", "cmnli", "diagnostics", "ocnli"]:
-            features = {
-                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
-            }
+            features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
             if self.config.label_classes:
                 features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
             else:
@@ -514,7 +509,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                 else:
                     for n, line in enumerate(f):
                         row = json.loads(line)
-                        example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
+                        example = {feat: row[col] for feat, col in self.config.text_features.items()}
                         example["idx"] = n if self.config.name != "diagnostics" else int(row["index"])
                         if self.config.name == "chid":  # CHID has a separate gold label file
                             contents = example["content"]
@@ -546,7 +541,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                             example["label"] = process_label(-1)
 
                         # Filter out corrupted rows.
-                        for value in six.itervalues(example):
+                        for value in example.values():
                             if value is None:
                                 break
                         else:

@@ -1,6 +1,5 @@
 """TODO(cmrc2018): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

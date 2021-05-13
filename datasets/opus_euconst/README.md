@@ -63,6 +63,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -156,3 +157,6 @@ The underlying task is machine translation.
 ### Citation Information
 
 J. Tiedemann, 2012, Parallel Data, Tools and Interfaces in OPUS. In Proceedings of the 8th International Conference on Language Resources and Evaluation (LREC 2012)
+### Contributions
+
+Thanks to [@patil-suraj](https://github.com/patil-suraj) for adding this dataset.

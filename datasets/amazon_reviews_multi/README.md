@@ -23,8 +23,8 @@ languages:
   - ja
   zh:
   - zh
-licenses: 
-  - other-amazon-license
+licenses:
+- other-amazon-license
 multilinguality:
   all_languages:
   - multilingual
@@ -42,7 +42,7 @@ multilinguality:
   - monolingual
 size_categories:
   all_languages:
-  - n>1M
+  - 1M<n<10M
   de:
   - 100K<n<1M
   en:
@@ -94,6 +94,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -234,3 +235,7 @@ Phillip Keung, Yichao Lu, György Szarvas and Noah A. Smith. “The Multilingual
     year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.

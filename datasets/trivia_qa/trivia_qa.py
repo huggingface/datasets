@@ -16,16 +16,15 @@
 # Lint as: python3
 """TriviaQA: A Reading Comprehension Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import json
-import logging
 import os
 
-import six
-
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -243,7 +242,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                 new_items = []
                 for item in collection:
                     if "Filename" not in item:
-                        logging.info("Missing context 'Filename', skipping.")
+                        logger.info("Missing context 'Filename', skipping.")
                         continue
 
                     new_item = item.copy()
@@ -252,13 +251,13 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                         with open(os.path.join(file_dir, fname), encoding="utf-8") as f:
                             new_item[context_field] = f.read()
                     except (IOError, datasets.Value("errors").NotFoundError):
-                        logging.info("File does not exist, skipping: %s", fname)
+                        logger.info("File does not exist, skipping: %s", fname)
                         continue
                     new_items.append(new_item)
                 return new_items
 
             def _strip_if_str(v):
-                return v.strip() if isinstance(v, six.string_types) else v
+                return v.strip() if isinstance(v, str) else v
 
             def _transpose_and_strip_dicts(dicts, field_names):
                 return {
@@ -290,7 +289,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
             }
 
         for filepath in files:
-            logging.info("generating examples from = %s", filepath)
+            logger.info("generating examples from = %s", filepath)
             fname = os.path.basename(filepath)
 
             with open(filepath, encoding="utf-8") as f:

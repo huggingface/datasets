@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -159,3 +160,7 @@ CC-BY 4.0
   language = {english}
   }
 ```
+
+### Contributions
+
+Thanks to [@aseifert](https://github.com/aseifert) for adding this dataset.

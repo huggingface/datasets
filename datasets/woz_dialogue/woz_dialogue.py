@@ -14,7 +14,6 @@
 # limitations under the License.
 """WozDialogue: a dataset for training task-oriented dialogue systems"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
