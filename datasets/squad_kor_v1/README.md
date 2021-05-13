@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -155,3 +156,7 @@ Wikipedia
   journal={arXiv preprint arXiv:1909.07005},
   year={2019}
 ```
+
+### Contributions
+
+Thanks to [@cceyda](https://github.com/cceyda) for adding this dataset.

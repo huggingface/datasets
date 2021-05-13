@@ -14,7 +14,6 @@
 # limitations under the License.
 """The SemEval-2010 Task 8 on Multi-way classification of semantic relations between pairs of nominals"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -124,7 +123,7 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "r", encoding="us-ascii") as file:
             lines = file.readlines()
             num_lines_per_sample = 4

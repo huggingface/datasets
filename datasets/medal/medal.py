@@ -16,15 +16,13 @@
 # Lint as: python3
 """MeDAL: Medical Abbreviation Disambiguation Dataset for Natural Language Understanding Pretraining"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -126,7 +124,6 @@ class Medal(datasets.GeneratorBasedBuilder):
             data = csv.reader(f)
             # Skip header
             next(data)
-            # print(split, filepath, next(data))
             if split == "full":
                 id_ = 0
                 for id_, row in enumerate(data):

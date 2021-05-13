@@ -14,7 +14,6 @@
 # limitations under the License.
 """Taskmaster: A dataset for goal oriented conversations."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

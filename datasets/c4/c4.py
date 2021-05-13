@@ -16,10 +16,8 @@
 # Lint as: python3
 """C4 dataset based on Common Crawl."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 
 import datasets
@@ -37,6 +35,9 @@ from .c4_utils import (
     remove_duplicate_text,
     split_wet_file,
 )
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
@@ -215,7 +216,7 @@ class C4(datasets.BeamBasedBuilder):
                         cc_dir, "*.warc.wet.gz", self.manual_download_instructions
                     )
                 )
-            logging.info("Adding %d WET files for manually downloaded version %s.", len(wet_files), cc_version)
+            logger.info("Adding %d WET files for manually downloaded version %s.", len(wet_files), cc_version)
             file_paths["wet_files"].extend(wet_files)
 
         page_content_pcollection = self._get_page_content(pipeline, file_paths, dl_manager)

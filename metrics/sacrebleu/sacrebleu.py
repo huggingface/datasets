@@ -15,6 +15,7 @@
 """ SACREBLEU metric. """
 
 import sacrebleu as scb
+from packaging import version
 
 import datasets
 
@@ -61,11 +62,27 @@ Returns:
     'bp': Brevity penalty,
     'sys_len': predictions length,
     'ref_len': reference length,
+Examples:
+
+    >>> predictions = ["hello there general kenobi", "foo bar foobar"]
+    >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
+    >>> sacrebleu = datasets.load_metric("sacrebleu")
+    >>> results = sacrebleu.compute(predictions=predictions, references=references)
+    >>> print(list(results.keys()))
+    ['score', 'counts', 'totals', 'precisions', 'bp', 'sys_len', 'ref_len']
+    >>> print(round(results["score"], 1))
+    100.0
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Sacrebleu(datasets.Metric):
     def _info(self):
+        if version.parse(scb.__version__) < version.parse("1.4.12"):
+            raise ImportWarning(
+                "To use `sacrebleu`, the module `sacrebleu>=1.4.12` is required, and the current version of `sacrebleu` doesn't match this condition.\n"
+                'You can install it with `pip install "sacrebleu>=1.4.12"`.'
+            )
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,

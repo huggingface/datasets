@@ -45,7 +45,7 @@ _URLS = {"tmx": "http://opus.nlpl.eu/download.php?f=DOGC/v2/tmx/ca-es.tmx.gz"}
 
 
 class OpusDogcConfig(datasets.BuilderConfig):
-    """ BuilderConfig for OpusDogcConfig."""
+    """BuilderConfig for OpusDogcConfig."""
 
     def __init__(self, file_format=None, **kwargs):
         """
@@ -99,3 +99,4 @@ class OpusDogc(datasets.GeneratorBasedBuilder):
                         "translation": {"ca": ca_sentence, "es": es_sentence},
                     }
                     id_ += 1
+                    elem.clear()

@@ -65,9 +65,18 @@ Args:
     gamma: Relative weight assigned to fragmentation penalty. default: 0.5
 Returns:
     'meteor': meteor score.
+Examples:
+
+    >>> meteor = datasets.load_metric('meteor')
+    >>> predictions = ["It is a guide to action which ensures that the military always obeys the commands of the party"]
+    >>> references = ["It is a guide to action that ensures that the military will forever heed Party commands"]
+    >>> results = meteor.compute(predictions=predictions, references=references)
+    >>> print(round(results["meteor"], 4))
+    0.7398
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Meteor(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -86,6 +95,11 @@ class Meteor(datasets.Metric):
                 "https://en.wikipedia.org/wiki/METEOR",
             ],
         )
+
+    def _download_and_prepare(self, dl_manager):
+        import nltk
+
+        nltk.download("wordnet")
 
     def _compute(self, predictions, references, alpha=0.9, beta=3, gamma=0.5):
         scores = [

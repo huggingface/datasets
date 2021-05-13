@@ -14,7 +14,6 @@
 # limitations under the License.
 """SGD: The Schema Guided Dialogue dataet"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

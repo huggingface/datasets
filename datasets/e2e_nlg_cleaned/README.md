@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -176,3 +177,7 @@ Following Novikova et al. (2016), the E2E data was collected using pictures as s
   eprinttype = {arxiv},
   journal = {Computer Speech \& Language}
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

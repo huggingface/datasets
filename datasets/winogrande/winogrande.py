@@ -1,6 +1,5 @@
 """TODO(winogrande): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -32,7 +31,7 @@ _FORMATS = ["xs", "s", "m", "l", "xl", "debiased"]
 
 class WinograndeConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Discofuse"""
+    """BuilderConfig for Discofuse"""
 
     def __init__(self, data_size, **kwargs):
         """

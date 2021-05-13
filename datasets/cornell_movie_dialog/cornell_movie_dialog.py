@@ -1,6 +1,5 @@
 """TODO(cornell_movie_dialog): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import ast
 import os

@@ -16,25 +16,15 @@
 # Lint as: python3
 """Natural Questions: A Benchmark for Question Answering Research."""
 
-from __future__ import absolute_import, division, print_function
 
+import html
 import json
 import re
 
 import apache_beam as beam
-import six
 
 import datasets
 
-
-if six.PY2:
-    import HTMLParser as html_parser  # pylint:disable=g-import-not-at-top
-
-    html_unescape = html_parser.HTMLParser().unescape
-else:
-    import html  # pylint:disable=g-import-not-at-top
-
-    html_unescape = html.unescape
 
 _CITATION = """
 @article{47761,
@@ -143,13 +133,13 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
             html_bytes = ex_json["document_html"].encode("utf-8")
 
             def _parse_short_answer(short_ans):
-                """"Extract text of short answer."""
+                """ "Extract text of short answer."""
                 ans_bytes = html_bytes[short_ans["start_byte"] : short_ans["end_byte"]]
                 # Remove non-breaking spaces.
                 ans_bytes = ans_bytes.replace(b"\xc2\xa0", b" ")
                 text = ans_bytes.decode("utf-8")
                 # Remove HTML markup.
-                text = re.sub("<([^>]*)>", "", html_unescape(text))
+                text = re.sub("<([^>]*)>", "", html.unescape(text))
                 # Replace \xa0 characters with spaces.
                 return {
                     "start_token": short_ans["start_token"],

@@ -14,7 +14,6 @@
 # limitations under the License.
 """The Open WebText Corpus"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import re
@@ -81,7 +80,7 @@ class Openwebtext(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, txt_files):
-        """ Yields examples. """
+        """Yields examples."""
         for idx, filepath in enumerate(txt_files):
             with open(filepath, encoding="utf-8") as f:
                 yield idx, {"text": re.sub("\n\n\n+", "\n\n", f.read()).strip()}

@@ -16,12 +16,13 @@
 # Lint as: python3
 """DREAM: A Challenge Dataset and Models for Dialogue-Based Reading Comprehension"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -103,7 +104,7 @@ class Dream(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             dialogues = json.load(f)
             counter = 0

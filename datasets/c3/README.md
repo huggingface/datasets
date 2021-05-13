@@ -42,6 +42,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -151,3 +152,7 @@ We present a comprehensive analysis of the prior knowledge (i.e., linguistic, do
 }
 ```
 
+
+### Contributions
+
+Thanks to [@Narsil](https://github.com/Narsil) for adding this dataset.

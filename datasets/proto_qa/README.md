@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -213,3 +214,7 @@ journal      = {GitHub repository},
 howpublished = {https://github.com/iesl/protoqa-data},
 }
 ```
+
+### Contributions
+
+Thanks to [@bpatidar](https://github.com/bpatidar) for adding this dataset.

@@ -14,7 +14,6 @@
 # limitations under the License.
 """Opinion Corpus for Lebanese Arabic Reviews (OCLAR) Data Set"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
@@ -89,7 +88,7 @@ class Oclar(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
             next(csv_reader, None)  # skipping headers

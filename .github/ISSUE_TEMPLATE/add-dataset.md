@@ -1,6 +1,6 @@
 ---
 name: "Add Dataset"
-about: Request the addition of a specific to the library
+about: Request the addition of a specific dataset to the library.
 title: ''
 labels: 'dataset request'
 assignees: ''

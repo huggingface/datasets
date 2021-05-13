@@ -10,11 +10,11 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<n<10k
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
 - sentiment-classification
 ---
@@ -42,6 +42,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -137,3 +138,7 @@ The dataset does not contain any additional annotations.
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai), [@lhoestq](https://github.com/lhoestq) for adding this dataset.

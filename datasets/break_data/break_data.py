@@ -1,13 +1,10 @@
 """TODO(break_data): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json
 import os
 import textwrap
-
-import six
 
 import datasets
 
@@ -138,7 +135,7 @@ class BreakData(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO(break_data): Specifies the datasets.DatasetInfo object
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,

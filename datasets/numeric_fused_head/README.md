@@ -50,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -189,3 +190,7 @@ MIT License
     doi = {10.1162/tacl\_a\_00280},
 }
 ```
+
+### Contributions
+
+Thanks to [@ghomasHudson](https://github.com/ghomasHudson) for adding this dataset.

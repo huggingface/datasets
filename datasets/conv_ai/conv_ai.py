@@ -14,7 +14,6 @@
 # limitations under the License.
 """ConvAI: A Dataset of Topic-Oriented Human-to-Chatbot Dialogues"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 

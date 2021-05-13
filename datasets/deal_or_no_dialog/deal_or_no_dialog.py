@@ -14,7 +14,6 @@
 # limitations under the License.
 """Deal or no deal negotiator"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 
@@ -130,7 +129,7 @@ class DealOrNoDialog(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath, split="train"):
-        """ Yields examples. """
+        """Yields examples."""
         if self.config.name == "dialogues":
             with open(filepath, encoding="utf-8") as f:
                 for idx, line in enumerate(f):

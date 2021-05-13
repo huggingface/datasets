@@ -1,6 +1,5 @@
 """TODO(sciTail): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json
@@ -35,7 +34,7 @@ _URL = "http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip"
 
 class ScitailConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Xquad"""
+    """BuilderConfig for Xquad"""
 
     def __init__(self, **kwargs):
         """

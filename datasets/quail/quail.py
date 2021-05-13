@@ -1,7 +1,9 @@
-import logging
 import xml.etree.ElementTree as ET
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -103,7 +105,7 @@ class Quail(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         root = ET.parse(filepath).getroot()
         for text_tag in root.iterfind("text"):
             text_id = text_tag.get("id")

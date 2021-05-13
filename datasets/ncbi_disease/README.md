@@ -52,8 +52,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [NCBI](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3951655/)
+- **Repository:** [Github](https://github.com/spyysalo/ncbi-disease)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -143,3 +143,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@edugp](https://github.com/edugp) for adding this dataset.

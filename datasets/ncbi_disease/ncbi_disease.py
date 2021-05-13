@@ -16,9 +16,10 @@
 # Lint as: python3
 """NCBI disease corpus: a resource for disease name recognition and concept normalization"""
 
-import logging
-
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -114,13 +115,13 @@ class NCBIDisease(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []
             ner_tags = []
             for line in f:
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                if line == "" or line == "\n":
                     if tokens:
                         yield guid, {
                             "id": str(guid),

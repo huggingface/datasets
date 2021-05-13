@@ -15,7 +15,6 @@
 
 """DialogRE: the first human-annotated dialogue-based relation extraction dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -127,7 +126,7 @@ class DialogRE(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             dataset = json.load(f)

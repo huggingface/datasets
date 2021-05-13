@@ -1,21 +1,21 @@
 Quick tour
 ==========
 
-Let's have a quick look at the 🤗datasets library. This library has three main features:
+Let's have a quick look at the 🤗Datasets library. This library has three main features:
 
 - It provides a very **efficient way to load and process data** from raw files (CSV/JSON/text) or in-memory data (python dict, pandas dataframe) with a special focus on memory efficiency and speed. As a matter of example, loading a 18GB dataset like English Wikipedia allocate 9 MB in RAM and you can iterate over the dataset at 1-2 GBit/s in python.
 - It provides a very **simple way to access and share datasets** with the research and practitioner communities (over 130 NLP datasets are already accessible in one line with the library as we'll see below).
 - It was designed with a particular focus on interoperabilty with frameworks like **pandas, NumPy, PyTorch and TensorFlow**.
 
-🤗datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc and obviously these datasets can always be used to other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
+🤗Datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc., and obviously these datasets can always be used for other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
 
 .. code-block::
 
     >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
-    136
-    >>> print(', '.join(dataset.id for dataset in datasets_list))
+    656
+    >>> print(', '.join(dataset for dataset in datasets_list))
     aeslc, ag_news, ai2_arc, allocine, anli, arcd, art, billsum, blended_skill_talk, blimp, blog_authorship_corpus, bookcorpus, boolq, break_data,
     c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e, 
     cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli, 
@@ -28,7 +28,7 @@ Let's have a quick look at the 🤗datasets library. This library has three main
     wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli, 
     xquad, xsum, xtreme, yelp_polarity
 
-All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/datasets/viewer/>`__.
+All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗Datasets viewer <https://huggingface.co/datasets/viewer/>`__.
 
 Loading a dataset
 --------------------
@@ -54,7 +54,7 @@ If you want to create a :class:`datasets.Dataset` from local CSV, JSON, text or 
 
 .. note::
 
-    If you don't provide a :obj:`split` argument to :func:`datasets.load_dataset`, this method will return a dictionary containing a datasets for each split in the dataset. This dictionary is a :obj:`datasets.DatasetDict` object that lets you process all the splits at once using :func:`datasets.DatasetDict.map`, :func:`datasets.DatasetDict.filter`, etc.
+    If you don't provide a :obj:`split` argument to :func:`datasets.load_dataset`, this method will return a dictionary containing a dataset for each split in the dataset. This dictionary is a :obj:`datasets.DatasetDict` object that lets you process all the splits at once using :func:`datasets.DatasetDict.map`, :func:`datasets.DatasetDict.filter`, etc.
 
 Now let's have a look at our newly created :class:`datasets.Dataset` object. It basically behaves like a normal python container. You can query its length, get a single row but also get multiple rows and even index along columns (see all the details in :doc:`exploring </exploring>`):
 
@@ -69,9 +69,9 @@ Now let's have a look at our newly created :class:`datasets.Dataset` object. It 
      'idx': 0}
 
 A lot of metadata are available in the dataset attributes (description, citation, split sizes, etc) and we'll dive in this in the :doc:`exploring </exploring>` page.
-We'll just say here that :class:`datasets.Dataset` have columns which are typed with types which can be arbitrarily nested complex types (e.g. list of strings or list of lists of int64 values).
+We'll just say here that :class:`datasets.Dataset` has columns which are typed with types which can be arbitrarily nested complex types (e.g. list of strings or list of lists of int64 values).
 
-Let's take a look at the column in our dataset by printing its :func:`datasets.Dataset.features`:
+Let's take a look at the column in our dataset by printing its :attr:`datasets.Dataset.features`:
 
 .. code-block::
 
@@ -88,7 +88,7 @@ In the rest of this quick-tour we will use this dataset to fine-tune a Bert mode
 
 As you can see from the above features, the labels are a :class:`datasets.ClassLabel` instance with two classes: ``not_equivalent`` and ``equivalent``. 
 
-We can print one example of each class using :func:`datasets.Dataset.filter` and a name-to-integer conversion method of the feature :class:`datasets.ClassLabel` called :func:`datasets.ClassLabel.str2int` (that we detail these methods in :doc:`processing </processing>` and :doc:`exploring </exploring>`):
+We can print one example of each class using :func:`datasets.Dataset.filter` and a name-to-integer conversion method of the feature :class:`datasets.ClassLabel` called :func:`datasets.ClassLabel.str2int` (we explain these methods in more detail in :doc:`processing </processing>` and :doc:`exploring </exploring>`):
 
 .. code-block::
 
@@ -105,9 +105,9 @@ We can print one example of each class using :func:`datasets.Dataset.filter` and
      'sentence2': "Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 ."
     }
 
-Now our goal will be to train a model which can predict the correct label (``not_equivalent`` or ``equivalent``) from a pair of sentence.
+Now our goal will be to train a model which can predict the correct label (``not_equivalent`` or ``equivalent``) from a pair of sentences.
 
-Let's import a pretrained Bert model and its tokenizer using 🤗transformers.
+Let's import a pretrained Bert model and its tokenizer using 🤗Transformers.
 
 .. code-block::
 
@@ -130,8 +130,8 @@ Let's import a pretrained Bert model and its tokenizer using 🤗transformers.
     You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
-🤗transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
-If you want more details on the models and tokenizers of 🤗transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
+🤗Transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
+If you want more details on the models and tokenizers of 🤗Transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
 
 Tokenizing the dataset
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -148,10 +148,10 @@ The first step is to tokenize our sentences in order to build sequences of integ
     >>> tokenizer.decode(tokenizer(dataset[0]['sentence1'], dataset[0]['sentence2'])['input_ids'])
     '[CLS] Amrozi accused his brother, whom he called " the witness ", of deliberately distorting his evidence. [SEP] Referring to him as only " the witness ", Amrozi accused his brother of deliberately distorting his evidence. [SEP]'
 
-As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
+As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗Transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
 
-In our case, we want to tokenize our full dataset, so we will use a method called :func:`datasets.Dataset.map` to apply the encoding process to their whole dataset.
-To be sure we can easily build tensors batches for our model, we will truncate and pad the inputs to the max length of our model.
+In our case, we want to tokenize our full dataset, so we will use a method called :func:`datasets.Dataset.map` to apply the encoding process to the whole dataset.
+To be sure we can easily build tensor batches for our model, we will truncate and pad the inputs to the max length of our model.
 
 .. code-block::
 
@@ -169,7 +169,7 @@ To be sure we can easily build tensors batches for our model, we will truncate a
      'token_type_ids': array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
      'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
 
-This operation has added three new columns to our dataset: ``input_ids``, ``token_type_ids`` and ``attention_mask``. These are the inputs our model need for training.
+This operation has added three new columns to our dataset: ``input_ids``, ``token_type_ids`` and ``attention_mask``. These are the inputs our model needs for training.
 
 .. note::
 
@@ -188,9 +188,9 @@ To be able to train our model with this dataset and PyTorch, we will need to do 
 
 .. note::
 
-    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
+    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗Datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
 
-The first modification is just a matter of renaming the column as follow (we could have done it during the tokenization process as well:
+The first modification is just a matter of renaming the column as follows (we could have done it during the tokenization process as well):
 
 .. code-block::
 
@@ -232,7 +232,7 @@ Here is how we can apply the right format to our dataset using :func:`datasets.D
     >>> ## TENSORFLOW CODE
     >>> import tensorflow as tf
     >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
-    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.max_len]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
+    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
     >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["labels"])).batch(32)
     >>> next(iter(tfdataset))
     ({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
@@ -261,7 +261,7 @@ Here is how we can apply the right format to our dataset using :func:`datasets.D
            0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
 
 
-We are now ready to train our model. Let's write a simple training loop and a start the training
+We are now ready to train our model. Let's write a simple training loop and start the training:
 
 .. code-block::
 
@@ -287,7 +287,7 @@ We are now ready to train our model. Let's write a simple training loop and a st
     >>> model.fit(tfdataset, epochs=3)
 
 
-Now this was a very simple tour, you should continue with either the detailled notebook which is `here <https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb#scrollTo=my95uHbLyjwR>`__ or the in-depth guides on
+Now this was a very simple tour, you should continue with either the detailed notebook which is `here <https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb#scrollTo=my95uHbLyjwR>`__ or the in-depth guides on
 
 - :doc:`loading datasets <./loading_datasets>`
 - :doc:`exploring the dataset object attributes <./exploring>`

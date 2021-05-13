@@ -14,7 +14,6 @@
 # limitations under the License.
 """Euroconst: A parallel corpus collected from the European Constitution for 21 language"""
 
-from __future__ import absolute_import, division, print_function
 
 import itertools
 import os

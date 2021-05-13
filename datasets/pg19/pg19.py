@@ -1,6 +1,5 @@
 """PG-19 language modeling benchmark - a set of books extracted from the Project Gutenberg books library"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json

@@ -43,6 +43,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -152,3 +153,7 @@ Data preprocessing was performed to prepare the tweets for feature extraction an
   month={August},
   year={2019}
 }
+
+### Contributions
+
+Thanks to [@anaerobeth](https://github.com/anaerobeth) for adding this dataset.

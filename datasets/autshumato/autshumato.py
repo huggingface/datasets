@@ -14,7 +14,6 @@
 # limitations under the License.
 """Autshumato Parallel Corpora"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -40,7 +39,7 @@ project is to develop machine translation systems for three South African langua
 
 
 class AutshumatoConfig(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """BuilderConfig for NewDataset"""
 
     def __init__(self, langs, zip_file, **kwargs):
         """
@@ -207,7 +206,7 @@ class Autshumato(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, source_files, target_files, split):
-        """ Yields examples. """
+        """Yields examples."""
         if len(self.config.langs) == 2:
             return self._generate_examples_translation(source_files, target_files, split)
         elif len(self.config.langs) == 1:

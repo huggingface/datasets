@@ -14,7 +14,6 @@
 # limitations under the License.
 """CrowS-Pairs: A Challenge Dataset for Measuring Social Biases in Masked Language Models"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import json

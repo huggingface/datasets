@@ -143,3 +143,7 @@ Sanskrit
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@parmarsuraj99](https://github.com/parmarsuraj99) for adding this dataset.

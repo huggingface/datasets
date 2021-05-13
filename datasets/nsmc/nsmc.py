@@ -14,7 +14,6 @@
 # limitations under the License.
 """Naver movie review corpus for binary sentiment classification"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 

@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -178,3 +179,7 @@ The data is distributed under the [CC BY 4.0](https://creativecommons.org/licens
   year={2019}
 }
 ```
+
+### Contributions
+
+Thanks to [@VictorSanh](https://github.com/VictorSanh) for adding this dataset.

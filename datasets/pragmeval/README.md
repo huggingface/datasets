@@ -53,3 +53,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 ---
+
+### Contributions
+
+Thanks to [@sileod](https://github.com/sileod) for adding this dataset.

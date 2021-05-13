@@ -446,6 +446,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -560,3 +561,7 @@ The txt/xml data files used here were compiled by The Unicode Consortium, which 
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.

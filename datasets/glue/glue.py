@@ -16,14 +16,12 @@
 # Lint as: python3
 """The General Language Understanding Evaluation (GLUE) benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 import textwrap
 
 import numpy as np
-import six
 
 import datasets
 
@@ -453,7 +451,7 @@ class Glue(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if self.config.label_classes:
             features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         else:
@@ -565,7 +563,7 @@ class Glue(datasets.GeneratorBasedBuilder):
                             "is_acceptable": row[1],
                         }
 
-                    example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
+                    example = {feat: row[col] for feat, col in self.config.text_features.items()}
                     example["idx"] = n
 
                     if self.config.label_column in row:
@@ -579,7 +577,7 @@ class Glue(datasets.GeneratorBasedBuilder):
                         example["label"] = process_label(-1)
 
                     # Filter out corrupted rows.
-                    for value in six.itervalues(example):
+                    for value in example.values():
                         if value is None:
                             break
                     else:
@@ -588,12 +586,15 @@ class Glue(datasets.GeneratorBasedBuilder):
     def _generate_example_mrpc_files(self, mrpc_files, split):
         if split == "test":
             with open(mrpc_files["test"], encoding="utf8") as f:
+                # The first 3 bytes are the utf-8 BOM \xef\xbb\xbf, which messes with
+                # the Quality key.
+                f.seek(3)
                 reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for n, row in enumerate(reader):
                     yield {
                         "sentence1": row["#1 String"],
                         "sentence2": row["#2 String"],
-                        "label": -1,
+                        "label": int(row["Quality"]),
                         "idx": n,
                     }
         else:

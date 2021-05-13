@@ -14,7 +14,6 @@
 # limitations under the License.
 """Opus MontenegrinSubs dataset for machine translation task, for language pair en-me."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 

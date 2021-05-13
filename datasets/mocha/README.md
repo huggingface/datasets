@@ -168,3 +168,7 @@ Minimal Pairs | 200
     year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@mattbui](https://github.com/mattbui) for adding this dataset.

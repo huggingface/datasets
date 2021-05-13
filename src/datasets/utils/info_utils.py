@@ -2,6 +2,7 @@ import os
 from hashlib import sha256
 from typing import Optional
 
+from .. import config
 from .logging import get_logger
 
 
@@ -81,3 +82,18 @@ def get_size_checksum_dict(path: str) -> dict:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             m.update(chunk)
     return {"num_bytes": os.path.getsize(path), "checksum": m.hexdigest()}
+
+
+def is_small_dataset(dataset_size):
+    """Check if `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
+
+    Args:
+        dataset_size (int): Dataset size in bytes.
+
+    Returns:
+        bool: Whether `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
+    """
+    if dataset_size and config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES is not None:
+        return dataset_size < config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
+    else:
+        return False

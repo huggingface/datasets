@@ -44,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -165,3 +166,6 @@ Eleven volunteers were involved in the process. All of them were native speakers
     ISBN = "979-10-95546-35-1",
 }
 ```
+### Contributions
+
+Thanks to [@jamespaultg](https://github.com/jamespaultg) for adding this dataset.

@@ -16,7 +16,6 @@
 # Lint as: python3
 """XNLI: The Cross-Lingual NLI Corpus."""
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 import csv
@@ -194,7 +193,8 @@ class Xnli(datasets.GeneratorBasedBuilder):
                     file = open(filepath, encoding="utf-8")
                     reader = csv.DictReader(file, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for row_idx, row in enumerate(reader):
-                        yield (file_idx, row_idx), {
+                        key = str(file_idx) + "_" + str(row_idx)
+                        yield key, {
                             "premise": row["premise"],
                             "hypothesis": row["hypo"],
                             "label": row["label"].replace("contradictory", "contradiction"),

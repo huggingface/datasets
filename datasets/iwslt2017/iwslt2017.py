@@ -14,7 +14,6 @@
 # limitations under the License.
 """IWSLT 2017 dataset """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -45,7 +44,7 @@ MULTI_URL = "https://wit3.fbk.eu/archive/2017-01-trnmted//texts/DeEnItNlRo/DeEnI
 
 
 class IWSLT2017Config(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """BuilderConfig for NewDataset"""
 
     def __init__(self, pair, is_multilingual, **kwargs):
         """
@@ -186,7 +185,7 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, source_files, target_files, split):
-        """ Yields examples. """
+        """Yields examples."""
         id_ = 0
         source, target = self.config.pair.split("-")
         for source_file, target_file in zip(source_files, target_files):

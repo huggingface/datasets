@@ -28,8 +28,8 @@ FP: False positive
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Ground truth labels.
-    references: Predicted labels, as returned by a model.
+    predictions: Predicted labels, as returned by a model.
+    references: Ground truth labels.
     labels: The set of labels to include when average != 'binary', and
         their order if average is None. Labels present in the data can
         be excluded, for example to calculate a multiclass average ignoring
@@ -55,6 +55,12 @@ Args:
     sample_weight: Sample weights.
 Returns:
     precision: Precision score.
+Examples:
+
+    >>> precision_metric = datasets.load_metric("precision")
+    >>> results = precision_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'precision': 1.0}
 """
 
 _CITATION = """\
@@ -72,6 +78,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Precision(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(

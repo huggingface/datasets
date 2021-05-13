@@ -20,7 +20,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 ---
 
 # Dataset Card Creation Guide
@@ -47,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -89,6 +90,10 @@ The examples look like this :
  'tokens': ['La', 'Coruña', ',', '23', 'may', '(', 'EFECOM', ')', '.']
 }
 ```
+
+The original data files within the Dutch sub-dataset have `-DOCSTART-` lines used to separate documents, but these lines are removed here.
+Indeed `-DOCSTART-` is a special line that acts as a boundary between two different documents, and it is filtered out in this implementation.
+
 
 ### Data Fields
 
@@ -206,3 +211,7 @@ Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset
     url = "https://www.aclweb.org/anthology/W02-2024",
 }
 ```
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq) for adding this dataset.

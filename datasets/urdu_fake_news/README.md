@@ -45,14 +45,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:** https://github.com/MaazAmjad/Datasets-for-Urdu-news
+- **Homepage:** [Github](https://github.com/MaazAmjad/Datasets-for-Urdu-news/)
+- **Repository:** [Github](https://github.com/MaazAmjad/Datasets-for-Urdu-news/)
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:** <a href="https://github.com/MaazAmjad">Maaz Amjad</a>
+- **Point of Contact:** [Maaz Amjad](https://github.com/MaazAmjad)
 
 ### Dataset Summary
 
@@ -139,3 +140,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@chaitnayabasava](https://github.com/chaitnayabasava) for adding this dataset.

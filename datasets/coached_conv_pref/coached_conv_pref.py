@@ -14,7 +14,6 @@
 # limitations under the License.
 """Coached Conversational Preference Elicitation Dataset to Understanding Movie Preferences"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -137,7 +136,7 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         # Empty Segment list with annotations dictionary
         # First prompt of a conversation does not contain the segment dictionary

@@ -16,7 +16,6 @@
 # Lint as: python3
 """Facebook Low Resource (FLoRes) machine translation benchmark dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import collections
 

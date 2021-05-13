@@ -403,7 +403,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Massively Multilingual Transfer for NER](https://github.com/afshinrahimi/mmner)
 - **Repository:** [Massively Multilingual Transfer for NER](https://github.com/afshinrahimi/mmner)
 - **Paper:** The original datasets come from the _Cross-lingual name tagging and linking for 282 languages_ [paper](https://www.aclweb.org/anthology/P17-1178/) by Xiaoman Pan et al. (2018). This version corresponds to the balanced train, dev, and test splits of the original data from the _Massively Multilingual Transfer for NER_ [paper](https://arxiv.org/abs/1902.00193) by Afshin Rahimi et al. (2019).
 - **Leaderboard:**
@@ -429,7 +429,10 @@ WikiANN (sometimes called PAN-X) is a multilingual named entity recognition data
 
 ### Data Fields
 
-[More Information Needed]
+- `tokens`: a `list` of `string` features.
+- `langs`: a `list` of `string` features that correspond to the language of each token.
+- `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-PER` (1), `I-PER` (2), `B-ORG` (3), `I-ORG` (4), `B-LOC` (5), `I-LOC` (6).
+- `spans`: a `list` of `string` features, that is the list of named entities in the input text formatted as ``<TAG>: <mention>``
 
 ### Data Splits
 
@@ -532,3 +535,7 @@ while the 176 languages supported in this version are associated with the follow
 }
 ```
 
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun) and [@rabeehk](https://github.com/rabeehk) for adding this dataset.

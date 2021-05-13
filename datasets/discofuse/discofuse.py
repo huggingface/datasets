@@ -1,6 +1,5 @@
 """TODO(discofuse): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -28,7 +27,7 @@ _DESCRIPTION = """\
 
 class DiscofuseConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Discofuse"""
+    """BuilderConfig for Discofuse"""
 
     def __init__(self, data_url, balanced=False, **kwargs):
         """
