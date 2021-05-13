@@ -52,7 +52,7 @@ class Child:
         return [
             datasets.SplitGenerator(
                 name=SPLITS[k],
-                gen_kwargs={"split_name": k, "file_pathes": downloaded_files[k]},
+                gen_kwargs={"split_name": k, "file_paths": downloaded_files[k]},
             )
             for k in SPLITS
         ]

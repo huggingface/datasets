@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "default": {
-        "class_name": "CodeXGlueCCDefectDetection",
+        "class_name": "CodeXGlueCcDefectDetection",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE Defect-detection dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Defect-detection",
         "dir_name": "Defect-detection",

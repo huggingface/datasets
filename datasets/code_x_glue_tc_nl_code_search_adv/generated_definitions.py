@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "default": {
-        "class_name": "CodeXGlueTCNLCodeSearchAdv",
+        "class_name": "CodeXGlueTcNLCodeSearchAdv",
         "dataset_type": "Text-Code",
         "description": "CodeXGLUE NL-code-search-Adv dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/NL-code-search-Adv",
         "dir_name": "NL-code-search-Adv",

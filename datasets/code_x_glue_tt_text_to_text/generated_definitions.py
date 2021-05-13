@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "da_en": {
-        "class_name": "CodeXGlueTTTextToText",
+        "class_name": "CodeXGlueTtTextToText",
         "dataset_type": "Text-Text",
         "description": "CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text",
         "dir_name": "text-to-text",
@@ -11,7 +11,7 @@ DEFINITIONS = {
         "sizes": {"test": 1000, "train": 42701, "validation": 1000},
     },
     "lv_en": {
-        "class_name": "CodeXGlueTTTextToText",
+        "class_name": "CodeXGlueTtTextToText",
         "dataset_type": "Text-Text",
         "description": "CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text",
         "dir_name": "text-to-text",
@@ -22,7 +22,7 @@ DEFINITIONS = {
         "sizes": {"test": 1000, "train": 18749, "validation": 1000},
     },
     "no_en": {
-        "class_name": "CodeXGlueTTTextToText",
+        "class_name": "CodeXGlueTtTextToText",
         "dataset_type": "Text-Text",
         "description": "CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text",
         "dir_name": "text-to-text",
@@ -33,7 +33,7 @@ DEFINITIONS = {
         "sizes": {"test": 1000, "train": 44322, "validation": 1000},
     },
     "zh_en": {
-        "class_name": "CodeXGlueTTTextToText",
+        "class_name": "CodeXGlueTtTextToText",
         "dataset_type": "Text-Text",
         "description": "CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text",
         "dir_name": "text-to-text",

@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "java": {
-        "class_name": "CodeXGlueCCCodeCompletionTokenJava",
+        "class_name": "CodeXGlueCcCodeCompletionTokenJava",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE CodeCompletion-token dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-token",
         "dir_name": "CodeCompletion-token",
@@ -11,7 +11,7 @@ DEFINITIONS = {
         "sizes": {"test": 8268, "train": 12934, "validation": 7189},
     },
     "python": {
-        "class_name": "CodeXGlueCCCodeCompletionTokenPython",
+        "class_name": "CodeXGlueCcCodeCompletionTokenPython",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE CodeCompletion-token dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-token",
         "dir_name": "CodeCompletion-token",

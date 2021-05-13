@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "medium": {
-        "class_name": "CodeXGlueCCCodeRefinement",
+        "class_name": "CodeXGlueCcCodeRefinement",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE code-refinement dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-refinement",
         "dir_name": "code-refinement",
@@ -11,7 +11,7 @@ DEFINITIONS = {
         "sizes": {"test": 6545, "train": 52364, "validation": 6546},
     },
     "small": {
-        "class_name": "CodeXGlueCCCodeRefinement",
+        "class_name": "CodeXGlueCcCodeRefinement",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE code-refinement dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-refinement",
         "dir_name": "code-refinement",

@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "default": {
-        "class_name": "CodeXGlueCCCloneDetectionBigCloneBench",
+        "class_name": "CodeXGlueCcCloneDetectionBigCloneBench",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE Clone-detection-BigCloneBench dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-BigCloneBench",
         "dir_name": "Clone-detection-BigCloneBench",

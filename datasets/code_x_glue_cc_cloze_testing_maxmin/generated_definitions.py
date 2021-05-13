@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "go": {
-        "class_name": "CodeXGlueCCClozeTestingMaxmin",
+        "class_name": "CodeXGlueCcClozeTestingMaxmin",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin",
         "dir_name": "ClozeTesting-maxmin",
@@ -11,7 +11,7 @@ DEFINITIONS = {
         "sizes": {"train": 152},
     },
     "java": {
-        "class_name": "CodeXGlueCCClozeTestingMaxmin",
+        "class_name": "CodeXGlueCcClozeTestingMaxmin",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin",
         "dir_name": "ClozeTesting-maxmin",
@@ -22,7 +22,7 @@ DEFINITIONS = {
         "sizes": {"train": 482},
     },
     "javascript": {
-        "class_name": "CodeXGlueCCClozeTestingMaxmin",
+        "class_name": "CodeXGlueCcClozeTestingMaxmin",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin",
         "dir_name": "ClozeTesting-maxmin",
@@ -33,7 +33,7 @@ DEFINITIONS = {
         "sizes": {"train": 272},
     },
     "php": {
-        "class_name": "CodeXGlueCCClozeTestingMaxmin",
+        "class_name": "CodeXGlueCcClozeTestingMaxmin",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin",
         "dir_name": "ClozeTesting-maxmin",
@@ -44,7 +44,7 @@ DEFINITIONS = {
         "sizes": {"train": 407},
     },
     "python": {
-        "class_name": "CodeXGlueCCClozeTestingMaxmin",
+        "class_name": "CodeXGlueCcClozeTestingMaxmin",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin",
         "dir_name": "ClozeTesting-maxmin",
@@ -55,7 +55,7 @@ DEFINITIONS = {
         "sizes": {"train": 1264},
     },
     "ruby": {
-        "class_name": "CodeXGlueCCClozeTestingMaxmin",
+        "class_name": "CodeXGlueCcClozeTestingMaxmin",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin",
         "dir_name": "ClozeTesting-maxmin",

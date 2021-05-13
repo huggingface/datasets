@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "java": {
-        "class_name": "CodeXGlueCCCodeCompletionLine",
+        "class_name": "CodeXGlueCcCodeCompletionLine",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE CodeCompletion-line dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-line",
         "dir_name": "CodeCompletion-line",
@@ -11,7 +11,7 @@ DEFINITIONS = {
         "sizes": {"train": 3000},
     },
     "python": {
-        "class_name": "CodeXGlueCCCodeCompletionLine",
+        "class_name": "CodeXGlueCcCodeCompletionLine",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE CodeCompletion-line dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-line",
         "dir_name": "CodeCompletion-line",

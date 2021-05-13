@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "go": {
-        "class_name": "CodeXGlueCCClozeTestingAll",
+        "class_name": "CodeXGlueCcClozeTestingAll",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-all dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-all",
         "dir_name": "ClozeTesting-all",
@@ -11,7 +11,7 @@ DEFINITIONS = {
         "sizes": {"train": 25282},
     },
     "java": {
-        "class_name": "CodeXGlueCCClozeTestingAll",
+        "class_name": "CodeXGlueCcClozeTestingAll",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-all dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-all",
         "dir_name": "ClozeTesting-all",
@@ -22,7 +22,7 @@ DEFINITIONS = {
         "sizes": {"train": 40492},
     },
     "javascript": {
-        "class_name": "CodeXGlueCCClozeTestingAll",
+        "class_name": "CodeXGlueCcClozeTestingAll",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-all dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-all",
         "dir_name": "ClozeTesting-all",
@@ -33,7 +33,7 @@ DEFINITIONS = {
         "sizes": {"train": 13837},
     },
     "php": {
-        "class_name": "CodeXGlueCCClozeTestingAll",
+        "class_name": "CodeXGlueCcClozeTestingAll",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-all dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-all",
         "dir_name": "ClozeTesting-all",
@@ -44,7 +44,7 @@ DEFINITIONS = {
         "sizes": {"train": 51930},
     },
     "python": {
-        "class_name": "CodeXGlueCCClozeTestingAll",
+        "class_name": "CodeXGlueCcClozeTestingAll",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-all dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-all",
         "dir_name": "ClozeTesting-all",
@@ -55,7 +55,7 @@ DEFINITIONS = {
         "sizes": {"train": 40137},
     },
     "ruby": {
-        "class_name": "CodeXGlueCCClozeTestingAll",
+        "class_name": "CodeXGlueCcClozeTestingAll",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE ClozeTesting-all dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-all",
         "dir_name": "ClozeTesting-all",
