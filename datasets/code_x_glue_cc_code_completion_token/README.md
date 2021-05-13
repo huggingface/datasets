@@ -33,39 +33,24 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-token
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE CodeCompletion-token dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-token
 
 Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
     Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
-    
-
 
 ### [Languages](#languages)
 
-
 java, python
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 #### java
 
@@ -76,7 +61,6 @@ An example of 'test' looks as follows.
     "id": 0
 }
 ```
- 
 
 #### python
 
@@ -88,13 +72,9 @@ An example of 'train' looks as follows.
     "path": "00/wikihouse/urls.py\n"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### java
@@ -104,7 +84,6 @@ In the following each data field in go is explained for each config. The data fi
 |id        |int32           | Index of the sample|
 |code      |Sequence[string]| Code Tokens        |
 
-
 #### python
 
 |field name|      type      |         description         |
@@ -113,16 +92,7 @@ In the following each data field in go is explained for each config. The data fi
 |path      |string          | Original path in the dataset|
 |code      |Sequence[string]| Code Tokens                 |
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
-
 
 #### java
 
@@ -130,39 +100,23 @@ In the following each data field in go is explained for each config. The data fi
 |----|----:|---------:|---:|
 |java|12934|      7189|8268|
 
-
-
-
 #### python
 
 |      |train |test |
 |------|-----:|----:|
 |python|100000|50000|
 
-
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{raychev2016probabilistic,
@@ -183,8 +137,5 @@ Computational Use of Data Agreement (C-UDA) License.
     }
 ```
 
-
-
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

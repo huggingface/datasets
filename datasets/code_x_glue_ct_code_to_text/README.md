@@ -48,17 +48,11 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Text/code-to-text
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE code-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Text/code-to-text
 
@@ -68,22 +62,13 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 
-
-
 ### [Languages](#languages)
-
 
 go, java, javascript, php, python, ruby
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 #### go
 
@@ -104,7 +89,6 @@ An example of 'test' looks as follows.
     "url": "https://github.com/etcd-io/etcd/blob/616592d9ba993e3fe9798eef581316016df98906/clientv3/concurrency/stm.go#L89-L102"
 }
 ```
- 
 
 #### java
 
@@ -125,7 +109,6 @@ An example of 'test' looks as follows.
     "url": "https://github.com/ReactiveX/RxJava/blob/ac84182aa2bd866b53e01c8e3fe99683b882c60e/src/main/java/io/reactivex/internal/observers/QueueDrainObserver.java#L88-L108"
 }
 ```
- 
 
 #### javascript
 
@@ -146,7 +129,6 @@ An example of 'test' looks as follows.
     "url": "https://github.com/axios/axios/blob/92d231387fe2092f8736bc1746d4caa766b675f5/lib/axios.js#L15-L26"
 }
 ```
- 
 
 #### php
 
@@ -167,7 +149,6 @@ An example of 'train' looks as follows.
     "url": "https://github.com/googleapis/gax-php/blob/48387fb818c6882296710a2302a0aa973b99afb2/src/Transport/RestTransport.php#L85-L94"
 }
 ```
- 
 
 #### python
 
@@ -188,7 +169,6 @@ An example of 'validation' looks as follows.
     "url": "https://github.com/openai/baselines/blob/3301089b48c42b87b396e246ea3f56fa4bfc9678/baselines/deepq/deepq.py#L55-L72"
 }
 ```
- 
 
 #### ruby
 
@@ -209,13 +189,9 @@ An example of 'train' looks as follows.
     "url": "https://github.com/rails/rails/blob/85a8bc644be69908f05740a5886ec19cd3679df5/actionview/lib/action_view/renderer/renderer.rb#L38-L44"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### go, java, javascript, php, python, ruby
@@ -235,15 +211,7 @@ In the following each data field in go is explained for each config. The data fi
 |sha             |string          | sha of the file                                                                   |
 |url             |string          | url of the file                                                                   |
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 |   name   |train |validation|test |
 |----------|-----:|---------:|----:|
@@ -254,29 +222,17 @@ In the following each data field in go is explained for each config. The data fi
 |python    |251820|     13914|14918|
 |ruby      | 24927|      1400| 1261|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{husain2019codesearchnet,
@@ -287,8 +243,5 @@ Computational Use of Data Agreement (C-UDA) License.
 }
 ```
 
-
-
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

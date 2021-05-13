@@ -48,17 +48,11 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin
 
@@ -66,21 +60,13 @@ Cloze tests are widely adopted in Natural Languages Processing to evaluate the p
 Here we present the two cloze testing datasets in code domain with six different programming languages: ClozeTest-maxmin and ClozeTest-all. Each instance in the dataset contains a masked code function, its docstring and the target word.
 The only difference between ClozeTest-maxmin and ClozeTest-all is their selected words sets, where ClozeTest-maxmin only contains two words while ClozeTest-all contains 930 words.
 
-
 ### [Languages](#languages)
-
 
 go, java, javascript, php, python, ruby
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 #### go
 
@@ -93,7 +79,6 @@ An example of 'train' looks as follows.
     "pl_tokens": ["func", "(", "v", "*", "Validate", ")", "SetMaxStructPoolSize", "(", "<mask>", "int", ")", "{", "structPool", "=", "&", "sync", ".", "Pool", "{", "New", ":", "newStructErrors", "}", "\n", "}"]
 }
 ```
- 
 
 #### java
 
@@ -106,7 +91,6 @@ An example of 'train' looks as follows.
     "pl_tokens": ["public", "static", "boolean", "startsWith", "(", "char", "[", "]", "src", ",", "char", "[", "]", "find", ",", "int", "startAt", ")", "{", "int", "startPos", "=", "startAt", ";", "boolean", "result", "=", "true", ";", "// Check ranges", "if", "(", "src", ".", "length", "<", "startPos", "+", "find", ".", "length", ")", "{", "result", "=", "false", ";", "}", "else", "{", "final", "int", "<mask>", "=", "find", ".", "length", ";", "for", "(", "int", "a", "=", "0", ";", "a", "<", "max", "&&", "result", ";", "a", "++", ")", "{", "if", "(", "src", "[", "startPos", "]", "!=", "find", "[", "a", "]", ")", "{", "result", "=", "false", ";", "}", "startPos", "++", ";", "}", "}", "return", "result", ";", "}"]
 }
 ```
- 
 
 #### javascript
 
@@ -119,7 +103,6 @@ An example of 'train' looks as follows.
     "pl_tokens": ["function", "(", "string", ")", "{", "// string.check check sting type and size", "return", "(", "(", "typeof", "string", "===", "'string'", "||", "string", "instanceof", "String", ")", "&&", "string", ".", "length", ">=", "this", ".", "<mask>", "&&", "string", ".", "length", "<=", "this", ".", "max", "&&", "(", "!", "this", ".", "match", "||", "string", ".", "match", "(", "this", ".", "match", ")", ")", ")", ";", "}"]
 }
 ```
- 
 
 #### php
 
@@ -132,7 +115,6 @@ An example of 'train' looks as follows.
     "pl_tokens": ["public", "function", "readOne", "(", ")", "{", "if", "(", "$", "this", "->", "pos", "<=", "$", "this", "->", "<mask>", ")", "{", "$", "value", "=", "$", "this", "->", "string", "[", "$", "this", "->", "pos", "]", ";", "$", "this", "->", "pos", "+=", "1", ";", "}", "else", "{", "$", "value", "=", "null", ";", "}", "return", "$", "value", ";", "}"]
 }
 ```
- 
 
 #### python
 
@@ -145,7 +127,6 @@ An example of 'train' looks as follows.
     "pl_tokens": ["def", "_interpolate", "(", "self", ",", "colors", ",", "n", "=", "100", ")", ":", "gradient", "=", "[", "]", "for", "i", "in", "_range", "(", "n", ")", ":", "l", "=", "len", "(", "colors", ")", "-", "1", "x", "=", "int", "(", "1.0", "*", "i", "/", "n", "*", "l", ")", "x", "=", "<mask>", "(", "x", "+", "0", ",", "l", ")", "y", "=", "min", "(", "x", "+", "1", ",", "l", ")", "base", "=", "1.0", "*", "n", "/", "l", "*", "x", "d", "=", "(", "i", "-", "base", ")", "/", "(", "1.0", "*", "n", "/", "l", ")", "r", "=", "colors", "[", "x", "]", ".", "r", "*", "(", "1", "-", "d", ")", "+", "colors", "[", "y", "]", ".", "r", "*", "d", "g", "=", "colors", "[", "x", "]", ".", "g", "*", "(", "1", "-", "d", ")", "+", "colors", "[", "y", "]", ".", "g", "*", "d", "b", "=", "colors", "[", "x", "]", ".", "b", "*", "(", "1", "-", "d", ")", "+", "colors", "[", "y", "]", ".", "b", "*", "d", "a", "=", "colors", "[", "x", "]", ".", "a", "*", "(", "1", "-", "d", ")", "+", "colors", "[", "y", "]", ".", "a", "*", "d", "gradient", ".", "append", "(", "color", "(", "r", ",", "g", ",", "b", ",", "a", ",", "mode", "=", "\"rgb\"", ")", ")", "gradient", ".", "append", "(", "colors", "[", "-", "1", "]", ")", "return", "gradient"]
 }
 ```
- 
 
 #### ruby
 
@@ -158,13 +139,9 @@ An example of 'train' looks as follows.
     "pl_tokens": ["def", "clean", "(", "<mask>", ":", "24", "*", "60", "*", "60", ")", "Futex", ".", "new", "(", "file", ",", "log", ":", "@log", ")", ".", "open", "do", "list", "=", "load", "list", ".", "reject!", "do", "|", "s", "|", "if", "s", "[", ":time", "]", ">=", "Time", ".", "now", "-", "max", "false", "else", "@log", ".", "debug", "(", "\"Copy ##{s[:name]}/#{s[:host]}:#{s[:port]} is too old, over #{Age.new(s[:time])}\"", ")", "true", "end", "end", "save", "(", "list", ")", "deleted", "=", "0", "files", ".", "each", "do", "|", "f", "|", "next", "unless", "list", ".", "find", "{", "|", "s", "|", "s", "[", ":name", "]", "==", "File", ".", "basename", "(", "f", ",", "Copies", "::", "EXT", ")", "}", ".", "nil?", "file", "=", "File", ".", "join", "(", "@dir", ",", "f", ")", "size", "=", "File", ".", "size", "(", "file", ")", "File", ".", "delete", "(", "file", ")", "@log", ".", "debug", "(", "\"Copy at #{f} deleted: #{Size.new(size)}\"", ")", "deleted", "+=", "1", "end", "list", ".", "select!", "do", "|", "s", "|", "cp", "=", "File", ".", "join", "(", "@dir", ",", "\"#{s[:name]}#{Copies::EXT}\"", ")", "wallet", "=", "Wallet", ".", "new", "(", "cp", ")", "begin", "wallet", ".", "refurbish", "raise", "\"Invalid protocol #{wallet.protocol} in #{cp}\"", "unless", "wallet", ".", "protocol", "==", "Zold", "::", "PROTOCOL", "true", "rescue", "StandardError", "=>", "e", "FileUtils", ".", "rm_rf", "(", "cp", ")", "@log", ".", "debug", "(", "\"Copy at #{cp} deleted: #{Backtrace.new(e)}\"", ")", "deleted", "+=", "1", "false", "end", "end", "save", "(", "list", ")", "deleted", "end", "end"]
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### go, java, javascript, php, python, ruby
@@ -176,15 +153,7 @@ In the following each data field in go is explained for each config. The data fi
 |nl_tokens |Sequence[string]| Natural language tokens      |
 |pl_tokens |Sequence[string]| Programming language tokens  |
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 |   name   |train|
 |----------|----:|
@@ -195,29 +164,17 @@ In the following each data field in go is explained for each config. The data fi
 |python    | 1264|
 |ruby      |   38|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{CodeXGLUE,
@@ -239,8 +196,5 @@ Computational Use of Data Agreement (C-UDA) License.
 }
 ```
 
-
-
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

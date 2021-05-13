@@ -37,37 +37,23 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text
 
 The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/.
 
-
 ### [Languages](#languages)
-
 
 da_en, lv_en, no_en, zh_en
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 #### da_en
 
@@ -79,7 +65,6 @@ An example of 'test' looks as follows.
     "target": "4 . Run the model , and publish it as a web service .\n"
 }
 ```
- 
 
 #### lv_en
 
@@ -91,7 +76,6 @@ An example of 'train' looks as follows.
     "target": "title : Create service objects\n"
 }
 ```
- 
 
 #### no_en
 
@@ -103,7 +87,6 @@ An example of 'validation' looks as follows.
     "target": "2 . Open the service item for which you want to set up components from a BOM .\n"
 }
 ```
- 
 
 #### zh_en
 
@@ -115,13 +98,9 @@ An example of 'validation' looks as follows.
     "target": "&#124; MCDUserNotificationReadStateFilterAny &#124; 0 &#124; Include notifications regardless of read state . &#124;\n"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### da_en, lv_en, no_en, zh_en
@@ -132,15 +111,7 @@ In the following each data field in go is explained for each config. The data fi
 |source    |string| The source language version of the text|
 |target    |string| The target language version of the text|
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 |name |train|validation|test|
 |-----|----:|---------:|---:|
@@ -149,29 +120,17 @@ In the following each data field in go is explained for each config. The data fi
 |no_en|44322|      1000|1000|
 |zh_en|50154|      1000|1000|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{CodeXGLUE,
@@ -179,6 +138,5 @@ Computational Use of Data Agreement (C-UDA) License.
          year={2020},}
 ```
 
-
-
-
+### Contributions
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

@@ -32,32 +32,20 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-BigCloneBench
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE Clone-detection-BigCloneBench dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-BigCloneBench
 
 Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree.
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 An example of 'test' looks as follows.
 ```
@@ -70,13 +58,9 @@ An example of 'test' looks as follows.
     "label": false
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### default
@@ -90,43 +74,23 @@ In the following each data field in go is explained for each config. The data fi
 |func2     |string| The full text of the second function              |
 |label     |bool  | 1 is the functions are not equivalent, 0 otherwise|
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 | name  |train |validation| test |
 |-------|-----:|---------:|-----:|
 |default|901028|    415416|415416|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @inproceedings{svajlenko2014towards,
@@ -148,6 +112,5 @@ Computational Use of Data Agreement (C-UDA) License.
 }
 ```
 
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

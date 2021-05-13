@@ -31,17 +31,11 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/NL-code-search-Adv
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE NL-code-search-Adv dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/NL-code-search-Adv
 
@@ -51,16 +45,9 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 
-
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 An example of 'validation' looks as follows.
 ```
@@ -86,13 +73,9 @@ An example of 'validation' looks as follows.
     "url": "https://github.com/soimort/you-get/blob/b746ac01c9f39de94cac2d56f665285b0523b974/src/you_get/extractors/dailymotion.py#L13-L35"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### default
@@ -119,43 +102,23 @@ In the following each data field in go is explained for each config. The data fi
 |nwo              |string                 | nwo                                                                               |
 |score            |datasets.Value("float"]| score for this search                                                             |
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 | name  |train |validation|test |
 |-------|-----:|---------:|----:|
 |default|251820|      9604|19210|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{husain2019codesearchnet,
@@ -166,8 +129,5 @@ Computational Use of Data Agreement (C-UDA) License.
 }
 ```
 
-
-
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

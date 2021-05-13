@@ -31,32 +31,20 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-POJ-104
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE Clone-detection-POJ-104 dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-POJ-104
 
 Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task.
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 An example of 'train' looks as follows.
 ```
@@ -66,13 +54,9 @@ An example of 'train' looks as follows.
     "label": "home"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### default
@@ -83,43 +67,23 @@ In the following each data field in go is explained for each config. The data fi
 |code      |string| The full text of the function                |
 |label     |string| The id of problem that the source code solves|
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 | name  |train|validation|test |
 |-------|----:|---------:|----:|
 |default|32000|      8000|12000|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @inproceedings{mou2016convolutional,
@@ -131,8 +95,5 @@ Computational Use of Data Agreement (C-UDA) License.
 }
 ```
 
-
-
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

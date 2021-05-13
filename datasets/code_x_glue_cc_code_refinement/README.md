@@ -33,31 +33,19 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-refinement
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE code-refinement dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-refinement
 
 We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length.
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 #### medium
 
@@ -69,7 +57,6 @@ An example of 'train' looks as follows.
     "id": 0
 }
 ```
- 
 
 #### small
 
@@ -81,13 +68,9 @@ An example of 'validation' looks as follows.
     "id": 0
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### medium, small
@@ -98,44 +81,24 @@ In the following each data field in go is explained for each config. The data fi
 |buggy     |string| The buggy version of the code  |
 |fixed     |string| The correct version of the code|
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 | name |train|validation|test|
 |------|----:|---------:|---:|
 |medium|52364|      6546|6545|
 |small |46680|      5835|5835|
 
-
-
-
-
-
-
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{CodeXGLUE,
@@ -143,8 +106,5 @@ Computational Use of Data Agreement (C-UDA) License.
          year={2020},}
 ```
 
-
-
-
 ### Contributions
-Thanks to @madlag for adding this dataset.
+Thanks to @madlag (and partly also @ncoop57) for adding this dataset.
