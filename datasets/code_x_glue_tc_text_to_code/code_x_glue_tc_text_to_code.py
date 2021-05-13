@@ -32,8 +32,8 @@ class CodeXGlueTcTextToCode(Child):
     def generate_urls(self, split_name):
         yield "data", f"concode/{split_name}.json"
 
-    def _generate_examples(self, split_name, file_pathes):
-        with open(file_pathes["data"]) as f:
+    def _generate_examples(self, split_name, file_paths):
+        with open(file_paths["data"]) as f:
             for idx, line in enumerate(f):
                 entry = json.loads(line)
                 entry["id"] = idx
@@ -64,5 +64,5 @@ class CodeXGlueTcTextToCodeMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

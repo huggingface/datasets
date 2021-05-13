@@ -54,8 +54,8 @@ class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
         yield "language", f"https://s3.amazonaws.com/code-search-net/CodeSearchNet/v2/{language}.zip"
         yield "dataset", "dataset.zip"
 
-    def get_data_files(self, split_name, file_pathes, language):
-        language_specific_path = file_pathes["language"]
+    def get_data_files(self, split_name, file_paths, language):
+        language_specific_path = file_paths["language"]
         final_path = os.path.join(language_specific_path, language, "final")
         # Make some cleanup to save space
         for path in os.listdir(final_path):
@@ -74,12 +74,12 @@ class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
     def post_process(self, split_name, language, js):
         return js
 
-    def _generate_examples(self, split_name, file_pathes, language):
+    def _generate_examples(self, split_name, file_paths, language):
         import gzip
 
-        data_set_path = file_pathes["dataset"]
+        data_set_path = file_paths["dataset"]
 
-        data_files = self.get_data_files(split_name, file_pathes, language)
+        data_files = self.get_data_files(split_name, file_paths, language)
 
         urls = {}
         f1_path_parts = [data_set_path, "dataset", language, f"{split_name}.txt"]
@@ -120,9 +120,9 @@ class CodeXGlueCtCodeToText(CodeXGlueCtCodeToTextBase):
         for e in super().generate_urls(split_name, language):
             yield e
 
-    def _generate_examples(self, split_name, file_pathes):
+    def _generate_examples(self, split_name, file_paths):
         language = self.info["parameters"]["language"]
-        for e in super()._generate_examples(split_name, file_pathes, language):
+        for e in super()._generate_examples(split_name, file_paths, language):
             yield e
 
 
@@ -150,5 +150,5 @@ class CodeXGlueCtCodeToTextMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

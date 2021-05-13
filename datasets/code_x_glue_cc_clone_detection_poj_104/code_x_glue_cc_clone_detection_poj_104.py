@@ -58,8 +58,8 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
                         f.write(json.dumps(js) + "\n")
                         cont += 1
 
-    def _generate_examples(self, split_name, file_pathes):
-        root_path = file_pathes["data"]
+    def _generate_examples(self, split_name, file_paths):
+        root_path = file_paths["data"]
 
         mark_file = os.path.join(root_path, ".mark")
 
@@ -104,5 +104,5 @@ class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

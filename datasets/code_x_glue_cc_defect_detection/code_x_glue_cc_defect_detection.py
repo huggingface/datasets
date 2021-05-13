@@ -31,13 +31,13 @@ class CodeXGlueCcDefectDetection(TrainValidTestChild):
         yield "index", f"{split_name}.txt"
         yield "data", "function.json"
 
-    def _generate_examples(self, split_name, file_pathes):
+    def _generate_examples(self, split_name, file_paths):
         import json
 
-        js_all = json.load(open(file_pathes["data"]))
+        js_all = json.load(open(file_paths["data"]))
 
         index = set()
-        with open(file_pathes["index"]) as f:
+        with open(file_paths["index"]) as f:
             for line in f:
                 line = line.strip()
                 index.add(int(line))
@@ -73,5 +73,5 @@ class CodeXGlueCcDefectDetectionMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

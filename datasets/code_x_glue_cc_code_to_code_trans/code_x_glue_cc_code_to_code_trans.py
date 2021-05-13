@@ -51,15 +51,15 @@ class CodeXGlueCcCodeToCodeTrans(TrainValidTestChild):
         for key in "cs", "java":
             yield key, f"{split_name}.java-cs.txt.{key}"
 
-    def _generate_examples(self, split_name, file_pathes):
+    def _generate_examples(self, split_name, file_paths):
         """This function returns the examples in the raw (text) form."""
         # Open each file (one for java, and one for c#)
-        files = {k: open(file_pathes[k]) for k in file_pathes}
+        files = {k: open(file_paths[k]) for k in file_paths}
 
         id_ = 0
         while True:
             # Read a single line from each file
-            entries = {k: files[k].readline() for k in file_pathes}
+            entries = {k: files[k].readline() for k in file_paths}
 
             empty = self.check_empty(entries)
             if empty:
@@ -95,5 +95,5 @@ class CodeXGlueCcCodeToCodeTransMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

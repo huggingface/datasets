@@ -57,15 +57,15 @@ class CodeXGlueTtTextToText(Child):
         for i, lang in enumerate(lang_pair.split("-")):
             yield self.KEYS[i], f"{split_name}/{lang_pair}.{split_name}.{lang}"
 
-    def _generate_examples(self, split_name, file_pathes):
-        print(file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        print(file_paths)
         # Open each file (one for source language and the other for target language)
-        files = {k: open(file_pathes[k]) for k in file_pathes}
+        files = {k: open(file_paths[k]) for k in file_paths}
 
         id_ = 0
         while True:
             # Read a single line from each file
-            entries = {k: files[k].readline() for k in file_pathes}
+            entries = {k: files[k].readline() for k in file_paths}
 
             empty = self.check_empty(entries)
             if empty:
@@ -101,5 +101,5 @@ class CodeXGlueTtTextToTextMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

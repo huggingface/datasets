@@ -49,8 +49,8 @@ class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):
 
         yield "data", f"https://zenodo.org/record/3628665/files/java_{split_name}_pre"
 
-    def _generate_examples(self, split_name, file_pathes):
-        with open(file_pathes["data"]) as f:
+    def _generate_examples(self, split_name, file_paths):
+        with open(file_paths["data"]) as f:
             for idx, line in enumerate(f):
                 new_data = []
                 for token in line.strip().split():
@@ -160,8 +160,8 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
             out_tokens = ["<s>"] + out_tokens + ["</s>"]
             yield path, out_tokens
 
-    def _generate_examples(self, split_name, file_pathes):
-        base_dir = file_pathes["data"]
+    def _generate_examples(self, split_name, file_paths):
+        base_dir = file_paths["data"]
         filename = self.PYTHON_FILE_MAPPING[split_name]
 
         mark_file = os.path.join(base_dir, ".mark")
@@ -210,5 +210,5 @@ class CodeXGlueCcCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)
