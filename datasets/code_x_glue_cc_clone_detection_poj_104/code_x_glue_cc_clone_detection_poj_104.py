@@ -8,6 +8,7 @@ import datasets
 from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
+
 _DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task."""
 
@@ -18,6 +19,7 @@ booktitle={Proceedings of the Thirtieth AAAI Conference on Artificial Intelligen
 pages={1287--1293},
 year={2016}
 }"""
+
 
 class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION

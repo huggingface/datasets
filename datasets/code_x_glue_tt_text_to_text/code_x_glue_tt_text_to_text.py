@@ -5,8 +5,9 @@ import datasets
 from .common import Child
 from .generated_definitions import DEFINITIONS
 
+
 _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
-_CITATION= """@article{DBLP:journals/corr/abs-2102-04664,
+_CITATION = """@article{DBLP:journals/corr/abs-2102-04664,
   author    = {Shuai Lu and
                Daya Guo and
                Shuo Ren and
@@ -35,6 +36,7 @@ _CITATION= """@article{DBLP:journals/corr/abs-2102-04664,
   volume    = {abs/2102.04664},
   year      = {2021}
 }"""
+
 
 class CodeXGlueTtTextToText(Child):
     _DESCRIPTION = _DESCRIPTION

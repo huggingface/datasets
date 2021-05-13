@@ -5,6 +5,7 @@ import datasets
 from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
+
 _DESCRIPTION = """Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree."""
 
@@ -26,10 +27,11 @@ year={2020},
 organization={IEEE}
 }"""
 
+
 class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
-    
+
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "id1": datasets.Value("int32"),  # The first function id

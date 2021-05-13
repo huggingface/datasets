@@ -28,6 +28,7 @@ year={2013},
 organization={IEEE}
 }"""
 
+
 class CodeXGlueCcCodeCompletionLine(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION

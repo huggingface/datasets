@@ -29,6 +29,7 @@ _CITATION = """@article{raychev2016probabilistic,
     organization={IEEE}
 }"""
 
+
 class CodeXGlueCcCodeCompletionToken(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION

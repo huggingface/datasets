@@ -14,6 +14,7 @@ author={Zhou, Yaqin and Liu, Shangqing and Siow, Jingkai and Du, Xiaoning and Li
 booktitle={Advances in Neural Information Processing Systems},
 pages={10197--10207}, year={2019}"""
 
+
 class CodeXGlueCcDefectDetection(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION

@@ -5,8 +5,9 @@ import datasets
 from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
+
 _DESCRIPTION = """We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length."""
-_CITATION= """@article{10.1145/3340544,
+_CITATION = """@article{10.1145/3340544,
 author = {Tufano, Michele and Watson, Cody and Bavota, Gabriele and Penta, Massimiliano Di and White, Martin and Poshyvanyk, Denys},
 title = {An Empirical Study on Learning Bug-Fixing Patches in the Wild via Neural Machine Translation},
 year = {2019},
@@ -25,6 +26,7 @@ articleno = {19},
 numpages = {29},
 keywords = {bug-fixes, Neural machine translation}
 }"""
+
 
 class CodeXGlueCcCodeRefinement(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
