@@ -9,19 +9,22 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
-    _DESCRIPTION = """The dataset we use comes from CodeSearchNet and we filter the dataset as the following:
+_DESCRIPTION = """The dataset we use comes from CodeSearchNet and we filter the dataset as the following:
 - Remove examples that codes cannot be parsed into an abstract syntax tree.
 - Remove examples that #tokens of documents is < 3 or >256
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 """
-    _CITATION = """@article{husain2019codesearchnet,
-  title={Codesearchnet challenge: Evaluating the state of semantic code search},
-  author={Husain, Hamel and Wu, Ho-Hsiang and Gazit, Tiferet and Allamanis, Miltiadis and Brockschmidt, Marc},
-  journal={arXiv preprint arXiv:1909.09436},
-  year={2019}
+_CITATION = """@article{husain2019codesearchnet,
+title={Codesearchnet challenge: Evaluating the state of semantic code search},
+author={Husain, Hamel and Wu, Ho-Hsiang and Gazit, Tiferet and Allamanis, Miltiadis and Brockschmidt, Marc},
+journal={arXiv preprint arXiv:1909.09436},
+year={2019}
 }"""
+
+class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
 
     # For each file, each line in the uncompressed file represents one function.
     _FEATURES = {

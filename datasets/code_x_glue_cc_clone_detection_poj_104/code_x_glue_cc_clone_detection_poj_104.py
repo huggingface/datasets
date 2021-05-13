@@ -8,18 +8,21 @@ import datasets
 from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-
-class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
-    _DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
+_DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task."""
 
-    _CITATION = """@inproceedings{mou2016convolutional,
-  title={Convolutional neural networks over tree structures for programming language processing},
-  author={Mou, Lili and Li, Ge and Zhang, Lu and Wang, Tao and Jin, Zhi},
-  booktitle={Proceedings of the Thirtieth AAAI Conference on Artificial Intelligence},
-  pages={1287--1293},
-  year={2016}
+_CITATION = """@inproceedings{mou2016convolutional,
+title={Convolutional neural networks over tree structures for programming language processing},
+author={Mou, Lili and Li, Ge and Zhang, Lu and Wang, Tao and Jin, Zhi},
+booktitle={Proceedings of the Thirtieth AAAI Conference on Artificial Intelligence},
+pages={1287--1293},
+year={2016}
 }"""
+
+class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
+
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "code": datasets.Value("string"),  # The full text of the function

@@ -5,10 +5,42 @@ import datasets
 from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
+_DESCRIPTION = """The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
+        We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets."""
+_CITATION= """@article{DBLP:journals/corr/abs-2102-04664,
+  author    = {Shuai Lu and
+               Daya Guo and
+               Shuo Ren and
+               Junjie Huang and
+               Alexey Svyatkovskiy and
+               Ambrosio Blanco and
+               Colin B. Clement and
+               Dawn Drain and
+               Daxin Jiang and
+               Duyu Tang and
+               Ge Li and
+               Lidong Zhou and
+               Linjun Shou and
+               Long Zhou and
+               Michele Tufano and
+               Ming Gong and
+               Ming Zhou and
+               Nan Duan and
+               Neel Sundaresan and
+               Shao Kun Deng and
+               Shengyu Fu and
+               Shujie Liu},
+  title     = {CodeXGLUE: {A} Machine Learning Benchmark Dataset for Code Understanding
+               and Generation},
+  journal   = {CoRR},
+  volume    = {abs/2102.04664},
+  year      = {2021}
+}"""
 
 class CodeXGlueCcCodeToCodeTrans(TrainValidTestChild):
-    _DESCRIPTION = """The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
-        We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets."""
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
+    
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "java": datasets.Value("string"),  # The java version of the code

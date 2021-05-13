@@ -7,14 +7,17 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueTcTextToCode(Child):
-    _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
-    _CITATION = """@article{iyer2018mapping,
-  title={Mapping language to code in programmatic context},
-  author={Iyer, Srinivasan and Konstas, Ioannis and Cheung, Alvin and Zettlemoyer, Luke},
-  journal={arXiv preprint arXiv:1808.09588},
-  year={2018}
+_DESCRIPTION = """We use concode dataset which is a widely used code generation dataset from Iyer's EMNLP 2018 paper Mapping Language to Code in Programmatic Context. See paper for details."""
+_CITATION = """@article{iyer2018mapping,
+title={Mapping language to code in programmatic context},
+author={Iyer, Srinivasan and Konstas, Ioannis and Cheung, Alvin and Zettlemoyer, Luke},
+journal={arXiv preprint arXiv:1808.09588},
+year={2018}
 }"""
+
+class CodeXGlueTcTextToCode(Child):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
 
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample

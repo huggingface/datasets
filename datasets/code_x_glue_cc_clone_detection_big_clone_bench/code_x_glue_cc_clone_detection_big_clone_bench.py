@@ -5,28 +5,31 @@ import datasets
 from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-
-class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
-    _DESCRIPTION = """Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
+_DESCRIPTION = """Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree."""
 
-    _CITATION = """@inproceedings{svajlenko2014towards,
-  title={Towards a big data curated benchmark of inter-project code clones},
-  author={Svajlenko, Jeffrey and Islam, Judith F and Keivanloo, Iman and Roy, Chanchal K and Mia, Mohammad Mamun},
-  booktitle={2014 IEEE International Conference on Software Maintenance and Evolution},
-  pages={476--480},
-  year={2014},
-  organization={IEEE}
+_CITATION = """@inproceedings{svajlenko2014towards,
+title={Towards a big data curated benchmark of inter-project code clones},
+author={Svajlenko, Jeffrey and Islam, Judith F and Keivanloo, Iman and Roy, Chanchal K and Mia, Mohammad Mamun},
+booktitle={2014 IEEE International Conference on Software Maintenance and Evolution},
+pages={476--480},
+year={2014},
+organization={IEEE}
 }
 
 @inproceedings{wang2020detecting,
-  title={Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree},
-  author={Wang, Wenhan and Li, Ge and Ma, Bo and Xia, Xin and Jin, Zhi},
-  booktitle={2020 IEEE 27th International Conference on Software Analysis, Evolution and Reengineering (SANER)},
-  pages={261--271},
-  year={2020},
-  organization={IEEE}
+title={Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree},
+author={Wang, Wenhan and Li, Ge and Ma, Bo and Xia, Xin and Jin, Zhi},
+booktitle={2020 IEEE 27th International Conference on Software Analysis, Evolution and Reengineering (SANER)},
+pages={261--271},
+year={2020},
+organization={IEEE}
 }"""
+
+class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
+    
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "id1": datasets.Value("int32"),  # The first function id

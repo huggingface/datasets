@@ -8,27 +8,30 @@ from .common import Child
 from .generated_definitions import DEFINITIONS
 
 
-class CodeXGlueCcCodeCompletionToken(Child):
-    _DESCRIPTION = """Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
-    Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
-    """
+_DESCRIPTION = """Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
+Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
+"""
 
-    _CITATION = """@article{raychev2016probabilistic,
-      title={Probabilistic Model for Code with Decision Trees},
-      author={Raychev, Veselin and Bielik, Pavol and Vechev, Martin},
-      journal={ACM SIGPLAN Notices},
-      pages={731--747},
-      year={2016},
-      publisher={ACM New York, NY, USA}
-    }
-    @inproceedings{allamanis2013mining,
-      title={Mining Source Code Repositories at Massive Scale using Language Modeling},
-      author={Allamanis, Miltiadis and Sutton, Charles},
-      booktitle={2013 10th Working Conference on Mining Software Repositories (MSR)},
-      pages={207--216},
-      year={2013},
-      organization={IEEE}
-    }"""
+_CITATION = """@article{raychev2016probabilistic,
+    title={Probabilistic Model for Code with Decision Trees},
+    author={Raychev, Veselin and Bielik, Pavol and Vechev, Martin},
+    journal={ACM SIGPLAN Notices},
+    pages={731--747},
+    year={2016},
+    publisher={ACM New York, NY, USA}
+}
+@inproceedings{allamanis2013mining,
+    title={Mining Source Code Repositories at Massive Scale using Language Modeling},
+    author={Allamanis, Miltiadis and Sutton, Charles},
+    booktitle={2013 10th Working Conference on Mining Software Repositories (MSR)},
+    pages={207--216},
+    year={2013},
+    organization={IEEE}
+}"""
+
+class CodeXGlueCcCodeCompletionToken(Child):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
 
 
 class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):

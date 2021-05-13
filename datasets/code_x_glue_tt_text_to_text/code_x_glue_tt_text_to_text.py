@@ -5,9 +5,40 @@ import datasets
 from .common import Child
 from .generated_definitions import DEFINITIONS
 
+_DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
+_CITATION= """@article{DBLP:journals/corr/abs-2102-04664,
+  author    = {Shuai Lu and
+               Daya Guo and
+               Shuo Ren and
+               Junjie Huang and
+               Alexey Svyatkovskiy and
+               Ambrosio Blanco and
+               Colin B. Clement and
+               Dawn Drain and
+               Daxin Jiang and
+               Duyu Tang and
+               Ge Li and
+               Lidong Zhou and
+               Linjun Shou and
+               Long Zhou and
+               Michele Tufano and
+               Ming Gong and
+               Ming Zhou and
+               Nan Duan and
+               Neel Sundaresan and
+               Shao Kun Deng and
+               Shengyu Fu and
+               Shujie Liu},
+  title     = {CodeXGLUE: {A} Machine Learning Benchmark Dataset for Code Understanding
+               and Generation},
+  journal   = {CoRR},
+  volume    = {abs/2102.04664},
+  year      = {2021}
+}"""
 
 class CodeXGlueTtTextToText(Child):
-    _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
 
     _FEATURES = {
         "id": datasets.Value("int32"),  # The index of the sample
