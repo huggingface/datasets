@@ -1390,11 +1390,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
 
         Args:
-            task (``str``): The name of the task to cast to. Supported tasks include:
+            task (``str``): The task to prepare the dataset for during training and evaluation. Supported tasks include:
 
                 - :obj:`"text-clasification"`
                 - :obj:`"question-answering"`
         """
+        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         tasks = [template.task for template in (self.info.task_templates or [])]
         compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
         if not compatible_templates:
