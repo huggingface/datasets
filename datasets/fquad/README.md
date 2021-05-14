@@ -29,12 +29,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -68,7 +68,7 @@ FQuAD contains 25,000+ question and answer pairs.
 Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.  
 Developped to provide a SQuAD equivalent in the French language. Questions are original and based on high quality Wikipedia articles.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `closed-domain-qa`, `text-retrieval`: This dataset is intended to be used for `closed-domain-qa`, but can also be used for information retrieval tasks.
 
@@ -113,7 +113,7 @@ The data fields are the same among all splits.
   - `texts`: a `string` feature.
   - `answers_starts`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 The FQuAD dataset has 3 splits: _train_, _validation_, and _test_. The _test_ split is however not released publicly at the moment. The splits contain disjoint sets of articles. The following table contains stats about each split. 
 

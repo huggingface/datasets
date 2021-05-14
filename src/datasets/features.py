@@ -15,6 +15,7 @@
 
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
+import copy
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
@@ -960,5 +961,5 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def copy(self):
-        return Features(super().copy())
+    def copy(self) -> "Features":
+        return copy.deepcopy(self)

@@ -793,7 +793,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
-        new_features = copy.deepcopy(dset.features)
+        new_features = dset.features.copy()
         new_features[column] = dst_feat
         dset = dset.cast(new_features)
 
@@ -2820,7 +2820,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Concatenate tables horizontally
         table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
-        info = copy.deepcopy(self.info)
+        info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
         return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
@@ -3046,7 +3046,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = concat_tables([self._indices, item_indices_table])
         return Dataset(
             table,
-            info=copy.deepcopy(self.info),
+            info=self.info.copy(),
             split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
