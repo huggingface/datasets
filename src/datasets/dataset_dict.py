@@ -797,7 +797,10 @@ class DatasetDict(dict):
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
 
         Args:
-            task (``str``): One of the compatible tasks in `~tasks`.
+            task (``str``): The name of the task to cast to. Supported tasks include:
+
+                - :obj:`"text-clasification"`
+                - :obj:`"question-answering"`
         """
         self._check_values_type()
         return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
