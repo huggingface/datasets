@@ -98,7 +98,7 @@ class TypedSequence:
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
-            elif isinstance(type, np.ndarray):
+            elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
             else:
                 out = pa.array(self.data, type=type)
