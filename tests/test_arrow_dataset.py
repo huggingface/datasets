@@ -688,6 +688,79 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset1, dset2, dset3
 
+    def test_concatenate_with_no_task_templates(self, in_memory):
+        info = DatasetInfo(task_templates=None)
+        data = {"text": ["i love transformers!"], "labels": [1]}
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
+                data, info=info
+            ) as dset2, Dataset.from_dict(data, info=info) as dset3:
+                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
+                    in_memory, tmp_dir, dset2
+                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
+                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                        self.assertEqual(dset_concat.info.task_templates, None)
+
+    def test_concatenate_with_equal_task_templates(self, in_memory):
+        task_template = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg"])
+        info = DatasetInfo(task_templates=task_template)
+        data = {"text": ["i love transformers!"], "labels": [1]}
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
+                data, info=info
+            ) as dset2, Dataset.from_dict(data, info=info) as dset3:
+                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
+                    in_memory, tmp_dir, dset2
+                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
+                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                        self.assertListEqual(dset_concat.info.task_templates, [task_template])
+
+    def test_concatenate_with_mixed_task_templates_in_common(self, in_memory):
+        tc_template = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg"])
+        qa_template = QuestionAnswering(question_column="question", context_column="context", answers_column="answers")
+        info1 = DatasetInfo(task_templates=[qa_template])
+        info2 = DatasetInfo(task_templates=[qa_template, tc_template])
+        data = {
+            "text": ["i love transformers!"],
+            "labels": [1],
+            "context": ["huggingface is going to the moon!"],
+            "question": ["where is huggingface going?"],
+            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
+                data, info=info2
+            ) as dset2, Dataset.from_dict(data, info=info2) as dset3:
+                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
+                    in_memory, tmp_dir, dset2
+                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
+                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                        self.assertListEqual(dset_concat.info.task_templates, [qa_template])
+
+    def test_concatenate_with_no_mixed_task_templates_in_common(self, in_memory):
+        tc_template1 = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg"])
+        tc_template2 = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg", "neutral"])
+        qa_template = QuestionAnswering(question_column="question", context_column="context", answers_column="answers")
+        info1 = DatasetInfo(task_templates=[tc_template1])
+        info2 = DatasetInfo(task_templates=[tc_template2])
+        info3 = DatasetInfo(task_templates=[qa_template])
+        data = {
+            "text": ["i love transformers!"],
+            "labels": [1],
+            "context": ["huggingface is going to the moon!"],
+            "question": ["where is huggingface going?"],
+            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
+                data, info=info2
+            ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
+                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
+                    in_memory, tmp_dir, dset2
+                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
+                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                        self.assertEqual(dset_concat.info.task_templates, None)
+
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(

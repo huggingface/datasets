@@ -120,6 +120,7 @@ class DatasetInfo:
     features: Optional[Features] = None
     post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
+    task_templates: Optional[List[TaskTemplate]] = None
 
     # Set later by the builder
     builder_name: Optional[str] = None
@@ -132,8 +133,6 @@ class DatasetInfo:
     post_processing_size: Optional[int] = None
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
-
-    task_templates: Optional[List[TaskTemplate]] = None
 
     def __post_init__(self):
         # Convert back to the correct classes when we reload from dict
@@ -205,6 +204,7 @@ class DatasetInfo:
         license = "\n\n".join(unique(info.license for info in dataset_infos))
         features = None
         supervised_keys = None
+        task_templates = None
 
         # Find common task templates across all dataset infos
         all_task_templates = [info.task_templates for info in dataset_infos if info.task_templates is not None]
@@ -212,8 +212,8 @@ class DatasetInfo:
             task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
         elif len(all_task_templates):
             task_templates = list(set(all_task_templates[0]))
-        else:
-            task_templates = None
+        # If no common task templates found, replace empty list with None
+        task_templates = task_templates if task_templates else None
 
         return cls(
             description=description,
