@@ -1,15 +1,15 @@
 import abc
 from dataclasses import dataclass
-from typing import Dict
+from typing import ClassVar, Dict
 
 from ..features import Features
 
 
 @dataclass
 class TaskTemplate(abc.ABC):
-    task: str
-    input_schema: Features
-    label_schema: Features
+    task: ClassVar[str]
+    input_schema: ClassVar[Features]
+    label_schema: ClassVar[Features]
 
     @property
     def features(self) -> Features:
