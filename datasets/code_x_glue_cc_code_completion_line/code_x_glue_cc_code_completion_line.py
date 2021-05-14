@@ -45,7 +45,7 @@ class CodeXGlueCcCodeCompletionLine(Child):
         yield "data", "test.json"
 
     def _generate_examples(self, split_name, file_paths):
-        with open(file_paths["data"]) as f:
+        with open(file_paths["data"], encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 entry = json.loads(line)
                 entry["id"] = idx

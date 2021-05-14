@@ -51,7 +51,7 @@ class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):
         yield "data", f"https://zenodo.org/record/3628665/files/java_{split_name}_pre"
 
     def _generate_examples(self, split_name, file_paths):
-        with open(file_paths["data"]) as f:
+        with open(file_paths["data"], encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 new_data = []
                 for token in line.strip().split():
@@ -123,10 +123,10 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
         from io import BytesIO
         from tokenize import COMMENT, ENCODING, ENDMARKER, INDENT, NEWLINE, NL, NUMBER, STRING, tokenize
 
-        file_paths = open(os.path.join(base_dir, file_name)).readlines()
+        file_paths = open(os.path.join(base_dir, file_name), encoding="utf-8").readlines()
         for ct, path in enumerate(file_paths):
             try:
-                code = open(os.path.join(base_dir, path.strip())).read()
+                code = open(os.path.join(base_dir, path.strip()), encoding="utf-8").read()
                 token_gen = tokenize(BytesIO(bytes(code, "utf8")).readline)
                 out_tokens = []
                 prev_eol = False
@@ -175,7 +175,7 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
                 t = tarfile.TarFile(fileobj=gzip_file)
                 t.extractall(path=base_dir)
 
-        with open(mark_file, "w") as f:
+        with open(mark_file, "w", encoding="utf-8") as f:
             f.write("finished")
 
         idx = 0

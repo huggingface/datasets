@@ -52,12 +52,12 @@ class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
 
         js_all = {}
 
-        with open(file_paths["data"]) as f:
+        with open(file_paths["data"], encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 entry = json.loads(line)
                 js_all[int(entry["idx"])] = entry["func"]
 
-        with open(file_paths["index"]) as f:
+        with open(file_paths["index"], encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 line = line.strip()
                 idx1, idx2, label = [int(i) for i in line.split("\t")]

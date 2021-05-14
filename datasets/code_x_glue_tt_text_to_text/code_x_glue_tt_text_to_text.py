@@ -62,7 +62,7 @@ class CodeXGlueTtTextToText(Child):
     def _generate_examples(self, split_name, file_paths):
         print(file_paths)
         # Open each file (one for source language and the other for target language)
-        files = {k: open(file_paths[k]) for k in file_paths}
+        files = {k: open(file_paths[k], encoding="utf-8") for k in file_paths}
 
         id_ = 0
         while True:

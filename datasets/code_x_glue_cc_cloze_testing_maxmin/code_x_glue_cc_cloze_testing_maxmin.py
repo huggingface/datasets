@@ -45,7 +45,7 @@ class CodeXGlueCcClozeTesting(Child):
         yield "data", "clozeTest.json"
 
     def _generate_examples(self, split_name, file_paths):
-        with open(file_paths["data"]) as f:
+        with open(file_paths["data"], encoding="utf-8") as f:
             j = json.load(f)
             index = 0
             for entry in j:

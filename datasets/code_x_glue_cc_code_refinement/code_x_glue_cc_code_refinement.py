@@ -48,7 +48,7 @@ class CodeXGlueCcCodeRefinement(TrainValidTestChild):
     def _generate_examples(self, split_name, file_paths):
         """This function returns the examples in the raw (text) form."""
         # Open each file (one for java, and one for c#)
-        files = {k: open(file_paths[k]) for k in file_paths}
+        files = {k: open(file_paths[k], encoding="utf-8") for k in file_paths}
 
         id_ = 0
         while True:

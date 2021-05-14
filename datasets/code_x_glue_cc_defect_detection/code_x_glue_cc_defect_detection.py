@@ -35,10 +35,10 @@ class CodeXGlueCcDefectDetection(TrainValidTestChild):
     def _generate_examples(self, split_name, file_paths):
         import json
 
-        js_all = json.load(open(file_paths["data"]))
+        js_all = json.load(open(file_paths["data"], encoding="utf-8"))
 
         index = set()
-        with open(file_paths["index"]) as f:
+        with open(file_paths["index"], encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 index.add(int(line))

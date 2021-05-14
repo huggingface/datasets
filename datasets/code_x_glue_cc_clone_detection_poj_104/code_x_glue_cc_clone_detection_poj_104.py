@@ -49,7 +49,7 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
 
         cont = 0
         for split_name, range_info in self.SPLIT_RANGES.items():
-            with open(os.path.join(root_path, f"{split_name}.jsonl"), "w") as f:
+            with open(os.path.join(root_path, f"{split_name}.jsonl"), "w", encoding="utf-8") as f:
                 for i in range(*range_info):
                     items = files(os.path.join(root_path, "ProgramData/{}".format(i)))
                     for item in items:
@@ -68,12 +68,12 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
         if not os.path.exists(mark_file):
             self.pregenerate_all(root_path)
 
-        with open(mark_file, "w") as f:
+        with open(mark_file, "w", encoding="utf-8") as f:
             f.write("finished")
 
         json_file = os.path.join(root_path, f"{split_name}.jsonl")
 
-        with open(json_file) as f:
+        with open(json_file, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 entry = json.loads(line)
                 idx = int(entry["index"])

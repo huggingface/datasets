@@ -88,7 +88,7 @@ class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
             del f1_path_parts[2]
 
         f1_path = os.path.join(*f1_path_parts)
-        with open(f1_path) as f1:
+        with open(f1_path, encoding="utf-8") as f1:
             for line in f1:
                 line = line.strip()
                 urls[line] = True
@@ -98,7 +98,7 @@ class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
             if ".gz" in file:
                 f = gzip.open(file)
             else:
-                f = open(file)
+                f = open(file, encoding="utf-8")
 
             for line in f:
                 line = line.strip()
