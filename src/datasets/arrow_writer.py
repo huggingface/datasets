@@ -20,11 +20,12 @@ import socket
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import pyarrow as pa
 from tqdm.auto import tqdm
 
 from . import config
-from .features import Features, _ArrayXDExtensionType
+from .features import Features, _ArrayXDExtensionType, numpy_to_pyarrow_listarray
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils.file_utils import hash_url_to_filename
@@ -87,7 +88,9 @@ class TypedSequence:
         """This function is called when calling pa.array(typed_sequence)"""
         assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
         trying_type = False
-        if type is None and self.try_type:
+        if type is not None:
+            pass
+        elif type is None and self.try_type:
             type = self.try_type
             trying_type = True
         else:
@@ -95,6 +98,8 @@ class TypedSequence:
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+            elif isinstance(type, np.ndarray):
+                out = numpy_to_pyarrow_listarray(self.data)
             else:
                 out = pa.array(self.data, type=type)
             if trying_type and out[0].as_py() != self.data[0]:
