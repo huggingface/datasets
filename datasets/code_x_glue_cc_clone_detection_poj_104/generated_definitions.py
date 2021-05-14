@@ -1,6 +1,6 @@
 DEFINITIONS = {
     "default": {
-        "class_name": "CodeXGlueCcCloneDetectionPOJ104",
+        "class_name": "CodeXGlueCcCloneDetectionPoj104",
         "dataset_type": "Code-Code",
         "description": "CodeXGLUE Clone-detection-POJ-104 dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-POJ-104",
         "dir_name": "Clone-detection-POJ-104",
