@@ -1387,7 +1387,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def prepare_for_task(self, task: str) -> "Dataset":
         """Prepare a dataset for the given task.
 
-        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Supported tasks include:
+        * text-clasification
+        * question-answering
 
         Args:
             task (``str``): One of the compatible tasks in `~tasks`.
