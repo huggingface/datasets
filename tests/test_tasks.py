@@ -14,7 +14,8 @@ class TextClassificationTest(TestCase):
 
     def test_from_dict(self):
         input_schema = Features({"text": Value("string")})
-        label_schema = Features({"labels": ClassLabel(names=self.labels)})
+        # Labels are cast to tuple during TextClassification init, so we do the same here
+        label_schema = Features({"labels": ClassLabel(names=tuple(self.labels))})
         template_dict = {"text_column": "input_text", "label_column": "input_labels", "labels": self.labels}
         task = TextClassification.from_dict(template_dict)
         self.assertEqual("text-classification", task.task)

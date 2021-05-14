@@ -1932,10 +1932,11 @@ class BaseDatasetTest(TestCase):
                 "input_labels": Value("int32"),
             }
         )
+        # Labels are cast to tuple during TextClassification init, so we do the same here
         features_after_cast = Features(
             {
                 "text": Value("string"),
-                "labels": ClassLabel(names=labels),
+                "labels": ClassLabel(names=tuple(labels)),
             }
         )
         info = DatasetInfo(

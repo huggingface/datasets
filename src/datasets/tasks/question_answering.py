@@ -5,7 +5,7 @@ from ..features import Features, Sequence, Value
 from .base import TaskTemplate
 
 
-@dataclass
+@dataclass(frozen=True)
 class QuestionAnswering(TaskTemplate):
     task = "question-answering"
     input_schema = Features({"question": Value("string"), "context": Value("string")})
@@ -24,9 +24,9 @@ class QuestionAnswering(TaskTemplate):
     answers_column: str
 
     def __init__(self, question_column="question", context_column="context", answers_column="answers"):
-        self.question_column = question_column
-        self.context_column = context_column
-        self.answers_column = answers_column
+        object.__setattr__(self, "question_column", question_column)
+        object.__setattr__(self, "context_column", context_column)
+        object.__setattr__(self, "answers_column", answers_column)
 
     @property
     def column_mapping(self) -> Dict[str, str]:
@@ -39,6 +39,3 @@ class QuestionAnswering(TaskTemplate):
             context_column=template_dict["context_column"],
             answers_column=template_dict["answers_column"],
         )
-
-    def __hash__(self):
-        return hash((self.task, self.question_column, self.context_column, self.answers_column))
