@@ -8,15 +8,15 @@ languages:
   - en
   release_v2:
   - en
-  release_v2.1:
+  release_v2_1:
   - en
-  release_v2.1_constrained:
+  release_v2_1_constrained:
   - en
   release_v2_constrained:
   - en
-  release_v3.0_en:
+  release_v3_0_en:
   - en
-  release_v3.0_ru:
+  release_v3_0_ru:
   - ru
   webnlg_challenge_2017:
   - en
@@ -36,16 +36,16 @@ task_categories:
   - conditional-text-generation
   release_v2:
   - conditional-text-generation
-  release_v2.1:
+  release_v2_1:
   - conditional-text-generation
-  release_v2.1_constrained:
+  release_v2_1_constrained:
   - conditional-text-generation
   release_v2_constrained:
   - conditional-text-generation
-  release_v3.0_en:
+  release_v3_0_en:
   - conditional-text-generation
   - structure-prediction
-  release_v3.0_ru:
+  release_v3_0_ru:
   - conditional-text-generation
   - structure-prediction
   webnlg_challenge_2017:
@@ -55,16 +55,16 @@ task_ids:
   - other-stuctured-to-text
   release_v2:
   - other-stuctured-to-text
-  release_v2.1:
+  release_v2_1:
   - other-stuctured-to-text
-  release_v2.1_constrained:
+  release_v2_1_constrained:
   - other-stuctured-to-text
   release_v2_constrained:
   - other-stuctured-to-text
-  release_v3.0_en:
+  release_v3_0_en:
   - conditional-text-generation
   - parsing
-  release_v3.0_ru:
+  release_v3_0_ru:
   - conditional-text-generation
   - parsing
   webnlg_challenge_2017:
