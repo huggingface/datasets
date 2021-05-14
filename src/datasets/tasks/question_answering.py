@@ -19,14 +19,14 @@ class QuestionAnswering(TaskTemplate):
             )
         }
     )
-    question_column: str
-    context_column: str
-    answers_column: str
+    question_column: str = "question"
+    context_column: str = "context"
+    answers_column: str = "answers"
 
-    def __init__(self, question_column="question", context_column="context", answers_column="answers"):
-        object.__setattr__(self, "question_column", question_column)
-        object.__setattr__(self, "context_column", context_column)
-        object.__setattr__(self, "answers_column", answers_column)
+    def __post_init__(self):
+        object.__setattr__(self, "question_column", self.question_column)
+        object.__setattr__(self, "context_column", self.context_column)
+        object.__setattr__(self, "answers_column", self.answers_column)
 
     @property
     def column_mapping(self) -> Dict[str, str]:

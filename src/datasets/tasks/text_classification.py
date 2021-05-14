@@ -11,20 +11,15 @@ class TextClassification(TaskTemplate):
     input_schema = Features({"text": Value("string")})
     label_schema = Features({"labels": ClassLabel})
     labels: List[str]
-    text_column: str
-    label_column: str
+    text_column: str = "text"
+    label_column: str = "labels"
 
-    def __init__(
-        self,
-        labels,
-        text_column="text",
-        label_column="labels",
-    ):
-        assert sorted(set(labels)) == sorted(labels), "Labels must be unique"
+    def __post_init__(self):
+        assert sorted(set(self.labels)) == sorted(self.labels), "Labels must be unique"
         # Cast labels to tuple to allow hashing
-        object.__setattr__(self, "labels", tuple(sorted(labels)))
-        object.__setattr__(self, "text_column", text_column)
-        object.__setattr__(self, "label_column", label_column)
+        object.__setattr__(self, "labels", tuple(sorted(self.labels)))
+        object.__setattr__(self, "text_column", self.text_column)
+        object.__setattr__(self, "label_column", self.label_column)
         self.label_schema["labels"] = ClassLabel(names=self.labels)
         object.__setattr__(self, "label2id", {label: idx for idx, label in enumerate(self.labels)})
         object.__setattr__(self, "id2label", {idx: label for label, idx in self.label2id.items()})
