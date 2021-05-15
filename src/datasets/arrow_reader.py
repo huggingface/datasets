@@ -381,7 +381,7 @@ class _RelativeInstruction:
         assert self.unit is None or self.unit in ["%", "abs"]
         assert self.rounding is None or self.rounding in ["closest", "pct1_dropremainder"]
         if self.unit != "%" and self.rounding is not None:
-            raise AssertionError("It is forbidden to specify rounding if not using percents as the slicing unit.")
+            raise AssertionError("It is forbidden to specify rounding if not using percent slicing.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
         if self.unit == "%" and self.to is not None and abs(self.to) > 100:

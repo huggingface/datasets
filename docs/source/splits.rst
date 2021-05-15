@@ -38,9 +38,6 @@ Examples using the string API:
     # The first 10% of `train` split.
     train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
    
-    # The first 10% of `train` split with the `pct1_dropremainder` rounding.
-    train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%](pct1_dropremainder)')
-
     # The first 10% of `train` + the last 80% of `train`.
     train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
 
@@ -84,10 +81,6 @@ Examples using the ``ReadInstruction`` API (equivalent as above):
     train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
         'train', to=10, unit='%'))
     
-    # The first 10% of `train` split with the `pct1_dropremainder` rounding.
-    train_10pct_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
-        'train', to=10, unit='%', rounding='pct1_dropremainder'))
-
     # The first 10% of `train` + the last 80% of `train`.
     ri = (datasets.ReadInstruction('train', to=10, unit='%') +
         datasets.ReadInstruction('train', from_=-80, unit='%'))
@@ -107,3 +100,33 @@ Examples using the ``ReadInstruction`` API (equivalent as above):
         (datasets.ReadInstruction('train', to=k, unit='%') +
         datasets.ReadInstruction('train', from_=k+10, unit='%'))
         for k in range(0, 100, 10)])
+
+Percent slicing and rounding
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a slice of a split is requested using the percent (``%``) unit, and the
+requested slice boundaries do not divide evenly by 100, then the default
+behaviour is to round boundaries to the nearest integer (``closest``). This means
+that some slices may contain more examples than others. For example:
+
+.. code-block::
+
+    # Assuming `train` split contains 999 records.
+    # 989 records, from 0 (included) to 989 (excluded).
+    train_99_ds = datasets.load_dataset('bookcorpus', split="train[:99%]")
+    # 19 records, from 490 (included) to 509 (excluded).
+    train_49_51_ds = datasets.load_dataset('bookcorpus', split="train[49%:51%]")
+
+Alternatively, the ``pct1_dropremainder`` rounding can be used, so specified
+percentage boundaries are treated as multiples of 1%. This option should be used
+when consistency is needed (eg: ``len(5%) == 5 * len(1%)``). This means the last
+examples may be truncated if ``info.split[split_name].num_examples % 100 != 0``.
+
+.. code-block::
+
+    # Records 0 (included) to 891 (excluded).
+    train_99pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
+        'train', to=99, unit='%', rounding='pct1_dropremainder'))
+    # Or equivalently:
+    train_99pct1_ds = datasets.load_dataset('bookcorpus', split='train[:99%](pct1_dropremainder)')
+
