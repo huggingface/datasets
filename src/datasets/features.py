@@ -167,7 +167,7 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         import torch
 
     if isinstance(obj, np.ndarray):
-        return numpy_to_pyarrow_listarray(obj), True
+        return numpy_to_pyarrow_listarray(obj).tolist(), True
     elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
     elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
