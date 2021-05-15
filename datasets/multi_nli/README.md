@@ -111,7 +111,7 @@ The data fields are the same among all splits.
 - `{premise,hypothesis} parse`: Each sentence as parsed by the Stanford PCFG Parser 3.5.2
 - `{premise,hypothesis} binary parse`: parses in unlabeled binary-branching format
 - `genre`: a `string` feature.
-- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2). Dataset instances which don't have any gold label are marked with -1 label. Make sure you filter them before starting the training using `datasets.Dataset.filter`.
 
 ### Data Splits
 
