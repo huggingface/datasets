@@ -37,7 +37,7 @@ Examples using the string API:
 
     # The first 10% of `train` split.
     train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
-   
+
     # The first 10% of `train` + the last 80% of `train`.
     train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
 
@@ -80,7 +80,7 @@ Examples using the ``ReadInstruction`` API (equivalent as above):
     # The first 10% of `train` split.
     train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
         'train', to=10, unit='%'))
-    
+
     # The first 10% of `train` + the last 80% of `train`.
     ri = (datasets.ReadInstruction('train', to=10, unit='%') +
         datasets.ReadInstruction('train', from_=-80, unit='%'))
