@@ -116,17 +116,17 @@ class SentiWS(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, sourcefiles, split):
-        """ Yields examples. """
+        """Yields examples."""
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-        for filepath in sourcefiles:
+        for file_idx, filepath in enumerate(sourcefiles):
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     word = row.split("|")[0]
                     if self.config.name == "pos-tagging":
                         tag = row.split("|")[1].split("\t")[0]
-                        yield id_, {"word": word, "pos-tag": tag}
+                        yield f"{file_idx}_{id_}", {"word": word, "pos-tag": tag}
                     else:
                         sentiscore = row.split("|")[1].split("\t")[1]
-                        yield id_, {"word": word, "sentiment-score": float(sentiscore)}
+                        yield f"{file_idx}_{id_}", {"word": word, "sentiment-score": float(sentiscore)}

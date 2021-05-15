@@ -197,26 +197,26 @@ class SentiLex(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_dir):
-        """ Yields examples. """
+        """Yields examples."""
 
         filepaths = [
             os.path.join(data_dir, "sentiment-lexicons", "negative_words_" + self.config.name + ".txt"),
             os.path.join(data_dir, "sentiment-lexicons", "positive_words_" + self.config.name + ".txt"),
         ]
 
-        for filepath in filepaths:
+        for file_idx, filepath in enumerate(filepaths):
 
             with open(filepath, encoding="utf-8") as f:
 
                 for id_, line in enumerate(f):
 
                     if "negative" in filepath:
-                        yield id_, {
+                        yield f"{file_idx}_{id_}", {
                             "word": line.strip(" \n"),
                             "sentiment": "negative",
                         }
                     elif "positive" in filepath:
-                        yield id_, {
+                        yield f"{file_idx}_{id_}", {
                             "word": line.strip(" \n"),
                             "sentiment": "positive",
                         }

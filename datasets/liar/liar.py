@@ -115,7 +115,7 @@ class Liar(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as tsv_file:
             reader = csv.reader(tsv_file, delimiter="\t", quoting=csv.QUOTE_NONE)

@@ -87,18 +87,18 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths):
-        """ Yields examples. """
-        for fp in filepaths:
+        """Yields examples."""
+        for file_idx, fp in enumerate(filepaths):
             with open(fp, "r", encoding="utf-8") as json_file:
                 json_lists = list(json_file)
-            for json_list_str in json_lists:
+            for line_idx, json_list_str in enumerate(json_lists):
                 json_list = json.loads(json_list_str)
 
-                for ctr, result in enumerate(json_list):
+                for ctr_idx, result in enumerate(json_list):
                     response = {
                         "video_ids": result["video_ids"],
                         "diff_type": result["diff_type"],
                         "default_seq": result["default_seq"],
                         "correction_seq": result["correction_seq"],
                     }
-                    yield ctr, response
+                    yield f"{file_idx}_{line_idx}_{ctr_idx}", response

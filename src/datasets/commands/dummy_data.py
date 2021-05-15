@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 from datasets import config
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
@@ -212,10 +212,10 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         shutil.rmtree(base_name)
 
 
-class DummyDataCommand(BaseTransformersCLICommand):
+class DummyDataCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        test_parser = parser.add_parser("dummy_data")
+        test_parser = parser.add_parser("dummy_data", help="Generate dummy data.")
         test_parser.add_argument("--auto_generate", action="store_true", help="Automatically generate dummy data")
         test_parser.add_argument(
             "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"

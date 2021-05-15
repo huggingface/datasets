@@ -53,10 +53,10 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .info import DATASET_INFO_FILENAME, DatasetInfo
+from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
@@ -87,12 +87,12 @@ class DatasetInfoMixin:
 
     @property
     def info(self):
-        """ :class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """:class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
-        """ :class:`datasets.NamedSplit` object corresponding to a named dataset split."""
+        """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -287,6 +287,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(
                 f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
             )
+
+        # Update metadata
+
+        self._data = update_metadata_with_features(self._data, self.features)
 
     @classmethod
     def from_file(
@@ -547,6 +551,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
+
+        Note regarding sliced datasets:
+
+        If you sliced the dataset in some way (using shard, train_test_split or select for example), then an indices mapping
+        is added to avoid having to rewrite a new arrow Table (save time + disk/memory usage).
+        It maps the indices used by __getitem__ to the right rows if the arrow Table.
+        By default save_to_disk does save the full dataset table + the mapping.
+
+        If you want to only save the shard of the dataset instead of the original arrow file and the indices,
+        then you have to call :func:`datasets.Dataset.flatten_indices` before saving.
+        This will create a new arrow table by using the right rows of the original table.
+
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
@@ -616,7 +632,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with fs.open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8") as dataset_info_file:
+        with fs.open(
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
+        ) as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -653,7 +671,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
         ) as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8") as dataset_info_file:
+        with open(
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
+        ) as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(
@@ -711,7 +731,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @property
     def column_names(self) -> List[str]:
-        """Names of the columns in the dataset. """
+        """Names of the columns in the dataset."""
         return self._data.column_names
 
     @property
@@ -771,8 +791,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
-        new_features = copy.deepcopy(dset.features)
+        new_features = dset.features.copy()
         new_features[column] = dst_feat
         dset = dset.cast(new_features)
 
@@ -838,7 +859,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 break
         dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
-        self._data = update_metadata_with_features(self._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
@@ -1018,7 +1039,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del dataset._info.features[column_name]
 
         dataset._data = dataset._data.drop(column_names)
-        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -1109,12 +1130,63 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
+    @fingerprint_transform(inplace=False)
+    def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`Dataset`: A copy of the dataset with renamed columns
+        """
+        dataset = copy.deepcopy(self)
+
+        extra_columns = set(column_mapping.keys()) - set(dataset.column_names)
+        if extra_columns:
+            raise ValueError(
+                f"Original column names {extra_columns} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+
+        number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(set(column_mapping.values()))
+        if number_of_duplicates_in_new_columns != 0:
+            raise ValueError(
+                "New column names must all be different, but this column mapping "
+                f"has {number_of_duplicates_in_new_columns} duplicates"
+            )
+
+        empty_new_columns = [new_col for new_col in column_mapping.values() if not new_col]
+        if empty_new_columns:
+            raise ValueError(f"New column names {empty_new_columns} are empty.")
+
+        def rename(columns):
+            return [column_mapping[col] if col in column_mapping else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
+        dataset._info.features = Features(
+            {
+                column_mapping[col] if col in column_mapping else col: feature
+                for col, feature in (self._info.features or {}).items()
+            }
+        )
+
+        dataset._data = dataset._data.rename_columns(new_column_names)
         dataset._data = update_metadata_with_features(dataset._data, self.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
     def __len__(self):
-        """ Number of rows in the dataset."""
+        """Number of rows in the dataset."""
         return self.num_rows
 
     def __iter__(self):
@@ -1675,7 +1747,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             pass
 
         def validate_function_output(processed_inputs, indices):
-            """ Validate output of the map function. """
+            """Validate output of the map function."""
             if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
                 raise TypeError(
                     "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
@@ -1695,7 +1767,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
-            """ Utility to apply the function on a selection of columns. """
+            """Utility to apply the function on a selection of columns."""
             nonlocal update_data
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
@@ -1771,8 +1843,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
+                # Only load the columns we actually need
+                if input_columns:
+                    input_dataset = self.with_format(
+                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
+                    )
+                    if remove_columns:
+                        remove_columns = list(set(remove_columns) & set(input_columns))
+                else:
+                    input_dataset = self
+
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = self if not batched else range(0, len(self), batch_size)
+                pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = "#" + str(rank) if rank is not None else None
                 pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
@@ -1790,13 +1872,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
-                        if drop_last_batch and i + batch_size > self.num_rows:
+                        if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = self[i : i + batch_size]
-                        indices = list(range(*(slice(i, i + batch_size).indices(self.num_rows))))  # Something simpler?
+                        batch = input_dataset[i : i + batch_size]
+                        indices = list(
+                            range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
+                        )  # Something simpler?
                         try:
                             batch = apply_function_on_filtered_inputs(
-                                batch, indices, check_same_num_examples=len(self.list_indexes()) > 0, offset=offset
+                                batch,
+                                indices,
+                                check_same_num_examples=len(input_dataset.list_indexes()) > 0,
+                                offset=offset,
                             )
                         except NumExamplesMismatch:
                             raise DatasetTransformationNotAllowedError(
@@ -2633,6 +2720,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
+    def to_json(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **to_json_kwargs,
+    ) -> int:
+        """Exports the dataset to JSON.
+
+        Args:
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetWriter
+
+        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_json_kwargs).write()
+
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
@@ -2663,6 +2772,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 ).to_pandas()
                 for offset in range(0, len(self), batch_size)
             )
+
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
+        """Add column to Dataset.
+
+        .. versionadded:: 1.7
+
+        Args:
+            name (str): Column name.
+            column (list or np.array): Column data to be added.
+
+        Returns:
+            :class:`Dataset`
+        """
+        column_table = InMemoryTable.from_pydict({name: column})
+        # Concatenate tables horizontally
+        table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
+        # Update features
+        info = self.info.copy()
+        info.features.update(Features.from_arrow_schema(column_table.schema))
+        table = update_metadata_with_features(table, info.features)
+        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
@@ -2858,10 +2990,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         return self
 
-    def add_item(self, item: dict):
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
-        .. versionadded:: 1.6
+        .. versionadded:: 1.7
 
         Args:
             item (dict): Item data to be added.
@@ -2875,7 +3009,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         item_table = item_table.cast(schema)
         # Concatenate tables
         table = concat_tables([self._data, item_table])
-        return Dataset(table)
+        if self._indices is None:
+            indices_table = None
+        else:
+            item_indices_array = pa.array([len(self._data)], type=pa.uint64())
+            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
+            indices_table = concat_tables([self._indices, item_indices_table])
+        return Dataset(
+            table,
+            info=self.info.copy(),
+            split=self.split,
+            indices_table=indices_table,
+            fingerprint=new_fingerprint,
+        )
 
 
 def concatenate_datasets(
@@ -2910,7 +3056,8 @@ def concatenate_datasets(
 
     # Concatenate tables
     table = concat_tables([dset._data for dset in dsets if len(dset._data) > 0], axis=axis)
-    table = update_metadata_with_features(table, None)
+    if axis == 1:
+        table = update_metadata_with_features(table, None)
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:

@@ -35,7 +35,6 @@ from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
-from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
@@ -59,10 +58,10 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
-
-def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]] = None):
+def init_dynamic_modules(
+    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
+):
     """
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
@@ -286,11 +285,7 @@ def prepare_module(
         return module_path, hash
 
     # otherwise the module is added to the dynamic modules
-    dynamic_modules_path = (
-        dynamic_modules_path
-        if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
-    )
+    dynamic_modules_path = dynamic_modules_path if dynamic_modules_path else init_dynamic_modules()
     module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
     datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
     datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
@@ -395,7 +390,7 @@ def prepare_module(
     # 2. copy from the local file system inside the modules cache to import it
 
     base_path = url_or_path_parent(file_path)  # remove the filename
-    dataset_infos = url_or_path_join(base_path, DATASET_INFOS_DICT_FILE_NAME)
+    dataset_infos = url_or_path_join(base_path, config.DATASETDICT_INFOS_FILENAME)
 
     # Download the dataset infos file if available
     try:
@@ -462,7 +457,7 @@ def prepare_module(
         hash_folder_path = force_local_path
 
     local_file_path = os.path.join(hash_folder_path, name)
-    dataset_infos_path = os.path.join(hash_folder_path, DATASET_INFOS_DICT_FILE_NAME)
+    dataset_infos_path = os.path.join(hash_folder_path, config.DATASETDICT_INFOS_FILENAME)
 
     # Prevent parallel disk operations
     lock_path = local_path + ".lock"

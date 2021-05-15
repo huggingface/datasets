@@ -145,7 +145,7 @@ class SnowSimplifiedJapaneseCorpus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, "rb") as f:
             df = pd.read_excel(f, engine="openpyxl").astype("str")

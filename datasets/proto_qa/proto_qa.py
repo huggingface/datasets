@@ -160,7 +160,7 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
 
         if self.config.name == "proto_qa_cs_assessments":
             with open(filepath, encoding="utf-8") as f:

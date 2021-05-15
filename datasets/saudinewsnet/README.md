@@ -24,12 +24,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -76,7 +76,7 @@ The dataset currently contains **31,030** Arabic articles (with a total number o
 - [Arreyadi](http://www.arreyadi.com.sa/) (133 articles)
 - [Arreyadiyah](http://www.arreyadiyah.com/) (52 articles)
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -121,7 +121,7 @@ The data fields are the same among all splits.
 - **`author`** (str): The author of the article. Contains missing values that were replaced with an empty string.
 - **`content`** (str): The content of the article.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|
 |-------|----:|

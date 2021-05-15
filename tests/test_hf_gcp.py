@@ -4,9 +4,9 @@ from unittest import TestCase
 
 from absl.testing import parameterized
 
+from datasets import config
 from datasets.arrow_reader import HF_GCP_BASE_URL
 from datasets.builder import DatasetBuilder
-from datasets.info import DATASET_INFO_FILENAME
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import cached_path
 
@@ -65,7 +65,7 @@ class TestDatasetOnHfGcp(TestCase):
             )
 
             dataset_info_url = os.path.join(
-                HF_GCP_BASE_URL, builder_instance._relative_data_dir(with_hash=False), DATASET_INFO_FILENAME
+                HF_GCP_BASE_URL, builder_instance._relative_data_dir(with_hash=False), config.DATASET_INFO_FILENAME
             ).replace(os.sep, "/")
             datset_info_path = cached_path(dataset_info_url, cache_dir=tmp_dir)
             self.assertTrue(os.path.exists(datset_info_path))

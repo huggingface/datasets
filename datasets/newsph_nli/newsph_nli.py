@@ -21,22 +21,24 @@ import datasets
 
 
 _DESCRIPTION = """\
-    First benchmark dataset for sentence entailment in the low-resource Filipino language. Constructed through exploting the structure of news articles. Contains 600,000 premise-hypothesis pairs, in 70-15-15 split for training, validation, and testing.
+First benchmark dataset for sentence entailment in the low-resource Filipino language.
+Constructed through exploting the structure of news articles. Contains 600,000 premise-hypothesis pairs,
+in 70-15-15 split for training, validation, and testing.
 """
 
 _CITATION = """\
-    @article{cruz2020investigating,
-      title={Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation},
-      author={Jan Christian Blaise Cruz and Jose Kristian Resabal and James Lin and Dan John Velasco and Charibeth Cheng},
-      journal={arXiv preprint arXiv:2010.11574},
-      year={2020}
-    }
+@article{cruz2020investigating,
+    title={Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation},
+    author={Jan Christian Blaise Cruz and Jose Kristian Resabal and James Lin and Dan John Velasco and Charibeth Cheng},
+    journal={arXiv preprint arXiv:2010.11574},
+    year={2020}
+}
 """
 
 _HOMEPAGE = "https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks"
 
 # TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Filipino-Text-Benchmarks is licensed under the GNU General Public License v3.0"
 
 _URL = "https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/newsph/newsph-nli.zip"
 
@@ -68,7 +70,7 @@ class NewsphNli(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         download_path = os.path.join(data_dir, "newsph-nli")
         train_path = os.path.join(download_path, "train.csv")
-        test_path = os.path.join(download_path, "train.csv")
+        test_path = os.path.join(download_path, "test.csv")
         validation_path = os.path.join(download_path, "valid.csv")
 
         return [
@@ -96,7 +98,7 @@ class NewsphNli(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True

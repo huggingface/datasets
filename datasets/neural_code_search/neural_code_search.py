@@ -132,7 +132,7 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, split):
-        """ Yields examples. """
+        """Yields examples."""
         id_ = 0
         for dp in datapath:
             if self.config.name == "evaluation_dataset":

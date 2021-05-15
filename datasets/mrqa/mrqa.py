@@ -184,7 +184,7 @@ class Mrqa(datasets.GeneratorBasedBuilder):
                                 }
                             )
                         answers = qa["answers"]
-                        yield qid, {
+                        yield f"{source}_{qid}", {
                             "subset": subset,
                             "context": context,
                             "context_tokens": context_tokens,
