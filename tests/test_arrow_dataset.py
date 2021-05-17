@@ -1939,11 +1939,13 @@ class BaseDatasetTest(TestCase):
                 "labels": ClassLabel(names=tuple(labels)),
             }
         )
+        task = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
         info = DatasetInfo(
             features=features_before_cast,
-            task_templates=TextClassification(text_column="input_text", label_column="input_labels", labels=labels),
+            task_templates=task,
         )
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        # Test we can load from task name
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
                 self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
@@ -1951,6 +1953,12 @@ class BaseDatasetTest(TestCase):
                 with dset.prepare_for_task(task="text-classification") as dset:
                     self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                     self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from TaskTemplate
+        info.task_templates = None
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertDictEqual(features_after_cast, dset.features)
 
     def test_task_question_answering(self, in_memory):
         features_before_cast = Features(
@@ -1977,17 +1985,16 @@ class BaseDatasetTest(TestCase):
                 ),
             }
         )
-        info = DatasetInfo(
-            features=features_before_cast,
-            task_templates=QuestionAnswering(
-                context_column="input_context", question_column="input_question", answers_column="input_answers"
-            ),
+        task = QuestionAnswering(
+            context_column="input_context", question_column="input_question", answers_column="input_answers"
         )
+        info = DatasetInfo(features=features_before_cast, task_templates=task)
         data = {
             "input_context": ["huggingface is going to the moon!"],
             "input_question": ["where is huggingface going?"],
             "input_answers": [{"text": ["to the moon!"], "answer_start": [2]}],
         }
+        # Test we can load from task name
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
                 self.assertSetEqual(
@@ -2001,6 +2008,48 @@ class BaseDatasetTest(TestCase):
                         set(dset.flatten().column_names),
                     )
                     self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from TaskTemplate
+        info.task_templates = None
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(
+                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    set(dset.flatten().column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+
+    def test_task_with_no_template(self, in_memory):
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with self.assertRaises(ValueError):
+                    dset.prepare_for_task("text-classification")
+
+    def test_task_with_incompatible_templates(self, in_memory):
+        labels = sorted(["pos", "neg"])
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": Value("int32"),
+            }
+        )
+        task = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        info = DatasetInfo(
+            features=features,
+            task_templates=task,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    with self.assertRaises(ValueError):
+                        # Invalid task name
+                        dset.prepare_for_task("this-task-does-not-exist")
+                        # Duplicate task templates
+                        dset.info.task_templates = [task, task]
+                        dset.prepare_for_task("text-classification")
+                        # Invalid task type
+                        dset.prepare_for_task(1)
 
 
 class MiscellaneousDatasetTest(TestCase):
