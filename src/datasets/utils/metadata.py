@@ -202,7 +202,7 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_licences(licenses: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e)
+        others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e or e.startswith("other-"))
         validated, error = tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url)
         return [*validated, *others], error
 
