@@ -81,7 +81,7 @@ An example from anatomy subtask looks as follows:
 
 |       | auxiliary_train   | dev | val | test |
 | ----- | :------: | :-----: | :-----: | :-----: |
-| TOTAL | 99842 | 285 | 1540 | 14079
+| TOTAL | 99842 | 285 | 1531 | 14042
 
 ## Dataset Creation
 
