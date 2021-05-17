@@ -1,5 +1,4 @@
 ---
-
 ---
 
 # Dataset Card for [Dataset Name]
@@ -31,6 +30,8 @@
 
 ## Dataset Description
 
+Measuring Massive Multitask Language Understanding by Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt (ICLR 2021).
+
 - **Repository: https://github.com/hendrycks/test**
 - **Paper: https://arxiv.org/abs/2009.03300**
 
@@ -51,7 +52,7 @@ A complete list of tasks: ['abstract_algebra', 'anatomy', 'astronomy', 'business
 
 ### Languages
 
-[More Information Needed]
+English
 
 ## Dataset Structure
 
@@ -74,9 +75,9 @@ An example from anatomy subtask looks as follows:
 
 ### Data Splits
 
-`auxiliary_train`: auxiliary multiple-choice training questions from ARC, MC_TEST, OBQA, RACE, etc.
-`dev`: 5 examples per subtask, meant for few-shot setting
-`test`: there are at least 100 examples per subtask
+- `auxiliary_train`: auxiliary multiple-choice training questions from ARC, MC_TEST, OBQA, RACE, etc.
+- `dev`: 5 examples per subtask, meant for few-shot setting
+- `test`: there are at least 100 examples per subtask
 
 |       | auxiliary_train   | dev | val | test |
 | ----- | :------: | :-----: | :-----: | :-----: |
@@ -134,7 +135,7 @@ Transformer models have driven this recent progress by pretraining on massive te
 
 ### Licensing Information
 
-[More Information Needed]
+MIT license
 
 ### Citation Information
 
