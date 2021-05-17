@@ -2041,15 +2041,14 @@ class BaseDatasetTest(TestCase):
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
-                with self._to(in_memory, tmp_dir, dset) as dset:
-                    with self.assertRaises(ValueError):
-                        # Invalid task name
-                        dset.prepare_for_task("this-task-does-not-exist")
-                        # Duplicate task templates
-                        dset.info.task_templates = [task, task]
-                        dset.prepare_for_task("text-classification")
-                        # Invalid task type
-                        dset.prepare_for_task(1)
+                with self.assertRaises(ValueError):
+                    # Invalid task name
+                    dset.prepare_for_task("this-task-does-not-exist")
+                    # Duplicate task templates
+                    dset.info.task_templates = [task, task]
+                    dset.prepare_for_task("text-classification")
+                    # Invalid task type
+                    dset.prepare_for_task(1)
 
 
 class MiscellaneousDatasetTest(TestCase):
