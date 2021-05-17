@@ -36,17 +36,13 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     diff_output = check_output(["git", "diff", "--name-only", "HEAD..origin/master"], cwd=repo_path)
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
     changed_datasets_unique = []
-    changed_datasets = [
+    changed_datasets = set(
         f.parent.parts[-1]
         for f in changed_files
-        if f.exists() and f.parent.parent.name == "datasets" and f.parent.parent.parent.name == "datasets"
-    ]
+        if f.exists() and f.parent.parent.name == "datasets" and f.name.lower() == "readme.md"and f.parent.parent.parent.name == "datasets"
+    )
 
-    for dataset_name in changed_datasets:
-        if dataset_name not in changed_datasets_unique:
-            changed_datasets_unique.append(dataset_name)
-
-    return changed_datasets_unique
+    return sorted(changed_datasets)
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
