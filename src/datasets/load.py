@@ -583,7 +583,7 @@ def load_metric(
         config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
-        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.datasets/`)
+        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/metrics/`)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
