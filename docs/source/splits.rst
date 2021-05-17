@@ -113,14 +113,14 @@ that some slices may contain more examples than others. For example:
 
     # Assuming `train` split contains 999 records.
     # 989 records, from 0 (included) to 989 (excluded).
-    train_99_ds = datasets.load_dataset('bookcorpus', split="train[:99%]")
+    train_99_ds = datasets.load_dataset('bookcorpus', split='train[:99%]')
     # 19 records, from 490 (included) to 509 (excluded).
-    train_49_51_ds = datasets.load_dataset('bookcorpus', split="train[49%:51%]")
+    train_49_51_ds = datasets.load_dataset('bookcorpus', split='train[49%:51%]')
 
 Alternatively, the ``pct1_dropremainder`` rounding can be used, so specified
 percentage boundaries are treated as multiples of 1%. This option should be used
 when consistency is needed (eg: ``len(5%) == 5 * len(1%)``). This means the last
-examples may be truncated if ``info.split[split_name].num_examples % 100 != 0``.
+examples may be truncated if ``info.splits[split_name].num_examples % 100 != 0``.
 
 .. code-block::
 
