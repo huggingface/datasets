@@ -28,9 +28,7 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "code": datasets.Value("string"),  # The full text of the function
-        "label": datasets.Value(
-            "string"
-        ),  # The id of problem that the source code solves
+        "label": datasets.Value("string"),  # The id of problem that the source code solves
     }
 
     _SUPERVISED_KEYS = ["label"]
@@ -70,8 +68,7 @@ CLASS_MAPPING = {
 class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=name, description=info["description"])
-        for name, info in DEFINITIONS.items()
+        datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()
     ]
 
     def _info(self):
@@ -84,9 +81,7 @@ class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
         ret = self.child._info()
         return ret
 
-    def _split_generators(
-        self, dl_manager: datasets.DownloadManager
-    ) -> List[datasets.SplitGenerator]:
+    def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
     def _generate_examples(self, split_name, file_paths):
