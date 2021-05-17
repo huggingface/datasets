@@ -32,15 +32,15 @@ subsections:
         subsections:
           - name: "Data Instances"
             allow_empty: false
-            allow_empty_text: false
+            allow_empty_text: true
             subsections: null
           - name: "Data Fields"
             allow_empty: false
-            allow_empty_text: false
+            allow_empty_text: true
             subsections: null
           - name: "Data Splits"
             allow_empty: false
-            allow_empty_text: false
+            allow_empty_text: true
             subsections: null
       - name: "Dataset Creation"
         allow_empty: false
