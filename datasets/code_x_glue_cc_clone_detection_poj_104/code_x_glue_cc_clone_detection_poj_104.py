@@ -28,7 +28,9 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "code": datasets.Value("string"),  # The full text of the function
-        "label": datasets.Value("string"),  # The id of problem that the source code solves
+        "label": datasets.Value(
+            "string"
+        ),  # The id of problem that the source code solves
     }
 
     _SUPERVISED_KEYS = ["label"]
@@ -38,7 +40,7 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
     def generate_urls(self, split_name):
         yield "data", "programs.tar.gz"
 
-    def pregenerate_all(self, root_path):
+    def _generate_examples(self, split_name, file_paths):
         def files(path):
             g = os.walk(path)
             file = []
@@ -47,39 +49,17 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
                     file.append(os.path.join(path, file_name))
             return file
 
-        cont = 0
-        for split_name, range_info in self.SPLIT_RANGES.items():
-            with open(os.path.join(root_path, f"{split_name}.jsonl"), "w", encoding="utf-8") as f:
-                for i in range(*range_info):
-                    items = files(os.path.join(root_path, "ProgramData/{}".format(i)))
-                    for item in items:
-                        js = {}
-                        js["label"] = item.split("/")[1]
-                        js["index"] = str(cont)
-                        js["code"] = open(item, encoding="latin-1").read()
-                        f.write(json.dumps(js) + "\n")
-                        cont += 1
-
-    def _generate_examples(self, split_name, file_paths):
         root_path = file_paths["data"]
-
-        mark_file = os.path.join(root_path, ".mark")
-
-        if not os.path.exists(mark_file):
-            self.pregenerate_all(root_path)
-
-        with open(mark_file, "w", encoding="utf-8") as f:
-            f.write("finished")
-
-        json_file = os.path.join(root_path, f"{split_name}.jsonl")
-
-        with open(json_file, encoding="utf-8") as f:
-            for idx, line in enumerate(f):
-                entry = json.loads(line)
-                idx = int(entry["index"])
-                label = entry["label"]
-                e = dict(id=idx, label=label, code=entry["code"])
-                yield idx, e
+        cont = 0
+        for i in range(*self.SPLIT_RANGES[split_name]):
+            items = files(os.path.join(root_path, "ProgramData/{}".format(i)))
+            for item in items:
+                js = {}
+                js["label"] = item.split("/")[1]
+                js["id"] = cont
+                js["code"] = open(item, encoding="latin-1").read()
+                yield cont, js
+                cont += 1
 
 
 CLASS_MAPPING = {
@@ -90,7 +70,8 @@ CLASS_MAPPING = {
 class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()
+        datasets.BuilderConfig(name=name, description=info["description"])
+        for name, info in DEFINITIONS.items()
     ]
 
     def _info(self):
@@ -103,7 +84,9 @@ class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
         ret = self.child._info()
         return ret
 
-    def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
+    def _split_generators(
+        self, dl_manager: datasets.DownloadManager
+    ) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
     def _generate_examples(self, split_name, file_paths):
