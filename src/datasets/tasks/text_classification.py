@@ -9,7 +9,9 @@ from .base import TaskTemplate
 class TextClassification(TaskTemplate):
     task = "text-classification"
     input_schema = Features({"text": Value("string")})
-    label_schema = Features
+    # TODO(lewtun): Since we update this in __post_init__ do we need to set a default? We'll need it for __init__ so
+    # investigate if there's a more elegant approach.
+    label_schema = Features({"labels": ClassLabel})
     labels: List[str]
     text_column: str = "text"
     label_column: str = "labels"
