@@ -156,6 +156,7 @@ Unanswerable answers have "unanswerable" set to true. The remaining answers have
 | -----                      | ------ | ----- |
 | Number of papers            |     888   |      281 |
 | Number of questions            |     2593   |      1005 |
+| Number of answers            |     2675   |      1764 |
 
 ## Dataset Creation
 
