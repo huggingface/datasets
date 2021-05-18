@@ -38,6 +38,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
+from .tasks import TaskTemplate
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -635,7 +636,7 @@ def load_dataset(
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
-    task: Optional[str] = None,
+    task: Optional[Union[str, TaskTemplate]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     """Load a dataset.
