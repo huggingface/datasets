@@ -51,20 +51,20 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
 def test_changed_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert os.path.exists(card_path)
+    error_messages = []
     try:
         ReadMe.from_readme(card_path)
     except Exception as readme_error:
-        try:
-            DatasetMetadata.from_readme(card_path)
-            raise ValueError(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
-        except Exception as metadata_error:
-            raise ValueError(
-                f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}\nYAML tags:\n{metadata_error}"
-            )
+        error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
     try:
         DatasetMetadata.from_readme(card_path)
     except Exception as metadata_error:
-        raise ValueError(f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}")
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
+        )
+
+    if error_messages:
+        raise ValueError("\n".join(error_messages))
 
 
 @slow
@@ -72,17 +72,17 @@ def test_changed_dataset_card(dataset_name):
 def test_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert os.path.exists(card_path)
+    error_messages = []
     try:
         ReadMe.from_readme(card_path)
     except Exception as readme_error:
-        try:
-            DatasetMetadata.from_readme(card_path)
-            raise ValueError(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
-        except Exception as metadata_error:
-            raise ValueError(
-                f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}\nYAML tags:\n{metadata_error}"
-            )
+        error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
     try:
         DatasetMetadata.from_readme(card_path)
     except Exception as metadata_error:
-        raise ValueError(f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}")
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
+        )
+
+    if error_messages:
+        raise ValueError("\n".join(error_messages))
