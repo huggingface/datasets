@@ -111,7 +111,7 @@ The data fields are the same among all splits.
 - `{premise,hypothesis} parse`: Each sentence as parsed by the Stanford PCFG Parser 3.5.2
 - `{premise,hypothesis} binary parse`: parses in unlabeled binary-branching format
 - `genre`: a `string` feature.
-- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2). Dataset instances which don't have any gold label are marked with -1 label. Make sure you filter them before starting the training using `datasets.Dataset.filter`.
 
 ### Data Splits
 
@@ -165,7 +165,7 @@ They created each sentence pair by selecting a premise sentence from a preexisti
 
 ### Licensing Information
 
-The majority of the corpus is released under the OANC’s license, which allows all content to be freely used, modi- fied, and shared under permissive terms. The data in the FICTION section falls under several per- missive licenses; Seven Swords is available under a Creative Commons Share-Alike 3.0 Unported License, and with the explicit permission of the author, Living History and Password Incorrect are available under Creative Commons Attribution 3.0 Unported Licenses; the remaining works of fiction are in the public domain in the United States (but may be licensed differently elsewhere).
+The majority of the corpus is released under the OANC’s license, which allows all content to be freely used, modified, and shared under permissive terms. The data in the FICTION section falls under several permissive licenses; Seven Swords is available under a Creative Commons Share-Alike 3.0 Unported License, and with the explicit permission of the author, Living History and Password Incorrect are available under Creative Commons Attribution 3.0 Unported Licenses; the remaining works of fiction are in the public domain in the United States (but may be licensed differently elsewhere).
 
 ### Citation Information
 
