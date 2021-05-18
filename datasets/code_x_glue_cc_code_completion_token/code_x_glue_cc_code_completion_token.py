@@ -36,7 +36,11 @@ class CodeXGlueCcCodeCompletionToken(Child):
 
 
 class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):
-    SPLITS = {"training": datasets.Split.TRAIN, "validation": datasets.Split.VALIDATION, "test": datasets.Split.TEST}
+    SPLITS = {
+        "training": datasets.Split.TRAIN,
+        "validation": datasets.Split.VALIDATION,
+        "test": datasets.Split.TEST,
+    }
 
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
@@ -121,12 +125,26 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
         # Copyright (c) Microsoft Corporation.
         # Licensed under the MIT License.
         from io import BytesIO
-        from tokenize import COMMENT, ENCODING, ENDMARKER, INDENT, NEWLINE, NL, NUMBER, STRING, tokenize
+        from tokenize import (
+            COMMENT,
+            ENCODING,
+            ENDMARKER,
+            INDENT,
+            NEWLINE,
+            NL,
+            NUMBER,
+            STRING,
+            tokenize,
+        )
 
-        file_paths = open(os.path.join(base_dir, file_name), encoding="utf-8").readlines()
+        file_paths = open(
+            os.path.join(base_dir, file_name), encoding="utf-8"
+        ).readlines()
         for ct, path in enumerate(file_paths):
             try:
-                code = open(os.path.join(base_dir, path.strip()), encoding="utf-8").read()
+                code = open(
+                    os.path.join(base_dir, path.strip()), encoding="utf-8"
+                ).read()
                 token_gen = tokenize(BytesIO(bytes(code, "utf8")).readline)
                 out_tokens = []
                 prev_eol = False
@@ -147,7 +165,10 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
                         if not prev_eol:
                             out_tokens.append("<EOL>")
                             prev_eol = True
-                    elif toknum in [COMMENT, INDENT, ENCODING, ENDMARKER] or len(tokval) == 0:
+                    elif (
+                        toknum in [COMMENT, INDENT, ENCODING, ENDMARKER]
+                        or len(tokval) == 0
+                    ):
                         continue
                     else:
                         out_tokens.append(tokval)
@@ -165,8 +186,8 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
         base_dir = file_paths["data"]
         filename = self.PYTHON_FILE_MAPPING[split_name]
 
-        mark_file = os.path.join(base_dir, ".mark")
-        if not os.path.exists(mark_file):
+        data_dir = os.path.join(base_dir, "data")
+        if not os.path.exists(data_dir):
             import gzip
             import tarfile
 
@@ -174,9 +195,6 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
             with gzip.open(gzip_filename, "rb") as gzip_file:
                 t = tarfile.TarFile(fileobj=gzip_file)
                 t.extractall(path=base_dir)
-
-        with open(mark_file, "w", encoding="utf-8") as f:
-            f.write("finished")
 
         idx = 0
         for entry in self.py_tokenize(base_dir=base_dir, file_name=filename):
@@ -195,7 +213,8 @@ CLASS_MAPPING = {
 class CodeXGlueCcCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()
+        datasets.BuilderConfig(name=name, description=info["description"])
+        for name, info in DEFINITIONS.items()
     ]
 
     def _info(self):
@@ -208,7 +227,9 @@ class CodeXGlueCcCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):
         ret = self.child._info()
         return ret
 
-    def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
+    def _split_generators(
+        self, dl_manager: datasets.DownloadManager
+    ) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
     def _generate_examples(self, split_name, file_paths):
