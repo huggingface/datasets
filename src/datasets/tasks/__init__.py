@@ -12,6 +12,7 @@ NAME2TEMPLATE = {QuestionAnswering.task: QuestionAnswering, TextClassification.t
 
 
 def task_template_from_dict(task_template_dict: dict) -> Optional[TaskTemplate]:
+    """Create one of the supported task templates in :obj:`datasets.tasks` from a dictionary."""
     task_name = task_template_dict.get("task")
     if task_name is None:
         return None

@@ -1386,7 +1386,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
-        """Prepare a dataset for the given task.
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :obj:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
 
