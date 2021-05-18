@@ -39,6 +39,7 @@ from typing import List, Optional, Union
 from . import config
 from .features import Features, Value
 from .splits import SplitDict
+from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
 
@@ -108,6 +109,7 @@ class DatasetInfo:
         post_processing_size (int, optional):
         dataset_size (int, optional):
         size_in_bytes (int, optional):
+        task_templates (List[TaskTemplate], optional):
     """
 
     # Set in the dataset scripts
@@ -118,6 +120,7 @@ class DatasetInfo:
     features: Optional[Features] = None
     post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
+    task_templates: Optional[List[TaskTemplate]] = None
 
     # Set later by the builder
     builder_name: Optional[str] = None
@@ -149,6 +152,19 @@ class DatasetInfo:
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
+
+        if self.task_templates is not None:
+            if isinstance(self.task_templates, (list, tuple)):
+                templates = [
+                    template if isinstance(template, TaskTemplate) else task_template_from_dict(template)
+                    for template in self.task_templates
+                ]
+                self.task_templates = [template for template in templates if template is not None]
+            elif isinstance(self.task_templates, TaskTemplate):
+                self.task_templates = [self.task_templates]
+            else:
+                template = task_template_from_dict(self.task_templates)
+                self.task_templates = [template] if template is not None else []
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
@@ -188,6 +204,16 @@ class DatasetInfo:
         license = "\n\n".join(unique(info.license for info in dataset_infos))
         features = None
         supervised_keys = None
+        task_templates = None
+
+        # Find common task templates across all dataset infos
+        all_task_templates = [info.task_templates for info in dataset_infos if info.task_templates is not None]
+        if len(all_task_templates) > 1:
+            task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
+        elif len(all_task_templates):
+            task_templates = list(set(all_task_templates[0]))
+        # If no common task templates found, replace empty list with None
+        task_templates = task_templates if task_templates else None
 
         return cls(
             description=description,
@@ -196,6 +222,7 @@ class DatasetInfo:
             license=license,
             features=features,
             supervised_keys=supervised_keys,
+            task_templates=task_templates,
         )
 
     @classmethod
