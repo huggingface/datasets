@@ -37,9 +37,7 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
 
     changed_datasets = set(
-        f.parent.parts[-1]
-        for f in changed_files
-        if f.exists() and f.parent.parent.name == "datasets"
+        f.parent.parts[-1] for f in changed_files if f.exists() and f.parent.parent.name == "datasets"
     )
 
     return sorted(changed_datasets)
@@ -50,7 +48,7 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
-def test_dataset_card(dataset_name):
+def test_changed_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert os.path.exists(card_path)
     try:
