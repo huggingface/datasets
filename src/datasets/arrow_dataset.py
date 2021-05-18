@@ -57,6 +57,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .tasks import TaskTemplate
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
@@ -1382,6 +1383,44 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        return dataset
+
+    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+
+        Args:
+            task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
+
+                - :obj:`"text-classification"`
+                - :obj:`"question-answering"`
+
+                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+        """
+        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
+        if isinstance(task, str):
+            tasks = [template.task for template in (self.info.task_templates or [])]
+            compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
+            if not compatible_templates:
+                raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
+
+            if len(compatible_templates) > 1:
+                raise ValueError(
+                    f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that `datasets.DatasetInfo.task_templates` contains a unique set of task types."
+                )
+            template = compatible_templates[0]
+        elif isinstance(task, TaskTemplate):
+            template = task
+        else:
+            raise ValueError(
+                f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
+            )
+        column_mapping = template.column_mapping
+        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
+        dataset = self.remove_columns(columns_to_drop)
+        dataset = dataset.rename_columns(column_mapping)
+        dataset = dataset.cast(features=template.features)
         return dataset
 
     def _getitem(
