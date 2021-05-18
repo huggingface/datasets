@@ -39,7 +39,7 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     changed_datasets = set(
         f.parent.parts[-1]
         for f in changed_files
-        if f.exists() and f.parent.parent.name == "datasets" and f.parent.parent.parent.name == "datasets"
+        if f.exists() and f.parent.parent.name == "datasets"
     )
 
     return sorted(changed_datasets)
@@ -49,34 +49,24 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
     return [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
 
 
-@slow
-@pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
-def test_dataset_tags(dataset_name):
-    card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
-    DatasetMetadata.from_readme(card_path)
-
-
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
-def test_changed_dataset_tags(dataset_name):
+def test_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert os.path.exists(card_path)
-    DatasetMetadata.from_readme(card_path)
-
-
-@slow
-@pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
-def test_readme_content(dataset_name):
-    card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
-    ReadMe.from_readme(card_path)
-
-
-@pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
-def test_changed_readme_content(dataset_name):
-    card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
-    ReadMe.from_readme(card_path)
+    try:
+        ReadMe.from_readme(card_path)
+    except Exception as readme_error:
+        try:
+            DatasetMetadata.from_readme(card_path)
+            raise ValueError(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
+        except Exception as metadata_error:
+            raise ValueError(
+                f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}\nYAML tags:\n{metadata_error}"
+            )
+    try:
+        DatasetMetadata.from_readme(card_path)
+    except Exception as metadata_error:
+        raise ValueError(f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}")
 
 
 @slow
