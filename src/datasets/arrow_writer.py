@@ -88,7 +88,7 @@ class TypedSequence:
         """This function is called when calling pa.array(typed_sequence)"""
         assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
         trying_type = False
-        if type is not None:
+        if type is not None:  # user explicitly passed the feature
             pass
         elif type is None and self.try_type:
             type = self.try_type
@@ -97,7 +97,13 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+                storage = pa.array(
+                    self.data,
+                    type.storage_dtype
+                    if not isinstance(self.data, np.ndarray)
+                    else numpy_to_pyarrow_listarray(self.data, type=type.value_type),
+                )
+                out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
             else:

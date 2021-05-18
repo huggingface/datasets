@@ -145,7 +145,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
 
 def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
     """
-    Cast numpy/pytorch/tensorflow/pandas objects to python lists.
+    Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
 
     To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
@@ -167,11 +167,11 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         import torch
 
     if isinstance(obj, np.ndarray):
-        return numpy_to_pyarrow_listarray(obj).tolist(), True
+        return obj, False
     elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
-        return obj.detach().cpu().numpy().tolist(), True
+        return obj.detach().cpu().numpy(), True
     elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
-        return obj.numpy().tolist(), True
+        return obj.numpy(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
@@ -935,9 +935,9 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
-def numpy_to_pyarrow_listarray(arr: np.ndarray) -> pa.ListArray:
+def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
-    values = pa.array(arr.flatten())
+    values = pa.array(arr.flatten(), type=type)
     for i in range(arr.ndim - 1):
         n_offsets = reduce(mul, arr.shape[: arr.ndim - i - 1], 1)
         step_offsets = arr.shape[arr.ndim - i - 1]
