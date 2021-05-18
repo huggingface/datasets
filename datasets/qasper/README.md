@@ -14,7 +14,7 @@ multilinguality:
 size_categories: 
 - 10K<n<100K
 source_datasets:
-- original
+- extended|s2orc
 task_categories:
 - question-answering
 task_ids:
@@ -137,7 +137,7 @@ Unanswerable answers have "unanswerable" set to true. The remaining answers have
 
 ### Source Data
 
-NLP papers: The full text of the papers is extracted from S2ORC (Lo et al., 2020)
+NLP papers: The full text of the papers is extracted from [S2ORC](https://huggingface.co/datasets/s2orc) (Lo et al., 2020)
 
 #### Initial Data Collection and Normalization
 
