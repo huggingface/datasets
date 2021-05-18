@@ -39,10 +39,7 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     changed_datasets = set(
         f.parent.parts[-1]
         for f in changed_files
-        if f.exists()
-        and f.parent.parent.name == "datasets"
-        and f.name.lower() == "readme.md"
-        and f.parent.parent.parent.name == "datasets"
+        if f.exists() and f.parent.parent.name == "datasets" and f.parent.parent.parent.name == "datasets"
     )
 
     return sorted(changed_datasets)
