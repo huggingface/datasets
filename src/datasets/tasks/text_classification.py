@@ -9,7 +9,7 @@ from .base import TaskTemplate
 class TextClassification(TaskTemplate):
     task = "text-classification"
     input_schema = Features({"text": Value("string")})
-    label_schema = Features({"labels": ClassLabel})
+    label_schema = Features
     labels: List[str]
     text_column: str = "text"
     label_column: str = "labels"
