@@ -790,3 +790,7 @@ class DatasetDict(dict):
         return TextDatasetReader(
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
+
+
+class IterableDatasetDict(dict):
+    pass

@@ -34,9 +34,10 @@ from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
 from .arrow_writer import ArrowWriter, BeamWriter
-from .dataset_dict import DatasetDict
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
+from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
@@ -44,6 +45,7 @@ from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.logging import WARNING, get_logger
+from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = get_logger(__name__)
@@ -839,6 +841,50 @@ class DatasetBuilder:
         )
         return Dataset(**dataset_kwargs)
 
+    def as_streaming_dataset(
+        self,
+        split: Optional[str] = None,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[str] = None,
+    ) -> Union[Dict[str, IterableDataset], IterableDataset]:
+        if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
+            raise ValueError(f"Builder {self.name} is not streamable.")
+        # By default, return all splits
+        if split is None:
+            split = {s: s for s in self.info.splits}
+
+        # Create a dataset for each of the given splits
+        datasets = utils.map_nested(
+            partial(
+                self._as_streaming_dataset_single,
+                base_path=base_path,
+                use_auth_token=use_auth_token,
+            ),
+            split,
+            map_tuple=True,
+        )
+        if isinstance(datasets, dict):
+            datasets = IterableDatasetDict(datasets)
+        return datasets
+
+    def _as_streaming_dataset_single(
+        self,
+        split: str,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[str] = None,
+    ) -> IterableDataset:
+        dl_manager = StreamingDownloadManager(
+            base_path=base_path,
+            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            dataset_name=self.name,
+            data_dir=self.config.data_dir,
+        )
+        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
+        if split not in splits_generators:
+            raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+        ex_iterable = self._get_examples_iterable_for_split(splits_generators[split])
+        return IterableDataset(ex_iterable, info=self.info, split=split)
+
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
@@ -906,6 +952,14 @@ class DatasetBuilder:
             split_generator: `SplitGenerator`, Split generator to process
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
+        """
+        raise NotImplementedError()
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        """Generate the examples on the fly.
+
+        Args:
+            split_generator: `SplitGenerator`, Split generator to process
         """
         raise NotImplementedError()
 
@@ -987,6 +1041,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
 
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
+
 
 class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
@@ -995,7 +1052,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     test_dummy_data = True
 
     @abc.abstractmethod
-    def _generate_examples(self, **kwargs):
+    def _generate_tables(self, **kwargs):
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1018,9 +1075,8 @@ class ArrowBasedBuilder(DatasetBuilder):
                 The key will be hashed and sorted to shuffle examples deterministically,
                 such as generating the dataset multiple times keep examples in the
                 same order.
-            example: `dict<str feature_name, feature_value>`, a feature dictionary
-                ready to be encoded and written to disk. The example will be
-                encoded with `self.info.features.encode_example({...})`.
+            example: `pyarrow.Table`, a feature table
+                ready to be encoded and written to disk.
         """
         raise NotImplementedError()
 
@@ -1039,6 +1095,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         split_generator.split_info.num_bytes = num_bytes
         if self.info.features is None:
             self.info.features = writer._features
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        return ExamplesIterable(
+            _generate_examples_from_tables_wrapper(self._generate_tables), kwargs=split_generator.gen_kwargs
+        )
 
 
 class MissingBeamOptions(ValueError):
