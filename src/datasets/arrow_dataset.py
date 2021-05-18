@@ -1386,7 +1386,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return dataset
 
     def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
-        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :obj:`datasets.tasks`.
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
 
@@ -1396,7 +1396,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - :obj:`"text-classification"`
                 - :obj:`"question-answering"`
 
-                If :obj:`TaskTemplate`, must be one of the task templates in :obj:`datasets.tasks`.
+                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):

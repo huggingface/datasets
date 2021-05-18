@@ -114,3 +114,13 @@ The base class ``Metric`` implements a Metric backed by one or several :class:`d
 .. autofunction:: datasets.filesystems.extract_path_from_uri
 
 .. autofunction:: datasets.filesystems.is_remote_filesystem
+
+
+``Task Templates``
+~~~~~~~~~~~~~~~~~~~~~
+
+The tasks supported by :class:`datasets.Dataset.prepare_for_task` and :class:`datasets.DatasetDict.prepare_for_task`.
+
+.. automodule:: datasets.tasks
+    :members:
+    :exclude-members: TaskTemplate

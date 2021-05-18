@@ -793,7 +793,7 @@ class DatasetDict(dict):
         ).read()
 
     def prepare_for_task(self, task: Union[str, TaskTemplate]):
-        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :obj:`datasets.tasks`.
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
 
@@ -803,7 +803,7 @@ class DatasetDict(dict):
                 - :obj:`"text-classification"`
                 - :obj:`"question-answering"`
 
-                If :obj:`TaskTemplate`, must be one of the task templates in :obj:`datasets.tasks`.
+                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
         """
         self._check_values_type()
         return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
