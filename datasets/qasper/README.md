@@ -12,7 +12,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories: 
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -21,10 +21,9 @@ task_ids:
 - open-domain-qa
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Qasper
 
 ## Table of Contents
-- [Dataset Card Creation Guide](#dataset-card-creation-guide)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
