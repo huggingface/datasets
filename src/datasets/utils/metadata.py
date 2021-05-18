@@ -202,7 +202,9 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_licences(licenses: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e)
+        others, to_validate = escape_validation_for_predicate(
+            licenses, lambda e: "-other-" in e or e.startswith("other-")
+        )
         validated, error = tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url)
         return [*validated, *others], error
 
@@ -211,7 +213,7 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other"))
+        others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other-"))
         validated, error = tagset_validator(to_validate, known_set, "task_categories", known_task_ids_url)
         return [*validated, *others], error
 
@@ -220,13 +222,15 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
-        others, to_validate = escape_validation_for_predicate(task_ids, lambda e: "-other-" in e)
+        others, to_validate = escape_validation_for_predicate(
+            task_ids, lambda e: "-other-" in e or e.startswith("other-")
+        )
         validated, error = tagset_validator(to_validate, known_set, "task_ids", known_task_ids_url)
         return [*validated, *others], error
 
     @staticmethod
     def validate_mulitlinguality(multilinguality: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other"))
+        others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other-"))
         validated, error = tagset_validator(
             to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
         )

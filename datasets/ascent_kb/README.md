@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- other
 task_ids:
-- other-stuctured-to-text
+- other-other-knowledge-base
 ---
 
 # Dataset Card for Ascent KB
@@ -28,8 +28,8 @@ task_ids:
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
