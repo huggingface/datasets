@@ -171,4 +171,3 @@ class TestJsonDatasetWriter:
             assert len(exported_content[len_at]) == 10
         else:
             assert len(exported_content) == 10
-        print(exported_content)
