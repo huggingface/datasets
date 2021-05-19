@@ -2765,7 +2765,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batch_size: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
-        """Export the dataset to JSON or JSON Lines.
+        """Export the dataset to JSON Lines or JSON.
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
