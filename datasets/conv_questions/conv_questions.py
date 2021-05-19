@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-ConvQuestions is the first realistic benchmark for conversational question answering over 
-knowledge graphs. It contains 11,200 conversations which can be evaluated over Wikidata. 
-They are compiled from the inputs of 70 Master crowdworkers on Amazon Mechanical Turk, 
-with conversations from five domains: Books, Movies, Soccer, Music, and TV Series. 
-The questions feature a variety of complex question phenomena like comparisons, aggregations, 
+ConvQuestions is the first realistic benchmark for conversational question answering over
+knowledge graphs. It contains 11,200 conversations which can be evaluated over Wikidata.
+They are compiled from the inputs of 70 Master crowdworkers on Amazon Mechanical Turk,
+with conversations from five domains: Books, Movies, Soccer, Music, and TV Series.
+The questions feature a variety of complex question phenomena like comparisons, aggregations,
 compositionality, and temporal reasoning. Answers are grounded in Wikidata entities to enable
-fair comparison across diverse methods. The data gathering setup was kept as natural as 
-possible, with the annotators selecting entities of their choice from each of the five domains, 
-and formulating the entire conversation in one session. All questions in a conversation are 
-from the same Turker, who also provided gold answers to the questions. For suitability to knowledge 
-graphs, questions were constrained to be objective or factoid in nature, but no other restrictive 
-guidelines were set. A notable property of ConvQuestions is that several questions are not 
-answerable by Wikidata alone (as of September 2019), but the required facts can, for example, 
+fair comparison across diverse methods. The data gathering setup was kept as natural as
+possible, with the annotators selecting entities of their choice from each of the five domains,
+and formulating the entire conversation in one session. All questions in a conversation are
+from the same Turker, who also provided gold answers to the questions. For suitability to knowledge
+graphs, questions were constrained to be objective or factoid in nature, but no other restrictive
+guidelines were set. A notable property of ConvQuestions is that several questions are not
+answerable by Wikidata alone (as of September 2019), but the required facts can, for example,
 be found in the open Web or in Wikipedia. For details, please refer to our CIKM 2019 full paper
 (https://dl.acm.org/citation.cfm?id=3358016).
 """
@@ -51,7 +51,7 @@ _CITATION = """\
 # You can copy an official description
 _DESCRIPTION = """\
 ConvQuestions is the first realistic benchmark for conversational question answering over knowledge graphs.
-It contains 11,200 conversations which can be evaluated over Wikidata. The questions feature a variety of complex 
+It contains 11,200 conversations which can be evaluated over Wikidata. The questions feature a variety of complex
 question phenomena like comparisons, aggregations, compositionality, and temporal reasoning."""
 
 _HOMEPAGE = "https://convex.mpi-inf.mpg.de"

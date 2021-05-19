@@ -1,20 +1,39 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+extended:
+- original
+language_creators:
+- crowdsourced
+languages:
+- en-US
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+- sequence-modeling
+task_ids:
+- open-domain-qa
+- dialogue-modeling
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for ConvQuestions
 
 ## Table of Contents
-- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -28,100 +47,103 @@ YAML tags:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [ConvQuestions page](https://convex.mpi-inf.mpg.de)
+- **Repository:** [GitHub](https://github.com/PhilippChr/CONVEX)
+- **Paper:** [Look before you hop: Conversational question answering over knowledge graphs using judicious context expansion](https://arxiv.org/abs/1910.03262)
+- **Leaderboard:** [Needs More Information]
+- **Point of Contact:** [Philipp Christmann](mailto:pchristm@mpi-inf.mpg.de)
 
 ### Dataset Summary
 
-[More Information Needed]
+ConvQuestions is the first realistic benchmark for conversational question answering over knowledge graphs.
+It contains 11,200 conversations which can be evaluated over Wikidata. The questions feature a variety of complex 
+question phenomena like comparisons, aggregations, compositionality, and temporal reasoning.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+[Needs More Information]
 
 ### Languages
 
-[More Information Needed]
+en
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+[Needs More Information]
 
 ### Data Fields
 
-[More Information Needed]
+[Needs More Information]
 
 ### Data Splits
 
-[More Information Needed]
+[Needs More Information]
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+[Needs More Information]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+[Needs More Information]
 
 #### Who are the source language producers?
 
-[More Information Needed]
+[Needs More Information]
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+[Needs More Information]
 
 #### Who are the annotators?
 
-[More Information Needed]
+[Needs More Information]
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+[Needs More Information]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+[Needs More Information]
 
 ### Discussion of Biases
 
-[More Information Needed]
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed]
+[Needs More Information]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed]
+[Needs More Information]
 
 ### Licensing Information
 
-[More Information Needed]
+[Needs More Information]
 
 ### Citation Information
 
-[More Information Needed]
-
-### Contributions
-
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+@InProceedings{christmann2019look,
+  title={Look before you hop: Conversational question answering over knowledge graphs using judicious context expansion},
+  author={Christmann, Philipp and Saha Roy, Rishiraj and Abujabal, Abdalghani and Singh, Jyotsna and Weikum, Gerhard},
+  booktitle={Proceedings of the 28th ACM International Conference on Information and Knowledge Management},
+  pages={729--738},
+  year={2019}
+}
