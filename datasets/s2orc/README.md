@@ -24,7 +24,7 @@ task_ids:
 - other-other-citation-recommendation
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for S2ORC: The Semantic Scholar Open Research Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

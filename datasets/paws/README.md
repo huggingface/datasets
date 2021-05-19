@@ -32,7 +32,7 @@ task_ids:
 - text-scoring-other-paraphrase-identification
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for PAWS: Paraphrase Adversaries from Word Scrambling
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

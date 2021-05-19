@@ -1,7 +1,7 @@
 ---
 ---
 
-# Dataset Card for "multi_nli_mismatch"
+# Dataset Card for Multi-Genre Natural Language Inference (MultiNLI)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
