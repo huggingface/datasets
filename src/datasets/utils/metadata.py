@@ -1,5 +1,6 @@
 import json
 import logging
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -38,6 +39,21 @@ known_size_categories, known_size_categories_url = load_json_resource("size_cate
 known_multilingualities, known_multilingualities_url = load_json_resource("multilingualities.json")
 
 
+class NoDuplicateSafeLoader(yaml.SafeLoader):
+    def _check_no_duplicates_on_constructed_node(self, node):
+        keys = [self.constructed_objects[key_node] for key_node, _ in node.value]
+        keys = [tuple(key) if isinstance(key, list) else key for key in keys]
+        counter = Counter(keys)
+        duplicate_keys = [key for key in counter if counter[key] > 1]
+        if duplicate_keys:
+            raise TypeError(f"Got duplicate yaml keys: {duplicate_keys}")
+
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep=deep)
+        self._check_no_duplicates_on_constructed_node(node)
+        return mapping
+
+
 def yaml_block_from_readme(path: Path) -> Optional[str]:
     with path.open() as readme_file:
         content = [line.strip() for line in readme_file]
@@ -54,7 +70,7 @@ def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
     yaml_block = yaml_block_from_readme(path=path)
     if yaml_block is None:
         return None
-    metada_dict = yaml.safe_load(yaml_block) or dict()
+    metada_dict = yaml.load(yaml_block, Loader=NoDuplicateSafeLoader) or dict()
     return metada_dict
 
 
@@ -174,7 +190,7 @@ class DatasetMetadata:
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
-        metada_dict = yaml.safe_load(string) or dict()
+        metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
         # flatten the metadata of each config
         for key in metada_dict:
             if isinstance(metada_dict[key], dict):
