@@ -98,13 +98,9 @@ class ConvQuestions(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "domain": datasets.Value("string"),
-                "questions": datasets.features.Sequence(
-                    {
-                        "question": datasets.Value("string"),
-                        "answer": datasets.Sequence(datasets.Value("string")),
-                        "answer_text": datasets.Value("string"),
-                    }
-                ),
+                "questions": datasets.features.Sequence(datasets.Value("string")),
+                "answers": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
+                "answer_texts": datasets.features.Sequence(datasets.Value("string")),
             }
         )
         return datasets.DatasetInfo(
@@ -168,12 +164,9 @@ class ConvQuestions(datasets.GeneratorBasedBuilder):
             for id_, instance in enumerate(data):
                 yield id_, {
                     "domain": instance["domain"],
-                    "questions": [
-                        {
-                            "question": turn["question"],
-                            "answer": [] if split == "test" else turn["answer"].split(";"),
-                            "answer_text": "" if split == "test" else turn["answer_text"],
-                        }
-                        for turn in instance["questions"]
+                    "questions": [turn["question"] for turn in instance["questions"]],
+                    "answers": [
+                        [] if split == "test" else turn["answer"].split(";") for turn in instance["questions"]
                     ],
+                    "answer_texts": ["" if split == "test" else turn["answer_text"] for turn in instance["questions"]],
                 }

@@ -45,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -72,15 +73,56 @@ en
 
 ### Data Instances
 
-[Needs More Information]
+An example of 'train' looks as follows.
+```
+{
+  'domain': 'music',
+  'questions': [
+    'When did The Carpenters sign with A&M Records?',
+    'What song was their first hit?',
+    'When did Karen die?',
+    'Karen had what eating problem?',
+    'and how did she die?'
+  ],
+  'answers': [
+    [
+      '1969'
+    ],
+    [
+      'https://www.wikidata.org/wiki/Q928282'
+    ],
+    [
+      '1983'
+    ],
+    [
+      'https://www.wikidata.org/wiki/Q131749'
+    ],
+    [
+      'https://www.wikidata.org/wiki/Q181754'
+    ]
+  ],
+  'answer_texts': [
+    '1969',
+    '(They Long to Be) Close to You',
+    '1983',
+    'anorexia nervosa',
+    'heart failure'
+  ]
+}
+```
 
 ### Data Fields
 
-[Needs More Information]
+- `domain`: a `string` feature.
+- `questions`: a `list` of `string` features.
+- `answers`: a `list` of `lists` of `string` features.
+- `answer_texts`: a `list` of `string` features.
 
 ### Data Splits
 
-[Needs More Information]
+|train|validation|tests|
+|----:|---------:|----:|
+| 6720|      2240| 2240|
 
 ## Dataset Creation
 
@@ -138,6 +180,7 @@ en
 
 ### Citation Information
 
+```
 @InProceedings{christmann2019look,
   title={Look before you hop: Conversational question answering over knowledge graphs using judicious context expansion},
   author={Christmann, Philipp and Saha Roy, Rishiraj and Abujabal, Abdalghani and Singh, Jyotsna and Weikum, Gerhard},
@@ -145,3 +188,8 @@ en
   pages={729--738},
   year={2019}
 }
+```
+
+### Contributions
+
+[Needs More Information]
