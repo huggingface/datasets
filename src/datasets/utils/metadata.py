@@ -56,7 +56,7 @@ class NoDuplicateSafeLoader(yaml.SafeLoader):
 
 def yaml_block_from_readme(path: Path) -> Optional[str]:
     with path.open() as readme_file:
-        content = [line.strip() for line in readme_file]
+        content = [line.rstrip("\n") for line in readme_file]
 
     if content[0] == "---" and "---" in content[1:]:
         yamlblock = "\n".join(content[1 : content[1:].index("---") + 1])
