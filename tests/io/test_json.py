@@ -144,3 +144,31 @@ class TestJsonDatasetWriter:
         assert isinstance(exported_content, list)
         assert isinstance(exported_content[0], dict)
         assert len(exported_content) == 10
+
+    @pytest.mark.parametrize(
+        "orient, container, keys, len_at",
+        [
+            ("records", list, {"tokens", "labels", "answers", "id"}, None),
+            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("index", dict, set("0123456789"), None),
+            ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
+            ("values", list, None, None),
+            ("table", dict, {"schema", "data"}, "data"),
+        ],
+    )
+    def test_dataset_to_json_orient(self, orient, container, keys, len_at, dataset):
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=False, orient=orient).write()
+            buffer.seek(0)
+            exported_content = load_json(buffer)
+        assert isinstance(exported_content, container)
+        if keys:
+            if container is dict:
+                assert exported_content.keys() == keys
+            else:
+                assert exported_content[0].keys() == keys
+        if len_at:
+            assert len(exported_content[len_at]) == 10
+        else:
+            assert len(exported_content) == 10
+        print(exported_content)
