@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from pathlib import Path
 from subprocess import check_output
 from typing import List
@@ -36,10 +35,10 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     diff_output = check_output(["git", "diff", "--name-only", "HEAD..origin/master"], cwd=repo_path)
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
 
+    datasets_dir_path = repo_path / "datasets"
+
     changed_datasets = set(
-        f.parent.parts[-1]
-        for f in changed_files
-        if f.exists() and f.parent.parent.name == "datasets" and f.parent.parent.parent.name == repo_path.parts[-1]
+        f.parent.name for f in changed_files if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
     )
 
     return sorted(changed_datasets)
@@ -52,7 +51,7 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
 def test_changed_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
+    assert card_path.exists()
     error_messages = []
     try:
         ReadMe.from_readme(card_path)
@@ -73,7 +72,7 @@ def test_changed_dataset_card(dataset_name):
 @pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
 def test_dataset_card(dataset_name):
     card_path = repo_path / "datasets" / dataset_name / "README.md"
-    assert os.path.exists(card_path)
+    assert card_path.exists()
     error_messages = []
     try:
         ReadMe.from_readme(card_path)
