@@ -167,6 +167,8 @@ class TestJsonDatasetWriter:
                 assert exported_content.keys() == keys
             else:
                 assert exported_content[0].keys() == keys
+        else:
+            assert not hasattr(exported_content, "keys") and not hasattr(exported_content[0], "keys")
         if len_at:
             assert len(exported_content[len_at]) == 10
         else:
