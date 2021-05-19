@@ -1,8 +1,6 @@
 ---
 annotations_creators:
 - crowdsourced
-extended:
-- original
 language_creators:
 - crowdsourced
 languages:
@@ -11,6 +9,8 @@ licenses:
 - mit
 multilinguality:
 - monolingual
+size_categories:
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
