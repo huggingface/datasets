@@ -21,7 +21,7 @@ task_ids:
 - text-classification-other-dialogue-sentiment-classification
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ReDial (Recommendation Dialogues)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
