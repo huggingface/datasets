@@ -243,3 +243,6 @@ Semantic Scholar Open Research Corpus is licensed under ODC-BY.
       primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik) for adding this dataset.
