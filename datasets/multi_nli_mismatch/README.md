@@ -1,4 +1,26 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- found
+languages:
+- en
+licenses:
+- cc-by-3.0
+- cc-by-sa-3.0-at
+- mit
+- other-Open Portion of the American National Corpus
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-scoring
+task_ids:
+- semantic-similarity-scoring
 ---
 
 # Dataset Card for Multi-Genre Natural Language Inference (MultiNLI)
