@@ -23,7 +23,7 @@ task_ids:
 - semantic-similarity-scoring
 ---
 
-# Dataset Card for Multi-Genre Natural Language Inference (MultiNLI)
+# Dataset Card for Multi-Genre Natural Language Inference (Mismatched only)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
