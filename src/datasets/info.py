@@ -93,23 +93,24 @@ class DatasetInfo:
     Note: Not all fields are known on construction and may be updated later.
 
     Attributes:
-        description (str):
-        citation (str):
-        homepage (str):
-        license (str):
-        features (Features, optional):
+        description (str): A description of the dataset.
+        citation (str): A BibTeX citation of the dataset.
+        homepage (str): A URL to the official homepage for the dataset.
+        license (str): The dataset's license.
+        features (Features, optional): The features used to specify the dataset's columns, types and conversion methods.
         post_processed (PostProcessedInfo, optional):
-        supervised_keys (SupervisedKeysData, optional):
-        builder_name (str, optional)
-        config_name (str, optional)
-        version (str or Version, optional):
-        splits (dict, optional):
-        download_checksums (dict, optional):
-        download_size (int, optional):
+        supervised_keys (SupervisedKeysData, optional): Specifies the input feature and the label for supervised learning if applicable for the dataset.
+        builder_name (str, optional): The name of the :class:`GeneratorBasedBuilder` subclass used to create the dataset. Usually matched to the corresponding script name, but with CamelCase instead of snake_case.
+        config_name (str, optional): The name of the configuration derived from :class:`BuilderConfig`
+        version (str or Version, optional): The version of the dataset.
+        splits (dict, optional): The mapping between split name and metadata.
+        download_checksums (dict, optional): The mapping between the URL to download the dataset's checksums and corresponding metadata.
+        download_size (int, optional): The size of the compressed dataset in bytes.
         post_processing_size (int, optional):
-        dataset_size (int, optional):
-        size_in_bytes (int, optional):
-        task_templates (List[TaskTemplate], optional):
+        dataset_size (int, optional): The combined size of the Apache Arrow tables for all splits in bytes.
+        size_in_bytes (int, optional): The combined size of all files associated with the dataset.
+        task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
