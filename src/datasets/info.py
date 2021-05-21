@@ -36,8 +36,10 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
+from datasets.tasks.text_classification import TextClassification
+
 from . import config
-from .features import Features, Value
+from .features import Features, Value, ClassLabel
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
@@ -165,6 +167,15 @@ class DatasetInfo:
             else:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
+            # insert labels and mappings for text classification
+            for idx, template in enumerate(self.task_templates):
+                if isinstance(template, TextClassification) and self.features is not None:
+                    # This introduces state and raises a KeyError when we call Dataset.prepare_for_task :(
+                    # The reason is that Dataset.prepare_for_task calls Dataset.cast which converts the
+                    # DatasetInfo.features to the new schema and thus template.label_column is no longer a valid key
+                    object.__setattr__(template, "labels", tuple(self.features[template.label_column].names))
+                    template.label_schema["labels"] = ClassLabel(names=template.labels)
+                    self.task_templates[idx] = template
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
