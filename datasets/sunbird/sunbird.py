@@ -31,12 +31,13 @@ _CITATION = """\
 """
 
 _VERSION = "1.0.0"
-_TRAIN_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-datasets/main/train.en"
-_TEST_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-datasets/main/test.en"
-_VAL_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-datasets/main/val.en"
-_TRAIN_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-datasets/main/train.lg"
-_TEST_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-datasets/main/test.lg"
-_VAL_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-datasets/main/val.lg"
+
+_TRAIN_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/train.en"
+_TEST_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/test.en"
+_VAL_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/val.en"
+_TRAIN_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/train.lg"
+_TEST_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/test.lg"
+_VAL_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/val.lg"
 
 _LANGUAGE_PAIRS = [
     ("lg", "en"),
