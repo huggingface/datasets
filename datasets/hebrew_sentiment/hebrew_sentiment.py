@@ -2,9 +2,9 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -101,7 +101,10 @@ class HebrewSentiment(datasets.GeneratorBasedBuilder):
             ),
             homepage="https://github.com/omilab/Neural-Sentiment-Analyzer-for-Modern-Hebrew",
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('neg', 'off-topic', 'pos'), text_column='text', label_column='label')])
+            task_templates=[
+                TextClassification(labels=("neg", "off-topic", "pos"), text_column="text", label_column="label")
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         train_url = _TRAIN_TOKEN_DOWNLOAD_URL if self.config.granularity == "token" else _TRAIN_MORPH_DOWNLOAD_URL

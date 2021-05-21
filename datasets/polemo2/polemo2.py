@@ -16,10 +16,10 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -93,7 +93,19 @@ class Polemo2(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('__label__meta_amb', '__label__meta_minus_m', '__label__meta_plus_m', '__label__meta_zero'), text_column='sentence', label_column='target')])
+            task_templates=[
+                TextClassification(
+                    labels=(
+                        "__label__meta_amb",
+                        "__label__meta_minus_m",
+                        "__label__meta_plus_m",
+                        "__label__meta_zero",
+                    ),
+                    text_column="sentence",
+                    label_column="target",
+                )
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
