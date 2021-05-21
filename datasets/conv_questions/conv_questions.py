@@ -62,9 +62,9 @@ _LICENSE = "MIT License"
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "http://qa.mpi-inf.mpg.de/convex/"
 _URLs = {
-    "train": _URL + "/ConvQuestions_train.zip",
-    "dev": _URL + "/ConvQuestions_dev.zip",
-    "test": _URL + "/ConvQuestions_test.zip",
+    "train": _URL + "ConvQuestions_train.zip",
+    "dev": _URL + "ConvQuestions_dev.zip",
+    "test": _URL + "ConvQuestions_test.zip",
 }
 
 
@@ -73,34 +73,16 @@ class ConvQuestions(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('conv_questions', 'train')
-    # data = datasets.load_dataset('conv_questions', 'dev')
-    # data = datasets.load_dataset('conv_questions', 'test')
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="train", version=VERSION, description="Train set of the benchmark."),
-        datasets.BuilderConfig(name="dev", version=VERSION, description="Validation set of the benchmark."),
-        datasets.BuilderConfig(name="test", version=VERSION, description="Test set of the benchmark."),
-    ]
-
-    DEFAULT_CONFIG_NAME = "train"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
     def _info(self):
         # This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         features = datasets.Features(
             {
                 "domain": datasets.Value("string"),
+                "seed_entity": datasets.Value("string"),
+                "seed_entity_text": datasets.Value("string"),
                 "questions": datasets.features.Sequence(datasets.Value("string")),
                 "answers": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
-                "answer_texts": datasets.features.Sequence(datasets.Value("string")),
+                "answer_texts": datasets.features.Sequence(datasets.Value("string"))
             }
         )
         return datasets.DatasetInfo(
@@ -164,9 +146,11 @@ class ConvQuestions(datasets.GeneratorBasedBuilder):
             for id_, instance in enumerate(data):
                 yield id_, {
                     "domain": instance["domain"],
+                    "seed_entity": instance["seed_entity"],
+                    "seed_entity_text": instance["seed_entity_text"],
                     "questions": [turn["question"] for turn in instance["questions"]],
                     "answers": [
-                        [] if split == "test" else turn["answer"].split(";") for turn in instance["questions"]
+                        turn["answer"].split(";") for turn in instance["questions"]
                     ],
-                    "answer_texts": ["" if split == "test" else turn["answer_text"] for turn in instance["questions"]],
+                    "answer_texts": [turn["answer_text"] for turn in instance["questions"]]
                 }

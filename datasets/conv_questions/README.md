@@ -57,9 +57,21 @@ task_ids:
 
 ### Dataset Summary
 
-ConvQuestions is the first realistic benchmark for conversational question answering over knowledge graphs.
-It contains 11,200 conversations which can be evaluated over Wikidata. The questions feature a variety of complex 
-question phenomena like comparisons, aggregations, compositionality, and temporal reasoning.
+ConvQuestions is the first realistic benchmark for conversational question answering over
+knowledge graphs. It contains 11,200 conversations which can be evaluated over Wikidata.
+They are compiled from the inputs of 70 Master crowdworkers on Amazon Mechanical Turk,
+with conversations from five domains: Books, Movies, Soccer, Music, and TV Series.
+The questions feature a variety of complex question phenomena like comparisons, aggregations,
+compositionality, and temporal reasoning. Answers are grounded in Wikidata entities to enable
+fair comparison across diverse methods. The data gathering setup was kept as natural as
+possible, with the annotators selecting entities of their choice from each of the five domains,
+and formulating the entire conversation in one session. All questions in a conversation are
+from the same Turker, who also provided gold answers to the questions. For suitability to knowledge
+graphs, questions were constrained to be objective or factoid in nature, but no other restrictive
+guidelines were set. A notable property of ConvQuestions is that several questions are not
+answerable by Wikidata alone (as of September 2019), but the required facts can, for example,
+be found in the open Web or in Wikipedia. For details, please refer to our CIKM 2019 full paper
+(https://dl.acm.org/citation.cfm?id=3358016).
 
 ### Supported Tasks and Leaderboards
 
@@ -77,6 +89,8 @@ An example of 'train' looks as follows.
 ```
 {
   'domain': 'music',
+  'seed_entity': 'https://www.wikidata.org/wiki/Q223495',
+  'seed_entity_text': 'The Carpenters', 
   'questions': [
     'When did The Carpenters sign with A&M Records?',
     'What song was their first hit?',
@@ -113,10 +127,12 @@ An example of 'train' looks as follows.
 
 ### Data Fields
 
-- `domain`: a `string` feature.
-- `questions`: a `list` of `string` features.
-- `answers`: a `list` of `lists` of `string` features.
-- `answer_texts`: a `list` of `string` features.
+- `domain`: a `string` feature. Any of: ['books', 'movies', 'music', 'soccer', 'tv_series']
+- `seed_entity`: a `string` feature. Wikidata ID of the topic entity.
+- `seed_entity_text`: a `string` feature. Surface form of the topic entity.
+- `questions`: a `list` of `string` features. List of questions (initial question and follow-up questions).
+- `answers`: a `list` of `lists` of `string` features. List of answers, given as Wikidata IDs or literals (e.g. timestamps or names).
+- `answer_texts`: a `list` of `string` features. List of surface forms of the answers.
 
 ### Data Splits
 
@@ -144,11 +160,11 @@ An example of 'train' looks as follows.
 
 #### Annotation process
 
-[Needs More Information]
+With insights from a meticulous in-house pilot study with ten students over two weeks, we posed the conversation generation task on Amazon Mechanical Turk (AMT) in the most natural setup: Each crowdworker was asked to build a conversation by asking five sequential questions starting from any seed entity of his/her choice, as this is an intuitive mental model that humans may have when satisfying their real information needs via their search assistants.
 
 #### Who are the annotators?
 
-[Needs More Information]
+Local students (Saarland Informatics Campus) and AMT Master Workers.
 
 ### Personal and Sensitive Information
 
