@@ -177,7 +177,8 @@ class DatasetTester:
                     for task in task_templates:
                         task_features = {**task.input_schema, **task.label_schema}
                         dataset = dataset.prepare_for_task(task)
-                        self.parent.assertDictEqual(task_features, dataset.features)
+                        for dataset_split in dataset.values():
+                            self.parent.assertDictEqual(task_features, dataset_split.features)
                 del dataset
 
 
