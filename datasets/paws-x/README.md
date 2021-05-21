@@ -30,7 +30,7 @@ task_ids:
 - text-scoring-other-paraphrase-identification
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

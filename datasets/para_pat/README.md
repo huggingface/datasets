@@ -34,7 +34,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

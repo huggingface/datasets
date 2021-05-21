@@ -112,10 +112,10 @@ that some slices may contain more examples than others. For example:
 .. code-block::
 
     # Assuming `train` split contains 999 records.
-    # 989 records, from 0 (included) to 989 (excluded).
-    train_99_ds = datasets.load_dataset('bookcorpus', split='train[:99%]')
-    # 19 records, from 490 (included) to 509 (excluded).
-    train_49_51_ds = datasets.load_dataset('bookcorpus', split='train[49%:51%]')
+    # 19 records, from 500 (included) to 519 (excluded).
+    train_50_52_ds = datasets.load_dataset('bookcorpus', split='train[50%:52%]')
+    # 20 records, from 519 (included) to 539 (excluded).
+    train_52_54_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%]')
 
 Alternatively, the ``pct1_dropremainder`` rounding can be used, so specified
 percentage boundaries are treated as multiples of 1%. This option should be used
@@ -124,9 +124,12 @@ examples may be truncated if ``info.splits[split_name].num_examples % 100 != 0``
 
 .. code-block::
 
-    # Records 0 (included) to 891 (excluded).
-    train_99pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
-        'train', to=99, unit='%', rounding='pct1_dropremainder'))
+    # 18 records, from 450 (included) to 468 (excluded).
+    train_50_52pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
+        'train', from_=50, to=52, unit='%', rounding='pct1_dropremainder'))
+    # 18 records, from 468 (included) to 486 (excluded).
+    train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction(
+        'train', from_=52, to=54, unit='%', rounding='pct1_dropremainder'))
     # Or equivalently:
-    train_99pct1_ds = datasets.load_dataset('bookcorpus', split='train[:99%](pct1_dropremainder)')
-
+    train_50_52pct1_ds = datasets.load_dataset('bookcorpus', split='train[50%:52%](pct1_dropremainder)')
+    train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%](pct1_dropremainder)')

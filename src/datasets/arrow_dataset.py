@@ -2765,16 +2765,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batch_size: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
-        """Exports the dataset to JSON.
+        """Export the dataset to JSON Lines or JSON.
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+            lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
+                Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
+                ``"records"``, since the others are not list-like.
+            orient (:obj:`str`, default ``"records"``): Format of the JSON:
+
+                - ``"records"``: list like ``[{column -> value}, … , {column -> value}]``
+                - ``"split"``: dict like ``{"index" -> [index], "columns" -> [columns], "data" -> [values]}``
+                - ``"index"``: dict like ``{index -> {column -> value}}``
+                - ``"columns"``: dict like ``{column -> {index -> value}}``
+                - ``"values"``: just the values array
+                - ``"table"``: dict like ``{"schema": {schema}, "data": {data}}``
+            **to_json_kwargs: Parameters to pass to pandas's `pandas.DataFrame.to_json
+                <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html>`_.
 
         Returns:
-            int: The number of characters or bytes written
+            int: The number of characters or bytes written.
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter

@@ -32,7 +32,9 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         info, split, builder_name, citation, config_name, dataset_size,
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version,
-        from_csv, from_json, from_text, prepare_for_task,
+        from_csv, from_json, from_text,
+        prepare_for_task,
+        to_json,
 
 .. autofunction:: datasets.concatenate_datasets
 
