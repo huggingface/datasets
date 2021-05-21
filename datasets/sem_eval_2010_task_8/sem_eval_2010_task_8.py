@@ -16,9 +16,9 @@
 
 
 import os
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -99,7 +99,34 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://semeval2.fbk.eu/semeval2.php?location=tasks&taskid=11",
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('Cause-Effect(e1,e2)', 'Cause-Effect(e2,e1)', 'Component-Whole(e1,e2)', 'Component-Whole(e2,e1)', 'Content-Container(e1,e2)', 'Content-Container(e2,e1)', 'Entity-Destination(e1,e2)', 'Entity-Destination(e2,e1)', 'Entity-Origin(e1,e2)', 'Entity-Origin(e2,e1)', 'Instrument-Agency(e1,e2)', 'Instrument-Agency(e2,e1)', 'Member-Collection(e1,e2)', 'Member-Collection(e2,e1)', 'Message-Topic(e1,e2)', 'Message-Topic(e2,e1)', 'Other', 'Product-Producer(e1,e2)', 'Product-Producer(e2,e1)'), text_column='sentence', label_column='relation')])
+            task_templates=[
+                TextClassification(
+                    labels=(
+                        "Cause-Effect(e1,e2)",
+                        "Cause-Effect(e2,e1)",
+                        "Component-Whole(e1,e2)",
+                        "Component-Whole(e2,e1)",
+                        "Content-Container(e1,e2)",
+                        "Content-Container(e2,e1)",
+                        "Entity-Destination(e1,e2)",
+                        "Entity-Destination(e2,e1)",
+                        "Entity-Origin(e1,e2)",
+                        "Entity-Origin(e2,e1)",
+                        "Instrument-Agency(e1,e2)",
+                        "Instrument-Agency(e2,e1)",
+                        "Member-Collection(e1,e2)",
+                        "Member-Collection(e2,e1)",
+                        "Message-Topic(e1,e2)",
+                        "Message-Topic(e2,e1)",
+                        "Other",
+                        "Product-Producer(e1,e2)",
+                        "Product-Producer(e2,e1)",
+                    ),
+                    text_column="sentence",
+                    label_column="relation",
+                )
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""

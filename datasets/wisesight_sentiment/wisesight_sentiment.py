@@ -2,10 +2,10 @@
 
 
 import json
-from datasets.tasks import TextClassification
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -88,7 +88,10 @@ class WisesightSentiment(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/PyThaiNLP/wisesight-sentiment",
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('neg', 'neu', 'pos', 'q'), text_column='texts', label_column='category')])
+            task_templates=[
+                TextClassification(labels=("neg", "neu", "pos", "q"), text_column="texts", label_column="category")
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         arch_path = dl_manager.download_and_extract(self._DOWNLOAD_URL)

@@ -16,10 +16,10 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -69,7 +69,14 @@ class NkjpNer(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('geogName', 'noEntity', 'orgName', 'persName', 'placeName', 'time'), text_column='sentence', label_column='target')])
+            task_templates=[
+                TextClassification(
+                    labels=("geogName", "noEntity", "orgName", "persName", "placeName", "time"),
+                    text_column="sentence",
+                    label_column="target",
+                )
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""

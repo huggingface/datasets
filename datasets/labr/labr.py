@@ -18,9 +18,9 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -90,7 +90,10 @@ class Labr(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/mohamedadaly/LABR",
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('1', '2', '3', '4', '5'), text_column='text', label_column='label')])
+            task_templates=[
+                TextClassification(labels=("1", "2", "3", "4", "5"), text_column="text", label_column="label")
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URLS)

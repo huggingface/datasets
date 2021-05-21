@@ -18,9 +18,9 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -70,7 +70,14 @@ class HausaVOATopics(datasets.GeneratorBasedBuilder):
             ),
             homepage="https://github.com/uds-lsv/transfer-distant-transformer-african",
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('Africa', 'Health', 'Nigeria', 'Politics', 'World'), text_column='news_title', label_column='label')])
+            task_templates=[
+                TextClassification(
+                    labels=("Africa", "Health", "Nigeria", "Politics", "World"),
+                    text_column="news_title",
+                    label_column="label",
+                )
+            ],
+        )
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)

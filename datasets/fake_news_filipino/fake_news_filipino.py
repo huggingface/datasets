@@ -15,10 +15,10 @@
 """Fake News Filipino Dataset"""
 
 import csv
-from datasets.tasks import TextClassification
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -59,7 +59,8 @@ class FakeNewsFilipino(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        task_templates=[TextClassification(labels=('0', '1'), text_column='article', label_column='label')])
+            task_templates=[TextClassification(labels=("0", "1"), text_column="article", label_column="label")],
+        )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
