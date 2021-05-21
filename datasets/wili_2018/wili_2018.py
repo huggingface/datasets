@@ -17,6 +17,7 @@
 
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -312,7 +313,7 @@ class Wili_2018(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('ace', 'afr', 'als', 'amh', 'ang', 'ara', 'arg', 'arz', 'asm', 'ast', 'ava', 'aym', 'azb', 'aze', 'bak', 'bar', 'bcl', 'be-tarask', 'bel', 'ben', 'bho', 'bjn', 'bod', 'bos', 'bpy', 'bre', 'bul', 'bxr', 'cat', 'cbk', 'cdo', 'ceb', 'ces', 'che', 'chr', 'chv', 'ckb', 'cor', 'cos', 'crh', 'csb', 'cym', 'dan', 'deu', 'diq', 'div', 'dsb', 'dty', 'egl', 'ell', 'eng', 'epo', 'est', 'eus', 'ext', 'fao', 'fas', 'fin', 'fra', 'frp', 'fry', 'fur', 'gag', 'gla', 'gle', 'glg', 'glk', 'glv', 'grn', 'guj', 'hak', 'hat', 'hau', 'hbs', 'heb', 'hif', 'hin', 'hrv', 'hsb', 'hun', 'hye', 'ibo', 'ido', 'ile', 'ilo', 'ina', 'ind', 'isl', 'ita', 'jam', 'jav', 'jbo', 'jpn', 'kaa', 'kab', 'kan', 'kat', 'kaz', 'kbd', 'khm', 'kin', 'kir', 'koi', 'kok', 'kom', 'kor', 'krc', 'ksh', 'kur', 'lad', 'lao', 'lat', 'lav', 'lez', 'lij', 'lim', 'lin', 'lit', 'lmo', 'lrc', 'ltg', 'ltz', 'lug', 'lzh', 'mai', 'mal', 'map-bms', 'mar', 'mdf', 'mhr', 'min', 'mkd', 'mlg', 'mlt', 'mon', 'mri', 'mrj', 'msa', 'mwl', 'mya', 'myv', 'mzn', 'nan', 'nap', 'nav', 'nci', 'nds', 'nds-nl', 'nep', 'new', 'nld', 'nno', 'nob', 'nrm', 'nso', 'oci', 'olo', 'ori', 'orm', 'oss', 'pag', 'pam', 'pan', 'pap', 'pcd', 'pdc', 'pfl', 'pnb', 'pol', 'por', 'pus', 'que', 'roa-tara', 'roh', 'ron', 'rue', 'rup', 'rus', 'sah', 'san', 'scn', 'sco', 'sgs', 'sin', 'slk', 'slv', 'sme', 'sna', 'snd', 'som', 'spa', 'sqi', 'srd', 'srn', 'srp', 'stq', 'sun', 'swa', 'swe', 'szl', 'tam', 'tat', 'tcy', 'tel', 'tet', 'tgk', 'tgl', 'tha', 'ton', 'tsn', 'tuk', 'tur', 'tyv', 'udm', 'uig', 'ukr', 'urd', 'uzb', 'vec', 'vep', 'vie', 'vls', 'vol', 'vro', 'war', 'wln', 'wol', 'wuu', 'xho', 'xmf', 'yid', 'yor', 'zea', 'zh-yue', 'zho'), text_column='sentence', label_column='label')])
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)

@@ -16,6 +16,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -71,7 +72,7 @@ class Kor_3i4k(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('Command', 'Fragment', 'Question', 'Rhetorical Command', 'Rhetorical Question', 'Statement', 'Utterance'), text_column='text', label_column='label')])
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators"""

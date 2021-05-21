@@ -18,6 +18,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -66,7 +67,7 @@ class AGNews(datasets.GeneratorBasedBuilder):
             ),
             homepage="http://groups.di.unipi.it/~gulli/AG_corpus_of_news_articles.html",
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('Business', 'Sci/Tech', 'Sports', 'World'), text_column='text', label_column='label')])
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)

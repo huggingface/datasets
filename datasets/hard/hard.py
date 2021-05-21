@@ -18,6 +18,7 @@
 
 
 import os
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -85,7 +86,7 @@ class Hard(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/elnagara/HARD-Arabic-Dataset",
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('1', '2', '3', '4', '5'), text_column='text', label_column='label')])
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)

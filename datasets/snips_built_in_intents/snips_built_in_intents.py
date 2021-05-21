@@ -18,6 +18,7 @@
 
 
 import json
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -91,7 +92,7 @@ class SnipsBuiltInIntents(datasets.GeneratorBasedBuilder):
             ),
             homepage="https://github.com/sonos/nlu-benchmark/tree/master/2016-12-built-in-intents",
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('BookRestaurant', 'ComparePlaces', 'GetDirections', 'GetPlaceDetails', 'GetTrafficInformation', 'GetWeather', 'RequestRide', 'SearchPlace', 'ShareCurrentLocation', 'ShareETA'), text_column='text', label_column='label')])
 
     def _split_generators(self, dl_manager):
         # Note: The source dataset doesn't have a train-test split.

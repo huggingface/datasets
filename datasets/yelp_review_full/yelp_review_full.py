@@ -16,6 +16,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 import os
 
 import datasets
@@ -92,7 +93,7 @@ class YelpReviewFull(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('1 star', '2 star', '3 stars', '4 stars', '5 stars'), text_column='text', label_column='label')])
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""

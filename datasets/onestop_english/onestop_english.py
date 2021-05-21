@@ -16,6 +16,7 @@
 
 
 import os
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -63,7 +64,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('adv', 'ele', 'int'), text_column='text', label_column='label')])
 
     def _vocab_text_gen(self, train_file):
         for _, ex in self._generate_examples(train_file):

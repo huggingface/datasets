@@ -2,6 +2,7 @@
 
 
 import json
+from datasets.tasks import TextClassification
 import os
 
 import datasets
@@ -65,7 +66,7 @@ class AllocineDataset(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('neg', 'pos'), text_column='review', label_column='label')])
 
     def _split_generators(self, dl_manager):
         arch_path = dl_manager.download_and_extract(self._DOWNLOAD_URL)

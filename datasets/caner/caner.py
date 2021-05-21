@@ -16,6 +16,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 import os
 
 import datasets
@@ -90,7 +91,7 @@ class Caner(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(labels=('Allah', 'Book', 'Clan', 'Crime', 'Date', 'Day', 'Hell', 'Loc', 'Meas', 'Mon', 'Month', 'NatOb', 'Number', 'O', 'Org', 'Para', 'Pers', 'Prophet', 'Rlig', 'Sect', 'Time'), text_column='token', label_column='ner_tag')])
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
