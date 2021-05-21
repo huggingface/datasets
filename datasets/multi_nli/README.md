@@ -23,7 +23,7 @@ task_ids:
 - semantic-similarity-scoring
 ---
 
-# Dataset Card for "multi_nli"
+# Dataset Card for Multi-Genre Natural Language Inference (MultiNLI)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -127,17 +127,23 @@ They constructed MultiNLI so as to make it possible to explicitly evaluate model
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
 They created each sentence pair by selecting a premise sentence from a preexisting text source and asked a human annotator to compose a novel sentence to pair with it as a hypothesis.
+
+#### Who are the source language producers?
+
+[More Information Needed]
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[More Information Needed]
 
 #### Who are the annotators?
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
