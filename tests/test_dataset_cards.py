@@ -38,7 +38,9 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
     datasets_dir_path = repo_path / "datasets"
 
     changed_datasets = set(
-        f.parent.name for f in changed_files if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
+        f.resolve().relative_to(datasets_dir_path).parts[0]
+        for f in changed_files
+        if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
     )
 
     return sorted(changed_datasets)
