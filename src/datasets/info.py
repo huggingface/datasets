@@ -39,7 +39,7 @@ from typing import List, Optional, Union
 from datasets.tasks.text_classification import TextClassification
 
 from . import config
-from .features import Features, Value, ClassLabel
+from .features import ClassLabel, Features, Value
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
