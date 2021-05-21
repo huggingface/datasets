@@ -82,7 +82,7 @@ class ConvQuestions(datasets.GeneratorBasedBuilder):
                 "seed_entity_text": datasets.Value("string"),
                 "questions": datasets.features.Sequence(datasets.Value("string")),
                 "answers": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
-                "answer_texts": datasets.features.Sequence(datasets.Value("string"))
+                "answer_texts": datasets.features.Sequence(datasets.Value("string")),
             }
         )
         return datasets.DatasetInfo(
@@ -149,8 +149,6 @@ class ConvQuestions(datasets.GeneratorBasedBuilder):
                     "seed_entity": instance["seed_entity"],
                     "seed_entity_text": instance["seed_entity_text"],
                     "questions": [turn["question"] for turn in instance["questions"]],
-                    "answers": [
-                        turn["answer"].split(";") for turn in instance["questions"]
-                    ],
-                    "answer_texts": [turn["answer_text"] for turn in instance["questions"]]
+                    "answers": [turn["answer"].split(";") for turn in instance["questions"]],
+                    "answer_texts": [turn["answer_text"] for turn in instance["questions"]],
                 }
