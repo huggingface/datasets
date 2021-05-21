@@ -56,7 +56,7 @@ question phenomena like comparisons, aggregations, compositionality, and tempora
 
 _HOMEPAGE = "https://convex.mpi-inf.mpg.de"
 
-_LICENSE = "MIT License"
+_LICENSE = "CC BY 4.0"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
