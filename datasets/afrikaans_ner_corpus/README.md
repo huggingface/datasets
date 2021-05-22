@@ -17,6 +17,8 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+pretty_name:
+  afrikaans_ner_corpus: Afrikaans Ner Corpus
 ---
 
 # Dataset Card for Afrikaans Ner Corpus

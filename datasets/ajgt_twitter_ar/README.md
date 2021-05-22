@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+pretty_name:
+  plain_text: MetRec
 ---
 
 # Dataset Card for MetRec

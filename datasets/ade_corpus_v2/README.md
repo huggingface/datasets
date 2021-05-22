@@ -32,6 +32,10 @@ task_ids:
     - coreference-resolution
   Ade_corpus_v2_drug_dosage_relation:
     - coreference-resolution
+pretty_name:
+  Ade_corpus_v2_classification: Adverse Drug Reaction Data v2 Ade_corpus_v2_classification
+  Ade_corpus_v2_drug_ade_relation: Adverse Drug Reaction Data v2 Ade_corpus_v2_drug_ade_relation
+  Ade_corpus_v2_drug_dosage_relation: Adverse Drug Reaction Data v2 Ade_corpus_v2_drug_dosage_relation
 ---
 
 # Dataset Card for Adverse Drug Reaction Data v2

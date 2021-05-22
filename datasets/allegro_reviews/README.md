@@ -17,9 +17,11 @@ task_categories:
 - text-scoring
 task_ids:
 - sentiment-scoring
+pretty_name:
+  default: Allegro Reviews
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Allegro Reviews
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -77,7 +79,7 @@ Polish
 
 ### Data Instances
 
-Two tsv files (train, dev) with two columns (text, rating) and one (test) with just one (text). 
+Two tsv files (train, dev) with two columns (text, rating) and one (test) with just one (text).
 
 ### Data Fields
 
