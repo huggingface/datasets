@@ -18,7 +18,8 @@ task_categories:
 task_ids:
 - sentiment-classification
 pretty_name:
-  plain_text: MetRec
+  plain_text:
+  - MetRec
 ---
 
 # Dataset Card for MetRec
@@ -60,7 +61,7 @@ Arabic Jordanian General Tweets (AJGT) Corpus consisted of 1,800 tweets annotate
 
 ### Supported Tasks and Leaderboards
 
-The dataset was published on this [paper](https://link.springer.com/chapter/10.1007/978-3-319-60042-0_66). 
+The dataset was published on this [paper](https://link.springer.com/chapter/10.1007/978-3-319-60042-0_66).
 
 ### Languages
 
@@ -70,7 +71,7 @@ The dataset is based on Arabic.
 
 ### Data Instances
 
-A binary datset with with negative and positive sentiments.  
+A binary datset with with negative and positive sentiments.
 
 ### Data Fields
 
@@ -78,11 +79,11 @@ A binary datset with with negative and positive sentiments.
 
 ### Data Splits
 
-The dataset is not split. 
+The dataset is not split.
 
-|           | Tain   | 
-|---------- | ------ | 
-|no split   | 1,800  | 
+|           | Tain   |
+|---------- | ------ |
+|no split   | 1,800  |
 
 ## Dataset Creation
 
@@ -96,11 +97,11 @@ The dataset is not split.
 
 #### Initial Data Collection and Normalization
 
-Contains 1,800 tweets collected from twitter. 
+Contains 1,800 tweets collected from twitter.
 
 #### Who are the source language producers?
 
-From tweeter.  
+From tweeter.
 
 ### Annotations
 

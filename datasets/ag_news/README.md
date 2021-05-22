@@ -18,7 +18,8 @@ task_categories:
 task_ids:
 - topic-classification
 pretty_name:
-  default: '"ag_news"'
+  default:
+  - '"ag_news"'
 ---
 
 # Dataset Card for "ag_news"

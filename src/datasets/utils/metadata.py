@@ -119,6 +119,7 @@ class DatasetMetadata:
     source_datasets: List[str]
     task_categories: List[str]
     task_ids: List[str]
+    pretty_name: List[str]
 
     def __post_init__(self):
         validate_metadata_type(metadata_dict=vars(self))

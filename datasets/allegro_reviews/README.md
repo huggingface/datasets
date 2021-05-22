@@ -18,7 +18,8 @@ task_categories:
 task_ids:
 - sentiment-scoring
 pretty_name:
-  default: Allegro Reviews
+  default:
+  - Allegro Reviews
 ---
 
 # Dataset Card for Allegro Reviews

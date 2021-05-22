@@ -18,7 +18,8 @@ task_categories:
 task_ids:
 - named-entity-recognition
 pretty_name:
-  afrikaans_ner_corpus: Afrikaans Ner Corpus
+  afrikaans_ner_corpus:
+  - Afrikaans Ner Corpus
 ---
 
 # Dataset Card for Afrikaans Ner Corpus
@@ -70,7 +71,7 @@ The language supported is Afrikaans.
 
 ### Data Instances
 
-A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+A data point consists of sentences seperated by empty line and tab-seperated tokens and tags.
 {'id': '0',
  'ner_tags': [0, 0, 0, 0, 0],
  'tokens': ['Vertaling', 'van', 'die', 'inligting', 'in']
