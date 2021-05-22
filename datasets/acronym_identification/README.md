@@ -118,7 +118,7 @@ The training, validation, and test set contain `14,006`, `1,717`, and `1750` sen
 > This is unfortunate as rules are in general not able to capture all the diverse forms to express acronyms and their long forms in text.
 > Second, most of the existing datasets are in the medical domain, ignoring the challenges in other scientific domains.
 > In order to address these limitations this paper introduces two new datasets for Acronym Identification.
-> Notably, our datasets are annotated by human to achieve high quality and have substantially larger numbers of examples than the existing AI datasets in the non-medical domain. 
+> Notably, our datasets are annotated by human to achieve high quality and have substantially larger numbers of examples than the existing AI datasets in the non-medical domain.
 
 ### Source Data
 

@@ -21,8 +21,8 @@ task_ids:
 - dialogue-modeling
 - language-modeling
 pretty_name:
-  air_dialogue_data: air_dialogue air_dialogue_data
-  air_dialogue_kb: air_dialogue air_dialogue_kb
+  air_dialogue_data: air_dialogue (air_dialogue_data)
+  air_dialogue_kb: air_dialogue (air_dialogue_kb)
 ---
 
 # Dataset Card for air_dialogue
@@ -57,7 +57,7 @@ pretty_name:
 - **Repository:** https://github.com/google/airdialogue
 - **Paper:** https://www.aclweb.org/anthology/D18-1419/
 - **Leaderboard:** https://worksheets.codalab.org/worksheets/0xa79833f4b3c24f4188cee7131b120a59
-- **Point of Contact:** [AirDialogue-Google](mailto:airdialogue@gmail.com) 
+- **Point of Contact:** [AirDialogue-Google](mailto:airdialogue@gmail.com)
 [Aakash Gupta](mailto:aakashg80@gmail.com)
 
 ### Dataset Summary
