@@ -167,7 +167,7 @@ class DatasetInfo:
             else:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
-            # insert labels and mappings for text classification
+            # Insert labels and mappings for text classification
             for idx, template in enumerate(self.task_templates):
                 if isinstance(template, TextClassification) and self.features is not None:
                     # Cast labels to tuple to enable hashing of task template
