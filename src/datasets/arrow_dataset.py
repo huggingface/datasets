@@ -1420,6 +1420,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)
         dataset = dataset.rename_columns(column_mapping)
+        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
+        dataset.info.task_templates = None
         dataset = dataset.cast(features=template.features)
         return dataset
 
