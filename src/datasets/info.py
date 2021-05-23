@@ -170,10 +170,8 @@ class DatasetInfo:
             # insert labels and mappings for text classification
             for idx, template in enumerate(self.task_templates):
                 if isinstance(template, TextClassification) and self.features is not None:
-                    # This introduces state and raises a KeyError when we call Dataset.prepare_for_task :(
-                    # The reason is that Dataset.prepare_for_task calls Dataset.cast which converts the
-                    # DatasetInfo.features to the new schema and thus template.label_column is no longer a valid key
-                    object.__setattr__(template, "labels", tuple(self.features[template.label_column].names))
+                    # Cast labels to tuple to enable hashing of task template
+                    object.__setattr__(template, "labels", tuple(sorted(self.features[template.label_column].names)))
                     template.label_schema["labels"] = ClassLabel(names=template.labels)
                     self.task_templates[idx] = template
 
