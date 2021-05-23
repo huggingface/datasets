@@ -17,9 +17,11 @@ class TextClassification(TaskTemplate):
     label_column: str = "labels"
 
     def __post_init__(self):
-        object.__setattr__(self, "labels", self.labels)
         object.__setattr__(self, "text_column", self.text_column)
         object.__setattr__(self, "label_column", self.label_column)
+        if self.labels:
+            object.__setattr__(self, "labels", tuple(sorted(self.labels)))
+            self.label_schema["labels"] = ClassLabel(names=self.labels)
 
     @property
     def column_mapping(self) -> Dict[str, str]:
