@@ -1,8 +1,11 @@
+import gc
 import inspect
 import json
 import os
 import random
+import shutil
 import tempfile
+import weakref
 from dataclasses import asdict
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -39,7 +42,54 @@ logger = get_logger(__name__)
 #################
 
 _CACHING_ENABLED = True
-_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional[tempfile.TemporaryDirectory] = None
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempDirWithCustomCleanup"] = None
+_TEMP_DIR_MEMORY_MAPPED_TABLES = set()
+
+
+class _HashableIdentityRef:
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __eq__(self, other):
+        if not isinstance(other, _HashableIdentityRef):
+            return False
+
+        return id(self.obj) == id(other.obj)
+
+    def __hash__(self):
+        return id(self.obj)
+
+
+class _TempDirWithCustomCleanup:
+    def __init__(
+        self, suffix=None, prefix=None, dir=None, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs
+    ):
+        self.name = tempfile.mkdtemp(suffix, prefix, dir)
+        self._finalizer = weakref.finalize(self, self._cleanup)
+        self._cleanup_func = cleanup_func
+        self._cleanup_func_args = cleanup_func_args
+        self._cleanup_func_kwargs = cleanup_func_kwargs
+
+    def _cleanup(self):
+        self._cleanup_func(*self._cleanup_func_args, **self._cleanup_func_kwargs)
+        if os.path.exists(self.name):
+            shutil.rmtree(self.name)
+
+    def cleanup(self):
+        if self._finalizer.alive:
+            self._cleanup()
+
+    def set_cleanup_func(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
+        if self._finalizer.alive:
+            self._cleanup_func = cleanup_func
+            self._cleanup_func_args = cleanup_func_args
+            self._cleanup_func_kwargs = cleanup_func_kwargs
+
+    def __enter__(self):
+        return self.name
+
+    def __exit__(self, exc, value, tb):
+        self.cleanup()
 
 
 def set_caching_enabled(boolean: bool):
@@ -85,10 +135,29 @@ def is_caching_enabled() -> bool:
 
 
 def get_temporary_cache_files_directory() -> str:
-    """Return a directory that is deleted when session closes"""
+    """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-        _TEMP_DIR_FOR_TEMP_CACHE_FILES = tempfile.TemporaryDirectory()
+        signature = inspect.signature(MemoryMappedTable)
+        assert "path" in signature.parameters, "path is supposed to be in MemoryMappedTable's signature"
+
+        def _new(cls, *args, **kwargs):
+            path = signature.bind(*args, **kwargs).arguments["path"]
+            self = object.__new__(cls)
+            if os.path.samefile(os.path.dirname(path), _TEMP_DIR_FOR_TEMP_CACHE_FILES.name):
+                _TEMP_DIR_MEMORY_MAPPED_TABLES.add(_HashableIdentityRef(self))
+            return self
+
+        MemoryMappedTable.__new__ = _new
+
+        def cleanup_func():
+            for ref in _TEMP_DIR_MEMORY_MAPPED_TABLES:
+                mem_mapped_table = ref.obj
+                mem_mapped_table.table = None
+                mem_mapped_table._batches = None
+            gc.collect()
+
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempDirWithCustomCleanup(cleanup_func=cleanup_func)
     return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
 
 
