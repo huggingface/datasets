@@ -93,7 +93,7 @@ def is_small_dataset(dataset_size):
     Returns:
         bool: Whether `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
     """
-    if dataset_size and config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES is not None:
+    if dataset_size and config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES:
         return dataset_size < config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
     else:
         return False
