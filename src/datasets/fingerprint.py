@@ -61,10 +61,8 @@ class _HashableIdentityRef:
 
 
 class _TempDirWithCustomCleanup:
-    def __init__(
-        self, suffix=None, prefix=None, dir=None, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs
-    ):
-        self.name = tempfile.mkdtemp(suffix, prefix, dir)
+    def __init__(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
+        self.name = tempfile.mkdtemp()
         self._finalizer = weakref.finalize(self, self._cleanup)
         self._cleanup_func = cleanup_func
         self._cleanup_func_args = cleanup_func_args
@@ -76,20 +74,8 @@ class _TempDirWithCustomCleanup:
             shutil.rmtree(self.name)
 
     def cleanup(self):
-        if self._finalizer.alive:
+        if self._finalizer.detach():
             self._cleanup()
-
-    def set_cleanup_func(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
-        if self._finalizer.alive:
-            self._cleanup_func = cleanup_func
-            self._cleanup_func_args = cleanup_func_args
-            self._cleanup_func_kwargs = cleanup_func_kwargs
-
-    def __enter__(self):
-        return self.name
-
-    def __exit__(self, exc, value, tb):
-        self.cleanup()
 
 
 def set_caching_enabled(boolean: bool):
@@ -134,6 +120,17 @@ def is_caching_enabled() -> bool:
     return bool(_CACHING_ENABLED)
 
 
+# This is outside get_temporary_cache_files_directory to prevent issues with dill
+
+
+def _memory_mapped_table_new(cls, *args, **kwargs):
+    path = inspect.signature(cls).bind(*args, **kwargs).arguments["path"]
+    self = object.__new__(cls)
+    if os.path.samefile(os.path.dirname(path), _TEMP_DIR_FOR_TEMP_CACHE_FILES.name):
+        _TEMP_DIR_MEMORY_MAPPED_TABLES.add(_HashableIdentityRef(self))
+    return self
+
+
 def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
@@ -141,14 +138,7 @@ def get_temporary_cache_files_directory() -> str:
         signature = inspect.signature(MemoryMappedTable)
         assert "path" in signature.parameters, "path is supposed to be in MemoryMappedTable's signature"
 
-        def _new(cls, *args, **kwargs):
-            path = signature.bind(*args, **kwargs).arguments["path"]
-            self = object.__new__(cls)
-            if os.path.samefile(os.path.dirname(path), _TEMP_DIR_FOR_TEMP_CACHE_FILES.name):
-                _TEMP_DIR_MEMORY_MAPPED_TABLES.add(_HashableIdentityRef(self))
-            return self
-
-        MemoryMappedTable.__new__ = _new
+        MemoryMappedTable.__new__ = _memory_mapped_table_new
 
         def cleanup_func():
             for ref in _TEMP_DIR_MEMORY_MAPPED_TABLES:
