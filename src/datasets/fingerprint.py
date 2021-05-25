@@ -129,6 +129,8 @@ def get_temporary_cache_files_directory() -> str:
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
 
+        # Avoids a PermissionError on Windows caused by the datasets referencing
+        # the files from the cache directory on clean-up
         def cleanup_func():
             for dset in get_datasets_with_cache_file_in_temp_dir():
                 dset.__del__()
