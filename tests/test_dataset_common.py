@@ -170,6 +170,15 @@ class DatasetTester:
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
+
+                # check that we can cast features for each task template
+                task_templates = dataset_builder.info.task_templates
+                if task_templates:
+                    for task in task_templates:
+                        task_features = {**task.input_schema, **task.label_schema}
+                        dataset = dataset.prepare_for_task(task)
+                        for dataset_split in dataset.values():
+                            self.parent.assertDictEqual(task_features, dataset_split.features)
                 del dataset
 
 
