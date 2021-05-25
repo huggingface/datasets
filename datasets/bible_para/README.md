@@ -69,7 +69,7 @@ languages:
 - ne
 - nhg
 - nl
-- no
+- "no"
 - ojb
 - pck
 - pes

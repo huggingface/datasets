@@ -15,7 +15,7 @@ languages:
 - hu
 - it
 - nl
-- no
+- "no"
 - pl
 - pt
 - ru

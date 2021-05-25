@@ -74,7 +74,7 @@ languages:
 - my_zaw
 - ne
 - nl
-- no
+- "no"
 - ns
 - om
 - or

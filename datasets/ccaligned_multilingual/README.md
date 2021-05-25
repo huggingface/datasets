@@ -74,7 +74,7 @@ languages:
 - my
 - ne   
 - nl
-- no
+- "no"
 - ns
 - ny   
 - om

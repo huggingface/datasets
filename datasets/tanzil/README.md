@@ -27,7 +27,7 @@ languages:
 - ml
 - ms
 - nl
-- no
+- "no"
 - pl
 - pt
 - ro

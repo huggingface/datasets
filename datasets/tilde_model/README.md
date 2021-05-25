@@ -22,7 +22,7 @@ languages:
 - lv
 - mt
 - nl
-- no
+- "no"
 - pl
 - pt
 - ro

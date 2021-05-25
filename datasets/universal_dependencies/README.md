@@ -247,11 +247,11 @@ languages:
   sme_giella:
   - sme
   no_bokmaal:
-  - no
+  - "no"
   no_nynorsk:
-  - no
+  - "no"
   no_nynorsklia:
-  - no
+  - "no"
   cu_proiel:
   - cu
   fro_srcmf:
