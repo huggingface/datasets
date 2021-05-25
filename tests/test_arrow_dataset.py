@@ -2305,7 +2305,7 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
 def test_dataset_from_file(in_memory, dataset, arrow_file):
     filename = arrow_file
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
-        dataset_from_file = Dataset.from_file(filename, in_memory=in_memory)
+        dataset_from_file = Dataset.from_file(filename, keep_in_memory=in_memory)
     assert dataset_from_file.features.type == dataset.features.type
     assert dataset_from_file.features == dataset.features
     assert dataset_from_file.cache_files == ([{"filename": filename}] if not in_memory else [])
@@ -2555,8 +2555,8 @@ def test_dataset_to_json(dataset, tmp_path):
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):
     method, args, kwargs = method_and_params
-    with Dataset.from_file(arrow_file, in_memory=in_memory) as dataset, Dataset.from_file(
-        arrow_file, in_memory=in_memory
+    with Dataset.from_file(arrow_file, keep_in_memory=in_memory) as dataset, Dataset.from_file(
+        arrow_file, keep_in_memory=in_memory
     ) as reference_dataset:
         out = getattr(dataset, method)(*args, **kwargs)
         dataset = out if out is not None else dataset
