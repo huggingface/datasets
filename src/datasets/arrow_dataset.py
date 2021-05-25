@@ -220,6 +220,7 @@ def _check_table(table) -> Table:
     else:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
 
+
 class Dataset(DatasetInfoMixin, IndexableMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -1750,7 +1751,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split, keep_in_memory=not self.cache_files)
+                return Dataset.from_file(
+                    cache_file_name, info=info, split=self.split, keep_in_memory=not self.cache_files
+                )
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.

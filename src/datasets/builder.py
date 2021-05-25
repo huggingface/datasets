@@ -700,7 +700,12 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False, use_caching=True
+        self,
+        split: Optional[Split] = None,
+        run_post_process=True,
+        ignore_verifications=False,
+        in_memory=False,
+        use_caching=True,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
 

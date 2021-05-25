@@ -752,7 +752,9 @@ def load_dataset(
     keep_in_memory = (
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
-    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory, use_caching=use_caching)
+    ds = builder_instance.as_dataset(
+        split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory, use_caching=use_caching
+    )
     if save_infos:
         builder_instance._save_infos()
 
