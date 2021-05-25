@@ -220,7 +220,6 @@ def _check_table(table) -> Table:
     else:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
 
-
 class Dataset(DatasetInfoMixin, IndexableMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -306,7 +305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
-        in_memory: bool = False,
+        keep_in_memory: bool = False,
     ) -> "Dataset":
         """Instantiate a Dataset backed by an Arrow table at filename.
 
@@ -315,15 +314,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
             indices_filename (:obj:`str`, optional): File names of the indices.
-            in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
 
         Returns:
             :class:`Dataset`
         """
-        table = ArrowReader.read_table(filename, in_memory=in_memory)
+        table = ArrowReader.read_table(filename, in_memory=keep_in_memory)
 
         if indices_filename is not None:
-            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
+            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=keep_in_memory)
         else:
             indices_pa_table = None
 
@@ -620,7 +619,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 json.dumps(state["_format_kwargs"][k])
             except TypeError as e:
                 raise TypeError(str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't.")
-        state["_cached"] = bool(self._cache_dir)
+        if self._cache_dir:
+            state["_cached"] = bool(self._cache_dir)
 
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
@@ -712,8 +712,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fingerprint=state["_fingerprint"],
         )
 
-        # Update cache directory for in-memory datasets created with load_dataset
-        if state["_cached"] and dataset._cache_dir is None:
+        # Update cache directory for in-memory datasets that use caching
+        if dataset._cache_dir is None and state.get("_cached"):
             dataset._cache_dir = str(Path(dataset_path).expanduser())
 
         return dataset
@@ -1750,7 +1750,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split, keep_in_memory=not self.cache_files)
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.

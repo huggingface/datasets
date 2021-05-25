@@ -84,7 +84,7 @@ def get_size_checksum_dict(path: str) -> dict:
     return {"num_bytes": os.path.getsize(path), "checksum": m.hexdigest()}
 
 
-def is_small_dataset(dataset_size):
+def is_small_dataset(dataset_size: int) -> bool:
     """Check if `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
 
     Args:

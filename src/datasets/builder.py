@@ -700,7 +700,7 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False, use_caching=True
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
 
@@ -740,6 +740,7 @@ class DatasetBuilder:
                 run_post_process=run_post_process,
                 ignore_verifications=ignore_verifications,
                 in_memory=in_memory,
+                use_caching=use_caching,
             ),
             split,
             map_tuple=True,
@@ -754,6 +755,7 @@ class DatasetBuilder:
         run_post_process: bool,
         ignore_verifications: bool,
         in_memory: bool = False,
+        use_caching: bool = True,
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
@@ -765,8 +767,8 @@ class DatasetBuilder:
             split=split,
             in_memory=in_memory,
         )
-        # Required for in-memory datasets
-        if not ds.cache_files:
+        # Enables caching of dataset transforms for in-memory datasets
+        if in_memory and use_caching:
             ds._cache_dir = self._cache_dir
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
