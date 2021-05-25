@@ -39,6 +39,8 @@ import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
+from datasets.tasks.text_classification import TextClassification
+
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -1416,6 +1418,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(
                 f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
             )
+        if isinstance(template, TextClassification) and self.info.features is not None:
+            dataset_labels = tuple(sorted(self.info.features[template.label_column].names))
+            if template.labels is None or template.labels != dataset_labels:
+                raise ValueError(
+                    f"Incompatible labels between the dataset and task template! Expected labels {dataset_labels} but got {template.labels}. Please ensure that `datasets.tasks.TextClassification.labels` matches the features of the dataset."
+                )
         column_mapping = template.column_mapping
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)
