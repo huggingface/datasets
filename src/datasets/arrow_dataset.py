@@ -57,6 +57,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .tasks import TaskTemplate
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
@@ -808,7 +809,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
-        new_features = copy.deepcopy(dset.features)
+        new_features = dset.features.copy()
         new_features[column] = dst_feat
         dset = dset.cast(new_features)
 
@@ -1397,6 +1398,44 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        return dataset
+
+    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+
+        Args:
+            task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
+
+                - :obj:`"text-classification"`
+                - :obj:`"question-answering"`
+
+                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+        """
+        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
+        if isinstance(task, str):
+            tasks = [template.task for template in (self.info.task_templates or [])]
+            compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
+            if not compatible_templates:
+                raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
+
+            if len(compatible_templates) > 1:
+                raise ValueError(
+                    f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that `datasets.DatasetInfo.task_templates` contains a unique set of task types."
+                )
+            template = compatible_templates[0]
+        elif isinstance(task, TaskTemplate):
+            template = task
+        else:
+            raise ValueError(
+                f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
+            )
+        column_mapping = template.column_mapping
+        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
+        dataset = self.remove_columns(columns_to_drop)
+        dataset = dataset.rename_columns(column_mapping)
+        dataset = dataset.cast(features=template.features)
         return dataset
 
     def _getitem(
@@ -2743,16 +2782,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batch_size: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
-        """Exports the dataset to JSON.
+        """Export the dataset to JSON Lines or JSON.
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+            lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
+                Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
+                ``"records"``, since the others are not list-like.
+            orient (:obj:`str`, default ``"records"``): Format of the JSON:
+
+                - ``"records"``: list like ``[{column -> value}, … , {column -> value}]``
+                - ``"split"``: dict like ``{"index" -> [index], "columns" -> [columns], "data" -> [values]}``
+                - ``"index"``: dict like ``{index -> {column -> value}}``
+                - ``"columns"``: dict like ``{column -> {index -> value}}``
+                - ``"values"``: just the values array
+                - ``"table"``: dict like ``{"schema": {schema}, "data": {data}}``
+            **to_json_kwargs: Parameters to pass to pandas's `pandas.DataFrame.to_json
+                <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html>`_.
 
         Returns:
-            int: The number of characters or bytes written
+            int: The number of characters or bytes written.
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
@@ -2808,7 +2859,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Concatenate tables horizontally
         table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
-        info = copy.deepcopy(self.info)
+        info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
         return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
@@ -3034,7 +3085,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = concat_tables([self._indices, item_indices_table])
         return Dataset(
             table,
-            info=copy.deepcopy(self.info),
+            info=self.info.copy(),
             split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
