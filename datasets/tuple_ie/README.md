@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-open-information-extraction
+paperswithcode_id: tupleinf-open-ie-dataset
 ---
 
 # Dataset Card for [Dataset Name]

@@ -17,6 +17,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - slot-filling
+paperswithcode_id: numersense
 ---
 
 # Dataset Card for [Dataset Name]

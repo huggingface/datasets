@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for Hausa VOA News Topic Classification dataset (hausa_voa_topics)

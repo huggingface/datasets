@@ -74,7 +74,7 @@ languages:
 - my_zaw
 - ne
 - nl
-- "no"
+- 'no'
 - ns
 - om
 - or
@@ -132,6 +132,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: cc100
 ---
 
 # Dataset Card Creation Guide

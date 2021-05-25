@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: nergrit-corpus
 ---
 
 # Dataset Card for [Dataset Name]

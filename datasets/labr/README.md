@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: labr
 ---
 
 # Dataset Card for MetRec

@@ -21,6 +21,7 @@ task_categories:
 - text-scoring
 task_ids:
 - semantic-similarity-scoring
+paperswithcode_id: multinli
 ---
 
 # Dataset Card for Multi-Genre Natural Language Inference (Mismatched only)

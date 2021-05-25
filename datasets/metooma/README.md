@@ -17,6 +17,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 - multi-label-classification
+paperswithcode_id: metooma
 ---
 
 # Dataset Card for #MeTooMA dataset

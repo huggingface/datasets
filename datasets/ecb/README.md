@@ -35,6 +35,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: ecb
 ---
 
 # Dataset Card Creation Guide

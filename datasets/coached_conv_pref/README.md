@@ -21,6 +21,7 @@ task_ids:
 - other-other-Conversational Recommendation
 - dialogue-modeling
 - parsing
+paperswithcode_id: coached-conversational-preference-elicitation
 ---
 
 # Dataset Card for Coached Conversational Preference Elicitation

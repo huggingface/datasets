@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - closed-domain-qa
 - extractive-qa
+paperswithcode_id: cuad
 ---
 
 # Dataset Card for CUAD

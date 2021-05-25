@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - question-answering-other-multihop-tabular-text-qa
+paperswithcode_id: hybridqa
 ---
 
 # Dataset Card Creation Guide

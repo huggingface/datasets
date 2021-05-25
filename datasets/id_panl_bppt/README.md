@@ -8,7 +8,7 @@ languages:
 - id
 licenses:
 - unknown
-multilinguality: 
+multilinguality:
 - translation
 size_categories:
 - 10K<n<100K
@@ -18,6 +18,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: null
 ---
 
 # Dataset Card for [Dataset Name]

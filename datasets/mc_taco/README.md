@@ -19,6 +19,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: mc-taco
 ---
 
 # Dataset Card Creation Guide

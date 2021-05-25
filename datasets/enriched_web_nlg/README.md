@@ -20,6 +20,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - other-stuctured-to-text
+paperswithcode_id: null
 ---
 
 # Dataset Card for WebNLG

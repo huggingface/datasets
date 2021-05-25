@@ -129,7 +129,7 @@ languages:
   fr_pud:
   - fr
   fr_sequoia:
-   - fr
+  - fr
   fr_spoken:
   - fr
   gl_ctg:
@@ -247,11 +247,11 @@ languages:
   sme_giella:
   - sme
   no_bokmaal:
-  - "no"
+  - 'no'
   no_nynorsk:
-  - "no"
+  - 'no'
   no_nynorsklia:
-  - "no"
+  - 'no'
   cu_proiel:
   - cu
   fro_srcmf:
@@ -383,6 +383,7 @@ task_categories:
 task_ids:
 - constituency-parsing
 - dependency-parsing
+paperswithcode_id: universal-dependencies
 ---
 
 # Dataset Card for Universal Dependencies Treebank

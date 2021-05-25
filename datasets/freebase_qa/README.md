@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: freebaseqa
 ---
  
 # Dataset Card for FreebaseQA

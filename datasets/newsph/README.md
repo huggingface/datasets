@@ -18,6 +18,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: newsph-nli
 ---
 
 # Dataset Card for NewsPH

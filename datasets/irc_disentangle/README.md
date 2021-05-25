@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - coreference-resolution
 - dialogue-modeling
+paperswithcode_id: irc-disentanglement
 ---
 
 # Dataset Card for IRC Disentanglement

@@ -17,6 +17,7 @@ task_categories:
 - text-scoring
 task_ids:
 - sentiment-scoring
+paperswithcode_id: allegro-reviews
 ---
 
 # Dataset Card for [Dataset Name]
