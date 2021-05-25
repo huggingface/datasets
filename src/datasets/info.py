@@ -172,7 +172,7 @@ class DatasetInfo:
             for idx, template in enumerate(self.task_templates):
                 if isinstance(template, TextClassification) and self.features is not None:
                     # Cast labels to tuple to enable hashing of task template
-                    object.__setattr__(template, "labels", tuple(sorted(self.features[template.label_column].names)))
+                    template.__dict__["labels"] = tuple(sorted(self.features[template.label_column].names))
                     template.label_schema["labels"] = ClassLabel(names=template.labels)
                     self.task_templates[idx] = template
 
