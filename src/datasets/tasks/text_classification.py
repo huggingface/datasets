@@ -27,14 +27,16 @@ class TextClassification(TaskTemplate):
     input_schema: ClassVar[Features] = Features({"text": Value("string")})
     # TODO(lewtun): Find a more elegant approach without descriptors.
     label_schema: ClassVar[Features] = FeaturesWithLazyClassLabel(Features({"labels": ClassLabel}))
-    labels: List[str]
+    labels: List[str] = None
     text_column: str = "text"
     label_column: str = "labels"
 
     def __post_init__(self):
-        assert len(self.labels) == len(set(self.labels)), "Labels must be unique"
-        # Cast labels to tuple to allow hashing
-        self.__dict__["labels"] = tuple(sorted(self.labels))
+        if self.labels:
+            assert len(self.labels) == len(set(self.labels)), "Labels must be unique"
+            # Cast labels to tuple to allow hashing
+            self.__dict__["labels"] = tuple(sorted(self.labels))
+            self.label_schema["labels"] = ClassLabel(names=self.labels)
 
     @property
     def column_mapping(self) -> Dict[str, str]:
