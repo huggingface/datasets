@@ -192,7 +192,7 @@ Local students (Saarland Informatics Campus) and AMT Master Workers.
 
 ### Licensing Information
 
-[Needs More Information]
+The ConvQuestions benchmark is licensed under a Creative Commons Attribution 4.0 International License.
 
 ### Citation Information
 
