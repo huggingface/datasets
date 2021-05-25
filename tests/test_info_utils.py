@@ -12,7 +12,9 @@ def env_max_in_memory_dataset_size(request, monkeypatch):
 
 @pytest.mark.parametrize("dataset_size", [None, 400 * 2 ** 20, 600 * 2 ** 20])
 @pytest.mark.parametrize("config_max_in_memory_dataset_size", ["default", 0, 100 * 2 ** 20, 900 * 2 ** 20])
-def test_is_small_dataset(dataset_size, config_max_in_memory_dataset_size, env_max_in_memory_dataset_size, monkeypatch):
+def test_is_small_dataset(
+    dataset_size, config_max_in_memory_dataset_size, env_max_in_memory_dataset_size, monkeypatch
+):
     if config_max_in_memory_dataset_size != "default":
         monkeypatch.setattr(datasets.config, "MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", config_max_in_memory_dataset_size)
 
