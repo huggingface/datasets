@@ -156,6 +156,7 @@ class DatasetInfo:
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
 
+        # Parse and make a list of templates
         if self.task_templates is not None:
             if isinstance(self.task_templates, (list, tuple)):
                 templates = [
@@ -168,13 +169,16 @@ class DatasetInfo:
             else:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
-            # Insert labels and mappings for text classification
+
+        # Insert labels and mappings for text classification
+        if self.task_templates is not None:
+            self.task_templates = list(self.task_templates)
             for idx, template in enumerate(self.task_templates):
                 if isinstance(template, TextClassification) and self.features is not None:
-                    # Cast labels to tuple to enable hashing of task template
-                    template.__dict__["labels"] = tuple(sorted(self.features[template.label_column].names))
-                    template.label_schema["labels"] = ClassLabel(names=template.labels)
-                    self.task_templates[idx] = template
+                    labels = self.features[template.label_column].names
+                    self.task_templates[idx] = TextClassification(
+                        text_column=template.text_column, label_column=template.label_column, labels=labels
+                    )
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
