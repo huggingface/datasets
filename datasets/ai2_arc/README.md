@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- en-US
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- multiple-choice-qa
 ---
 
 # Dataset Card for "ai2_arc"
