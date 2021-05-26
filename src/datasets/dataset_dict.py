@@ -9,6 +9,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import fsspec
 import numpy as np
 
+from datasets.utils.doc_utils import is_documented_by
+
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -792,18 +794,7 @@ class DatasetDict(dict):
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
+    @is_documented_by(Dataset.prepare_for_task)
     def prepare_for_task(self, task: Union[str, TaskTemplate]):
-        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-
-        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
-
-        Args:
-            task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
-
-                - :obj:`"text-classification"`
-                - :obj:`"question-answering"`
-
-                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
-        """
         self._check_values_type()
         return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
