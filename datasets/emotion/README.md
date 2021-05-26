@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: emotion
 ---
 
 # Dataset Card for "emotion"

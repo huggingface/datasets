@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: imdb-movie-reviews
 ---
 
 # Dataset Card for "imdb"

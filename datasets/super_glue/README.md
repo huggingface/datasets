@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: superglue
 ---
 
 # Dataset Card for "super_glue"

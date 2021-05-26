@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 - multiple-choice-qa
+paperswithcode_id: null
 ---
 
 # Dataset Card for "ai2_arc"

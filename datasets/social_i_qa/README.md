@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: social-iqa
 ---
 
 # Dataset Card for "social_i_qa"

@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: cornell-movie-dialogs-corpus
 ---
 
 # Dataset Card for "cornell_movie_dialog"

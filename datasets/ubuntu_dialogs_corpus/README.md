@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: ubuntu-dialogue-corpus
 ---
 
 # Dataset Card for "ubuntu_dialogs_corpus"
