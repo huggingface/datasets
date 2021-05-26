@@ -103,7 +103,7 @@ def validate_metadata_type(metadata_dict: dict):
     list_typing_errors = {
         name: value
         for name, value in metadata_dict.items()
-        if fields_types[name] == List[str]
+        if fields_types.get(name, List[str]) == List[str]
         and (not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str))
     }
     if len(list_typing_errors) > 0:
@@ -112,7 +112,7 @@ def validate_metadata_type(metadata_dict: dict):
     other_typing_errors = {
         name: value
         for name, value in metadata_dict.items()
-        if fields_types[name] != List[str] and isinstance(value, list)
+        if fields_types.get(name, List[str]) != List[str] and isinstance(value, list)
     }
     if len(other_typing_errors) > 0:
         raise TypeError(f"Found fields that are lists instead of single strings: {other_typing_errors}")
