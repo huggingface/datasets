@@ -24,6 +24,7 @@ task_ids:
 - abstractive-qa
 - extractive-qa
 - other-other-query-based-multi-document-summarization
+paperswithcode_id: aquamuse
 ---
 
 # Dataset Card for AQuaMuSe

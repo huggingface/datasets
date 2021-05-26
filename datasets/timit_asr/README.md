@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-automatic speech recognition
+paperswithcode_id: timit
 ---
 
 # Dataset Card for timit_asr

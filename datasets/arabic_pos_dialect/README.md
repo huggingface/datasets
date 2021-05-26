@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - part-of-speech-tagging
+paperswithcode_id: null
 ---
 
 # Dataset Card for Arabic POS Dialect

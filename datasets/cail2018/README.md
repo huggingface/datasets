@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-judgement-prediction
+paperswithcode_id: chinese-ai-and-law-cail-2018
 ---
 ---
 # Dataset Card for CAIL 2018

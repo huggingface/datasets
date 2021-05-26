@@ -32,6 +32,7 @@ task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
+paperswithcode_id: wizard-of-oz
 ---
 
 # Dataset Card Creation Guide

@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - other-stuctured-to-text
 - other-other-relation-extraction
+paperswithcode_id: null
 ---
 
 # Dataset Card for Ollie

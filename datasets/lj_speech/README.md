@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-other-automatic-speech-recognition
 - other-other-text-to-speech
+paperswithcode_id: ljspeech
 ---
 
 # Dataset Card for lj_speech

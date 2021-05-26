@@ -9,7 +9,7 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
-size_categories: 
+size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|s2orc

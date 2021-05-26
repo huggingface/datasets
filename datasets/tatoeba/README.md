@@ -375,6 +375,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: tatoeba
 ---
 # Dataset Card Creation Guide
 

@@ -87,6 +87,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - summarization
+paperswithcode_id: wikilingua
 ---
 # Dataset Card Creation Guide
 

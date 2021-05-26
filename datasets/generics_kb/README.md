@@ -24,6 +24,7 @@ task_categories:
 - other
 task_ids:
 - other-other-knowledge-base
+paperswithcode_id: genericskb
 ---
 
 # Dataset Card for Generics KB

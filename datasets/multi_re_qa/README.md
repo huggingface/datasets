@@ -54,6 +54,7 @@ task_categories:
 task_ids:
 - extractive-qa
 - open-domain-qa
+paperswithcode_id: multireqa
 ---
 # Dataset Card for MultiReQA
 

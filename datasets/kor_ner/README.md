@@ -1,22 +1,23 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - other
+- other
 languages:
-  - ko
+- ko
 licenses:
-  - mit
+- mit
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 1K<n<10K
 source_datasets:
-  - original
+- original
 task_categories:
-  - structure-prediction
+- structure-prediction
 task_ids:
-  - named-entity-recognition
+- named-entity-recognition
+paperswithcode_id: null
 ---
 
 # Dataset Card for [Dataset Name]

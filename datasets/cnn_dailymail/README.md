@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - summarization
+paperswithcode_id: cnn-daily-mail-1
 ---
 # Dataset Card for CNN Dailymail Dataset
 

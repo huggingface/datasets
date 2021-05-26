@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-acceptability-classification
+paperswithcode_id: peerread
 ---
 
 # Dataset Card for peer_read

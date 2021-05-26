@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-sentence-compression
+paperswithcode_id: sentence-compression
 ---
 
 # Dataset Card for Google Sentence Compression

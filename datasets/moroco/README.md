@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: moroco
 ---
 
 # Dataset Card for MOROCO

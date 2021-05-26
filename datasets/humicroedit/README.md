@@ -24,6 +24,7 @@ task_ids:
   - text-scoring-other-funniness-score-prediction
   subtask-2:
   - text-classification-other-funnier-headline-identification
+paperswithcode_id: humicroedit
 ---
 
 # Dataset Card for [Dataset Name]

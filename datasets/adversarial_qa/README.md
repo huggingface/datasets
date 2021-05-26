@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 - open-domain-qa
+paperswithcode_id: adversarialqa
 ---
 
 # Dataset Card for adversarialQA

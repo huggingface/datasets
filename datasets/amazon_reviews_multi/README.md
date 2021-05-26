@@ -68,6 +68,7 @@ task_ids:
 - sentiment-scoring
 - summarization
 - topic-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for The Multilingual Amazon Reviews Corpus

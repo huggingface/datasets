@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-offensive-language-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for OffensEval-TR 2020

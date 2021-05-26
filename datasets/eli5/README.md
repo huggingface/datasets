@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - abstractive-qa
 - open-domain-qa
+paperswithcode_id: eli5
 ---
 
 # Dataset Card for ELI5
