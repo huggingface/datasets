@@ -27,9 +27,9 @@ class TextClassification(TaskTemplate):
     input_schema: ClassVar[Features] = Features({"text": Value("string")})
     # TODO(lewtun): Find a more elegant approach without descriptors.
     label_schema: ClassVar[Features] = FeaturesWithLazyClassLabel(Features({"labels": ClassLabel}))
-    labels: List[str] = None
     text_column: str = "text"
     label_column: str = "labels"
+    labels: List[str] = None
 
     def __post_init__(self):
         if self.labels:
