@@ -45,12 +45,12 @@ from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import ClassLabel, Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
-    check_if_dataset_with_cache_file_in_temp_dir,
     fingerprint_transform,
     generate_fingerprint,
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
     is_caching_enabled,
+    maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
@@ -240,7 +240,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
-        check_if_dataset_with_cache_file_in_temp_dir(self)
+        maybe_register_dataset_for_temp_dir_deletion(self)
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}

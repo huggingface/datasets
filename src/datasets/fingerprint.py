@@ -46,6 +46,12 @@ _DATASETS_WITH_TABLE_IN_TEMP_DIR: Optional[weakref.WeakSet] = None
 
 
 class _TempDirWithCustomCleanup:
+    """
+    A temporary directory with a custom cleanup function.
+    We need a custom temporary directory cleanup in order to delete the dataset objects that have
+    cache files in the temporary directory before deleting the dorectory itself.
+    """
+
     def __init__(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
         self.name = tempfile.mkdtemp()
         self._finalizer = weakref.finalize(self, self._cleanup)
@@ -63,8 +69,12 @@ class _TempDirWithCustomCleanup:
             self._cleanup()
 
 
-def check_if_dataset_with_cache_file_in_temp_dir(dataset):
-    # No-op
+def maybe_register_dataset_for_temp_dir_deletion(dataset):
+    """
+    This function registers the datasets that have cache files in _TEMP_DIR_FOR_TEMP_CACHE_FILES in order
+    to properly delete them before deleting the temporary directory.
+    The temporary directory _TEMP_DIR_FOR_TEMP_CACHE_FILES is used when caching is disabled.
+    """
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
         return
 
