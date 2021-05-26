@@ -1390,7 +1390,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
-        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
 
         Args:
             task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
