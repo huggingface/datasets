@@ -134,8 +134,6 @@ An example of 'train' looks as follows.
 - `answers`: a `list` of `lists` of `string` features. List of answers, given as Wikidata IDs or literals (e.g. timestamps or names).
 - `answer_texts`: a `list` of `string` features. List of surface forms of the answers.
 
-Note that the answers are not provided in the test set. In this case the answers fields are empty lists.
-
 ### Data Splits
 
 |train|validation|tests|
