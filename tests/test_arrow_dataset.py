@@ -702,9 +702,10 @@ class BaseDatasetTest(TestCase):
                         self.assertEqual(dset_concat.info.task_templates, None)
 
     def test_concatenate_with_equal_task_templates(self, in_memory):
-        task_template = TextClassification(text_column="text", label_column="labels")
+        labels = ["neg", "pos"]
+        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
         info = DatasetInfo(
-            features=Features({"text": Value("string"), "labels": ClassLabel(names=["pos", "neg"])}),
+            features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
             task_templates=task_template,
         )
         data = {"text": ["i love transformers!"], "labels": [1]}
@@ -2026,7 +2027,7 @@ class BaseDatasetTest(TestCase):
                 "labels": ClassLabel(names=tuple(labels)),
             }
         )
-        task = TextClassification(text_column="input_text", label_column="input_labels")
+        task = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
         info = DatasetInfo(
             features=features_before_cast,
             task_templates=task,
