@@ -70,7 +70,7 @@ from the same Turker, who also provided gold answers to the questions. For suita
 graphs, questions were constrained to be objective or factoid in nature, but no other restrictive
 guidelines were set. A notable property of ConvQuestions is that several questions are not
 answerable by Wikidata alone (as of September 2019), but the required facts can, for example,
-be found in the open Web or in Wikipedia. For details, please refer to our CIKM 2019 full paper
+be found in the open Web or in Wikipedia. For details, please refer to the CIKM 2019 full paper
 (https://dl.acm.org/citation.cfm?id=3358016).
 
 ### Supported Tasks and Leaderboards
@@ -134,6 +134,8 @@ An example of 'train' looks as follows.
 - `answers`: a `list` of `lists` of `string` features. List of answers, given as Wikidata IDs or literals (e.g. timestamps or names).
 - `answer_texts`: a `list` of `string` features. List of surface forms of the answers.
 
+Note that the answers are not provided in the test set. In this case the answers fields are empty lists.
+
 ### Data Splits
 
 |train|validation|tests|
@@ -160,7 +162,7 @@ An example of 'train' looks as follows.
 
 #### Annotation process
 
-With insights from a meticulous in-house pilot study with ten students over two weeks, we posed the conversation generation task on Amazon Mechanical Turk (AMT) in the most natural setup: Each crowdworker was asked to build a conversation by asking five sequential questions starting from any seed entity of his/her choice, as this is an intuitive mental model that humans may have when satisfying their real information needs via their search assistants.
+With insights from a meticulous in-house pilot study with ten students over two weeks, the authors posed the conversation generation task on Amazon Mechanical Turk (AMT) in the most natural setup: Each crowdworker was asked to build a conversation by asking five sequential questions starting from any seed entity of his/her choice, as this is an intuitive mental model that humans may have when satisfying their real information needs via their search assistants.
 
 #### Who are the annotators?
 
