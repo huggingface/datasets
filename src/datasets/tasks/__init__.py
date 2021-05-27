@@ -18,7 +18,7 @@ def task_template_from_dict(task_template_dict: dict) -> Optional[TaskTemplate]:
     """Create one of the supported task templates in :py:mod:`datasets.tasks` from a dictionary."""
     task_name = task_template_dict.get("task")
     if task_name is None:
-        logger.warning(f"Couldn't find template for rasl '{task_name}'. Available templates: {list(NAME2TEMPLATE)}")
+        logger.warning(f"Couldn't find template for task '{task_name}'. Available templates: {list(NAME2TEMPLATE)}")
         return None
     template = NAME2TEMPLATE.get(task_name)
     return template.from_dict(task_template_dict)
