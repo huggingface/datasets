@@ -2,7 +2,7 @@
 annotations_creators:
 - expert-generated
 language_creators:
-- unknown
+- expert-generated
 languages:
 - ko
 licenses:
@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- unknown
+- original
 task_categories:
   ynat:
   - text-classification
@@ -40,13 +40,13 @@ task_ids:
   ner:
   - named-entity-recognition
   re:
-  - coreference-resolution
+  - other-relation-extraction
   dp:
   - parsing
   mrc:
-  - question-answering
+  - extractive-qa
   wos:
-  - sequence-modeling
+  - other-dialogue-state-tracking
 paperswithcode_id: klue
 ---
 
