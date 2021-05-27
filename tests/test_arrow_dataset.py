@@ -2027,10 +2027,11 @@ class BaseDatasetTest(TestCase):
                 "labels": ClassLabel(names=tuple(labels)),
             }
         )
-        task = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        # Label names are added in `DatasetInfo.__post_init__` so not needed here
+        task_without_labels = TextClassification(text_column="input_text", label_column="input_labels")
         info = DatasetInfo(
             features=features_before_cast,
-            task_templates=task,
+            task_templates=task_without_labels,
         )
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         # Test we can load from task name
@@ -2041,10 +2042,12 @@ class BaseDatasetTest(TestCase):
                 with dset.prepare_for_task(task="text-classification") as dset:
                     self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                     self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from TaskTemplate
+        # Test we can load from TextClassification template
         info.task_templates = None
+        # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
+        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
-            with dset.prepare_for_task(task=task) as dset:
+            with dset.prepare_for_task(task=task_with_labels) as dset:
                 self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
 
@@ -2096,7 +2099,7 @@ class BaseDatasetTest(TestCase):
                         set(dset.flatten().column_names),
                     )
                     self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from TaskTemplate
+        # Test we can load from QuestionAnswering template
         info.task_templates = None
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
