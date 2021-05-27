@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - en
-- java
+- code
 licenses:
 - other-C-UDA
 multilinguality:
