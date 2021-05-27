@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: polyglot-ner
 ---
 
 # Dataset Card for "polyglot_ner"

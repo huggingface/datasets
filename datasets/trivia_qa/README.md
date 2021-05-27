@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: triviaqa
 ---
 
 # Dataset Card for "trivia_qa"

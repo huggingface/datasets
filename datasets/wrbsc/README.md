@@ -1,22 +1,23 @@
 ---
-annotations_creators: 
+annotations_creators:
 - expert-generated
-language_creators: 
+language_creators:
 - found
-languages: 
+languages:
 - pl
-licenses: 
+licenses:
 - cc-by-sa-3.0
-multilinguality: 
+multilinguality:
 - monolingual
-size_categories: 
+size_categories:
 - 1K<n<10K
-source_datasets: 
+source_datasets:
 - original
-task_categories: 
+task_categories:
 - text-classification
-task_ids: 
+task_ids:
 - semantic-similarity-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for wrbsc

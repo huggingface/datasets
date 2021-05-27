@@ -30,6 +30,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: codesearchnet
 ---
 
 # Dataset Card for CodeSearchNet corpus

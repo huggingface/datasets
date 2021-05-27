@@ -13,6 +13,7 @@ from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .table import Table
+from .tasks import TaskTemplate
 from .utils.deprecation_utils import deprecated
 from .utils.typing import PathLike
 
@@ -686,9 +687,10 @@ class DatasetDict(dict):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
                 dataset will be copied in-memory if its size is smaller than
-                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case
-                the dataset is not loaded in memory.
+                `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration
+                option ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the environment
+                variable ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
 
         Returns:
             :class:`DatasetDict`
@@ -790,3 +792,19 @@ class DatasetDict(dict):
         return TextDatasetReader(
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
+
+    def prepare_for_task(self, task: Union[str, TaskTemplate]):
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+
+        Args:
+            task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
+
+                - :obj:`"text-classification"`
+                - :obj:`"question-answering"`
+
+                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})

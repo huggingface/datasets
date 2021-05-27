@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: tydi-qa
 ---
 
 # Dataset Card for "tydiqa"

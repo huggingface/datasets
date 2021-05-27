@@ -23,6 +23,7 @@ task_ids:
 - explanation-generation
 - language-modeling
 - summarization
+paperswithcode_id: recipenlg
 ---
 
 

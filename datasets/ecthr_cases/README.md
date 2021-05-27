@@ -20,6 +20,7 @@ task_ids:
 - multi-label-classification
 - text-classification-other-rationale-extraction
 - text-classification-other-legal-judgment-prediction
+paperswithcode_id: ecthr
 ---
 
 # Dataset Card for the ECtHR cases dataset

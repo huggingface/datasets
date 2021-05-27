@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 - named-entity-recognition
+paperswithcode_id: limit
 ---
 
 # Dataset Card Creation Guide

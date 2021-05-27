@@ -197,7 +197,7 @@ languages:
   - nn
   en-no:
   - en
-  - "no"
+  - 'no'
   en-oc:
   - en
   - oc
@@ -538,6 +538,7 @@ size_categories:
   - 1K<n<10K
 licenses:
 - unknown
+paperswithcode_id: opus-100
 ---
 
 # Dataset Card Creation Guide

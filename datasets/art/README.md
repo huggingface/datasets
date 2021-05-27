@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: art-dataset
 ---
 
 # Dataset Card for "art"

@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: mathematics
 ---
 
 # Dataset Card for "math_dataset"

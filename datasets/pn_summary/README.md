@@ -20,6 +20,7 @@ task_ids:
 - summarization
 - text-simplification
 - topic-classification
+paperswithcode_id: pn-summary
 ---
 
 # Dataset Card for Persian News Summary (pn_summary)

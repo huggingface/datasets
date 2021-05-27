@@ -18,6 +18,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-grammatical-error-correction
+paperswithcode_id: locness-corpus
 ---
 
 # Dataset Card for Cambridge English Write & Improve + LOCNESS Dataset

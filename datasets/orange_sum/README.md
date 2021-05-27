@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - summarization
+paperswithcode_id: orangesum
 ---
 
 # Dataset Card for OrangeSum

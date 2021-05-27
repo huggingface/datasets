@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - text-classification-other-propaganda-technique-classification
 - structure-prediction-other-propaganda-span-identification
+paperswithcode_id: null
 ---
 
 # Dataset Card Creation Guide

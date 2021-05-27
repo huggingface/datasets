@@ -20,6 +20,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-discourse-marker-prediction
+paperswithcode_id: discovery
 ---
 
 

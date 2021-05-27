@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: e-snli
 ---
 
 # Dataset Card for "esnli"

@@ -1,22 +1,23 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - other
+- other
 languages:
-  - ko
+- ko
 licenses:
-  - mit
+- mit
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 1K<n<10K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - semantic-similarity-classification
+- semantic-similarity-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for [Dataset Name]

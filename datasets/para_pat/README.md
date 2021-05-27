@@ -32,9 +32,10 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: parapat
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

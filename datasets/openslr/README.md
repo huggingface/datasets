@@ -73,6 +73,7 @@ task_categories:
 - other
 task_ids:
 - other-other-automatic-speech-recognition
+paperswithcode_id: null
 ---
 
 # Dataset Card for openslr

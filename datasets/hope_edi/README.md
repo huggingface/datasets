@@ -34,6 +34,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hope-speech-classification
+paperswithcode_id: hopeedi
 ---
 
 # Dataset Card for [Dataset Name]

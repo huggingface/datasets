@@ -22,6 +22,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 - sentiment-scoring
+paperswithcode_id: sst
 ---
 
 # Dataset Card for sst

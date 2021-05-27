@@ -386,6 +386,7 @@ task_ids:
 - conditional-text-generation-other-given-a-sentence-generate-a-paraphrase-either-in-same-language-or-another-language
 - machine-translation
 - semantic-similarity-classification
+paperswithcode_id: tapaco
 ---
 
 # Dataset Card for TaPaCo Corpus

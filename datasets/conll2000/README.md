@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: conll-2000-1
 ---
 
 # Dataset Card for "conll2000"

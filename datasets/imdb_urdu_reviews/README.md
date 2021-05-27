@@ -1,22 +1,23 @@
 ---
 annotations_creators:
-  - found
+- found
 language_creators:
-  - machine-generated
+- machine-generated
 languages:
-  - ur
+- ur
 licenses:
-  - odbl-1.0
+- odbl-1.0
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 10K<n<100K
+- 10K<n<100K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - sentiment-classification
+- sentiment-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for ImDB Urdu Reviews

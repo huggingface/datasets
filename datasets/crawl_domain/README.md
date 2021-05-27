@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - other-other-text-to-speech
 - other-other-web-search
+paperswithcode_id: common-crawl-domain-names
 ---
 
 # Dataset Card for Common Crawl Domain Names

@@ -59,7 +59,7 @@ _DESCRIPTIONS = {
     "sna": textwrap.dedent(
         """
         This dataset is a collection of Bengali News articles. The dataset is used for classifying articles into
-        5 different classes namely international, state, kolkata, entertainment and sports.
+        6 different classes namely national, international, state, kolkata, entertainment and sports.
         """
     ),
     "csqa": textwrap.dedent(

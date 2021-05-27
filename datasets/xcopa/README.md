@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: xcopa
 ---
 
 # Dataset Card for "xcopa"

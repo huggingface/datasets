@@ -27,6 +27,7 @@ task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
 - other-stuctured-to-text
+paperswithcode_id: nell
 ---
 
 # Dataset Card for Never Ending Language Learning (NELL)

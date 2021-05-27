@@ -22,6 +22,7 @@ task_categories:
 task_ids:
 - extractive-qa
 - closed-domain-qa
+paperswithcode_id: fquad
 ---
 
 # Dataset Card for "fquad"

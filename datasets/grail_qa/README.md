@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - question-answering-other-knowledge-base-qa
+paperswithcode_id: null
 ---
 
 # Dataset Card for Grail QA

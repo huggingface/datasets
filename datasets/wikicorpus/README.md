@@ -81,6 +81,7 @@ task_ids:
   - structure-prediction-other-lemmatization
   - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
+paperswithcode_id: null
 ---
 
 # Dataset Card for Wikicorpus

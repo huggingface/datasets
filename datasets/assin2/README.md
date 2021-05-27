@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
+paperswithcode_id: assin2
 ---
 
 # Dataset Card for ASSIN 2

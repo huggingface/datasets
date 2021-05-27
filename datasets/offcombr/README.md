@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hate-speech-detection
+paperswithcode_id: offcombr
 ---
 
 # Dataset Card for [Dataset Name]

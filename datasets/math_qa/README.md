@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: mathqa
 ---
 
 # Dataset Card for "math_qa"

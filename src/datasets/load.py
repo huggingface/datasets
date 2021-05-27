@@ -38,6 +38,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
+from .tasks import TaskTemplate
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -635,6 +636,7 @@ def load_dataset(
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    task: Optional[Union[str, TaskTemplate]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     """Load a dataset.
@@ -682,9 +684,10 @@ def load_dataset(
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
             dataset will be copied in-memory if its size is smaller than
-            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
-            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is not
-            loaded in memory.
+            `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled
+            (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration option
+            ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the environment variable
+            ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
@@ -694,6 +697,7 @@ def load_dataset(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
@@ -752,6 +756,9 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
+    # Rename and cast features to match task schema
+    if task is not None:
+        ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 
@@ -770,9 +777,10 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
             Instance of of the remote filesystem used to download the files from.
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
             dataset will be copied in-memory if its size is smaller than
-            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
-            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is
-            not loaded in memory.
+            `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled
+            (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration option
+            ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the environment variable
+            ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``

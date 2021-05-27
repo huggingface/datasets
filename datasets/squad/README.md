@@ -18,6 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: squad
 ---
 
 # Dataset Card for "squad"

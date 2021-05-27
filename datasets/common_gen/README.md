@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: commongen
 ---
 
 # Dataset Card for "common_gen"

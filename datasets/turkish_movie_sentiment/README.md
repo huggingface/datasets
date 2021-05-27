@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 - sentiment-scoring
+paperswithcode_id: null
 ---
 
 # Dataset Card for TurkishMovieSentiment: This dataset contains turkish movie reviews.

@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: openwebtext
 ---
 
 # Dataset Card for "openwebtext"
