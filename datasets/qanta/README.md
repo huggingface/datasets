@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: quizbowl
 ---
 
 # Dataset Card for "qanta"

@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - abstractive-qa
+paperswithcode_id: narrativeqa
 ---
 
 # Dataset Card for Narrative QA Manual

@@ -20,6 +20,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-stance-detection
+paperswithcode_id: cic
 ---
 
 # Dataset Card for Catalonia Independence Corpus

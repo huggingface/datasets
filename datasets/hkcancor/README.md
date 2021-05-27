@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 - machine-translation
+paperswithcode_id: hong-kong-cantonese-corpus
 ---
 
 # Dataset Card for The Hong Kong Cantonese Corpus (HKCanCor)

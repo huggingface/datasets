@@ -18,6 +18,7 @@ task_categories:
 - text-scoring
 task_ids:
 - semantic-similarity-scoring
+paperswithcode_id: null
 ---
 
 # Dataset Card for wordsim-353 in Yorùbá (yoruba_wordsim353)

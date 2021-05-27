@@ -50,6 +50,7 @@ from .fingerprint import (
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
     is_caching_enabled,
+    maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
@@ -239,6 +240,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
+        maybe_register_dataset_for_temp_dir_deletion(self)
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -652,9 +654,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
                 dataset will be copied in-memory if its size is smaller than
-                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and
-                in this case the dataset is not loaded in memory.
+                `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration
+                option ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the
+                environment variable ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -1509,6 +1512,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
+        desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1554,6 +1558,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
             new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
 
@@ -1598,6 +1603,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                desc=desc,
             )
         else:
 
@@ -1649,6 +1655,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
+                        desc=desc,
                     )
                     for rank in range(num_proc)
                 ]
@@ -1662,7 +1669,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1682,6 +1689,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
+        desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1720,6 +1728,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1895,7 +1904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = "#" + str(rank) if rank is not None else None
+                pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
                 if not batched:
                     for i, example in enumerate(pbar):

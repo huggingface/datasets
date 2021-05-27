@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: wnut-2017-emerging-and-rare-entity
 ---
 
 # Dataset Card for "wnut_17"

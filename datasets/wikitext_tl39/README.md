@@ -18,6 +18,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: wikitext-tl-39
 ---
 
 # Dataset Card for WikiText-TL-39

@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - parsing
+paperswithcode_id: null
 ---
 
 # Dataset Card for AMTTL

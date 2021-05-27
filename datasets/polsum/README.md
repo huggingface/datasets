@@ -1,22 +1,23 @@
 ---
-annotations_creators: 
+annotations_creators:
 - expert-generated
-language_creators: 
+language_creators:
 - expert-generated
-languages: 
+languages:
 - pl
-licenses: 
+licenses:
 - cc-by-3.0
-multilinguality: 
+multilinguality:
 - monolingual
-size_categories: 
+size_categories:
 - n<1K
-source_datasets: 
+source_datasets:
 - original
-task_categories: 
+task_categories:
 - conditional-text-generation
-task_ids: 
+task_ids:
 - summarization
+paperswithcode_id: null
 ---
 
 # Dataset Card for polsum

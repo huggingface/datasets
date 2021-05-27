@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: docred
 ---
 
 # Dataset Card for "docred"

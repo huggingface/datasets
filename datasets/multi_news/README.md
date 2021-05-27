@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: multi-news
 ---
 
 # Dataset Card for "multi_news"

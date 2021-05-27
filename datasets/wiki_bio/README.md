@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - explanation-generation
 - table-to-text
+paperswithcode_id: wikibio
 ---
 
 # Dataset Card for [Dataset Name]

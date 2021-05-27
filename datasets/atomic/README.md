@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - other-stuctured-to-text
+paperswithcode_id: atomic
 ---
 
 # Dataset Card for An Atlas of Machine Commonsense for If-Then Reasoning - Atomic Common Sense Dataset

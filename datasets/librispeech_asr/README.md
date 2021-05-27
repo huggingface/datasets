@@ -18,6 +18,7 @@ task_categories:
 - other
 task_ids:
 - other-other-automatic speech recognition
+paperswithcode_id: librispeech-1
 ---
 
 # Dataset Card for librispeech_asr

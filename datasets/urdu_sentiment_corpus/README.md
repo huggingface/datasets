@@ -1,22 +1,23 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - crowdsourced
+- crowdsourced
 languages:
-  - ur
+- ur
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 1K<n<10K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - sentiment-classification
+- sentiment-classification
+paperswithcode_id: urdu-sentiment-corpus
 ---
 
 # Dataset Card for Urdu Sentiment Corpus (USC)

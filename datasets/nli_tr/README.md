@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: nli-tr
 ---
 
 # Dataset Card for "nli_tr"

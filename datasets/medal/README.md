@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-disambiguation
+paperswithcode_id: medal
 ---
 # Dataset Card Creation Guide
 

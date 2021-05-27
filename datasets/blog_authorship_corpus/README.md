@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: blog-authorship-corpus
 ---
 
 # Dataset Card for "blog_authorship_corpus"

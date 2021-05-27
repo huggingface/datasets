@@ -23,6 +23,7 @@ task_ids:
   - extractive-qa
   search_corpus:
   - extractive-qa
+paperswithcode_id: neural-code-search-evaluation-dataset
 ---
 
 # Dataset Card for Neural Code Search

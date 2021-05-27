@@ -32,6 +32,7 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: conceptnet
 ---
 
 # Dataset Card for Conceptnet5

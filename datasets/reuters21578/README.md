@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: reuters-21578
 ---
 
 # Dataset Card for "reuters21578"

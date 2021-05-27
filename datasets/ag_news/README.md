@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: ag-news
 ---
 
 # Dataset Card for "ag_news"

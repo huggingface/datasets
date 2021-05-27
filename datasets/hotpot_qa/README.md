@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: hotpotqa
 ---
 
 # Dataset Card for "hotpot_qa"

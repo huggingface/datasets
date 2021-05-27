@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 - extractive-qa
+paperswithcode_id: quac
 ---
 
 # Dataset Card Creation Guide

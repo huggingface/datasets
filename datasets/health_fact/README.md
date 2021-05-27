@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 - multi-class-classification
+paperswithcode_id: pubhealth
 ---
 
 # Dataset Card for PUBHEALTH

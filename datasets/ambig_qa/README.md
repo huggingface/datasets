@@ -18,6 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: ambigqa
 ---
 
 # Dataset Card for AmbigQA: Answering Ambiguous Open-domain Questions

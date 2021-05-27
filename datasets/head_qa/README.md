@@ -20,6 +20,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: headqa
 ---
 
 # Dataset Card for HEAD-QA

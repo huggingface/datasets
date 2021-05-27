@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - natural-language-inference
+paperswithcode_id: newsph-nli
 ---
 
 # Dataset Card for NewsPH NLI

@@ -24,6 +24,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - dialogue-modeling
+paperswithcode_id: mdd
 ---
 
 # Dataset Card for MDD

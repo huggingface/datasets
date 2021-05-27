@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-meaning-representtion-to-text
+paperswithcode_id: e2e
 ---
 
 # Dataset Card Creation Guide

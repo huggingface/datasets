@@ -368,6 +368,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: wikiann-1
 ---
 
 # Dataset Card for WikiANN

@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: semeval-2010-task-8
 ---
 
 # Dataset Card for "sem_eval_2010_task_8"
