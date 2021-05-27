@@ -233,4 +233,5 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="datasets machine learning datasets metrics",
+    zip_safe=False,  # Required for mypy to find the py.typed file
 )
