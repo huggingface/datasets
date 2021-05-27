@@ -4,12 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- go
-- java
-- javascript
-- ruby
-- python
-- php
+- code
 licenses:
 - other-C-UDA
 multilinguality:
