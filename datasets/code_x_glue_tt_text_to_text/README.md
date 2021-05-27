@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - da
-- no
+- nb
 - lv
 - zh
 - en
