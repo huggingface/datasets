@@ -687,10 +687,10 @@ class DatasetDict(dict):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
                 dataset will be copied in-memory if its size is smaller than
-                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
                 disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration
-                option ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the environment
-                variable ``MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
+                option ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the environment
+                variable ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
 
         Returns:
             :class:`DatasetDict`
