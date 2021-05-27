@@ -26,7 +26,7 @@ import datasets
 
 _KLUE_CITATION = """\
 @misc{park2021klue,
-      title={KLUE: Korean Language Understanding Evaluation}, 
+      title={KLUE: Korean Language Understanding Evaluation},
       author={Sungjoon Park and Jihyung Moon and Sungdong Kim and Won Ik Cho and Jiyoon Han and Jangwon Park and Chisung Song and Junseong Kim and Yongsook Song and Taehwan Oh and Joohong Lee and Juhyun Oh and Sungwon Lyu and Younghoon Jeong and Inkwon Lee and Sangwoo Seo and Dongjun Lee and Hyunwoo Kim and Myeonghwa Lee and Seongbo Jang and Seungwon Do and Sunkyoung Kim and Kyungtae Lim and Jongwon Lee and Kyumin Park and Jamin Shin and Seonghyun Kim and Lucy Park and Alice Oh and Jungwoo Ha and Kyunghyun Cho},
       year={2021},
       eprint={2105.09680},
@@ -37,7 +37,7 @@ _KLUE_CITATION = """\
 
 _KLUE_DESCRIPTION = """\
 KLUE (Korean Language Understanding Evaluation)
-Korean Language Understanding Evaluation (KLUE) benchmark is a series of datasets to evaluate natural language 
+Korean Language Understanding Evaluation (KLUE) benchmark is a series of datasets to evaluate natural language
 understanding capability of Korean language models. KLUE consists of 8 diverse and representative tasks, which are accessible
 to anyone without any restrictions. With ethical considerations in mind, we deliberately design annotation guidelines to obtain
 unambiguous annotations for all datasets. Futhermore, we build an evaluation system and carefully choose evaluations metrics
@@ -113,14 +113,14 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            In topic classification (TC), the goal is to predict the topic of a given text 
-            snippet. We include TC in our KLUE benchmark, as inferring the topic of a text is a key 
-            capability that should be possessed by a language understanding system. 
-            Following a typical single  sentence classification task, we introduce YNAT, a Younhap 
-            News Agency news headlines for Topic Classification. For Korean, no dataset has been 
-            proposed for this task, which motivates us to construct the first Korean topic 
-            classification benchmark. In this task, given a news headline, a text classifier must 
-            predict a topic which is one of politics, economy, society, culture, world, IT/science, 
+            In topic classification (TC), the goal is to predict the topic of a given text
+            snippet. We include TC in our KLUE benchmark, as inferring the topic of a text is a key
+            capability that should be possessed by a language understanding system.
+            Following a typical single  sentence classification task, we introduce YNAT, a Younhap
+            News Agency news headlines for Topic Classification. For Korean, no dataset has been
+            proposed for this task, which motivates us to construct the first Korean topic
+            classification benchmark. In this task, given a news headline, a text classifier must
+            predict a topic which is one of politics, economy, society, culture, world, IT/science,
             and sports. Macro-F1 score is used to evaluate a system."""
             ),
             data_url=_DATA_URLs["ynat"],
@@ -150,9 +150,9 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            STS is a task which aims to predict the semantic similarity of two input sentences as 
-            a real value between 0 and 5. Note that we furthure binarized the prediction scores 
-            into two classes with a threshold score 3.0 (paraphrased or not) and evaluated with 
+            STS is a task which aims to predict the semantic similarity of two input sentences as
+            a real value between 0 and 5. Note that we furthure binarized the prediction scores
+            into two classes with a threshold score 3.0 (paraphrased or not) and evaluated with
             a classification metric.
             """
             ),
@@ -179,8 +179,8 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            NLI is a task to infer the relationship between a hypothesis sentence and a premise 
-            sentence. Given the premise, the model determines if the hypothesis is true (entailment), 
+            NLI is a task to infer the relationship between a hypothesis sentence and a premise
+            sentence. Given the premise, the model determines if the hypothesis is true (entailment),
             false (contradiction), or undetermined (neutral).
             """
             ),
@@ -218,7 +218,7 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            NER is a task to detect the boundaries of named entities in unstructured text and to 
+            NER is a task to detect the boundaries of named entities in unstructured text and to
             classify the types. A named entity can be of one of predefined entity types such as
             person, location, organization, time expressions, quantities and monetary values.
             """
@@ -285,8 +285,8 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            RE is a task to identify semantic relations between entity pairs in a text. The relation 
-            is defined between an entity pair consisting of subject entity and object entity. 
+            RE is a task to identify semantic relations between entity pairs in a text. The relation
+            is defined between an entity pair consisting of subject entity and object entity.
             The goal is then to pick an appropriate relationship between these two entities.
             """
             ),
@@ -310,8 +310,8 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            DP is a task that aims at finding relational information among words. 
-            The goal is to predict a graph structure and a dependency label of an input sentence 
+            DP is a task that aims at finding relational information among words.
+            The goal is to predict a graph structure and a dependency label of an input sentence
             based on the dependency grammar.
             """
             ),
@@ -348,8 +348,8 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            MRC is a task of evaluating model that can answer a question about a given text 
-            passage. Specifically, we formulate the task as a span prediction task, where the 
+            MRC is a task of evaluating model that can answer a question about a given text
+            passage. Specifically, we formulate the task as a span prediction task, where the
             answer is a text segment (coined as spans) in the passage.
             """
             ),
@@ -375,8 +375,8 @@ class Klue(datasets.GeneratorBasedBuilder):
             },
             description=textwrap.dedent(
                 """\
-            DST is a task to predict slot and value pairs (dialogue states) from a task-oriented 
-            dialogue. The potential pairs are predefined by a given task schema and knowledge 
+            DST is a task to predict slot and value pairs (dialogue states) from a task-oriented
+            dialogue. The potential pairs are predefined by a given task schema and knowledge
             base (KB).
             """
             ),
