@@ -144,7 +144,9 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+DailyDialog dataset is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original. Any third party annotation is welcome. Note the dataset may not be adopted for commercial use.
 
 ### Citation Information
 
