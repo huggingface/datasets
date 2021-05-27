@@ -706,7 +706,8 @@ class BaseDatasetTest(TestCase):
         task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
         info = DatasetInfo(
             features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
-            task_templates=task_template,
+            # Label names are added in `DatasetInfo.__post_init__` so not included here
+            task_templates=TextClassification(text_column="text", label_column="labels"),
         )
         data = {"text": ["i love transformers!"], "labels": [1]}
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2020,7 +2021,7 @@ class BaseDatasetTest(TestCase):
                 "input_labels": ClassLabel(names=labels),
             }
         )
-        # Labels are cast to tuple during TextClassification init, so we do the same here
+        # Labels are cast to tuple during `TextClassification.__init_`, so we do the same here
         features_after_cast = Features(
             {
                 "text": Value("string"),
