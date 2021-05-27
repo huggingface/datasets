@@ -1,6 +1,8 @@
 ---
-annotations_creators: []
-language_creators: []
+annotations_creators: 
+- crowdsourced
+language_creators: 
+- found
 languages:
 - de
 licenses:
@@ -15,7 +17,6 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-paperswithcode_id: null
 ---
 
 # Dataset Card Creation Guide
@@ -23,12 +24,12 @@ paperswithcode_id: null
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -62,30 +63,35 @@ paperswithcode_id: null
 
 ### Languages
 
-[More Information Needed]
+German
 
 ## Dataset Structure
 
 ### Data Instances
 
-Here are some examples of questions and facts:
+An example instance looks as follows:
 
-* What American cartoonist is the creator of Andy Lippincott?
-  Fact: (andy_lippincott, character_created_by, garry_trudeau) 
-* Which forest is Fires Creek in?
-  Fact: (fires_creek, containedby, nantahala_national_forest)
-* What does Jimmy Neutron do?
-  Fact: (jimmy_neutron, fictional_character_occupation, inventor)
-* What dietary restriction is incompatible with kimchi?
-  Fact: (kimchi, incompatible_with_dietary_restrictions, veganism)
+```
+{
+  'id': '3', 
+  'ner_tags': [1, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], 
+  'tokens': ['Bayern', 'München', 'ist', 'wieder', 'alleiniger', 'Top-', 'Favorit', 'auf', 'den', 'Gewinn', 'der', 'deutschen', 'Fußball-Meisterschaft', '.']
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+Each instance in the dataset has:
+- an id
+- sequence of tokens
+- NER tags for each token (encoded as IOB)
+
+NER tags can be: 'B-LOC', 'B-ORG', 'B-OTH', 'B-PER', 'I-LOC', 'I-ORG', 'I-OTH', 'I-PER', 'O'
 
 ### Data Splits
 
-[More Information Needed]
+Dataset provides only train part (26200 data instances).
+
 ## Dataset Creation
 
 ### Curation Rationale
