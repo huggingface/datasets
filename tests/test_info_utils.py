@@ -16,7 +16,9 @@ def test_is_small_dataset(
     dataset_size, config_max_in_memory_dataset_size, env_max_in_memory_dataset_size, monkeypatch
 ):
     if config_max_in_memory_dataset_size != "default":
-        monkeypatch.setattr(datasets.config, "HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", config_max_in_memory_dataset_size)
+        monkeypatch.setattr(
+            datasets.config, "HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", config_max_in_memory_dataset_size
+        )
 
     max_in_memory_dataset_size = datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
     if config_max_in_memory_dataset_size == "default":
