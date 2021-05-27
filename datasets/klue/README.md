@@ -229,33 +229,33 @@ An example of 'train' looks as follows.
 
 ### Data Fields
 
-[Needs More Information]
+You can see data fields in [here](https://github.com/KLUE-benchmark/KLUE/wiki).
 
 ### Data Splits
 
 #### ynat
-You can check data description in [here](https://klue-benchmark.com/tasks/66/data/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/66/data/description).
 
 #### sts
-You can check data description in [here](https://klue-benchmark.com/tasks/67/data/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/67/data/description).
 
 #### nli
-You can check data description in [here](https://klue-benchmark.com/tasks/68/data/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/68/data/description).
 
 #### ner
-You can check data description in [here](https://klue-benchmark.com/tasks/69/overview/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/69/overview/description).
 
 #### re
-You can check data description in [here](https://klue-benchmark.com/tasks/70/overview/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/70/overview/description).
 
 #### dp
-You can check data description in [here](https://klue-benchmark.com/tasks/71/data/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/71/data/description).
 
 #### mrc
-You can check data description in [here](https://klue-benchmark.com/tasks/72/overview/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/72/overview/description).
 
 #### wos
-You can check data description in [here](https://klue-benchmark.com/tasks/73/overview/description).
+You can see data description in [here](https://klue-benchmark.com/tasks/73/overview/description).
 
 
 ## Dataset Creation
