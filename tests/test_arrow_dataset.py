@@ -2030,13 +2030,28 @@ class BaseDatasetTest(TestCase):
         )
         # Label names are added in `DatasetInfo.__post_init__` so not needed here
         task_without_labels = TextClassification(text_column="input_text", label_column="input_labels")
-        info = DatasetInfo(
+        info1 = DatasetInfo(
             features=features_before_cast,
             task_templates=task_without_labels,
         )
+        # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
+        # However they also can be used to define `DatasetInfo` so we include a test for this too
+        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        info2 = DatasetInfo(
+            features=features_before_cast,
+            task_templates=task_with_labels,
+        )
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
-        # Test we can load from task name
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+        # Test we can load from task name when label names not included in template (default behaviour)
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info1) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+                self.assertDictEqual(features_before_cast, dset.features)
+                with dset.prepare_for_task(task="text-classification") as dset:
+                    self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                    self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from task name when label names included in template
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info2) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
                 self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
                 self.assertDictEqual(features_before_cast, dset.features)
@@ -2044,10 +2059,8 @@ class BaseDatasetTest(TestCase):
                     self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                     self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from TextClassification template
-        info.task_templates = None
-        # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
-        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+        info1.task_templates = None
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info1) as dset:
             with dset.prepare_for_task(task=task_with_labels) as dset:
                 self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
