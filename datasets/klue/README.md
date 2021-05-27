@@ -10,10 +10,29 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
+- 10K<n<100K
+source_datasets:
 - unknown
 task_categories:
   ynat:
   - text-classification
+  sts:
+  - text-scoring
+  nli:
+  - text-classification
+  ner:
+  - structure-prediction
+  re:
+  - structure-prediction
+  dp:
+  - structure-prediction
+  mrc:
+  - question-answering
+  wos:
+  - sequence-modeling
+task_ids:
+  ynat:
+  - topic-classification
   sts:
   - semantic-similarity-scoring
   nli:
@@ -21,7 +40,7 @@ task_categories:
   ner:
   - named-entity-recognition
   re:
-  - relation-extraction
+  - coreference-resolution
   dp:
   - parsing
   mrc:
