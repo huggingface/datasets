@@ -22,7 +22,8 @@ size_categories:
   - 100K<n<1M
   ruby:
   - 10K<n<100K
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - conditional-text-generation
 task_ids:
