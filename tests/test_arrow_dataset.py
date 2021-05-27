@@ -2021,7 +2021,7 @@ class BaseDatasetTest(TestCase):
                 "input_labels": ClassLabel(names=labels),
             }
         )
-        # Labels are cast to tuple during `TextClassification.__init_`, so we do the same here
+        # Labels are cast to tuple during `TextClassification.__post_init_`, so we do the same here
         features_after_cast = Features(
             {
                 "text": Value("string"),
