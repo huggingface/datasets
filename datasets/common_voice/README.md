@@ -195,6 +195,7 @@ task_categories:
 - other
 task_ids:
 - other-other-automatic-speech-recognition
+paperswithcode_id: common-voice
 ---
 
 # Dataset Card for common_voice

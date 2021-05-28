@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 - question-answering-other-multi-hop
+paperswithcode_id: wikihop
 ---
 
 # Dataset Card Creation Guide

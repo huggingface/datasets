@@ -316,3 +316,80 @@ class TestMetadataUtils(unittest.TestCase):
         )
         with self.assertRaises(TypeError):
             DatasetMetadata.from_yaml_string(valid_yaml_string_with_duplicate_configs)
+
+        valid_yaml_string_with_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id: squad
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_paperswithcode_id)
+
+        valid_yaml_string_with_null_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id: null
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_null_paperswithcode_id)
+
+        valid_yaml_string_with_list_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+        with self.assertRaises(TypeError):
+            DatasetMetadata.from_yaml_string(valid_yaml_string_with_list_paperswithcode_id)

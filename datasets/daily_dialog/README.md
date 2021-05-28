@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: dailydialog
 ---
 
 # Dataset Card for "daily_dialog"

@@ -5,27 +5,27 @@ language_creators:
 - crowdsourced
 - expert-generated
 languages:
-- "fr"
-- "de"
-- "es"
-- "ca"
-- "it"
-- "ru"
-- "zh-CN"
-- "pt"
-- "fa"
-- "et"
-- "mn"
-- "nl"
-- "tr"
-- "ar"
-- "sv-SE"
-- "lv"
-- "sl"
-- "ta"
-- "ja"
-- "id"
-- "cy"
+- fr
+- de
+- es
+- ca
+- it
+- ru
+- zh-CN
+- pt
+- fa
+- et
+- mn
+- nl
+- tr
+- ar
+- sv-SE
+- lv
+- sl
+- ta
+- ja
+- id
+- cy
 licenses:
 - cc-by-nc-4.0
 multilinguality:
@@ -38,6 +38,7 @@ task_categories:
 - other
 task_ids:
 - other-other-speech-translation
+paperswithcode_id: null
 ---
 
 # Dataset Card for covost2

@@ -36,6 +36,7 @@ task_ids:
 - multi-label-classification
 - summarization
 - topic-classification
+paperswithcode_id: mlsum
 ---
 
 # Dataset Card for "mlsum"

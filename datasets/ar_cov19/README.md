@@ -15,6 +15,7 @@ task_categories:
 - other
 task_ids:
 - other-other-data-mining
+paperswithcode_id: arcov-19
 ---
 
 # Dataset Card for ArCOV19

@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: korquad
 ---
 
 # Dataset Card for KorQuAD v1.0

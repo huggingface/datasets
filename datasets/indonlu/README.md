@@ -86,6 +86,7 @@ task_ids:
   - structure-prediction-other-span-extraction
   wrete:
   - semantic-similarity-classification
+paperswithcode_id: indonlu-benchmark
 ---
 
 

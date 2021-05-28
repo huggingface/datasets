@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: newsroom
 ---
 
 # Dataset Card for "newsroom"

@@ -279,6 +279,7 @@ task_ids:
   - summarization
   xsum:
   - summarization
+paperswithcode_id: gem
 ---
 
 # Dataset Card for "gem"

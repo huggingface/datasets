@@ -18,6 +18,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-stuctured-to-text
+paperswithcode_id: spider-1
 ---
 
 

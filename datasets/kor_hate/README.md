@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
+paperswithcode_id: korean-hatespeech-dataset
 ---
 
 # Dataset Card for [Dataset Name]

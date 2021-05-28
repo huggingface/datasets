@@ -23,6 +23,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: mrqa-2019
 ---
 
 # Dataset Card Creation Guide

@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: winogrande
 ---
 
 # Dataset Card for "winogrande"

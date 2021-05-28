@@ -18,6 +18,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: ronec
 ---
 
 # Dataset Card for RONEC

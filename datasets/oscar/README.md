@@ -116,7 +116,7 @@ languages:
 - new
 - nl
 - nn
-- "no"
+- 'no'
 - oc
 - or
 - os
@@ -845,6 +845,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: oscar
 ---
 
 # Dataset Card for "oscar"

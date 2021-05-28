@@ -44,6 +44,7 @@ task_ids:
   - multiple-choice-qa
   raw:
   - other-other-raw-dataset
+paperswithcode_id: cbt
 ---
 
 # Dataset Card for CBT

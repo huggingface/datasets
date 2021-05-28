@@ -30,6 +30,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: bianet
 ---
 
 # Dataset Card for [Dataset Name]

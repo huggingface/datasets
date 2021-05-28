@@ -200,6 +200,7 @@ task_ids:
   wow:
   - dialogue-modeling
   - document-retrieval
+paperswithcode_id: kilt
 ---
 
 # Dataset Card for KILT

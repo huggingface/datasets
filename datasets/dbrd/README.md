@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - language-modeling
 - sentiment-classification
+paperswithcode_id: dbrd
 ---
 
 # Dataset Card Creation Guide

@@ -2,7 +2,9 @@ import inspect
 import json
 import os
 import random
+import shutil
 import tempfile
+import weakref
 from dataclasses import asdict
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -39,7 +41,55 @@ logger = get_logger(__name__)
 #################
 
 _CACHING_ENABLED = True
-_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional[tempfile.TemporaryDirectory] = None
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempDirWithCustomCleanup"] = None
+_DATASETS_WITH_TABLE_IN_TEMP_DIR: Optional[weakref.WeakSet] = None
+
+
+class _TempDirWithCustomCleanup:
+    """
+    A temporary directory with a custom cleanup function.
+    We need a custom temporary directory cleanup in order to delete the dataset objects that have
+    cache files in the temporary directory before deleting the dorectory itself.
+    """
+
+    def __init__(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
+        self.name = tempfile.mkdtemp()
+        self._finalizer = weakref.finalize(self, self._cleanup)
+        self._cleanup_func = cleanup_func
+        self._cleanup_func_args = cleanup_func_args
+        self._cleanup_func_kwargs = cleanup_func_kwargs
+
+    def _cleanup(self):
+        self._cleanup_func(*self._cleanup_func_args, **self._cleanup_func_kwargs)
+        if os.path.exists(self.name):
+            shutil.rmtree(self.name)
+
+    def cleanup(self):
+        if self._finalizer.detach():
+            self._cleanup()
+
+
+def maybe_register_dataset_for_temp_dir_deletion(dataset):
+    """
+    This function registers the datasets that have cache files in _TEMP_DIR_FOR_TEMP_CACHE_FILES in order
+    to properly delete them before deleting the temporary directory.
+    The temporary directory _TEMP_DIR_FOR_TEMP_CACHE_FILES is used when caching is disabled.
+    """
+    if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
+        return
+
+    global _DATASETS_WITH_TABLE_IN_TEMP_DIR
+    if _DATASETS_WITH_TABLE_IN_TEMP_DIR is None:
+        _DATASETS_WITH_TABLE_IN_TEMP_DIR = weakref.WeakSet()
+    if any(
+        os.path.samefile(os.path.dirname(cache_file["filename"]), _TEMP_DIR_FOR_TEMP_CACHE_FILES.name)
+        for cache_file in dataset.cache_files
+    ):
+        _DATASETS_WITH_TABLE_IN_TEMP_DIR.add(dataset)
+
+
+def get_datasets_with_cache_file_in_temp_dir():
+    return list(_DATASETS_WITH_TABLE_IN_TEMP_DIR) if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None else []
 
 
 def set_caching_enabled(boolean: bool):
@@ -85,10 +135,17 @@ def is_caching_enabled() -> bool:
 
 
 def get_temporary_cache_files_directory() -> str:
-    """Return a directory that is deleted when session closes"""
+    """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-        _TEMP_DIR_FOR_TEMP_CACHE_FILES = tempfile.TemporaryDirectory()
+
+        # Avoids a PermissionError on Windows caused by the datasets referencing
+        # the files from the cache directory on clean-up
+        def cleanup_func():
+            for dset in get_datasets_with_cache_file_in_temp_dir():
+                dset.__del__()
+
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempDirWithCustomCleanup(cleanup_func=cleanup_func)
     return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
 
 

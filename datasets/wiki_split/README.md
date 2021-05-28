@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: wikisplit
 ---
 
 # Dataset Card for "wiki_split"

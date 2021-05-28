@@ -99,6 +99,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-gender-bias
+paperswithcode_id: md-gender
 ---
 
 # Dataset Card for Multi-Dimensional Gender Bias Classification

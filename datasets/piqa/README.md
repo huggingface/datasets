@@ -18,6 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: piqa
 ---
 
 # Dataset Card Creation Guide

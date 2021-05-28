@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: persent
 ---
 
 # Dataset Card for PerSenT

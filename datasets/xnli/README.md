@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: xnli
 ---
 
 # Dataset Card for "xnli"

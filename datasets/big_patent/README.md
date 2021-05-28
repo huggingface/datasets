@@ -28,7 +28,7 @@ size_categories:
   - 100K<n<1M
   h:
   - 100K<n<1M
-  'y':
+  y:
   - 100K<n<1M
 source_datasets:
 - original
@@ -36,6 +36,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - summarization
+paperswithcode_id: bigpatent
 ---
 
 # Dataset Card for Big Patent

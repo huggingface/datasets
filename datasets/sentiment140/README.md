@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: sentiment140
 ---
 
 # Dataset Card for "sentiment140"

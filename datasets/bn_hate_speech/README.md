@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hate-speech-topic-classification
+paperswithcode_id: bengali-hate-speech
 ---
 
 # Dataset Card for Bengali Hate Speech Dataset
