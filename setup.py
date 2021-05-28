@@ -216,7 +216,7 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
+    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
@@ -233,4 +233,5 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="datasets machine learning datasets metrics",
+    zip_safe=False,  # Required for mypy to find the py.typed file
 )
