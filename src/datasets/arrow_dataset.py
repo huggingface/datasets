@@ -640,7 +640,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with fs.open(
             Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
+            sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
+            json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod

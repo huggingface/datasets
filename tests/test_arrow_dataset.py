@@ -83,25 +83,29 @@ class BaseDatasetTest(TestCase):
         self._caplog = caplog
 
     def _create_dummy_dataset(
-        self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False
+        self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False, nested_features=False
     ) -> Dataset:
+        assert int(multiple_columns) + int(array_features) + int(nested_features) < 2
         if multiple_columns:
-            if array_features:
-                data = {
-                    "col_1": [[[True, False], [False, True]]] * 4,  # 2D
-                    "col_2": [[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]] * 4,  # 3D array
-                    "col_3": [[3, 2, 1, 0]] * 4,  # Sequence
+            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
+            dset = Dataset.from_dict(data)
+        elif array_features:
+            data = {
+                "col_1": [[[True, False], [False, True]]] * 4,  # 2D
+                "col_2": [[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]] * 4,  # 3D array
+                "col_3": [[3, 2, 1, 0]] * 4,  # Sequence
+            }
+            features = Features(
+                {
+                    "col_1": Array2D(shape=(2, 2), dtype="bool"),
+                    "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
+                    "col_3": Sequence(feature=Value("int64")),
                 }
-                features = Features(
-                    {
-                        "col_1": Array2D(shape=(2, 2), dtype="bool"),
-                        "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                        "col_3": Sequence(feature=Value("int64")),
-                    }
-                )
-            else:
-                data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
-                features = None
+            )
+            dset = Dataset.from_dict(data, features=features)
+        elif nested_features:
+            data = {"nested": [{"a": i, "x": i * 10, "c": i * 100} for i in range(1, 11)]}
+            features = Features({"nested": {"a": Value("int64"), "x": Value("int64"), "c": Value("int64")}})
             dset = Dataset.from_dict(data, features=features)
         else:
             dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
@@ -139,7 +143,7 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset["col_1"][0], 3)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True) as dset:
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
                 self.assertDictEqual(
                     dset.features,
                     Features(
@@ -248,6 +252,19 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, nested_features=True) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(
+                    dset.features,
+                    Features({"nested": {"a": Value("int64"), "x": Value("int64"), "c": Value("int64")}}),
+                )
+                self.assertDictEqual(dset[0]["nested"], {"a": 1, "c": 100, "x": 10})
+                self.assertDictEqual(dset["nested"][0], {"a": 1, "c": 100, "x": 10})
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -453,7 +470,7 @@ class BaseDatasetTest(TestCase):
                     assert_arrow_metadata_are_synced_with_dataset_features(casted_dset)
 
             # Test raises if feature is an array / sequence
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True) as dset:
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
                 for column in dset.column_names:
                     with self.assertRaises(ValueError):
                         dset.class_encode_column(column)
@@ -1597,7 +1614,7 @@ class BaseDatasetTest(TestCase):
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
 
             # With array features
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True, array_features=True) as dset:
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_path.csv")
                 bytes_written = dset.to_csv(path_or_buf=file_path)
 
